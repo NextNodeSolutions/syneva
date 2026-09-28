@@ -1,21 +1,15 @@
 import { currentFileOrNull } from '@entities/review/changes'
-import {
-	cur,
-	loadCurrentContents,
-	peekContents,
-} from '@entities/review/file/contents'
+import { loadCurrentContents } from '@entities/review/file/contents'
 import { isMarkdownPath } from '@entities/review/file/file-summary'
 import { fileMovedPure, movedFrom } from '@entities/review/file/renames'
 import { hasGuide } from '@entities/review/guide/guide'
 import { restoreComposerFocus } from '@features/manage-comment/composer'
-import { isExpandCapped, newLines } from '@shared/diff-renderer/expand-cap'
 import { $ } from '@shared/lib/dom'
 import { esc } from '@shared/lib/esc'
 import { perfMark } from '@shared/lib/perf'
 import { registerRenderFunnel } from '@shared/lib/render-scheduler'
 import { consumePendingJump } from '@widgets/diff-view/comment-jump'
 import { cursorReset } from '@widgets/diff-view/cursor'
-import { diffKey } from '@widgets/diff-view/diff-key'
 import { renderMarkdownFile } from '@widgets/diff-view/mdfile'
 import { renderMovedPure } from '@widgets/diff-view/moved-note'
 import {
@@ -52,15 +46,10 @@ let renderSequence = 0
 // same window are folded into the scheduled render.
 let isDeferredRenderPending = false
 
-// The current render's view flags, read from the store (see DiffView). The expand-unchanged
-// preference is respected only under the whole-file paint cap: past EXPAND_LINES_MAX the diff
-// renders hunks-only and the header notes the cap (file-header.ts), so a 10k-line file can't
-// storm the tab with tens of thousands of DOM cells - every render pass rebuilds synchronously.
 function currentView(): DiffView {
-	const wantsExpand = deskCtx().S.settings.unchangedLines === 'expand'
 	return {
 		isPreviewing: !!deskCtx().S.preview,
-		isExpandedUnchanged: wantsExpand && !isExpandCapped(cur.newContents),
+		isExpandedUnchanged: deskCtx().S.settings.unchangedLines === 'expand',
 	}
 }
 
@@ -68,61 +57,24 @@ function currentView(): DiffView {
 // gate that decides what #diff shows for the current file. The diff itself is rendered by the
 // @pierre island (render/diff-instance.ts); the header builders live in render/file-header.ts.
 
-// A diff that would block longer than ~this many lines of tokenization shows the indicator.
-const RENDER_INDICATOR_MIN_LINES = 400
-
-// Run render() but first paint a "Rendering…" indicator when the current file is big enough to
-// block on tokenization - used by file switches and Reset (both can re-tokenize). The double rAF
-// is required: the indicator must paint *before* the synchronous Shiki work begins.
-// `isForcedIfBig` shows it for any big file (Reset re-tokenizes even when the diff key is cached);
-// otherwise a fast cached re-open skips the badge to avoid an appear-then-vanish flash.
-export function deferRender(isForcedIfBig = false): void {
-	const file = currentFileOrNull(
-		deskCtx().S.state?.files,
-		deskCtx().S.preview,
-		deskCtx().S.fileIndex,
-	)
-	const view = currentView()
-	// Contents arrive via a per-file fetch (see contents.ts). When they aren't warm yet the upcoming
-	// render() gates on that fetch, so show the indicator; when they are, decide on size as before.
-	// peekContents never fetches, so this stays synchronous.
-	const warm = file ? peekContents(file, deskCtx().S.preview) : null
-	const isBig =
-		!!warm &&
-		Math.max(newLines(warm.oldContents), newLines(warm.newContents)) >
-			RENDER_INDICATOR_MIN_LINES
-	// A cached diff key means the coming render re-mounts an existing instance: no tokenizing.
-	const reusesCache =
-		!!file &&
-		!isForcedIfBig &&
-		deskCtx().D.diffCache.has(diffKey(file, view))
-	deskCtx().S.rendering =
-		deskCtx().S.rendering || (!!file && (!warm || (isBig && !reusesCache)))
-	// Idempotent per frame: every caller in one tick folds into ONE scheduled render,
-	// so N mutations never schedule N full rebuilds, and the indicator clears only when
-	// that render finishes. Each call still makes its own indicator decision first (the
-	// forced path sets S.rendering synchronously above).
+// Schedule one render for mutations made in the same frame.
+export function deferRender(): void {
 	if (isDeferredRenderPending) return
 	isDeferredRenderPending = true
 	requestAnimationFrame(() =>
 		requestAnimationFrame(() => {
 			isDeferredRenderPending = false
-			void (async () => {
-				try {
-					await render()
-				} finally {
-					deskCtx().S.rendering = false
-				}
-			})()
+			void render()
 		}),
 	)
 }
 
-// Drop the active handle and line map before a replacement view owns #diff. Window callbacks
-// ignore inactive instances; the next diff mount disposes the detached entry.
+// Release the previous renderer before another view takes over the pane.
 function detachDiffInstance(): void {
 	clearOverviewRuler()
+	deskCtx().D.instance?.cleanUp()
 	deskCtx().D.instance = null
+	deskCtx().D.fileDiff = null
 	deskCtx().D.lineMap = null
 }
 

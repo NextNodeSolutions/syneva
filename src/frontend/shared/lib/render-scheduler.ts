@@ -5,7 +5,7 @@
 // request is a bug, so it fails loudly.
 type RenderFunnel = {
 	render: () => Promise<void>
-	deferRender: (isForcedIfBig?: boolean) => void
+	deferRender: () => void
 }
 
 let funnel: RenderFunnel | null = null
@@ -24,6 +24,6 @@ export function render(): Promise<void> {
 	return needFunnel().render()
 }
 
-export function deferRender(isForcedIfBig = false): void {
-	needFunnel().deferRender(isForcedIfBig)
+export function deferRender(): void {
+	needFunnel().deferRender()
 }

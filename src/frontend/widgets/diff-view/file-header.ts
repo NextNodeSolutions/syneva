@@ -1,6 +1,5 @@
 import { currentFile } from '@entities/review/changes'
 import { fileFinished, fileObjections } from '@entities/review/changes'
-import { cur } from '@entities/review/file/contents'
 import { currentSplittable } from '@entities/review/file/contents'
 import { movedFrom } from '@entities/review/file/renames'
 import { currentGuideEntry, hasGuide } from '@entities/review/guide/guide'
@@ -9,11 +8,6 @@ import {
 	resetReview,
 } from '@features/decide-change/decisions'
 import { getIconForType, SVGSpriteSheet } from '@pierre/diffs'
-import {
-	isExpandCapped,
-	EXPAND_LINES_MAX,
-	newLines,
-} from '@shared/diff-renderer/expand-cap'
 
 import { blockersChip } from './blockers'
 import {
@@ -182,20 +176,6 @@ function diffCounts(file: FileDiffMetadata): HTMLElement {
 	return counts
 }
 
-// The expand view cap chip (see currentView in render.ts): the setting promises every row, the
-// paint delivers hunks only past the line budget - surface the compromise where it hurts.
-function expandCapChip(): HTMLElement | null {
-	const isCapped =
-		diffCtx().S.settings.unchangedLines === 'expand' &&
-		isExpandCapped(cur.newContents)
-	if (!isCapped) return null
-	const capped = document.createElement('span')
-	capped.className = 'ghdr-moved'
-	capped.title = `Expand view is capped at ${EXPAND_LINES_MAX.toLocaleString()} lines - this file has ${newLines(cur.newContents).toLocaleString()}`
-	capped.textContent = 'expand capped'
-	return capped
-}
-
 // Row 1 of a changed file's header: icon, path, rename note, layout toggle, editor button, the
 // +/- counts and the file's actions.
 function headerRow(file: FileDiffMetadata): HTMLElement {
@@ -235,8 +215,6 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 	grow.className = 'ghdr-grow'
 	row.appendChild(grow)
 	row.appendChild(diffCounts(file))
-	const capped = expandCapChip()
-	if (capped) row.appendChild(capped)
 	const actions = headerActions()
 	actions.className = 'ghdr-actions'
 	row.appendChild(actions)

@@ -152,10 +152,8 @@ export async function resetReview(path: string): Promise<void> {
 		Object.entries(hashes).filter(([hashedPath]) => hashedPath !== path),
 	)
 	state.stagedFiles = state.stagedFiles.filter(p => p !== path)
-	// Reset restores hunks the approval had collapsed, which re-tokenizes a big file - show the
-	// "Rendering…" indicator during it (deferRender(true) shows it for any big file).
 	await unstagePath(path)
-	deferRender(true)
+	deferRender()
 	featureCtx().toast('Reset review')
 	featureCtx().persist()
 }

@@ -29,7 +29,6 @@ import {
 	serveIndex,
 	serveUiBundle,
 	serveUiChunk,
-	serveWorkerBundle,
 } from './routes/static.js'
 
 import type { RouteTable } from './router.js'
@@ -42,7 +41,6 @@ export const routes: RouteTable = {
 	[`GET ${STATIC_PATHS.index}`]: serveIndex,
 	[`GET ${STATIC_PATHS.bundle}`]: serveUiBundle,
 	[`GET ${STATIC_PATHS.chunksPrefix}*`]: serveUiChunk,
-	[`GET ${STATIC_PATHS.worker}`]: serveWorkerBundle,
 	[`GET ${STATIC_PATHS.favicon}`]: serveFavicon,
 	[`GET ${API_PATHS.poll}`]: servePoll,
 	[`GET ${API_PATHS.state}`]: serveState,

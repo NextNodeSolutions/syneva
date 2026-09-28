@@ -18,7 +18,6 @@ export interface ChromeStoreView {
 	foldExpanded: Set<string>
 	preview: PreviewFile | null
 	overviewOpen: boolean
-	rendering: boolean
 	awaitingAgent: boolean
 	// Polling stores the activity line as a plain string (see app/poll.ts adoptLiveness);
 	// the widget view mirrors that representation, not the DeskStatus object.

@@ -16,7 +16,6 @@ export interface DeskCtx {
 		diffStyle: DiffStyle
 		fileIndex: number
 		fileView: 'rendered' | 'source'
-		rendering: boolean
 		composerOpen: boolean
 		fileComposerOpen: boolean
 		overviewOpen: boolean
@@ -32,7 +31,7 @@ export interface DeskCtx {
 	// The loaded review, enforcing the same precondition as app/store's requireState().
 	requireState: () => ReviewState
 	// The app funnel's indicator-aware deferred render (see render.ts).
-	deferRender: (isForcedIfBig?: boolean) => void
+	deferRender: () => void
 }
 
 let ctx: DeskCtx | null = null

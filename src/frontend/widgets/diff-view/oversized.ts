@@ -58,9 +58,7 @@ export function isOversizedPlaceholder(
 	return !!f.oversized && !diffCtx().S.loadedOversized.has(f.path)
 }
 
-// "Load diff anyway": remember the choice and re-render. render() now falls through the placeholder
-// branch to the normal diff path, which fetches contents via the existing per-file endpoint and
-// shows the large-file "Rendering…" indicator (diffCtx().deferRender(true) forces it for any big file).
+// "Load diff anyway": remember the choice and render the file normally.
 export function loadOversizedDiff(): void {
 	const file = currentFileOrNull(
 		diffCtx().S.state?.files,
@@ -69,7 +67,7 @@ export function loadOversizedDiff(): void {
 	)
 	if (!file) return
 	diffCtx().S.loadedOversized.add(file.path)
-	diffCtx().deferRender(true)
+	diffCtx().deferRender()
 }
 
 // Human-readable byte size (the card's focal stat - the file is large). Binary units, one decimal
