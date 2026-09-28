@@ -1,14 +1,14 @@
 import { currentFileOrNull } from '@entities/review/changes'
 import { loadCurrentContents } from '@entities/review/file/contents'
 import { isMarkdownPath } from '@entities/review/file/file-summary'
-import { fileMovedPure, movedFrom } from '@entities/review/file/renames'
-import { hasGuide } from '@entities/review/guide/guide'
+import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 import { restoreComposerFocus } from '@features/manage-comment/composer'
 import { $ } from '@shared/lib/dom'
 import { esc } from '@shared/lib/esc'
 import { perfMark } from '@shared/lib/perf'
 import { registerRenderFunnel } from '@shared/lib/render-scheduler'
 import { consumePendingJump } from '@widgets/diff-view/comment-jump'
+import { diffCtx } from '@widgets/diff-view/context'
 import { cursorReset } from '@widgets/diff-view/cursor'
 import { renderMarkdownFile } from '@widgets/diff-view/mdfile'
 import { renderMovedPure } from '@widgets/diff-view/moved-note'
@@ -18,27 +18,10 @@ import {
 } from '@widgets/diff-view/oversized'
 import { clearOverviewRuler } from '@widgets/diff-view/overview-ruler'
 
-import { deskCtx } from './context'
 import { renderOverview } from './overview'
 
-import type { GuideInputs } from '@entities/review/guide/guide'
 import type { ReviewState } from '@entities/review/model'
 import type * as DiffIsland from '@widgets/diff-view/diff-instance'
-import type { DiffView } from '@widgets/diff-view/diff-key'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: deskCtx().S.state,
-	fileIndex: deskCtx().S.fileIndex,
-	hideReviewed: deskCtx().S.settings.hideReviewed,
-	progressBy: deskCtx().S.settings.progressBy,
-	foldExpanded: deskCtx().S.foldExpanded,
-})
-
-// One render funnel: every progress-moving mutation in every layer funnels through render();
-// lower layers reach it through the scheduler seam (@shared/lib/render-scheduler) - this module
-// (imported by app/main) is what installs the real funnel.
-registerRenderFunnel({ render, deferRender })
 
 type ReviewFile = ReviewState['files'][number]
 let renderSequence = 0
@@ -46,16 +29,20 @@ let renderSequence = 0
 // same window are folded into the scheduled render.
 let isDeferredRenderPending = false
 
-function currentView(): DiffView {
-	return {
-		isPreviewing: !!deskCtx().S.preview,
-		isExpandedUnchanged: deskCtx().S.settings.unchangedLines === 'expand',
-	}
-}
+// One render funnel: every progress-moving mutation in every layer funnels through render();
+// lower layers reach it through the scheduler seam (@shared/lib/render-scheduler) - this module
+// (imported by app/main) is what installs the real funnel.
+registerRenderFunnel({ render, deferRender })
 
-// The render pass: the single function every progress-moving mutation funnels through, plus the
-// gate that decides what #diff shows for the current file. The diff itself is rendered by the
-// @pierre island (render/diff-instance.ts); the header builders live in render/file-header.ts.
+// The file #diff is to show (or none). Read FRESH on every lookup - a render's supersession
+// checks must see the latest store, not a captured copy.
+function currentFile(): ReviewFile | null {
+	return currentFileOrNull(
+		diffCtx().S.state?.files,
+		diffCtx().S.preview,
+		diffCtx().S.fileIndex,
+	)
+}
 
 // Schedule one render for mutations made in the same frame.
 export function deferRender(): void {
@@ -72,15 +59,17 @@ export function deferRender(): void {
 // Release the previous renderer before another view takes over the pane.
 function detachDiffInstance(): void {
 	clearOverviewRuler()
-	deskCtx().D.instance?.cleanUp()
-	deskCtx().D.instance = null
-	deskCtx().D.fileDiff = null
-	deskCtx().D.lineMap = null
+	const { D } = diffCtx()
+	D.instance?.cleanUp()
+	D.instance = null
+	D.fileDiff = null
+	D.lineMap = null
 }
 
 // Guided review: the Overview page takes over the center until a file is selected.
 function renderGuideOverview(): boolean {
-	if (!(deskCtx().S.overviewOpen && hasGuide(GI()))) return false
+	if (!(diffCtx().S.overviewOpen && hasGuide(guideInputs(diffCtx().S))))
+		return false
 	cursorReset()
 	detachDiffInstance()
 	renderOverview()
@@ -110,57 +99,42 @@ function renderContentsError(path: string): void {
   </div></div>`
 }
 
-// Which replacement view (if any) takes over #diff for this file, after the contents fetch - none
-// of them read the contents, but the fetch still warms the per-file cache for a later switch.
-type ReplacementView = 'markdown' | 'moved'
-
-function replacementView(
-	file: ReviewFile,
-	isPreviewing: boolean,
-): ReplacementView | null {
-	// Markdown file in rendered mode: formatted preview with block-anchored comments instead of the
-	// @pierre/diffs view.
-	if (
-		!isPreviewing &&
-		deskCtx().S.state?.mode === 'file' &&
-		isMarkdownPath(file.path) &&
-		deskCtx().S.fileView === 'rendered'
-	)
-		return 'markdown'
-	// A pure rename (identical content, distinct paths) has no diff to show - the muted
-	// "renamed old -> new, no changes" row replaces it.
-	if (
-		!isPreviewing &&
-		fileMovedPure(deskCtx().S.state?.files ?? [], file.path)
-	)
-		return 'moved'
-	return null
-}
-
+// Which of the non-diff views (if any) takes over #diff. None of them read the fetched
+// contents, but the fetch still warms the per-file cache for a later switch.
 function renderReplacementView(
 	file: ReviewFile,
 	isPreviewing: boolean,
 ): boolean {
-	const view = replacementView(file, isPreviewing)
-	if (!view) return false
-	cursorReset()
-	detachDiffInstance()
-	if (view === 'markdown') renderMarkdownFile()
-	else
-		renderMovedPure(
-			file,
-			movedFrom(deskCtx().S.state?.files ?? [], file.path),
-		)
-	return true
+	// Markdown file in rendered mode: formatted preview with block-anchored comments instead of
+	// the @pierre/diffs view.
+	if (
+		!isPreviewing &&
+		diffCtx().S.state?.mode === 'file' &&
+		isMarkdownPath(file.path) &&
+		diffCtx().S.fileView === 'rendered'
+	) {
+		cursorReset()
+		detachDiffInstance()
+		renderMarkdownFile()
+		return true
+	}
+	// A pure rename (identical content, distinct paths) has no diff to show - the muted
+	// "renamed old -> new, no changes" note replaces the diff.
+	if (!isPreviewing && file.renamePure && file.oldPath) {
+		cursorReset()
+		detachDiffInstance()
+		renderMovedPure(file, file.oldPath)
+		return true
+	}
+	return false
 }
 
+// The render pass: the single function every progress-moving mutation funnels through, plus the
+// gate that decides what #diff shows for the current file. The diff itself is rendered by the
+// @pierre island (diff-instance.ts); the header builders live in file-header.ts.
 async function renderCenter(sequence: number): Promise<void> {
 	if (renderGuideOverview()) return
-	const file = currentFileOrNull(
-		deskCtx().S.state?.files,
-		deskCtx().S.preview,
-		deskCtx().S.fileIndex,
-	)
+	const file = currentFile()
 	// Nothing to show: the pre-init window (main.ts hasn't adopted the first fetch yet), or a reload
 	// whose rebuilt review came back empty. Empty the pane rather than render a fabricated file.
 	if (!file) {
@@ -169,7 +143,7 @@ async function renderCenter(sequence: number): Promise<void> {
 		$('diff').replaceChildren()
 		return
 	}
-	const isPreviewing = !!deskCtx().S.preview
+	const isPreviewing = !!diffCtx().S.preview
 	if (!isPreviewing && isOversizedPlaceholder(file)) {
 		renderOversizedSummary()
 		return
@@ -181,13 +155,8 @@ async function renderCenter(sequence: number): Promise<void> {
 	// error card naming the file so navigation to other files keeps working.
 	const contentsStatus = await loadCurrentContents(
 		file,
-		deskCtx().S.preview,
-		() =>
-			currentFileOrNull(
-				deskCtx().S.state?.files,
-				deskCtx().S.preview,
-				deskCtx().S.fileIndex,
-			) === file,
+		diffCtx().S.preview,
+		() => currentFile() === file,
 	)
 	if (contentsStatus === 'stale' || sequence !== renderSequence) return
 	if (contentsStatus === 'error') {
@@ -198,24 +167,20 @@ async function renderCenter(sequence: number): Promise<void> {
 	await renderDiffIsland(file, sequence)
 }
 
+// The @pierre/diffs island is a separately loaded module (it carries the tokenizing renderer);
+// load it lazily on the first diff render. Loading yields to navigation, reset, and newer render
+// requests, so every await re-checks the sequence and the shown file.
 async function renderDiffIsland(
 	file: ReviewFile,
 	sequence: number,
 ): Promise<void> {
+	const isCurrent = (): boolean =>
+		sequence === renderSequence && currentFile() === file
 	let island: typeof DiffIsland
 	try {
 		island = await import('@widgets/diff-view/diff-instance')
 	} catch {
-		if (
-			sequence !== renderSequence ||
-			file !==
-				currentFileOrNull(
-					deskCtx().S.state?.files,
-					deskCtx().S.preview,
-					deskCtx().S.fileIndex,
-				)
-		)
-			return
+		if (!isCurrent()) return
 		detachDiffInstance()
 		const message = document.createElement('div')
 		message.className = 'file-note'
@@ -224,22 +189,8 @@ async function renderDiffIsland(
 		$('diff').replaceChildren(message)
 		return
 	}
-	// Loading the island yields to navigation, reset, and newer render requests.
-	if (
-		sequence !== renderSequence ||
-		file !==
-			currentFileOrNull(
-				deskCtx().S.state?.files,
-				deskCtx().S.preview,
-				deskCtx().S.fileIndex,
-			)
-	)
-		return
-	await island.renderDiffInstance(
-		file,
-		currentView(),
-		() => sequence === renderSequence,
-	)
+	if (!isCurrent()) return
+	await island.renderDiffInstance(file, isCurrent)
 }
 
 // Every progress-moving mutation (decision, approval, reset, reload) funnels through render,
@@ -256,13 +207,7 @@ export async function render(): Promise<void> {
 		// A cross-file jump stashed a target before the (scheduled, awaitable) file-switch
 		// render; the new file's view is on screen now, so land on it. One consumption per
 		// set - the executor no-ops when this render wasn't the target's file.
-		consumePendingJump(
-			currentFileOrNull(
-				deskCtx().S.state?.files,
-				deskCtx().S.preview,
-				deskCtx().S.fileIndex,
-			),
-		)
+		consumePendingJump(currentFile())
 	} finally {
 		// The diff DOM (and any inline composer inside it) was just rebuilt from scratch - re-focus
 		// the open composer and restore its caret from the store, so typing survives a render

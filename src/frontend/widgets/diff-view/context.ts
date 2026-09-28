@@ -4,11 +4,11 @@ import type { Settings } from '@entities/settings/model'
 import type { DiffStyle, Selection } from '@shared/diff-renderer/types'
 import type { DiffHolder } from './runtime'
 
-// The view context the imperative diff island renders against. Widgets reach the app-owned
-// reactive store only through this seam (bound once by app composition, mirroring the
-// render-scheduler pattern) - no widget module imports @app. The bound object must be the
-// reactive store proxy itself, so mutations stay observable; D stays the plain holder
-// (a reactive proxy breaks @pierre's element-identity checks).
+// The render-path view context, shared by the desk page (pages/desk/render.ts) and the diff
+// widgets: both layers reach the app-owned reactive store only through this seam (bound once by
+// app composition, mirroring the render-scheduler pattern) - neither imports @app. The bound
+// object must be the reactive store proxy itself, so mutations stay observable; D stays the plain
+// holder (a reactive proxy breaks @pierre's element-identity checks).
 export interface DiffStoreView {
 	state: ReviewState | null
 	settings: Settings
@@ -39,10 +39,13 @@ export interface DiffStoreView {
 	lastBaseDiffHash: string | null
 	deskClosed?: boolean
 	isRefreshRequired?: boolean
-	// Facade methods the chrome composes into the store (see app/facade/*).
+	// Facade methods the page and chrome compose into the store (see app/facade/*).
 	setStyle?: (style: DiffStyle) => void
 	openInEditor?: () => Promise<void>
 	toggleFileComposer?: () => void
+	selectFile?: (i: number) => void
+	previewFile?: (path: string) => void
+	startGuided?: () => void
 	// The notes flow's resolve hook (facade/notes): the resolve entry points report the
 	// thread pre-flip so the panel can arm or fire its advance (see notes-panel flow).
 	noteResolved?: (ref: NoteThreadRef) => void

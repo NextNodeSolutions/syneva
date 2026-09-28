@@ -14,10 +14,9 @@ import { fetchState } from '@entities/review/api'
 import { fetchTree } from '@entities/review/file/api'
 import { repoBlobUrl } from '@entities/review/file/api'
 import { defaultFileView } from '@entities/review/file/file-summary'
-import { hasGuide } from '@entities/review/guide/guide'
+import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 import { fetchPrefs } from '@entities/settings/api'
 import { applyAppearance, DEFAULT_SETTINGS } from '@entities/settings/settings'
-import { bindDeskCtx } from '@pages/desk/context'
 import { deferRender, render } from '@pages/desk/render'
 import { $ } from '@shared/lib/dom'
 import { setMarkdownTheme } from '@shared/markdown'
@@ -33,17 +32,7 @@ import { App } from './react/app'
 import { persist, requireState, toast } from './store'
 import { S } from './store'
 
-import type { GuideInputs } from '@entities/review/guide/guide'
 import type { ReviewState } from '@entities/review/model'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: S.state,
-	fileIndex: S.fileIndex,
-	hideReviewed: S.settings.hideReviewed,
-	progressBy: S.settings.progressBy,
-	foldExpanded: S.foldExpanded,
-})
 
 // The tab's bootstrap: store bindings, the React root, the initial fetch, and the few document-level
 // listeners. Everything with real behaviour lives in the modules this wires together.
@@ -55,12 +44,11 @@ const FAB_REVEAL_SCROLL_PX = 140
 installPaneResizers()
 // Bind the features' use-case context before any binding that can invoke a feature action.
 bindFeaturePorts()
-// Bind the page/widget contexts before the React root mounts and before any render or action can
-// run: every desk render pass, diff-island mutation and chrome read goes through these
-// seams, and each throws until app composition has bound it (see the per-context modules).
+// Bind the page/widget render-path context before the React root mounts and before any render or
+// action can run: every desk render pass and diff-island mutation goes through this seam, and it
+// throws until app composition has bound it (see the per-context module).
 // S is bound as the reactive proxy itself (mutations stay observable); D stays the plain
 // holder (@pierre's element-identity checks break on a reactive proxy).
-bindDeskCtx({ S, D, requireState, deferRender })
 bindDiffCtx({ S, D, requireState, deferRender, persist, toast })
 bindChromeCtx(S)
 // Keyboard shortcuts: a central scope-aware dispatcher (keys.ts) is the single source of truth.
@@ -123,7 +111,7 @@ const firstFile = S.state.files.at(S.fileIndex)
 if (firstFile) S.fileView = defaultFileView(firstFile, S.settings.markdownView)
 // With a guide attached, land on the Overview page (the guided entry point) and open the sidebar on
 // the user's preferred pane (`w` toggles it per-session from there).
-if (hasGuide(GI())) {
+if (hasGuide(guideInputs(S))) {
 	S.overviewOpen = true
 	S.sidebarTab =
 		S.settings.sidebarDefault === 'walkthrough' ? 'walkthrough' : 'tree'
