@@ -2,21 +2,9 @@ import { helpGroups } from '@app/keys'
 import { isCurrentDesk } from '@app/poll'
 import { saver, S } from '@app/store'
 import { resetReview, shutdownDesk } from '@entities/review/api'
-import { walkthroughRows } from '@entities/review/guide/guide'
-
-import type { ResetScope } from '@contracts/review'
-import type { GuideInputs } from '@entities/review/guide/guide'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: S.state,
-	fileIndex: S.fileIndex,
-	hideReviewed: S.settings.hideReviewed,
-	progressBy: S.settings.progressBy,
-	foldExpanded: S.foldExpanded,
-})
 import { flowIndex } from '@entities/review/changes'
 import { reviewLineCount } from '@entities/review/file/file-summary'
+import { guideInputs, walkthroughRows } from '@entities/review/guide/guide'
 import { sendReviewToAgent } from '@features/send-review/send'
 import { $ } from '@shared/lib/dom'
 import { render } from '@shared/lib/render-scheduler'
@@ -29,6 +17,8 @@ import {
 import { D } from '@widgets/diff-view/runtime'
 
 import { toast } from '../store'
+
+import type { ResetScope } from '@contracts/review'
 
 // The modal bindings: the Send receipt (a glance at what is about to go, one-way), the
 // review-complete prompt, Reset, the browser Close, and the keyboard-help + confirm dialogs.
@@ -209,5 +199,5 @@ function installHelpBindings(): void {
 	S.helpGroups = helpGroups
 	S.confirmYes = confirmYes
 	S.confirmNo = confirmNo
-	S.walkthroughRows = () => walkthroughRows(GI())
+	S.walkthroughRows = () => walkthroughRows(guideInputs(S))
 }

@@ -1,19 +1,17 @@
 import { currentFile } from '@entities/review/changes'
 import { fileFinished, fileObjections } from '@entities/review/changes'
-import { cur } from '@entities/review/file/contents'
 import { currentSplittable } from '@entities/review/file/contents'
 import { movedFrom } from '@entities/review/file/renames'
-import { currentGuideEntry, hasGuide } from '@entities/review/guide/guide'
+import {
+	currentGuideEntry,
+	guideInputs,
+	hasGuide,
+} from '@entities/review/guide/guide'
 import {
 	approveCurrentFile,
 	resetReview,
 } from '@features/decide-change/decisions'
 import { getIconForType, SVGSpriteSheet } from '@pierre/diffs'
-import {
-	isExpandCapped,
-	EXPAND_LINES_MAX,
-	newLines,
-} from '@shared/diff-renderer/expand-cap'
 
 import { blockersChip } from './blockers'
 import {
@@ -24,17 +22,7 @@ import {
 import { unanchoredStrip } from './comment-thread/strip'
 import { diffCtx } from './context'
 
-import type { GuideInputs } from '@entities/review/guide/guide'
 import type { ChangeTypes, FileDiffMetadata } from '@pierre/diffs'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: diffCtx().S.state,
-	fileIndex: diffCtx().S.fileIndex,
-	hideReviewed: diffCtx().S.settings.hideReviewed,
-	progressBy: diffCtx().S.settings.progressBy,
-	foldExpanded: diffCtx().S.foldExpanded,
-})
 
 // The custom diff header (all changed-file modes). Row 1 preserves @pierre's look - change-type
 // icon + filename + a subtle Split/Stacked toggle + counts + actions. With a guide, row 2
@@ -124,7 +112,8 @@ function openEditorButton(): HTMLElement {
 // threads: hidden on guided desks (the guide bar owns it) and on single-file desks (every
 // comment already addresses the one file). Explicit-route fallback for unguided multi-file desks.
 export function fileCommentButton(): HTMLElement | null {
-	if (hasGuide(GI()) || !fileCommentsEnabled()) return null
+	if (hasGuide(guideInputs(diffCtx().S)) || !fileCommentsEnabled())
+		return null
 	return fileCommentIconButton()
 }
 
@@ -182,20 +171,6 @@ function diffCounts(file: FileDiffMetadata): HTMLElement {
 	return counts
 }
 
-// The expand view cap chip (see currentView in render.ts): the setting promises every row, the
-// paint delivers hunks only past the line budget - surface the compromise where it hurts.
-function expandCapChip(): HTMLElement | null {
-	const isCapped =
-		diffCtx().S.settings.unchangedLines === 'expand' &&
-		isExpandCapped(cur.newContents)
-	if (!isCapped) return null
-	const capped = document.createElement('span')
-	capped.className = 'ghdr-moved'
-	capped.title = `Expand view is capped at ${EXPAND_LINES_MAX.toLocaleString()} lines - this file has ${newLines(cur.newContents).toLocaleString()}`
-	capped.textContent = 'expand capped'
-	return capped
-}
-
 // Row 1 of a changed file's header: icon, path, rename note, layout toggle, editor button, the
 // +/- counts and the file's actions.
 function headerRow(file: FileDiffMetadata): HTMLElement {
@@ -235,8 +210,6 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 	grow.className = 'ghdr-grow'
 	row.appendChild(grow)
 	row.appendChild(diffCounts(file))
-	const capped = expandCapChip()
-	if (capped) row.appendChild(capped)
 	const actions = headerActions()
 	actions.className = 'ghdr-actions'
 	row.appendChild(actions)
@@ -247,7 +220,7 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 // Walkthrough heading beside the file itself, so the reviewer never has to look sideways to know
 // which domain they're in.
 function guideRow(): HTMLElement | null {
-	const entry = currentGuideEntry(GI())
+	const entry = currentGuideEntry(guideInputs(diffCtx().S))
 	if (!entry) return null
 	const guide = document.createElement('div')
 	guide.className = 'ghdr-guide'

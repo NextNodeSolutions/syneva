@@ -32,10 +32,6 @@ export type DecidedPosition = {
 
 const IDENTITY: LineMap = { toDisplay: (_s, l) => l, fromDisplay: (_s, l) => l }
 
-export function identityLineMap(): LineMap {
-	return IDENTITY
-}
-
 // A decided CHANGE part shifts one side by additions - deletions; context parts and net-zero
 // changes produce no visible shift. The deltas encode what each side's display stream
 // consumes for the section:

@@ -8,12 +8,6 @@ import type { LineMap } from '@shared/diff-renderer/linemap'
 export type DiffHolder = {
 	// FileDiff is generic over its annotation metadata - ours is AnnotationMeta.
 	instance: FileDiff<AnnotationMeta> | null
-	// One active rendered diff keyed by file + view options (see diffKey). Metadata and worker
-	// tokens have their own bounded caches; detached row DOM is discarded on a file switch.
-	diffCache: Map<
-		string,
-		{ wrapper: HTMLElement; inst: FileDiff<AnnotationMeta> }
-	>
 	fileDiff: FileDiffMetadata | null
 	// Raw ↔ display line mapping for the current file's rendered (replayed) diff.
 	// Rebuilt by replayDecisions on every render; null = identity (no decisions / view-only).
@@ -22,7 +16,6 @@ export type DiffHolder = {
 
 export const D: DiffHolder = {
 	instance: null,
-	diffCache: new Map(),
 	fileDiff: null,
 	lineMap: null,
 }

@@ -15,7 +15,7 @@ import {
 // hot rides this path.
 //
 // The store instance itself is reached through the bound context the component
-// already uses (chromeCtx()/deskCtx()) - shared never imports @app.
+// already uses (chromeCtx()/diffCtx()) - shared never imports @app.
 export function useStoreVersion(): void {
 	useSyncExternalStore(subscribeStore, getStoreVersion)
 }
