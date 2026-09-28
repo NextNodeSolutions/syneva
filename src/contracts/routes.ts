@@ -9,7 +9,6 @@ export const STATIC_PATHS = {
 	index: '/',
 	bundle: '/ui.js',
 	chunksPrefix: '/chunks/',
-	worker: '/worker.js',
 	favicon: '/favicon.ico',
 } as const
 

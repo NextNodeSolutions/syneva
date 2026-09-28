@@ -6,7 +6,6 @@ import {
 import { acceptChange } from '@features/decide-change/decisions'
 import { openCommentComposer } from '@features/manage-comment/selection'
 import { mergeRows } from '@shared/diff-renderer/cursor-rows'
-import { activeViewport } from '@shared/diff-renderer/viewport'
 import { diffShadowRoot } from '@shared/lib/diff-dom'
 import { $ } from '@shared/lib/dom'
 import { notifyStateMutation } from '@shared/lib/reactive'
@@ -29,22 +28,6 @@ import type { Side } from '@shared/diff-renderer/types'
 
 let cur: { side: Side; line: number } | null = null
 
-// rows() runs a full-file getBoundingClientRect sweep to build its Row[]; it's called per keypress
-// (cursorMoveLine/Hunk, landAt, ensureCursor) and after every render (cursorResync), so on a large
-// expanded file each arrow press forced a synchronous whole-file layout. The list is derived purely
-// from DOM structure and content-relative tops (the stored `top` is relative to the scrolled
-// content, not the viewport), so it's stable across scroll - only a re-render, or a resize
-// reflowing line heights, actually changes it. So we cache it and rebuild only on those events:
-// invalidateCursorRows() is wired to @pierre's onPostRender (render.ts - mount / update / unmount,
-// which covers our render() AND @pierre's own expandHunk rerenders) and to window resize (main.ts).
-// Scroll deliberately does NOT invalidate: scrolling never changes the list, and arrow navigation
-// (which scrolls via scrollIntoView) stays on cache hits instead of re-sweeping the file per press.
-let cached: Row[] | null = null
-
-export function invalidateCursorRows(): void {
-	cached = null
-}
-
 // The side a gutter cell belongs to: its line type first, else which split column holds it.
 function lineSide(type: string, column: Element | null): Side {
 	if (type.includes('deletion')) return 'deletions'
@@ -58,11 +41,8 @@ function lineSide(type: string, column: Element | null): Side {
 // [data-deletions] column (split) - that gives us side + number + row element. Context lines show
 // in both split columns at the same y; mergeRows() folds those twins into one row.
 function rows(): Row[] {
-	const viewport = activeViewport(D.instance)
-	if (viewport) return viewport.rows()
-	if (cached) return cached
 	const shadow = diffShadowRoot()
-	if (!shadow) return [] // shadow not mounted yet - don't cache, retry on the next call
+	if (!shadow) return []
 	const diff = $('diff')
 	const diffTop = diff.getBoundingClientRect().top
 	const { scrollTop } = diff
@@ -89,8 +69,7 @@ function rows(): Row[] {
 				change: type.startsWith('change-'),
 			})
 		})
-	cached = mergeRows(out)
-	return cached
+	return mergeRows(out)
 }
 
 // A row matches on its primary coordinates or its split-view twin (`alt`).
@@ -124,7 +103,6 @@ function landOn(r: Row | undefined, shouldScroll = true): void {
 	cur = { side: r.side, line: r.line }
 	paint(r)
 	if (!shouldScroll) return
-	if (activeViewport(D.instance)?.reveal(r.side, r.line, 'nearest')) return
 	r.el?.scrollIntoView({ block: 'nearest' })
 }
 
@@ -182,8 +160,7 @@ export function landAt(side: Side, line: number): boolean {
 	if (!r) return false
 	cur = { side: r.side, line: r.line }
 	paint(r)
-	if (!activeViewport(D.instance)?.reveal(r.side, r.line, 'center'))
-		r.el?.scrollIntoView({ block: 'center' })
+	r.el?.scrollIntoView({ block: 'center' })
 	return true
 }
 

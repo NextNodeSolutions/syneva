@@ -2,7 +2,7 @@ import { currentFileOrNull, fileFinished } from '@entities/review/changes'
 import { fetchPreviewFile } from '@entities/review/file/api'
 import { prefetchContents } from '@entities/review/file/contents'
 import { defaultFileView } from '@entities/review/file/file-summary'
-import { hasGuide, navOrder } from '@entities/review/guide/guide'
+import { guideInputs, hasGuide, navOrder } from '@entities/review/guide/guide'
 import { nextUnreviewed } from '@entities/review/guide/seek'
 import { deferRender, render } from '@pages/desk/render'
 import { cursorReset } from '@widgets/diff-view/cursor'
@@ -11,17 +11,7 @@ import { D } from '@widgets/diff-view/runtime'
 import { S, toast } from '../store'
 
 import type { FileRow } from '@entities/review/file/tree-rows'
-import type { GuideInputs } from '@entities/review/guide/guide'
 import type { PreviewFile } from '@entities/review/model'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: S.state,
-	fileIndex: S.fileIndex,
-	hideReviewed: S.settings.hideReviewed,
-	progressBy: S.settings.progressBy,
-	foldExpanded: S.foldExpanded,
-})
 
 // The bindings behind moving around the review: picking a file (tree/walkthrough clicks, keyboard
 // steps) and opening an unchanged file for a read-only preview. Every step funnels through
@@ -38,9 +28,7 @@ export function installNavigationBindings(): void {
 let navGeneration = 0
 
 function installFileSelection(): void {
-	// Update the lightweight state synchronously (so the tree active-row + guide bar repaint
-	// immediately - the click feels instant), then run the heavier diff render via deferRender,
-	// which shows the "Rendering…" indicator only for a cold open of a big file.
+	// Update selection immediately, then schedule the diff render.
 	S.selectFile = i => {
 		const { state } = S
 		if (i < 0 || !state?.files[i]) return // ignore out-of-range selections
@@ -91,12 +79,12 @@ async function openPreview(path: string): Promise<void> {
 // "Other" files, in file order); the tree tab walks the tree's own rows. Two sortings, one
 // review state - a sign-off in either view approves globally.
 const walkthroughActive = (): boolean =>
-	hasGuide(GI()) && S.sidebarTab === 'walkthrough'
+	hasGuide(guideInputs(S)) && S.sidebarTab === 'walkthrough'
 
 // Plain next/prev in the walkthrough order - the next file is the next file, period, with
 // no unreviewed seek. Cyclic at both ends.
 function nextInWalkthrough(dir: 1 | -1): number | null {
-	const order = navOrder(GI())
+	const order = navOrder(guideInputs(S))
 	if (!order.length) return null
 	const pos = order.indexOf(S.fileIndex)
 	return order[(pos + dir + order.length) % order.length]
@@ -106,7 +94,7 @@ function nextInWalkthrough(dir: 1 | -1): number | null {
 // index and opens as one). Cyclic at both ends.
 function nextInTree(dir: 1 | -1): FileRow | null {
 	const rows = (S.treeRows?.() ?? []).filter(
-		(row): row is FileRow => row.kind !== 'dir',
+		(row): row is FileRow => row.kind === 'file' || row.kind === 'test',
 	)
 	if (!rows.length) return null
 	const shown = currentFileOrNull(
@@ -136,7 +124,7 @@ function installFileStepping(): void {
 				S.startGuided?.()
 				return
 			}
-			const order = navOrder(GI())
+			const order = navOrder(guideInputs(S))
 			const last = order.length ? order[order.length - 1] : null
 			if (last !== null) S.selectFile?.(last)
 			return
@@ -169,9 +157,12 @@ function installSignOffAdvance(): void {
 		const { state } = S
 		if (!state) return
 		const order = walkthroughActive()
-			? navOrder(GI())
+			? navOrder(guideInputs(S))
 			: (S.treeRows?.() ?? [])
-					.filter((row): row is FileRow => row.kind !== 'dir')
+					.filter(
+						(row): row is FileRow =>
+							row.kind === 'file' || row.kind === 'test',
+					)
 					.map(row => row.fileIndex)
 					.filter((i): i is number => typeof i === 'number')
 		const next = nextUnreviewed(order, S.fileIndex, i => {

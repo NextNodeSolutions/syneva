@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { guideProgress } from '@entities/review/guide/guide'
+import { guideInputs, guideProgress } from '@entities/review/guide/guide'
 import { reviewNotes } from '@entities/review/notes'
 import { useStoreFields } from '@shared/lib/use-store-version'
 import { Icon } from '@shared/ui/icon'
@@ -10,7 +10,6 @@ import { chromeCtx } from '../context'
 import { BrandBlock } from './brand-logo'
 import { ResetButton } from './reset-button'
 
-import type { GuideInputs } from '@entities/review/guide/guide'
 import type { ReactElement } from 'react'
 
 // The top bar: brand, lenses, agent status, progress, and the desk-level actions.
@@ -34,16 +33,6 @@ function titleFor(pct: number): string {
 	if (pct >= FULL_PERCENT) return `✓ ${baseTitle}`
 	if (pct > 0) return `(${pct}%) ${baseTitle}`
 	return baseTitle
-}
-
-function guideInputs(S: ReturnType<typeof chromeCtx>['S']): GuideInputs {
-	return {
-		state: S.state,
-		fileIndex: S.fileIndex,
-		hideReviewed: S.settings.hideReviewed,
-		progressBy: S.settings.progressBy,
-		foldExpanded: S.foldExpanded,
-	}
 }
 
 // The animated "% reviewed" pair (strip + label). One component owns both, exactly
@@ -91,7 +80,6 @@ function ReviewProgress(): ReactElement {
 	)
 	const hasFiles = Boolean(S.state?.files.length)
 	const pct = hasFiles ? guideProgress(guideInputs(S)).pct : 0
-
 	// Count the label from the previous value to the new one over ~450ms
 	// (ease-out) instead of jumping; no movement means no ceremony.
 	const shownRef = useRef<number | null>(null)

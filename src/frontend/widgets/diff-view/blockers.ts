@@ -1,6 +1,7 @@
 import {
 	currentFile,
 	currentFileOrNull,
+	groupLineComments,
 	isFileComment,
 	toDisplayLine,
 } from '@entities/review/changes'
@@ -11,7 +12,7 @@ import { diffCtx } from './context'
 import { cursorJumpTo } from './cursor'
 import { D } from './runtime'
 
-import type { Decision, ReviewComment } from '@entities/review/model'
+import type { Decision } from '@entities/review/model'
 import type { FileDiffMetadata } from '@pierre/diffs'
 import type { Side } from '@shared/diff-renderer/types'
 
@@ -51,22 +52,18 @@ export function fileBlockers(path: string): Blocker[] {
 		if (d.path === path && d.status === 'rejected')
 			out.push({ kind: 'reject', decision: d })
 	const file = state.files.find(f => f.path === path)
-	const groups = new Map<string, ReviewComment[]>()
-	for (const c of state.comments) {
-		if (
-			c.path !== path ||
-			c.status !== 'open' ||
-			c.role === 'agent' ||
-			c.intent === 'question'
-		)
-			continue
-		const key = `${c.side}:${c.lineNumber}`
-		const group = groups.get(key)
-		if (group) group.push(c)
-		else groups.set(key, [c])
-	}
+	// Whole-file comments stay in the list (a file-level change request is a blocker); questions
+	// and agent remarks don't count - only user-written change requests do.
+	const groups = groupLineComments(
+		state.comments.filter(
+			c =>
+				c.path === path &&
+				c.status === 'open' &&
+				c.role !== 'agent' &&
+				c.intent !== 'question',
+		),
+	)
 	for (const comments of groups.values()) {
-		comments.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
 		const [first] = comments
 		const preview = first.body.replace(/\s+/g, ' ').trim()
 		out.push({
@@ -135,10 +132,6 @@ export function jumpToBlocker(b: Blocker): void {
 }
 
 // The header chip + its jump-list popover (imperative DOM, like the rest of the header).
-function setRowText(row: HTMLElement, text: string): void {
-	const span = row.querySelector('.bk-text')
-	if (span) span.textContent = text
-}
 
 // A row's kind tag, where-label and preview text: "Rejected / line 12 / title" for a rejected
 // hunk, "Change request / file|unanchored|line N / body" for an open change-request thread.
@@ -179,7 +172,9 @@ export function blockersChip(): HTMLElement | null {
 		row.className = 'blockers-item'
 		const { html, text } = blockerRowBody(b)
 		row.innerHTML = html
-		setRowText(row, text)
+		// Text rides via textContent (escaping is the element's job, not the template's).
+		const textNode = row.querySelector('.bk-text')
+		if (textNode) textNode.textContent = text
 		row.addEventListener('click', () => {
 			wrap.classList.remove('open')
 			jumpToBlocker(b)
