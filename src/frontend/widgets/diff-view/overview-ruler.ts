@@ -93,7 +93,7 @@ export function scheduleOverviewRuler(): void {
 	rulerFrame = requestAnimationFrame(renderOverviewRuler)
 }
 
-export function renderOverviewRuler(): void {
+function renderOverviewRuler(): void {
 	clearOverviewRuler()
 	const diff = $('diff')
 	// The scrolled content's height is the ruler's coordinate space; it cannot change between here

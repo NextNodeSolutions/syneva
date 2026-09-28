@@ -4,25 +4,31 @@ import { FileDiff, DIFFS_TAG_NAME } from '@pierre/diffs'
 import { $ } from '@shared/lib/dom'
 
 import { annotations } from './annotations'
+import { diffCtx } from './context'
 import { cursorResync } from './cursor'
 import { buildDiffMetadata } from './diff-metadata'
 import { diffOptions } from './diff-options'
 import { clearOverviewRuler, scheduleOverviewRuler } from './overview-ruler'
-import { D } from './runtime'
 
 import type { ReviewState } from '@entities/review/model'
-import type { DiffView } from './diff-key'
+import type { DiffView } from './types'
 
 type ReviewFile = ReviewState['files'][number]
+// The path of the mounted diff: a re-render of the SAME file restores the pane's scroll
+// position, a file switch starts at the top.
 let renderedPath: string | undefined
 
 export async function renderDiffInstance(
 	file: ReviewFile,
-	view: DiffView,
 	isCurrent: () => boolean,
 ): Promise<void> {
 	if (!isCurrent()) return
 	const host = $('diff')
+	const { S, D } = diffCtx()
+	const view: DiffView = {
+		isPreviewing: !!S.preview,
+		isExpandedUnchanged: S.settings.unchangedLines === 'expand',
+	}
 	const scrollTop =
 		D.instance && renderedPath === file.path ? host.scrollTop : 0
 	clearOverviewRuler()
@@ -48,17 +54,4 @@ export async function renderDiffInstance(
 	attachDiffSelectionHandlers()
 	if (!view.isPreviewing && view.isExpandedUnchanged) scheduleOverviewRuler()
 	requestAnimationFrame(cursorResync)
-}
-
-export function detachInstance(): void {
-	clearOverviewRuler()
-	D.instance?.cleanUp()
-	D.instance = null
-	D.fileDiff = null
-	D.lineMap = null
-	renderedPath = undefined
-}
-
-export function disposeInstances(): void {
-	detachInstance()
 }

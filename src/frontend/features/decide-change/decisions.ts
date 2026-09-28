@@ -4,21 +4,11 @@ import {
 	fileObjections,
 	flowIndex,
 } from '@entities/review/changes'
-import { guideProgress } from '@entities/review/guide/guide'
+import { guideInputs, guideProgress } from '@entities/review/guide/guide'
 import { featureCtx } from '@features/context'
 import { render, deferRender } from '@shared/lib/render-scheduler'
 
-import type { GuideInputs } from '@entities/review/guide/guide'
 import type { ChangeState, Decision, ReviewFile } from '@entities/review/model'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: featureCtx().S.state,
-	fileIndex: featureCtx().S.fileIndex,
-	hideReviewed: featureCtx().S.settings.hideReviewed,
-	progressBy: featureCtx().S.settings.progressBy,
-	foldExpanded: featureCtx().S.foldExpanded,
-})
 
 // The explicit decision record is the source of truth for accept/reject (decoupled
 // from git staging). Every status change must go through these so it survives reload.
@@ -118,7 +108,7 @@ export async function approveCurrentFile(): Promise<void> {
 	// moment it moves, not just visible in the bar. % matches the strip (LOC-weighted by default).
 	const done = scope.filter(f => ix.reviewState(f.path) !== 'pending').length
 	featureCtx().toast(
-		`${label} - ${done} of ${scope.length} files · ${guideProgress(GI()).pct}%`,
+		`${label} - ${done} of ${scope.length} files · ${guideProgress(guideInputs(featureCtx().S)).pct}%`,
 	)
 	// The advance is the facade's: the notes flow (panel open, armed on this path) first,
 	// else the next file in the ACTIVE pane's sorting - plain next, no unreviewed seek.

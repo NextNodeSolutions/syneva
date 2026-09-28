@@ -1,17 +1,6 @@
-import { hasGuide } from '@entities/review/guide/guide'
+import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 
 import { S } from './store'
-
-import type { GuideInputs } from '@entities/review/guide/guide'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: S.state,
-	fileIndex: S.fileIndex,
-	hideReviewed: S.settings.hideReviewed,
-	progressBy: S.settings.progressBy,
-	foldExpanded: S.foldExpanded,
-})
 
 // ── Keyboard map vocabulary ──────────────────────────────────────────────────
 // The matchers and scope guards every binding is written in: one place decides what a keydown
@@ -40,7 +29,8 @@ export type Hotkey = {
 export const inComposer = (): boolean => S.composerOpen || S.fileComposerOpen
 export const inModal = (): boolean =>
 	S.settingsOpen || !!S.confirmMsg || S.sendOpen
-export const inOverview = (): boolean => S.overviewOpen && hasGuide(GI())
+export const inOverview = (): boolean =>
+	S.overviewOpen && hasGuide(guideInputs(S))
 export const inDiff = (): boolean =>
 	!inComposer() && !inModal() && !inOverview()
 export const navigable = (): boolean => !inComposer() && !inModal()

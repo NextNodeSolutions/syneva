@@ -8,7 +8,7 @@ import {
 	navigable,
 	shift,
 } from '@app/hotkey-matchers'
-import { hasGuide } from '@entities/review/guide/guide'
+import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 import {
 	closeComposer,
 	closeFileComposer,
@@ -20,16 +20,6 @@ import { golineActive, golineCancel } from '@widgets/diff-view/cursor-goline'
 import { S } from './store'
 
 import type { Hotkey } from '@app/hotkey-matchers'
-import type { GuideInputs } from '@entities/review/guide/guide'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: S.state,
-	fileIndex: S.fileIndex,
-	hideReviewed: S.settings.hideReviewed,
-	progressBy: S.settings.progressBy,
-	foldExpanded: S.foldExpanded,
-})
 
 // The app-wide keyboard map: moving between files, opening an app surface (overview, sidebar,
 // drawer, settings), and the Esc cascade that closes the topmost one. Split from the diff's own
@@ -174,7 +164,7 @@ export const HOTKEYS_APP: Hotkey[] = [
 		desc: 'Overview',
 		group: 'Navigate',
 		test: key('o'),
-		when: () => hasGuide(GI()) && navigable(),
+		when: () => hasGuide(guideInputs(S)) && navigable(),
 		run: () => S.openOverview?.(),
 	},
 	{
@@ -197,7 +187,7 @@ export const HOTKEYS_APP: Hotkey[] = [
 		combo: 'w',
 		desc: 'Tree / Walkthrough sidebar',
 		group: 'View',
-		when: () => hasGuide(GI()) && navigable(),
+		when: () => hasGuide(guideInputs(S)) && navigable(),
 		test: key('w'),
 		run: () =>
 			(S.sidebarTab = S.sidebarTab === 'tree' ? 'walkthrough' : 'tree'),

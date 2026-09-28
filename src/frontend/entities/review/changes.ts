@@ -81,6 +81,25 @@ export function currentComments(
 	return (state?.comments ?? []).filter(c => c.path === path)
 }
 
+// Line comments grouped `side:lineNumber`, each group oldest-first (the order the conversation
+// happened in, which is the order the thread renders). Whole-file comments are NOT skipped here:
+// the annotation flow filters them out (they anchor to the file header), the blockers list keeps
+// them (a file-level change request is a blocker).
+export function groupLineComments(
+	comments: ReviewComment[],
+): Map<string, ReviewComment[]> {
+	const groups = new Map<string, ReviewComment[]>()
+	for (const c of comments) {
+		const key = `${c.side}:${c.lineNumber}`
+		const group = groups.get(key)
+		if (group) group.push(c)
+		else groups.set(key, [c])
+	}
+	for (const group of groups.values())
+		group.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
+	return groups
+}
+
 // ── Whole-file comments ────────────────────────────────────────────────────
 // lineNumber 0 is the whole-file anchor (real lines are 1-based, so it can never collide with
 // a rendered one); the persisted record stamps anchor "file" alongside it. Sister copy of

@@ -1,6 +1,5 @@
 import {
 	currentChanges,
-	currentFileOrNull,
 	ensureChangesFromFileDiff,
 	syncDisplayAnchors,
 } from '@entities/review/changes'
@@ -14,7 +13,7 @@ import { D } from './runtime'
 
 import type { ReviewState } from '@entities/review/model'
 import type { FileDiffMetadata } from '@pierre/diffs'
-import type { DiffView } from './diff-key'
+import type { DiffView } from './types'
 
 type ReviewFile = ReviewState['files'][number]
 
@@ -44,16 +43,6 @@ export function buildDiffMetadata(
 	const final = decided.some(decision => decision.status === 'cut')
 		? distillAccepted(replayed, decided)
 		: replayed
-	syncDisplayAnchors(
-		final,
-		currentChanges(
-			state,
-			currentFileOrNull(
-				state.files,
-				diffCtx().S.preview,
-				diffCtx().S.fileIndex,
-			),
-		),
-	)
+	syncDisplayAnchors(final, currentChanges(state, file))
 	return final
 }
