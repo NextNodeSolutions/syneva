@@ -1,10 +1,5 @@
-import { activeViewport } from '@shared/diff-renderer/viewport'
 import { diffShadowRoot } from '@shared/lib/diff-dom'
 import { $ } from '@shared/lib/dom'
-
-import { D } from './runtime'
-
-import type { DiffViewport } from '@shared/diff-renderer/viewport'
 
 // VSCode-style change overview: map every change row's position in the scrolled content to a
 // tick in a fixed right-edge ruler, so changes are visible in one skim of the whole file.
@@ -32,8 +27,6 @@ export function clearOverviewRuler(): void {
 // The change rows of the mounted diff, if any. @pierre tags both the gutter cell and the code
 // cell of a line with data-line-type, so each line matches twice - the spans below dedupe.
 function measureSpans(): RulerMark[] {
-	const viewport = activeViewport(D.instance)
-	if (viewport) return virtualSpans(viewport)
 	const shadow = diffShadowRoot()
 	if (!shadow) return []
 	const diff = $('diff')
@@ -61,45 +54,6 @@ function measureSpans(): RulerMark[] {
 	// Document order is visual order for rows in the diff grid, so the map's insertion order is
 	// already top-to-bottom - no sort needed.
 	return [...spans.values()]
-}
-
-// Offscreen changes still belong on the ruler. Ask the window's layout model for block
-// endpoints rather than making the ruler describe only the currently mounted rows.
-function virtualSpans(viewport: DiffViewport): RulerMark[] {
-	const marks: RulerMark[] = []
-	for (const content of D.fileDiff?.hunks.flatMap(hunk => hunk.hunkContent) ??
-		[]) {
-		if (content.type !== 'change') continue
-		const add = virtualSpan(
-			viewport,
-			'add',
-			content.additionLineIndex + 1,
-			content.additions,
-		)
-		const del = virtualSpan(
-			viewport,
-			'del',
-			content.deletionLineIndex + 1,
-			content.deletions,
-		)
-		if (add) marks.push(add)
-		if (del) marks.push(del)
-	}
-	return marks
-}
-
-function virtualSpan(
-	viewport: DiffViewport,
-	side: RulerSide,
-	first: number,
-	count: number,
-): RulerMark | undefined {
-	if (!count) return undefined
-	const column = side === 'add' ? 'additions' : 'deletions'
-	const start = viewport.position(column, first)
-	const end = viewport.position(column, first + count - 1)
-	if (!start || !end) return undefined
-	return { side, top: start.top, bottom: end.top + end.height }
 }
 
 // Coalesce contiguous rows of the same side into one bar (a 5-line block becomes one tick).
@@ -139,7 +93,7 @@ export function scheduleOverviewRuler(): void {
 	rulerFrame = requestAnimationFrame(renderOverviewRuler)
 }
 
-export function renderOverviewRuler(): void {
+function renderOverviewRuler(): void {
 	clearOverviewRuler()
 	const diff = $('diff')
 	// The scrolled content's height is the ruler's coordinate space; it cannot change between here

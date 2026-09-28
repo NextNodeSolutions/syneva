@@ -4,20 +4,16 @@ import {
 	handleDiffSelection,
 	handleLineNumberClick,
 } from '@features/manage-comment/selection'
-import { activeViewport } from '@shared/diff-renderer/viewport'
 
 import { renderAnnotation } from './annotations'
 import { diffCtx } from './context'
-import { invalidateCursorRows } from './cursor'
 import { createDiffHeader, headerActions } from './file-header'
 import { scheduleOverviewRuler } from './overview-ruler'
 import { D } from './runtime'
-import { VirtualDiff } from './virtual-diff'
-import { noteRenderedViewport } from './worker-pool'
 
 import type { AnnotationMeta } from '@entities/review/annotations'
 import type { FileDiffOptions } from '@pierre/diffs'
-import type { DiffView } from './diff-key'
+import type { DiffView } from './types'
 
 // Preview reads as a plain file: remap @pierre's addition styling to its CONTEXT (unchanged)
 // styling - row tint, gutter cell bg, and gutter number color all to the neutral context values -
@@ -64,30 +60,10 @@ export function diffOptions(
 		onLineSelected: handleDiffSelection,
 		onLineSelectionEnd: handleDiffSelection,
 		renderHeaderMetadata: headerActions,
-		// @pierre's own post-render signal - fires once the diff rows are committed to the shadow
-		// DOM (mount and every update). (afterRender still runs the viewport work below.)
-		// warm/cached path where rows are already present - both are idempotent.)
+		// Focus the composer after Pierre mounts its rows.
 		onPostRender: (_node, instance, phase) => {
 			if (instance !== D.instance) return
-			// The rendered rows just changed (mount, update, or @pierre's own expandHunk rerender -
-			// which never routes through our render()), so the cursor's cached row list is stale.
-			invalidateCursorRows()
 			if (phase === 'unmount') return
-			// Calibrate the row-height estimate as soon as real rows are committed (mount, cached
-			// remount): the library only runs its own reconcile on window changes, so an estimate left
-			// 1× short in wrap mode would inflate the whole document coordinate space under the scroll
-			// anchor on the reviewer's first scroll tick instead. One rAF out: the rows just committed;
-			// a frame later their heights are laid out and scrollTop is still 0, so the correction is
-			// invisible. Self-guarding - a no-op once calibrated.
-			if (instance instanceof VirtualDiff) {
-				const diff = instance
-				// Rows committed: tell the pool which slice is on screen. A cache-hit range (the
-				// renderCache holds the full grid) serves rows without a plain fetch, so the
-				// stream would never learn the reviewer moved - and never tokenize what they see.
-				noteRenderedViewport(diff)
-				requestAnimationFrame(() => diff.calibrateLineHeight())
-			}
-			activeViewport(D.instance)?.afterPaint()
 			requestAnimationFrame(restorePendingComposerFocus)
 			if (!isPreviewing && isExpandedUnchanged) scheduleOverviewRuler()
 		},

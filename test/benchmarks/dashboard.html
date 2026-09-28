@@ -864,6 +864,11 @@
 			"id": "first-visible",
 			"label": "Reuse plain base and preserve first viewport",
 			"note": "Hypothesis: the renderer's plain grid and viewport are already available before highlighting, but the pool redundantly regenerates large bases in a worker and forgets the pre-job viewport. Reuse the plain grid at any size and carry the viewport into the first window plan. On medium at 960x720 (pi-frontend-check, two fresh opens each), baseline first publish 841/1064 ms was an OFFSCREEN tail window; base-reuse-only first publish 741/647 ms remained offscreen; combined first publish 714/770 ms belonged to the visible band. Under host contention boot varied 89-407 ms. The first-publish stage alone does not prove visible color: compare window starting lines to pool:range. This removes redundant work and fixes first-visible ordering, but cannot deliver 20 ms cold color because grammar/worker boot and Shiki tokenization still take hundreds of ms."
+		},
+		{
+			"id": "simplify2",
+			"label": "Render-path simplification round 2",
+			"note": "Behavior-preserving simplification of the Diff -> @pierre render flow: unified desk/diff context seams, shared guideInputs/grouping helpers removed ~300 duplicated lines and 30+ single-use functions, dead exports and an unreachable legacy replay fallback deleted. Hypothesis: no measurable cold-open drift. Verdict: module 96-104 ms, contents 23-29 ms across two samples (existing build emits only these stamps)."
 		}
 	],
 	"rejected": [
@@ -2311,6 +2316,40 @@
 			},
 			"workerBundleKb": 547,
 			"note": "pi-frontend-check, 960x720, fresh open, split; first published windows begin at lines 0 and 10, overlapping visible 0-50. Boot took 407 ms under contention; first color is visible."
+		},
+		{
+			"id": "simplify2-medium-1",
+			"fixture": "medium",
+			"milestone": "simplify2",
+			"date": "2026-09-22",
+			"stagesMs": {
+				"module": 104,
+				"contents": 29
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "pi-frontend-check, 960x720, fresh desk + fresh open, split. Milestone simplify2: render-path simplification round 2 (behavior-preserving; see git log). The current build emits only the module and contents:loaded stamps - tokenization runs inside @pierre's island since the custom pool was removed in an earlier round - so pool boot/window stages are structurally absent (zeros), not 0 ms."
+		},
+		{
+			"id": "simplify2-medium-2",
+			"fixture": "medium",
+			"milestone": "simplify2",
+			"date": "2026-09-22",
+			"stagesMs": {
+				"module": 96,
+				"contents": 23
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Second sample of the simplify2 spread (pi-frontend-check, 960x720, fresh desk + fresh open, split). Same route caveat as simplify2-medium-1."
 		}
 	]
 };

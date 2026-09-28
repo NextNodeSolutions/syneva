@@ -21,6 +21,24 @@ export type GuideInputs = {
 	foldExpanded: Set<string>
 }
 
+// One builder for every consumer (app, page, widgets): flatten the store view into the
+// derivations' explicit inputs. The structural parameter is the store view both context seams
+// bind (review state + file index + the two preferences + the fold set).
+export function guideInputs(S: {
+	state: ReviewState | null
+	fileIndex: number
+	settings: { hideReviewed: boolean; progressBy: 'lines' | 'files' }
+	foldExpanded: Set<string>
+}): GuideInputs {
+	return {
+		state: S.state,
+		fileIndex: S.fileIndex,
+		hideReviewed: S.settings.hideReviewed,
+		progressBy: S.settings.progressBy,
+		foldExpanded: S.foldExpanded,
+	}
+}
+
 // Whether the current review carries an agent-attached guide with at least one file.
 export function hasGuide(g: GuideInputs): boolean {
 	return !!g.state?.guide?.files.length

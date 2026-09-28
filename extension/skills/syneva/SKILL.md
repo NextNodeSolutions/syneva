@@ -18,7 +18,7 @@ Reach for Syneva when the user should review something turn-by-turn: **code chan
 
 ## Getting the tool
 
-`syneva` is a small Node CLI (Node 22+ and `git` required). To use it across any repo, install it globally: `npm install -g syneva`. To use it in just one project, add it there as a dev dependency (`npm install -D syneva`) and run it with `npx syneva`. Either way, invoke it as `syneva …`.
+`syneva` is a Node CLI (Node 22+ and `git` required). Check whether the configured local package already provides `syneva` before installing another copy. If absent, use a reviewed, pinned CLI installation appropriate to the project; do not assume the Pi extension package puts the command on `PATH`. Invoke the resolved CLI as `syneva …`.
 
 ## Quickstart
 

@@ -1,6 +1,5 @@
 import { fromDisplayLine } from '@entities/review/changes'
 import { featureCtx } from '@features/context'
-import { activeViewport } from '@shared/diff-renderer/viewport'
 import { $ } from '@shared/lib/dom'
 import { render } from '@shared/lib/render-scheduler'
 
@@ -122,11 +121,6 @@ export function openComposer(): void {
 	featureCtx().S.composerOpen = true
 	featureCtx().S.fileComposerOpen = false
 	needsWindowFocus = true
-	activeViewport(featureCtx().diffInstance())?.reveal(
-		featureCtx().S.selected.side,
-		featureCtx().S.selected.lineNumber,
-		'center',
-	)
 	void render()
 }
 

@@ -29,8 +29,6 @@ export interface Store {
 	// A non-review file (e.g. an unchanged file) the reviewer opened to read/comment on.
 	// When set, it's the "current file" instead of state.files[fileIndex].
 	preview: PreviewFile | null
-	// True while a (non-cached) diff render is in flight - drives the "Rendering…" indicator.
-	rendering: boolean
 	awaitingAgent: boolean
 	// Transient desk-liveness from /api/state (DeskStatus fields). Held OUTSIDE
 	// S.state so they never ride a /api/save round-trip into the persisted review.

@@ -1,6 +1,7 @@
 import {
 	currentComments,
 	currentFileOrNull,
+	groupLineComments,
 	isFileComment,
 	isUnanchored,
 } from '@entities/review/changes'
@@ -8,7 +9,6 @@ import {
 import { diffCtx } from './context'
 
 import type { ThreadMeta } from '@entities/review/annotations'
-import type { ReviewComment } from '@entities/review/model'
 
 // ── Unanchored comment threads ───────────────────────────────────────────────
 // An open thread whose anchor line no longer exists can't render as a diff annotation  -
@@ -27,26 +27,14 @@ export function unanchoredThreads(): ThreadMeta[] {
 		diffCtx().S.fileIndex,
 	)
 	if (!file) return []
-	const groups = new Map<string, ReviewComment[]>()
-	for (const c of currentComments(
-		diffCtx().S.state,
-		currentFileOrNull(
-			diffCtx().S.state?.files,
-			diffCtx().S.preview,
-			diffCtx().S.fileIndex,
-		),
-	)) {
-		if (isFileComment(c)) continue
-		const key = `${c.side}:${c.lineNumber}`
-		const group = groups.get(key)
-		if (group) group.push(c)
-		else groups.set(key, [c])
-	}
+	// Whole-file comments never unanchor - they ride the file header (file-comments.ts), not a
+	// rendered line. The same keyed grouping the annotation flow uses.
+	const groups = groupLineComments(
+		currentComments(diffCtx().S.state, file).filter(c => !isFileComment(c)),
+	)
 	const out: ThreadMeta[] = []
 	for (const comments of groups.values()) {
-		comments.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
-		const open = comments.some(c => c.status === 'open')
-		if (!open) continue // a resolved orphan is done - nothing to act on
+		if (!comments.some(c => c.status === 'open')) continue // a resolved orphan is done - nothing to act on
 		if (!comments.some(c => isUnanchored(c, file))) continue
 		const [first] = comments
 		out.push({
