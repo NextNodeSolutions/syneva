@@ -2,6 +2,7 @@ import {
 	currentComments,
 	currentChanges,
 	currentFile,
+	groupLineComments,
 	isFileComment,
 	toDisplayLine,
 	fromDisplayLine,
@@ -30,28 +31,19 @@ import type { AnnotationInput } from './types'
 
 type ReviewFile = ReviewState['files'][number]
 
-// Comment groups keyed `side:rawLine`, each group oldest-first - the order the conversation
-// happened in, which is the order the thread renders. Whole-file comments are excluded: they
-// anchor to the file header (file-comments.ts), not a rendered line.
+// Comment groups keyed `side:rawLine` (see groupLineComments), whole-file comments excluded -
+// they anchor to the file header (file-comments.ts), not a rendered line.
 function commentGroups(): Map<string, ReviewComment[]> {
-	const groups = new Map<string, ReviewComment[]>()
-	for (const c of currentComments(
-		diffCtx().S.state,
-		currentFileOrNull(
-			diffCtx().S.state?.files,
-			diffCtx().S.preview,
-			diffCtx().S.fileIndex,
-		),
-	)) {
-		if (isFileComment(c)) continue
-		const key = `${c.side}:${c.lineNumber}`
-		const group = groups.get(key)
-		if (group) group.push(c)
-		else groups.set(key, [c])
-	}
-	for (const group of groups.values())
-		group.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
-	return groups
+	return groupLineComments(
+		currentComments(
+			diffCtx().S.state,
+			currentFileOrNull(
+				diffCtx().S.state?.files,
+				diffCtx().S.preview,
+				diffCtx().S.fileIndex,
+			),
+		).filter(c => !isFileComment(c)),
+	)
 }
 
 // Open threads whose anchor is gone render in the strip above the diff instead (an annotation at a

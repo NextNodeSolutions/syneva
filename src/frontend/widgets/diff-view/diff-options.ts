@@ -13,7 +13,7 @@ import { D } from './runtime'
 
 import type { AnnotationMeta } from '@entities/review/annotations'
 import type { FileDiffOptions } from '@pierre/diffs'
-import type { DiffView } from './diff-key'
+import type { DiffView } from './types'
 
 // Preview reads as a plain file: remap @pierre's addition styling to its CONTEXT (unchanged)
 // styling - row tint, gutter cell bg, and gutter number color all to the neutral context values -

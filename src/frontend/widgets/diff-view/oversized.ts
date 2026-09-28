@@ -6,7 +6,11 @@ import {
 	fileReviewState,
 } from '@entities/review/changes'
 import { movedFrom } from '@entities/review/file/renames'
-import { currentGuideEntry, hasGuide } from '@entities/review/guide/guide'
+import {
+	currentGuideEntry,
+	guideInputs,
+	hasGuide,
+} from '@entities/review/guide/guide'
 import {
 	approveCurrentFile,
 	resetReview,
@@ -22,17 +26,7 @@ import {
 } from './comment-thread/file-comments'
 import { diffCtx } from './context'
 
-import type { GuideInputs } from '@entities/review/guide/guide'
 import type { ReviewState } from '@entities/review/model'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: diffCtx().S.state,
-	fileIndex: diffCtx().S.fileIndex,
-	hideReviewed: diffCtx().S.settings.hideReviewed,
-	progressBy: diffCtx().S.settings.progressBy,
-	foldExpanded: diffCtx().S.foldExpanded,
-})
 
 type ReviewFile = ReviewState['files'][number]
 type GuideEntry = ReturnType<typeof currentGuideEntry>
@@ -158,7 +152,7 @@ function headSection(file: ReviewFile): HTMLElement {
 	// bar next to home; and the two surfaces must never show duplicates).
 	// Whole-file comment trigger: multi-file unguided desks only (a guided desk's icon is in
 	// the guide bar; a single-file desk has no use for the scope).
-	if (!hasGuide(GI()) && fileCommentsEnabled())
+	if (!hasGuide(guideInputs(diffCtx().S)) && fileCommentsEnabled())
 		head.appendChild(fileCommentIconButton())
 	return head
 }
@@ -212,7 +206,7 @@ export function renderOversizedCard(): void {
 		diffCtx().S.preview,
 		diffCtx().S.fileIndex,
 	)
-	const entry = currentGuideEntry(GI())
+	const entry = currentGuideEntry(guideInputs(diffCtx().S))
 	const card = document.createElement('div')
 	card.className = `oversized-card ct-${kindClass(file.changeKind)}`
 	card.appendChild(headSection(file))

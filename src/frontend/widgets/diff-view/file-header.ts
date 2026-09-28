@@ -2,7 +2,11 @@ import { currentFile } from '@entities/review/changes'
 import { fileFinished, fileObjections } from '@entities/review/changes'
 import { currentSplittable } from '@entities/review/file/contents'
 import { movedFrom } from '@entities/review/file/renames'
-import { currentGuideEntry, hasGuide } from '@entities/review/guide/guide'
+import {
+	currentGuideEntry,
+	guideInputs,
+	hasGuide,
+} from '@entities/review/guide/guide'
 import {
 	approveCurrentFile,
 	resetReview,
@@ -18,17 +22,7 @@ import {
 import { unanchoredStrip } from './comment-thread/strip'
 import { diffCtx } from './context'
 
-import type { GuideInputs } from '@entities/review/guide/guide'
 import type { ChangeTypes, FileDiffMetadata } from '@pierre/diffs'
-
-// The guide derivations' explicit inputs, read from the store at each evaluation.
-const GI = (): GuideInputs => ({
-	state: diffCtx().S.state,
-	fileIndex: diffCtx().S.fileIndex,
-	hideReviewed: diffCtx().S.settings.hideReviewed,
-	progressBy: diffCtx().S.settings.progressBy,
-	foldExpanded: diffCtx().S.foldExpanded,
-})
 
 // The custom diff header (all changed-file modes). Row 1 preserves @pierre's look - change-type
 // icon + filename + a subtle Split/Stacked toggle + counts + actions. With a guide, row 2
@@ -118,7 +112,8 @@ function openEditorButton(): HTMLElement {
 // threads: hidden on guided desks (the guide bar owns it) and on single-file desks (every
 // comment already addresses the one file). Explicit-route fallback for unguided multi-file desks.
 export function fileCommentButton(): HTMLElement | null {
-	if (hasGuide(GI()) || !fileCommentsEnabled()) return null
+	if (hasGuide(guideInputs(diffCtx().S)) || !fileCommentsEnabled())
+		return null
 	return fileCommentIconButton()
 }
 
@@ -225,7 +220,7 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 // Walkthrough heading beside the file itself, so the reviewer never has to look sideways to know
 // which domain they're in.
 function guideRow(): HTMLElement | null {
-	const entry = currentGuideEntry(GI())
+	const entry = currentGuideEntry(guideInputs(diffCtx().S))
 	if (!entry) return null
 	const guide = document.createElement('div')
 	guide.className = 'ghdr-guide'
