@@ -1,6 +1,5 @@
-// Diff-rendering primitives shared by the token pool, the line map, and the imperative
-// diff island. These are geometry/vocabulary types owned by the renderer, not review
-// models - the review entity re-exports them onto its model surface.
+// Diff-rendering primitives shared by the line map and the imperative diff view.
+// The review entity re-exports them onto its model surface.
 export type Side = 'additions' | 'deletions'
 export type DiffStyle = 'split' | 'unified'
 
