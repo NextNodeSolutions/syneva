@@ -38,9 +38,7 @@ export function installNavigationBindings(): void {
 let navGeneration = 0
 
 function installFileSelection(): void {
-	// Update the lightweight state synchronously (so the tree active-row + guide bar repaint
-	// immediately - the click feels instant), then run the heavier diff render via deferRender,
-	// which shows the "Rendering…" indicator only for a cold open of a big file.
+	// Update selection immediately, then schedule the diff render.
 	S.selectFile = i => {
 		const { state } = S
 		if (i < 0 || !state?.files[i]) return // ignore out-of-range selections

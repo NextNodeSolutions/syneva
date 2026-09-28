@@ -24,7 +24,6 @@ export const S: Store = reactive<Store>({
 	diffStyle: 'split',
 	fileIndex: 0,
 	preview: null,
-	rendering: false,
 	awaitingAgent: false,
 	agentActivity: null,
 	agentListening: false,

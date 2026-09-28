@@ -17,7 +17,6 @@ export interface DiffStoreView {
 	diffStyle: DiffStyle
 	fileIndex: number
 	fileView: 'rendered' | 'source'
-	rendering: boolean
 	composerOpen: boolean
 	fileComposerOpen: boolean
 	composerBody: string
@@ -51,7 +50,7 @@ export interface DiffStoreView {
 
 export interface DiffServices {
 	// The app funnel's indicator-aware deferred render (see pages/desk/render.ts).
-	deferRender: (isForcedIfBig?: boolean) => void
+	deferRender: () => void
 	// Auto-save trigger - every state mutation must call it (see app/store.ts).
 	persist: () => void
 	toast: (message: string) => void

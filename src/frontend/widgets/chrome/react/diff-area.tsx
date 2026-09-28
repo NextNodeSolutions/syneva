@@ -4,11 +4,7 @@ import { chromeCtx } from '../context'
 
 import type { ReactElement } from 'react'
 
-// The diff area's React-owned chrome around the engine island: the Rendering…
-// badge shown while a (non-cached) diff render is in flight, and the floating
-// Approve / Mark Reviewed button revealed once the diff is scrolled past its
-// header. #diff and #ovr stay engine-owned plain divs - the engine mounts into
-// them (the React tree never touches their children).
+// React owns the chrome; the diff renderer owns the contents of #diff and #ovr.
 export function DiffArea(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields(
@@ -17,7 +13,6 @@ export function DiffArea(): ReactElement {
 		'preview',
 		'overviewOpen',
 		'settings',
-		'rendering',
 		'diffScrolled',
 	)
 	const fab = S.diffScrolled ? (S.fabState?.() ?? null) : null
@@ -25,11 +20,6 @@ export function DiffArea(): ReactElement {
 		<div className="diff-area">
 			<div id="diff" />
 			<div className="ovr" id="ovr" />
-			{S.rendering && (
-				<div className="diff-rendering">
-					<span>Rendering…</span>
-				</div>
-			)}
 			{fab && (
 				<button
 					className={`diff-fab${fab === 'changes' ? ' warn' : ''}`}

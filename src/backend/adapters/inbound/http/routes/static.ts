@@ -1,11 +1,6 @@
 import { promises as fs } from 'node:fs'
 
-import {
-	indexHtmlPath,
-	uiBundlePath,
-	uiChunkPath,
-	workerBundlePath,
-} from '../assets.js'
+import { indexHtmlPath, uiBundlePath, uiChunkPath } from '../assets.js'
 import {
 	HTTP_NO_CONTENT,
 	HTTP_NOT_FOUND,
@@ -21,7 +16,7 @@ export async function serveIndex({ res }: RouteRequest): Promise<void> {
 	res.end(await fs.readFile(file, 'utf8'))
 }
 
-// An etag'd JS asset server (ui.js, worker.js). Assets change only on a rebuild, so they carry an
+// An etag'd JS asset server. Assets change only on a rebuild, so they carry an
 // etag derived from size+mtime: the tab revalidates cheaply and a 304 skips the body entirely.
 async function serveJsBundle(
 	pathOf: () => Promise<string>,
@@ -68,10 +63,6 @@ export async function serveUiChunk(
 		return
 	}
 	return serveJsBundle(() => uiChunkPath(name), request)
-}
-
-export async function serveWorkerBundle(request: RouteRequest): Promise<void> {
-	return serveJsBundle(workerBundlePath, request)
 }
 
 export async function serveFavicon({ res }: RouteRequest): Promise<void> {
