@@ -4,6 +4,7 @@ import { Icon } from '@shared/ui/icon'
 
 import { chromeCtx } from '../context'
 
+import { ChangedIcon, StateBadge } from './tree-badges'
 import { WalkNode } from './walkthrough-rows'
 
 import type { TreeRow } from '@entities/review/file/tree-rows'
@@ -22,29 +23,12 @@ function activePath(S: ReturnType<typeof chromeCtx>['S']): string | null {
 	return S.preview?.path ?? S.state?.files.at(S.fileIndex)?.path ?? null
 }
 
-function ChangedIcon({ changeType }: { changeType: string }): ReactElement {
-	return <Icon id="gly-file" className={`file ${changeType}`} />
-}
-
 function MovedFrom({ from }: { from: string }): ReactElement {
 	return (
 		<span
 			className="moved-from"
 			title={`moved from ${from}`}
 		>{`← ${from}`}</span>
-	)
-}
-
-function StateBadge({ state }: { state: string }): ReactElement {
-	const badges: Record<string, { id: string; title: string }> = {
-		pending: { id: 'gly-dot', title: 'Pending review' },
-		approved: { id: 'gly-check', title: 'Approved' },
-		'changes-requested': { id: 'gly-flag', title: 'Changes requested' },
-	}
-	const badge = badges[state]
-	if (!badge) return <></>
-	return (
-		<Icon id={badge.id} className={`badge ${state}`} title={badge.title} />
 	)
 }
 
