@@ -1,5 +1,6 @@
 ---
 name: syneva
+disable-model-invocation: true
 description: Drive Syneva — a living browser surface where a human reviews a git diff (accept/reject changes, leave comments) and the coding agent acts on their decisions and replies in the same tab. Use after making code changes the user should review, when the user asks to "open the Syneva", or to collaborate on a diff turn-by-turn.
 license: MIT
 metadata:
