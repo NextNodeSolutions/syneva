@@ -1,5 +1,5 @@
 import { currentFileOrNull } from '@entities/review/changes'
-import { loadCurrentContents } from '@entities/review/file/contents'
+import { cur, loadCurrentContents } from '@entities/review/file/contents'
 import { isMarkdownPath } from '@entities/review/file/file-summary'
 import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 import { restoreComposerFocus } from '@features/manage-comment/composer'
@@ -99,6 +99,29 @@ function renderContentsError(path: string): void {
   </div></div>`
 }
 
+// A listed change whose two live sides read identical: the working diff this desk reviewed moved
+// under it (committed, staged or reverted mid-review). Rendering the diff island would say "+0 -0"
+// with a blank body - paint the stale notice instead, so the desk names the situation rather than
+// silently rendering an emptied diff (amber = stale notices per DESIGN.md).
+function isDiffGone(file: ReviewFile, isPreviewing: boolean): boolean {
+	if (isPreviewing) return false
+	// Only files whose reviewed diff claimed content changes: a zero-count listing (a file-mode full
+	// read, a pure rename) is a legitimate view-only render, never staleness.
+	if (!(file.added > 0 || file.removed > 0)) return false
+	return cur.path === file.path && cur.oldContents === cur.newContents
+}
+
+function renderStaleDiff(file: ReviewFile): void {
+	cursorReset()
+	detachDiffInstance()
+	$('diff').innerHTML =
+		`<div class="file-note"><div class="file-note-strip stale">
+    <svg class="ic"><use href="#gly-warn"></use></svg>
+    <span>no diff left for <span class="file-note-name">${esc(file.path)}</span> - the review is out of date</span>
+    <span class="file-note-meta">reload the desk to re-diff</span>
+  </div></div>`
+}
+
 // Which of the non-diff views (if any) takes over #diff. None of them read the fetched
 // contents, but the fetch still warms the per-file cache for a later switch.
 function renderReplacementView(
@@ -161,6 +184,10 @@ async function renderCenter(sequence: number): Promise<void> {
 	if (contentsStatus === 'stale' || sequence !== renderSequence) return
 	if (contentsStatus === 'error') {
 		renderContentsError(file.path)
+		return
+	}
+	if (isDiffGone(file, isPreviewing)) {
+		renderStaleDiff(file)
 		return
 	}
 	if (renderReplacementView(file, isPreviewing)) return
