@@ -1676,6 +1676,20 @@
 				color: var(--amber);
 			}
 
+			/* Stale strip: the working diff moved under the review (committed, staged or reverted
+			   mid-review). Amber = stale notices per DESIGN.md; static like the renamed note. */
+			.file-note-strip.stale {
+				border-color: rgba(224, 175, 104, 0.5);
+				background: rgba(224, 175, 104, 0.05);
+				color: var(--amber);
+				cursor: default;
+			}
+
+			.file-note-strip.stale:hover {
+				background: rgba(224, 175, 104, 0.05);
+				color: var(--amber);
+			}
+
 			/* Oversized-file placeholder (issue 05): a verdict-capable summary shown instead of a diff
        that would freeze the tab. Reuses the panel / churn-count / flag idioms so it reads as
        native; the change-kind accent (--ct-color) mirrors the diff header's ctColor language and
