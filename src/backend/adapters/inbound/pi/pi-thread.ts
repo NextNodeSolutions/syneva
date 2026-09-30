@@ -46,9 +46,9 @@ export function buildPiArgs(sessionFile: string, prompt: string): string[] {
 // The thread must be its OWN pi process, never an embedded one. The owning session
 // exports its identity and embedding markers to every child it spawns, and a `pi -p`
 // that inherits them attaches to the parent's session protocol instead of running its
-// prompt - it blocks forever with no output. Provider, model, reasoning and credential
-// variables are deliberately KEPT: the correspondent then answers with the same model
-// configuration as the session that owns the desk.
+// prompt - it blocks forever with no output. Credential variables are kept. Pi selects
+// this thread's saved model or its configured startup default, not the owner's model
+// or the separately invocable syneva-answer subagent profile.
 export function correspondentEnv(
 	source: Record<string, string | undefined> = process.env,
 ): Record<string, string | undefined> {

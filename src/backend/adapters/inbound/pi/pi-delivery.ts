@@ -64,7 +64,7 @@ export async function handleQuestionEvent(input: {
 		const questions = await io.readQuestions(eventPath)
 		if (!questions.length)
 			throw new Error('the event holds no answerable questions')
-		const prompt = buildCorrespondentPrompt(desk, eventPath, questions)
+		const prompt = buildCorrespondentPrompt(desk, questions)
 		let text = await io.runCorrespondent(desk, prompt, signal)
 		let replies: string[]
 		try {

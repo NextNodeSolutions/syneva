@@ -35,13 +35,12 @@ const POST_COMMENT_TIMEOUT_MS = 10_000
 
 export function buildCorrespondentPrompt(
 	target: DeskTarget,
-	eventPath: string,
 	questions: DeskQuestion[],
 ): string {
 	const count = questions.length
 	return [
 		`Syneva review question for repo ${JSON.stringify(target.repo)}, session ${JSON.stringify(target.session)}.`,
-		`Read the complete event at ${JSON.stringify(eventPath)} (it holds these questions).`,
+		`Questions in order: ${JSON.stringify(questions)}`,
 		`Answer ${count === 1 ? 'it' : `all ${count} of them`} read-only: read the anchored code as needed to answer, never edit files, never run desk commands.`,
 		"Answer in the reviewer's language.",
 		'Reply format - for each question in order, emit exactly:',
