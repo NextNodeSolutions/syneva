@@ -53,7 +53,7 @@ in the repo with a fixed session file (\`<reviewDir>/correspondent-session.jsonl
 tools, no extensions, no inherited listener. That thread is 1 thread = 1 agent: it resumes the
 same conversation for every question and keeps the review Q&A context THERE, not in the owner
 session, which is never asked to read for an answer. On each question event the extension
-spawns that thread with the saved event file, parses its "### q<N>" reply blocks, and posts
+passes the parsed questions directly to that thread, parses its "### q<N>" reply blocks, and posts
 each answer to the desk at the question's own path/line/side with role agent, VERBATIM - no
 owner turn, no per-question children, no runs.all fanout. The owner is woken only for review
 events (act on the feedback in the owner, which holds the code context, then \`syneva reload\`),
@@ -111,9 +111,9 @@ done
 await yields exactly one:
 - {"kind":"question","question":{path,lineNumber,side,body,mode,session},"questions":[…]} -
   reviewer wants an answer NOW. \`questions\` holds every question batched into this delivery
-  (arrival order; \`question\` is the oldest, kept for compatibility) - answer EACH, and on a Pi
-  attachment answer each in its own read-only child, never in the owner session (see Question
-  routing). A question wants
+  (arrival order; \`question\` is the oldest, kept for compatibility). On a Pi attachment, the
+  desk correspondent answers the batch (see Question routing); do not duplicate its work in
+  the owner session. A question wants
   an ANSWER, not a code change: answering is READ-ONLY - read for context, reply with \`syneva
   comment\` at path/lineNumber/side, and NEVER edit tracked files (the "Between rounds" rule) unless
   the question's own text asks for a change (then edit + \`syneva reload\`). lineNumber 0 (anchor
