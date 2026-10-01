@@ -196,8 +196,11 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 		ensureCursor()
 		return
 	} // first press just reveals the cursor (on the first change)
-	const isStart = (j: number): boolean =>
-		list[j].change && (j === 0 || !list[j - 1].change)
+	const isStart = (j: number): boolean => {
+		const row = list[j]
+		const before = list[j - 1]
+		return !!row?.change && (j === 0 || !before?.change)
+	}
 	const i = indexOfCur(list)
 	for (let j = i + dir; j >= 0 && j < list.length; j += dir) {
 		if (isStart(j)) {

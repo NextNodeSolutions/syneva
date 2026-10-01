@@ -43,7 +43,11 @@ export interface GitPort {
 	// Per-file new-side blob OIDs harvested from one `git diff --raw` process.
 	readonly rawBlobOids: (
 		root: string,
-		query: { staged?: boolean; base?: string; path?: string },
+		query: {
+			staged?: boolean | undefined
+			base?: string | undefined
+			path?: string | undefined
+		},
 	) => Promise<Map<string, string>>
 	readonly getGitRoot: (cwd: string) => Promise<string>
 	readonly getHead: (cwd: string) => Promise<string | null>

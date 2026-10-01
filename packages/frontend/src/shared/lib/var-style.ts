@@ -5,5 +5,6 @@ import type { CSSProperties } from 'react'
 
 export function varStyle(spec: string): CSSProperties {
 	const [name, value] = spec.split(':')
+	if (!name) return {}
 	return { [name]: value }
 }

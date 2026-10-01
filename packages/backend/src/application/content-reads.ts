@@ -11,7 +11,7 @@ export const CONTENT_READ_LIMIT = 4
 // input order, so callers that index into them - or that rely on diff order - are unaffected.
 export async function mapContentReads<Item, Mapped>(
 	items: readonly Item[],
-	read: (item: Item, index: number) => Promise<Mapped>,
+	read: (entry: Item, index: number) => Promise<Mapped>,
 ): Promise<Mapped[]> {
 	const results: Mapped[] = []
 	let next = 0
@@ -19,7 +19,11 @@ export async function mapContentReads<Item, Mapped>(
 		const index = next
 		if (index >= items.length) return
 		next++
-		results[index] = await read(items[index], index)
+		// The bounds check above makes items[index] real; the guard keeps the
+		// read honest for the compiler without changing behavior.
+		const entry = items[index]
+		if (!entry) return
+		results[index] = await read(entry, index)
 		return worker()
 	}
 	await Promise.all(

@@ -265,7 +265,7 @@ export async function readStagedSnapshot(
 	return {
 		stagedFiles: [...stagedFiles].filter(file => reviewFiles.has(file)),
 		stagedChangeKeys: (state.stagedChangeKeys ?? []).filter(key =>
-			stagedFiles.has(key.split(':')[0]),
+			stagedFiles.has(key.split(':')[0] ?? ''),
 		),
 	}
 }

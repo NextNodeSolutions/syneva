@@ -136,9 +136,9 @@ type CommentAnchor = {
 	path: string
 	side: 'additions' | 'deletions'
 	lineNumber: number
-	endLine?: number
-	anchorText?: string
-	anchor?: 'file'
+	endLine?: number | undefined
+	anchorText?: string | undefined
+	anchor?: 'file' | undefined
 }
 
 // The whole-file anchor: addressed to the file, so no line - lineNumber 0 is the reserved

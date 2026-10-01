@@ -6,6 +6,10 @@
 // ReviewFile) live in packages/backend/src/domain/review.ts, which mirrors the records
 // below structurally (domain may not import contracts). Keep the mirrored shapes
 // in structural sync when editing either side.
+//
+// Optional props are explicitly `T | undefined` (not bare `?`): these shapes are
+// JSON-round-tripped DTOs assembled in memory with explicit undefined keys, and the
+// repo checks under exactOptionalPropertyTypes.
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
@@ -14,29 +18,29 @@ export type ReviewComment = {
 	path: string
 	side: 'additions' | 'deletions'
 	lineNumber: number
-	endLine?: number
+	endLine?: number | undefined
 	body: string
 	createdAt: string
 	updatedAt: string
 	status: 'open' | 'resolved' | 'stale'
 	// "action" = a change request (goes back to the agent on Send); "question" = a
 	// just-in-time question answered live via the await stream; "note" = plain note.
-	intent?: 'note' | 'action' | 'question'
+	intent?: 'note' | 'action' | 'question' | undefined
 	// "user" comments are the reviewer's; "agent" comments are replies posted
 	// back by the coding agent via `syneva comment` between sessions.
-	role?: 'user' | 'agent'
+	role?: 'user' | 'agent' | undefined
 	// Exact text of the anchored line at creation time. Lets reload re-anchor the thread
 	// when the agent's edits shift the line (see reanchorComments).
-	anchorText?: string
+	anchorText?: string | undefined
 	// Set by re-anchoring when the anchor can't be recovered (line gone or ambiguous);
 	// the desk shows these threads in a file-level strip instead of on a diff row.
-	unanchored?: boolean
+	unanchored?: boolean | undefined
 	// "file" = a whole-file comment (addressed to the file, not a diff line; the desk hosts it
 	// from the file header). File comments carry lineNumber 0 and side 'additions' as placeholders
 	// - side/line are meaningless there, real lines are 1-based, so no line-keyed grouping can ever
 	// match them. Omitted on line comments; every construction derives it from lineNumber
 	// (commentAnchor in backend/domain/comments.ts), so the field can't disagree with lineNumber 0.
-	anchor?: 'file'
+	anchor?: 'file' | undefined
 }
 
 export type ChangeState = {
@@ -44,29 +48,29 @@ export type ChangeState = {
 	path: string
 	hunkIndex: number
 	// Index of this change block within its hunk's content segments.
-	changeIndex?: number
+	changeIndex?: number | undefined
 	side: 'additions' | 'deletions'
 	lineNumber: number
 	// Last line of the change block (multi-line blocks); anchors the Undo/Keep annotation.
-	endLine?: number
+	endLine?: number | undefined
 	title: string
-	stableKey?: string
+	stableKey?: string | undefined
 	status: 'pending' | 'accepted' | 'rejected'
 	// Whether accepting this change stages it to the git index. True only for
 	// uncommitted modifications of tracked files (repo mode; file mode when the
 	// file is tracked + changed). PR mode and untracked files are verdict-only.
-	stageable?: boolean
+	stageable?: boolean | undefined
 	// Hash of the change block's content, computed when the diff is parsed.
-	contentHash?: string
+	contentHash?: string | undefined
 	// contentHash captured at the moment a decision was made; lets a reload
 	// detect that the underlying code changed and the prior decision is stale.
-	reviewedHash?: string
+	reviewedHash?: string | undefined
 	// Where this block sits in the RENDERED (decision-replayed) diff - @pierre renumbers
 	// lines on every resolution, so these drift from lineNumber/endLine (the raw file
 	// lines, which stay canonical). Derived per render (syncDisplayAnchors), never trusted
 	// from persisted state.
-	displayLineNumber?: number
-	displayEndLine?: number
+	displayLineNumber?: number | undefined
+	displayEndLine?: number | undefined
 }
 
 // An explicit, durable record of a user's accept/reject on a change block, keyed
@@ -78,7 +82,7 @@ export type Decision = {
 	status: 'accepted' | 'rejected'
 	// contentHash the decision was made against; lets reconciliation drop a decision
 	// as stale if the agent rewrote that block since it was reviewed.
-	reviewedHash?: string
+	reviewedHash?: string | undefined
 	path: string
 	lineNumber: number
 	side: 'additions' | 'deletions'
@@ -110,5 +114,5 @@ export type Guide = {
 	files: GuideFile[]
 	// baseDiffHash the grouping was generated against - set on attach; the desk notes the
 	// grouping may be out of date once a reload advances the diff past it.
-	baseDiffHash?: string
+	baseDiffHash?: string | undefined
 }

@@ -16,13 +16,13 @@ import type {
 
 export type BrowserReviewFile = {
 	path: string
-	oldPath?: string
-	newPath?: string
+	oldPath?: string | undefined
+	newPath?: string | undefined
 	contentHash: string
-	changeKind?: 'added' | 'modified' | 'deleted' | 'renamed'
-	renamePure?: boolean
-	oversized?: boolean
-	size?: number
+	changeKind?: 'added' | 'modified' | 'deleted' | 'renamed' | undefined
+	renamePure?: boolean | undefined
+	oversized?: boolean | undefined
+	size?: number | undefined
 	added: number
 	removed: number
 	hasHunks: boolean
@@ -32,18 +32,18 @@ export type BrowserReviewState = {
 	root: string
 	session: string
 	mode: ReviewMode
-	target?: string
+	target?: string | undefined
 	staged: boolean
 	baseDiffHash: string
 	changes: readonly ChangeState[]
 	comments: readonly ReviewComment[]
-	decisions?: readonly Decision[]
-	guide?: Guide
+	decisions?: readonly Decision[] | undefined
+	guide?: Guide | undefined
 	reviewedFiles: readonly string[]
-	reviewedFileHashes?: Readonly<Record<string, string>>
+	reviewedFileHashes?: Readonly<Record<string, string>> | undefined
 	stagedFiles: readonly string[]
-	stagedChangeKeys?: readonly string[]
-	decisionFiles?: readonly string[]
+	stagedChangeKeys?: readonly string[] | undefined
+	decisionFiles?: readonly string[] | undefined
 	files: readonly BrowserReviewFile[]
 }
 

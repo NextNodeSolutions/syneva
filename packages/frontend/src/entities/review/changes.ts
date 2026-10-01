@@ -206,7 +206,9 @@ export function syncDisplayAnchors(
 	for (const c of changes) {
 		if (c.status !== 'pending') continue
 		if (typeof c.changeIndex !== 'number') continue
-		const part = resolved.hunks[c.hunkIndex].hunkContent[c.changeIndex]
+		const hunk = resolved.hunks[c.hunkIndex]
+		const part = hunk?.hunkContent[c.changeIndex]
+		if (!part) continue
 		if (part.type !== 'change') continue
 		const lineNumber =
 			(c.side === 'additions'

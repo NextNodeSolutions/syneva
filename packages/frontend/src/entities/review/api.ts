@@ -72,7 +72,7 @@ export const unstageChange = async (body: unknown): Promise<void> => {
 }
 
 // One-way handoff of the finished review back to the attached agent (see /api/send).
-export type SendResult = { sent?: boolean }
+export type SendResult = { sent?: boolean | undefined }
 
 export const sendReview = async (payload: unknown): Promise<SendResult> => {
 	const raw = await api(API_PATHS.send, {
@@ -100,7 +100,10 @@ export const askAgent = async (body: unknown): Promise<void> => {
 }
 
 // Jump into the reviewer's local editor at a real file line (see features/open-editor).
-export type EditorResult = { ok?: boolean; error?: string }
+export type EditorResult = {
+	ok?: boolean | undefined
+	error?: string | undefined
+}
 
 export const openEditor = async (body: {
 	path: string
@@ -119,7 +122,10 @@ export const openEditor = async (body: {
 
 // Destructive: drop every decision/comment and rebuild from the working tree. The
 // answer carries the rebuilt review state the tab adopts immediately.
-export type ResetResult = { state: ReviewState; serverInstanceId?: string }
+export type ResetResult = {
+	state: ReviewState
+	serverInstanceId?: string | undefined
+}
 
 export const resetReview = async (scope: ResetScope): Promise<ResetResult> => {
 	const raw = await api(API_PATHS.reset, {

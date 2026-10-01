@@ -166,7 +166,7 @@ const NON_REPO_SRC = /^(https?:|data:|blob:|\/)/i
 function repoImageUrl(src: string): string {
 	const raw = src.trim()
 	if (!raw || NON_REPO_SRC.test(raw)) return raw
-	return markdownRuntime().repoImageSrc(raw.split('#')[0])
+	return markdownRuntime().repoImageSrc(raw.split('#')[0] ?? raw)
 }
 
 function rewriteRepoImages(html: string): string {

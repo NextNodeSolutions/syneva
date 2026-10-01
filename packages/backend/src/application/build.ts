@@ -12,12 +12,12 @@ import type { GitPort } from './ports.js'
 
 // The parameters of a desk start: what to review (mode + path/base/target) and under which session.
 export type BuildQuery = {
-	mode?: ReviewMode
-	path?: string
-	staged?: boolean
+	mode?: ReviewMode | undefined
+	path?: string | undefined
+	staged?: boolean | undefined
 	session: string
-	target?: string
-	base?: string
+	target?: string | undefined
+	base?: string | undefined
 }
 
 // Build a fresh review for a mode:
@@ -149,8 +149,8 @@ function makeReviewState(input: {
 	staged: boolean
 	head: string | null
 	source: DiffSource
-	target?: string
-	base?: string
+	target?: string | undefined
+	base?: string | undefined
 }): ReviewState {
 	const { source } = input
 	const state: ReviewState = {

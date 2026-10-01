@@ -30,8 +30,10 @@ export const DEFAULT_SETTINGS: Settings = {
 type FontDef = { label: string; stack: string; google: string | null }
 
 // Curated mono fonts for code - the diff and comment/markdown code (loaded from Google Fonts
-// on selection, like JetBrains Mono today).
-export const FONTS: Record<string, FontDef> = {
+// Curated mono fonts for code - the diff and comment/markdown code (loaded from Google Fonts
+// on selection, like JetBrains Mono today). The literal object keeps its keys so the shipped
+// defaults below can be read without noUncheckedIndexedAccess doubt.
+const MONO_FONTS = {
 	'jetbrains-mono': {
 		label: 'JetBrains Mono',
 		stack: "'JetBrains Mono'",
@@ -64,8 +66,11 @@ export const FONTS: Record<string, FontDef> = {
 	},
 }
 
+export const FONTS: Record<string, FontDef> = MONO_FONTS
+const DEFAULT_MONO: FontDef = MONO_FONTS['jetbrains-mono']
+
 // Curated sans fonts for the UI chrome (everything that isn't code). "system" loads nothing.
-export const SANS_FONTS: Record<string, FontDef> = {
+const SANS_FONTS_TABLE = {
 	inter: {
 		label: 'Inter',
 		stack: "'Inter'",
@@ -87,6 +92,9 @@ export const SANS_FONTS: Record<string, FontDef> = {
 		google: null,
 	},
 }
+
+export const SANS_FONTS: Record<string, FontDef> = SANS_FONTS_TABLE
+const DEFAULT_SANS: FontDef = SANS_FONTS_TABLE['geist']
 
 // Settings persist in ~/.syneva/settings.json (via /api/settings), NOT localStorage -
 // localStorage is keyed by origin and each desk binds a random port, so anything stored
@@ -156,8 +164,8 @@ function applyLineHighlight(level: Settings['lineHighlight']): void {
 export function applyAppearance(s: Settings): void {
 	// A settings file written by hand (or by an older Syneva) can name a font this build no longer
 	// ships, so the lookup falls back to the shipped default rather than rendering nothing.
-	const f = FONTS[s.font] ?? FONTS['jetbrains-mono']
-	const sf = SANS_FONTS[s.uiFont] ?? SANS_FONTS['geist']
+	const f = FONTS[s.font] ?? DEFAULT_MONO
+	const sf = SANS_FONTS[s.uiFont] ?? DEFAULT_SANS
 	ensureFont(s.font, f.google)
 	ensureFont(s.uiFont, sf.google)
 	// Swap the whole CSS custom-property palette (and native color-scheme) by tagging <html>.

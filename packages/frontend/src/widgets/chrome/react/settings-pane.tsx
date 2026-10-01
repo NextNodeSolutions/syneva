@@ -21,7 +21,8 @@ import type { NumberSpec, SelectSpec, TextSpec } from './settings-descriptors'
 function isGrouped(
 	options: Option[] | OptionGroup[],
 ): options is OptionGroup[] {
-	return 'group' in options[0]
+	const [first] = options
+	return !!first && 'group' in first
 }
 
 function SettingSelect({ spec }: { spec: SelectSpec }): ReactElement {
