@@ -59,7 +59,7 @@ Everything a coding-agent harness loads from the published package (the extensio
 
 ## Conventions
 
-- Commits follow **Conventional Commits** (`feat:`, `fix:`, `perf:`, `refactor:`, `docs:`, `chore:`, …); `changelogen` infers the semver bump from the prefix. Version bumps and CHANGELOG are handled by `pnpm release` — don't edit CHANGELOG.md or the version by hand.
+- Commits follow **Conventional Commits** (`feat:`, `fix:`, `perf:`, `refactor:`, `docs:`, `chore:`, …); `semantic-release` (config in `apps/syneva/.releaserc.json`, extending the shared `@nextnode-solutions/standards` preset) infers the semver bump from the prefix, publishes the `syneva` package and cuts the GitHub release. Run it with `pnpm release`; don't edit the version by hand.
 - Comments in this codebase explain *why* and record invariants; match that style.
 
 <!-- BEGIN:turborepo-agent-rules -->
