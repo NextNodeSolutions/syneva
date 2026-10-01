@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f6f0">
+  <meta name="description" content="Keep the speed of agent-written code. Syneva gives you a local review desk to understand changes, ask your agent questions, and decide what ships.">
+  <title>Syneva — Code fast. Ship with confidence.</title>
+  <link rel="icon" href="mark.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="motion.css">
+  <link rel="stylesheet" href="hero-motion.css">
+  <link rel="stylesheet" href="navigation.css">
+  <link rel="stylesheet" href="navigation-menus.css">
+  <link rel="stylesheet" href="navigation-preview.css">
+  <link rel="stylesheet" href="navigation-responsive.css">
+  <script src="motion.js" type="module"></script>
+  <script src="navigation.js" type="module"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="page-frame">
+  <header class="navigation">
+    <a class="brand" href="#" aria-label="Syneva home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v5m0 10v5M2 12h5m10 0h5M5 5l4 4m6 6 4 4M5 19l4-4m6-6 4-4"/><path d="M8 12l4-4 4 4-4 4Z"/></svg>syneva</a>
+    <nav class="nav-links" id="site-navigation" aria-label="Main navigation">
+      <button class="nav-trigger" id="product-trigger" type="button" aria-expanded="false" aria-controls="product-menu">Product <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"/></svg></button>
+      <button class="nav-trigger" id="workflows-trigger" type="button" aria-expanded="false" aria-controls="workflows-menu">Workflows <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"/></svg></button>
+      <button class="nav-trigger" id="resources-trigger" type="button" aria-expanded="false" aria-controls="resources-menu">Resources <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"/></svg></button>
+      <a class="nav-direct" href="https://github.com/walid-mos/syneva">GitHub <span aria-hidden="true">↗</span></a>
+      <span class="nav-indicator" aria-hidden="true"></span>
+    </nav>
+    <a class="nav-action" href="#start">Get started <span aria-hidden="true">↗</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Open navigation"><span class="nav-toggle-label">Menu</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7h12M4 13h12"/></svg></button>
+    <div class="nav-dropdown" data-open="false">
+      <section class="nav-panel product-menu" id="product-menu" aria-labelledby="product-trigger" aria-hidden="true" inert>
+        <div class="product-menu-body">
+          <div class="product-links">
+            <a class="menu-link" href="#after" data-preview="review"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM9 9h6M9 13h6M9 17h3"/></svg><span><strong>Review desk</strong><small>Understand what changed.</small></span><span class="menu-arrow" aria-hidden="true">↗</span></a>
+            <a class="menu-link" href="#after" data-preview="guide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14h4M6 5h4M6 12h4M14 5h5M14 12h5M14 19h5"/></svg><span><strong>Guided walkthrough</strong><small>A reading order, not a file pile.</small></span><span class="menu-arrow" aria-hidden="true">↗</span></a>
+            <a class="menu-link" href="#after" data-preview="ask"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H9l-5 4V5ZM9 9h6M9 13h3"/></svg><span><strong>Ask your agent</strong><small>Keep the question on the code.</small></span><span class="menu-arrow" aria-hidden="true">↗</span></a>
+            <a class="menu-link" href="#before" data-preview="plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5V3Zm10 0v5h4M9 12h6M9 16h4"/></svg><span><strong>Plan desk <em>Prototype</em></strong><small>Question the plan before the code.</small></span><span class="menu-arrow" aria-hidden="true">↗</span></a>
+          </div>
+          <div class="nav-preview" aria-hidden="true">
+            <div class="preview-scene is-current" data-scene="review"><div class="preview-caption"><span>YOUR LOCAL DESK</span><span class="preview-dot"></span></div><div class="preview-diff"><div class="preview-filename">auth/session.ts <span>+3 −1</span></div><div class="preview-code"><span class="diff-minus">− return session</span><span class="diff-plus">+ verifySession(request)</span><span class="diff-plus">+ await next()</span></div><div class="preview-verdict"><span class="verdict-check">✓</span> Accepted by you</div></div><p>The agent writes.<br><strong>You decide what stays.</strong></p></div>
+            <div class="preview-scene" data-scene="guide"><div class="preview-caption"><span>A READING ORDER</span><span class="preview-dot"></span></div><div class="preview-tree"><div><span>01</span><strong>Start with the contract</strong><small>contracts/review.ts</small></div><div><span>02</span><strong>Follow the behavior</strong><small>application/review.ts</small></div><div><span>03</span><strong>Check the interface</strong><small>pages/desk.tsx</small></div></div><p>Your agent groups the work.<br><strong>Every file stays visible.</strong></p></div>
+            <div class="preview-scene" data-scene="ask"><div class="preview-caption"><span>CONTEXT, NOT GUESSWORK</span><span class="preview-dot"></span></div><div class="preview-conversation"><code>+ verifySession(request)</code><div><span>YOU</span><p>Why check the session here?</p></div><div><span>YOUR AGENT</span><p>So an expired session never reaches the handler.</p></div></div><p>Ask on the exact line.<br><strong>The answer stays with it.</strong></p></div>
+            <div class="preview-scene" data-scene="plan"><div class="preview-caption"><span>PLAN DESK · PROTOTYPE</span></div><div class="preview-plan"><span>plan.md</span><strong>Move session checks<br>into middleware.</strong><div>What happens when<br>the session expires? <span>?</span></div></div><p>Find the assumption.<br><strong>Settle it before the diff.</strong></p></div>
+            <span class="preview-example">Illustrative example</span>
+          </div>
+        </div>
+        <a class="menu-footer" href="#after"><span>A full review. One continuous conversation.</span><span>Explore Syneva <span aria-hidden="true">↗</span></span></a>
+      </section>
+      <section class="nav-panel workflows-menu" id="workflows-menu" aria-labelledby="workflows-trigger" aria-hidden="true" inert>
+        <div class="workflow-links">
+          <a class="workflow-link" href="#start"><strong>Working tree <span aria-hidden="true">↗</span></strong><span>Review the changes in front of you.</span><code>syneva</code></a>
+          <a class="workflow-link" href="https://github.com/walid-mos/syneva#getting-started"><strong>Staged changes <span aria-hidden="true">↗</span></strong><span>A last look before the commit.</span><code>syneva --diff staged</code></a>
+          <a class="workflow-link" href="https://github.com/walid-mos/syneva#getting-started"><strong>Pull requests <span aria-hidden="true">↗</span></strong><span>Follow a branch from its base.</span><code>syneva pr feature-branch</code></a>
+          <a class="workflow-link" href="https://github.com/walid-mos/syneva#getting-started"><strong>A single file <span aria-hidden="true">↗</span></strong><span>A plan, a proposal, or a piece of code.</span><code>syneva file plan.md</code></a>
+        </div>
+        <a class="menu-footer" href="#local"><span class="local-note"><span class="preview-dot"></span> On your machine. With your agent.</span><span aria-hidden="true">↗</span></a>
+      </section>
+      <section class="nav-panel resources-menu" id="resources-menu" aria-labelledby="resources-trigger" aria-hidden="true" inert>
+        <div class="resource-links">
+          <a class="menu-link" href="#start"><span><strong>Get started</strong><small>From install to your first review.</small></span><span class="menu-arrow" aria-hidden="true">↗</span></a>
+          <a class="menu-link" href="https://github.com/walid-mos/syneva/tree/main/extension"><span><strong>Connect your agent</strong><small>The pi package and CLI contract.</small></span><span class="menu-arrow" aria-hidden="true">↗</span></a>
+          <a class="menu-link" href="#faq"><span><strong>Questions & answers</strong><small>Local state, agents, and what's next.</small></span><span class="menu-arrow" aria-hidden="true">↗</span></a>
+          <a class="menu-link" href="https://github.com/walid-mos/syneva/blob/main/CHANGELOG.md"><span><strong>Changelog</strong><small>Follow the changes to Syneva.</small></span><span class="menu-arrow" aria-hidden="true">↗</span></a>
+        </div>
+        <a class="menu-footer" href="https://github.com/walid-mos/syneva"><span>Open source. MIT licensed.</span><span>GitHub <span aria-hidden="true">↗</span></span></a>
+      </section>
+    </div>
+    <noscript><a href="#after">Explore Syneva</a><a href="#faq">Questions & answers</a></noscript>
+  </header>
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-heading"><h1 id="hero-title"><span class="line"><span class="line-inner">Code fast.</span></span><span class="line"><span class="line-inner">Ship with <span class="accent">confidence.<svg class="h1-underline" viewBox="0 0 320 18" preserveAspectRatio="none" aria-hidden="true"><path d="M8 13C76 5 220 3 312 10" pathLength="100"/></svg></span></span></span></h1><span class="corner-mark" aria-hidden="true"></span></div>
+      <div class="hero-bottom"><p>Your agent moves fast. Understanding its work shouldn't slow you down. Make sense of the plan. Review the changes. Decide what ships.</p><div class="hero-actions"><a class="button primary" href="#start">Start a local review <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg></a><a class="text-link" href="#after">See how it works <span aria-hidden="true">↓</span></a></div></div>
+    </section>
+    <figure class="circuit motion-scene" aria-labelledby="circuit-caption">
+      <div class="figure-top"><span>YOUR AGENT'S DIFF. YOUR ATTENTION.</span></div>
+      <svg class="circuit-art" viewBox="0 0 1160 480" role="img" aria-labelledby="circuit-title circuit-desc">
+        <title id="circuit-title">The review, in two dimensions</title>
+        <desc id="circuit-desc">The full diff passes from your agent into a local review. Its layers open vertically: critical, important, and tested. You make your decisions during review, then ship code you've examined with confidence. A dotted return connection carries the next revision back to the agent. An illustrative human review, not automatic approval or a product screenshot.</desc>
+        <defs>
+          <clipPath id="review-face-clip"><use href="#review-face"/></clipPath>
+          <path id="flow-in" data-from="agent-out" data-to="review-in"/>
+          <path id="flow-out" data-from="review-out" data-to="verdict-in"/>
+          <path id="flow-return" data-from="verdict-return" data-to="agent-return" data-route="return"/>
+          <g id="review-leaf">
+            <path class="leaf-edge" d="M-112 0 0 56 112 0v5L0 61-112 5Z"/>
+            <path id="review-face" class="leaf-face" d="M0-56 112 0 0 56-112 0Z"/>
+            <path class="leaf-fold" d="M0 56v5"/>
+            <g transform="matrix(.8 .4 -.8 .4 0 -39)" class="leaf-code">
+              <path class="code-accent" d="M0 0h47"/>
+              <path d="M0 17h18m10 0h44M0 34h32m10 0h40M0 51h14m10 0h39M0 68h42"/>
+              <path class="code-faint" d="M81 0h14M90 34h8M72 51h20M51 68h15"/>
+            </g>
+          </g>
+          <g id="review-mark" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M0-11v6M0 5v6M-11 0h6M5 0h6M-8-8l4 4M4 4l4 4M-8 8l4-4M4-4l4-4"/><path d="m0-3 3 3-3 3-3-3Z"/></g>
+          <g id="verdict-check" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m-7 0 5 5 10-11"/></g>
+        </defs>
+        <g class="circuit-register" fill="none" stroke="var(--line)"><path d="M28 44V28h16m1072 0h16v16M28 436v16h16m1072 0h16v-16"/></g>
+        <g class="circuit-world">
+          <!-- Visible conductors and travelling signals share the same paths. -->
+          <g class="circuit-routes" fill="none">
+            <use href="#flow-in"/><use href="#flow-out"/>
+            <use class="return-route" href="#flow-return"/>
+            <use class="flow-signal signal-in" href="#flow-in"/>
+            <use class="flow-signal signal-out" href="#flow-out"/>
+            <use class="flow-signal signal-return" href="#flow-return"/>
+          </g>
+          <g class="source-station" transform="translate(212 312)">
+            <path class="station-foot" d="M0-62 124 0 0 62-124 0Z"/><path class="station-rim" d="m-124 0 0 7L0 69 124 7V0"/>
+            <g class="source-leaves"><use href="#review-leaf" transform="translate(0 -8) scale(.72)"/><use href="#review-leaf" transform="translate(0 -19) scale(.72)"/><g class="dispatch-sheet"><use href="#review-leaf" transform="translate(0 -30) scale(.72)"/></g></g>
+            <g transform="translate(0 51) scale(1 .5)" class="station-mark"><use href="#review-mark"/></g>
+            <circle class="circuit-port" id="agent-out" cx="124" cy="0" r="2.5"/><circle class="circuit-port" id="agent-return" cx="0" cy="69" r="2.5"/>
+            <text y="-128" class="station-title" text-anchor="middle">Your full diff</text><text y="-109" class="station-detail" text-anchor="middle">Every change from your agent</text>
+          </g>
+          <g class="center-station" transform="translate(580 312)">
+            <path class="station-foot" d="M0-76 152 0 0 76-152 0Z"/><path class="station-rim" d="M-152 0v8L0 84 152 8V0"/>
+            <path class="review-seat" d="M0-61 122 0 0 61-122 0Z"/>
+            <g transform="translate(0 68) scale(1 .5)" class="station-mark"><use href="#review-mark"/></g>
+            <circle class="circuit-port" id="review-in" cx="-152" cy="0" r="2.5"/><circle class="circuit-port" id="review-out" cx="152" cy="0" r="2.5"/>
+          </g>
+          <g transform="translate(580 276)">
+            <g class="review-layer layer-tested">
+              <use href="#review-leaf" transform="translate(0 10)"/><use href="#review-leaf"/>
+              <g class="layer-check" transform="translate(64 5) scale(1 .5)"><use href="#verdict-check"/></g>
+              <g class="layer-note"><path d="M112 0h38"/><circle cx="112" r="2"/><text x="162" y="-3" class="note-title">Tested</text><text x="162" y="15" class="note-detail">Check evidence</text></g>
+            </g>
+            <g class="review-layer layer-important">
+              <use href="#review-leaf"/>
+              <g class="layer-note"><path d="M112 0h38"/><circle cx="112" r="2"/><text x="162" y="-3" class="note-title">Important</text><text x="162" y="15" class="note-detail">Follow the change</text></g>
+            </g>
+            <g class="review-layer layer-critical">
+              <use href="#review-leaf"/><path class="critical-margin" d="m-97-3 13-6m-4 15 13-6m-4 15 13-6"/>
+              <g clip-path="url(#review-face-clip)"><path class="reading-sweep" d="m-160-80 112 56v18l-112-56Z"/></g>
+              <g class="focus-frame" fill="none"><path d="m-128-10 0-10 22-11m212 0 22 11v10M-128 13v10l22 11m212 0 22-11V13"/></g>
+              <g class="focus-owner"><path d="M0-58v-12"/><text y="-80" text-anchor="middle">YOUR FOCUS</text></g>
+              <g class="layer-note"><path d="M112 0h38"/><circle cx="112" r="2"/><text x="162" y="-3" class="note-title">Critical</text><text x="162" y="15" class="note-detail">Read closely</text></g>
+            </g>
+          </g>
+          <g class="verdict-station" transform="translate(948 312)">
+            <path class="station-foot" d="M0-62 124 0 0 62-124 0Z"/><path class="station-rim" d="M-124 0v7L0 69 124 7V0"/>
+            <g transform="translate(0 -9) scale(.72)">
+              <use href="#review-leaf"/>
+              <g class="verdict-accepted"><use href="#review-leaf"/></g>
+            </g>
+            <g transform="translate(0 -21)"><g class="verdict-seal"><ellipse rx="22" ry="11"/><g transform="scale(1 .5)"><use href="#verdict-check"/></g></g></g>
+            <circle class="circuit-port" id="verdict-in" cx="-124" cy="0" r="2.5"/><circle class="circuit-port" id="verdict-return" cx="0" cy="69" r="2.5"/>
+            <text y="-128" class="station-title" text-anchor="middle">Ship with confidence</text><text y="-109" class="station-detail" text-anchor="middle">Code you've reviewed</text>
+          </g>
+          <text class="loop-label" text-anchor="middle">SAME TAB. NEXT REVISION.</text>
+        </g>
+      </svg>
+      <figcaption id="circuit-caption">Your full diff. Room to understand it. Confidence in what ships.</figcaption>
+    </figure>
+    <div class="principle-strip"><span>Local by default</span><span>Your agent, not ours</span><span>Open source · MIT</span><span>No model runs inside Syneva</span></div>
+    <section class="intro section-pad" data-reveal><h2 data-reveal-item>Writing code got faster.<br>Knowing what to trust didn't.</h2><p data-reveal-item>A long plan. A bigger diff. Another round of scrolling, guessing, and asking your agent what changed. Syneva is the layer between what your agent produces and what you ship: a place to do that work, so your attention goes to the decisions only you can make.</p></section>
+    <section class="gap section-pad" id="trust" aria-labelledby="gap-title" data-reveal data-rule>
+      <div class="gap-head"><h2 id="gap-title" data-reveal-item>The diff got bigger.<br>Trust didn't come with it.</h2><p data-reveal-item>Nobody reviews a thousand lines with the attention a hundred deserve. Syneva is the layer that closes that gap: it makes every change readable, questionable, and decidable — by you, not by a model. The numbers below are product facts, not growth metrics.</p></div>
+      <div class="gap-stats">
+        <div class="gap-stat" data-reveal-item><span class="stat-number" data-count="0">0</span><span class="stat-label">changes auto-approved. Every verdict is a recorded human decision.</span></div>
+        <div class="gap-stat" data-reveal-item><span class="stat-number" data-count="1">1</span><span class="stat-label">tab carries the whole loop — review, questions, and the next revision.</span></div>
+        <div class="gap-stat" data-reveal-item><span class="stat-number" data-count="4">4</span><span class="stat-label">review modes: working tree, staged changes, a branch or PR, a single file.</span></div>
+        <div class="gap-stat" data-reveal-item><span class="stat-number">100<span class="stat-unit">%</span></span><span class="stat-label">local. No model inside, no telemetry, no account. Your machine, your code.</span></div>
+      </div>
+    </section>
+    <section class="chapter before" id="before" aria-labelledby="before-title" data-reveal data-rule>
+      <div class="chapter-copy"><h2 id="before-title" data-reveal-item>A clear plan.<br>A better starting point.</h2><p class="chapter-status prototype" data-reveal-item>Plan desk · prototype</p><p data-reveal-item>Don't lose the important decision in a wall of markdown. The plan desk we're exploring turns an agent's proposal into a map you can question.</p><ul class="detail-list"><li data-reveal-item><strong>See the shape of the work.</strong><span>Read the plan as a map, a document, or source.</span></li><li data-reveal-item><strong>Find the assumptions worth checking.</strong><span>See which claims carry risk, and what would prove them wrong.</span></li><li data-reveal-item><strong>Give your agent a clearer brief.</strong><span>Comment on the exact line. Settle the decision before the code.</span></li></ul><p class="honest-note" data-reveal-item>This is the direction, not a feature available in the CLI today.</p></div>
+      <figure class="plan-figure motion-scene" data-reveal-item><svg viewBox="0 0 520 520" role="img" aria-labelledby="plan-title plan-desc"><title id="plan-title">A plan becomes a map of decisions</title><desc id="plan-desc">A plan document routes into three claims. One needs proof, one is a question for the agent, and one is understood. Illustrative prototype concept.</desc><defs><pattern id="plan-grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="var(--grid)"/></pattern></defs><rect width="520" height="520" fill="url(#plan-grid)"/>
+        <g class="field-marks" fill="var(--accent)"><path d="M24 24h7v7h-7zm489 489h7v7h-7z"/></g>
+        <g class="plan-document"><path d="M64 100h-8v-8h8M212 92h8v8" stroke="var(--ink)" fill="none"/><rect x="64" y="100" width="156" height="212" fill="var(--paper)" stroke="var(--ink)"/><rect class="doc-highlight" x="84" y="150" width="118" height="24" fill="var(--peach)"/><path d="M84 128h96m-96 60h92m-92 28h104m-96 38h80m-88 28h58" fill="none" stroke="var(--line-strong)"/><text x="64" y="82" class="svg-label">plan.md</text></g>
+        <g fill="none" stroke="var(--accent)" stroke-width="1.5"><path class="bus-tap" d="M220 204h30"/><path class="bus-rail" d="M250 150v240"/><path class="stub st1" d="M250 150h36"/><path class="stub st2" d="M250 270h36"/><path class="stub st3" d="M250 390h36"/></g>
+        <g class="bus-dots" fill="var(--accent)"><circle class="bus-dot d1" cx="250" cy="150" r="3"/><circle class="bus-dot d2" cx="250" cy="204" r="3"/><circle class="bus-dot d3" cx="250" cy="270" r="3"/><circle class="bus-dot d4" cx="250" cy="390" r="3"/></g>
+        <g class="claim claim-risk"><rect x="286" y="122" width="210" height="56" fill="var(--peach)" stroke="var(--accent)"/><text x="306" y="150" class="svg-copy">Assumption</text><text x="306" y="168" class="svg-small">Needs proof</text><circle class="claim-dot" cx="476" cy="150" r="6" fill="var(--accent)"/></g>
+        <g class="claim claim-question"><rect x="286" y="242" width="210" height="56" fill="var(--paper)" stroke="var(--ink)"/><text x="306" y="270" class="svg-copy">A question</text><text x="306" y="288" class="svg-small">Ask the agent</text><circle class="claim-dot" cx="476" cy="270" r="6" fill="var(--ink)"/></g>
+        <g class="claim claim-settled"><rect x="286" y="362" width="210" height="56" fill="var(--mint)" stroke="var(--green)"/><text x="306" y="390" class="svg-copy">A decision</text><text x="306" y="408" class="svg-small">Understood</text><circle class="claim-dot" cx="476" cy="390" r="6" fill="var(--green)"/></g><text x="28" y="487" class="svg-label">LESS READING BLIND. MORE DECIDING.</text></svg><figcaption>Plan → claims → decisions</figcaption></figure>
+    </section>
+    <section class="chapter after" id="after" aria-labelledby="after-title" data-reveal data-rule>
+      <div class="chapter-copy"><h2 id="after-title" data-reveal-item>A big diff.<br>A smaller mental load.</h2><p class="chapter-status" data-reveal-item>Available now</p><p data-reveal-item>The agent has finished. Now it's your turn. Review its work in a local browser desk, with a reading order and a direct line to the agent that wrote it.</p><ul class="detail-list"><li data-reveal-item><strong>Follow the change, not the file list.</strong><span>Your agent can group files into a walkthrough. Every file stays visible.</span></li><li data-reveal-item><strong>Ask right where it matters.</strong><span>Questions and change requests stay anchored to the code.</span></li><li data-reveal-item><strong>Keep the good. Send the rest back.</strong><span>Accept or reject changes. Send your verdict. Review the revision in the same tab.</span></li></ul><a class="text-link" href="#start" data-reveal-item>Try it on your working tree <span aria-hidden="true">↗</span></a></div>
+      <figure class="review-figure motion-scene" data-reveal-item><svg viewBox="0 0 520 520" role="img" aria-labelledby="review-title review-desc"><title id="review-title">A reading order through agent-written code</title><desc id="review-desc">Three files come in a guided reading order. A question is anchored to a changed line, the agent answers it, and the human records a verdict. Illustrative review, not a screenshot.</desc><defs><pattern id="review-grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="var(--grid)"/></pattern></defs><rect width="520" height="520" fill="url(#review-grid)"/>
+        <g class="field-marks" fill="var(--accent)"><path d="M24 24h7v7h-7zm489 489h7v7h-7z"/></g>
+        <path class="review-wire" d="M64 106v329M64 435h42M64 106h42M64 234h42" stroke="var(--green)" fill="none"/>
+        <g class="station station-1"><circle cx="64" cy="106" r="10" fill="var(--mint)" stroke="var(--green)"/><path class="mini-check" d="m59 106 4 4 7-9" stroke="var(--green)" fill="none"/></g>
+        <g class="station station-2"><circle cx="64" cy="234" r="10" fill="var(--peach)" stroke="var(--accent)"/><text x="64" y="238.5" text-anchor="middle" class="svg-copy" fill="var(--accent)">?</text></g>
+        <g class="station station-3"><circle cx="64" cy="435" r="10" fill="var(--mint)" stroke="var(--green)"/><path class="mini-check s3-check" d="m59 435 4 4 7-9" stroke="var(--green)" fill="none"/></g>
+        <g class="review-file first-file"><rect x="112" y="70" width="330" height="72" fill="var(--paper)" stroke="var(--line-strong)"/><text x="132" y="96" class="svg-label">auth/session.ts</text><path d="M132 112h180m-180 14h132" fill="none" stroke="var(--line-strong)"/></g>
+        <g class="review-file second-file"><rect x="112" y="168" width="330" height="132" fill="var(--paper)" stroke="var(--ink)"/><text x="132" y="194" class="svg-label">api/middleware.ts</text><rect class="change-band" x="122" y="208" width="310" height="32" fill="var(--mint)"/><text x="138" y="228" class="svg-code">+ verifySession(request)</text><path d="M132 260h180m-180 16h120" fill="none" stroke="var(--line-strong)"/><g class="q-chip"><circle cx="452" cy="224" r="11" fill="var(--peach)" stroke="var(--accent)"/><text x="452" y="228.5" text-anchor="middle" class="svg-copy" fill="var(--accent)">?</text></g></g>
+        <g class="agent-answer"><path class="answer-leader" d="M452 239v63" stroke="var(--accent)" fill="none"/><rect x="136" y="302" width="316" height="58" fill="var(--peach)" stroke="var(--accent)"/><text x="152" y="324" class="svg-small">YOU · Why here?</text><text x="152" y="346" class="svg-copy">AGENT · Before the handler.</text></g>
+        <g class="review-file third-file"><rect x="112" y="400" width="330" height="70" fill="var(--mint)" stroke="var(--green)"/><text x="132" y="428" class="svg-label">routes/account.ts</text><text x="132" y="450" class="svg-small">Accepted by you</text></g><text x="28" y="487" class="svg-label">ONE TAB. THE WHOLE REVIEW LOOP.</text></svg><figcaption>Read → question → decide → revise</figcaption></figure>
+    </section>
+    <section class="loop section-pad" id="loop" aria-labelledby="loop-title" data-reveal data-rule>
+      <h2 id="loop-title" data-reveal-item>Confidence is built<br>round after round.</h2>
+      <div class="loop-steps">
+        <div class="loop-step" data-reveal-item><span class="step-index">01</span><strong>Open the desk</strong><p>Run <code>syneva</code> next to your repository. The diff opens on localhost, in your browser — nothing leaves your machine.</p></div>
+        <div class="loop-step" data-reveal-item><span class="step-index">02</span><strong>Read with a guide</strong><p>Your agent attaches a reading order and groups the files into sections. Every file stays visible, listed or not.</p></div>
+        <div class="loop-step" data-reveal-item><span class="step-index">03</span><strong>Ask on the line</strong><p>Questions anchor to the exact change. Your agent answers in the same thread, without you leaving the desk.</p></div>
+        <div class="loop-step" data-reveal-item><span class="step-index">04</span><strong>Send the verdict</strong><p>Accept or reject each change. Your agent receives a structured result and re-diffs its edits into the same tab.</p></div>
+      </div>
+      <p class="loop-note" data-reveal-item>Anything your agent rewrites resets to pending. Anything you settled stays settled.</p>
+    </section>
+    <section class="handoff section-pad" id="handoff" aria-labelledby="handoff-title" data-reveal data-rule>
+      <div class="handoff-copy"><h2 id="handoff-title" data-reveal-item>The verdict,<br>as a contract.</h2><p data-reveal-item>Send to Agent hands back a structured ReviewResult — printed to stdout and written to disk, readable by any harness. Not a screenshot, not a vibe: your agent knows exactly what you accepted, what you rejected, and what you asked.</p><p data-reveal-item>It acts on the round, calls <code>syneva reload</code>, and the same tab shows its next revision — your settled decisions carried over, its edits back to pending.</p><a class="text-link" href="https://github.com/walid-mos/syneva/blob/main/src/contracts/spec.ts" data-reveal-item>Read the full contract <span aria-hidden="true">↗</span></a></div>
+      <figure class="handoff-figure" data-reveal-item>
+        <div class="figure-top"><span>SYNEVA SPEC · REVIEWRESULT</span></div>
+        <pre class="handoff-json" aria-label="Illustrative ReviewResult payload"><span class="j-punc">{</span>
+  <span class="j-key">"mode"</span><span class="j-punc">:</span> <span class="j-str">"repo"</span><span class="j-punc">,</span>
+  <span class="j-key">"accepted"</span><span class="j-punc">:</span> <span class="j-punc">[{</span>
+    <span class="j-key">"path"</span><span class="j-punc">:</span> <span class="j-str">"auth/session.ts"</span><span class="j-punc">,</span>
+    <span class="j-key">"title"</span><span class="j-punc">:</span> <span class="j-str">"Verify session before handler"</span>
+  <span class="j-punc">}],</span>
+  <span class="j-key">"rejected"</span><span class="j-punc">:</span> <span class="j-punc">[{</span>
+    <span class="j-key">"path"</span><span class="j-punc">:</span> <span class="j-str">"api/middleware.ts"</span><span class="j-punc">,</span>
+    <span class="j-key">"title"</span><span class="j-punc">:</span> <span class="j-str">"Inline session check"</span>
+  <span class="j-punc">}],</span>
+  <span class="j-key">"requestedChanges"</span><span class="j-punc">:</span> <span class="j-punc">[{</span>
+    <span class="j-key">"path"</span><span class="j-punc">:</span> <span class="j-str">"api/middleware.ts"</span><span class="j-punc">,</span>
+    <span class="j-key">"body"</span><span class="j-punc">:</span> <span class="j-str">"What happens when the session expires?"</span>
+  <span class="j-punc">}],</span>
+  <span class="j-key">"approvedFiles"</span><span class="j-punc">:</span> <span class="j-punc">[</span><span class="j-str">"routes/account.ts"</span><span class="j-punc">],</span>
+  <span class="j-key">"openQuestions"</span><span class="j-punc">:</span> <span class="j-punc">[]</span>
+<span class="j-punc">}</span></pre>
+        <figcaption>Illustrative round. The full shape is versioned with the CLI: <code>syneva spec</code></figcaption>
+      </figure>
+    </section>
+    <section class="local section-pad" id="local" data-reveal data-rule><div><h2 data-reveal-item>Your code stays<br>on your machine.</h2><p data-reveal-item>Review doesn't need another cloud service. Syneva opens next to your repository, on localhost. It doesn't call a model or replace your agent. It gives you a better place to judge the work.</p><p class="benchmark-note" data-reveal-item><a class="text-link" href="https://github.com/walid-mos/syneva/blob/main/test/benchmarks/history.json">Recorded performance evidence <span aria-hidden="true">↗</span></a><br>Historical runs published September 17, 2026, not a guarantee for your repository.</p></div><svg class="local-art" data-reveal-item viewBox="0 0 340 230" role="img" aria-label="A repository and review desk connected inside the same local machine"><path d="M25 30h290v165H25Z" fill="none" stroke="var(--line-strong)"/><path d="M25 61h290M130 195v20m80-20v20m-97 0h114" fill="none" stroke="var(--line-strong)"/><circle cx="41" cy="46" r="3" fill="var(--accent)"/><text x="53" y="50" class="svg-label">localhost</text><path d="M58 98h76v55H58Z" fill="var(--paper)" stroke="var(--ink)"/><path d="m70 115 9-6 9 6m-18 11h43m-43 11h32" fill="none" stroke="var(--line-strong)"/><path d="M137 127h64" stroke="var(--accent)" stroke-dasharray="4 4"/><path d="M205 98h76v55h-76Z" fill="var(--mint)" stroke="var(--green)"/><path d="m231 127 8 8 17-21" fill="none" stroke="var(--green)" stroke-width="2"/><text x="58" y="176" class="svg-small">Your repo</text><text x="205" y="176" class="svg-small">Your verdict</text></svg></section>
+    <section class="start section-pad" id="start" aria-labelledby="start-title" data-reveal><div class="start-copy"><h2 id="start-title" data-reveal-item>Keep the speed.<br>Keep the understanding.</h2><p data-reveal-item>Open a desk over your working-tree diff. Bring the agent you already use.</p><a class="text-link" href="https://github.com/walid-mos/syneva#readme" data-reveal-item>Read the setup guide <span aria-hidden="true">↗</span></a></div><div class="install"><label for="install-command">Install Syneva · Node 22+ and git</label><div class="command"><span aria-hidden="true">$</span><input id="install-command" value="npm install -g syneva" readonly aria-label="Installation command"><button class="copy-command" type="button" aria-label="Copy installation command"><svg class="icon-copy" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 7h9v10H7ZM4 13H2V2h10v2"/></svg><svg class="icon-check" viewBox="0 0 20 20" aria-hidden="true"><path d="m4 11 5 5 8-11"/></svg></button></div><p>Then, inside your repository</p><code>syneva</code><p class="copy-status" role="status" aria-live="polite"></p></div></section>
+    <section class="faq section-pad" id="faq" aria-labelledby="faq-title" data-reveal><h2 id="faq-title" data-reveal-item>A few things<br>worth knowing.</h2><div class="faq-rows"><details data-reveal-item><summary>Does Syneva review code for me?</summary><p>No. You review the code. Your own agent can organize the reading order and answer questions. Syneva records your decisions and hands your feedback back to that agent.</p></details><details data-reveal-item><summary>Does Syneva ever auto-approve anything?</summary><p>No. Every change starts pending, and only your click records a decision. A decision is a verdict stored on that exact change — not git staging, not a blanket approval of a file.</p></details><details data-reveal-item><summary>What if the agent rewrites code I already accepted?</summary><p>Syneva hashes the content of each change. On reload, a rewritten change resets to pending; untouched work keeps your verdict. Approvals and comment anchors follow the same rule, so stale trust can't survive silently.</p></details><details data-reveal-item><summary>Which coding agents can I use?</summary><p>The CLI uses a documented JSON and localhost HTTP contract. It includes a pi integration, and other agents can use the standalone CLI. See the setup guide for the commands your agent needs.</p></details><details data-reveal-item><summary>Can I use the plan desk today?</summary><p>The dedicated plan desk is a prototype. The current CLI can open a file for review, including a plan, but the claim map and risk-ranked queue shown here are not shipped yet.</p></details><details data-reveal-item><summary>Where does my review live?</summary><p>On your machine, under ~/.syneva. The desk binds to localhost by default and saves decisions between rounds. There is no hosted account or telemetry.</p></details></div></section>
+  </main>
+  <footer><div class="footer-top"><a class="brand" href="#">syneva</a><span>Your agent writes. You decide.</span><a href="https://github.com/walid-mos/syneva">Source code <span aria-hidden="true">↗</span></a></div><div class="footer-word" aria-hidden="true">syneva</div><div class="footer-bottom"><span>Open source. MIT licensed.</span><span>Built for the human in the loop.</span></div></footer>
+</div>
+</body>
+</html>
