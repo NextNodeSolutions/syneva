@@ -10,7 +10,7 @@ import type { GitPort } from './ports.js'
 
 // What the scan needs to know: the repo root and the optional `--path` limit the diff was taken
 // with (untracked files must obey the same limit, or a scoped review would grow silently).
-export type UntrackedScan = { root: string; path?: string }
+export type UntrackedScan = { root: string; path?: string | undefined }
 
 type UntrackedEntry = { rel: string; working: string }
 
@@ -98,6 +98,7 @@ async function pairUntrackedMoves(
 		if (deletions.length !== 1 || untracked?.length !== 1) continue // unique 1:1 match only
 		const [deletion] = deletions
 		const [entry] = untracked
+		if (!deletion || !entry) continue
 		pairing.moves.push(mergeMove(deletion, entry))
 		pairing.deletedPaths.add(deletion.path)
 		pairing.untrackedPaths.add(entry.rel)
@@ -165,10 +166,12 @@ function dropPairedDeletions(
 ): void {
 	if (!deletedPaths.size) return
 	for (let i = files.length - 1; i >= 0; i--) {
-		if (files[i].newPath) continue
-		if (deletedPaths.has(files[i].path)) files.splice(i, 1)
+		const file = files[i]
+		if (!file || file.newPath) continue
+		if (deletedPaths.has(file.path)) files.splice(i, 1)
 	}
 	for (let i = changes.length - 1; i >= 0; i--) {
-		if (deletedPaths.has(changes[i].path)) changes.splice(i, 1)
+		const change = changes[i]
+		if (change && deletedPaths.has(change.path)) changes.splice(i, 1)
 	}
 }

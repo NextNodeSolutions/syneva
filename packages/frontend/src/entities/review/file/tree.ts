@@ -54,15 +54,21 @@ export type TreeBuild = {
 // expand/collapse controls and the touched-folder default both derive from this.
 function dirPaths(paths: Iterable<string>): string[] {
 	const dirs = new Set<string>()
-	for (const path of paths) {
-		const parts = path.split('/').filter(Boolean)
-		let full = ''
-		for (let i = 0; i < parts.length - 1; i++) {
-			full = full ? `${full}/${parts[i]}` : parts[i]
-			dirs.add(full)
-		}
-	}
+	for (const path of paths) addDirSegments(dirs, path)
 	return [...dirs]
+}
+
+// The non-empty segments of one path except the file's own name, joined back into
+// every ancestor directory (own directory first, then each parent).
+function addDirSegments(dirs: Set<string>, path: string): void {
+	const parts = path.split('/').filter(Boolean)
+	let full = ''
+	for (let i = 0; i < parts.length - 1; i++) {
+		const part = parts[i]
+		if (!part) continue
+		full = full ? `${full}/${part}` : part
+		dirs.add(full)
+	}
 }
 
 // Every directory path in the tree (independent of current open/closed state) - used by

@@ -7,7 +7,10 @@ import { errorMessage } from './errors.js'
 import type { ReviewState } from '../domain/review.js'
 import type { GitPort } from './ports.js'
 
-export type StagePathsRequest = { paths: string[]; recorded?: string }
+export type StagePathsRequest = {
+	paths: string[]
+	recorded?: string | undefined
+}
 
 export type StageChangeRequest = { path: string; stableKey: string }
 

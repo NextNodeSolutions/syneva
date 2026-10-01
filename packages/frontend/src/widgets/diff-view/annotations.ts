@@ -77,6 +77,7 @@ function threadAnnotations(
 	)
 	for (const group of groups.values()) {
 		const [first] = group
+		if (!first) continue
 		if (isUnanchoredGroup(group, file)) continue
 		const change = changes.find(
 			ch =>

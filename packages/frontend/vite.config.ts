@@ -63,7 +63,11 @@ const shikiShimPlugin = (): Plugin => ({
 })
 
 // Common build options: esbuild parity - no sourcemaps, one minified bundle set.
-const buildOptions = (overrides: UserConfig['build']): UserConfig['build'] => ({
+// NonNullable: UserConfig['build'] is optional on Vite's config, but this helper
+// always returns the options object it builds.
+const buildOptions = (
+	overrides: NonNullable<UserConfig['build']>,
+): NonNullable<UserConfig['build']> => ({
 	// The build script cleans dist first; the dev watch must never empty the
 	// assembled apps/syneva/dist it writes into (outDir outside root forbids it).
 	emptyOutDir: false,

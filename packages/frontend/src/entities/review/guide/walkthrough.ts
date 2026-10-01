@@ -101,7 +101,7 @@ function fileBuilder(
 		const stat = stats.get(path) ?? { added: 0, removed: 0 }
 		const file = files[fileIndex]
 		const moved =
-			file.oldPath && file.newPath && file.oldPath !== file.newPath
+			file?.oldPath && file.newPath && file.oldPath !== file.newPath
 				? file.oldPath
 				: ''
 		return {
@@ -255,6 +255,9 @@ export function walkRows(
 		// Groups always carry ≥1 file (guide groups get one per add; Other is only pushed if it has any).
 		const target =
 			group.files.find(f => f.state === 'pending') ?? group.files[0]
+		// Groups always carry ≥1 file (guide groups get one per add; Other is only
+		// pushed if it has any); the guard keeps the reads honest.
+		if (!target) return
 		const collapsed = isCollapsed(group, expanded)
 		rows.push({
 			kind: 'cat',

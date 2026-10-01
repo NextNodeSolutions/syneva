@@ -73,10 +73,12 @@ function toVersionPart(rawPart: string): number | null {
 function parseVersion(rawVersion: string): VersionParts | null {
 	const parts = rawVersion.trim().split('.')
 	if (parts.length !== SEMVER_PART_COUNT) return null
-	const [rawMajor, rawMinor, rawPatch] = parts
-	const major = toVersionPart(rawMajor)
-	const minor = toVersionPart(rawMinor)
-	const patch = toVersionPart(rawPatch)
+	// Named parts: destructuring reads the three positions statically, so
+	// noUncheckedIndexedAccess doesn't doubt them and no index stays magic.
+	const [majorPart, minorPart, patchPart] = parts
+	const major = toVersionPart(majorPart ?? '')
+	const minor = toVersionPart(minorPart ?? '')
+	const patch = toVersionPart(patchPart ?? '')
 	if (major === null || minor === null || patch === null) return null
 	return [major, minor, patch]
 }
@@ -85,12 +87,13 @@ export function isNewer(latest: string, current: string): boolean {
 	const next = parseVersion(latest)
 	const installed = parseVersion(current)
 	if (!next || !installed) return false
-	for (let index = 0; index < SEMVER_PART_COUNT; index++) {
-		const candidate = next[index]
-		const existing = installed[index]
-		if (candidate !== existing) return candidate > existing
-	}
-	return false
+	// Fixed-width tuples: destructuring reads the three positions statically,
+	// so noUncheckedIndexedAccess doesn't doubt them the way a loop index does.
+	const [nextMajor, nextMinor, nextPatch] = next
+	const [curMajor, curMinor, curPatch] = installed
+	if (nextMajor !== curMajor) return nextMajor > curMajor
+	if (nextMinor !== curMinor) return nextMinor > curMinor
+	return nextPatch === curPatch ? false : nextPatch > curPatch
 }
 
 export type InstallInfo = {

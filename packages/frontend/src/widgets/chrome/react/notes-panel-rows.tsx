@@ -121,7 +121,12 @@ export function NoteSection({
 					</div>
 					{group.rows.map(entry => (
 						<NoteRow
-							key={entry.note.comments[0].id}
+							// A thread always carries its anchor comment; the composite
+							// fallback keeps the key a string even if that invariant breaks.
+							key={
+								entry.note.comments[0]?.id ??
+								`${entry.note.path}:${entry.index}`
+							}
 							note={entry.note}
 							index={entry.index}
 							current={entry.note.path === currentPath}

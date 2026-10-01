@@ -65,6 +65,7 @@ export function fileBlockers(path: string): Blocker[] {
 	)
 	for (const comments of groups.values()) {
 		const [first] = comments
+		if (!first) continue
 		const preview = first.body.replace(/\s+/g, ' ').trim()
 		out.push({
 			kind: 'thread',

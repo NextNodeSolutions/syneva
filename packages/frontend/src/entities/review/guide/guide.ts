@@ -59,9 +59,9 @@ export function guideOrder(g: GuideInputs): number[] {
 // opens something.
 export function firstGuideIndex(g: GuideInputs): number {
 	const nav = navOrder(g)
-	if (nav.length) return nav[0]
+	if (nav.length) return nav[0] ?? 0
 	const order = guideOrder(g)
-	return order.length ? order[0] : 0
+	return order[0] ?? 0
 }
 
 // Plain next/prev stepping skips files out of the flow (pure renames) - they've left the
@@ -94,20 +94,18 @@ function stepCandidates(
 ): number[] {
 	const order = hasGuide(g) ? guideOrder(g) : []
 	const pos = order.indexOf(cur)
-	if (pos >= 0) {
+	if (pos < 0) {
+		const count = g.state?.files.length ?? 0
 		const candidates: number[] = []
-		for (
-			let p = pos + direction;
-			p >= 0 && p < order.length;
-			p += direction
-		)
-			candidates.push(order[p])
+		for (let i = cur + direction; i >= 0 && i < count; i += direction)
+			candidates.push(i)
 		return candidates
 	}
-	const count = g.state?.files.length ?? 0
 	const candidates: number[] = []
-	for (let i = cur + direction; i >= 0 && i < count; i += direction)
-		candidates.push(i)
+	for (let p = pos + direction; p >= 0 && p < order.length; p += direction) {
+		const candidate = order[p]
+		if (candidate !== undefined) candidates.push(candidate)
+	}
 	return candidates
 }
 

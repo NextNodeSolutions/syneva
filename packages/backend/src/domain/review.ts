@@ -32,11 +32,14 @@ export type WritableDeep<T> = T extends readonly (infer U)[]
 		? { -readonly [K in keyof T]: WritableDeep<T[K]> }
 		: T
 
+// Optional props are explicitly `T | undefined` (not bare `?`): these shapes are
+// JSON-round-tripped DTOs assembled in memory with explicit undefined keys, and the
+// repo checks under exactOptionalPropertyTypes. Keep in sync with contracts/review.ts.
 export type DiffLine = {
 	readonly kind: 'context' | 'add' | 'delete'
 	readonly text: string
-	readonly oldLine?: number
-	readonly newLine?: number
+	readonly oldLine?: number | undefined
+	readonly newLine?: number | undefined
 	readonly diffPosition: number
 	readonly hunkHeader: string
 }
@@ -51,8 +54,8 @@ export type DiffHunk = {
 }
 
 export type DiffFile = {
-	readonly oldPath?: string
-	readonly newPath?: string
+	readonly oldPath?: string | undefined
+	readonly newPath?: string | undefined
 	readonly hunks: readonly DiffHunk[]
 }
 
@@ -62,16 +65,16 @@ export type ReviewComment = {
 	readonly path: string
 	readonly side: 'additions' | 'deletions'
 	readonly lineNumber: number
-	readonly endLine?: number
+	readonly endLine?: number | undefined
 	readonly body: string
 	readonly createdAt: string
 	readonly updatedAt: string
 	readonly status: 'open' | 'resolved' | 'stale'
-	readonly intent?: 'note' | 'action' | 'question'
-	readonly role?: 'user' | 'agent'
-	readonly anchorText?: string
-	readonly unanchored?: boolean
-	readonly anchor?: 'file'
+	readonly intent?: 'note' | 'action' | 'question' | undefined
+	readonly role?: 'user' | 'agent' | undefined
+	readonly anchorText?: string | undefined
+	readonly unanchored?: boolean | undefined
+	readonly anchor?: 'file' | undefined
 }
 
 // Structural mirror of packages/contracts/src/review.ts (ChangeState). Keep in sync.
@@ -79,27 +82,27 @@ export type ChangeState = {
 	readonly id: string
 	readonly path: string
 	readonly hunkIndex: number
-	readonly changeIndex?: number
+	readonly changeIndex?: number | undefined
 	readonly side: 'additions' | 'deletions'
 	readonly lineNumber: number
-	readonly endLine?: number
+	readonly endLine?: number | undefined
 	readonly title: string
-	readonly stableKey?: string
+	readonly stableKey?: string | undefined
 	readonly status: 'pending' | 'accepted' | 'rejected'
-	readonly stageable?: boolean
-	readonly contentHash?: string
-	readonly reviewedHash?: string
+	readonly stageable?: boolean | undefined
+	readonly contentHash?: string | undefined
+	readonly reviewedHash?: string | undefined
 	// Display anchors are stamped by the UI on its own mutable projection
 	// (syncDisplayAnchors), never on this record - see contracts/review.ts.
-	readonly displayLineNumber?: number
-	readonly displayEndLine?: number
+	readonly displayLineNumber?: number | undefined
+	readonly displayEndLine?: number | undefined
 }
 
 // Structural mirror of packages/contracts/src/review.ts (Decision). Keep in sync.
 export type Decision = {
 	readonly key: string // `${path}:${stableKey}`
 	readonly status: 'accepted' | 'rejected'
-	readonly reviewedHash?: string
+	readonly reviewedHash?: string | undefined
 	readonly path: string
 	readonly lineNumber: number
 	readonly side: 'additions' | 'deletions'
@@ -115,7 +118,7 @@ export type GuideFile = {
 
 export type Guide = {
 	readonly files: GuideFile[]
-	readonly baseDiffHash?: string
+	readonly baseDiffHash?: string | undefined
 }
 
 export type ReviewFile = DiffFile & {
@@ -132,27 +135,32 @@ export type ReviewFile = DiffFile & {
 	//
 	// Change class, from the diff's paths (no contents): added (--- /dev/null), deleted (+++
 	// /dev/null), renamed (distinct old/new paths), else modified.
-	readonly changeKind?: 'added' | 'modified' | 'deleted' | 'renamed'
+	readonly changeKind?:
+		| 'added'
+		| 'modified'
+		| 'deleted'
+		| 'renamed'
+		| undefined
 	// +added / -removed line counts. From the parsed hunks; a hunk-less full-file add counts its
 	// whole content as additions (matching what the UI used to derive from the embedded contents).
-	added?: number
-	removed?: number
+	added?: number | undefined
+	removed?: number | undefined
 	// A byte-identical move (distinct paths, unchanged content): git-native zero-hunk rename or a
 	// plain-`mv` untracked pair. NOT pure. Drives the UI's muted "renamed · no changes" row /
 	// Renamed-fold without contents.
-	readonly renamePure?: boolean
+	readonly renamePure?: boolean | undefined
 	// New-side byte size, stamped ONLY in working/file mode (free from the bytes read to hash the
 	// working copy). OMITTED for committed new sides (pr/staged) - sizes aren't in `git diff --raw`
 	// and a batched lookup wasn't worth a slice dominated by deletion. Issue 05's oversized-file
 	// threshold falls back to diff-text length + changed-line counts where size is absent.
-	size?: number
+	size?: number | undefined
 	// Set (issue 05) when this file's diff is big enough to freeze the tab if rendered - the UI shows
 	// a verdict-capable summary card instead of the diff (with a "Load diff anyway" escape hatch).
 	// Stamped by the builder from the diff alone (text length + changed lines, plus `size` where it's
 	// present); see isOversized in backend/application/diff-files.ts. Omitted (not `false`) on
 	// ordinary files, so the state
 	// stays lean and the UI reads it as a plain truthiness check.
-	readonly oversized?: boolean
+	readonly oversized?: boolean | undefined
 }
 
 export type ReviewState = {
@@ -165,14 +173,14 @@ export type ReviewState = {
 	// how `reload` rebuilds the diff.
 	readonly mode: ReviewMode
 	// Rebuild params: file path (file mode) or branch/ref (pr mode), and the pr base.
-	readonly target?: string
-	readonly base?: string
+	readonly target?: string | undefined
+	readonly base?: string | undefined
 	readonly staged: boolean
 	readonly head: string | null
 	// Hash of the raw diff this review was built against (staleness metadata).
 	readonly baseDiffHash: string
 	readonly createdAt: string
-	readonly updatedAt?: string
+	readonly updatedAt?: string | undefined
 	readonly rawDiff: string
 	readonly files: readonly ReviewFile[]
 	readonly comments: readonly ReviewComment[]
@@ -182,14 +190,14 @@ export type ReviewState = {
 	// stored here. reviewedFileHashes records the file's contentHash at sign-off so approval
 	// goes stale when the file's content changes.
 	readonly reviewedFiles: readonly string[]
-	readonly reviewedFileHashes?: Readonly<Record<string, string>>
+	readonly reviewedFileHashes?: Readonly<Record<string, string>> | undefined
 	readonly stagedFiles: readonly string[]
-	readonly stagedChangeKeys?: readonly string[]
-	readonly decisionFiles?: readonly string[]
+	readonly stagedChangeKeys?: readonly string[] | undefined
+	readonly decisionFiles?: readonly string[] | undefined
 	// Explicit accept/reject records - the source of truth for decisions.
-	readonly decisions?: readonly Decision[]
+	readonly decisions?: readonly Decision[] | undefined
 	// Agent-supplied file grouping (order + category sections); it carries no prose.
 	// Optional: absent → no guide surfaces render.
-	readonly guide?: Guide
-	readonly persistFile?: string
+	readonly guide?: Guide | undefined
+	readonly persistFile?: string | undefined
 }

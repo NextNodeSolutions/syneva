@@ -26,18 +26,22 @@ export function planReplayCalls(
 	const calls: ReplayCall[] = []
 	let index = 0
 	while (index < decided.length) {
-		const { hunkIndex } = decided[index]
+		const head = decided[index]
+		if (!head) break
+		const { hunkIndex } = head
 		let end = index
-		while (end < decided.length && decided[end].hunkIndex === hunkIndex)
+		while (end < decided.length && decided[end]?.hunkIndex === hunkIndex)
 			end++
 		const group = decided.slice(index, end)
+		const [first] = group
 		const whole =
-			group.every(d => d.status === group[0].status) &&
+			!!first &&
+			group.every(d => d.status === first.status) &&
 			group.length === changeCount(diff, hunkIndex)
 		if (whole) {
 			calls.push({
 				hunkIndex,
-				options: group[0].status === 'rejected' ? 'reject' : 'accept',
+				options: first.status === 'rejected' ? 'reject' : 'accept',
 			})
 		} else {
 			calls.push(...perChangeCalls(group))

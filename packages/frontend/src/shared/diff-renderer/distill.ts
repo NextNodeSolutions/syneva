@@ -25,11 +25,12 @@ const entryKey = (hunkIndex: number, changeIndex: number): string =>
 // (resolveRegion's pushContentLinesToDiff contract), read back from the source.
 function contextRows(entry: ContextContent, from: FileDiffMetadata): Line[] {
 	const rows: Line[] = []
-	for (let i = 0; i < entry.lines; i++)
-		rows.push(
+	for (let i = 0; i < entry.lines; i++) {
+		const row =
 			from.additionLines[entry.additionLineIndex + i] ??
-				from.deletionLines[entry.deletionLineIndex + i],
-		)
+			from.deletionLines[entry.deletionLineIndex + i]
+		if (row) rows.push(row)
+	}
 	return rows
 }
 
@@ -59,12 +60,12 @@ export function distillAccepted(
 				? hunk.collapsedBefore
 				: 0
 		for (let i = 0; i < collapseRows; i++) {
-			deletionRows.push(
-				diff.deletionLines[hunk.deletionLineIndex - collapseRows + i],
-			)
-			additionRows.push(
-				diff.additionLines[hunk.additionLineIndex - collapseRows + i],
-			)
+			const deletionRow =
+				diff.deletionLines[hunk.deletionLineIndex - collapseRows + i]
+			const additionRow =
+				diff.additionLines[hunk.additionLineIndex - collapseRows + i]
+			if (deletionRow) deletionRows.push(deletionRow)
+			if (additionRow) additionRows.push(additionRow)
 		}
 		deletionLength += collapseRows
 		additionLength += collapseRows
@@ -176,8 +177,10 @@ export function distillAccepted(
 			diff.additionLines.length - additionEnd,
 		)
 		for (let i = 0; i < count; i++) {
-			deletionRows.push(diff.deletionLines[deletionEnd + i])
-			additionRows.push(diff.additionLines[additionEnd + i])
+			const deletionRow = diff.deletionLines[deletionEnd + i]
+			const additionRow = diff.additionLines[additionEnd + i]
+			if (deletionRow) deletionRows.push(deletionRow)
+			if (additionRow) additionRows.push(additionRow)
 		}
 	}
 	return {

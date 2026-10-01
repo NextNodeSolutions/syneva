@@ -10,7 +10,7 @@ export function Icon({
 }: {
 	id: string
 	className?: string
-	title?: string
+	title?: string | undefined
 }): ReactElement {
 	const cls = ['ic', className].filter(Boolean).join(' ')
 	return (

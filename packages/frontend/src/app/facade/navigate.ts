@@ -87,7 +87,7 @@ function nextInWalkthrough(dir: 1 | -1): number | null {
 	const order = navOrder(guideInputs(S))
 	if (!order.length) return null
 	const pos = order.indexOf(S.fileIndex)
-	return order[(pos + dir + order.length) % order.length]
+	return order[(pos + dir + order.length) % order.length] ?? null
 }
 
 // Plain next/prev in the tree's file rows (previews included - an unchanged file has no
@@ -103,7 +103,7 @@ function nextInTree(dir: 1 | -1): FileRow | null {
 		S.fileIndex,
 	)?.path
 	const pos = rows.findIndex(row => row.path === shown)
-	return rows[(pos + dir + rows.length) % rows.length]
+	return rows[(pos + dir + rows.length) % rows.length] ?? null
 }
 
 function installFileStepping(): void {
@@ -125,7 +125,8 @@ function installFileStepping(): void {
 				return
 			}
 			const order = navOrder(guideInputs(S))
-			const last = order.length ? order[order.length - 1] : null
+			const last =
+				order.length > 0 ? (order[order.length - 1] ?? null) : null
 			if (last !== null) S.selectFile?.(last)
 			return
 		}

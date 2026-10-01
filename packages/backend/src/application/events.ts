@@ -34,6 +34,7 @@ export function createEventStream(): EventStream {
 		takeNext(): AwaitEvent | undefined {
 			if (!queue.length) return undefined
 			const [head] = queue
+			if (!head) return undefined
 			if (head.kind !== 'question') return queue.shift()
 			return drainQuestions(queue)
 		},
@@ -58,19 +59,24 @@ export function createEventStream(): EventStream {
 }
 
 // All queued questions as one event, oldest first: singular `question` is the oldest (kept for
-// compatibility), `questions` holds every question in arrival order.
-function drainQuestions(queue: AwaitEvent[]): AwaitEvent {
+// compatibility), `questions` holds every question in arrival order. Undefined only when the
+// queue holds no question at all (the caller then delivers nothing).
+function drainQuestions(queue: AwaitEvent[]): AwaitEvent | undefined {
 	const batched: QuestionPayload[] = []
 	for (let index = queue.length - 1; index >= 0; index--) {
 		const event = queue[index]
-		if (event.kind !== 'question') continue
+		if (event?.kind !== 'question') continue
 		batched.unshift(...event.questions)
 		queue.splice(index, 1)
 	}
-	return { kind: 'question', question: batched[0], questions: batched }
+	const [oldest] = batched
+	if (!oldest) return undefined
+	return { kind: 'question', question: oldest, questions: batched }
 }
 
 function dropQueuedQuestions(queue: AwaitEvent[]): void {
-	for (let index = queue.length - 1; index >= 0; index--)
-		if (queue[index].kind === 'question') queue.splice(index, 1)
+	for (let index = queue.length - 1; index >= 0; index--) {
+		const event = queue[index]
+		if (event?.kind === 'question') queue.splice(index, 1)
+	}
 }

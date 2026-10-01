@@ -78,7 +78,9 @@ export function locateDisplayLine(
 	line: number,
 ): Loc {
 	for (let i = 0; i < fd.hunks.length; i++) {
-		const loc = hunkLoc(fd.hunks[i], i, side, line)
+		const hunk = fd.hunks[i]
+		if (!hunk) continue
+		const loc = hunkLoc(hunk, i, side, line)
 		if (loc) return loc
 	}
 	const last = fd.hunks.at(-1)
