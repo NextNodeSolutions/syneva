@@ -1,0 +1,16 @@
+{
+	// Shared compiler options for every workspace package. Module system and
+	// resolution stay per-package: the NodeNext world (contracts, backend, the
+	// app's extension module) emits and resolves with .js specifiers, the
+	// bundler world (frontend) is checked with moduleResolution=bundler.
+	"compilerOptions": {
+		"target": "ES2022",
+		"lib": ["ES2023"],
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"declaration": true,
+		"types": ["node"]
+	}
+}

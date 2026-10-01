@@ -1,0 +1,22 @@
+{
+	"name": "@syneva/contracts",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Shared wire shapes for Syneva: the single source of truth for the CLI/HTTP contract (review, browser, agent, routes, spec).",
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		"./*": {
+			"types": "./dist/*.d.ts",
+			"default": "./dist/*.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"check": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "latest",
+		"typescript": "latest"
+	}
+}

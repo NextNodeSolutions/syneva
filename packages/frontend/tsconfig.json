@@ -1,0 +1,27 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
+		"jsx": "react-jsx",
+		"types": ["node"],
+		"noEmit": true,
+		"declaration": false,
+		// The frontend-only layer aliases (FSD): app -> pages -> widgets ->
+		// features -> entities -> shared. Enforced here by moduleResolution=bundler
+		// and by oxlint's layer rules. The shared wire shapes come from the
+		// @syneva/contracts workspace package, not an alias.
+		"paths": {
+			"@app/*": ["./src/app/*"],
+			"@pages/*": ["./src/pages/*"],
+			"@widgets/*": ["./src/widgets/*"],
+			"@features/*": ["./src/features/*"],
+			"@entities/*": ["./src/entities/*"],
+			"@shared/*": ["./src/shared/*"]
+		}
+	},
+	// The whole browser world: it imports modules through bundler-style specifiers,
+	// so it cannot be checked in the NodeNext worlds.
+	"include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
+}
