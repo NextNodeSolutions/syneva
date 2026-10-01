@@ -1,0 +1,139 @@
+.navigation {
+	--nav-duration: 360ms;
+	--nav-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	position: relative;
+	z-index: 10;
+}
+.navigation .nav-links {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.nav-trigger,
+.nav-direct {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	min-height: 44px;
+	padding: 0 13px;
+	border: 0;
+	background: transparent;
+	font-size: 14px;
+	font-weight: 450;
+	white-space: nowrap;
+	transition:
+		color 150ms var(--ease-out),
+		background-color 150ms var(--ease-out);
+}
+.nav-trigger svg {
+	width: 16px;
+	height: 16px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.5;
+	transition: transform 200ms var(--nav-ease);
+}
+.nav-trigger[aria-expanded='true'] {
+	color: var(--accent);
+}
+.nav-trigger[aria-expanded='true'] svg {
+	transform: rotate(180deg);
+}
+.nav-trigger:active {
+	transform: none;
+}
+.nav-direct {
+	margin-left: 5px;
+	gap: 8px;
+}
+.nav-indicator {
+	position: absolute;
+	bottom: 1px;
+	left: 0;
+	height: 2px;
+	width: var(--indicator-width, 0px);
+	background: var(--accent);
+	transform: translateX(var(--indicator-x, 0px));
+	opacity: 0;
+	pointer-events: none;
+	transition:
+		transform var(--nav-duration) var(--nav-ease),
+		width var(--nav-duration) var(--nav-ease),
+		opacity 150ms;
+}
+.nav-links:has([aria-expanded='true']) .nav-indicator {
+	opacity: 1;
+}
+.nav-toggle {
+	display: none;
+}
+.nav-dropdown {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 0;
+	max-height: var(--dropdown-max-height);
+	overflow: hidden;
+	isolation: isolate;
+	background: var(--white);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	box-shadow:
+		0 8px 16px -8px rgb(25 27 24 / 0.12),
+		0 24px 56px -16px rgb(25 27 24 / 0.16);
+	transform: translate3d(
+		var(--dropdown-x, 0px),
+		calc(var(--dropdown-y, 0px) - 6px),
+		0
+	);
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		width var(--nav-duration) var(--nav-ease),
+		height var(--nav-duration) var(--nav-ease),
+		transform var(--nav-duration) var(--nav-ease),
+		opacity 160ms var(--ease-out),
+		visibility 0s 360ms;
+}
+.nav-dropdown[data-open='true'] {
+	transform: translate3d(var(--dropdown-x), var(--dropdown-y), 0);
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transition-delay: 0s;
+}
+.nav-panel {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: min(var(--panel-width), var(--nav-available));
+	opacity: 0;
+	visibility: hidden;
+	transform: translateX(var(--panel-shift, 12px));
+	transition:
+		opacity 140ms var(--ease-out),
+		transform 240ms var(--nav-ease),
+		visibility 0s 240ms;
+}
+.nav-panel.is-active {
+	max-height: var(--panel-max-height);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(0);
+	transition-delay: 40ms, 0s, 0s;
+}
+.navigation noscript {
+	font-size: 12px;
+}
+.navigation noscript a {
+	margin-inline: 8px;
+}
+.skip-link {
+	z-index: 20;
+}
