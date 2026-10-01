@@ -1,0 +1,80 @@
+{
+	"name": "Syneva landing acceptance",
+	"items": [
+		{
+			"id": "promise",
+			"requirement": "The headline and supporting copy explain confidence in agent-written code without slowing the reader down.",
+			"source": "Human brief"
+		},
+		{
+			"id": "light",
+			"requirement": "The page uses a light background with no dark sections.",
+			"source": "Human brief"
+		},
+		{
+			"id": "before",
+			"requirement": "A Before section describes reading plans, questioning assumptions and giving the agent clearer decisions, visibly labeled prototype.",
+			"source": "Human brief and plan-desk README"
+		},
+		{
+			"id": "after",
+			"requirement": "An After section emphasizes grouped local review, code-anchored questions, human accept/reject decisions and same-tab revisions.",
+			"source": "Human brief and PRODUCT.md"
+		},
+		{
+			"id": "svg",
+			"requirement": "Illustrations are SVG diagrams, not photographs or product screenshots.",
+			"source": "Human brief"
+		},
+		{
+			"id": "motion",
+			"requirement": "The hero illustration plays automatically with no stage buttons, playback toggle, replay control or other visitor interaction.",
+			"source": "Human follow-up: remove the three state buttons and Play motion / Replay"
+		},
+		{
+			"id": "hero-left-copy",
+			"requirement": "The hero's left station is labeled Your full diff and represents every change from the user's agent, not just one changeset.",
+			"source": "Human copy follow-up: the whole diff on the left"
+		},
+		{
+			"id": "hero-right-copy",
+			"requirement": "The hero's right station is labeled Ship with confidence and represents confidence in reviewed code, not the location of the review decision.",
+			"source": "Human copy follow-up: confidence in shipped code on the right"
+		},
+		{
+			"id": "hero-middle-copy",
+			"requirement": "The middle retains YOUR FOCUS, Critical / Read closely, Important / Follow the change, and Tested / Check evidence.",
+			"source": "Human copy follow-up: leave the middle unchanged"
+		},
+		{
+			"id": "hero-pacing",
+			"requirement": "The middle review opens and closes briskly, while the right-hand verdict and return to the agent move more slowly. The sequence remains continuous and the return begins after the verdict.",
+			"source": "Human timing follow-up: accelerate the middle, slow the right side and return"
+		},
+		{
+			"id": "hero-connections",
+			"requirement": "The hero's forward connections terminate at small ports on the agent, review and verdict platforms, without floating arrowheads or disconnected line fragments.",
+			"source": "Human precision follow-up: inconsistent relationships"
+		},
+		{
+			"id": "hero-dots",
+			"requirement": "The hero uses one evenly dotted return connection below the platforms; the forward connections and sheet annotations are solid.",
+			"source": "Human precision follow-up: inconsistent dotted lines"
+		},
+		{
+			"id": "hero-annotations",
+			"requirement": "On desktop, the Critical, Important and Tested annotations connect directly to their corresponding sheet edges, without crossing other labels.",
+			"source": "Human precision follow-up: inconsistent relationships"
+		},
+		{
+			"id": "install",
+			"requirement": "A real installation command and setup-guide link are visible.",
+			"source": "Surface brief"
+		},
+		{
+			"id": "truth",
+			"requirement": "Copy states that Syneva is local and uses the user's agent rather than running its own model.",
+			"source": "PRODUCT.md"
+		}
+	]
+}
