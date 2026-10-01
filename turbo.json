@@ -1,0 +1,23 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			// Every package rebuilds its own dist from scratch (its build script cleans
+			// first), so dist is the only output that matters and package sources the only
+			// input that matters - the default inputs already exclude dist via .gitignore.
+			"inputs": ["$TURBO_DEFAULT$"],
+			"outputs": ["dist/**"]
+		},
+		"check": {
+			// Type-checks resolve @syneva/* types through each package's built dist, so a
+			// check never runs against a stale (or missing) dependency build.
+			"dependsOn": ["^build"],
+			"outputs": []
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		}
+	}
+}
