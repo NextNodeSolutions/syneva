@@ -80,12 +80,14 @@ export function savedAttachment(
 // model turns; this adapter never spawns a model turn for itself - the only thing it
 // spawns is the desk correspondent's thread, and only after a question event.
 export class PiDeskAttachment {
-	private connection?: DeskConnection
-	private controller?: AbortController
+	// Teardown resets these to undefined between attachments, so the optional
+	// props are explicitly `T | undefined` (exactOptionalPropertyTypes).
+	private connection?: DeskConnection | undefined
+	private controller?: AbortController | undefined
 	private pending: Promise<void> = Promise.resolve()
 	private answerJobs: { desk: DeskConnection; eventPath: string }[] = []
-	private answerWorker?: Promise<void>
-	private failure?: string
+	private answerWorker?: Promise<void> | undefined
+	private failure?: string | undefined
 	private generation = 0
 	private isConnecting = false
 

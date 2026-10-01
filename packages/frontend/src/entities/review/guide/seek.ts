@@ -35,7 +35,7 @@ export function nextUnreviewed(
 	const pos = order.indexOf(cur)
 	for (let step = 1; step <= n; step++) {
 		const i = order[(pos + step) % n]
-		if (i === cur) continue
+		if (i === undefined || i === cur) continue
 		if (!finished(i)) return i
 	}
 	return null
@@ -48,7 +48,7 @@ export function wrapNextTarget(
 	finished: (i: number) => boolean,
 ): number | null {
 	if (!order.length) return null
-	return order.find(i => !finished(i)) ?? order[0]
+	return order.find(i => !finished(i)) ?? order[0] ?? null
 }
 
 // Mirror of wrapNextTarget for plain "prev" stepping off the FIRST position: the last
@@ -58,7 +58,9 @@ export function wrapPrevTarget(
 	finished: (i: number) => boolean,
 ): number | null {
 	if (!order.length) return null
-	for (let i = order.length - 1; i >= 0; i--)
-		if (!finished(order[i])) return order[i]
-	return order[order.length - 1]
+	for (let i = order.length - 1; i >= 0; i--) {
+		const candidate = order[i]
+		if (candidate !== undefined && !finished(candidate)) return candidate
+	}
+	return order[order.length - 1] ?? null
 }

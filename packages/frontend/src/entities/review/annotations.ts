@@ -14,10 +14,10 @@ export type ThreadMeta = {
 	lineNumber: number
 	status: 'open' | 'resolved'
 	comments: ReviewComment[]
-	changeId?: string
+	changeId?: string | undefined
 	// Whole-file thread (anchored to the file header, not a diff row): the reply composer and
 	// open/close routes through the file composer instead of the line one.
-	fileLevel?: boolean
+	fileLevel?: boolean | undefined
 }
 export type ChangeMeta = {
 	type: 'change'

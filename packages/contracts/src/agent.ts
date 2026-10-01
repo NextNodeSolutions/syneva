@@ -9,8 +9,8 @@ export type ReviewResult = {
 	session: string
 	repoRoot: string
 	mode: ReviewMode
-	target?: string
-	base?: string
+	target?: string | undefined
+	base?: string | undefined
 	staged: boolean
 	head: string | null
 	baseDiffHash: string
@@ -33,13 +33,13 @@ export type ReviewResult = {
 		body: string
 		// "file" on a whole-file request (the file-header comment): no line to edit - apply the
 		// remark to the file as a whole. Absent on a line-anchored request.
-		anchor?: 'file'
+		anchor?: 'file' | undefined
 	}>
 	// An optional note the reviewer attached at Send time about the whole review - an overall
 	// remark, or an afterthought instruction for what to do after applying it. Ephemeral: captured
 	// per Send, never persisted into the review state, so a one-off instruction can't silently
 	// re-send.
-	overallNote?: string
+	overallNote?: string | undefined
 	stagedFiles: readonly string[]
 	// Files the reviewer signed off as-is (no rejected hunks, no open requested-change
 	// comments, approval still current): the agent should leave these unchanged.
@@ -61,7 +61,7 @@ export type QuestionPayload = {
 	body: string
 	// "file" on a whole-file question (reviewer asked from the file header): reply with
 	// `syneva comment --path <f> --line 0` so the answer threads into that file header.
-	anchor?: 'file'
+	anchor?: 'file' | undefined
 	mode: ReviewMode
 	session: string
 }

@@ -31,6 +31,7 @@ export function fileThreadMeta(): ThreadMeta | null {
 	)
 	if (!comments.length) return null
 	const [first] = comments
+	if (!first) return null
 	return {
 		type: 'thread',
 		path: first.path,

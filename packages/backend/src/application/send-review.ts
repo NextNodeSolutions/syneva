@@ -25,11 +25,11 @@ export type SentReview = {
 // never applied to the review state. Absent keys are left untouched (snapshot semantics,
 // latest wins: a stale open tab may POST the whole old ReviewState).
 export type ReviewerSavePatch = {
-	decisions?: Decision[]
-	comments?: ReviewComment[]
-	reviewedFiles?: string[]
-	reviewedFileHashes?: Record<string, string>
-	decisionFiles?: string[]
+	decisions?: Decision[] | undefined
+	comments?: ReviewComment[] | undefined
+	reviewedFiles?: string[] | undefined
+	reviewedFileHashes?: Record<string, string> | undefined
+	decisionFiles?: string[] | undefined
 }
 
 // The reviewer-owned slice a save/send body carries: { decisions, comments, reviewedFiles,

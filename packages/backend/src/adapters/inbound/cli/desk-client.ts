@@ -44,6 +44,16 @@ export async function deskAlive(url: string): Promise<boolean> {
 	}
 }
 
+// RequestInit.signal is `AbortSignal | undefined` under exactOptionalPropertyTypes:
+// the spread must not attach a `signal: undefined` key, so the helper returns the
+// signal props only when a timeout applies.
+function timeoutSignal(
+	timeoutMs: number | undefined,
+): { signal: AbortSignal } | undefined {
+	if (!timeoutMs) return undefined
+	return { signal: AbortSignal.timeout(timeoutMs) }
+}
+
 export async function postJson({
 	url,
 	payload,
@@ -54,7 +64,7 @@ export async function postJson({
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify(payload),
-			signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
+			...timeoutSignal(timeoutMs),
 		})
 		if (!res.ok) return { ok: false, body: null }
 		return { ok: true, body: await res.json() }

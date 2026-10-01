@@ -18,9 +18,14 @@ export type DiffSource = AssembledDiff & {
 // What to build, per mode: repo → the working/staged diff (path is a root-relative limit);
 // file → one file (an absolute path); pr → base..HEAD (committed), verdict-only.
 export type DiffSourceQuery =
-	| { mode: 'pr'; root: string; base?: string }
+	| { mode: 'pr'; root: string; base?: string | undefined }
 	| { mode: 'file'; root: string; path: string }
-	| { mode: 'repo'; root: string; path?: string; staged?: boolean }
+	| {
+			mode: 'repo'
+			root: string
+			path?: string | undefined
+			staged?: boolean | undefined
+	  }
 
 type PrQuery = Extract<DiffSourceQuery, { mode: 'pr' }>
 type FileQuery = Extract<DiffSourceQuery, { mode: 'file' }>

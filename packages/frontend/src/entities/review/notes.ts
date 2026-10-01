@@ -64,11 +64,11 @@ function threadStatus(
 	return 'open'
 }
 
-function toNote(group: ReviewComment[]): ReviewNote {
+function toNote(group: [ReviewComment, ...ReviewComment[]]): ReviewNote {
 	// Group members arrive oldest-first (see reviewNotes), so first is the anchor
 	// message and last is the newest word in the conversation.
 	const [first] = group
-	const last = group[group.length - 1]
+	const last = group[group.length - 1] ?? first
 	const kind = group.some(c => c.intent === 'question')
 		? 'question'
 		: 'comment'
@@ -111,6 +111,10 @@ export function reviewNotes(state: ReviewState | null): ReviewNote[] {
 			group.toSorted(
 				(a, b) => +new Date(a.createdAt) - +new Date(b.createdAt),
 			),
+		)
+		.filter(
+			(group): group is [ReviewComment, ...ReviewComment[]] =>
+				group.length > 0,
 		)
 		.map(toNote)
 		.toSorted((a, b) => {

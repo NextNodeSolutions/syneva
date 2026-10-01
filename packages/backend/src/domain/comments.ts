@@ -196,6 +196,9 @@ function unambiguousNearest(
 	const [closest, runnerUp] = matches.toSorted(
 		(a, b) => Math.abs(a - oldLine) - Math.abs(b - oldLine),
 	)
+	// No match at all, or a single one (no runner-up to tie against): the
+	// nearest is unambiguous by definition. A tie stays undefined - don't guess.
+	if (!closest || !runnerUp) return closest
 	if (Math.abs(closest - oldLine) === Math.abs(runnerUp - oldLine))
 		return undefined
 	return closest

@@ -42,10 +42,10 @@ export type DiffAssembly = {
 	isStageable: boolean
 	// Per-file new-side blob OIDs harvested from `git diff --raw` (committed new sides: pr's HEAD,
 	// staged's index). Absent for a working-tree new side, where we hash the working copy instead.
-	newOids?: Map<string, string>
+	newOids?: Map<string, string> | undefined
 	// The new side is the working tree (repo-unstaged / file mode) - its byte size is then free from
 	// the bytes we read to hash. Committed sides (pr/staged) leave size unstamped (see ReviewFile.size).
-	isWorkingSide?: boolean
+	isWorkingSide?: boolean | undefined
 }
 
 // The reviewed path and the decision key live in ../domain/change-blocks.ts (pure rules the

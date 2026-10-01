@@ -87,9 +87,9 @@ function isZeroOid(oid: string): boolean {
 }
 
 type RawDiffQuery = {
-	staged?: boolean
-	base?: string
-	path?: string
+	staged?: boolean | undefined
+	base?: string | undefined
+	path?: string | undefined
 }
 
 // Harvest per-file new-side blob OIDs from `git diff --raw` in ONE process (not a `git show`
@@ -112,7 +112,7 @@ export async function rawBlobOids(
 	while (index < tokens.length) {
 		const meta = tokens[index]
 		index++
-		if (!meta.startsWith(':')) continue
+		if (!meta || !meta.startsWith(':')) continue
 		// ":<oldmode> <newmode> <oldsha> <newsha> <status>" - R/C consumes old+new paths.
 		const fields: (string | undefined)[] = meta.slice(1).split(' ')
 		const [, , , newOid, rawStatus] = fields

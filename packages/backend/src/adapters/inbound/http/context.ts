@@ -182,12 +182,15 @@ function stagedSnapshotMoved(
 	state: ReviewState,
 	snapshot: {
 		stagedFiles: readonly string[]
-		stagedChangeKeys: readonly string[]
+		stagedChangeKeys: readonly string[] | undefined
 	},
 ): boolean {
 	return (
 		!samePaths(state.stagedFiles, snapshot.stagedFiles) ||
-		!samePaths(state.stagedChangeKeys ?? [], snapshot.stagedChangeKeys)
+		!samePaths(
+			state.stagedChangeKeys ?? [],
+			snapshot.stagedChangeKeys ?? [],
+		)
 	)
 }
 

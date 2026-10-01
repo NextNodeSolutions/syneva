@@ -3,28 +3,30 @@ import type { ReviewState } from '../../../domain/review.js'
 
 export type ServerOptions = {
 	state: ReviewState
-	port?: number
+	port?: number | undefined
 	// Bind address. Defaults to 127.0.0.1 (loopback-only) - the desk stays local unless explicitly
 	// opted into a broader bind (--host / SYNEVA_HOST). See resolveBinding for how this shapes the
 	// origin guard, the printed URL, and the lock-file URL.
-	host?: string
+	host?: string | undefined
 	// Extra host names (beyond the machine's hostname/bound address) whose authority the origin guard
 	// trusts when bound non-loopback - SYNEVA_ALLOWED_HOSTS, for exotic names like a MagicDNS FQDN.
-	allowedHosts?: string[]
-	open?: boolean
+	allowedHosts?: string[] | undefined
+	open?: boolean | undefined
 	// Test seam: lets tests assert the resolved editor invocation without
 	// actually launching anything.
-	runEditorCommand?: (command: string, args: string[]) => Promise<void>
+	runEditorCommand?:
+		| ((command: string, args: string[]) => Promise<void>)
+		| undefined
 	// Test seam: TTL for the ephemeral agent-activity line (default 90s).
-	statusTtlMs?: number
+	statusTtlMs?: number | undefined
 	// Auto-exit after this long with no HTTP activity (default 2h; 0 disables). An open
 	// tab polls /api/state and a waiting agent holds /api/await-send, so "idle" really
 	// means abandoned - no tab, no agent. State is persisted on every save and the desk
 	// is idempotent on a stable port, so restarting later restores everything.
-	idleTimeoutMs?: number
+	idleTimeoutMs?: number | undefined
 	// Test seam: called instead of process.exit(0) when the desk shuts itself down
 	// (idle timeout or POST /api/shutdown).
-	onShutdown?: (reason: 'idle' | 'stop') => void
+	onShutdown?: ((reason: 'idle' | 'stop') => void) | undefined
 }
 
 export type ServerHandle = {

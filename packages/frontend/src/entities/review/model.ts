@@ -3,7 +3,9 @@
 // so contract DTOs cannot escape the entity API boundaries - the browser consumes
 // these models only, and api.ts is the single place wire payloads are decoded onto
 // them. Keep structurally in sync with packages/contracts/src/review.ts / browser.ts when
-// the wire shape changes.
+// the wire shape changes. Optional props are explicitly `T | undefined` (not bare `?`):
+// the decoders assemble these records with explicit undefined keys, and the repo checks
+// under exactOptionalPropertyTypes.
 
 // ── Review domain records (structural mirrors of the shared wire records) ──
 export type ReviewMode = 'repo' | 'file' | 'pr'
@@ -13,41 +15,41 @@ export type ReviewComment = {
 	path: string
 	side: 'additions' | 'deletions'
 	lineNumber: number
-	endLine?: number
+	endLine?: number | undefined
 	body: string
 	createdAt: string
 	updatedAt: string
 	status: 'open' | 'resolved' | 'stale'
-	intent?: 'note' | 'action' | 'question'
-	role?: 'user' | 'agent'
-	anchorText?: string
-	unanchored?: boolean
-	anchor?: 'file'
+	intent?: 'note' | 'action' | 'question' | undefined
+	role?: 'user' | 'agent' | undefined
+	anchorText?: string | undefined
+	unanchored?: boolean | undefined
+	anchor?: 'file' | undefined
 }
 
 export type ChangeState = {
 	id: string
 	path: string
 	hunkIndex: number
-	changeIndex?: number
+	changeIndex?: number | undefined
 	side: 'additions' | 'deletions'
 	lineNumber: number
-	endLine?: number
+	endLine?: number | undefined
 	title: string
-	stableKey?: string
+	stableKey?: string | undefined
 	status: 'pending' | 'accepted' | 'rejected'
-	stageable?: boolean
-	contentHash?: string
-	reviewedHash?: string
-	displayLineNumber?: number
-	displayEndLine?: number
+	stageable?: boolean | undefined
+	contentHash?: string | undefined
+	reviewedHash?: string | undefined
+	displayLineNumber?: number | undefined
+	displayEndLine?: number | undefined
 }
 
 // Explicit, durable accept/reject record keyed `path:stableKey` (see packages/contracts/src/review.ts).
 export type Decision = {
 	key: string
 	status: 'accepted' | 'rejected'
-	reviewedHash?: string
+	reviewedHash?: string | undefined
 	path: string
 	lineNumber: number
 	side: 'additions' | 'deletions'
@@ -62,20 +64,20 @@ export type GuideFile = {
 
 export type Guide = {
 	files: GuideFile[]
-	baseDiffHash?: string
+	baseDiffHash?: string | undefined
 }
 
 // One review file as the browser sees it: metadata only - the renderer builds its
 // own hunks from /api/file-contents, so no diff bodies ride the state.
 export type ReviewFile = {
 	path: string
-	oldPath?: string
-	newPath?: string
+	oldPath?: string | undefined
+	newPath?: string | undefined
 	contentHash: string
-	changeKind?: 'added' | 'modified' | 'deleted' | 'renamed'
-	renamePure?: boolean
-	oversized?: boolean
-	size?: number
+	changeKind?: 'added' | 'modified' | 'deleted' | 'renamed' | undefined
+	renamePure?: boolean | undefined
+	oversized?: boolean | undefined
+	size?: number | undefined
 	added: number
 	removed: number
 	hasHunks: boolean
@@ -98,18 +100,18 @@ export type ReviewState = {
 	root: string
 	session: string
 	mode: ReviewMode
-	target?: string
+	target?: string | undefined
 	staged: boolean
 	baseDiffHash: string
 	changes: ChangeState[]
 	comments: ReviewComment[]
-	decisions?: Decision[]
-	guide?: Guide
+	decisions?: Decision[] | undefined
+	guide?: Guide | undefined
 	reviewedFiles: string[]
-	reviewedFileHashes?: Record<string, string>
+	reviewedFileHashes?: Record<string, string> | undefined
 	stagedFiles: string[]
-	stagedChangeKeys?: string[]
-	decisionFiles?: string[]
+	stagedChangeKeys?: string[] | undefined
+	decisionFiles?: string[] | undefined
 	files: ReviewFile[]
 }
 
@@ -136,7 +138,7 @@ export type DeskStatus = {
 // GET /api/state: the full browser review snapshot plus the desk's liveness fields
 // and the server instance id the poll guard compares against.
 export type DeskStateSnapshot = ReviewState &
-	DeskStatus & { serverInstanceId?: string }
+	DeskStatus & { serverInstanceId?: string | undefined }
 
 // GET /api/poll: just enough to detect change. File summaries and change records belong
 // on /api/state, fetched on baseDiffHash changes, not on every tick. A mismatched

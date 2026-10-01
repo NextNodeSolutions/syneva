@@ -92,8 +92,8 @@ export function decodeSettings(
 }
 
 export type DisplayPrefs = {
-	settings?: Partial<Settings>
-	diffStyle?: DiffStyle
+	settings?: Partial<Settings> | undefined
+	diffStyle?: DiffStyle | undefined
 }
 
 // An unreachable desk falls back to the defaults at the call site.

@@ -173,10 +173,10 @@ function renderPatch(
 	block: readonly DiffLine[],
 ): string {
 	const anchor = changeAnchor(block)
-	const previous = findPreviousContext(
-		hunk.lines,
-		hunk.lines.indexOf(block[0]),
-	)
+	const [first] = block
+	const previous = first
+		? findPreviousContext(hunk.lines, hunk.lines.indexOf(first))
+		: undefined
 	const oldStart =
 		anchor.deletes[0]?.oldLine ??
 		previous?.oldLine ??

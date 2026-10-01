@@ -37,6 +37,7 @@ export function unanchoredThreads(): ThreadMeta[] {
 		if (!comments.some(c => c.status === 'open')) continue // a resolved orphan is done - nothing to act on
 		if (!comments.some(c => isUnanchored(c, file))) continue
 		const [first] = comments
+		if (!first) continue
 		out.push({
 			type: 'thread',
 			path: first.path,

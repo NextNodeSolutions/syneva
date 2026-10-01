@@ -24,10 +24,15 @@ async function compiledRoot(): Promise<string> {
 }
 
 // Resolve a UI asset against the built location first, then a dev fallback.
-async function firstExisting(...candidates: string[]): Promise<string> {
-	for (const candidate of candidates)
+// `first` is also the fallback, so every call stays total without an index
+// access that noUncheckedIndexedAccess would doubt.
+async function firstExisting(
+	first: string,
+	...rest: string[]
+): Promise<string> {
+	for (const candidate of [first, ...rest])
 		if (await exists(candidate)) return candidate
-	return candidates[0]
+	return first
 }
 
 async function exists(file: string): Promise<boolean> {

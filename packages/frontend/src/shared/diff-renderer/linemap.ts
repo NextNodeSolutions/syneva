@@ -113,8 +113,10 @@ export function buildLineMap(
 		const bs = breaks[side]
 		let prefix = bs.reduce((sum, b) => sum + b.delta, 0)
 		for (let i = bs.length - 1; i >= 0; i--) {
-			if (line > bs[i].after + prefix) return line - prefix
-			prefix -= bs[i].delta
+			const b = bs[i]
+			if (!b) continue
+			if (line > b.after + prefix) return line - prefix
+			prefix -= b.delta
 		}
 		return line // before the first break: identity
 	}

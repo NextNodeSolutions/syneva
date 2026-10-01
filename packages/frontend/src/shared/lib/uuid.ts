@@ -29,9 +29,11 @@ function group(hex: string): string {
 export function uuidFallback(): string {
 	const bytes = crypto.getRandomValues(new Uint8Array(UUID_BYTE_COUNT))
 	bytes[VERSION_BYTE_INDEX] =
-		(bytes[VERSION_BYTE_INDEX] & VERSION_NIBBLE_MASK) | VERSION_4_NIBBLE
+		((bytes[VERSION_BYTE_INDEX] ?? 0) & VERSION_NIBBLE_MASK) |
+		VERSION_4_NIBBLE
 	bytes[VARIANT_BYTE_INDEX] =
-		(bytes[VARIANT_BYTE_INDEX] & VARIANT_NIBBLE_MASK) | VARIANT_10XX_NIBBLE
+		((bytes[VARIANT_BYTE_INDEX] ?? 0) & VARIANT_NIBBLE_MASK) |
+		VARIANT_10XX_NIBBLE
 	return group(hexOf(bytes))
 }
 

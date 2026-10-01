@@ -25,7 +25,7 @@ export function resetReviewPatch(
 			decisions: (state.decisions ?? []).filter(d => !done.has(d.path)),
 			stagedFiles: state.stagedFiles.filter(p => !done.has(p)),
 			stagedChangeKeys: (state.stagedChangeKeys ?? []).filter(
-				key => !done.has(key.split(':')[0]),
+				key => !done.has(key.split(':')[0] ?? ''),
 			),
 			changes: state.changes.map(change =>
 				done.has(change.path)
