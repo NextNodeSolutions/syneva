@@ -1,0 +1,35 @@
+{
+	"name": "Morphing product navigation",
+	"items": [
+		{
+			"id": "sections",
+			"requirement": "The desktop navbar contains Product, Workflows, Resources, GitHub, and a distinct Get started action.",
+			"source": "User request for multiple product-relevant links and submenus"
+		},
+		{
+			"id": "product",
+			"requirement": "The open Product dropdown contains Review desk, Guided walkthrough, Ask your agent, and Plan desk links.",
+			"source": "User request; PRODUCT.md capabilities"
+		},
+		{
+			"id": "prototype",
+			"requirement": "Plan desk is visibly labeled Prototype.",
+			"source": "Existing landing-page product truth"
+		},
+		{
+			"id": "preview",
+			"requirement": "The Product dropdown includes a product-specific illustrative preview beside the links on desktop.",
+			"source": "Reference dropdown has substantive side content"
+		},
+		{
+			"id": "light",
+			"requirement": "The navbar and dropdown preserve the landing page's light palette, restrained orange accent, and Geist typography.",
+			"source": "site/DESIGN.md"
+		},
+		{
+			"id": "floating",
+			"requirement": "The dropdown floats above the hero without moving the page content.",
+			"source": "User's morphing dropdown video reference"
+		}
+	]
+}
