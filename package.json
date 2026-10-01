@@ -27,7 +27,7 @@
 		"format:check": "oxfmt --check .",
 		"perf-smoke": "node test/benchmarks/perf-smoke.mjs",
 		"bench": "node test/benchmarks/bench-fixtures.mjs && node test/benchmarks/browser-bench.mjs",
-		"release": "pnpm lint && pnpm lint:types && pnpm format:check && pnpm check && pnpm build && pnpm --filter syneva exec changelogen --release --push"
+		"release": "pnpm lint && pnpm lint:types && pnpm format:check && pnpm check && pnpm build && pnpm --filter syneva exec semantic-release"
 	},
 	"devDependencies": {
 		"@nextnode-solutions/standards": "1.25.0",
