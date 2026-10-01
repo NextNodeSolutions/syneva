@@ -1,0 +1,14 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"noEmit": true,
+		"declaration": false,
+		"rootDir": "."
+	},
+	// The published package's own checked sources: the harness extension module
+	// (NodeNext; it imports nothing from dist by design). The backend and the
+	// frontend are checked in their own packages; the build scripts are .mjs.
+	"include": ["extension/**/*.ts"]
+}
