@@ -163,6 +163,33 @@ export function faqRows(items) {
 		.join('')}</div>`
 }
 
+// FAQ grouped by domain: an index of the domains, then one block per domain
+// with its questions as native disclosures. Groups are [title, blurb, items].
+const qaId = index => `qa-${index + 1}`
+const qaCount = items =>
+	`${items.length} question${items.length === 1 ? '' : 's'}`
+
+export function qaIndex(groups) {
+	return `<nav class="qa-index" aria-label="Questions by topic" data-reveal>${groups
+		.map(
+			([title, blurb, items], index) =>
+				`<a href="#${qaId(index)}" data-reveal-item><strong>${title}<small>${String(items.length).padStart(2, '0')}</small></strong><span>${blurb}</span></a>`,
+		)
+		.join('')}</nav>`
+}
+
+export function qaBlock([title, blurb, items], index) {
+	return `<section class="chapter qa-block" id="${qaId(index)}" aria-labelledby="${qaId(index)}-title" data-reveal data-rule>
+      <div class="chapter-copy"><span class="step-index" data-reveal-item>${String(index + 1).padStart(2, '0')} · ${qaCount(items)}</span><h2 id="${qaId(index)}-title" data-reveal-item>${title}</h2><p data-reveal-item>${blurb}</p></div>
+      <div class="qa-list">${items
+				.map(
+					([q, a]) =>
+						`<details class="qa-row" data-reveal-item><summary>${q}</summary><p>${a}</p></details>`,
+				)
+				.join('')}</div>
+    </section>`
+}
+
 // SVG scaffolding shared by every drawing: the ruled grid and corner marks.
 export function artFrame(id, width, height) {
 	return `<defs><pattern id="${id}-grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="var(--grid)"/></pattern></defs><rect width="${width}" height="${height}" fill="url(#${id}-grid)"/><path class="art-register" d="M18 30V18h12M${width - 30} 18h12v12M18 ${height - 30}v12h12M${width - 30} ${height - 18}h12v-12" fill="none"/>`
