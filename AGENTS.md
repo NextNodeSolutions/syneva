@@ -10,7 +10,7 @@ Product positioning lives in `PRODUCT.md`, the UI design language in `DESIGN.md`
 
 ## Landing deploy
 
-The static landing (`site/`) deploys to Cloudflare Workers (static assets) through CI only — never from a local machine. Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). `pnpm build` assembles the bundle (`scripts/build-landing.mjs` → `dist/`).
+The static landing (`site/`) deploys to Cloudflare Workers (static assets) through CI only — never from a local machine. Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). `pnpm build` assembles the bundle (`scripts/build-landing.mjs` renders every page from `site/src` into `dist/`; see `site/AGENTS.md`).
 
 ## Commands
 
