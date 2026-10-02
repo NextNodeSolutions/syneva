@@ -1,0 +1,16 @@
+name: Deploy Development
+
+on:
+    push:
+        branches: [main]
+
+concurrency:
+    group: deploy-development
+    cancel-in-progress: true
+
+jobs:
+    deploy:
+        uses: NextNodeSolutions/core/.github/workflows/deploy-workers.yml@main
+        with:
+            environment: development
+        secrets: inherit

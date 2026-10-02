@@ -1,14 +1,12 @@
 {
-	"extends": "./tsconfig.json",
+	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
-		"noEmit": true,
-		"declaration": false,
+		"types": ["node"],
 		"rootDir": "."
 	},
-	// One noEmit pass for every NodeNext-checked file that never ships in dist:
-	// the harness extension module and the lint/format configs. The frontend is
-	// checked by tsconfig.ui.json in the bundler world.
-	"include": ["extension/**/*.ts", "oxlint.config.ts", "oxfmt.config.ts"],
-	// Keep the inherited frontend exclusion.
-	"exclude": ["src/frontend/**"]
+	// One noEmit pass (the preset's default) for the root-level NodeNext-checked
+	// files that never ship: the lint/format configs. Each workspace package
+	// carries its own tsconfig (apps/syneva checks its extension module and the
+	// tsdown config; packages/frontend checks the bundler world).
+	"include": ["oxlint.config.ts", "oxfmt.config.ts"]
 }

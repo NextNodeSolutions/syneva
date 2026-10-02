@@ -15,3 +15,6 @@ dist/
 
 # Scratch output of test/benchmarks/browser-bench.mjs (run-local measurement)
 browser-bench-results.json
+
+# Turborepo daemon/cache state
+.turbo/

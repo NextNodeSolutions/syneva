@@ -50,8 +50,8 @@ A protocol and an interface, nothing more. Three commitments a neighboring revie
 **Technological and operational constraints.**
 - Node 22+ and `git` for the published CLI (Node 24 for repo tooling); the file/PR modes shell out to git.
 - `pr` mode needs `gh` installed and authenticated when the ref is a PR number or URL.
-- Two compilation worlds that never import each other at runtime: a Node backend (ESM/NodeNext, `dist/backend/bootstrap/cli.js` is the published bin) and a browser UI (React 19, bundled by esbuild), sharing types from `src/contracts/` alone.
-- Patch/version convention is upstream-forked: Conventional Commits, `changelogen` release, CI on Node 24.
+- Two compilation worlds that never import each other at runtime: a Node backend (ESM/NodeNext, bundled into the published bin) and a browser UI (React 19, bundled by Vite), sharing types from the @syneva/contracts workspace package alone.
+- Patch/version convention is upstream-forked: Conventional Commits, `semantic-release` (standards preset), CI on Node 24.
 - MIT licensed.
 
 **Terminology.** desk (the served review surface), reviewer (the human), agent (the attached coding agent), Send to Agent (the handoff), guide (the agent-supplied file grouping: review order and category sections), `ReviewResult` (the handoff payload).
