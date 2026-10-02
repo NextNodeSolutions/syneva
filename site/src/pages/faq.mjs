@@ -9,7 +9,7 @@ const route = '/resources/faq/'
 const GROUPS = [
 	[
 		'The basics',
-		'What Syneva is, what it refuses to do, and how a verdict stays honest.',
+		'What Syneva is, what I refused to build into it, and why your verdict stays yours.',
 		[
 			[
 				'What is Syneva, in one sentence?',
@@ -35,7 +35,7 @@ const GROUPS = [
 	],
 	[
 		'Your agent',
-		'Which agents attach, what they may touch, and what they get back.',
+		'Bring the agent you already use. Here is what it may touch and what it gets back.',
 		[
 			[
 				'Which coding agents work with it?',
@@ -57,7 +57,7 @@ const GROUPS = [
 	],
 	[
 		'Your code and data',
-		'Where your review lives, what leaves your machine, and what survives a restart.',
+		'Your review stays on your machine. Here is where it lives and what survives a restart.',
 		[
 			[
 				'Where does my review live?',
@@ -79,7 +79,7 @@ const GROUPS = [
 	],
 	[
 		'Limits and what’s next',
-		'What is still a prototype, what comes next, and what it costs.',
+		'What is still a prototype, what I am building next, and what it costs you.',
 		[
 			[
 				'Can I use the plan desk today?',
