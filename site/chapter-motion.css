@@ -1,0 +1,157 @@
+/* Each drawing is one 12-second sentence: source, question, human verdict,
+   return. Structural ink stays visible while the attention moves. */
+.story-scene { --cycle: 12s; --story-ease: cubic-bezier(.65, 0, .2, 1); }
+.story-art { overflow: hidden; }
+.story-art .story-title { font: 500 17px var(--sans); fill: var(--ink); }
+.story-art .story-copy { font: 14px var(--sans); fill: var(--muted); }
+.story-art .story-mono { font: 12px var(--mono); fill: var(--muted); }
+.story-art .story-code { font: 15px var(--mono); fill: var(--green); }
+.story-art .story-pointer-label { font: 13px var(--sans); fill: var(--white); }
+.story-grid { fill: none; stroke: var(--grid); stroke-width: .65; }
+.story-register { fill: none; stroke: var(--accent); stroke-width: 1.2; }
+.story-edge { fill: var(--iso-side); stroke: var(--line-strong); }
+.story-sheet { fill: var(--iso-platform); stroke: var(--line-strong); }
+.story-paper { fill: var(--white); stroke: var(--line-strong); }
+.story-fold { fill: var(--paper); stroke: var(--line-strong); }
+.story-question { fill: var(--peach); stroke: var(--accent); }
+.story-settled { fill: var(--mint); stroke: var(--green); }
+.story-rule, .story-lines { fill: none; stroke: var(--line-strong); }
+.story-lines { stroke-linecap: round; stroke-width: 2; }
+.story-route, .story-accent { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+.story-check { fill: none; stroke: var(--green); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.story-return { fill: none; stroke: var(--line-strong); stroke-dasharray: 2 5; stroke-linecap: round; }
+.desk-pointer { transform: translate(327px, 390px); }
+.desk-return { opacity: 0; }
+.desk-return-track { stroke-dasharray: .003 .012; }
+.local-signal, .local-return { opacity: 0; stroke-dasharray: .12 .88; }
+.local-return-track { stroke-dasharray: .006 .02; }
+.local-art .story-title { font-size: 18px; }
+.local-art .story-copy { font-size: 17px; }
+.local-art .story-mono { font-size: 16px; }
+@media (prefers-reduced-motion: no-preference) {
+  html.js .plan-sheets { animation: plan-separate var(--cycle) var(--story-ease) infinite; }
+  html.js .plan-reading { animation: plan-read var(--cycle) var(--story-ease) infinite; }
+  html.js .plan-routing { stroke-dasharray: 100; animation: plan-route var(--cycle) linear infinite; }
+  html.js .plan-assumption { animation: plan-assumption var(--cycle) var(--story-ease) infinite; }
+  html.js .plan-question { animation: plan-question var(--cycle) var(--story-ease) infinite; }
+  html.js .plan-decision { animation: plan-decide var(--cycle) var(--story-ease) infinite; }
+  html.js .plan-check { stroke-dasharray: 1; animation: plan-check var(--cycle) linear infinite; }
+  html.js .plan-reply { animation: plan-return var(--cycle) var(--story-ease) infinite; }
+  html.js .plan-port { animation: plan-port var(--cycle) var(--story-ease) infinite; }
+  html.js .desk-stack { animation: desk-stack var(--cycle) var(--story-ease) infinite; }
+  html.js .desk-band { animation: desk-read var(--cycle) var(--story-ease) infinite; }
+  html.js .desk-anchor { stroke-dasharray: 1; animation: desk-anchor var(--cycle) linear infinite; }
+  html.js .desk-thread { animation: desk-question var(--cycle) var(--story-ease) infinite; }
+  html.js .desk-answer { animation: desk-answer var(--cycle) var(--story-ease) infinite; }
+  html.js .desk-pointer { animation: desk-pointer var(--cycle) var(--story-ease) infinite; }
+  html.js .desk-decision { animation: desk-decide var(--cycle) var(--story-ease) infinite; }
+  html.js .desk-check { stroke-dasharray: 1; animation: desk-check var(--cycle) linear infinite; }
+  html.js .desk-return { stroke-dasharray: .08 .92; animation: desk-return var(--cycle) linear infinite; }
+  html.js .local-signal { animation: local-send var(--cycle) linear infinite; }
+  html.js .local-return { animation: local-return var(--cycle) linear infinite; }
+  html.js .local-check { stroke-dasharray: 1; animation: local-verdict var(--cycle) var(--ease-out) infinite; }
+  html.js .local-verdict { animation: local-press var(--cycle) var(--story-ease) infinite; }
+}
+@keyframes plan-separate {
+  0%, 5%, 94%, 100% { transform: translate(8px, -8px); }
+  18%, 82% { transform: translate(0, 0); }
+}
+@keyframes plan-read {
+  0%, 5%, 94%, 100% { clip-path: inset(0 100% 0 0); }
+  20%, 83% { clip-path: inset(0 0 0 0); }
+}
+@keyframes plan-route {
+  0%, 15% { stroke-dashoffset: 100; opacity: 0; }
+  18% { opacity: 1; }
+  40%, 82% { stroke-dashoffset: 0; opacity: 1; }
+  94%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes plan-assumption {
+  0%, 16%, 94%, 100% { transform: translateX(6px); opacity: .55; }
+  28%, 83% { transform: translateX(0); opacity: 1; }
+}
+@keyframes plan-question {
+  0%, 26%, 94%, 100% { transform: translateX(6px); opacity: .55; }
+  40%, 83% { transform: translateX(0); opacity: 1; }
+}
+@keyframes plan-decide {
+  0%, 44%, 94%, 100% { transform: translateX(6px); opacity: .55; }
+  58%, 83% { transform: translateX(0); opacity: 1; }
+}
+@keyframes plan-check {
+  0%, 52%, 96%, 100% { stroke-dashoffset: 1; }
+  59%, 88% { stroke-dashoffset: 0; }
+}
+@keyframes plan-return {
+  0%, 57%, 97%, 100% { transform: translateY(6px); opacity: .25; }
+  68%, 87% { transform: translateY(0); opacity: 1; }
+}
+@keyframes plan-port { 0%, 16%, 90%, 100% { opacity: .2; } 23%, 80% { opacity: 1; } }
+@keyframes desk-stack {
+  0%, 94%, 100% { transform: translateY(14px); }
+  15%, 82% { transform: translateY(0); }
+}
+@keyframes desk-read {
+  0%, 8%, 97%, 100% { clip-path: inset(0 100% 0 0); }
+  21%, 90% { clip-path: inset(0); }
+}
+@keyframes desk-anchor {
+  0%, 27%, 97%, 100% { stroke-dashoffset: 1; }
+  34%, 89% { stroke-dashoffset: 0; }
+}
+@keyframes desk-question {
+  0%, 26%, 97%, 100% { transform: translate(8px, 6px); opacity: 0; }
+  36%, 88% { transform: translate(0, 0); opacity: 1; }
+}
+@keyframes desk-answer {
+  0%, 39%, 95%, 100% { opacity: 0; transform: translateY(4px); }
+  48%, 88% { opacity: 1; transform: translateY(0); }
+}
+@keyframes desk-pointer {
+  0%, 7%, 100% { transform: translate(355px, 154px); opacity: 0; }
+  15%, 24% { transform: translate(335px, 192px); opacity: 1; }
+  32%, 49% { transform: translate(357px, 278px); opacity: 1; }
+  60%, 64% { transform: translate(327px, 390px); opacity: 1; }
+  66% { transform: translate(327px, 393px); opacity: 1; }
+  70%, 82% { transform: translate(327px, 390px); opacity: 1; }
+  92% { transform: translate(327px, 390px); opacity: 0; }
+}
+@keyframes desk-decide {
+  0%, 61%, 97%, 100% { opacity: .45; transform: translateY(5px); }
+  69%, 89% { opacity: 1; transform: translateY(0); }
+}
+@keyframes desk-check {
+  0%, 65%, 97%, 100% { stroke-dashoffset: 1; }
+  72%, 90% { stroke-dashoffset: 0; }
+}
+@keyframes desk-return {
+  0%, 72% { stroke-dashoffset: .08; opacity: 0; }
+  74% { stroke-dashoffset: .08; opacity: 1; }
+  94% { stroke-dashoffset: -1; opacity: 1; }
+  97%, 100% { stroke-dashoffset: -1; opacity: 0; }
+}
+@keyframes local-send {
+  0%, 10% { stroke-dashoffset: .12; opacity: 0; }
+  12% { stroke-dashoffset: .12; opacity: 1; }
+  35% { stroke-dashoffset: -1; opacity: 1; }
+  38%, 100% { stroke-dashoffset: -1; opacity: 0; }
+}
+@keyframes local-verdict {
+  0%, 35%, 94%, 100% { stroke-dashoffset: 1; }
+  47%, 86% { stroke-dashoffset: 0; }
+}
+@keyframes local-press {
+  0%, 35%, 52%, 100% { transform: translateY(0); }
+  42% { transform: translateY(3px); }
+}
+@keyframes local-return {
+  0%, 53% { stroke-dashoffset: .12; opacity: 0; }
+  55% { stroke-dashoffset: .12; opacity: 1; }
+  83% { stroke-dashoffset: -1; opacity: 1; }
+  87%, 100% { stroke-dashoffset: -1; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plan-routing, .plan-check, .desk-anchor, .desk-check, .local-check { stroke-dasharray: none; }
+  .local-signal, .local-return { opacity: 0; }
+  .desk-pointer { display: none; }
+}
