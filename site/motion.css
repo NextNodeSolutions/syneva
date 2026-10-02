@@ -59,9 +59,14 @@
   html.js .a-spin { transform-box: fill-box; transform-origin: center; }
   html.js .is-inview .a-spin { animation: a-spin 1s linear infinite; }
 
-  /* No-JS safety net: if motion.js never boots, reveal everything anyway. */
+  /* No-JS safety net: if motion.js never boots, reveal everything anyway —
+     page text and the drawings' static poses alike (each drawing's markup is
+     its finished pose, so this only clears the pre-animation hidden states). */
   html.js:not(.is-booted) :is([data-reveal-item], .hl-gutter, .hl-text, .hero-news, .hero-body > *, .principle-strip) { animation: show-anyway 0s linear 3s forwards; }
   html.js:not(.is-booted) .hl-clip::before { animation: band-anyway 0s linear 3s forwards; }
+  html.js:not(.is-booted) :is(.a-fade, .a-rise, .a-pop, .a-sweep, .a-move) { animation: show-anyway 0s linear 3s forwards; }
+  html.js:not(.is-booted) .a-draw { animation: draw-anyway 0s linear 3s forwards; }
+  html.js:not(.is-booted) .a-type { animation: type-anyway 0s linear 3s forwards; }
 }
 @keyframes rule-draw { 0% { transform: scaleX(0); opacity: .9; } 70% { transform: scaleX(1); opacity: .9; } 100% { transform: scaleX(1); opacity: 0; } }
 @keyframes a-draw { to { stroke-dashoffset: 0; } }
@@ -82,6 +87,8 @@
 @keyframes a-spin { to { transform: rotate(360deg); } }
 @keyframes show-anyway { to { opacity: 1; transform: none; } }
 @keyframes band-anyway { to { transform: none; } }
+@keyframes draw-anyway { to { stroke-dashoffset: 0; } }
+@keyframes type-anyway { to { clip-path: inset(-4px -4px -4px 0); } }
 
 /* CSS also pauses newly-created animations before the observer's next frame. */
 html.js .motion-scene:not(.is-visible) *,
