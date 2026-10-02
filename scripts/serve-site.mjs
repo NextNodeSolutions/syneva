@@ -6,7 +6,7 @@ import { readFile, stat } from 'node:fs/promises'
 // The page scripts are ES modules, which browsers refuse on file:// (CORS),
 // so local viewing needs a real HTTP origin.
 //
-// Run: pnpm dev:site   (http://localhost:4173)
+// Run: pnpm dev:site. Reuse an existing landing server instead of starting another.
 import { createServer } from 'node:http'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -16,7 +16,7 @@ const SITE_ROOT = path.join(
 	'../site',
 )
 const RENDER_SCRIPT = path.join(SITE_ROOT, 'src', 'render.mjs')
-const DEFAULT_PORT = 4173
+const DEFAULT_PORT = 4321
 const PORT = Number(process.env.PORT) || DEFAULT_PORT
 
 const MIME = {

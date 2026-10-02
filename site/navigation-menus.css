@@ -14,10 +14,23 @@
 	gap: 8px;
 }
 .product-links {
-	display: grid;
-	align-content: start;
+	position: relative;
+	isolation: isolate;
 	padding: 4px 0;
 }
+.product-links::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
+	height: calc(var(--selection-height, 66) * 1px);
+	background: var(--paper);
+	border-radius: 5px;
+	transform: translateY(calc(var(--selection-y, 4) * 1px));
+	z-index: -1;
+	pointer-events: none;
+}
+.product-links .is-previewed > svg { color: var(--accent); }
+.product-links .is-previewed .menu-arrow { opacity: 1; transform: none; }
 .menu-link {
 	display: flex;
 	align-items: center;
@@ -161,7 +174,7 @@
 	.nav-trigger:hover {
 		color: var(--accent);
 	}
-	.menu-link:hover,
+	.resource-links .menu-link:hover,
 	.workflow-link:hover {
 		background: var(--paper);
 	}

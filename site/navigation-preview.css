@@ -10,19 +10,12 @@
 	position: absolute;
 	inset: 0;
 	padding: 18px 18px 36px;
-	opacity: 0;
-	transform: translateY(6px);
-	visibility: hidden;
-	transition:
-		opacity 150ms var(--ease-out),
-		transform 220ms var(--nav-ease),
-		visibility 0s 220ms;
+	opacity: var(--opacity, 0);
+	transform: translateY(calc(var(--offset, 0) * 1px));
+	pointer-events: none;
 }
 .preview-scene.is-current {
-	opacity: 1;
-	transform: none;
-	visibility: visible;
-	transition-delay: 30ms, 0s, 0s;
+	z-index: 1;
 }
 .preview-caption {
 	display: flex;

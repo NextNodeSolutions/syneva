@@ -81,6 +81,7 @@ updateFrames()
 // --- offscreen scenes and hidden tabs pause ---
 function updateMotion() {
 	const globalPause = reducedMotion.matches || document.hidden
+	document.documentElement.toggleAttribute('data-motion-paused', globalPause)
 	scenes.forEach(scene => {
 		const isPaused = globalPause || !scene.classList.contains('is-visible')
 		scene.getAnimations({ subtree: true }).forEach(animation => {
