@@ -5,10 +5,15 @@ const contentProperties = ['progress', 'offset', 'opacity']
 const contentExitProgress = 0.22
 const contentEnterProgress = 0.7
 
+// Registered <number> channels are what let WAAPI interpolate the morph. Without
+// CSS.registerProperty the values still carry (var() aliases and custom-property
+// inheritance work unregistered), but every move degrades to an instant jump.
+const canInterpolate = typeof CSS !== 'undefined' && typeof CSS.registerProperty === 'function'
+
 function registerChannel(element, prefix, properties) {
 	return Object.fromEntries(properties.map(property => {
 		const name = `--nav-${prefix}${property}`
-		CSS.registerProperty({ name, syntax: '<number>', inherits: true, initialValue: '0' })
+		if (canInterpolate) CSS.registerProperty({ name, syntax: '<number>', inherits: true, initialValue: '0' })
 		element.style.setProperty(`--${property}`, `var(${name})`)
 		return [property, name]
 	}))
@@ -54,7 +59,7 @@ export class NavigationMorph {
 		const timing = next[this.#shell.reveal] === '0' ? 'close' : clock
 		const duration = parseFloat(styles.getPropertyValue(`--nav-${timing}-duration`))
 		const easing = styles.getPropertyValue('--nav-ease').trim()
-		const isInstant = this.#reduced.matches || this.#navigation.dataset.input === 'keyboard'
+		const isInstant = this.#reduced.matches || this.#navigation.dataset.input === 'keyboard' || !canInterpolate
 		const frames = this.#contentFrames({ ...origin, ...seeds }, destination)
 		motion.animation?.cancel()
 		motion.target = destination
