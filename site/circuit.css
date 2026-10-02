@@ -7,7 +7,7 @@
   --leaf-border: var(--line-strong);
   --leaf-side: var(--iso-side);
   --code-ink: var(--muted);
-  --code-accent: var(--orange);
+  --code-accent: var(--signal);
 }
 .circuit-art { background: var(--paper); }
 .circuit-routes { stroke: var(--line-strong); stroke-width: 1; stroke-linecap: round; }
@@ -24,9 +24,9 @@
 .code-accent { stroke: var(--code-accent); stroke-width: 5; }
 .code-faint { opacity: .35; }
 .source-leaves { --code-accent: var(--line-strong); }
-.review-seat { fill: var(--peach); fill-opacity: .4; stroke: var(--accent); }
+.review-seat { fill: var(--wash); fill-opacity: .4; stroke: var(--accent); }
 .review-layer { transform: translateY(var(--lift)); }
-.layer-critical { --lift: -156px; --rest: 0px; --leaf-border: var(--accent); --leaf-side: var(--iso-peach-side); color: var(--accent); }
+.layer-critical { --lift: -156px; --rest: 0px; --leaf-border: var(--accent); --leaf-side: var(--iso-wash-side); color: var(--accent); }
 .layer-important { --lift: -66px; --rest: 10px; --code-accent: var(--line-strong); color: var(--line-strong); }
 .layer-tested { --lift: 24px; --rest: 20px; --leaf-fill: var(--mint); --leaf-side: var(--iso-mint-side); --code-accent: var(--green); color: var(--green); }
 .critical-margin { stroke: var(--accent); stroke-width: 2; }
@@ -34,7 +34,7 @@
 .focus-owner { fill: var(--accent); }
 .focus-owner path { stroke: var(--accent); stroke-width: 1; }
 .focus-owner text { font: 10px var(--mono); letter-spacing: .08em; }
-.reading-sweep { fill: var(--orange); opacity: 0; }
+.reading-sweep { fill: var(--signal); opacity: 0; }
 .layer-note path { stroke: currentColor; stroke-width: 1; }
 .layer-note circle { fill: currentColor; }
 .note-title { fill: var(--ink); font: 500 14px var(--sans); transform: translateY(-18px); }
@@ -47,7 +47,7 @@
 .verdict-seal ellipse { fill: var(--mint); stroke: var(--green); }
 .flow-signal {
   --signal-size: 16px;
-  stroke: var(--orange);
+  stroke: var(--signal);
   stroke-width: 2;
   stroke-dasharray: var(--signal-size) calc(var(--route-length) + var(--signal-size));
   stroke-dashoffset: var(--signal-size);
