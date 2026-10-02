@@ -184,6 +184,82 @@ document.querySelectorAll('.command').forEach(command => {
 	input.addEventListener('focus', () => input.select())
 })
 
+// --- disclosures: FAQ rows ease open and shut instead of jumping ---
+// The native <details> stays the source of truth (keyboard, find-in-page and
+// no-JS all keep working); the script only animates the height between its
+// two states. Closing keeps [open] until the motion ends so the answer stays
+// visible while it folds away; .is-closing turns the chevron back early.
+// Every run starts from the row's current height and the answer's current
+// opacity, so a reversal or a re-measure continues instead of jumping.
+const disclosureMs = 340
+// Same curve as --ease-out in styles.css.
+const disclosureEase = 'cubic-bezier(.2, 0, 0, 1)'
+const disclosureRise = 6
+// Rows mid-motion re-measure when text can rewrap (resize, a late font), so
+// they glide to the new height instead of snapping to it when they finish.
+const movingDisclosures = new Set()
+const remeasureDisclosures = () => movingDisclosures.forEach(run => run())
+window.addEventListener('resize', remeasureDisclosures, { passive: true })
+document.fonts.addEventListener('loadingdone', remeasureDisclosures)
+document.querySelectorAll('details').forEach(details => {
+	const summary = details.querySelector('summary')
+	const answer = summary.nextElementSibling
+	let motion = null
+	let opening = false
+	const run = () => {
+		// Measure before cancelling: the running animations hold the live values.
+		const from = details.getBoundingClientRect().height
+		// A shut row's answer is not rendered, so it fades in from nothing.
+		const fade =
+			answer && details.open ? Number(getComputedStyle(answer).opacity) : 0
+		motion?.cancel()
+		answer?.getAnimations().forEach(animation => animation.cancel())
+		details.classList.toggle('is-closing', !opening)
+		if (opening) details.open = true
+		const borders = details.offsetHeight - details.clientHeight
+		const to = opening ? details.offsetHeight : summary.offsetHeight + borders
+		details.style.overflow = 'hidden'
+		const current = details.animate(
+			{ height: [`${from}px`, `${to}px`] },
+			{ duration: disclosureMs, easing: disclosureEase },
+		)
+		motion = current
+		movingDisclosures.add(run)
+		// The closing fade holds at 0 until the row folds shut, so the answer
+		// never pops back to full opacity in the last frames.
+		answer?.animate(
+			opening
+				? {
+						opacity: [fade, 1],
+						transform: [
+							`translateY(${(fade - 1) * disclosureRise}px)`,
+							'none',
+						],
+					}
+				: { opacity: [fade, 0] },
+			{
+				duration: disclosureMs,
+				easing: disclosureEase,
+				fill: opening ? 'none' : 'forwards',
+			},
+		)
+		current.addEventListener('finish', () => {
+			if (!opening) details.open = false
+			details.classList.remove('is-closing')
+			details.style.overflow = ''
+			answer?.getAnimations().forEach(animation => animation.cancel())
+			motion = null
+			movingDisclosures.delete(run)
+		})
+	}
+	summary.addEventListener('click', event => {
+		if (reducedMotion.matches) return
+		event.preventDefault()
+		opening = !details.open || details.classList.contains('is-closing')
+		run()
+	})
+})
+
 const fontWaitMs = 300
 await Promise.race([
 	document.fonts.ready,
