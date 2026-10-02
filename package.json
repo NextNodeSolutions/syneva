@@ -1,114 +1,43 @@
 {
-  "name": "syneva",
-  "version": "0.9.0",
-  "description": "An integrated review environment (IRE) for code you didn't write by hand — review a git diff in the browser, then hand a structured review back to your coding agent.",
-  "keywords": [
-    "git",
-    "diff",
-    "code-review",
-    "review",
-    "coding-agent",
-    "ai",
-    "cli",
-    "pi-package"
-  ],
-  "homepage": "https://github.com/walid-mos/syneva#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/walid-mos/syneva.git"
-  },
-  "bugs": {
-    "url": "https://github.com/walid-mos/syneva/issues"
-  },
-  "author": "Walid Mostefaoui",
-  "contributors": [
-    "Yusuf Mansur Özer"
-  ],
-  "license": "MIT",
-  "type": "module",
-  "packageManager": "pnpm@10.33.2",
-  "engines": {
-    "node": ">=22"
-  },
-  "devEngines": {
-    "runtime": {
-      "name": "node",
-      "version": ">=24"
-    }
-  },
-  "pi": {
-    "extensions": [
-      "extension/syneva.ts"
-    ],
-    "skills": [
-      "extension/skills"
-    ],
-    "prompts": [
-      "extension/prompts"
-    ],
-    "subagents": {
-      "agents": [
-        "extension/subagents"
-      ]
-    }
-  },
-  "bin": {
-    "syneva": "./dist/backend/bootstrap/cli.js"
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "typebox": "*"
-  },
-  "files": [
-    "dist",
-    "extension"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "dev": "vite build --watch & tsx src/backend/bootstrap/cli.ts",
-    "build": "node scripts/clean-dist.mjs && tsc && tsc -p tsconfig.ui.json && vite build && cp src/frontend/app/index.html dist/index.html",
-    "start": "node dist/backend/bootstrap/cli.js",
-    "check": "tsc --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.ui.json",
-    "lint": "oxlint --deny-warnings",
-    "lint:types": "oxlint --type-aware --deny-warnings",
-    "lint:fix": "oxlint --fix",
-    "format": "oxfmt --write .",
-    "format:check": "oxfmt --check .",
-    "perf-smoke": "node test/benchmarks/perf-smoke.mjs",
-    "bench": "node test/benchmarks/bench-fixtures.mjs && node test/benchmarks/browser-bench.mjs",
-    "prepack": "pnpm build",
-    "release": "pnpm lint && pnpm lint:types && pnpm format:check && pnpm check && pnpm build && changelogen --release --push"
-  },
-  "devDependencies": {
-    "@earendil-works/pi-coding-agent": "^0.85.1",
-    "@nextnode-solutions/standards": "1.25.0",
-    "@types/markdown-it": "^14.1.2",
-    "@types/markdown-it-footnote": "^3.0.4",
-    "@types/node": "latest",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^5.2.0",
-    "changelogen": "^0.6.2",
-    "oxfmt": "0.67.0",
-    "oxlint": "1.82.0",
-    "oxlint-tsgolint": "7.0.2001",
-    "tsx": "latest",
-    "typebox": "^1.3.30",
-    "typescript": "latest",
-    "vite": "^7.3.6"
-  },
-  "dependencies": {
-    "@pierre/diffs": "1.4.3",
-    "@shikijs/markdown-it": "^4.2.0",
-    "dompurify": "^3.4.8",
-    "markdown-it": "^14.2.0",
-    "markdown-it-footnote": "^4.0.0",
-    "markdown-it-task-lists": "^2.1.1",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "shiki": "^4.2.0",
-    "zustand": "^5.0.15"
-  }
+	"name": "syneva-monorepo",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Workspace root for Syneva - the publishable CLI lives in apps/syneva, the build units in packages/*.",
+	"license": "MIT",
+	"type": "module",
+	"packageManager": "pnpm@10.33.2",
+	"engines": {
+		"node": ">=22"
+	},
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": ">=24"
+		}
+	},
+	"scripts": {
+		"dev": "pnpm --filter syneva dev",
+		"dev:site": "node scripts/serve-site.mjs",
+		"build": "turbo run build && pnpm build:landing",
+		"build:landing": "node scripts/build-landing.mjs",
+		"start": "node apps/syneva/dist/cli.js",
+		"check": "turbo run check && tsc -p tsconfig.node.json",
+		"lint": "oxlint --deny-warnings",
+		"lint:types": "oxlint --type-aware --deny-warnings",
+		"lint:fix": "oxlint --fix",
+		"format": "oxfmt --write .",
+		"format:check": "oxfmt --check .",
+		"perf-smoke": "node test/benchmarks/perf-smoke.mjs",
+		"bench": "node test/benchmarks/bench-fixtures.mjs && node test/benchmarks/browser-bench.mjs",
+		"release": "pnpm lint && pnpm lint:types && pnpm format:check && pnpm check && pnpm build && pnpm --filter syneva exec semantic-release"
+	},
+	"devDependencies": {
+		"@nextnode-solutions/standards": "1.25.0",
+		"@types/node": "latest",
+		"oxfmt": "0.67.0",
+		"oxlint": "1.82.0",
+		"oxlint-tsgolint": "7.0.2001",
+		"turbo": "latest",
+		"typescript": "latest"
+	}
 }

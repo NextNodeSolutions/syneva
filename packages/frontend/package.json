@@ -1,0 +1,35 @@
+{
+	"name": "@syneva/frontend",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Syneva's browser UI (React 19, Feature-Sliced Design). Built by Vite into ui.js; served by the backend from the apps/syneva package.",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"build": "node ../../scripts/clean-dist.mjs && vite build && cp src/app/index.html dist/index.html",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@pierre/diffs": "1.4.3",
+		"@shikijs/markdown-it": "^4.2.0",
+		"@syneva/contracts": "workspace:*",
+		"dompurify": "^3.4.8",
+		"markdown-it": "^14.2.0",
+		"markdown-it-footnote": "^4.0.0",
+		"markdown-it-task-lists": "^2.1.1",
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0",
+		"shiki": "^4.2.0",
+		"zustand": "^5.0.15"
+	},
+	"devDependencies": {
+		"@types/markdown-it": "^14.1.2",
+		"@types/markdown-it-footnote": "^3.0.4",
+		"@types/node": "latest",
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"@vitejs/plugin-react": "^5.2.0",
+		"typescript": "latest",
+		"vite": "^7.3.6"
+	}
+}
