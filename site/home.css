@@ -180,8 +180,11 @@
 .handoff-copy p { margin-top: 22px; max-width: 470px; }
 .handoff-links { display: flex; flex-wrap: wrap; gap: 14px 28px; margin-top: 28px; }
 .handoff-figure { border: 1px solid var(--line-strong); background: var(--white); min-width: 0; }
-.handoff-json { margin: 0; padding: 20px 0; font: 12px/1.85 var(--mono); color: var(--ink); overflow-x: auto; }
-.j-line { display: block; padding: 0 22px; border-left: 2px solid transparent; }
+/* Long lines wrap instead of scrolling: a scrolled pre slides its gutter and
+   the highlight bands out of view (they only span the visible width). The
+   hanging indent keeps a wrapped continuation deeper than any source indent. */
+.handoff-json { margin: 0; padding: 20px 0; font: 12px/1.85 var(--mono); color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.j-line { display: block; padding: 0 22px 0 calc(22px + 8ch); text-indent: -8ch; border-left: 2px solid transparent; }
 .j-line.is-yes { background: rgb(224 237 223 / .6); border-left-color: var(--green); }
 .j-line.is-no { background: rgb(255 229 217 / .5); border-left-color: var(--accent); }
 .j-line.is-ask { background: rgb(255 229 217 / .25); border-left-color: var(--orange); }
@@ -197,7 +200,7 @@
 .compare-head { display: grid; grid-template-columns: 1.25fr 1fr; gap: 70px; margin-bottom: 52px; }
 .compare-head p { align-self: end; max-width: 440px; }
 .compare-scroll { overflow-x: auto; }
-.compare-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .compare-table th, .compare-table td { text-align: left; padding: 17px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .compare-table thead th { font: 11px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line-strong); font-weight: 400; }
 .compare-table tbody th { font-weight: 500; width: 22%; padding-left: 0; }
@@ -260,5 +263,16 @@
   .loop-steps { grid-template-columns: 1fr; row-gap: 30px; }
   .principle-strip { font-size: 11px; }
   .principle-strip span { padding: 16px 8px; gap: 8px; }
+  /* The table stacks into one card per aspect rather than scrolling sideways,
+     each cell labelled with its column (data-label) since the head is hidden. */
+  .compare-scroll { overflow-x: visible; }
   .compare-table { font-size: 13px; }
+  .compare-table, .compare-table tbody, .compare-table tr, .compare-table th, .compare-table td { display: block; }
+  .compare-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .compare-table tr { padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .compare-table tbody th, .compare-table td { width: auto; padding: 0; border-bottom: 0; }
+  .compare-table tbody th { margin-bottom: 10px; font-size: 14px; }
+  .compare-table td { padding: 8px 12px; }
+  .compare-table td::before { content: attr(data-label); display: block; margin-bottom: 2px; font: 10.5px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+  .compare-table td.is-us::before { content: '✓ ' attr(data-label); margin-right: 0; color: var(--accent); }
 }
