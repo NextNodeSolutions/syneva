@@ -273,6 +273,8 @@
   .compare-table tbody th, .compare-table td { width: auto; padding: 0; border-bottom: 0; }
   .compare-table tbody th { margin-bottom: 10px; font-size: 14px; }
   .compare-table td { padding: 8px 12px; }
-  .compare-table td::before { content: attr(data-label); display: block; margin-bottom: 2px; font: 10.5px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
-  .compare-table td.is-us::before { content: '✓ ' attr(data-label); margin-right: 0; color: var(--accent); }
+  /* Empty alt text (after the plain fallback) keeps screen readers on the
+     real column headers instead of announcing each label twice. */
+  .compare-table td::before { content: attr(data-label); content: attr(data-label) / ""; display: block; margin-bottom: 2px; font: 10.5px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+  .compare-table td.is-us::before { content: '✓ ' attr(data-label); content: '✓ ' attr(data-label) / ""; margin-right: 0; color: var(--accent); }
 }
