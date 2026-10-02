@@ -184,6 +184,54 @@ document.querySelectorAll('.command').forEach(command => {
 	input.addEventListener('focus', () => input.select())
 })
 
+// --- disclosures: FAQ rows ease open and shut instead of jumping ---
+// The native <details> stays the source of truth (keyboard, find-in-page and
+// no-JS all keep working); the script only animates the height between its
+// two states. Closing keeps [open] until the motion ends so the answer stays
+// visible while it folds away; .is-closing turns the chevron back early.
+const disclosureMs = 340
+// Same curve as --ease-out in styles.css.
+const disclosureEase = 'cubic-bezier(.2, 0, 0, 1)'
+document.querySelectorAll('details').forEach(details => {
+	const summary = details.querySelector('summary')
+	const answer = summary.nextElementSibling
+	let motion = null
+	summary.addEventListener('click', event => {
+		if (reducedMotion.matches) return
+		event.preventDefault()
+		const opening = !details.open || details.classList.contains('is-closing')
+		// Measure before cancelling so a reversed motion starts where it is.
+		const from = details.getBoundingClientRect().height
+		motion?.cancel()
+		answer?.getAnimations().forEach(animation => animation.cancel())
+		details.classList.toggle('is-closing', !opening)
+		if (opening) details.open = true
+		const borders = details.offsetHeight - details.clientHeight
+		const to = opening ? details.offsetHeight : summary.offsetHeight + borders
+		details.style.overflow = 'hidden'
+		motion = details.animate(
+			{ height: [`${from}px`, `${to}px`] },
+			{ duration: disclosureMs, easing: disclosureEase },
+		)
+		answer?.animate(
+			opening
+				? { opacity: [0, 1], transform: ['translateY(-6px)', 'none'] }
+				: { opacity: [1, 0] },
+			{
+				duration: opening ? disclosureMs : disclosureMs / 2,
+				easing: disclosureEase,
+			},
+		)
+		const current = motion
+		current.addEventListener('finish', () => {
+			if (!opening) details.open = false
+			details.classList.remove('is-closing')
+			details.style.overflow = ''
+			if (motion === current) motion = null
+		})
+	})
+})
+
 const fontWaitMs = 300
 await Promise.race([
 	document.fonts.ready,
