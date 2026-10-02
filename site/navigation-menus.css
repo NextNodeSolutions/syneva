@@ -1,5 +1,7 @@
 .product-menu {
-	--panel-width: 640px;
+	/* Wide enough that every blurb holds on one line beside its icon and
+	   arrow; a wrapped blurb is what made one row taller than the rest. */
+	--panel-width: 720px;
 }
 .workflows-menu {
 	--panel-width: 540px;
@@ -16,13 +18,18 @@
 .product-links {
 	position: relative;
 	isolation: isolate;
+	display: grid;
+	/* Every row takes the tallest row's height, so the preview highlight
+	   morphs by translation alone and the rhythm between links never
+	   changes, even where a narrower panel wraps a blurb. */
+	grid-auto-rows: 1fr;
 	padding: 4px 0;
 }
 .product-links::before {
 	content: '';
 	position: absolute;
 	inset: 0 0 auto;
-	height: calc(var(--selection-height, 66) * 1px);
+	height: calc(var(--selection-height, 70) * 1px);
 	background: var(--paper);
 	border-radius: 5px;
 	transform: translateY(calc(var(--selection-y, 4) * 1px));
@@ -36,7 +43,7 @@
 	align-items: center;
 	gap: 13px;
 	padding: 14px 12px;
-	min-height: 66px;
+	min-height: 70px;
 	border-radius: 5px;
 	transition:
 		background-color 150ms var(--ease-out),
