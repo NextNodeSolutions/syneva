@@ -252,6 +252,19 @@ export const HOTKEYS_APP: Hotkey[] = [
 		run: () => S.openSettings?.(),
 	},
 	{
+		combo: '?',
+		desc: 'Keyboard map',
+		group: 'View',
+		// '?' already carries Shift on most layouts, so the bare-key matcher's
+		// !e.shiftKey guard cannot apply here; only modifier chords stay excluded.
+		test: e => e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey,
+		when: () => !inComposer(),
+		run: () => {
+			S.settingsTab = 'shortcuts'
+			S.openSettings?.()
+		},
+	},
+	{
 		combo: 'Esc',
 		desc: 'Close / cancel',
 		group: 'App',

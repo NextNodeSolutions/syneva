@@ -391,6 +391,7 @@ function bindPointer() {
 	hero.addEventListener('pointermove', event => {
 		cancelAnimationFrame(frame)
 		frame = requestAnimationFrame(() => {
+			if (reducedMotion.matches) return
 			const box = hero.getBoundingClientRect()
 			const x = event.clientX - box.left
 			const y = event.clientY - box.top
@@ -412,7 +413,27 @@ function bindPointer() {
 	})
 }
 
-if (svg && !reducedMotion.matches) {
+let running = false
+function start() {
+	if (running) return
+	running = true
 	choreograph()
+}
+function stop() {
+	if (!running) return
+	running = false
+	// The SVG markup is the static pose, so cancelling lands every element there.
+	svg.getAnimations({ subtree: true }).forEach(animation => animation.cancel())
+}
+
+// The preference is read live, not just at boot: switching to reduce cancels the
+// running WAAPI timeline; switching back restarts it from the top.
+reducedMotion.addEventListener('change', () => {
+	if (reducedMotion.matches) stop()
+	else start()
+})
+
+if (svg) {
+	if (!reducedMotion.matches) start()
 	bindPointer()
 }
