@@ -1,3 +1,18 @@
+.nav-panel {
+	/* One spacing system for every menu: the same inset around the link
+	   area and the same padding inside each link, so content sits on the
+	   same lines whichever menu the shell morphs to, and the footer text
+	   lines up with the link content above it. */
+	--menu-inset: 8px;
+	--menu-link-padding-block: 14px;
+	--menu-link-padding-inline: 12px;
+	--menu-icon-size: 20px;
+	--menu-icon-gap: 13px;
+	/* A whole-pixel title line keeps every row a whole number of pixels,
+	   so the preview highlight (placed from offsetTop/offsetHeight) and
+	   the shell height (rounded up) land exactly on the rows. */
+	--menu-title-line: calc(20 / 14);
+}
 .product-menu {
 	--panel-width: 640px;
 }
@@ -10,13 +25,12 @@
 .product-menu-body {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	padding: 8px;
-	gap: 8px;
+	padding: var(--menu-inset);
+	gap: var(--menu-inset);
 }
 .product-links {
 	position: relative;
 	isolation: isolate;
-	padding: 4px 0;
 }
 .product-links::before {
 	content: '';
@@ -25,7 +39,7 @@
 	height: calc(var(--selection-height, 66) * 1px);
 	background: var(--paper);
 	border-radius: 5px;
-	transform: translateY(calc(var(--selection-y, 4) * 1px));
+	transform: translateY(calc(var(--selection-y, 0) * 1px));
 	z-index: -1;
 	pointer-events: none;
 }
@@ -34,8 +48,8 @@
 .menu-link {
 	display: flex;
 	align-items: center;
-	gap: 13px;
-	padding: 14px 12px;
+	gap: var(--menu-icon-gap);
+	padding: var(--menu-link-padding-block) var(--menu-link-padding-inline);
 	min-height: 66px;
 	border-radius: 5px;
 	transition:
@@ -43,8 +57,8 @@
 		color 150ms var(--ease-out);
 }
 .menu-link > svg {
-	width: 20px;
-	height: 20px;
+	width: var(--menu-icon-size);
+	height: var(--menu-icon-size);
 	flex-shrink: 0;
 	fill: none;
 	stroke: currentColor;
@@ -59,7 +73,7 @@
 	gap: 7px;
 	font-size: 14px;
 	font-weight: 500;
-	line-height: 1.4;
+	line-height: var(--menu-title-line);
 }
 .menu-link small {
 	display: block;
@@ -102,7 +116,7 @@
 	justify-content: space-between;
 	gap: 16px;
 	min-height: 49px;
-	padding: 13px 20px;
+	padding: 13px calc(var(--menu-inset) + var(--menu-link-padding-inline));
 	border-top: 1px solid var(--line);
 	background: var(--paper);
 	font-size: 11px;
@@ -120,20 +134,24 @@
 .workflow-links {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	padding: 10px;
+	padding: var(--menu-inset);
+	column-gap: var(--menu-inset);
 }
 .workflow-link {
+	position: relative;
 	display: flex;
 	flex-direction: column;
-	padding: 17px 14px;
-	gap: 6px;
-	border-radius: 4px;
+	padding: var(--menu-link-padding-block) var(--menu-link-padding-inline);
+	/* Same title-to-blurb step as .menu-link small. */
+	gap: 4px;
+	border-radius: 5px;
 }
 .workflow-link strong {
 	display: flex;
 	justify-content: space-between;
 	font-size: 14px;
 	font-weight: 500;
+	line-height: var(--menu-title-line);
 }
 .workflow-link strong span {
 	color: var(--muted);
@@ -144,11 +162,16 @@
 	color: var(--muted);
 }
 .workflow-link code {
-	font: 11px/1.5 var(--mono);
+	font: 11px/16px var(--mono);
 	color: var(--accent);
-	margin-top: 9px;
+	margin-top: 4px;
 }
-.workflow-link:nth-child(n + 3) {
+/* The row rule is its own unrounded line: a border-top on the rounded
+   link would curl down at both ends. */
+.workflow-link:nth-child(n + 3)::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
 	border-top: 1px solid var(--line);
 }
 .local-note {
@@ -157,10 +180,7 @@
 	gap: 8px;
 }
 .resource-links {
-	padding: 8px;
-}
-.resource-links .menu-link {
-	padding-inline: 13px;
+	padding: var(--menu-inset);
 }
 .preview-dot {
 	display: inline-block;
@@ -203,11 +223,11 @@
 }
 .workflow-link strong {
 	align-items: center;
-	gap: 9px;
+	gap: var(--menu-icon-gap);
 }
 .workflow-link strong > svg {
-	width: 18px;
-	height: 18px;
+	width: var(--menu-icon-size);
+	height: var(--menu-icon-size);
 	flex-shrink: 0;
 	fill: none;
 	stroke: currentColor;
