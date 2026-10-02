@@ -60,7 +60,7 @@ A protocol and an interface, nothing more. Three commitments a neighboring revie
 
 ## Brand Commitments
 
-- The name is **Syneva** and its identity is its own: Syneva is a fork of [Galley](https://github.com/ymansurozer/galley) by Yusuf Mansur Özer, credited as the origin in the README and LICENSE, not as a live upstream to keep tracking. Divergence is free.
+- The name is **Syneva** and its identity is its own.
 - The term **integrated review environment (IRE)** is the product's own category phrasing, used in the description and README.
 - **Voice**: first-person, direct, opinionated, low-hype. The README states what the tool believes and admits its limits ("I built it in a week and I'm still figuring out the shape"). Future copy should read that way — no marketing register, no invented authority.
 - No binding colour, type, or imagery commitments were established.
@@ -68,9 +68,8 @@ A protocol and an interface, nothing more. Three commitments a neighboring revie
 ## Evidence on Hand
 
 - The working tool itself: a runnable CLI + browser desk, a documented machine contract printed by `syneva spec`, and a test suite covering that contract.
-- Upstream provenance: the fork's origin is real and creditable.
 
-**Absences future work must not fabricate:** no user testimonials, no case studies, no adoption or performance benchmarks, no press, no customer logos, no usage metrics. Syneva has no external user base to cite, and upstream Galley's public history is not Syneva's track record.
+**Absences future work must not fabricate:** no user testimonials, no case studies, no adoption or performance benchmarks, no press, no customer logos, no usage metrics. Syneva has no external user base to cite, and no upstream project's public history is Syneva's track record.
 
 ## Product Principles
 
