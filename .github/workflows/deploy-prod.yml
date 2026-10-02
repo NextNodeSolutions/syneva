@@ -1,0 +1,15 @@
+name: Deploy Production
+
+on:
+    workflow_dispatch:
+
+concurrency:
+    group: deploy-production
+    cancel-in-progress: false
+
+jobs:
+    deploy:
+        uses: NextNodeSolutions/core/.github/workflows/deploy-workers.yml@main
+        with:
+            environment: production
+        secrets: inherit

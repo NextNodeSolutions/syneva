@@ -8,6 +8,10 @@ Syneva is a CLI (`syneva`) that serves a localhost browser UI for reviewing a gi
 
 Product positioning lives in `PRODUCT.md`, the UI design language in `DESIGN.md` — read them before product or design decisions.
 
+## Landing deploy
+
+The static landing (`site/`) deploys to Cloudflare Workers (static assets) through CI only — never from a local machine. Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). `pnpm build` assembles the bundle (`scripts/build-landing.mjs` → `dist/`).
+
 ## Commands
 
 Every command is a pnpm script in `package.json` — that file is the authoritative list (`dev`, `build`, `check`, `lint`, `lint:types`, `lint:fix`, `format`, `format:check`, `perf-smoke`, `release`). CI (`.github/workflows/ci.yml`) runs the same gates on Node 24 — all must pass. The tooling needs Node 24 (`devEngines`); the published CLI keeps its `engines.node >= 22` contract.
