@@ -1,18 +1,18 @@
 /* ---------- Hero ----------------------------------------------------------
    The headline is set as a two-line diff: line 1 is the agent's addition
-   (orange marker, peach band), line 2 is your verdict (green check, mint
-   band). The same two colors carry the whole site: orange follows the work,
+   (signal marker, wash band), line 2 is your verdict (green check, mint
+   band). The same two colors carry the whole site: the accent follows the work,
    mint marks a human decision. */
 .hero { position: relative; padding: 28px var(--gutter) 64px; isolation: isolate; overflow: hidden; }
 .hero-field { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
 .hero-field::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 48px 48px; background-position: calc(var(--gutter) - 1px) -1px; -webkit-mask-image: linear-gradient(170deg, #000 0%, rgb(0 0 0 / .55) 38%, transparent 72%); mask-image: linear-gradient(170deg, #000 0%, rgb(0 0 0 / .55) 38%, transparent 72%); }
-/* The pointer light: orange registration crosses wake up around the cursor. */
-.hero-light { position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 19v10M19 24h10' stroke='%23f4511e' stroke-width='1.2'/%3E%3C/svg%3E"); background-size: 48px 48px; background-position: calc(var(--gutter) - 25px) -25px; opacity: 0; -webkit-mask-image: radial-gradient(circle 190px at var(--mx, 70%) var(--my, 20%), #000 0%, rgb(0 0 0 / .4) 45%, transparent 100%); mask-image: radial-gradient(circle 190px at var(--mx, 70%) var(--my, 20%), #000 0%, rgb(0 0 0 / .4) 45%, transparent 100%); transition: opacity .5s var(--ease-out); }
+/* The pointer light: accent registration crosses wake up around the cursor. */
+.hero-light { position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 19v10M19 24h10' stroke='%231e9bc4' stroke-width='1.2'/%3E%3C/svg%3E"); background-size: 48px 48px; background-position: calc(var(--gutter) - 25px) -25px; opacity: 0; -webkit-mask-image: radial-gradient(circle 190px at var(--mx, 70%) var(--my, 20%), #000 0%, rgb(0 0 0 / .4) 45%, transparent 100%); mask-image: radial-gradient(circle 190px at var(--mx, 70%) var(--my, 20%), #000 0%, rgb(0 0 0 / .4) 45%, transparent 100%); transition: opacity .5s var(--ease-out); }
 .hero.is-lit .hero-light { opacity: 1; }
 
 .hero-news { display: inline-flex; align-items: center; gap: 12px; padding: 5px 12px 5px 5px; border: 1px solid var(--line); background: var(--white); font-size: 13px; color: var(--muted); transition: border-color .2s var(--ease-out), color .2s var(--ease-out); max-width: 100%; }
 .hero-news > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.news-tag { font: 500 10.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: var(--peach); padding: 3px 7px; flex-shrink: 0; }
+.news-tag { font: 500 10.5px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: var(--wash); padding: 3px 7px; flex-shrink: 0; }
 .news-arrow { color: var(--ink); transition: transform .2s var(--ease-out); flex-shrink: 0; }
 .hero-news:hover { border-color: var(--accent); color: var(--ink); }
 .hero-news:hover .news-arrow { transform: translateX(3px); }
@@ -27,7 +27,7 @@
 .hl-gutter svg { width: 20px; height: 20px; fill: none; stroke: var(--green); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .hl-clip { position: relative; display: block; overflow: hidden; padding: .04em .16em .12em; }
 .hl-clip::before { content: ''; position: absolute; inset: 0; z-index: -1; transform-origin: left; }
-.hl-agent .hl-clip::before { background: linear-gradient(90deg, var(--peach), rgb(255 229 217 / .35)); }
+.hl-agent .hl-clip::before { background: linear-gradient(90deg, var(--wash), color-mix(in srgb, var(--wash) 35%, transparent)); }
 .hl-human .hl-clip::before { background: linear-gradient(90deg, var(--mint), rgb(224 237 223 / .35)); }
 .hl-text { display: block; white-space: nowrap; }
 .hl-text em { position: relative; font-style: normal; color: var(--green); display: inline-block; }
@@ -88,29 +88,29 @@
 .hs-bar { fill: var(--line-strong); }
 .hs-bar.is-faint { fill: var(--line); }
 .hs-mark.hs-add { fill: var(--green); }
-.hs-mark.hs-del { fill: var(--orange); }
+.hs-mark.hs-del { fill: var(--signal); }
 .hs-mark.hs-ctx { fill: var(--line); }
 .hs-rail { stroke: var(--accent); stroke-width: 1.2; fill: none; }
 .hs-rail-dots rect { fill: var(--accent); }
-.hs-rev rect { fill: var(--peach); stroke: var(--accent); }
+.hs-rev rect { fill: var(--wash); stroke: var(--accent); }
 .hs-rev text { font: 500 9px var(--mono); letter-spacing: .08em; fill: var(--accent); }
 .hs-focus { stroke: var(--accent); stroke-width: 1.5; }
 .hs-port { fill: var(--paper); stroke: var(--line-strong); }
 .hs-route { stroke: var(--line-strong); }
 .hs-return { stroke: var(--line-strong); stroke-dasharray: 1 6; stroke-linecap: round; stroke-width: 1.2; }
 .hs-signal { stroke-width: 2; stroke-linecap: round; opacity: 0; stroke-dasharray: 8 100; stroke-dashoffset: 8; }
-.hs-signal-in { stroke: var(--orange); }
+.hs-signal-in { stroke: var(--signal); }
 .hs-signal-out { stroke: var(--green); }
-.hs-signal-back { stroke: var(--orange); stroke-dasharray: 5 100; }
+.hs-signal-back { stroke: var(--signal); stroke-dasharray: 5 100; }
 .hs-loop { font: 9.5px var(--mono); letter-spacing: .1em; fill: var(--muted); }
 .hs-panel { fill: var(--white); stroke: var(--ink); }
 .hs-btn { fill: var(--white); stroke: var(--line-strong); }
 .hs-btn-glyph { stroke: var(--muted); stroke-width: 1.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .hs-accept { fill: var(--mint); stroke: var(--green); }
 .hs-accept-glyph { stroke: var(--green); }
-.hs-band-del { fill: var(--peach); }
+.hs-band-del { fill: var(--wash); }
 .hs-band-add { fill: var(--mint); }
-.hs-sweep { fill: var(--orange); fill-opacity: .1; }
+.hs-sweep { fill: var(--signal); fill-opacity: .1; }
 .hs-ln { font: 10.5px var(--mono); fill: var(--line-strong); }
 .hs-code { font: 11.5px var(--mono); fill: var(--ink); }
 .hs-code.is-del { fill: var(--accent); }
@@ -120,9 +120,9 @@
 .hs-strike { stroke: var(--accent); stroke-width: 1.2; }
 .hs-gcheck { fill: none; stroke: var(--green); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .hs-leader { stroke: var(--accent); fill: none; }
-.hs-qchip circle { fill: var(--peach); stroke: var(--accent); }
+.hs-qchip circle { fill: var(--wash); stroke: var(--accent); }
 .hs-qchip text { font: 600 11px var(--sans); fill: var(--accent); }
-.hs-thread-box { fill: #fff6f1; stroke: var(--line); }
+.hs-thread-box { fill: var(--wash-tint); stroke: var(--line); }
 .hs-thread-rail { stroke: var(--accent); stroke-width: 2; }
 .hs-who { font: 9.5px var(--mono); letter-spacing: .08em; fill: var(--muted); }
 .hs-msg-agent .hs-who { fill: var(--accent); }
@@ -131,7 +131,7 @@
 .hs-ledger-box { fill: var(--paper); stroke: var(--line-strong); }
 .hs-glyph-yes { fill: var(--mint); stroke: var(--green); }
 .hs-glyph-check { fill: none; stroke: var(--green); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.hs-glyph-no { fill: var(--peach); stroke: var(--accent); }
+.hs-glyph-no { fill: var(--wash); stroke: var(--accent); }
 .hs-glyph-x { stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; }
 .hs-glyph-pending { fill: var(--white); stroke: var(--line-strong); stroke-dasharray: 2 2; }
 .hs-track { fill: var(--line); }
@@ -183,8 +183,8 @@
 .handoff-json { margin: 0; padding: 20px 0; font: 12px/1.85 var(--mono); color: var(--ink); overflow-x: auto; }
 .j-line { display: block; padding: 0 22px; border-left: 2px solid transparent; }
 .j-line.is-yes { background: rgb(224 237 223 / .6); border-left-color: var(--green); }
-.j-line.is-no { background: rgb(255 229 217 / .5); border-left-color: var(--accent); }
-.j-line.is-ask { background: rgb(255 229 217 / .25); border-left-color: var(--orange); }
+.j-line.is-no { background: color-mix(in srgb, var(--wash) 50%, transparent); border-left-color: var(--accent); }
+.j-line.is-ask { background: color-mix(in srgb, var(--wash) 25%, transparent); border-left-color: var(--signal); }
 .handoff-json .j-key { color: var(--ink); }
 .handoff-json .j-str { color: var(--green); }
 .handoff-json .j-num { color: var(--accent); }
@@ -202,7 +202,7 @@
 .compare-table thead th { font: 11px var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line-strong); font-weight: 400; }
 .compare-table tbody th { font-weight: 500; width: 22%; padding-left: 0; }
 .compare-table td { color: var(--muted); }
-.compare-table .is-us { background: rgb(255 229 217 / .45); color: var(--ink); }
+.compare-table .is-us { background: color-mix(in srgb, var(--wash) 45%, transparent); color: var(--ink); }
 .compare-table thead .is-us { color: var(--accent); border-top: 2px solid var(--accent); font-weight: 500; }
 .compare-table td.is-us { font-weight: 500; }
 .compare-table td.is-us::before { content: '✓'; color: var(--green); margin-right: 9px; font-weight: 600; }

@@ -26,8 +26,8 @@ const COLOR = {
 	green: '#35633f',
 	strong: '#a8afa1',
 	muted: '#60635c',
-	accent: '#cc3b08',
-	accentDeep: '#a93108',
+	accent: '#0e6582',
+	accentDeep: '#0b506a',
 }
 
 // frames: [[seconds, props, easing for the segment that starts here], ...]

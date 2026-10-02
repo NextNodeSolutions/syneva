@@ -13,7 +13,7 @@
 .story-sheet { fill: var(--iso-platform); stroke: var(--line-strong); }
 .story-paper { fill: var(--white); stroke: var(--line-strong); }
 .story-fold { fill: var(--paper); stroke: var(--line-strong); }
-.story-question { fill: var(--peach); stroke: var(--accent); }
+.story-question { fill: var(--wash); stroke: var(--accent); }
 .story-settled { fill: var(--mint); stroke: var(--green); }
 .story-rule, .story-lines { fill: none; stroke: var(--line-strong); }
 .story-lines { stroke-linecap: round; stroke-width: 2; }
