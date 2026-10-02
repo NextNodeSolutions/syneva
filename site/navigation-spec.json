@@ -3,7 +3,7 @@
 	"items": [
 		{
 			"id": "sections",
-			"requirement": "The desktop navbar contains Product, Workflows, Resources, GitHub, and a distinct Get started action.",
+			"requirement": "The desktop navbar contains Product, Workflows, Resources, Open source, and a distinct Get started action.",
 			"source": "User request for multiple product-relevant links and submenus"
 		},
 		{
@@ -30,6 +30,16 @@
 			"id": "floating",
 			"requirement": "The dropdown floats above the hero without moving the page content.",
 			"source": "User's morphing dropdown video reference"
+		},
+		{
+			"id": "pages",
+			"requirement": "Every menu link, menu footer and the Open source link lead to their own page on the site; GitHub stays reachable from the footer and the Open source page.",
+			"source": "Human brief: each link and sublink gets its own page"
+		},
+		{
+			"id": "current",
+			"requirement": "The section of the current page is marked on its trigger, and the current page is marked inside its menu.",
+			"source": "Multi-page navigation"
 		}
 	]
 }
