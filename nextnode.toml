@@ -21,10 +21,12 @@ target = "cloudflare-workers"
 
 [deploy.services.web]
 url = "syneva.dev"
-# Pure-static landing riding the _worker.js convention: the infra derives the
-# assets root (dist/) from this entry, and the pass-through script under
-# dist/_worker.js/ only serves requests that miss a static file.
-entry = "dist/_worker.js/index.mjs"
+# Static-assets-only Worker (core deploy-workers pipeline): no script at all -
+# the site is pure static, requests are answered by the assets, so there is no
+# _worker.js convention to feed the infra and no source dir for wrangler's
+# assets guard to refuse. The assets root is declared directly.
+entry = false
+assets = "dist"
 
 [scripts]
 lint = "lint"
