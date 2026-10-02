@@ -49,11 +49,15 @@
 .terminal-dots { display: flex; gap: 5px; }
 .terminal-dots i { width: 8px; height: 8px; border: 1px solid var(--line-strong); }
 .terminal-dots i:first-child { background: var(--wash); border-color: var(--accent); }
-.terminal pre { margin: 0; padding: 18px 20px; font: 12.5px/1.9 var(--mono); overflow-x: auto; }
+.terminal pre { margin: 0; padding: 18px 20px; font: 12.5px/1.9 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Lines wrap rather than scroll the pre (a scrolled terminal hides its own
+   prompt); the hanging indent sets a continuation deeper than the source
+   indents (up to 6 columns) so it never reads as a new line. */
+.t-line, .t-comment, .t-out { --t-hang: calc(7ch + 10px); padding-left: var(--t-hang); text-indent: calc(-1 * var(--t-hang)); }
 .t-line { display: block; color: var(--ink); }
 .t-prompt { color: var(--accent); margin-right: 10px; user-select: none; }
 .t-comment { display: block; color: var(--muted); }
-.t-out { display: block; color: var(--ink); white-space: pre; }
+.t-out { display: block; color: var(--ink); }
 
 /* Overview pages: linked index rows with their own icon drawings. */
 .index-rows { border-top: 1px solid var(--line-strong); }
@@ -134,6 +138,7 @@ kbd { display: inline-grid; place-items: center; min-width: 30px; height: 28px; 
   .index-text strong { font-size: 18px; }
   .pager { grid-template-columns: 1fr; }
   .pager-link + .pager-link { border-left: 0; border-top: 1px solid var(--line); }
+  .terminal pre { padding: 16px; font-size: 11.5px; }
   .kbd-grid { grid-template-columns: 1fr; }
   .kbd-row:nth-child(n) { padding-inline: 0; border-left: 0; }
   .spec-row { grid-template-columns: 1fr; gap: 4px; }

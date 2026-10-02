@@ -148,6 +148,7 @@ summary:hover { color: var(--accent); }
 summary::-webkit-details-marker { display: none; }
 summary::after { content: ''; position: absolute; right: 4px; top: 27px; width: 9px; height: 9px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg); transition: transform 200ms var(--ease-out), top 200ms var(--ease-out); }
 details[open] summary::after { transform: rotate(225deg); top: 32px; }
+details.is-closing summary::after { transform: rotate(45deg); top: 27px; }
 details p { font-size: 15px; padding: 0 34px 24px 0; max-width: 640px; }
 
 /* Footer: pitch, sitemap, wordmark. */
