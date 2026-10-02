@@ -3,7 +3,7 @@
 	"items": [
 		{
 			"id": "promise",
-			"requirement": "The headline and supporting copy explain confidence in agent-written code without slowing the reader down.",
+			"requirement": "The headline and supporting copy explain, in one glance, that the agent writes and the human decides what ships, without slowing the reader down.",
 			"source": "Human brief"
 		},
 		{
@@ -28,43 +28,63 @@
 		},
 		{
 			"id": "motion",
-			"requirement": "The hero illustration plays automatically with no stage buttons, playback toggle, replay control or other visitor interaction.",
+			"requirement": "The hero instrument and the review circuit play automatically with no stage buttons, playback toggle, replay control or other visitor interaction.",
 			"source": "Human follow-up: remove the three state buttons and Play motion / Replay"
 		},
 		{
-			"id": "hero-left-copy",
-			"requirement": "The hero's left station is labeled Your full diff and represents every change from the user's agent, not just one changeset.",
+			"id": "circuit-left-copy",
+			"requirement": "The review circuit's left station is labeled Your full diff and represents every change from the user's agent, not just one changeset.",
 			"source": "Human copy follow-up: the whole diff on the left"
 		},
 		{
-			"id": "hero-right-copy",
-			"requirement": "The hero's right station is labeled Ship with confidence and represents confidence in reviewed code, not the location of the review decision.",
+			"id": "circuit-right-copy",
+			"requirement": "The review circuit's right station is labeled Ship with confidence and represents confidence in reviewed code, not the location of the review decision.",
 			"source": "Human copy follow-up: confidence in shipped code on the right"
 		},
 		{
-			"id": "hero-middle-copy",
+			"id": "circuit-middle-copy",
 			"requirement": "The middle retains YOUR FOCUS, Critical / Read closely, Important / Follow the change, and Tested / Check evidence.",
 			"source": "Human copy follow-up: leave the middle unchanged"
 		},
 		{
-			"id": "hero-pacing",
+			"id": "circuit-pacing",
 			"requirement": "The middle review opens and closes briskly, while the right-hand verdict and return to the agent move more slowly. The sequence remains continuous and the return begins after the verdict.",
 			"source": "Human timing follow-up: accelerate the middle, slow the right side and return"
 		},
 		{
-			"id": "hero-connections",
-			"requirement": "The hero's forward connections terminate at small ports on the agent, review and verdict platforms, without floating arrowheads or disconnected line fragments.",
+			"id": "circuit-connections",
+			"requirement": "The review circuit's forward connections terminate at small ports on the agent, review and verdict platforms, without floating arrowheads or disconnected line fragments.",
 			"source": "Human precision follow-up: inconsistent relationships"
 		},
 		{
-			"id": "hero-dots",
-			"requirement": "The hero uses one evenly dotted return connection below the platforms; the forward connections and sheet annotations are solid.",
+			"id": "circuit-dots",
+			"requirement": "The review circuit uses one evenly dotted return connection below the platforms; the forward connections and sheet annotations are solid.",
 			"source": "Human precision follow-up: inconsistent dotted lines"
 		},
 		{
-			"id": "hero-annotations",
+			"id": "circuit-annotations",
 			"requirement": "On desktop, the Critical, Important and Tested annotations connect directly to their corresponding sheet edges, without crossing other labels.",
 			"source": "Human precision follow-up: inconsistent relationships"
+		},
+		{
+			"id": "plan-drawing",
+			"requirement": "The plan illustration shows a layered plan.md document linked to an assumption, a question for the agent, and a human decision, with a return path before code is written.",
+			"source": "Current human request: improve supporting SVG design and product explanation"
+		},
+		{
+			"id": "review-drawing",
+			"requirement": "The review illustration connects a changed code line to a human question, an agent answer, and a verdict explicitly labeled Accepted by you.",
+			"source": "Current human request: improve supporting SVG design and product explanation"
+		},
+		{
+			"id": "local-drawing",
+			"requirement": "The locality drawing contains both repository and verdict inside one localhost machine boundary, with no external connection.",
+			"source": "Current human request and PRODUCT.md local-only behavior"
+		},
+		{
+			"id": "supporting-motion",
+			"requirement": "Plan, review, and local-machine drawings have coordinated explanatory motion beyond the hero; offscreen or hidden-tab motion pauses, and reduced motion preserves a complete readable illustration.",
+			"source": "Current human request; temporal criteria require agent browser checks"
 		},
 		{
 			"id": "install",
@@ -75,6 +95,36 @@
 			"id": "truth",
 			"requirement": "Copy states that Syneva is local and uses the user's agent rather than running its own model.",
 			"source": "PRODUCT.md"
+		},
+		{
+			"id": "circuit-placement",
+			"requirement": "The review circuit, formerly the hero drawing, opens the How it works section next to the four-step loop, where its round-by-round story belongs.",
+			"source": "Human brief: move the hero animation to a more appropriate section"
+		},
+		{
+			"id": "hero-headline",
+			"requirement": "The hero H1 is set as a two-line diff: the agent's line marked + in orange on a peach band, the human verdict marked with a green check on a mint band.",
+			"source": "Human brief: a breathtaking hero that follows the design system"
+		},
+		{
+			"id": "hero-instrument",
+			"requirement": "The hero shows one complete review round on a single clock (reading order, question, answer, accept, verdict ledger, Send, revision) with its static markup as the finished pose.",
+			"source": "Human brief: motion design worthy of the product"
+		},
+		{
+			"id": "hero-actions",
+			"requirement": "The hero offers the primary action, a copyable install command and the agents Syneva works with, above the fold on desktop.",
+			"source": "Human brief: sell the product"
+		},
+		{
+			"id": "pages",
+			"requirement": "Every navigation link and sub-link has its own page with its own SVG drawings; the build fails if a link has no page.",
+			"source": "Human brief: each link and sublink gets its own page"
+		},
+		{
+			"id": "honest-numbers",
+			"requirement": "No unmeasured number appears anywhere; the changelog chart counts real commits from the git history.",
+			"source": "PRODUCT.md: absences future work must not fabricate"
 		}
 	]
 }
