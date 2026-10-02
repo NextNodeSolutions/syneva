@@ -37,6 +37,12 @@ await cp(SITE_DIR, DIST_DIR, {
 })
 await writeFile(path.join(WORKER_DIR, 'index.mjs'), WORKER)
 await writeFile(path.join(DIST_DIR, 'healthz'), 'ok\n')
+// Wrangler refuses an assets root that contains a `_worker.js/` directory
+// (the Pages convention - uploading it would expose the worker source as
+// public assets). The code ships via the config's `main`, not the assets
+// upload, so excluding it here is what lets the deploy pass; an empty
+// .assetsignore would upload the source instead.
+await writeFile(path.join(DIST_DIR, '.assetsignore'), '_worker.js\n')
 // The build is CI's only signal for the landing bundle - a silent pass/fail
 // line, not console noise.
 process.stdout.write('landing bundle assembled in dist/\n')
