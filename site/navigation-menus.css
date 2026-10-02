@@ -173,3 +173,49 @@
 		color: var(--accent);
 	}
 }
+
+/* Section-aware navigation: the trigger of the section you are in keeps a
+   quiet accent mark, and the current page is marked inside its menu. */
+.nav-trigger.is-section,
+.nav-direct.is-section {
+	color: var(--accent);
+}
+.menu-link[aria-current='page'],
+.workflow-link[aria-current='page'] {
+	background: var(--paper);
+	box-shadow: inset 2px 0 0 var(--accent);
+}
+.menu-footer[aria-current='page'] > span:last-child {
+	color: var(--accent);
+}
+.workflow-link strong {
+	align-items: center;
+	gap: 9px;
+}
+.workflow-link strong > svg {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.4;
+}
+.workflow-link strong > span {
+	margin-left: auto;
+}
+.workflow-link code {
+	background: none;
+	padding: 0;
+}
+.menu-link > svg {
+	transition: color 150ms var(--ease-out), transform 300ms var(--ease-spring);
+}
+@media (hover: hover) and (pointer: fine) {
+	.menu-link:hover > svg,
+	.workflow-link:hover strong > svg {
+		color: var(--accent);
+	}
+	.menu-link:hover > svg {
+		transform: scale(1.08);
+	}
+}
