@@ -28,7 +28,7 @@
 		},
 		{
 			"id": "light",
-			"requirement": "The navbar and dropdown preserve the landing page's light palette, restrained orange accent, and Geist typography.",
+			"requirement": "The navbar and dropdown preserve the landing page's light palette, restrained petrol blue accent, and Geist typography.",
 			"source": "site/DESIGN.md"
 		},
 		{
