@@ -1,12 +1,15 @@
 import { faqArt } from '../art/resources.mjs'
 import { REPO_URL } from '../nav.mjs'
-import { ctaBand, faqRows, pageHero, pager, prose, textLink } from '../ui.mjs'
+import { ctaBand, pageHero, pager, qaBlock, qaIndex, textLink } from '../ui.mjs'
 
 const route = '/resources/faq/'
 
+// One block per domain: [title, blurb, [question, answer][]]. The index at
+// the top and the blocks below are both built from this list.
 const GROUPS = [
 	[
 		'The basics',
+		'What Syneva is, what it refuses to do, and how a verdict stays honest.',
 		[
 			[
 				'What is Syneva, in one sentence?',
@@ -32,6 +35,7 @@ const GROUPS = [
 	],
 	[
 		'Your agent',
+		'Which agents attach, what they may touch, and what they get back.',
 		[
 			[
 				'Which coding agents work with it?',
@@ -53,6 +57,7 @@ const GROUPS = [
 	],
 	[
 		'Your code and data',
+		'Where your review lives, what leaves your machine, and what survives a restart.',
 		[
 			[
 				'Where does my review live?',
@@ -74,6 +79,7 @@ const GROUPS = [
 	],
 	[
 		'Limits and what’s next',
+		'What is still a prototype, what comes next, and what it costs.',
 		[
 			[
 				'Can I use the plan desk today?',
@@ -107,13 +113,8 @@ export default {
 				art: faqArt(),
 				caption: 'Short answers first. Details where they matter.',
 			}),
-			...GROUPS.map(([title, items], i) =>
-				prose({
-					id: `group-${i + 1}`,
-					title,
-					body: faqRows(items),
-				}),
-			),
+			qaIndex(GROUPS),
+			...GROUPS.map((group, i) => qaBlock(group, i)),
 			ctaBand(),
 			pager(route),
 		].join('\n'),

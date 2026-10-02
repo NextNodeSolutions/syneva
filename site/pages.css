@@ -225,6 +225,8 @@ kbd { display: inline-grid; place-items: center; min-width: 30px; height: 28px; 
    harder to find. Native disclosures work with keyboard and without JS. */
 .page-frame .chapter:has(.qa-list) { grid-template-columns: 0.8fr 1.2fr; }
 .page-frame .chapter:has(.qa-list) .chapter-copy { grid-column: 1; grid-row: 1; }
+.page-frame .chapter:has(.qa-list) .chapter-copy { align-self: start; }
+.qa-index strong small { font: 12px/1.9 var(--mono); color: var(--accent); }
 .qa-list { min-width: 0; padding: 26px 48px 36px; border-left: 1px solid var(--line); }
 .qa-row:first-child { border-top: 0; }
 .qa-row:last-child { border-bottom: 0; }
