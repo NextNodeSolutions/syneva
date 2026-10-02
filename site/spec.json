@@ -103,7 +103,7 @@
 		},
 		{
 			"id": "hero-headline",
-			"requirement": "The hero H1 is set as a two-line diff: the agent's line marked + in orange on a peach band, the human verdict marked with a green check on a mint band.",
+			"requirement": "The hero H1 is set as a two-line diff: the agent's line marked + in the petrol accent on a pale blue wash band, the human verdict marked with a green check on a mint band.",
 			"source": "Human brief: a breathtaking hero that follows the design system"
 		},
 		{

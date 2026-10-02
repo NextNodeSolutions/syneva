@@ -12,7 +12,7 @@ export function gapChart() {
   <title id="gap-art-title">The review gap</title>
   <desc id="gap-art-desc">A conceptual drawing with no data. The code your agent writes climbs steeply through a session while the code you can read with real attention rises slowly; the space between them is the review gap. A stepped green line shows review rounds settling the work as it arrives.</desc>
   ${artFrame('gap', 560, 380)}
-  <defs><pattern id="gap-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0v7" stroke="var(--orange)" stroke-width="1.2" opacity=".42"/></pattern></defs>
+  <defs><pattern id="gap-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0v7" stroke="var(--signal)" stroke-width="1.2" opacity=".42"/></pattern></defs>
   <path class="art-axis a-draw" pathLength="1" ${d(0)} d="M56 44V316H520"/>
   <text class="art-label a-fade" ${d(0.2)} x="64" y="40">LINES IN THE DIFF</text>
   <text class="art-label a-fade" ${d(0.2)} x="520" y="340" text-anchor="end">ONE AGENT SESSION →</text>

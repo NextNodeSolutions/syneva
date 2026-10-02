@@ -20,7 +20,7 @@
 .art-panel { fill: var(--paper); stroke: var(--line-strong); }
 .art-panel.is-white { fill: var(--white); stroke: var(--ink); }
 .art-panel.is-mint { fill: var(--mint); stroke: var(--green); }
-.art-panel.is-peach { fill: var(--peach); stroke: var(--accent); }
+.art-panel.is-wash { fill: var(--wash); stroke: var(--accent); }
 .art-hair { stroke: var(--line); fill: none; }
 .art-axis, .art-route { stroke: var(--line-strong); fill: none; }
 .art-route.is-dotted { stroke-dasharray: 1 6; stroke-linecap: round; stroke-width: 1.2; }
@@ -29,16 +29,16 @@
 .art-lines { stroke: var(--line-strong); fill: none; }
 .art-ink-line { stroke: var(--ink); fill: none; }
 .art-yes { fill: var(--mint); stroke: var(--green); }
-.art-no { fill: var(--peach); stroke: var(--accent); }
+.art-no { fill: var(--wash); stroke: var(--accent); }
 .art-check { fill: none; stroke: var(--green); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .art-x { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linecap: round; }
 .art-pending { fill: var(--white); stroke: var(--line-strong); stroke-dasharray: 2 2; }
 .art-band-yes { fill: var(--mint); }
-.art-band-no { fill: var(--peach); }
+.art-band-no { fill: var(--wash); }
 .art-band-add { fill: #eef5ec; }
-.art-band-focus { fill: var(--orange); fill-opacity: .1; }
+.art-band-focus { fill: var(--signal); fill-opacity: .1; }
 .art-chip-yes { fill: var(--mint); stroke: var(--green); }
-.art-chip-no { fill: var(--peach); stroke: var(--accent); }
+.art-chip-no { fill: var(--wash); stroke: var(--accent); }
 .art-strike { stroke: var(--accent); stroke-width: 1.4; fill: none; }
 .art-kbd { fill: var(--white); stroke: var(--line-strong); }
 .art-track { fill: var(--line); }
@@ -46,12 +46,12 @@
 .art-dot { fill: var(--green); }
 .art-dot.is-accent { fill: var(--accent); }
 .art-port { fill: var(--paper); stroke: var(--line-strong); }
-.art-signal { fill: none; stroke: var(--orange); stroke-width: 2; stroke-linecap: round; }
+.art-signal { fill: none; stroke: var(--signal); stroke-width: 2; stroke-linecap: round; }
 .art-signal.is-green { stroke: var(--green); }
 .art-bracket { fill: none; stroke: var(--accent); stroke-width: 1.5; }
 
 /* Home: the review gap chart. */
-.gap-written { fill: none; stroke: var(--orange); stroke-width: 2.2; stroke-linecap: round; }
+.gap-written { fill: none; stroke: var(--signal); stroke-width: 2.2; stroke-linecap: round; }
 .gap-written-signal { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
 .gap-read { fill: none; stroke: var(--ink); stroke-width: 1.4; }
 .gap-steps { fill: none; stroke: var(--green); stroke-width: 1.6; }
@@ -59,30 +59,30 @@
 .gap-tag { fill: var(--white); stroke: var(--accent); }
 .gap-pointer { stroke: var(--green); fill: none; }
 /* Home: desk, ask, plan and local figures. */
-.desk-cursor { fill: var(--orange); fill-opacity: .1; stroke: var(--accent); stroke-width: 1; }
+.desk-cursor { fill: var(--signal); fill-opacity: .1; stroke: var(--accent); stroke-width: 1; }
 .desk-next { fill: none; stroke: var(--accent); stroke-dasharray: 3 3; }
 .ask-anchor { stroke: var(--accent); fill: none; }
-.ask-thread { fill: #fff6f1; stroke: var(--line); }
+.ask-thread { fill: var(--wash-tint); stroke: var(--line); }
 .ask-rail { stroke: var(--accent); stroke-width: 2; }
 .ask-tab { fill: var(--white); stroke: var(--line-strong); }
 .ask-tab.is-on { fill: var(--accent); stroke: var(--accent); }
 .ask-spin { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 16 9; }
 .ask-change { fill: var(--white); stroke: var(--line); }
-.ask-change-rail { stroke: var(--orange); stroke-width: 2; }
-.plan-highlight { fill: var(--peach); }
+.ask-change-rail { stroke: var(--signal); stroke-width: 2; }
+.plan-highlight { fill: var(--wash); }
 .plan-bus path { stroke: var(--accent); stroke-width: 1.5; }
-.plan-bus .plan-signal { stroke: var(--orange); stroke-width: 3; }
+.plan-bus .plan-signal { stroke: var(--signal); stroke-width: 3; }
 .plan-dots rect { fill: var(--accent); }
 .plan-claim { fill: var(--white); stroke: var(--ink); }
-.plan-claim.is-risk { fill: var(--peach); stroke: var(--accent); }
+.plan-claim.is-risk { fill: var(--wash); stroke: var(--accent); }
 .plan-claim.is-settled { fill: var(--mint); stroke: var(--green); }
 .plan-flag { fill: var(--accent); }
 .local-boundary { fill: rgb(255 255 255 / .35); stroke: var(--ink); stroke-dasharray: 5 4; }
 .local-caret { fill: var(--accent); }
-.local-signal { fill: none; stroke: var(--orange); stroke-width: 2.4; stroke-linecap: round; }
+.local-signal { fill: none; stroke: var(--signal); stroke-width: 2.4; stroke-linecap: round; }
 .local-signal.is-green { stroke: var(--green); }
 .local-out { stroke: var(--line-strong); stroke-dasharray: 3 3; fill: none; }
-.local-cut { fill: var(--peach); stroke: var(--accent); }
+.local-cut { fill: var(--wash); stroke: var(--accent); }
 .local-cut-x { stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; }
 .local-cloud { fill: none; stroke: var(--line-strong); stroke-dasharray: 3 3; }
 
@@ -90,21 +90,21 @@
 .iso-face { fill: var(--white); stroke: var(--line-strong); stroke-width: 1.1; stroke-linejoin: round; }
 .iso-edge { fill: var(--iso-side); stroke: var(--line-strong); stroke-linejoin: round; }
 .iso-face.is-guide { stroke: var(--accent); }
-.iso-edge.is-guide { fill: var(--iso-peach-side); stroke: var(--accent); }
-.iso-face.is-thread { fill: #fffaf6; }
+.iso-edge.is-guide { fill: var(--iso-wash-side); stroke: var(--accent); }
+.iso-face.is-thread { fill: color-mix(in srgb, var(--wash-tint) 50%, var(--white)); }
 .iso-face.is-verdict { fill: var(--mint); stroke: var(--green); }
 .iso-edge.is-verdict { fill: var(--iso-mint-side); stroke: var(--green); }
 .iso-bar { fill: var(--line-strong); }
 .iso-bar.is-faint { fill: var(--line); }
 .iso-bar.is-accent { fill: var(--accent); }
 .iso-mark.is-add { fill: var(--green); }
-.iso-mark.is-del { fill: var(--orange); }
+.iso-mark.is-del { fill: var(--signal); }
 .iso-num { fill: var(--accent); }
-.iso-band { fill: var(--peach); }
+.iso-band { fill: var(--wash); }
 .iso-bubble { fill: var(--white); stroke: var(--line-strong); }
 .iso-rail { fill: var(--accent); }
 .iso-verdict.is-yes { fill: var(--white); stroke: var(--green); stroke-width: 1.5; }
-.iso-verdict.is-no { fill: var(--peach); stroke: var(--accent); stroke-width: 1.5; }
+.iso-verdict.is-no { fill: var(--wash); stroke: var(--accent); stroke-width: 1.5; }
 /* Product: desk anatomy, guide sort, sequence, plan queue. */
 .anat-num { fill: var(--accent); }
 .anat-num-text { font: 600 10px var(--mono); fill: var(--white); }
@@ -125,25 +125,25 @@
 .seq-head.is-muted { fill: var(--line-strong); }
 .risk-cell { fill: var(--white); stroke: var(--line-strong); }
 .risk-cell.is-high { fill: var(--accent); stroke: var(--accent); }
-.risk-cell.is-mid { fill: var(--orange); stroke: var(--orange); fill-opacity: .55; }
+.risk-cell.is-mid { fill: var(--signal); stroke: var(--signal); fill-opacity: .55; }
 .risk-cell.is-low { fill: var(--green); stroke: var(--green); }
 .queue-mark { fill: var(--line); }
-.proto-tag { fill: var(--peach); stroke: var(--accent); }
+.proto-tag { fill: var(--wash); stroke: var(--accent); }
 
 /* Workflows. */
 .hub-glyph { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; }
-.wt-status.is-mod { fill: var(--peach); stroke: var(--accent); }
+.wt-status.is-mod { fill: var(--wash); stroke: var(--accent); }
 .wt-status.is-add { fill: var(--mint); stroke: var(--green); }
-.wt-bar.is-mod { fill: var(--orange); }
+.wt-bar.is-mod { fill: var(--signal); }
 .wt-bar.is-add { fill: var(--green); }
 .pr-main { fill: none; stroke: var(--line-strong); stroke-width: 2; }
 .pr-branch { fill: none; stroke: var(--accent); stroke-width: 2; }
 .pr-commit { fill: var(--white); stroke: var(--line-strong); stroke-width: 1.5; }
 .pr-commit.is-base { fill: var(--ink); stroke: var(--ink); }
-.pr-commit.is-feature { fill: var(--peach); stroke: var(--accent); }
+.pr-commit.is-feature { fill: var(--wash); stroke: var(--accent); }
 .sf-image { fill: var(--field); stroke: var(--line-strong); }
 .sf-image-line { fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
-.sf-sun { fill: var(--orange); }
+.sf-sun { fill: var(--signal); }
 
 /* Resources, open source, 404. */
 .art-code.is-muted { fill: var(--muted); }
@@ -151,17 +151,17 @@
 .toc-ribbon { fill: var(--accent); }
 .toc-ribbon-cut { fill: var(--field); }
 .term-dot { fill: var(--white); stroke: var(--line-strong); }
-.term-dot.is-accent { fill: var(--peach); stroke: var(--accent); }
+.term-dot.is-accent { fill: var(--wash); stroke: var(--accent); }
 .wire-pill { fill: var(--white); stroke: var(--line-strong); }
-.wire-pill.is-event { fill: var(--peach); stroke: var(--accent); }
+.wire-pill.is-event { fill: var(--wash); stroke: var(--accent); }
 .qa-chev { fill: none; stroke: var(--ink); stroke-width: 1.4; }
 .qa-chev.is-open { stroke: var(--accent); transform: rotate(180deg); transform-box: fill-box; transform-origin: center; }
-.qa-open { fill: #fff6f1; }
+.qa-open { fill: var(--wash-tint); }
 .hist-cell.is-feat { fill: var(--mint); stroke: var(--green); }
-.hist-cell.is-fix { fill: var(--peach); stroke: var(--accent); }
+.hist-cell.is-fix { fill: var(--wash); stroke: var(--accent); }
 .hist-cell.is-perf { fill: var(--white); stroke: var(--ink); }
 .oss-slot { fill: var(--paper); stroke: var(--line-strong); stroke-dasharray: 4 3; }
-.oss-stamp { fill: var(--peach); stroke: var(--accent); stroke-width: 1.5; }
+.oss-stamp { fill: var(--wash); stroke: var(--accent); stroke-width: 1.5; }
 
 /* Phones: drawings reframe onto their main subject (data-compact viewBox,
    swapped by motion.js) instead of shrinking labels into microtext; only
