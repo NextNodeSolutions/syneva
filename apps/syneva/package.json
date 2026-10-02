@@ -21,9 +21,6 @@
 		"url": "https://github.com/walid-mos/syneva/issues"
 	},
 	"author": "Walid Mostefaoui",
-	"contributors": [
-		"Yusuf Mansur Özer"
-	],
 	"license": "MIT",
 	"type": "module",
 	"engines": {
