@@ -2,7 +2,7 @@
 
 # Syneva
 
-**An integrated review environment (IRE) for code you didn't write by hand.** Fork of [ymansurozer/galley](https://github.com/ymansurozer/galley), packaged as a pi package.
+**An integrated review environment (IRE) for code you didn't write by hand**, packaged as a pi package.
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
@@ -87,9 +87,9 @@ Immediate to-dos, in rough priority order.
 
 ## Acknowledgements
 
-Syneva is a **fork of [Galley](https://github.com/ymansurozer/galley)** by Yusuf Mansur Özer — the review desk, the agent contract, and most of what makes this project good are his work. Thank you for building it and sharing it under MIT.
+Syneva started as a fork of [Galley](https://github.com/ymansurozer/galley).
 
 ## License
 
-[MIT](./LICENSE) © Walid Mostefaoui — the original Galley code © Yusuf Mansur Özer
+[MIT](./LICENSE) © Walid Mostefaoui
 
