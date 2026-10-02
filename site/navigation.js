@@ -1,3 +1,5 @@
+import { NavigationMorph } from './navigation-morph.js'
+
 const navigation = document.querySelector('.navigation')
 const links = navigation.querySelector('.nav-links')
 const triggers = [...navigation.querySelectorAll('.nav-trigger')]
@@ -6,14 +8,12 @@ const dropdown = navigation.querySelector('.nav-dropdown')
 const toggle = navigation.querySelector('.nav-toggle')
 const compact = window.matchMedia('(max-width: 700px)')
 const hoverPointer = window.matchMedia('(hover: hover) and (pointer: fine)')
+const scenes = [...navigation.querySelectorAll('.preview-scene')]
+const morph = new NavigationMorph(navigation, panels, scenes, compact)
 const openDelayMs = 60
 const closeDelayMs = 180
-const panelTravel = 12
-const panelBorder = 2
-const panelGap = 10
-const mobileInset = 12
-const desktopInset = 24
 let currentTrigger
+let clickedTrigger
 let currentPanel
 let openTimer
 let closeTimer
@@ -24,42 +24,9 @@ function cancelTimers() {
 }
 
 function positionPanel() {
-	const inset = compact.matches ? mobileInset : desktopInset
-	const available = navigation.clientWidth - inset - inset - panelBorder
-	navigation.style.setProperty('--nav-available', `${available}px`)
-	if (!currentPanel) return
-	const headerRect = navigation.getBoundingClientRect()
-	const triggerRect = currentTrigger.getBoundingClientRect()
-	const panelRect = currentPanel.getBoundingClientRect()
-	const width = Math.ceil(panelRect.width) + panelBorder
-	const left = compact.matches ? inset : triggerRect.left - headerRect.left
-	const x = Math.max(
-		inset,
-		Math.min(left, navigation.clientWidth - width - inset),
-	)
-	const y =
-		(compact.matches ? links : currentTrigger).getBoundingClientRect()
-			.bottom -
-		headerRect.top +
-		panelGap
-	dropdown.style.setProperty('--dropdown-x', `${x}px`)
-	dropdown.style.setProperty('--dropdown-y', `${y}px`)
-	const availableHeight = window.innerHeight - headerRect.top - y - inset
-	dropdown.style.setProperty('--dropdown-max-height', `${availableHeight}px`)
-	dropdown.style.setProperty(
-		'--panel-max-height',
-		`${availableHeight - panelBorder}px`,
-	)
-	const height = Math.ceil(
-		Math.max(panelRect.height, currentPanel.scrollHeight),
-	)
-	dropdown.style.width = `${width}px`
-	dropdown.style.height = `${height + panelBorder}px`
-	links.style.setProperty('--indicator-x', `${currentTrigger.offsetLeft}px`)
-	links.style.setProperty(
-		'--indicator-width',
-		`${currentTrigger.offsetWidth}px`,
-	)
+	morph.position(currentTrigger, currentPanel)
+	const selected = navigation.querySelector('.is-previewed')
+	if (selected) positionPreview(selected)
 }
 
 function closePanel() {
@@ -69,9 +36,11 @@ function closePanel() {
 	currentPanel?.classList.remove('is-active')
 	currentPanel?.setAttribute('aria-hidden', 'true')
 	if (currentPanel) currentPanel.inert = true
+	morph.close()
 	dropdown.dataset.open = 'false'
 	currentPanel = undefined
 	currentTrigger = undefined
+	clickedTrigger = undefined
 }
 
 function dismissNavigation() {
@@ -90,15 +59,8 @@ function showPanel(trigger, input = 'pointer') {
 	cancelTimers()
 	navigation.dataset.input = input
 	if (trigger === currentTrigger) return
+	clickedTrigger = undefined
 	if (dropdown.contains(document.activeElement)) trigger.focus()
-	const direction =
-		triggers.indexOf(trigger) < triggers.indexOf(currentTrigger) ? -1 : 1
-	const isHidden = getComputedStyle(dropdown).visibility === 'hidden'
-	if (isHidden) navigation.dataset.instant = ''
-	currentPanel?.style.setProperty(
-		'--panel-shift',
-		`${-direction * panelTravel}px`,
-	)
 	currentTrigger?.setAttribute('aria-expanded', 'false')
 	currentPanel?.classList.remove('is-active')
 	currentPanel?.setAttribute('aria-hidden', 'true')
@@ -107,14 +69,7 @@ function showPanel(trigger, input = 'pointer') {
 	currentPanel = document.getElementById(
 		trigger.getAttribute('aria-controls'),
 	)
-	currentPanel.style.setProperty(
-		'--panel-shift',
-		`${direction * panelTravel}px`,
-	)
 	positionPanel()
-	// Commit geometry before revealing; text is never scaled to fit the shell.
-	if (isHidden) dropdown.getBoundingClientRect()
-	delete navigation.dataset.instant
 	currentPanel.classList.add('is-active')
 	currentPanel.setAttribute('aria-hidden', 'false')
 	currentPanel.inert = false
@@ -162,8 +117,13 @@ function bindTrigger(trigger) {
 			focusPanel(trigger)
 			return
 		}
-		if (currentTrigger === trigger) closePanel()
-		else showPanel(trigger)
+		if (currentTrigger === trigger && clickedTrigger === trigger) {
+			closePanel()
+			return
+		}
+		// Hover may already have opened it before the first deliberate click.
+		showPanel(trigger)
+		clickedTrigger = trigger
 	})
 	trigger.addEventListener('keydown', handleTriggerKey)
 }
@@ -178,6 +138,7 @@ navigation.addEventListener('pointerleave', () => {
 dropdown.addEventListener('pointerenter', cancelTimers)
 navigation.addEventListener('keydown', () => {
 	navigation.dataset.input = 'keyboard'
+	morph.finish()
 })
 navigation.addEventListener('focusout', event => {
 	if (navigation.contains(event.relatedTarget)) return
@@ -219,16 +180,25 @@ navigation.addEventListener('click', event => {
 	if (event.target.closest('a')) dismissNavigation()
 })
 
-function showPreview(link) {
-	const name = link.dataset.preview
-	navigation.querySelectorAll('.preview-scene').forEach(scene => {
-		scene.classList.toggle('is-current', scene.dataset.scene === name)
-	})
+const previewLinks = [...navigation.querySelectorAll('[data-preview]')]
+function positionPreview(link) {
+	morph.preview(scenes.find(scene => scene.dataset.scene === link.dataset.preview), link)
 }
-navigation.querySelectorAll('[data-preview]').forEach(link => {
+function showPreview(link) {
+	positionPreview(link)
+	previewLinks.forEach(item => item.classList.toggle('is-previewed', item === link))
+	scenes.forEach(scene => scene.classList.toggle('is-current', scene.dataset.scene === link.dataset.preview))
+}
+previewLinks.forEach(link => {
 	link.addEventListener('pointerenter', () => showPreview(link))
 	link.addEventListener('focus', () => showPreview(link))
 })
+panels.forEach(panel => {
+	panel.querySelectorAll('.menu-link, .workflow-link').forEach((link, index) => {
+		link.style.setProperty('--menu-order', index)
+	})
+})
+if (previewLinks.length) showPreview(previewLinks[0])
 
 compact.addEventListener('change', () => {
 	const hasNavigationFocus = navigation.contains(document.activeElement)

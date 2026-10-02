@@ -67,6 +67,26 @@
 			"source": "Human precision follow-up: inconsistent relationships"
 		},
 		{
+			"id": "plan-drawing",
+			"requirement": "The plan illustration shows a layered plan.md document linked to an assumption, a question for the agent, and a human decision, with a return path before code is written.",
+			"source": "Current human request: improve supporting SVG design and product explanation"
+		},
+		{
+			"id": "review-drawing",
+			"requirement": "The review illustration connects a changed code line to a human question, an agent answer, and a verdict explicitly labeled Accepted by you.",
+			"source": "Current human request: improve supporting SVG design and product explanation"
+		},
+		{
+			"id": "local-drawing",
+			"requirement": "The locality drawing contains both repository and verdict inside one localhost machine boundary, with no external connection.",
+			"source": "Current human request and PRODUCT.md local-only behavior"
+		},
+		{
+			"id": "supporting-motion",
+			"requirement": "Plan, review, and local-machine drawings have coordinated explanatory motion beyond the hero; offscreen or hidden-tab motion pauses, and reduced motion preserves a complete readable illustration.",
+			"source": "Current human request; temporal criteria require agent browser checks"
+		},
+		{
 			"id": "install",
 			"requirement": "A real installation command and setup-guide link are visible.",
 			"source": "Surface brief"

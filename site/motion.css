@@ -83,6 +83,9 @@
 @keyframes show-anyway { to { opacity: 1; transform: none; } }
 @keyframes band-anyway { to { transform: none; } }
 
+/* CSS also pauses newly-created animations before the observer's next frame. */
+html.js .motion-scene:not(.is-visible) *,
+html[data-motion-paused] .motion-scene * { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }

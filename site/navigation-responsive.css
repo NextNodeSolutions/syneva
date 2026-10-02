@@ -121,8 +121,7 @@
 		padding-inline: 5px;
 	}
 }
-.navigation[data-input='keyboard'] *,
-.navigation[data-instant] * {
+.navigation[data-input='keyboard'] * {
 	transition-duration: 0s !important;
 	transition-delay: 0s !important;
 }

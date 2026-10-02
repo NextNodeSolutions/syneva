@@ -1,8 +1,16 @@
+@import url('navigation-motion.css');
+
 .navigation {
-	--nav-duration: 360ms;
-	--nav-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--nav-menu-duration: 240ms;
+	--nav-preview-duration: 150ms;
+	--nav-close-duration: 160ms;
+	--nav-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+	--nav-panel-travel: 16;
+	--nav-preview-travel: 24;
 	position: relative;
 	z-index: 10;
+	/* Closed menus can retain desktop coordinates after a resize. */
+	overflow-x: clip;
 }
 .navigation .nav-links {
 	position: relative;
@@ -53,15 +61,12 @@
 	bottom: 1px;
 	left: 0;
 	height: 2px;
-	width: var(--indicator-width, 0px);
+	width: calc(var(--indicator-width, 0) * 1px);
 	background: var(--accent);
-	transform: translateX(var(--indicator-x, 0px));
+	transform: translateX(calc(var(--indicator-x, 0) * 1px));
 	opacity: 0;
 	pointer-events: none;
-	transition:
-		transform var(--nav-duration) var(--nav-ease),
-		width var(--nav-duration) var(--nav-ease),
-		opacity 150ms;
+	transition: opacity 150ms;
 }
 .nav-links:has([aria-expanded='true']) .nav-indicator {
 	opacity: 1;
@@ -73,8 +78,8 @@
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 0;
-	height: 0;
+	width: calc(var(--width, 0) * 1px);
+	height: calc(var(--height, 0) * 1px);
 	max-height: var(--dropdown-max-height);
 	overflow: hidden;
 	isolation: isolate;
@@ -84,24 +89,14 @@
 	box-shadow:
 		0 8px 16px -8px rgb(25 27 24 / 0.12),
 		0 24px 56px -16px rgb(25 27 24 / 0.16);
-	transform: translate3d(
-		var(--dropdown-x, 0px),
-		calc(var(--dropdown-y, 0px) - 6px),
-		0
-	);
-	opacity: 0;
+	/* Geometry and reveals share the single NavigationMorph animation. */
+	transform: translate3d(calc(var(--x, 0) * 1px), calc(var(--y, 0) * 1px), 0);
+	opacity: clamp(0, calc(var(--reveal, 0) * 4), 1);
 	visibility: hidden;
 	pointer-events: none;
-	transition:
-		width var(--nav-duration) var(--nav-ease),
-		height var(--nav-duration) var(--nav-ease),
-		transform var(--nav-duration) var(--nav-ease),
-		opacity 160ms var(--ease-out),
-		visibility 0s 360ms;
+	transition: visibility 0s var(--nav-close-duration);
 }
 .nav-dropdown[data-open='true'] {
-	transform: translate3d(var(--dropdown-x), var(--dropdown-y), 0);
-	opacity: 1;
 	visibility: visible;
 	pointer-events: auto;
 	transition-delay: 0s;
@@ -111,22 +106,16 @@
 	top: 0;
 	left: 0;
 	width: min(var(--panel-width), var(--nav-available));
-	opacity: 0;
-	visibility: hidden;
-	transform: translateX(var(--panel-shift, 12px));
-	transition:
-		opacity 140ms var(--ease-out),
-		transform 240ms var(--nav-ease),
-		visibility 0s 240ms;
+	opacity: var(--opacity, 0);
+	transform: translateX(calc(var(--offset, 0) * 1px));
+	pointer-events: none;
 }
 .nav-panel.is-active {
 	max-height: var(--panel-max-height);
 	overflow-y: auto;
 	overscroll-behavior: contain;
-	opacity: 1;
-	visibility: visible;
-	transform: translateX(0);
-	transition-delay: 40ms, 0s, 0s;
+	pointer-events: auto;
+	z-index: 1;
 }
 .navigation noscript {
 	font-size: 12px;
