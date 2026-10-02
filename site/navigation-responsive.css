@@ -81,14 +81,12 @@
 	.product-menu .nav-preview {
 		display: none;
 	}
-	.product-links {
-		padding: 0;
-	}
 	.product-menu .menu-footer > span:first-child {
 		display: none;
 	}
-	.menu-footer {
-		padding-inline: 20px;
+	/* Keep the overview link on the right, as in the other menus. */
+	.product-menu .menu-footer > span:last-child {
+		margin-left: auto;
 	}
 	.menu-arrow {
 		opacity: 1;
@@ -97,15 +95,11 @@
 	.workflow-links {
 		grid-template-columns: 1fr;
 	}
-	.workflow-link {
-		padding: 13px;
-		gap: 3px;
-	}
-	.workflow-link + .workflow-link {
+	.workflow-link + .workflow-link::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto;
 		border-top: 1px solid var(--line);
-	}
-	.workflow-link code {
-		margin-top: 4px;
 	}
 }
 @media (max-width: 360px) {

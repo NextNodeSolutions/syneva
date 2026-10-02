@@ -207,7 +207,7 @@ const compare = () => `<section class="compare section-pad" id="compare" aria-la
         <tbody>${compareRows
 					.map(
 						([aspect, editor, hosted, us]) =>
-							`<tr><th scope="row">${aspect}</th><td>${editor}</td><td>${hosted}</td><td class="is-us">${us}</td></tr>`,
+							`<tr><th scope="row">${aspect}</th><td data-label="Your editor’s diff">${editor}</td><td data-label="Hosted AI review">${hosted}</td><td class="is-us" data-label="Syneva">${us}</td></tr>`,
 					)
 					.join('')}</tbody>
       </table></div>
