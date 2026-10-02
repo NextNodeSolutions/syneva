@@ -161,7 +161,7 @@ export function verdictLifecycle() {
   </g>
   <g class="a-rise" ${d(0)}><rect class="art-pending" x="60" y="125" width="110" height="50"/><text class="art-label" x="115" y="148" text-anchor="middle">PENDING</text><text class="art-small" x="115" y="165" text-anchor="middle">every change</text></g>
   <g class="a-rise" ${d(0.7)}><rect class="art-panel is-mint" x="290" y="47" width="120" height="50"/><text class="art-label is-green" x="350" y="70" text-anchor="middle">✓ KEPT</text><text class="art-small" x="350" y="87" text-anchor="middle">you pressed ⇧Y</text></g>
-  <g class="a-rise" ${d(0.8)}><rect class="art-panel is-peach" x="290" y="203" width="120" height="50"/><text class="art-label is-accent" x="350" y="226" text-anchor="middle">✕ UNDONE</text><text class="art-small" x="350" y="243" text-anchor="middle">you pressed ⇧N</text></g>
+  <g class="a-rise" ${d(0.8)}><rect class="art-panel is-wash" x="290" y="203" width="120" height="50"/><text class="art-label is-accent" x="350" y="226" text-anchor="middle">✕ UNDONE</text><text class="art-small" x="350" y="243" text-anchor="middle">you pressed ⇧N</text></g>
   <g class="a-rise" ${d(1.1)}><rect class="art-panel is-white" x="470" y="125" width="110" height="50"/><text class="art-label" x="525" y="148" text-anchor="middle">RELOAD</text><text class="art-small" x="525" y="165" text-anchor="middle">agent edited</text></g>
   <text class="art-tiny a-fade" ${d(1.5)} x="320" y="302" text-anchor="middle">REWRITTEN → BACK TO PENDING</text>
   <text class="art-tiny is-green a-fade" ${d(1.6)} x="350" y="34" text-anchor="middle">UNTOUCHED → STAYS SETTLED</text>

@@ -18,16 +18,20 @@ const LINEAR = 'linear'
 const FADE_START = 15.1
 const FADE_END = 15.7
 
-// Literal colors: keyframe values are resolved without custom properties.
+// Keyframe values are resolved without custom properties, so the palette is
+// read once from the styles.css tokens; the only color without a token falls
+// back to a literal.
+const TOKENS = getComputedStyle(document.documentElement)
+const token = (name) => TOKENS.getPropertyValue(name).trim()
 const COLOR = {
-	white: '#ffffff',
-	mint: '#e0eddf',
+	white: token('--white'),
+	mint: token('--mint'),
 	paleMint: '#f2f7f0',
-	green: '#35633f',
-	strong: '#a8afa1',
-	muted: '#60635c',
-	accent: '#cc3b08',
-	accentDeep: '#a93108',
+	green: token('--green'),
+	strong: token('--line-strong'),
+	muted: token('--muted'),
+	accent: token('--accent'),
+	accentDeep: token('--accent-deep'),
 }
 
 // frames: [[seconds, props, easing for the segment that starts here], ...]
