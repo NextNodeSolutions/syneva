@@ -14,21 +14,28 @@ async function settle(): Promise<void> {
 	document.documentElement.dataset.motion = 'ready'
 }
 
-let ready: Promise<void> | undefined
-
-export function booted(): Promise<void> {
-	ready ??= settle()
-	return ready
-}
-
 // A printout is the finished page: the poses are disarmed for the print
 // styles and re-armed afterwards (revealed pieces keep their inline pose).
-window.addEventListener('beforeprint', () => {
-	delete document.documentElement.dataset.motion
-})
-window.addEventListener('afterprint', () => {
-	document.documentElement.dataset.motion = 'ready'
-})
+function watchPrint(): void {
+	window.addEventListener('beforeprint', () => {
+		delete document.documentElement.dataset.motion
+	})
+	window.addEventListener('afterprint', () => {
+		document.documentElement.dataset.motion = 'ready'
+	})
+}
+
+let ready: Promise<void> | undefined
+
+// Only the page scripts call this: the module itself also loads at build
+// time (Document.astro inlines ARM_SCRIPT), where there is no window.
+export function booted(): Promise<void> {
+	if (!ready) {
+		watchPrint()
+		ready = settle()
+	}
+	return ready
+}
 
 // The inline head script, verbatim: arms the poses before the first paint.
 export const ARM_SCRIPT = "document.documentElement.dataset.motion='pending'"
