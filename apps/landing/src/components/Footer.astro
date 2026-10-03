@@ -1,0 +1,57 @@
+---
+// The site footer: the pitch, a sitemap generated from the site map, the
+// frame-wide wordmark and the product's three promises.
+import { OPEN_SOURCE, REPO_URL, SECTIONS } from '../content/site-map'
+import { sx } from '../lib/sx'
+import Brand from './Brand.astro'
+import Button from './Button.astro'
+import { footer as f } from './footer.styles'
+
+const PROJECT = [
+	{ href: OPEN_SOURCE.href, label: 'Open source', isExternal: false },
+	{ href: REPO_URL, label: 'GitHub', isExternal: true },
+	{ href: `${REPO_URL}/blob/main/LICENSE`, label: 'MIT license', isExternal: true },
+	{ href: `${REPO_URL}/issues`, label: 'Report an issue', isExternal: true },
+]
+---
+
+<footer {...sx(f.root)}>
+	<div {...sx(f.top)}>
+		<div>
+			<Brand />
+			<p {...sx(f.pitch)}>The review desk for code your agent wrote. Local, open source, and built for the human in the loop.</p>
+			<Button href="/get-started/" label="Start a local review" isSmall />
+		</div>
+		<nav {...sx(f.map)} aria-label="Site map">
+			{
+				SECTIONS.map(section => (
+					<div>
+						<a {...sx(f.head)} href={section.href}>{section.label}</a>
+						<ul {...sx(f.list)}>
+							{section.items.map(page => (
+								<li><a {...sx(f.link)} href={page.href}>{page.title}</a></li>
+							))}
+						</ul>
+					</div>
+				))
+			}
+			<div>
+				<a {...sx(f.head)} href={OPEN_SOURCE.href}>Project</a>
+				<ul {...sx(f.list)}>
+					{
+						PROJECT.map(({ href, label, isExternal }) => (
+							<li>
+								<a {...sx(f.link)} href={href}>
+									{label}
+									{isExternal && <Fragment> <span aria-hidden="true">↗</span></Fragment>}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</nav>
+	</div>
+	<div {...sx(f.word)} aria-hidden="true"><span {...sx(f.wordmark)}>syneva</span></div>
+	<div {...sx(f.bottom)}><span>Your agent writes. You decide.</span><span>No model inside · No telemetry · MIT</span></div>
+</footer>

@@ -1,0 +1,21 @@
+---
+// SVG scaffolding shared by every drawing: the ruled grid and corner marks.
+import { sx } from '../../lib/sx'
+import { shape } from './shape.styles'
+
+type Props = { id: string; width: number; height: number }
+
+const { id, width, height } = Astro.props
+const CELL = 26
+const MARK = 30
+const EDGE = 18
+const register = `M${EDGE} ${MARK}V${EDGE}h12M${width - MARK} ${EDGE}h12v12M${EDGE} ${height - MARK}v12h12M${width - MARK} ${height - EDGE}h12v-12`
+---
+
+<defs>
+	<pattern id={`${id}-grid`} width={CELL} height={CELL} patternUnits="userSpaceOnUse">
+		<path d={`M${CELL} 0H0V${CELL}`} fill="none" stroke="var(--grid)"></path>
+	</pattern>
+</defs>
+<rect width={width} height={height} fill={`url(#${id}-grid)`}></rect>
+<path {...sx(shape.register)} d={register} fill="none"></path>

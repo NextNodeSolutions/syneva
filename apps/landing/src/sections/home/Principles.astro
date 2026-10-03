@@ -1,0 +1,25 @@
+---
+// The principle strip under the hero: what Syneva will not trade away.
+import { poses } from '@syneva/motion/poses'
+
+import { sx } from '../../lib/sx'
+import { principles as p } from './principles.styles'
+import { twoDigits } from '../../lib/step-number'
+
+const PRINCIPLES = ['Local by default', 'Your agent, not ours', 'No model inside Syneva', 'Open source · MIT']
+const THIRD = 2
+---
+
+<div {...sx(p.strip, poses.stalledShow)} role="list" data-hero-intro="principles">
+	{
+		PRINCIPLES.map((principle, i) => (
+			<span
+				{...sx(p.item, i > 0 && p.notFirst, i === THIRD && p.rowStart, i >= THIRD && p.secondRow)}
+				role="listitem"
+			>
+				<b {...sx(p.index)} aria-hidden="true">{twoDigits(i + 1)}</b>
+				{principle}
+			</span>
+		))
+	}
+</div>

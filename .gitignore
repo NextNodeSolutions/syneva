@@ -18,3 +18,6 @@ browser-bench-results.json
 
 # Turborepo daemon/cache state
 .turbo/
+
+# Astro's generated types (apps/landing), rewritten on every build/check
+.astro/

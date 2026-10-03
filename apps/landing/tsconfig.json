@@ -1,0 +1,11 @@
+{
+	// The shared Astro preset (astro/tsconfigs/strict plus NextNode's strictness).
+	"extends": "@nextnode-solutions/standards/typescript/astro",
+	"include": [
+		".astro/types.d.ts",
+		"src/**/*",
+		"integrations/**/*",
+		"astro.config.ts"
+	],
+	"exclude": ["dist"]
+}

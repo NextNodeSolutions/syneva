@@ -1,0 +1,56 @@
+---
+// Ask your agent: who talks to whom, in order.
+import { sx } from '../../lib/sx'
+import ArtFrame from '../kit/ArtFrame.astro'
+import Drawing from '../kit/Drawing.astro'
+import { anim } from '../kit/anim'
+import { text } from '../kit/text.styles'
+import { productArt as p } from './product-art.styles'
+
+const LANES = [
+	{ name: 'YOU', x: 90 },
+	{ name: 'YOUR DESK', x: 300 },
+	{ name: 'YOUR AGENT', x: 510 },
+] as const
+const LANE_HALF = 56
+// Each message: from lane, to lane, height, label and tone.
+const STEPS = [
+	{ from: 90, to: 300, y: 84, label: 'Ask on line 19', tone: 'accent' },
+	{ from: 300, to: 510, y: 124, label: 'question event', tone: 'accent' },
+	{ from: 510, to: 300, y: 164, label: 'syneva status “reading…”', tone: 'muted' },
+	{ from: 510, to: 300, y: 204, label: 'syneva comment (the answer)', tone: 'accent' },
+	{ from: 300, to: 90, y: 244, label: 'Answer in your thread', tone: 'green' },
+] as const
+const LINE = { accent: p.lineAccent, green: p.lineGreen, muted: p.lineMuted } as const
+const HEAD = { accent: p.headAccent, green: p.headGreen, muted: p.headMuted } as const
+const ARROW = 4
+---
+
+<Drawing viewBox="0 0 600 320" compact="40 10 520 300" labelledby="seq-title seq-desc">
+	<title id="seq-title">A question, in order</title>
+	<desc id="seq-desc">You ask on a line. The desk hands the question to your agent as an event. Your agent posts a live status while it reads, then posts its answer with syneva comment, and the answer appears in your thread on that line.</desc>
+	<ArtFrame id="seq" width={600} height={320} />
+	{
+		LANES.map(({ name, x }) => (
+			<Fragment>
+				<rect {...sx(p.lane)} x={x - LANE_HALF} y="30" width="112" height="24" />
+				<text {...sx(text.tiny)} x={x} y="46" text-anchor="middle">{name}</text>
+				<path {...sx(p.laneRule)} d={`M${x} 54V292`} />
+			</Fragment>
+		))
+	}
+	{
+		STEPS.map(({ from, to, y, label, tone }, i) => {
+			const direction = to > from ? -1 : 1
+			const delay = 0.5 + i * 0.4
+			return (
+				<Fragment>
+					<path {...anim('draw', delay, p.sequenceLine, LINE[tone])} pathLength="1" d={`M${from} ${y}H${to + direction * ARROW}`} />
+					<path {...anim('pop', delay + 0.3, HEAD[tone])} d={`M${to} ${y}l${direction * 7}-4v8Z`} />
+					<text {...anim('fade', delay + 0.2, text.small)} x={(from + to) / 2} y={y - 8} text-anchor="middle">{label}</text>
+				</Fragment>
+			)
+		})
+	}
+	<text {...anim('fade', 2.8, text.tiny)} x="300" y="290" text-anchor="middle">READ-ONLY · NO FILE IS EDITED TO ANSWER</text>
+</Drawing>
