@@ -73,7 +73,7 @@ The printed URL is what you open in the remote browser; the agent's `syneva awai
 Syneva is opinionated about exactly one thing: the review surface. It's a protocol and an interface, nothing more. How you review, and what you review with, stays yours.
 
 - **No model runs here.** Syneva doesn't call an LLM or orchestrate one. It renders the diff, validates the structured input it's given, and hands a result back.
-- **Your agent, not ours.** The contract is plain JSON over stdout and a localhost server, with no assumption about who's on the other end: Claude Code, Cursor, Codex, a shell script. The review grouping, the answers to your questions, the code changes themselves are all *your* agent's work. Syneva just gives it somewhere to land.
+- **Your agent, not ours.** The contract is plain JSON over stdout and a localhost server, with no assumption about who's on the other end: Cursor, Codex, a shell script. The review grouping, the answers to your questions, the code changes themselves are all *your* agent's work. Syneva just gives it somewhere to land.
 - **Local and private.** The server binds to loopback (`127.0.0.1`) on a stable per-session port. No telemetry. Your browser may fetch a web font; switch to system fonts and even that stops. (For remote-dev setups, `--host` can bind it wider — see [Reviewing on a remote machine](#reviewing-on-a-remote-machine); the default stays loopback-only.)
 - **It won't touch your repo unless you ask.** Syneva never edits your tracked files.
 

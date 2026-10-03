@@ -8,7 +8,7 @@ web
 
 ## Users
 
-**Primary:** any developer reviewing code written by a coding agent (Claude Code, Cursor, Codex, pi, a shell script). Their situation: a large or unfamiliar diff has landed in their working tree, staged index, or a branch, and the tool that produced it will act again the moment it hears back. Their job is to work through that diff — accept, reject, comment, ask — and hand a structured verdict back to the agent without leaving the surface.
+**Primary:** any developer reviewing code written by a coding agent (Cursor, Codex, pi, a shell script). Their situation: a large or unfamiliar diff has landed in their working tree, staged index, or a branch, and the tool that produced it will act again the moment it hears back. Their job is to work through that diff — accept, reject, comment, ask — and hand a structured verdict back to the agent without leaving the surface.
 
 **Secondary (a user, not a channel):** the coding agent on the other end. Syneva is built to be driven by it: it attaches over CLI subcommands, receives events, answers questions, re-diffs its own edits into the open tab.
 
