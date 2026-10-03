@@ -1,4 +1,4 @@
-import { OPEN_SOURCE, SECTIONS } from '../src/content/site-map'
+import { OPEN_SOURCE, SECTIONS } from '../src/entities/site/model/site-map'
 
 import type { AstroIntegration } from 'astro'
 

@@ -1,0 +1,48 @@
+---
+// A station platform on the circuit: the source (your full diff, from which
+// one sheet is dispatched) or the verdict (the accepted sheet and its seal).
+import { sx } from '@shared/lib/sx'
+import { circuit as c } from './circuit.styles'
+
+type Props = { kind: 'source' | 'verdict' }
+
+const { kind } = Astro.props
+const isSource = kind === 'source'
+const STATION = {
+	source: { x: 212, rim: 'm-124 0 0 7L0 69 124 7V0', out: 'agent-out', back: 'agent-return', title: 'Your full diff', detail: 'Every change from your agent' },
+	verdict: { x: 948, rim: 'M-124 0v7L0 69 124 7V0', out: 'verdict-in', back: 'verdict-return', title: 'Ship with confidence', detail: "Code you've reviewed" },
+}
+const station = STATION[kind]
+const PORT_X = 124
+---
+
+<g {...sx(isSource ? c.sourceStation : c.verdictStation)} transform={`translate(${station.x} 312)`} data-station={kind}>
+	<path {...sx(c.foot)} d="M0-62 124 0 0 62-124 0Z"></path><path {...sx(c.rim)} d={station.rim}></path>
+	{
+		isSource ? (
+			<Fragment>
+				<g {...sx(c.sourceLeaves)}>
+					<use href="#review-leaf" transform="translate(0 -8) scale(.72)" />
+					<use href="#review-leaf" transform="translate(0 -19) scale(.72)" />
+					<g data-circuit-part="dispatch"><use href="#review-leaf" transform="translate(0 -30) scale(.72)" /></g>
+				</g>
+				<g {...sx(c.mark)} transform="translate(0 51) scale(1 .5)"><use href="#review-mark" /></g>
+			</Fragment>
+		) : (
+			<Fragment>
+				<g transform="translate(0 -9) scale(.72)">
+					<use href="#review-leaf" />
+					<g {...sx(c.accepted)} data-circuit-part="accepted"><use href="#review-leaf" /></g>
+				</g>
+				<g transform="translate(0 -21)">
+					<g data-circuit-part="seal">
+						<ellipse {...sx(c.sealEllipse)} rx="22" ry="11" />
+						<g transform="scale(1 .5)"><use href="#verdict-check" /></g>
+					</g>
+				</g>
+			</Fragment>
+		)
+	}
+	<circle {...sx(c.port)} id={station.out} cx={isSource ? PORT_X : -PORT_X} cy="0" r="2.5"></circle><circle {...sx(c.port)} id={station.back} cx="0" cy="69" r="2.5"></circle>
+	<text {...sx(c.stationTitle)} y="-128" text-anchor="middle">{station.title}</text><text {...sx(c.stationDetail)} y="-109" text-anchor="middle">{station.detail}</text>
+</g>

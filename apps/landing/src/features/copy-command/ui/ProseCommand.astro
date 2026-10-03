@@ -1,0 +1,12 @@
+---
+// A command offered under a paragraph, at reading width.
+import { revealItem } from '@shared/lib/reveal'
+import Command from './Command.astro'
+import { prose } from '@shared/ui/prose/prose.styles'
+
+type Props = { text: string; label: string }
+
+const { text, label } = Astro.props
+---
+
+<div {...revealItem(prose.command)}><Command text={text} label={label} /></div>

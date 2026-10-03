@@ -1,15 +1,6 @@
 ---
-import ResourcesIndex from '../../art/resources/ResourcesIndex.astro'
-import Button from '../../components/Button.astro'
-import CtaBand from '../../components/CtaBand.astro'
-import IndexRows from '../../components/page/IndexRows.astro'
-import PageHero from '../../components/page/PageHero.astro'
-import Prose from '../../components/page/Prose.astro'
-import ProseCommand from '../../components/page/ProseCommand.astro'
-import ProseText from '../../components/page/ProseText.astro'
-import TextLink from '../../components/TextLink.astro'
-import { REPO_URL, sectionById } from '../../content/site-map'
-import Document from '../../layouts/Document.astro'
+import Document from '@app/layouts/Document.astro'
+import ResourcesPage from '@views/resources/ui/ResourcesPage.astro'
 
 const route = '/resources/'
 ---
@@ -20,23 +11,5 @@ const route = '/resources/'
 	title="Resources · Syneva"
 	description="Everything you need to run your first review with Syneva: setup, the agent contract, straight answers, and the changelog."
 >
-	<PageHero
-		route={route}
-		crumb="Resources"
-		title="Everything for your first review."
-		lede={'Set up the desk, connect the agent you already use, get straight answers about what Syneva does and doesn’t do, and follow what ships.'}
-		caption="Four pages, from setup to what shipped."
-	>
-		<Fragment slot="actions"><Button href="/get-started/" label="Get started" /><TextLink href={`${REPO_URL}#readme`} label="Read the README" isExternal /></Fragment>
-		<ResourcesIndex slot="art" />
-	</PageHero>
-	<Prose id="all" title="Start anywhere.">
-		<IndexRows items={sectionById('resources').items} />
-	</Prose>
-	<Prose id="spec" title="The contract,<br>from the source.">
-		<ProseText>The full agent contract (modes, events, flags and the <code>ReviewResult</code> shape) is versioned with the CLI and printed by one command. That is the copy your agent should read, because it always matches the binary you installed.</ProseText>
-		<ProseCommand text="syneva spec" label="Print the agent contract" />
-		<ProseText><TextLink href={`${REPO_URL}/issues`} label="Found a gap? Open an issue" isExternal /></ProseText>
-	</Prose>
-	<CtaBand />
+	<ResourcesPage route={route} />
 </Document>
