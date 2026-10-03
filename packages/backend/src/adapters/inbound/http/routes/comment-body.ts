@@ -3,7 +3,7 @@ import { commentSide, parseLineNumber } from '../../../../domain/comments.js'
 import type { CommentInput } from '../../../../domain/comments.js'
 
 // Transport shape validation for the shared ask/comment body ({ path, body, lineNumber, side }):
-// both /api/comment and /api/ask post it (see `syneva spec`). A body needs a file and text;
+// both /comment and /ask post it (see `syneva spec`). A body needs a file and text;
 // everything else has a documented default (additions, line 1, an agent-authored reply).
 // lineNumber 0 is the whole-file anchor (see backend/domain/comments.ts) - a file comment has no
 // diff side, so the side it may carry is normalized away. Returns null when the request lacks

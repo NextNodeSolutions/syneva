@@ -14,7 +14,7 @@ import type { DiffStyle } from '@shared/diff-renderer/types'
 import type { Settings } from './model'
 
 // The settings entity's API boundary: display preferences persist to the global
-// ~/.syneva/settings.json (NOT localStorage - origins change with the random port).
+// ~/.syneva/settings.json (NOT localStorage - a file follows the reviewer across browsers and hosts).
 
 // One Settings key's decode+assign step: the generic write keeps the key and the
 // decoded value correlated, so the wire→model mapping needs no assertion.

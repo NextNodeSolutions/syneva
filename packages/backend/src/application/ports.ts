@@ -6,6 +6,7 @@
 // this layer calls it. Timestamps and ids are NOT ported - application code reads
 // them directly (time.ts) and passes values into the pure domain functions.
 
+import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { ReviewState } from '../domain/review.js'
 
 // The working-tree/platform filesystem surface the diff build, content and staging flows
@@ -54,8 +55,11 @@ export interface GitPort {
 	// The branch checked out at cwd ("" when HEAD can't be resolved) - the CLI's default
 	// session name comes from it.
 	readonly getBranch: (cwd: string) => Promise<string>
-	// The repo's tracked files, sorted - the /api/tree listing (a git adapter read).
+	// The repo's tracked files, sorted - the /tree listing (a git adapter read).
 	readonly projectTree: (root: string) => Promise<string[]>
+	// One GitHub CLI invocation (`gh`), used only to resolve a PR number/URL to its branches.
+	// Rejects when gh is missing or unauthenticated - callers report, never crash.
+	readonly gh: (args: string[], cwd: string) => Promise<string>
 	// The working-tree filesystem facet (see WorkspacePort) - same adapter object, so the
 	// use cases take one capability and the composition roots wire one port.
 	readonly workspace: WorkspacePort
@@ -101,7 +105,15 @@ export interface EditorPort {
 	) => Promise<EditorLaunch>
 }
 
-// The new-version check a desk start runs before binding (an offer may re-exec the CLI).
+// The new-version check a hub start runs before binding (an offer may re-exec the CLI).
 export interface UpdateCheckPort {
 	readonly maybeOfferUpdate: () => Promise<void>
+}
+
+// The hub's desk registry (~/.syneva/hub/desks.json): the rebuild parameters of every desk
+// the hub hosts, written on every open/close so a restarted hub reopens the same desks on
+// the same ids. Decoded field by field (domain/hub-registry) - never cast.
+export interface HubRegistryPort {
+	readonly load: () => Promise<HubDeskRecord[]>
+	readonly save: (records: readonly HubDeskRecord[]) => Promise<void>
 }

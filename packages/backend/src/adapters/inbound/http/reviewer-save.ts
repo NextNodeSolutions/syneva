@@ -7,7 +7,7 @@ import type { ReviewerSavePatch } from '../../../application/send-review.js'
 import type { Decision, ReviewComment } from '../../../domain/review.js'
 import type { ApiFailure } from './failure.js'
 
-// Transport DTO decode for the reviewer-owned slice carried by /api/save and /api/send
+// Transport DTO decode for the reviewer-owned slice carried by /save and /send
 // bodies. The raw JSON is shaped into domain records field by field - never cast - so a
 // malformed patch is rejected here (422) instead of reaching the review state, where it
 // would fail later during result building, polling, or reconciliation. A key that is

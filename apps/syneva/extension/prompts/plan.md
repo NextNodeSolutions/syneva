@@ -9,14 +9,14 @@ Treat **`syneva spec`** as the authoritative contract — run it once before you
 1. **Investigate** the repository enough to plan concretely: relevant files, existing patterns, tests/checks, constraints. Do not write code yet.
 2. **Write the plan** (English) to `<repo>/.pi/syneva/plans/<slug>.md` where `<slug>` is from the request (kebab-case, ≤40 chars; if the file already exists, suffix `-$EPOCHSECONDS`). `mkdir -p` first. Sections: **Goal**, **Context** (what exists, relevant constraints), **Approach** (steps with rationale, in order), **Files touched** (per file: what changes and why), **Risks / open questions**, **Verification** (how each step proves done). If the repo has AGENTS.md/CLAUDE.md, honor it.
 3. **Keep the plan invisible to git**: if in a git repo and the path is not already ignored (check `git check-ignore -q .pi/syneva/plans/<slug>.md`), append one line `.pi/syneva/plans/` to `.git/info/exclude` (never touch tracked `.gitignore` for this).
-4. **Start the desk in the background** (file mode):
+4. **Open the desk on the hub** (file mode; the command returns at once and starts the hub in the background when none runs):
    ```bash
-   rm -f /tmp/syneva-<slug>.log; nohup syneva file .pi/syneva/plans/<slug>.md > /tmp/syneva-<slug>.log 2>&1 &
-   url=""; for _ in $(seq 1 40); do url=$(grep -m1 -o 'http://[^ ]*' /tmp/syneva-<slug>.log); [ -n "$url" ] && break; sleep 0.25; done; echo "${url:-no URL after 10s - read /tmp/syneva-<slug>.log}"
+   syneva open file .pi/syneva/plans/<slug>.md | tee /tmp/syneva-<slug>.json
+   url=$(jq -r .url /tmp/syneva-<slug>.json); echo "${url:-open failed - read the command's stderr}"
    ```
    Report the printed URL to the user.
 5. **Attach the owning Pi session** with `syneva_agent` as documented in `syneva spec`, then return control. Never delegate waiting to a one-shot subagent. If the tool is unavailable, report the missing native attachment rather than claim the desk will wake an idle agent. Incoming native messages point to the complete event JSON; read it before handling the event:
    - `question` event: read-only answering — comment replies at path/lineNumber/side, no file edits, no implementation chatter. Long work → `syneva status --body "…"`.
    - `review` event: the plan was judged — `requestedChanges[]` → **edit the plan file** at those points between rounds (this file is the artifact edit target; never repo code); `rejected[]` → remove/rework those parts; `accepted`/`approvedFiles` → keep; `openQuestions[]` → answer read-only first. Regenerate/annotate the plan file, then `syneva reload` so the desk re-reads it in the same tab.
    - After handling any event, return control: the native listener remains attached and delivers further events automatically. Continue until **the plan file is approved** (every section approved by the reviewer) or the human says done.
-6. **On approval**: post one `syneva comment` summarizing the agreed approach (2–4 sentences), tell the user in chat the plan is approved with the path of the file, and **keep the desk open** for further rounds — do not start implementing until the user explicitly asks. Detach with `syneva_agent` and run `syneva stop` only when the human says the review session is over.
+6. **On approval**: post one `syneva comment` summarizing the agreed approach (2–4 sentences), tell the user in chat the plan is approved with the path of the file, and **keep the desk open** for further rounds — do not start implementing until the user explicitly asks. Detach with `syneva_agent` and run `syneva close` only when the human says the review session is over.

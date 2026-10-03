@@ -1,3 +1,4 @@
+import { deskUrl } from '@shared/api/base'
 import { api } from '@shared/api/client'
 import {
 	assertObject,
@@ -10,7 +11,7 @@ import { API_PATHS } from '@syneva/contracts/routes'
 // The review-file entity's API boundary: per-file/tree/blob endpoints, named only here.
 // Responses are decoded onto explicit shapes - the wire never escapes this module.
 
-// The changed-file listing for the project tree (paths only; review state comes from /api/state).
+// The changed-file listing for the project tree (paths only; review state comes from /state).
 export type TreeListing = { files: string[] }
 
 export const fetchTree = async (): Promise<TreeListing> => {
@@ -40,12 +41,13 @@ export const fetchFileContents = async (
 }
 
 // A repo-relative file asset on the desk's blob route. This boundary is the only place
-// the /api/blob path is spelled; shared consumers (the markdown runtime) receive this
-// resolver injected instead of the route itself.
+// the blob path is spelled; shared consumers (the markdown runtime) receive this
+// resolver injected instead of the route itself. The URL lands in an <img src>, so it is
+// built with the desk prefix here rather than through the JSON transport.
 export const repoBlobUrl = (path: string): string =>
-	`${API_PATHS.blob}?path=${encodeURIComponent(path)}`
+	deskUrl(`${API_PATHS.blob}?path=${encodeURIComponent(path)}`)
 
-// Read an unchanged file through /api/file to preview it (old === new, no diff).
+// Read an unchanged file through /file to preview it (old === new, no diff).
 export type PreviewPayload = { path: string; contents: string }
 
 export const fetchPreviewFile = async (

@@ -1,6 +1,6 @@
 // Frontend-owned settings model: the display preferences persisted to
-// ~/.syneva/settings.json via /api/settings (see the settings API boundary).
-// User preferences (persisted to ~/.syneva/settings.json via /api/settings), applied live.
+// ~/.syneva/settings.json via /settings (see the settings API boundary).
+// User preferences (persisted to ~/.syneva/settings.json via /settings), applied live.
 // diffStyle stays separate (its own toolbar toggle); these are the rest of the settings panel.
 export type Settings = {
 	lineDiffType: 'word-alt' | 'word' | 'char' | 'none'

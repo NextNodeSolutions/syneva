@@ -1,4 +1,4 @@
-import { API_PATHS, STATIC_PATHS } from '@syneva/contracts/routes'
+import { API_PATHS } from '@syneva/contracts/routes'
 
 import {
 	askQuestion,
@@ -24,24 +24,16 @@ import {
 	sendReviewToAgent,
 } from './routes/review.js'
 import { stageFiles, stageOneChange, unstageFile } from './routes/staging.js'
-import {
-	serveFavicon,
-	serveIndex,
-	serveUiBundle,
-	serveUiChunk,
-} from './routes/static.js'
 
 import type { RouteTable } from './router.js'
 
-// The desk's one route registry: `METHOD /path` → its handler. Paths come from
+// The per-desk route registry: `METHOD /path` → its handler, where /path is the route's
+// position under the desk's API base (/api/desks/<id>). Paths come from
 // packages/contracts/src/routes.ts (the shared wire allowlist); a new route is an entry
-// here plus its module; the dispatcher, the origin guard, and the 500 handler
-// cover it without further edits.
+// here plus its module; the hub dispatcher, the origin guard, the access guard and the 500
+// handler cover it without further edits. Static assets and the hub's own API live with
+// the dispatcher (router.ts), not here.
 export const routes: RouteTable = {
-	[`GET ${STATIC_PATHS.index}`]: serveIndex,
-	[`GET ${STATIC_PATHS.bundle}`]: serveUiBundle,
-	[`GET ${STATIC_PATHS.chunksPrefix}*`]: serveUiChunk,
-	[`GET ${STATIC_PATHS.favicon}`]: serveFavicon,
 	[`GET ${API_PATHS.poll}`]: servePoll,
 	[`GET ${API_PATHS.state}`]: serveState,
 	[`GET ${API_PATHS.settings}`]: serveSettings,

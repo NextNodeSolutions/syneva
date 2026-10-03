@@ -68,7 +68,7 @@ export default {
 			prose({
 				id: 'open',
 				title: '2. Open a desk.',
-				body: `<p data-reveal-item>Run it next to the repository your agent just changed. The desk opens in your browser and stays open across rounds.</p>${terminal(
+				body: `<p data-reveal-item>Run it next to the repository your agent just changed. The first open starts the hub, one process per machine; the desk opens in your browser at its own URL and stays open across rounds. The dashboard at <code>http://127.0.0.1:4747/</code> lists every project and desk.</p>${terminal(
 					[
 						'$ cd your-repository',
 						'$ syneva',

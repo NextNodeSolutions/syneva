@@ -25,7 +25,7 @@ type UntrackedPairing = {
 // `git diff` never reports untracked files (a brand-new file has no index/HEAD side to diff
 // against), so the working review would silently drop any file the agent created but never `git
 // add`ed. Surface them as full-file additions - same representation as file mode. They carry no
-// stageable hunks; whole-file Approve stages them via `git add` (/api/stage), which doesn't rely on
+// stageable hunks; whole-file Approve stages them via `git add` (/stage), which doesn't rely on
 // rawDiff. Staged mode is unaffected: untracked files are by definition not in the index.
 export async function appendUntrackedFiles(
 	files: ReviewFile[],

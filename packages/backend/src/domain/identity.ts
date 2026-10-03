@@ -1,15 +1,10 @@
 import crypto from 'node:crypto'
 
-// Hex chars kept from the sha256 digest: enough to key a per-repo review dir and to derive a port,
-// short enough to stay readable inside a path. The slice length and the radix parseInt reads the
-// port seed with are the two numeric inputs of every derived id below.
-const HASH_LENGTH = 16
-const PORT_SEED_LENGTH = 8
-const HEX_RADIX = 16
+import type { ReviewMode } from './review.js'
 
-// Deterministic per-repo+session port range (41000-50999), the base of stablePort's hash.
-const PORT_BASE = 41_000
-const PORT_RANGE = 10_000
+// Hex chars kept from the sha256 digest: enough to key a per-repo review dir and a desk id,
+// short enough to stay readable inside a path or a URL.
+const HASH_LENGTH = 16
 
 // Git's blob object id for a piece of content: sha1 over "blob <byteLen>\0" + bytes, the exact
 // bytes git hashes, so this equals `git hash-object` for that content (barring clean/smudge
@@ -46,13 +41,35 @@ export function sanitizeSession(session: string): string {
 	return cleaned || 'review'
 }
 
-// Deterministic per-repo+session port. A restarted desk binds the same origin, so an already-open
-// tab self-heals through its state poll instead of dying on a dead random port. Collisions with
-// foreign processes fall back to a random port at listen time (startDeskPort in cli/desk-serve).
-export function stablePort(root: string, session: string): number {
-	const seed = hash(`${root}:${sanitizeSession(session)}`).slice(
-		0,
-		PORT_SEED_LENGTH,
-	)
-	return PORT_BASE + (parseInt(seed, HEX_RADIX) % PORT_RANGE)
+// The desk's identity on the hub: deterministic per repo root + session, so opening the same
+// review twice lands on the same desk (idempotent open), the same /d/<id>/ URL survives a hub
+// restart, and an already-open tab self-heals instead of dying on a fresh id. The separator can
+// never occur in a sanitized session, so two distinct (root, session) pairs never collide by
+// concatenation.
+export function deskId(root: string, session: string): string {
+	return hash(`${root}\n${sanitizeSession(session)}`)
+}
+
+// Default session per mode: <branch> / file-<path> / pr-<ref>, overridable. Pure: the CLI and
+// the hub derive the same name for the same inputs, which is what makes an open idempotent
+// across the two entry points.
+export function deskSession(
+	mode: ReviewMode,
+	target: string | undefined,
+	branch: string,
+	override?: string,
+): string {
+	if (override) return sanitizeSession(override)
+	if (mode === 'file') return sanitizeSession(`file-${target ?? 'file'}`)
+	if (mode === 'pr')
+		return sanitizeSession(`pr-${prHeadLabel(target, branch)}`)
+	return sanitizeSession(branch || 'review')
+}
+
+// A PR desk is named after its head: the resolved target when one was given, else the
+// checked-out branch, else a bare "pr" so the session name is never empty.
+function prHeadLabel(target: string | undefined, branch: string): string {
+	if (target) return target
+	if (branch) return branch
+	return 'pr'
 }

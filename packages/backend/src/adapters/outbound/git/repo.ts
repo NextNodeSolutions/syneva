@@ -4,7 +4,7 @@ import path from 'node:path'
 import { gitStats } from '../../../domain/diff/git-stats.js'
 import { nodeWorkspace } from '../filesystem/workspace.js'
 
-import { git, runGitRaw } from './exec.js'
+import { gh, git, runGitRaw } from './exec.js'
 
 import type { GitPort } from '../../../application/ports.js'
 
@@ -22,6 +22,7 @@ export const nodeGit: GitPort = Object.freeze({
 	getHead,
 	getBranch,
 	projectTree: listProjectTree,
+	gh,
 	workspace: nodeWorkspace,
 })
 
@@ -51,7 +52,7 @@ export async function getBranch(cwd: string): Promise<string> {
 // One reviewed file's contents at a ref (git blob) or from the working tree. By default a missing
 // object/file swallows to "" - for the diff a vanished side degrades to an add/delete rather than
 // crashing. `strict` (used by on-demand content resolution for a side the diff says MUST exist)
-// rethrows instead, so /api/file-contents can 404 with a reload hint when a rebase drops the object
+// rethrows instead, so /file-contents can 404 with a reload hint when a rebase drops the object
 // mid-session, instead of silently serving an empty file.
 export async function fileAt(
 	root: string,

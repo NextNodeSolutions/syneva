@@ -4,7 +4,7 @@
 //
 // The browser receives metadata, not the backend's diff bodies. This is the explicit
 // allowlist: newly added backend fields on ReviewFile/ReviewState stay private until
-// picked here. The renderer builds its own hunks from /api/file-contents. (Mirror of
+// picked here. The renderer builds its own hunks from /file-contents. (Mirror of
 // the backend's ReviewFile projection - see packages/backend/src/domain/review.ts.)
 import type {
 	ChangeState,
@@ -56,14 +56,14 @@ export type BrowserResetResponse = {
 	serverInstanceId: string
 }
 
-// The reviewer-owned slice the browser posts to /api/save. Only these fields are mutated
+// The reviewer-owned slice the browser posts to /save. Only these fields are mutated
 // from the tab; everything else on the review state (rawDiff, file contents, changes, guide,
 // mode params, hashes) is server/agent-owned and stays authoritative on the server - so
 // the save wire carries this slice instead of the whole (multi-MB) state. The server
 // replaces exactly these fields (snapshot semantics, latest wins) and touches nothing else.
 // decisionFiles rides along because it's reviewer-mutated and gates the per-file Reset
 // button on reload; stagedFiles/stagedChangeKeys deliberately do NOT - they're maintained
-// server-side by /api/stage, /api/unstage, and readStagedSnapshot (backend/application/reconcile.ts).
+// server-side by /stage, /unstage, and readStagedSnapshot (backend/application/reconcile.ts).
 export type ReviewerSave = Pick<
 	BrowserReviewState,
 	| 'decisions'
@@ -87,8 +87,8 @@ export type DeskStatus = {
 	queuedReviews: number
 }
 
-// One file's old/new contents, fetched on demand by the tab (GET /api/file-contents) so the full
-// contents never ride /api/state - the state itself is lean (issue 04 removed the embedded copies).
+// One file's old/new contents, fetched on demand by the tab (GET /file-contents) so the full
+// contents never ride /state - the state itself is lean (issue 04 removed the embedded copies).
 // The server resolves these from git/the working tree. The tab caches the payload keyed by path +
 // the file's contentHash (which changes on reload, invalidating naturally). oldOid/newOid are the
 // blob OIDs of each side (newOid === the file's contentHash); carried for a future client-side
@@ -101,8 +101,8 @@ export type FileContentsPayload = {
 	newOid: string
 }
 
-// The tab's 1.5s heartbeat (GET /api/poll): just enough to detect change. File summaries and change
-// records belong on /api/state, fetched on baseDiffHash changes, not on every tick. A mismatched
+// The tab's 1.5s heartbeat (GET /poll): just enough to detect change. File summaries and change
+// records belong on /state, fetched on baseDiffHash changes, not on every tick. A mismatched
 // ?instance= from an older desk process receives BrowserRefreshEvent instead. DeskStatus rides both.
 export type PollPayload = Pick<
 	BrowserReviewState,

@@ -45,7 +45,7 @@ export function deleteComment(id: string): void {
 	}
 	state.comments = state.comments.filter(c => c.id !== id)
 	void render()
-	// The saver is burst-debounced; the next /api/state poll reconciles against the desk, which
+	// The saver is burst-debounced; the next /state poll reconciles against the desk, which
 	// still holds the comment until the save lands, so a re-add is bounded by that merge.
 	featureCtx().persist()
 	featureCtx().toast('Comment deleted')

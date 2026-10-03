@@ -16,7 +16,7 @@ import { fileCommentsEnabled } from '@widgets/diff-view/comment-thread/file-comm
 import { D } from '@widgets/diff-view/runtime'
 
 // Submitting a comment from the inline composer. A new comment carries an intent: "question"
-// (Ask - pushed to the agent now via /api/ask, answered live) or "action" (Request change - goes
+// (Ask - pushed to the agent now via /ask, answered live) or "action" (Request change - goes
 // back on Send). Editing just updates the body and keeps the existing intent. The whole-file
 // composer binds here too: the guide bar's and file header's comment icons toggle it.
 export function installCommentBindings(): void {

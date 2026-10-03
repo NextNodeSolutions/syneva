@@ -252,7 +252,7 @@ const faq = () => `<section class="faq section-pad" id="faq" aria-labelledby="fa
 		],
 		[
 			'Where does my review live?',
-			'On your machine, under <code>~/.syneva</code>. The desk binds to localhost by default and saves every decision between rounds. There is no hosted account and no telemetry.',
+			'On your machine, under <code>~/.syneva</code>. The hub binds to localhost by default and saves every decision between rounds; a hub you host yourself answers only to its access key. There is no hosted account and no telemetry.',
 		],
 	],
 )}</section>`

@@ -31,7 +31,7 @@ import type { Raw } from './dto.js'
 const JSON_INDENT = 2
 const REVIEW_FILE_SUFFIX = '.json'
 
-// Transport DTO validation for the /api/save body lives with the inbound HTTP route
+// Transport DTO validation for the /save body lives with the inbound HTTP route
 // (parseReviewerSave in the http adapter); this adapter's storage contract lives in
 // review-file-dto.ts and only whole reviews cross it.
 

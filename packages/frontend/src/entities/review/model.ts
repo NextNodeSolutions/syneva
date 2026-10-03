@@ -68,7 +68,7 @@ export type Guide = {
 }
 
 // One review file as the browser sees it: metadata only - the renderer builds its
-// own hunks from /api/file-contents, so no diff bodies ride the state.
+// own hunks from /file-contents, so no diff bodies ride the state.
 export type ReviewFile = {
 	path: string
 	oldPath?: string | undefined
@@ -87,15 +87,15 @@ export type ReviewFile = {
 // for a changed file's badge/header/progress state (see changes.ts fileReviewState).
 export type FileReviewState = 'pending' | 'approved' | 'changes-requested'
 
-// A previewed file (opened from the project tree via /api/file to read/comment on an unchanged
+// A previewed file (opened from the project tree via /file to read/comment on an unchanged
 // file) is a UI-only construct: it never rides the wire or persistence, so it carries its single
-// contents inline (old === new, no diff) rather than through the on-demand /api/file-contents
+// contents inline (old === new, no diff) rather than through the on-demand /file-contents
 // fetch that lean ReviewFiles use. file/contents.ts reads previewContents for it; everything else
 // treats it as an ordinary (zero-hunk) ReviewFile.
 export type PreviewFile = ReviewFile & { previewContents: string }
 
 // The live review the desk renders. Server/agent-owned fields are optional; the
-// reviewer-owned slice (ReviewerSave) is what /api/save writes back.
+// reviewer-owned slice (ReviewerSave) is what /save writes back.
 export type ReviewState = {
 	root: string
 	session: string
@@ -115,7 +115,7 @@ export type ReviewState = {
 	files: ReviewFile[]
 }
 
-// The reviewer-owned slice the browser posts to /api/save (see save.ts's reviewerSlice).
+// The reviewer-owned slice the browser posts to /save (see save.ts's reviewerSlice).
 export type ReviewerSave = Pick<
 	ReviewState,
 	| 'decisions'
@@ -135,13 +135,13 @@ export type DeskStatus = {
 	queuedReviews: number
 }
 
-// GET /api/state: the full browser review snapshot plus the desk's liveness fields
+// GET /state: the full browser review snapshot plus the desk's liveness fields
 // and the server instance id the poll guard compares against.
 export type DeskStateSnapshot = ReviewState &
 	DeskStatus & { serverInstanceId?: string | undefined }
 
-// GET /api/poll: just enough to detect change. File summaries and change records belong
-// on /api/state, fetched on baseDiffHash changes, not on every tick. A mismatched
+// GET /poll: just enough to detect change. File summaries and change records belong
+// on /state, fetched on baseDiffHash changes, not on every tick. A mismatched
 // ?instance= from an older desk process receives a refresh event instead. DeskStatus
 // rides both.
 export type DeskPollSnapshot = Pick<
