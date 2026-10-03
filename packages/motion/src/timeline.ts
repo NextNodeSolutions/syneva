@@ -1,4 +1,4 @@
-import { animate } from 'motion/mini'
+import { animate } from './animate'
 
 import type { Easing } from './easing'
 

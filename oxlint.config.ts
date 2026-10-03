@@ -135,6 +135,28 @@ export default defineConfig({
 			rules: { 'eslint/no-await-in-loop': 'off' },
 		},
 		{
+			// The landing reaches Motion only through @syneva/motion: the package is the
+			// one place that names the animation engine (animate.ts re-exports the
+			// motion/mini animate; inView and frame live in reveal/scenes/count-up), so
+			// the engine can change without touching the site. A Motion API the site
+			// needs is exported from the package first.
+			files: ['apps/landing/**'],
+			rules: {
+				'eslint/no-restricted-imports': [
+					'error',
+					{
+						patterns: [
+							{
+								group: ['motion', 'motion/**'],
+								message:
+									'the landing animates through @syneva/motion only - import animate from @syneva/motion/animate, or export the Motion API you need from the package first.',
+							},
+						],
+					},
+				],
+			},
+		},
+		{
 			// Layer boundaries between the workspace packages (plus the relative bans
 			// that keep intra-package escapes closed):
 			// - contracts is a neutral dependency sink: no backend, no UI.

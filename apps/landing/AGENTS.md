@@ -22,3 +22,4 @@ Copy follows `PRODUCT.md`: first-person, direct, low-hype, and every claim true 
 - A drawing element opts in with `data-anim` and an optional `data-delay`; nested elements inherit the nearest delay, as the CSS `--d` they replace did.
 - A scene that resumes after a pause (scrolled back into view, tab shown again) replays the entrances that had finished, exactly as the stylesheet animations did through the browser's auto-rewind.
 - An element without a box (`display: none`, a drawing's secondary words on phones) does not animate, and starts over when it gets its box back, as stylesheet animations do.
+- `@syneva/motion` is the site's only way to Motion: the landing never imports `motion` or `motion/*` itself (oxlint rejects it). `animate` comes from `@syneva/motion/animate`, the package's one seam onto the engine, and a Motion API the site needs is exported from the package first, so the engine can change without touching the site.
