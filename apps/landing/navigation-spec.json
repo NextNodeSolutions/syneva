@@ -29,7 +29,7 @@
 		{
 			"id": "light",
 			"requirement": "The navbar and dropdown preserve the landing page's light palette, restrained petrol blue accent, and Geist typography.",
-			"source": "site/DESIGN.md"
+			"source": "apps/landing/DESIGN.md"
 		},
 		{
 			"id": "floating",
@@ -89,7 +89,7 @@
 		{
 			"id": "mobile",
 			"requirement": "At narrow widths the navbar collapses into a Menu toggle; opening it shows the same dropdown content and it is fully operable.",
-			"source": "site/AGENTS.md responsive declaration (600/900/1280)"
+			"source": "apps/landing/AGENTS.md responsive declaration (600/900/1280)"
 		}
 	]
 }
