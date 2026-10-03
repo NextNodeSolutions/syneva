@@ -53,7 +53,9 @@ function revealGroup(group: Element): void {
 	for (const fact of group.querySelectorAll('[data-count]'))
 		if (fact instanceof HTMLElement) countUp(fact)
 	playVocabulary(group)
-	syncScenes()
+	// The group's scenes (its figures) hold their new animations until they
+	// are in view themselves.
+	syncScenes(group)
 }
 
 // Kept in module scope: the observer must outlive the call that created it.
@@ -62,15 +64,6 @@ let stopRevealing: (() => void) | undefined
 // Arms every group once the hidden poses are in effect, so the entrance plays
 // instead of landing on a pose that was never seen.
 export function armReveals(): void {
-	const groups = [...document.querySelectorAll('[data-reveal]')]
-	for (const group of groups)
-		itemsOf(group).forEach((entry, index) => {
-			if (entry instanceof HTMLElement || entry instanceof SVGElement)
-				entry.style.setProperty(
-					'--reveal-i',
-					String(Math.min(index, STAGGER_CAP)),
-				)
-		})
 	stopRevealing?.()
-	stopRevealing = inView(groups, revealGroup, REVEAL)
+	stopRevealing = inView('[data-reveal]', revealGroup, REVEAL)
 }

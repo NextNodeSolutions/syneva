@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease } from '@syneva/design-system/tokens.stylex'
+import { color } from '@syneva/design-system/tokens.stylex'
 
 import { motionRoot } from './root.stylex'
 
@@ -51,16 +51,11 @@ const safetyNet = (name: string): SafetyNet => ({
 })
 
 export const poses = stylex.create({
-	// [data-reveal-item]: rises in when its group arrives, staggered by the
-	// --reveal-i index the runtime writes. The transition list is part of the
-	// armed pose (it replaces an item's own transitions while armed).
+	// [data-reveal-item]: rises in when its group arrives, staggered by its
+	// index in the group (see reveal.ts).
 	revealItem: {
 		opacity: hidden(0),
 		transform: hidden('translateY(18px)'),
-		transition: hidden(
-			`opacity .7s ${ease['--ease-out']}, transform .7s ${ease['--ease-out']}`,
-		),
-		transitionDelay: hidden('calc(min(var(--reveal-i, 0), 9) * 70ms)'),
 		...safetyNet(showAnyway),
 	},
 	// [data-rule]: an accent rule draws over the section's top border, then

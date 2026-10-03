@@ -59,88 +59,75 @@ function moveFrom(element: HTMLElement | SVGElement): string {
 
 // Starters receive the element's data-delay; entrances and signals wait a
 // beat (LAG_S) after the section arrives, pulses a longer one. An entrance
-// hands back its runs so its scene can replay them (see playEntrance).
+// plays once: Motion commits its finished pose and releases the animation.
 type Starter = (element: HTMLElement | SVGElement, delay: number) => void
-type Run = () => ReturnType<typeof animate>
-type Starters = (element: HTMLElement | SVGElement, delay: number) => Run[]
 const lag = (delay: number): number => delay + LAG_S
 
-export const ENTRANCES: Record<string, Starters> = {
-	draw: (element, delay) => [
-		() =>
-			animate(
-				element,
-				{ strokeDashoffset: [1, 0] },
-				{ duration: TIMING.draw, delay: lag(delay), ease: out },
-			),
-	],
-	fade: (element, delay) => [
-		() =>
-			animate(
-				element,
-				{ opacity: [0, 1] },
-				{ duration: TIMING.fade, delay: lag(delay), ease: out },
-			),
-	],
-	rise: (element, delay) => [
-		() =>
-			animate(
-				element,
-				{ opacity: [0, 1], transform: ['translateY(10px)', 'none'] },
-				{ duration: TIMING.rise, delay: lag(delay), ease: out },
-			),
-	],
-	pop: (element, delay) => [
-		() =>
-			animate(
-				element,
-				{ transform: ['scale(0)', 'none'] },
-				{ duration: TIMING.pop, delay: lag(delay), ease: spring },
-			),
-	],
-	sweep: (element, delay) => [
-		() =>
-			animate(
-				element,
-				{ transform: ['scaleX(0)', 'none'] },
-				{ duration: TIMING.sweep, delay: lag(delay), ease: out },
-			),
-	],
-	type: (element, delay) => [
-		() =>
-			animate(
-				element,
-				{ clipPath: typed.values },
-				{
-					duration: TIMING.type,
-					delay: lag(delay),
-					times: typed.times,
-					ease: 'linear',
-				},
-			),
-	],
+export const ENTRANCES: Record<string, Starter> = {
+	draw: (element, delay) => {
+		animate(
+			element,
+			{ strokeDashoffset: [1, 0] },
+			{ duration: TIMING.draw, delay: lag(delay), ease: out },
+		)
+	},
+	fade: (element, delay) => {
+		animate(
+			element,
+			{ opacity: [0, 1] },
+			{ duration: TIMING.fade, delay: lag(delay), ease: out },
+		)
+	},
+	rise: (element, delay) => {
+		animate(
+			element,
+			{ opacity: [0, 1], transform: ['translateY(10px)', 'none'] },
+			{ duration: TIMING.rise, delay: lag(delay), ease: out },
+		)
+	},
+	pop: (element, delay) => {
+		animate(
+			element,
+			{ transform: ['scale(0)', 'none'] },
+			{ duration: TIMING.pop, delay: lag(delay), ease: spring },
+		)
+	},
+	sweep: (element, delay) => {
+		animate(
+			element,
+			{ transform: ['scaleX(0)', 'none'] },
+			{ duration: TIMING.sweep, delay: lag(delay), ease: out },
+		)
+	},
+	type: (element, delay) => {
+		animate(
+			element,
+			{ clipPath: typed.values },
+			{
+				duration: TIMING.type,
+				delay: lag(delay),
+				times: typed.times,
+				ease: 'linear',
+			},
+		)
+	},
 	// Opacity lands in the first quarter; the travel uses the whole duration.
 	move: (element, delay) => {
 		const timing = { duration: TIMING.move, delay: lag(delay) }
-		const from = moveFrom(element)
-		return [
-			() =>
-				animate(
-					element,
-					{ opacity: [0, 1, 1] },
-					{
-						...timing,
-						times: [0, TIMING.moveFadeEnd, 1],
-						ease: [settle, settle, settle],
-					},
-				),
-			() =>
-				animate(
-					element,
-					{ transform: [from, 'none'] },
-					{ ...timing, ease: settle },
-				),
-		]
+		animate(
+			element,
+			{ opacity: [0, 1, 1] },
+			{
+				...timing,
+				times: [0, TIMING.moveFadeEnd, 1],
+				ease: [settle, settle, settle],
+			},
+		)
+		animate(
+			element,
+			{ transform: [moveFrom(element), 'none'] },
+			{ ...timing, ease: settle },
+		)
 	},
 }
 
