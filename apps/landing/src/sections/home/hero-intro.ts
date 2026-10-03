@@ -1,6 +1,5 @@
 import { animate } from '@syneva/motion/animate'
 import { EASE, toBezier } from '@syneva/motion/easing'
-import { playEntrance } from '@syneva/motion/scenes'
 
 import type { AnimateOptions } from '@syneva/motion/options'
 
@@ -89,8 +88,7 @@ const STEPS: Step[] = [
 	{ part: 'principles', keyframes: fadeIn, duration: 0.8, delay: 0.9 },
 ]
 
-// Played as entrances: the figure is a scene, so like every drawing it
-// enters again when it comes back into view (see playEntrance).
+// The figure is a scene: its step waits, paused, until it is in view.
 export function playIntro(): void {
 	for (const {
 		part,
@@ -104,6 +102,6 @@ export function playIntro(): void {
 		for (const target of document.querySelectorAll(
 			`[data-hero-intro="${part}"]`,
 		))
-			playEntrance(target, () => animate(target, keyframes, options))
+			animate(target, keyframes, options)
 	}
 }
