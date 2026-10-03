@@ -22,7 +22,7 @@
 	},
 	"dependencies": {
 		"@stylexjs/stylex": "0.19.1",
-		"@syneva/tokens": "workspace:*",
+		"@syneva/design-system": "workspace:*",
 		"motion": "14.0.0"
 	},
 	"devDependencies": {

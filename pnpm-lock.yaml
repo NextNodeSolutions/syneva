@@ -35,12 +35,12 @@ importers:
       '@stylexjs/stylex':
         specifier: 0.19.1
         version: 0.19.1
+      '@syneva/design-system':
+        specifier: workspace:*
+        version: link:../../packages/design-system
       '@syneva/motion':
         specifier: workspace:*
         version: link:../../packages/motion
-      '@syneva/tokens':
-        specifier: workspace:*
-        version: link:../../packages/tokens
       astro:
         specifier: 7.3.5
         version: 7.3.5(@types/node@26.6.3)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)
@@ -117,6 +117,16 @@ importers:
         specifier: latest
         version: 7.0.2
 
+  packages/design-system:
+    dependencies:
+      '@stylexjs/stylex':
+        specifier: 0.19.1
+        version: 0.19.1
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/frontend:
     dependencies:
       '@pierre/diffs':
@@ -183,22 +193,12 @@ importers:
       '@stylexjs/stylex':
         specifier: 0.19.1
         version: 0.19.1
-      '@syneva/tokens':
+      '@syneva/design-system':
         specifier: workspace:*
-        version: link:../tokens
+        version: link:../design-system
       motion:
         specifier: 14.0.0
         version: 14.0.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-    devDependencies:
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  packages/tokens:
-    dependencies:
-      '@stylexjs/stylex':
-        specifier: 0.19.1
-        version: 0.19.1
     devDependencies:
       typescript:
         specifier: ^6.0.3

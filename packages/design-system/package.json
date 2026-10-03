@@ -1,8 +1,8 @@
 {
-	"name": "@syneva/tokens",
+	"name": "@syneva/design-system",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Syneva's public-site design tokens as StyleX variables and constants: palette, type, easing, layout and breakpoints.",
+	"description": "Syneva's public-site design system as StyleX variables and constants: the palette, type, easing, layout and breakpoint tokens.",
 	"license": "MIT",
 	"type": "module",
 	"exports": {

@@ -1,11 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/design-system/media.stylex'
 import { motionRoot } from '@syneva/motion/root.stylex'
-import { media } from '@syneva/tokens/media.stylex'
 
 import { dropdownMarker, navMarker, sceneMarker } from './markers.stylex'
 import { navClock } from './nav.stylex'
 
-import type { When } from '@syneva/tokens/when'
+import type { When } from '@syneva/design-system/when'
 
 // The preview scenes' lines: a scene that starts illustrating replays them;
 // the clock pauses while the menu is shut or the tab is hidden, and keyboard

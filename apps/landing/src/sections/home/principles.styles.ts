@@ -1,7 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color, font } from '@syneva/design-system/tokens.stylex'
 import { motionRoot } from '@syneva/motion/root.stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color, font } from '@syneva/tokens/tokens.stylex'
 
 const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
 const LINE = color['--line']

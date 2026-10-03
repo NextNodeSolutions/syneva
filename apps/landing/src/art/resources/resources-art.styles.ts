@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { color } from '@syneva/tokens/tokens.stylex'
+import { color } from '@syneva/design-system/tokens.stylex'
 
 const box = (
 	fill: string,

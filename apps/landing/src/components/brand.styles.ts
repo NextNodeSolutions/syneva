@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { ease } from '@syneva/tokens/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { ease } from '@syneva/design-system/tokens.stylex'
 
 import { brandMarker, navMarker } from './navigation/markers.stylex'
 

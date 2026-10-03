@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color, font } from '@syneva/tokens/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color, font } from '@syneva/design-system/tokens.stylex'
 
 // The review circuit: sheets, stations and routes in two dimensions. The
 // leaves inside <defs> are drawn through <use>, so their paints read custom

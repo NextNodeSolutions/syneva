@@ -1,7 +1,7 @@
 /* The document base: fonts, the reset and the element typography every page
    shares. Components style themselves with StyleX, whose atomic rules always
-   win over these element rules; the variables come from @syneva/tokens and
-   keep their literal names (var(--paper), var(--accent), ...). */
+   win over these element rules; the variables come from @syneva/design-system
+   and keep their literal names (var(--paper), var(--accent), ...). */
 @font-face {
 	font-family: Geist;
 	src: url('/fonts/geist.woff2') format('woff2');

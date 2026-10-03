@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color } from '@syneva/tokens/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color } from '@syneva/design-system/tokens.stylex'
 
 // Drawing marks shared by every SVG figure on the site.
 const stroke = (paint: string): { stroke: string; fill: string } => ({
