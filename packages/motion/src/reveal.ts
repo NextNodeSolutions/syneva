@@ -1,6 +1,6 @@
 import { inView } from 'motion'
-import { animate } from 'motion/mini'
 
+import { animate } from './animate'
 import { countUp } from './count-up'
 import { EASE, toBezier } from './easing'
 import { playVocabulary } from './placement'

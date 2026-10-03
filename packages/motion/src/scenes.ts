@@ -2,7 +2,7 @@ import { inView } from 'motion'
 
 import { reducedMotion } from './preference'
 
-import type { animate } from 'motion/mini'
+import type { animate } from './animate'
 
 // Offscreen scenes, hidden tabs and reduced motion pause every animation
 // inside a [data-motion-scene]. Scenes that start animating later (a reveal,
