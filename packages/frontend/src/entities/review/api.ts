@@ -71,7 +71,7 @@ export const unstageChange = async (body: unknown): Promise<void> => {
 	)
 }
 
-// One-way handoff of the finished review back to the attached agent (see /api/send).
+// One-way handoff of the finished review back to the attached agent (see /send).
 export type SendResult = { sent?: boolean | undefined }
 
 export const sendReview = async (payload: unknown): Promise<SendResult> => {

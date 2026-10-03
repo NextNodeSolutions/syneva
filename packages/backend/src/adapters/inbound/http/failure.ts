@@ -10,7 +10,7 @@ export type ApiFailure = {
 }
 
 // The one containment failure shared by every route that takes a repo-relative path
-// (/api/file, /api/file-contents, /api/open-editor): the boundary refuses the path the same way
+// (/file, /file-contents, /open-editor): the boundary refuses the path the same way
 // whichever entry point it arrived through.
 export const BAD_PATH: ApiFailure = {
 	status: 400,
@@ -20,7 +20,7 @@ export const BAD_PATH: ApiFailure = {
 }
 
 // The one "cannot read a repo path" 404, shared by every route that resolves a repo-relative path
-// (/api/file, /api/blob): the same shape and fix hint whichever route missed, so they can't drift.
+// (/file, /blob): the same shape and fix hint whichever route missed, so they can't drift.
 export function cannotRead(rel: string): ApiFailure {
 	return {
 		status: 404,

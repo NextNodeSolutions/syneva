@@ -11,6 +11,10 @@ import { checkBundleBudget } from './scripts/bundle-budget.mjs'
 import type { Plugin, UserConfig } from 'vite'
 
 const UI_ENTRY = fileURLToPath(new URL('./src/app/main.tsx', import.meta.url))
+// The hub dashboard: a second, much smaller entry over the same layers (dashboard.js).
+const DASHBOARD_ENTRY = fileURLToPath(
+	new URL('./src/app/dashboard.tsx', import.meta.url),
+)
 // `pnpm dev` overrides this so the watch rebuild lands straight in the served
 // apps/syneva/dist instead of this package's own dist.
 const OUT_DIR = process.env.SYNEVA_UI_OUT_DIR ?? 'dist'
@@ -135,7 +139,7 @@ export default defineConfig({
 	},
 	build: buildOptions({
 		rollupOptions: {
-			input: { ui: UI_ENTRY },
+			input: { ui: UI_ENTRY, dashboard: DASHBOARD_ENTRY },
 			output: {
 				format: 'es',
 				entryFileNames: '[name].js',

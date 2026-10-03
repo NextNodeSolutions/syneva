@@ -61,15 +61,15 @@ const GROUPS = [
 		[
 			[
 				'Where does my review live?',
-				'On your machine, under <code>~/.syneva</code>. Every save is persisted, and a restart restores the session on the same port, so your open tab heals itself.',
+				'On your machine, under <code>~/.syneva</code>. Every save is persisted, and a hub restart restores every desk at the same URL, so your open tab heals itself.',
 			],
 			[
 				'Does Syneva send anything anywhere?',
-				'No telemetry, no account, no model calls. The desk binds to loopback by default. One honest footnote: your browser may fetch a web font for the desk; switch to system fonts and even that stops.',
+				'No telemetry, no account, no model calls. The hub binds to loopback by default. One honest footnote: your browser may fetch a web font for the desk; switch to system fonts and even that stops.',
 			],
 			[
 				'Can I review from another machine?',
-				'Yes, with <code>--host</code>, for remote-dev setups. The desk API is unauthenticated, so only bind wider on a network you fully trust, like a personal tailnet.',
+				'Yes. Start the hub with <code>--host</code> and an access key (<code>--key</code>): you sign in once in the browser, your agents send the key. Without a key the hub refuses to bind beyond loopback unless you pass <code>--insecure</code>, which belongs only on a network you fully trust, like a personal tailnet.',
 			],
 			[
 				'What happens if I close the tab?',

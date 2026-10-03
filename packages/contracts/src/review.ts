@@ -101,7 +101,7 @@ export type GuideFile = {
 	category: string
 }
 
-// How much of the review POST /api/reset drops. 'review' clears every decision and sign-off
+// How much of the review POST /reset drops. 'review' clears every decision and sign-off
 // but keeps the notes (comments/questions); 'approved' clears only the signed-off files;
 // 'all' is the whole review, notes included. A bodyless POST resets 'all' - the documented
 // pre-scope behavior.

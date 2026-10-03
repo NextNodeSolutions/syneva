@@ -30,8 +30,8 @@ export interface Store {
 	// When set, it's the "current file" instead of state.files[fileIndex].
 	preview: PreviewFile | null
 	awaitingAgent: boolean
-	// Transient desk-liveness from /api/state (DeskStatus fields). Held OUTSIDE
-	// S.state so they never ride a /api/save round-trip into the persisted review.
+	// Transient desk-liveness from /state (DeskStatus fields). Held OUTSIDE
+	// S.state so they never ride a /save round-trip into the persisted review.
 	agentActivity: string | null
 	agentListening: boolean
 	queuedQuestions: number
@@ -161,7 +161,7 @@ export interface Store {
 	resetMenuOpen: boolean
 	setResetMenu?: (open: boolean) => void
 	send?: (overallNote?: string) => Promise<void>
-	// The browser Close: confirm, flush the coalescing saver, stop the desk via /api/shutdown,
+	// The browser Close: confirm, flush the coalescing saver, stop the desk via /shutdown,
 	// then show the closed cover (window.close() after it usually can't script-close an
 	// OS-opened tab). Also driven implicitly when the polls stop answering (poll.ts).
 	closeDesk?: () => Promise<void>

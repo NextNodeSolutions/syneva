@@ -6,9 +6,9 @@ import { HTTP_OK, fail } from '../http.js'
 
 import type { RouteRequest } from '../router.js'
 
-// Image mime types by extension - /api/blob serves only repo-referenced images from the rendered
+// Image mime types by extension - /blob serves only repo-referenced images from the rendered
 // markdown view. Everything else falls back to a generic binary type; the strict result is the
-// containment check, not the mime map (the desk already serves any repo file's TEXT via /api/file).
+// containment check, not the mime map (the desk already serves any repo file's TEXT via /file).
 const MIME_BY_EXTENSION: Record<string, string> = {
 	svg: 'image/svg+xml',
 	png: 'image/png',
@@ -26,9 +26,9 @@ function mimeOf(path: string): string {
 	return MIME_BY_EXTENSION[ext] ?? 'application/octet-stream'
 }
 
-// GET /api/blob?path=<repo-relative> - the raw bytes of one repo file, for the rendered
+// GET /blob?path=<repo-relative> - the raw bytes of one repo file, for the rendered
 // markdown view's relative image srcs (<img src="assets/shot.png"> points here after the
-// engine rewrites them). Same containment boundary as /api/file: repo-relative, no escapes.
+// engine rewrites them). Same containment boundary as /file: repo-relative, no escapes.
 export async function serveBlob({
 	ctx,
 	res,

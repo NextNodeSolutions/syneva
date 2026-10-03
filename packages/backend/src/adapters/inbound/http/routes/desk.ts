@@ -21,7 +21,7 @@ export async function servePoll({
 		json(res, HTTP_OK, { ...event, ...ctx.status() })
 		return
 	}
-	// Keep the 1.5s heartbeat tiny and git-free; file summaries and changes only ride /api/state.
+	// Keep the 1.5s heartbeat tiny and git-free; file summaries and changes only ride /state.
 	// One capture: the three review fields must come from one state root - a commit landing
 	// mid-build would otherwise stitch the poll from two revisions.
 	const { state } = ctx
@@ -59,8 +59,8 @@ export async function serveTree({ ctx, res }: RouteRequest): Promise<void> {
 	json(res, HTTP_OK, { files: await ctx.git.projectTree(ctx.state.root) })
 }
 
-// Display preferences, stored globally in ~/.syneva/settings.json - the desk's random port makes
-// browser localStorage (per-origin) useless for them.
+// Display preferences, stored globally in ~/.syneva/settings.json - a file follows the reviewer
+// across browsers and hosts where a per-origin localStorage would not.
 export async function serveSettings({ ctx, res }: RouteRequest): Promise<void> {
 	json(res, HTTP_OK, await ctx.settings.read())
 }

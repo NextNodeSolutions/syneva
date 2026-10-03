@@ -7,18 +7,21 @@ import type { ApiFailure } from './failure.js'
 // way - the response codes are part of the agent contract (`syneva spec`), not decoration.
 export const HTTP_OK = 200
 export const HTTP_NO_CONTENT = 204
+export const HTTP_MOVED_PERMANENTLY = 301
+export const HTTP_SEE_OTHER = 303
 export const HTTP_NOT_MODIFIED = 304
 export const HTTP_BAD_REQUEST = 400
+export const HTTP_UNAUTHORIZED = 401
 export const HTTP_FORBIDDEN = 403
 export const HTTP_NOT_FOUND = 404
 export const HTTP_CONFLICT = 409
 export const HTTP_UNPROCESSABLE = 422
 export const HTTP_INTERNAL = 500
 
-// 50 MB: pre-0.6.2 tabs post the entire multi-MB ReviewState on /api/send, and a big PR desk
+// 50 MB: pre-0.6.2 tabs post the entire multi-MB ReviewState on /send, and a big PR desk
 // crosses 5 MB - the old cap made Send fail on exactly the largest reviews (readBody threw
 // before the result was built, so no artifact and no event, while slice-only auto-saves kept
-// succeeding). The server is localhost-only, so a generous cap is safe.
+// succeeding). The hub is loopback-only or key-guarded, so a generous cap is safe.
 const MAX_BODY_BYTES = 50_000_000
 
 export async function readBody(req: IncomingMessage): Promise<string> {
@@ -60,7 +63,7 @@ export function json(res: ServerResponse, status: number, body: unknown): void {
 	jsonBody(res, status, JSON.stringify(body))
 }
 
-// A JSON response whose body is already serialized: /api/state hands back the string its cache
+// A JSON response whose body is already serialized: /state hands back the string its cache
 // holds instead of stringifying the (possibly multi-MB) browser projection a second time.
 export function jsonBody(
 	res: ServerResponse,
@@ -69,6 +72,17 @@ export function jsonBody(
 ): void {
 	res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' })
 	res.end(serialized)
+}
+
+// An HTML page response (the dashboard shell, the desk page, the sign-in and not-found pages).
+export function html(res: ServerResponse, status: number, body: string): void {
+	res.writeHead(status, { 'content-type': 'text/html; charset=utf-8' })
+	res.end(body)
+}
+
+export function redirect(res: ServerResponse, location: string): void {
+	res.writeHead(HTTP_SEE_OTHER, { location })
+	res.end()
 }
 
 export function fail(res: ServerResponse, failure: ApiFailure): void {

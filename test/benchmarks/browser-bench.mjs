@@ -30,23 +30,17 @@ const median = xs =>
 	xs.length ? xs.toSorted((a, b) => a - b)[Math.floor(xs.length / 2)] : 0
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
-// Boot helper: fresh syneva desk per repo/session (ports are `--port 0` randomized).
-// HOME is redirected so the desk's persisted review files never touch the user's state.
+// Boot helper: a fresh hub per repo/session (`--port 0` randomizes the port) with one desk
+// opened on it; the returned url is the desk page. HOME is redirected so the persisted review
+// files and the hub registry never touch the user's state.
 async function spawnDesk(repo, session, env) {
-	const CLI = path.join(
-		process.cwd(),
-		'dist',
-		'backend',
-		'bootstrap',
-		'cli.js',
-	)
-	const { spawn } = await import('node:child_process')
-	const desk = spawn(
-		'node',
-		[CLI, '--repo', repo, '--session', session, '--port', '0', '--no-open'],
-		{ stdio: ['ignore', 'ignore', 'pipe'], env },
-	)
-	const url = await new Promise(resolve => {
+	const CLI = path.join(process.cwd(), 'apps', 'syneva', 'dist', 'cli.js')
+	const { spawn, execFileSync } = await import('node:child_process')
+	const desk = spawn('node', [CLI, 'start', '--port', '0', '--no-open'], {
+		stdio: ['ignore', 'ignore', 'pipe'],
+		env,
+	})
+	const origin = await new Promise(resolve => {
 		let buf = ''
 		const onData = d => {
 			buf += String(d)
@@ -59,7 +53,26 @@ async function spawnDesk(repo, session, env) {
 		desk.stderr.on('data', onData)
 		setTimeout(() => resolve(undefined), 60_000)
 	})
-	return { desk, url }
+	if (!origin) return { desk, url: undefined }
+	const hub = `${origin}/`
+	const opened = JSON.parse(
+		execFileSync(
+			'node',
+			[
+				CLI,
+				'open',
+				'--hub',
+				hub,
+				'--repo',
+				repo,
+				'--session',
+				session,
+				'--no-open',
+			],
+			{ encoding: 'utf8', env },
+		),
+	)
+	return { desk, url: opened.url }
 }
 
 // Instrumentation injected before the desk boots: MutationObserver timestamps, longtask
@@ -274,15 +287,11 @@ async function benchRepo(name) {
 				parseMs: Math.round(performance.now() - sp),
 			}
 		}
-		const first = await payload('/api/state')
+		const first = await payload('/state')
 		const samples =
 			first.bytes > 40_000_000
 				? [first]
-				: [
-						first,
-						await payload('/api/state'),
-						await payload('/api/state'),
-					]
+				: [first, await payload('/state'), await payload('/state')]
 		const [state] = samples.toSorted((a, b) => a.ms - b.ms)
 		const fc = performance
 			.getEntriesByType('resource')
@@ -328,7 +337,7 @@ async function benchRepo(name) {
 		await page.keyboard.press('Shift+ArrowRight')
 		const ms = await page.evaluate(
 			([b, want]) => window.__bench.waitPaint(b, want),
-			[base, '/api/file-contents'],
+			[base, '/file-contents'],
 		)
 		nextFileMs.push(ms)
 		await sleep(350)

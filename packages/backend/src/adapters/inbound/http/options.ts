@@ -1,47 +1,46 @@
 import type { Server } from 'node:http'
-import type { ReviewState } from '../../../domain/review.js'
+import type { Hub } from './hub.js'
 
-export type ServerOptions = {
-	state: ReviewState
+export type HubOptions = {
 	port?: number | undefined
-	// Bind address. Defaults to 127.0.0.1 (loopback-only) - the desk stays local unless explicitly
-	// opted into a broader bind (--host / SYNEVA_HOST). See resolveBinding for how this shapes the
-	// origin guard, the printed URL, and the lock-file URL.
+	// Bind address. Defaults to 127.0.0.1 (loopback-only) - the hub stays local unless explicitly
+	// bound wider (--host / SYNEVA_HOST), which requires an access key (see bootstrap/hub).
 	host?: string | undefined
-	// Extra host names (beyond the machine's hostname/bound address) whose authority the origin guard
-	// trusts when bound non-loopback - SYNEVA_ALLOWED_HOSTS, for exotic names like a MagicDNS FQDN.
+	// Extra host names (beyond the machine's hostname/bound address) whose authority the origin
+	// guard trusts when bound non-loopback - SYNEVA_ALLOWED_HOSTS, for names like a MagicDNS FQDN.
 	allowedHosts?: string[] | undefined
-	open?: boolean | undefined
-	// Test seam: lets tests assert the resolved editor invocation without
-	// actually launching anything.
+	// The origin reviewers reach the hub at when it sits behind a reverse proxy (TLS termination, a
+	// public domain): printed as the dashboard URL and trusted by the origin guard.
+	publicUrl?: string | undefined
+	// The access key (hosted mode): every request must carry it - `Authorization: Bearer` from the
+	// CLI, the signed-in cookie from a browser. Absent on a loopback-only hub.
+	key?: string | undefined
+	version: string
+	// Test seam: lets tests assert the resolved editor invocation without actually launching anything.
 	runEditorCommand?:
 		| ((command: string, args: string[]) => Promise<void>)
 		| undefined
 	// Test seam: TTL for the ephemeral agent-activity line (default 90s).
 	statusTtlMs?: number | undefined
-	// Auto-exit after this long with no HTTP activity (default 2h; 0 disables). An open
-	// tab polls /api/state and a waiting agent holds /api/await-send, so "idle" really
-	// means abandoned - no tab, no agent. State is persisted on every save and the desk
-	// is idempotent on a stable port, so restarting later restores everything.
-	idleTimeoutMs?: number | undefined
-	// Test seam: called instead of process.exit(0) when the desk shuts itself down
-	// (idle timeout or POST /api/shutdown).
-	onShutdown?: ((reason: 'idle' | 'stop') => void) | undefined
+	log?: ((line: string) => void) | undefined
+	// Called when POST /api/hub/shutdown asks the hub to stop: the composition root closes.
+	onShutdown?: (() => void) | undefined
 }
 
-export type ServerHandle = {
+export type HubHandle = {
 	server: Server
-	// The URL to open/print - reachable from the reviewer's browser (hostname-based when bound
-	// non-loopback). Equals lockUrl for the default loopback bind.
+	hub: Hub
+	// The dashboard URL to print/open: the public URL when configured, else the bound origin
+	// (hostname-based when bound beyond loopback).
 	url: string
-	// The URL the same-machine agent CLI reaches the desk at (recorded in the desk lock) - loopback
-	// for a loopback/wildcard bind, the bound address for a specific non-loopback bind.
-	lockUrl: string
-	// The desk's CURRENT state root. Copy-on-write: every committed mutation publishes a new
-	// root, so the object handed to startServer is only the first one - always read the live
-	// review through this accessor, never from a captured reference.
-	state(): ReviewState
+	// The loopback origin the same-machine CLI reaches the hub at (recorded in the hub lock).
+	localUrl: string
+	port: number
+	close(): Promise<void>
 }
 
 // The bind address when --host / SYNEVA_HOST says nothing.
 export const DEFAULT_HOST = '127.0.0.1'
+// One fixed, documented port: the dashboard has one address on a machine, and every agent on it
+// finds the hub there without a lock file. --port / SYNEVA_PORT override it.
+export const DEFAULT_HUB_PORT = 4747

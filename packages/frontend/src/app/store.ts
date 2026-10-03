@@ -20,7 +20,7 @@ export const S: Store = reactive<Store>({
 	expandedDirs: new Set<string>(),
 	collapsedDirs: new Set<string>(),
 	// Display preferences come from ~/.syneva/settings.json (fetched in main.ts init),
-	// not localStorage - origins change with the random port, files don't.
+	// not localStorage - a file follows the reviewer across browsers and hosts, an origin doesn't.
 	diffStyle: 'split',
 	fileIndex: 0,
 	preview: null,

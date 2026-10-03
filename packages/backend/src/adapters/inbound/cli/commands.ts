@@ -1,33 +1,28 @@
-import { unlinkSync } from 'node:fs'
-
-import { API_PATHS } from '@syneva/contracts/routes'
+import { API_PATHS, hubDeskPath } from '@syneva/contracts/routes'
 
 import { appendComment } from '../../../application/comments.js'
 import { parseLineNumber } from '../../../domain/comments.js'
+import { sanitizeSession } from '../../../domain/identity.js'
 import { printJson, warn } from '../../outbound/console.js'
-import {
-	deskLockPath,
-	findLiveDesks,
-	isDeskProcessAlive,
-	readDeskLock,
-	reviewDir,
-} from '../../outbound/filesystem/desk.js'
 import { nodeReviewStore } from '../../outbound/filesystem/persistence.js'
-import { nodeGit } from '../../outbound/git/repo.js'
+import { getBranch, nodeGit } from '../../outbound/git/repo.js'
 
-import { loadGuideArg, resolveActionSession, resolveRoot } from './args.js'
+import { flagText, loadGuideArg, resolveRoot } from './args.js'
 import {
+	connectHub,
+	deskEndpoint,
+	findDesk,
+	hubEndpoint,
+	hubSend,
 	httpGetJson,
-	postJson,
-	postReload,
-	postShutdown,
-	readCommentId,
-	readReloadResult,
-	endpoint,
-} from './desk-client.js'
+	listDesks,
+	NO_CONTENT,
+} from './hub-client.js'
 
-import type { DeskLock } from '../../outbound/filesystem/desk.js'
+import type { DeskSummary } from '@syneva/contracts/hub'
+import type { Guide } from '@syneva/contracts/review'
 import type { CliArgs } from './args.js'
+import type { HubConnection } from './hub-client.js'
 
 type CommentPayload = {
 	path: string
@@ -37,41 +32,70 @@ type CommentPayload = {
 	role: 'agent'
 }
 
+const HTTP_OK = 200
 const COMMENT_USAGE =
 	'Usage: syneva comment --path <file> --line <n> [--side additions|deletions] --body "..."\n' +
 	'       (--line 0 replies into the file header thread; omit --side there) [--session <id>] [--repo <path>]'
 const STATUS_USAGE =
 	'Usage: syneva status --body "..." [--session <id>] [--repo <path>]'
 
+// The desk an agent command targets, when the hub is up and hosts one for this repo: --session
+// names it, else the lone live desk. Null when there is no hub or no such desk.
+async function targetDesk(
+	args: CliArgs,
+): Promise<{ hub: HubConnection; desk: DeskSummary } | null> {
+	const hub = await connectHub(args, { autostart: false })
+	if (!hub) return null
+	const desk = await findDesk(
+		hub,
+		await resolveRoot(args),
+		flagText(args, 'session'),
+	)
+	if (!desk) return null
+	return { hub, desk }
+}
+
+function noDeskHint(args: CliArgs): string {
+	const session = flagText(args, 'session')
+	return session
+		? `No live desk for session "${sanitizeSession(session)}". Open it with: syneva open --session ${sanitizeSession(session)}`
+		: 'No live desk for this repo. Open one with: syneva open'
+}
+
 // `syneva comment --path <file> --line <n> [--side additions] --body "..."`
-// Posts an agent reply. If a live desk is running for the session, it goes over
-// HTTP so the open tab updates immediately; otherwise it is appended to the
-// saved review for the next time the desk opens.
+// Posts an agent reply. If a live desk hosts the session, it goes over HTTP so the open tab
+// updates immediately; otherwise it is appended to the saved review for the next time the
+// desk opens.
 export async function runComment(args: CliArgs): Promise<void> {
-	const root = await resolveRoot(args)
-	const session = await resolveActionSession(root, args)
 	const payload = parseCommentPayload(args)
 	if (!payload) {
 		warn(COMMENT_USAGE)
 		process.exitCode = 1
 		return
 	}
-	const lock = await readDeskLock(root, session)
-	if (lock) {
-		const response = await postJson({
-			url: endpoint(lock.url, API_PATHS.comment),
+	const live = await targetDesk(args)
+	if (live) {
+		const response = await hubSend(
+			live.hub,
+			'POST',
+			deskEndpoint(live.hub.url, live.desk.id, API_PATHS.comment),
 			payload,
-		})
-		if (response.ok) {
+		)
+		if (response.status === HTTP_OK) {
 			printJson({
 				ok: true,
 				live: true,
-				session,
+				session: live.desk.session,
 				commentId: readCommentId(response.body),
 			})
 			return
 		}
 	}
+	const root = await resolveRoot(args)
+	// sanitizeSession turns an empty branch (detached HEAD) into the default session name.
+	const session = sanitizeSession(
+		flagText(args, 'session') ?? (await getBranch(root)),
+	)
 	const comment = await appendComment(root, session, payload, {
 		store: nodeReviewStore,
 		git: nodeGit,
@@ -80,171 +104,173 @@ export async function runComment(args: CliArgs): Promise<void> {
 }
 
 function parseCommentPayload(args: CliArgs): CommentPayload | null {
-	const path = typeof args.path === 'string' ? args.path : ''
-	const body = typeof args.body === 'string' ? args.body.trim() : ''
+	const path = flagText(args, 'path') ?? ''
+	const body = flagText(args, 'body')?.trim() ?? ''
 	if (!path || !body) return null
 	const side: 'additions' | 'deletions' =
 		args.side === 'deletions' ? 'deletions' : 'additions'
 	const lineNumber = parseLineNumber(args.line)
 	if (lineNumber === null) return null
-	return {
-		path,
-		side,
-		lineNumber,
-		body,
-		role: 'agent',
-	}
+	return { path, side, lineNumber, body, role: 'agent' }
 }
 
-// `syneva status --body "..."` - post an ephemeral "what I'm doing now" line that
-// shows next to the reviewer's waiting indicator. Unlike comment there is no
-// offline fallback: ephemeral status is meaningless without a live desk, and it
-// must never fail the agent loop - no desk just reports { live: false }, exit 0.
+function readCommentId(body: unknown): string | undefined {
+	if (typeof body !== 'object' || body === null) return undefined
+	if (!('commentId' in body) || typeof body.commentId !== 'string')
+		return undefined
+	return body.commentId
+}
+
+// `syneva status --body "..."` - post an ephemeral "what I'm doing now" line that shows next
+// to the reviewer's waiting indicator. No offline fallback: ephemeral status is meaningless
+// without a live desk, and it must never fail the agent loop - no desk just reports
+// { live: false }, exit 0.
 export async function runStatus(args: CliArgs): Promise<void> {
-	const root = await resolveRoot(args)
-	const session = await resolveActionSession(root, args)
-	const body = typeof args.body === 'string' ? args.body.trim() : ''
+	const body = flagText(args, 'body')?.trim() ?? ''
 	if (!body) {
 		warn(STATUS_USAGE)
 		process.exitCode = 1
 		return
 	}
-	const lock = await readDeskLock(root, session)
-	if (lock) {
-		const response = await postJson({
-			url: endpoint(lock.url, API_PATHS.status),
-			payload: { body },
-		})
-		if (response.ok) {
-			printJson({ ok: true, live: true, session })
+	const live = await targetDesk(args)
+	if (live) {
+		const response = await hubSend(
+			live.hub,
+			'POST',
+			deskEndpoint(live.hub.url, live.desk.id, API_PATHS.status),
+			{ body },
+		)
+		if (response.status === HTTP_OK) {
+			printJson({ ok: true, live: true, session: live.desk.session })
 			return
 		}
 	}
-	printJson({ ok: false, live: false, session })
+	printJson({ ok: false, live: false, session: flagText(args, 'session') })
 }
 
-type StopOutcome =
-	| { kind: 'stopped'; session: string }
-	| { kind: 'unreachable'; session: string; pid: number }
-	| { kind: 'swept'; session: string }
-
-// `syneva stop [--session <id> | --all]` - shut down this repo's live desk(s). Idempotent:
-// exit 0 whether or not anything was running, so agents can call it unconditionally when a
-// review session ends. Shutdown goes over HTTP (the desk exits after acking, removing its
-// own lock) - never a bare kill(pid), which risks PID reuse. A lock whose pid is dead is
-// swept; a lock whose pid is alive but whose server won't answer is reported, not killed.
-export async function runStop(args: CliArgs): Promise<void> {
-	const root = await resolveRoot(args)
-	const locks =
-		args.all === true
-			? await findLiveDesks(root)
-			: await sessionLocks(root, args)
-	const outcomes = await Promise.all(locks.map(lock => stopDesk(root, lock)))
-	const stopped = outcomes
-		.filter(outcome => outcome.kind === 'stopped')
-		.map(outcome => outcome.session)
-	const unreachable = outcomes.flatMap(outcome =>
-		outcome.kind === 'unreachable'
-			? [{ session: outcome.session, pid: outcome.pid }]
-			: [],
-	)
-	for (const desk of unreachable)
-		warn(
-			`Desk "${desk.session}" (pid ${desk.pid}) is running but not answering - kill it manually: kill ${desk.pid}`,
-		)
-	printJson({ ok: true, stopped, unreachable })
-}
-
-async function sessionLocks(root: string, args: CliArgs): Promise<DeskLock[]> {
-	const session = await resolveActionSession(root, args)
-	const lock = await readDeskLock(root, session)
-	return lock ? [lock] : []
-}
-
-async function stopDesk(root: string, lock: DeskLock): Promise<StopOutcome> {
-	const response = await postShutdown(lock.url)
-	if (response.ok) return { kind: 'stopped', session: lock.session }
-	if (isDeskProcessAlive(lock.pid))
-		return { kind: 'unreachable', session: lock.session, pid: lock.pid }
-	unlinkSync(deskLockPath(await reviewDir(root, lock.session)))
-	return { kind: 'swept', session: lock.session }
-}
-
-// `syneva await --session <id>` - block until the next desk event, then print it
-// to stdout as a tagged envelope and exit. The event is either
-//   {"kind":"question","question":{path,lineNumber,side,body,mode,session}}  - answer it now
-//   {"kind":"review","result":{…ReviewResult…}}                              - the reviewer hit Send
+// `syneva await [--timeout <s>]` - block until the next desk event, then print it to stdout as
+// a tagged envelope and exit. The event is either
+//   {"kind":"question","question":{…},"questions":[…]} - answer it now
+//   {"kind":"review","result":{…ReviewResult…}}       - the reviewer hit Send
+//   {"kind":"closed","session":…}                      - the reviewer closed the desk
 // Call in a loop and branch on `kind`. Answer a question with `syneva comment`.
 export async function runAwait(args: CliArgs): Promise<void> {
-	const root = await resolveRoot(args)
-	const session = await resolveActionSession(root, args)
-	const lock = await readDeskLock(root, session)
-	if (!lock) {
-		warn(
-			`No live desk for session "${session}". Start it with: syneva --session ${session}`,
-		)
+	const live = await targetDesk(args)
+	if (!live) {
+		warn(noDeskHint(args))
 		process.exitCode = 1
 		return
 	}
-	const response = await httpGetJson(awaitUrl(lock.url, args))
-	if (response.status === NO_CONTENT || !response.body) {
-		// A timed-out wait (204) leaves the loop alive; a dead/unreachable desk must NOT
-		// return empty-and-0, or the spec's `while ev=$(syneva await)` loop would spin
-		// against a corpse - exit non-zero so the caller re-checks liveness instead.
-		if (response.status !== NO_CONTENT) {
-			warn(
-				`Desk for session "${session}" is not answering (closed or stopped? ${lock.url})`,
-			)
-			process.exitCode = 1
-		}
+	const response = await httpGetJson(awaitUrl(live, args), live.hub.key)
+	if (response.status === NO_CONTENT) return // --timeout fired, no event: the loop re-polls
+	const event: unknown = response.body
+	if (
+		response.status === HTTP_OK &&
+		typeof event === 'object' &&
+		event !== null &&
+		'kind' in event
+	) {
+		printJson(event)
 		return
 	}
-	// `unknown` on purpose: the guard above narrows response.body to a truthy value, which
-	// would make the object/kind checks below look redundant to the type checker.
-	const event: unknown = response.body
-	if (typeof event === 'object' && event !== null && 'kind' in event)
-		printJson(event)
+	// A dead/unreachable desk must NOT return empty-and-0, or the spec's `while ev=$(syneva await)`
+	// loop would spin against a corpse - exit non-zero so the caller re-checks liveness instead.
+	warn(
+		`Desk for session "${live.desk.session}" is not answering (closed, or the hub stopped? ${live.hub.url}).`,
+	)
+	process.exitCode = 1
 }
 
-const NO_CONTENT = 204
-
-function awaitUrl(deskUrl: string, args: CliArgs): string {
-	const base = endpoint(deskUrl, API_PATHS.awaitSend)
-	const timeout = typeof args.timeout === 'string' ? Number(args.timeout) : 0
+function awaitUrl(
+	live: { hub: HubConnection; desk: DeskSummary },
+	args: CliArgs,
+): string {
+	const base = deskEndpoint(live.hub.url, live.desk.id, API_PATHS.awaitSend)
+	const timeout = Number(flagText(args, 'timeout') ?? 0)
 	return timeout > 0 ? `${base}?timeout=${timeout}` : base
 }
 
-// `syneva reload --session <id> [--guide <file>]` - re-diff the working tree into the
-// live desk so the agent's edits show up in the open tab without a restart; --guide
-// swaps the attached review guide in the same round-trip.
+// `syneva reload [--guide <file>]` - re-diff the working tree into the live desk so the agent's
+// edits show up in the open tab; --guide swaps the attached review guide in the same round-trip.
 export async function runReload(args: CliArgs): Promise<void> {
-	const root = await resolveRoot(args)
-	const session = await resolveActionSession(root, args)
-	const lock = await readDeskLock(root, session)
-	if (!lock) {
-		warn(
-			`No live desk for session "${session}" to reload. Start it with: syneva --session ${session}`,
-		)
-		process.exitCode = 1
-		return
-	}
 	const guide = loadGuideArg(args.guide)
 	if (guide === null) {
 		process.exitCode = 1
 		return
 	}
-	const response = await postReload(lock.url, guide)
-	if (!response.ok) {
-		warn('Reload failed - is the desk still running?')
+	const live = await targetDesk(args)
+	if (!live) {
+		warn(`${noDeskHint(args)} (nothing to reload).`)
 		process.exitCode = 1
 		return
 	}
-	const reload = readReloadResult(response.body)
+	const response = await hubSend(
+		live.hub,
+		'POST',
+		deskEndpoint(live.hub.url, live.desk.id, API_PATHS.reload),
+		reloadBody(guide),
+	)
+	if (response.status !== HTTP_OK) {
+		warn('Reload failed - is the desk still open on the hub?')
+		process.exitCode = 1
+		return
+	}
 	printJson({
 		ok: true,
 		live: true,
-		session,
-		baseDiffHash: reload.baseDiffHash,
-		empty: reload.empty,
+		session: live.desk.session,
+		...readReloadResult(response.body),
 	})
+}
+
+// The body is always an object so an absent guide posts `{}` (re-diff only) rather than an
+// empty body the hub would have to special-case.
+function reloadBody(guide: Guide | undefined): { guide?: Guide } {
+	if (!guide) return {}
+	return { guide }
+}
+
+function readReloadResult(body: unknown): {
+	baseDiffHash?: string
+	empty?: boolean
+} {
+	const outcome: { baseDiffHash?: string; empty?: boolean } = {}
+	if (typeof body !== 'object' || body === null) return outcome
+	if ('baseDiffHash' in body && typeof body.baseDiffHash === 'string')
+		outcome.baseDiffHash = body.baseDiffHash
+	if ('empty' in body && typeof body.empty === 'boolean')
+		outcome.empty = body.empty
+	return outcome
+}
+
+// `syneva close [--session <id> | --all]` (alias: stop) - close this repo's live desk(s) on the
+// hub. Idempotent: exit 0 whether or not anything was open, so agents can call it unconditionally
+// when a review round settles. The hub tells a parked waiter (a `closed` event) and keeps the
+// review state saved; the hub itself keeps running.
+export async function runClose(args: CliArgs): Promise<void> {
+	const hub = await connectHub(args, { autostart: false })
+	if (!hub) {
+		printJson({ ok: true, stopped: [], closed: [] })
+		return
+	}
+	const root = await resolveRoot(args)
+	const desks =
+		args.all === true
+			? await listDesks(hub, root)
+			: [await findDesk(hub, root, flagText(args, 'session'))].flatMap(
+					desk => (desk ? [desk] : []),
+				)
+	const closed: string[] = []
+	await Promise.all(
+		desks.map(async desk => {
+			const response = await hubSend(
+				hub,
+				'DELETE',
+				hubEndpoint(hub.url, hubDeskPath(desk.id)),
+			)
+			if (response.status === HTTP_OK) closed.push(desk.session)
+		}),
+	)
+	// `stopped` is the name the previous contract printed; both ride for a transition.
+	printJson({ ok: true, stopped: closed, closed })
 }

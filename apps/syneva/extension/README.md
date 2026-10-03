@@ -9,8 +9,8 @@ server — see "MCP trajectory".
 
 | Path | What it is | Loaded by pi as |
 |---|---|---|
-| `syneva.ts` | The extension entry: keeps the `syneva` CLI shim in `~/.pi/agent/bin`, registers the `/syneva` status command and the `syneva_agent` desk bridge. The only file here that imports compiled output (`dist/pi-bridge.js`). | extension |
-| `prompts/plan.md`, `prompts/review.md` | `/plan` and `/review` prompt templates: start a desk, attach, act on events. | prompt templates |
+| `syneva.ts` | The extension entry: keeps the `syneva` CLI shim in `~/.pi/agent/bin`, registers the `/syneva` status command and the `syneva_agent` desk bridge (which finds the desk through the hub's API). The only file here that imports compiled output (`dist/pi-bridge.js`). | extension |
+| `prompts/plan.md`, `prompts/review.md` | `/plan` and `/review` prompt templates: open a desk on the hub, attach, act on events. | prompt templates |
 | `skills/syneva/SKILL.md` | The bootstrap skill: what Syneva is, when to reach for it, and the single rule that matters — run `syneva spec` for the authoritative contract. | skill |
 | `subagents/syneva-answer.md` | The read-only subagent that answers one review question for pasting into a thread. | subagent |
 
@@ -29,8 +29,8 @@ server — see "MCP trajectory".
 ## MCP trajectory
 
 When Syneva gains an MCP server (`src/mcp/`, wrapping the same desk operations
-— start, await, comment, reload, status — as MCP tools over stdio/HTTP), this
-module is what survives, mostly unchanged:
+— open, await, comment, reload, status, close — as MCP tools over stdio/HTTP, on
+top of the hub's own HTTP API), this module is what survives, mostly unchanged:
 
 - `syneva.ts` shrinks to a thin launcher (or disappears in favor of pi's own
   MCP client configuration); the shim and `/syneva` status go with it.

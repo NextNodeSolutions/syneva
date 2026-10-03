@@ -7,7 +7,7 @@ import {
 import type { QuestionPayload, ReviewResult } from '@syneva/contracts/agent'
 import type { Decision, ReviewComment, ReviewState } from '../domain/review.js'
 
-// The single QuestionPayload constructor - shared by /api/ask (live question event) and
+// The single QuestionPayload constructor - shared by /ask (live question event) and
 // computeOpenQuestions (questions folded into a Send) so the two payload shapes can't drift.
 // lineNumber 0 (whole-file) stamps anchor - the agent reads "file" instead of inferring it.
 export function questionPayload(

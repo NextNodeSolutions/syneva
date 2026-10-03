@@ -4,15 +4,21 @@ import { pathToFileURL } from 'node:url'
 
 import { SPEC } from '@syneva/contracts/spec'
 
-import { parseArgs } from '../adapters/inbound/cli/args.js'
+import { leadingPositionals, parseArgs } from '../adapters/inbound/cli/args.js'
 import {
 	runAwait,
+	runClose,
 	runComment,
 	runReload,
 	runStatus,
-	runStop,
 } from '../adapters/inbound/cli/commands.js'
-import { runDesk } from '../adapters/inbound/cli/launch.js'
+import { runDesks } from '../adapters/inbound/cli/desks.js'
+import { runOpen } from '../adapters/inbound/cli/open.js'
+import {
+	runHubStatus,
+	runHubStop,
+	runStart,
+} from '../adapters/inbound/cli/start.js'
 import { printLine, warn } from '../adapters/outbound/console.js'
 import { currentVersion } from '../adapters/outbound/package-registry/update.js'
 
@@ -20,34 +26,52 @@ import type { CliArgs } from '../adapters/inbound/cli/args.js'
 
 const HELP = `syneva - an integrated review environment (IRE) for code you didn't write by hand.
 
-Usage:
-  syneva [--diff working|staged]    Review the working-tree (default) or staged diff
-  syneva file <path>                Review a single file or artifact (tracked or not)
-  syneva pr <ref|number|url>        Review a branch's commits vs its merge-base
+The hub is one long-running process per machine: it hosts every review desk and serves the
+dashboard. Agents never run a server - they open desks on the hub and attach to them.
+
+Hub:
+  syneva start [--detach]           Run the hub (dashboard at http://127.0.0.1:4747/); --detach backgrounds it
+  syneva hub                        Print the running hub's health as JSON
+  syneva hub stop                   Stop the hub (desks stay saved; the next start restores them)
+
+Desks:
+  syneva open [--diff working|staged] [--path <p>]   Open (or reload) a desk over the working-tree/staged diff
+  syneva open file <path>           Open a desk over a single file or artifact (tracked or not)
+  syneva open pr <ref|number|url>   Open a desk over a branch's commits vs its merge-base
+  syneva desks [--all]              List this repo's live desks (--all: the whole hub) with their URLs
+  syneva close [--session <id>|--all]  Close this repo's desk(s); idempotent (alias: stop)
+  (syneva / syneva file / syneva pr are shorthands for syneva open … and start a hub when none runs)
+
+Agent loop:
+  syneva await [--timeout <s>]      Block for the next desk event (question | review | closed)
   syneva comment --path <f> --line <n> --body "..."   Post an agent reply into the desk
   syneva status --body "..."        Post an ephemeral "what I'm doing" line into the desk
-  syneva await [--timeout <s>]      Block for the next desk event (question | review)
   syneva reload [--guide <file>]    Re-diff the working tree into the open desk
                                     (--guide swaps the attached review guide too)
-  syneva stop [--session <id>|--all]  Stop this repo's live desk(s); idempotent
   syneva spec                       Print the full agent contract (modes, loop, ReviewResult, guide schema)
 
 Common flags:
-  --repo <path>     Repo to review (default: cwd)
+  --repo <path>     Repo to review / target (default: cwd)
   --session <id>    Review session id (default: branch / file-<path> / pr-<ref>)
-  --port <n>        Server port (default: a stable per-session port (41000-50999))
-  --host <addr>     Bind address (default: 127.0.0.1, loopback-only). Bind beyond loopback ONLY on a
-                    fully trusted network - the desk API is unauthenticated (see README)
-  --guide <file>    Attach an AI review guide (JSON)
-  --idle-timeout <m>  Desk auto-exits after <m> minutes with no tab or agent (default 120; 0 = never)
+  --guide <file>    Attach an AI review guide (JSON) when opening or reloading
   --no-open         Don't open the browser
+  --hub <url>       The hub to talk to (default: this machine's hub)
+  --key <secret>    Access key of a key-protected hub (SYNEVA_KEY)
   -h, --help        Show this help
   -v, --version     Show version
 
+Hub flags (syneva start):
+  --port <n>        Hub port (default 4747; agents on another port need SYNEVA_PORT)
+  --host <addr>     Bind address (default 127.0.0.1). Beyond loopback requires --key
+  --key <secret>    Require this access key on every request (hosted mode)
+  --public-url <u>  The origin reviewers use behind a reverse proxy (printed + trusted)
+  --insecure        Allow a non-loopback bind without a key (trusted networks only)
+
 Env:
-  SYNEVA_NO_UPDATE_CHECK=1   Skip the new-version check at desk start
-  SYNEVA_HOST=<addr>         Default --host when the flag is absent
+  SYNEVA_HUB / SYNEVA_KEY / SYNEVA_PORT / SYNEVA_HOST / SYNEVA_PUBLIC_URL   Defaults for the flags above
   SYNEVA_ALLOWED_HOSTS=a,b   Extra Host authorities to accept when bound beyond loopback
+  SYNEVA_NO_AUTOSTART=1      Never start a hub from a desk command
+  SYNEVA_NO_UPDATE_CHECK=1   Skip the new-version check at hub start
 
 Docs: https://github.com/walid-mos/syneva`
 
@@ -66,17 +90,41 @@ async function main(): Promise<void> {
 	}
 	const sub = argv[0] && !argv[0].startsWith('--') ? argv[0] : null
 	const rest = sub ? argv.slice(1) : argv
-	const positional =
-		rest[0] && !rest[0].startsWith('--') ? rest[0] : undefined
-	await dispatch(sub, positional, parseArgs(rest))
+	await dispatch(sub, leadingPositionals(rest), parseArgs(rest))
 }
 
 async function dispatch(
 	sub: string | null,
-	positional: string | undefined,
+	positionals: string[],
 	args: CliArgs,
 ): Promise<void> {
+	const [first, second] = positionals
 	switch (sub) {
+		case 'start':
+			return runStart(args)
+		case 'hub':
+			return first === 'stop' ? runHubStop(args) : runHubStatus(args)
+		case 'open':
+			return dispatchOpen(first, second, args)
+		case 'file':
+			return runOpen('file', first, args)
+		case 'pr':
+			return runOpen('pr', first, args)
+		case null:
+			return runOpen('repo', undefined, args)
+		case 'spec':
+			printLine(SPEC)
+			return
+		default:
+			return dispatchAgentCommand(sub, args)
+	}
+}
+
+// The agent-loop and desk-management verbs - everything that targets a desk already open.
+async function dispatchAgentCommand(sub: string, args: CliArgs): Promise<void> {
+	switch (sub) {
+		case 'desks':
+			return runDesks(args)
 		case 'comment':
 			return runComment(args)
 		case 'status':
@@ -85,37 +133,35 @@ async function dispatch(
 			return runAwait(args)
 		case 'reload':
 			return runReload(args)
+		case 'close':
 		case 'stop':
-			return runStop(args)
-		case 'spec':
-			printLine(SPEC)
-			return
-		case 'file':
-			return runFile(positional, args)
-		case 'pr':
-			return runDesk('pr', positional, args)
-		case null:
-			return runDesk('repo', undefined, args)
+			return runClose(args)
 		default:
 			return unknownCommand(sub)
 	}
 }
 
-async function runFile(
-	positional: string | undefined,
+// `syneva open` reviews the repo; `open file <path>` / `open pr <ref>` pick the other modes.
+function dispatchOpen(
+	first: string | undefined,
+	second: string | undefined,
 	args: CliArgs,
 ): Promise<void> {
-	if (!positional) {
-		warn('Usage: syneva file <path>')
+	if (first === 'file') return runOpen('file', second, args)
+	if (first === 'pr') return runOpen('pr', second, args)
+	if (first) {
+		warn(
+			`Unknown open target "${first}". Use: syneva open | syneva open file <path> | syneva open pr <ref>.`,
+		)
 		process.exitCode = 1
-		return
+		return Promise.resolve()
 	}
-	return runDesk('file', positional, args)
+	return runOpen('repo', undefined, args)
 }
 
 function unknownCommand(sub: string): void {
 	warn(
-		`Unknown command "${sub}". Use: syneva | syneva file <path> | syneva pr <ref|number|url> | comment | status | await | reload | stop | spec.`,
+		`Unknown command "${sub}". Use: start | hub [stop] | open [file <path> | pr <ref>] | desks | await | comment | status | reload | close | spec.`,
 	)
 	process.exitCode = 1
 }
@@ -137,13 +183,12 @@ async function runMain(): Promise<void> {
 	}
 }
 
-// Run only when executed as the bin (`syneva` / `node dist/cli.js`), not when
-// imported as a module (a plain import of this file reaches deskAlive()) - otherwise import alone
-// would launch a desk. npm
-// installs the bin as a SYMLINK (.bin/syneva -> dist/cli.js); Node resolves import.meta.url
-// through the symlink to the real path, but leaves process.argv[1] as the symlink path - so
-// argv[1] must be realpath'd before comparing, or the guard never fires under the published
-// bin and the CLI silently no-ops. try/catch guards a dangling/unusual argv[1].
+// Run only when executed as the bin (`syneva` / `node dist/cli.js`), not when imported as a
+// module - otherwise import alone would open a desk. npm installs the bin as a SYMLINK
+// (.bin/syneva -> dist/cli.js); Node resolves import.meta.url through the symlink to the real
+// path, but leaves process.argv[1] as the symlink path - so argv[1] must be realpath'd before
+// comparing, or the guard never fires under the published bin and the CLI silently no-ops.
+// try/catch guards a dangling/unusual argv[1].
 function isEntryPoint(): boolean {
 	try {
 		return (

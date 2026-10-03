@@ -11,7 +11,9 @@ metadata:
 
 Syneva is a **living** browser surface for a git diff (working tree or staged). A human reviews the diff — accepting/rejecting changes and leaving comments — and clicks **Send to Agent**. The desk does **not** close on send: it keeps running across rounds. The agent attaches to it, receives each send, posts replies that appear in the open tab live, and the human keeps going in the same tab.
 
-The review is the human's; the agent acts on the decisions and answers questions. No model runs inside the desk.
+The desks live on a **hub**: one long-running Syneva process per machine, with a dashboard of every project and desk at `http://127.0.0.1:4747/`. You never run a server yourself - `syneva open` registers a desk on the hub and starts the hub in the background when none runs.
+
+The review is the human's; the agent acts on the decisions and answers questions. No model runs inside the hub.
 
 ## When to use it
 
@@ -23,14 +25,16 @@ Reach for Syneva when the user should review something turn-by-turn: **code chan
 
 ## Quickstart
 
-Three ways to start a review desk (each runs in the background and stays alive across rounds):
+Three ways to open a review desk (each returns at once with the desk's URL; the desk stays alive on the hub across rounds):
 
-- **Changes you made** → `syneva --session <id> &` (working tree; `--diff staged` for staged only).
-- **A markdown plan / single artifact** → `syneva file <path> &`.
-- **A branch / PR** → `syneva pr <ref> &`.
+- **Changes you made** → `syneva open --session <id>` (working tree; `--diff staged` for staged only).
+- **A markdown plan / single artifact** → `syneva open file <path>`.
+- **A branch / PR** → `syneva open pr <ref>`.
 
-Close the desk yourself — once a Send is fully acted on and nothing needs the reviewer's eyes (no edits awaiting re-review, no open questions), run `syneva stop` in that same turn; never end a round asking the human whether to stop, that trades one whole LLM round-trip for an idle desk's closure. `syneva stop` is idempotent and all review state persists for a later restart. An abandoned desk also auto-exits after ~2h with no tab and no agent attached.
+`open` is idempotent: a second open of the same repo+session reloads the live desk into its tab instead of opening another. `syneva desks` lists the repo's live desks (the human may have opened one from the dashboard before you had changes).
+
+Close the desk yourself — once a Send is fully acted on and nothing needs the reviewer's eyes (no edits awaiting re-review, no open questions), run `syneva close` in that same turn; never end a round asking the human whether to close, that trades one whole LLM round-trip for an idle desk's closure. `syneva close` is idempotent, the hub keeps running, and all review state persists for a later open.
 
 ## The authoritative contract: `syneva spec`
 
-**For the full contract — review modes, the `await`/`comment`/`reload` loop, `await` exit semantics, the `ReviewResult` shape, how to act on a review, the guide's grouping schema, reload-vs-restart, concurrency, settings, and errors — run `syneva spec` and follow it.** Do this once per session before your first review.
+**For the full contract — the hub, review modes, the `await`/`comment`/`reload` loop, `await` exit semantics, the `ReviewResult` shape, how to act on a review, the guide's grouping schema, reload-vs-reopen, concurrency, settings, and errors — run `syneva spec` and follow it.** Do this once per session before your first review.
