@@ -1,0 +1,48 @@
+---
+// The comparison: your editor's diff, hosted AI review, Syneva. Every cell
+// stays true for the category as a whole.
+import { section } from '../../components/section.styles'
+import { revealGroup, revealItem } from '../../lib/reveal'
+import { sx } from '../../lib/sx'
+import { compare as c } from './compare.styles'
+
+const COLUMNS = ['Your editor’s diff', 'Hosted AI review'] as const
+const ROWS = [
+	['Who judges the change', 'You, file by file', 'A model, on its servers', 'You, with your agent on call'],
+	['Order you read in', 'The file tree', 'The PR’s file list', 'A walkthrough your agent sets'],
+	['Questions', 'Switch to a chat window', 'Comments on a PR', 'On the exact line, answered there'],
+	['What a verdict is', 'Git staging', 'A bot’s approval', 'Your decision, recorded per change'],
+	['After the agent revises', 'Start over', 'A new review pass', 'Same tab. Only rewritten changes reset'],
+	['Where your code goes', 'Stays local', 'Uploaded for analysis', 'Stays on localhost'],
+] as const
+---
+
+<section {...revealGroup(true, section.ruled, section.pad)} id="compare" aria-labelledby="compare-title">
+	<div {...sx(c.head)}>
+		<h2 {...revealItem()} id="compare-title">Built for the loop<br />your editor wasn’t.</h2>
+		<p {...revealItem(c.headText)}>Editors were designed for writing code. AI reviewers put a model between you and the diff. Syneva is a review surface for the human, with the agent that wrote the code one keystroke away.</p>
+	</div>
+	<div {...revealItem(c.scroll)}>
+		<table {...sx(c.table)}>
+			<thead {...sx(c.thead)}>
+				<tr {...sx(c.row)}>
+					<th {...sx(c.cell, c.column, c.stacked)} scope="col"><span {...sx(c.hidden)}>Aspect</span></th>
+					{COLUMNS.map(column => <th {...sx(c.cell, c.column, c.stacked)} scope="col">{column}</th>)}
+					<th {...sx(c.cell, c.column, c.columnUs, c.stacked)} scope="col">Syneva</th>
+				</tr>
+			</thead>
+			<tbody {...sx(c.stacked)}>
+				{
+					ROWS.map(([aspect, editor, hosted, us]) => (
+						<tr {...sx(c.row)}>
+							<th {...sx(c.cell, c.aspect)} scope="row">{aspect}</th>
+							<td {...sx(c.cell, c.value)} data-label={COLUMNS[0]}>{editor}</td>
+							<td {...sx(c.cell, c.value)} data-label={COLUMNS[1]}>{hosted}</td>
+							<td {...sx(c.cell, c.value, c.valueUs)} data-label="Syneva">{us}</td>
+						</tr>
+					))
+				}
+			</tbody>
+		</table>
+	</div>
+</section>

@@ -1,0 +1,20 @@
+---
+// The problem: writing code got faster, knowing what to trust did not.
+import { section } from '../../components/section.styles'
+import GapChart from '../../art/home/GapChart.astro'
+import { revealGroup, revealItem, scene } from '../../lib/reveal'
+import { sx } from '../../lib/sx'
+import { problem as p } from './sections.styles'
+---
+
+<section {...revealGroup(false, section.pad, p.section)} id="problem" aria-labelledby="problem-title">
+	<div>
+		<h2 {...revealItem()} id="problem-title">Writing code got faster.<br />Knowing what to trust didn’t.</h2>
+		<p {...revealItem(p.text)}>Your agent hands back a long plan and an even longer diff. Your editor shows it as a pile of files. So you scroll, you skim, you ask the agent what it changed, and sometimes you merge and hope.</p>
+		<p {...revealItem(p.text, p.emphasis)}>That gap between what gets written and what gets understood is where bugs, rewrites and lost afternoons come from. Syneva is built to close it: one place to read the work, question it, and decide.</p>
+	</div>
+	<figure {...revealItem(p.figure)} {...scene}>
+		<GapChart />
+		<figcaption {...sx(p.caption)}>Conceptual drawing. No data, no benchmark.</figcaption>
+	</figure>
+</section>

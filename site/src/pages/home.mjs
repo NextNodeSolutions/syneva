@@ -33,7 +33,7 @@ const hero = () => `<section class="hero" aria-labelledby="hero-title">
             <a class="text-link" href="#how">See how it works <span aria-hidden="true">↓</span></a>
           </div>
           ${command('npm install -g syneva', 'Installation command')}
-          <p class="hero-works"><span>Works with the agent you already use</span> Claude Code · Codex · Cursor · pi · your own scripts</p>
+          <p class="hero-works"><span>Works with the agent you already use</span> Codex · Cursor · pi · your own scripts</p>
         </div>
         <figure class="hero-stage motion-scene">
           <div class="figure-top"><span><span class="live-dot" aria-hidden="true"></span>ONE REVIEW ROUND</span><span>ILLUSTRATIVE · NOT A SCREENSHOT</span></div>
@@ -244,7 +244,7 @@ const faq = () => `<section class="faq section-pad" id="faq" aria-labelledby="fa
 		],
 		[
 			'Which coding agents work with it?',
-			'Any of them. The contract is plain JSON on stdout plus a localhost HTTP server. Syneva ships as a pi package, and Claude Code, Codex, Cursor or a shell script can drive the standalone CLI.',
+			'Any of them. The contract is plain JSON on stdout plus a localhost HTTP server. Syneva ships as a pi package, and Codex, Cursor or a shell script can drive the standalone CLI.',
 		],
 		[
 			'Can I use the plan desk today?',

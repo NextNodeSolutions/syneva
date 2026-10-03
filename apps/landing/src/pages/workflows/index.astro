@@ -1,0 +1,56 @@
+---
+import WorkflowHub from '../../art/workflows/WorkflowHub.astro'
+import Button from '../../components/Button.astro'
+import CtaBand from '../../components/CtaBand.astro'
+import Callout from '../../components/page/Callout.astro'
+import IndexRows from '../../components/page/IndexRows.astro'
+import PageHero from '../../components/page/PageHero.astro'
+import Prose from '../../components/page/Prose.astro'
+import ProseText from '../../components/page/ProseText.astro'
+import SpecTable from '../../components/page/SpecTable.astro'
+import TextLink from '../../components/TextLink.astro'
+import { sectionById } from '../../content/site-map'
+import Document from '../../layouts/Document.astro'
+
+const route = '/workflows/'
+const COMMANDS = [
+	['syneva', 'The working-tree diff, untracked files included.'],
+	['syneva --path src/auth', 'The same, narrowed to one path.'],
+	['syneva --diff staged', 'Only what is staged in the index.'],
+	['syneva pr <ref>', 'A branch, PR number or GitHub URL vs its merge-base.'],
+	['syneva pr <ref> --base main', 'The same, against a base you choose.'],
+	['syneva file <path>', 'One file, tracked or not.'],
+	['syneva --guide <file>', 'Attach your agent’s reading order to any of the above.'],
+	['syneva stop', 'Shut the desk down. Your review state stays saved.'],
+] as const
+---
+
+<Document
+	route={route}
+	page="sub"
+	title="Workflows · Syneva"
+	description="Review your working tree, your staged changes, a branch or pull request, or a single file like a plan. Four ways in, one local desk, one structured verdict."
+>
+	<PageHero
+		route={route}
+		crumb="Workflows"
+		title="Four ways in.<br>One desk."
+		lede="Review whatever your agent just did: the working tree, what you staged, a whole branch or pull request, or a single file like a plan. The desk, the keys and the handoff stay the same every time."
+		caption="Every mode produces the same verdict. Its mode field says how to read it."
+	>
+		<Fragment slot="actions"><Button href="/get-started/" label="Start a local review" /><TextLink href="/product/" label={'What’s on the desk'} /></Fragment>
+		<WorkflowHub slot="art" />
+	</PageHero>
+	<Prose id="modes" title="Pick the one<br>that fits the moment.">
+		<IndexRows items={sectionById('workflows').items} hasCode />
+	</Prose>
+	<Prose id="commands" title="Every command,<br>at a glance.">
+		<SpecTable rows={COMMANDS} head={['Command', 'What opens']} />
+		<ProseText>Your agent drives the rest of the loop with <code>await</code>, <code>comment</code>, <code>status</code> and <code>reload</code>. <TextLink href="/resources/connect-your-agent/" label="See the agent contract" /></ProseText>
+	</Prose>
+	<Prose id="remote" title="Reviewing from<br>another machine?">
+		<ProseText>The desk binds to <code>127.0.0.1</code> by default. For a remote-dev setup, <code>--host</code> binds it wider so you can review from your laptop while the agent runs on a server; its subcommands keep talking over loopback.</ProseText>
+		<Callout lead="Only on a network you fully trust.">The desk API is unauthenticated: anyone who can reach the address can drive the desk. A personal tailnet is fine. A coffee-shop Wi-Fi is not.</Callout>
+	</Prose>
+	<CtaBand />
+</Document>

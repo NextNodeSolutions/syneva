@@ -1,0 +1,62 @@
+---
+// Working tree: modified and untracked files, and --path as a lens.
+import { sx } from '../../lib/sx'
+import ArtFrame from '../kit/ArtFrame.astro'
+import Drawing from '../kit/Drawing.astro'
+import { anim } from '../kit/anim'
+import { shape } from '../kit/shape.styles'
+import { text } from '../kit/text.styles'
+import FileList from './FileList.astro'
+import { workflowsArt as w } from './workflows-art.styles'
+
+const ROWS = [
+	{ name: 'src/auth/session.ts', status: 'M', y: 92 },
+	{ name: 'src/auth/token.ts', status: 'M', y: 120 },
+	{ name: 'src/api/middleware.ts', status: 'M', y: 148 },
+	{ name: 'src/limits/rate.ts', status: 'A', y: 176 },
+	{ name: 'docs/plan.md', status: '', y: 204 },
+	{ name: 'package.json', status: '', y: 232 },
+] as const
+const ALL = [
+	['src/auth/session.ts', 'mod'],
+	['src/auth/token.ts', 'mod'],
+	['src/api/middleware.ts', 'mod'],
+	['src/limits/rate.ts', 'add'],
+] as const
+const AUTH = ALL.slice(0, 2)
+const TO_ALL = 'M250 150C300 150 300 100 350 100'
+const TO_AUTH = 'M250 106C320 106 280 290 350 290'
+---
+
+<Drawing viewBox="0 0 600 400" compact="20 30 566 350" labelledby="wt-title wt-desc">
+	<title id="wt-title">The working tree, whole or narrowed</title>
+	<desc id="wt-desc">Your repository has three modified files and one new untracked file. syneva reviews all four, the new one as a full-file addition. syneva --path src/auth narrows the desk to the two files under src/auth.</desc>
+	<ArtFrame id="wt" width={600} height={400} />
+	<g {...anim('rise', 0)}>
+		<rect {...sx(shape.panel)} x="40" y="60" width="210" height="196"></rect><text {...sx(text.tiny)} x="40" y="50">YOUR REPOSITORY</text>{
+			ROWS.map(({ name, status, y }) => (
+				<Fragment>
+					<text {...sx(text.file, !status && text.muted)} x="58" y={y}>{name}</text>
+					{status && (
+						<Fragment>
+							<rect {...sx(status === 'A' ? w.statusAdd : w.statusMod)} x="216" y={y - 11} width="16" height="15" />
+							<text {...sx(text.tiny, status === 'A' ? text.green : text.accent)} x="224" y={y} text-anchor="middle">{status}</text>
+						</Fragment>
+					)}
+				</Fragment>
+			))
+		}
+	</g>
+	<path {...anim('draw', 0.9, shape.bracket)} pathLength="1" d="M50 88v-10h8M50 122v10h8"></path>
+	<text {...anim('fade', 1, text.tiny, text.accent)} x="40" y="282">--path src/auth</text>
+	<g fill="none">
+		<path {...anim('draw', 0.5, shape.route)} pathLength="1" d={TO_ALL}></path>
+		<path {...anim('draw', 1.1, shape.route, shape.routeAccent)} pathLength="1" d={TO_AUTH}></path>
+		<path {...anim('signal', 1.6, shape.signal)} pathLength="100" d={TO_ALL}></path>
+		<path {...anim('signal', 2.4, shape.signal)} pathLength="100" d={TO_AUTH}></path>
+	</g>
+	<FileList files={ALL} x={350} y={60} label="$ syneva" delay={0.6} />
+	<FileList files={AUTH} x={350} y={250} label="$ syneva --path src/auth" delay={1.2} />
+	<text {...anim('fade', 1.4, text.tiny, text.green, shape.secondary)} x="40" y="330">A · UNTRACKED → FULL-FILE ADDITION</text>
+	<text {...anim('fade', 1.5, text.tiny, shape.secondary)} x="40" y="348">UNCHANGED FILES STAY OUT</text>
+</Drawing>

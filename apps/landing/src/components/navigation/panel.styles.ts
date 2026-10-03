@@ -1,0 +1,77 @@
+import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/tokens/media.stylex'
+import { color } from '@syneva/tokens/tokens.stylex'
+
+import { menuSpacing } from './menu.stylex'
+
+const INSET = menuSpacing.inset
+
+export const panel = stylex.create({
+	base: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		width: 'min(var(--panel-width), var(--nav-available))',
+		opacity: 'var(--opacity, 0)',
+		transform: {
+			default: 'translateX(calc(var(--offset, 0) * 1px))',
+			[media.motionReduced]: 'none',
+		},
+		'--menu-title-line': 'calc(20 / 14)',
+		pointerEvents: { default: 'none', ':is(.is-active)': 'auto' },
+		// The open panel scrolls inside the shell when the viewport is short.
+		maxHeight: {
+			default: null,
+			':is(.is-active)': 'var(--panel-max-height)',
+		},
+		overflowY: { default: null, ':is(.is-active)': 'auto' },
+		overscrollBehavior: { default: null, ':is(.is-active)': 'contain' },
+		zIndex: { default: null, ':is(.is-active)': 1 },
+	},
+	product: {
+		'--panel-width': {
+			default: '640px',
+			[media.compact]: 'var(--nav-available)',
+		},
+	},
+	workflows: {
+		'--panel-width': {
+			default: '540px',
+			[media.compact]: 'var(--nav-available)',
+		},
+	},
+	resources: {
+		'--panel-width': {
+			default: '340px',
+			[media.compact]: 'var(--nav-available)',
+		},
+	},
+	productBody: {
+		display: 'grid',
+		gridTemplateColumns: { default: '1fr 1fr', [media.compact]: '1fr' },
+		padding: INSET,
+		gap: INSET,
+	},
+	productLinks: {
+		position: 'relative',
+		isolation: 'isolate',
+		'::before': {
+			content: "''",
+			position: 'absolute',
+			inset: '0 0 auto',
+			height: 'calc(var(--selection-height, 66) * 1px)',
+			backgroundColor: color['--paper'],
+			borderRadius: '5px',
+			transform: 'translateY(calc(var(--selection-y, 0) * 1px))',
+			zIndex: -1,
+			pointerEvents: 'none',
+		},
+	},
+	resourceLinks: { padding: INSET },
+	workflowLinks: {
+		display: 'grid',
+		gridTemplateColumns: { default: '1fr 1fr', [media.compact]: '1fr' },
+		padding: INSET,
+		columnGap: INSET,
+	},
+})

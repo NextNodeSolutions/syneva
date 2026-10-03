@@ -1,0 +1,16 @@
+---
+// The primary action: a petrol link with an arrow that steps forward on hover.
+import type { Part } from '../lib/sx'
+import { sx } from '../lib/sx'
+import ArrowRight from './ArrowRight.astro'
+import { button } from './actions.styles'
+import { buttonMarker } from './actions.stylex'
+
+type Props = { href: string; label: string; isSmall?: boolean; css?: Part }
+
+const { href, label, isSmall = false, css } = Astro.props
+---
+
+<a {...sx(button.base, isSmall && button.small, button.primary, css, buttonMarker)} href={href}>
+	{label} <ArrowRight css={button.arrow} />
+</a>

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for coding agents (pi, Claude Code, Codex, …) working with code in this repository.
+Guidance for coding agents (pi, Codex, …) working with code in this repository.
 
 ## What this is
 

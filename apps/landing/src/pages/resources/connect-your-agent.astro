@@ -1,0 +1,89 @@
+---
+import ProtocolWire from '../../art/resources/ProtocolWire.astro'
+import Command from '../../components/Command.astro'
+import CtaBand from '../../components/CtaBand.astro'
+import PageHero from '../../components/page/PageHero.astro'
+import Pager from '../../components/page/Pager.astro'
+import Prose from '../../components/page/Prose.astro'
+import ProseText from '../../components/page/ProseText.astro'
+import RuledList from '../../components/page/RuledList.astro'
+import SpecTable from '../../components/page/SpecTable.astro'
+import Terminal from '../../components/page/Terminal.astro'
+import TextLink from '../../components/TextLink.astro'
+import { REPO_URL } from '../../content/site-map'
+import Document from '../../layouts/Document.astro'
+
+const route = '/resources/connect-your-agent/'
+const PI = [
+	['/review and /plan.', 'Prompt templates that start a desk, attach your session and act on each event.'],
+	['One correspondent per desk.', 'A read-only thread answers your questions, so your main session only wakes for finished reviews, closed desks and failures.'],
+	['/syneva.', 'A status command inside pi: which CLI, shim and package paths your setup is using.'],
+] as const
+const LOOP = [
+	'$ syneva --session auth &',
+	'$ while ev=$(syneva await); do',
+	'    case "$(jq -r .kind <<<"$ev")" in',
+	'      question) syneva comment --path … --line … --body "…" ;;',
+	'      review)   # act on .result, then: syneva reload',
+	'                ;;',
+	'      closed)   exit 0 ;;',
+	'    esac',
+	'  done',
+]
+const SUBCOMMANDS = [
+	['syneva await', 'Block until the next event and print it as one JSON envelope.'],
+	['syneva comment', 'Reply on a path, line and side. Appears live in the thread.'],
+	['syneva status', 'A one-line “doing X now” beside your spinner.'],
+	['syneva reload', 'Re-diff the working tree into the open tab, optionally with a new guide.'],
+	['syneva stop', 'Shut the desk down. Idempotent; review state stays saved.'],
+	['syneva spec', 'Print the whole contract.'],
+] as const
+const EVENTS = [
+	['question', 'You asked something. Answer it, read-only, on the same line.'],
+	['review', 'You clicked Send. The result field is your ReviewResult.'],
+	['closed', 'You ended the review from the browser. The round is over.'],
+] as const
+const ACTING = [
+	['rejected → revert it.', 'You don’t want that change.'],
+	['requestedChanges → make the edit.', 'At that path and line, or across the file for a whole-file request.'],
+	['accepted and approvedFiles → leave them.', 'They are settled. Touching them reopens them for review.'],
+	['Then syneva reload.', 'Your tab shows the next revision. Anything rewritten is pending again.'],
+] as const
+---
+
+<Document
+	route={route}
+	page="sub"
+	title="Connect your agent · Syneva"
+	description="Any agent can drive the Syneva desk: plain JSON on stdout and a localhost HTTP server, documented in full by syneva spec. The pi package wires it up for you."
+>
+	<PageHero
+		route={route}
+		crumb="Connect your agent"
+		title="Any agent can drive the desk."
+		lede="The contract is plain JSON on stdout and a localhost HTTP server, documented in full by <code>syneva spec</code>. If your agent can run a shell command, it can receive your review."
+		caption="Five subcommands out, three events back."
+	>
+		<Fragment slot="actions"><Command text="syneva spec" label="Print the agent contract" /><TextLink href={`${REPO_URL}/blob/main/packages/contracts/src/spec.ts`} label="Read the source" isExternal /></Fragment>
+		<ProtocolWire slot="art" />
+	</PageHero>
+	<Prose id="pi" title={'With pi,<br>it’s wired for you.'}>
+		<RuledList items={PI} />
+	</Prose>
+	<Prose id="loop" title="Everywhere else,<br>a short loop.">
+		<ProseText>Start the desk in the background, then wait for events and branch on their kind. This is the shape; <code>syneva spec</code> has every detail.</ProseText>
+		<Terminal lines={LOOP} title="any agent" />
+	</Prose>
+	<Prose id="subcommands" title="Subcommands.">
+		<SpecTable rows={SUBCOMMANDS} head={['Command', 'What it does']} />
+	</Prose>
+	<Prose id="events" title="Events.">
+		<SpecTable rows={EVENTS} head={['Kind', 'Meaning']} />
+		<ProseText>A <code>ReviewResult</code> carries <code>accepted</code>, <code>rejected</code>, <code>requestedChanges</code>, <code>approvedFiles</code>, <code>stagedFiles</code>, <code>openQuestions</code> and an optional <code>overallNote</code>. The arrays are the review: there is no prose summary to parse.</ProseText>
+	</Prose>
+	<Prose id="acting" title="How an agent<br>acts on a verdict.">
+		<RuledList items={ACTING} />
+	</Prose>
+	<CtaBand />
+	<Pager route={route} />
+</Document>

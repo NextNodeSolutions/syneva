@@ -1,0 +1,63 @@
+---
+// Walkthrough: the git order on the left becomes the guide's order on the
+// right; each file travels from its place in git's list to its section.
+import { sx } from '../../lib/sx'
+import ArtFrame from '../kit/ArtFrame.astro'
+import Drawing from '../kit/Drawing.astro'
+import { anim, move } from '../kit/anim'
+import { shape } from '../kit/shape.styles'
+import { text } from '../kit/text.styles'
+import { productArt as p } from './product-art.styles'
+import { twoDigits } from '../../lib/step-number'
+
+const GIT_ORDER = ['README.md', 'api/middleware.ts', 'auth/session.ts', 'contracts/review.ts', 'lib/hash.ts', 'pages/desk.tsx']
+const ROW = 44
+const TOP = 92
+const ghostY = (name: string): number => TOP + GIT_ORDER.indexOf(name) * ROW
+const SECTIONS = [
+	{ label: '01 · CONTRACTS', y: 84, rows: [['contracts/review.ts', 92]] },
+	{ label: '02 · BEHAVIOR', y: 146, rows: [['auth/session.ts', 154], ['api/middleware.ts', 190]] },
+	{ label: '03 · INTERFACE', y: 246, rows: [['pages/desk.tsx', 254]] },
+	{ label: 'OTHER · LISTED ANYWAY', y: 308, rows: [['README.md', 316], ['lib/hash.ts', 352]] },
+] as const
+const OTHER = SECTIONS.length - 1
+// Chips are numbered in reading order across sections.
+const chips = SECTIONS.flatMap((section, s) => section.rows.map(([name, y]) => ({ name, y, s })))
+const orderOf = (name: string): number => chips.findIndex(chip => chip.name === name) + 1
+---
+
+<Drawing viewBox="0 0 600 420" compact="300 40 290 360" labelledby="sort-title sort-desc">
+	<title id="sort-title">From git's order to a reading order</title>
+	<desc id="sort-desc">On the left, six changed files in the order git lists them. On the right, the same files in the order your agent's guide sets: contracts first, then behavior, then the interface. Two files the guide does not mention land in a trailing Other section, so nothing is hidden.</desc>
+	<ArtFrame id="sort" width={600} height={420} />
+	<text {...sx(text.tiny)} x="30" y="72">AS GIT LISTS IT</text>
+	<text {...sx(text.tiny, text.accent)} x="330" y="56">AS YOUR AGENT GUIDES IT</text>
+	{
+		GIT_ORDER.map((name, i) => (
+			<Fragment>
+				<rect {...sx(p.guideGhost)} x="30" y={TOP + i * ROW} width="210" height="28" />
+				<text {...sx(text.file, text.muted)} x="44" y={110 + i * ROW}>{name}</text>
+			</Fragment>
+		))
+	}
+	<path {...anim('draw', 0.2, shape.route)} pathLength="1" d="M258 200h52"></path>
+	<path {...anim('signal', 2, shape.signal)} pathLength="100" d="M258 200h52"></path>
+	<text {...anim('fade', 0.3, text.tiny)} x="284" y="190" text-anchor="middle">--guide</text>
+	{
+		SECTIONS.map(({ label, y, rows }, s) => (
+			<Fragment>
+				<text {...anim('fade', 0.3 + s * 0.25, text.tiny, s !== OTHER && text.accent)} x="330" y={y - 4}>{label}</text>
+				{rows.map(([name, ry]) => {
+					const order = orderOf(name)
+					return (
+						<g {...move(0.5 + order * 0.2, -300, ghostY(name) - ry)}>
+							<rect {...sx(p.guideChip, s === OTHER && p.guideChipOther)} x="330" y={ry} width="240" height="28" />
+							<text {...sx(text.file)} x="344" y={ry + 18}>{name}</text>
+							<text {...sx(text.tiny)} x="556" y={ry + 18} text-anchor="end">{twoDigits(order)}</text>
+						</g>
+					)
+				})}
+			</Fragment>
+		))
+	}
+</Drawing>

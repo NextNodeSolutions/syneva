@@ -39,7 +39,7 @@ const GROUPS = [
 		[
 			[
 				'Which coding agents work with it?',
-				'Any of them. The contract is plain JSON on stdout plus a localhost HTTP server. Syneva ships as a pi package, and Claude Code, Codex, Cursor or a shell script can drive the standalone CLI.',
+				'Any of them. The contract is plain JSON on stdout plus a localhost HTTP server. Syneva ships as a pi package, and Codex, Cursor or a shell script can drive the standalone CLI.',
 			],
 			[
 				'Do I need pi?',

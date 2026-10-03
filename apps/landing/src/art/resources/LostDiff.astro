@@ -1,0 +1,32 @@
+---
+// 404: the page you wanted, as a rejected change.
+import { sx } from '../../lib/sx'
+import { homeArt as h } from '../home/home-art.styles'
+import ArtFrame from '../kit/ArtFrame.astro'
+import Drawing from '../kit/Drawing.astro'
+import { anim } from '../kit/anim'
+import { shape } from '../kit/shape.styles'
+import { text } from '../kit/text.styles'
+---
+
+<Drawing viewBox="0 0 560 320" labelledby="lost-title lost-desc">
+	<title id="lost-title">This page, as a diff</title>
+	<desc id="lost-desc">A diff where the path you asked for is removed and the home page is added, with a question thread asking where the page went.</desc>
+	<ArtFrame id="lost" width={560} height={320} />
+	<g {...anim('rise', 0)}>
+		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="50" width="480" height="128"></rect>
+		<text {...sx(text.file, text.strong)} x="56" y="74">routes.ts</text><text {...sx(text.tiny)} x="504" y="74" text-anchor="end">+1 −1</text>
+		<path {...sx(shape.hair)} d="M40 86h480"></path>
+		<rect {...sx(shape.bandNo)} x="41" y="98" width="478" height="26"></rect>
+		<text {...sx(text.code, text.accent)} x="56" y="116">− /the-page-you-wanted</text>
+		<path {...anim('draw', 0.5, shape.strike)} pathLength="1" d="M72 112h160"></path>
+		<rect {...anim('sweep', 0.8, shape.bandYes)} x="41" y="134" width="478" height="26"></rect>
+		<text {...sx(text.code, text.green)} x="56" y="152">+ /</text>
+	</g>
+	<path {...anim('draw', 1, h.askAnchor)} pathLength="1" d="M70 178v28"></path>
+	<g {...anim('rise', 1.1)}>
+		<rect {...sx(h.askThread)} x="56" y="206" width="420" height="78"></rect><path {...sx(h.askRail)} d="M56 206v78"></path>
+		<text {...sx(text.tiny)} x="72" y="226">YOU · ASK</text><text {...sx(text.copy)} x="72" y="244">Where did this page go?</text>
+		<text {...anim('fade', 1.6, text.small)} x="72" y="270">It isn&rsquo;t here. Every page that exists is linked below.</text>
+	</g>
+</Drawing>

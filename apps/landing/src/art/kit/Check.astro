@@ -1,0 +1,16 @@
+---
+// A settled verdict: a mint box with a check. With a delay it pops in.
+import { sx } from '../../lib/sx'
+import { anim } from './anim'
+import { shape } from './shape.styles'
+
+type Props = { x: number; y: number; size?: number; delay?: number }
+
+const { x, y, size = 11, delay } = Astro.props
+// The tick's proportions of the box (start, stroke, rise).
+const TICK = { left: 0.25, top: 0.52, down: 0.18, across: 0.33, up: 0.37 } as const
+const tick = `m${x + size * TICK.left} ${y + size * TICK.top}l${size * TICK.down} ${size * TICK.down} ${size * TICK.across}-${size * TICK.up}`
+const group = typeof delay === 'number' ? anim('pop', delay) : undefined
+---
+
+<g {...group}><rect {...sx(shape.yes)} x={x} y={y} width={size} height={size}></rect><path {...sx(shape.check)} d={tick}></path></g>

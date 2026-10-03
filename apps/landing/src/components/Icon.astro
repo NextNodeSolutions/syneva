@@ -1,0 +1,13 @@
+---
+// A 24px line icon from the site map's set.
+import type { IconName } from '../content/site-map'
+import { ICONS } from '../content/site-map'
+import type { Part } from '../lib/sx'
+import { sx } from '../lib/sx'
+
+type Props = { name: IconName; css?: Part }
+
+const { name, css } = Astro.props
+---
+
+<svg {...sx(css)} viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[name]}></path></svg>

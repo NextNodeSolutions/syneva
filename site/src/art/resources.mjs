@@ -84,7 +84,7 @@ export function protocolWire() {
   <title id="wire-title">The contract between your agent and the desk</title>
   <desc id="wire-desc">Your agent talks to the desk with five CLI subcommands: await, comment, status, reload and stop. The desk answers with three kinds of event: question, review and closed. Everything is plain JSON on stdout and a localhost HTTP server.</desc>
   ${artFrame('wire', 600, 420)}
-  <g class="a-rise" ${d(0)}><rect class="art-panel is-white" x="40" y="150" width="140" height="120"/><text class="art-tiny" x="54" y="172">YOUR AGENT</text><text class="art-small" x="54" y="194">Claude Code,</text><text class="art-small" x="54" y="211">Codex, Cursor,</text><text class="art-small" x="54" y="228">pi, a script</text><text class="art-code is-accent" x="54" y="256">$ syneva …</text></g>
+  <g class="a-rise" ${d(0)}><rect class="art-panel is-white" x="40" y="150" width="140" height="120"/><text class="art-tiny" x="54" y="172">YOUR AGENT</text><text class="art-small" x="54" y="194">Any agent,</text><text class="art-small" x="54" y="211">Codex, Cursor,</text><text class="art-small" x="54" y="228">pi, a script</text><text class="art-code is-accent" x="54" y="256">$ syneva …</text></g>
   <g class="a-rise" ${d(0.2)}><rect class="art-panel is-white" x="420" y="150" width="140" height="120"/><text class="art-tiny" x="434" y="172">YOUR DESK</text><text class="art-small" x="434" y="198">localhost, the tab</text><text class="art-small" x="434" y="216">you review in</text>${check(434, 236, 12)}<rect class="art-pending" x="452" y="236" width="12" height="12"/></g>
   <g fill="none">
     <path class="art-route a-draw" pathLength="1" ${d(0.5)} d="M180 180H420"/>
@@ -191,7 +191,7 @@ export function historyRail() {
 
 // Open source: a protocol, an interface, and no model inside.
 export function openBox() {
-	const agents = ['Claude Code', 'Codex', 'Cursor', 'pi', 'your script']
+	const agents = ['Any agent', 'Codex', 'Cursor', 'pi', 'your script']
 	return `<svg viewBox="0 0 600 420" data-compact="20 40 570 350" role="img" aria-labelledby="oss-title oss-desc">
   <title id="oss-title">A protocol and an interface, nothing more</title>
   <desc id="oss-desc">Any agent plugs into Syneva over JSON on stdout. Syneva serves your desk over localhost HTTP. The slot where a model would sit is empty, on purpose. MIT licensed.</desc>

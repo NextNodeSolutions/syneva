@@ -45,7 +45,7 @@ export default {
 						['Node 22+', 'For the CLI.'],
 						['git', 'Every review mode reads your repository through git.'],
 						['A browser', 'The desk is a tab on localhost.'],
-						['Your coding agent', 'Claude Code, Codex, Cursor, pi, or anything that runs a shell command.'],
+						['Your coding agent', 'Codex, Cursor, pi, or anything that runs a shell command.'],
 						['gh (optional)', 'Only to review pull requests by number or URL.'],
 					],
 					['Requirement', 'Why'],

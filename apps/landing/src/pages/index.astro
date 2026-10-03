@@ -1,0 +1,33 @@
+---
+import CtaBand from '../components/CtaBand.astro'
+import Document from '../layouts/Document.astro'
+import Chapters from '../sections/home/Chapters.astro'
+import Compare from '../sections/home/Compare.astro'
+import Facts from '../sections/home/Facts.astro'
+import Faq from '../sections/home/Faq.astro'
+import Handoff from '../sections/home/Handoff.astro'
+import Hero from '../sections/home/Hero.astro'
+import How from '../sections/home/How.astro'
+import Local from '../sections/home/Local.astro'
+import Principles from '../sections/home/Principles.astro'
+import Problem from '../sections/home/Problem.astro'
+---
+
+<Document
+	route="/"
+	page="home"
+	title="Syneva: the review desk for code your agent wrote"
+	description="Your agent writes. You decide what ships. Syneva is a local, open-source review desk: read the diff in order, ask on the exact line, record a verdict on every change, and hand it back to your agent."
+>
+	<Hero />
+	<Principles />
+	<Problem />
+	<How />
+	<Chapters />
+	<Handoff />
+	<Compare />
+	<Facts />
+	<Local />
+	<CtaBand />
+	<Faq />
+</Document>

@@ -1,0 +1,26 @@
+{
+	"name": "@syneva/landing",
+	"version": "0.0.0",
+	"private": true,
+	"description": "The public site at syneva.dev: a static Astro site styled with StyleX and animated with Motion. Built to dist/, assembled for deploy by the root build.",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"check": "astro check"
+	},
+	"dependencies": {
+		"@stylexjs/stylex": "0.19.1",
+		"@syneva/motion": "workspace:*",
+		"@syneva/tokens": "workspace:*",
+		"astro": "7.3.5",
+		"motion": "14.0.0"
+	},
+	"devDependencies": {
+		"@astrojs/check": "0.9.10",
+		"@stylexjs/unplugin": "0.19.1",
+		"typescript": "^6.0.3"
+	}
+}
