@@ -20,6 +20,6 @@ Copy follows `PRODUCT.md`: first-person, direct, low-hype, and every claim true 
 
 - The markup is always the finished pose. Hidden poses are StyleX styles armed by `html[data-motion]`, and the safety net shows everything after 3s if the runtime never boots.
 - A drawing element opts in with `data-anim` and an optional `data-delay`; nested elements inherit the nearest delay, as the CSS `--d` they replace did.
-- A scene that resumes after a pause (scrolled back into view, tab shown again) replays the entrances that had finished, exactly as the stylesheet animations did through the browser's auto-rewind.
-- An element without a box (`display: none`, a drawing's secondary words on phones) does not animate, and starts over when it gets its box back, as stylesheet animations do.
+- An entrance plays once. A scene pauses only its running animations while it is out of view (or the tab is hidden) and resumes them where they paused; it never calls `play()` on one sitting at its end, because the Web Animations auto-rewind would restart it from its first frame and the finished element would vanish and enter again.
+- An element without a box (`display: none`, a drawing's secondary words on phones) animates unseen and shows its finished pose if it gets a box later.
 - `@syneva/motion` is the site's only way to Motion: the landing never imports `motion` or `motion/*` itself (oxlint rejects it). `animate` comes from `@syneva/motion/animate`, the package's one seam onto the engine, and a Motion API the site needs is exported from the package first, so the engine can change without touching the site.

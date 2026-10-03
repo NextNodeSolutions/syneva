@@ -21,5 +21,14 @@ export function booted(): Promise<void> {
 	return ready
 }
 
+// A printout is the finished page: the poses are disarmed for the print
+// styles and re-armed afterwards (revealed pieces keep their inline pose).
+window.addEventListener('beforeprint', () => {
+	delete document.documentElement.dataset.motion
+})
+window.addEventListener('afterprint', () => {
+	document.documentElement.dataset.motion = 'ready'
+})
+
 // The inline head script, verbatim: arms the poses before the first paint.
 export const ARM_SCRIPT = "document.documentElement.dataset.motion='pending'"
