@@ -6,7 +6,7 @@
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
-		"build": "node ../../scripts/clean-dist.mjs && tsc",
+		"build": "rm -rf dist && tsc",
 		"check": "tsc --noEmit"
 	},
 	"dependencies": {

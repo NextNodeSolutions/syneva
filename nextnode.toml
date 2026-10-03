@@ -24,11 +24,12 @@ url = "syneva.dev"
 # Static-assets-only Worker (core deploy-workers pipeline): no script at all -
 # the site is pure static, requests are answered by the assets, so there is no
 # _worker.js convention to feed the infra and no source dir for wrangler's
-# assets guard to refuse. The assets root is declared directly.
+# assets guard to refuse. The assets root is the Astro build itself, relative
+# to this file; apps/landing/public/healthz rides along for the smoke check.
 entry = false
-assets = "dist"
+assets = "apps/landing/dist"
 
 [scripts]
 lint = "lint"
 test = false # repo policy: no test suite yet
-build = false # the workflow's pnpm build assembles dist/ via build:landing
+build = false # the workflow's pnpm build (turbo) builds apps/landing/dist

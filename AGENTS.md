@@ -10,7 +10,7 @@ Product positioning lives in `PRODUCT.md`, the UI design language in `DESIGN.md`
 
 ## Landing deploy
 
-The static landing (`apps/landing`, an Astro app) deploys to Cloudflare Workers (static assets) through CI only, never from a local machine. Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). `pnpm build` assembles the bundle (turbo builds every page of `apps/landing` into `apps/landing/dist`, then `scripts/build-landing.mjs` copies it to the root `dist/` with a static `/healthz`; see `apps/landing/AGENTS.md`).
+The static landing (`apps/landing`, an Astro app) deploys to Cloudflare Workers (static assets) through CI only, never from a local machine. Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). `pnpm build` (turbo) builds every page of `apps/landing` into `apps/landing/dist`, the assets root `nextnode.toml` declares for the Worker (`assets = "apps/landing/dist"`, resolved from the repo root); `apps/landing/public/healthz` ships with it for the pipeline's smoke check (see `apps/landing/AGENTS.md`).
 
 ## Commands
 
