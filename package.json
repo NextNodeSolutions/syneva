@@ -17,7 +17,7 @@
 	},
 	"scripts": {
 		"dev": "pnpm --filter syneva dev",
-		"dev:site": "node scripts/serve-site.mjs",
+		"dev:site": "pnpm --filter @syneva/landing dev",
 		"build": "turbo run build && pnpm build:landing",
 		"build:landing": "node scripts/build-landing.mjs",
 		"start": "node apps/syneva/dist/cli.js",
