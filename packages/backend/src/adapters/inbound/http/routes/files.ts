@@ -9,8 +9,8 @@ import { HTTP_NOT_FOUND, HTTP_OK, json, fail } from '../http.js'
 
 import type { RouteRequest } from '../router.js'
 
-// GET /api/file - read an arbitrary repo file, for previewing/commenting on unchanged files. Same
-// strict path boundary as /api/file-contents (repo-relative, no escapes).
+// GET /file - read an arbitrary repo file, for previewing/commenting on unchanged files. Same
+// strict path boundary as /file-contents (repo-relative, no escapes).
 export async function serveFile({
 	ctx,
 	res,
@@ -32,8 +32,8 @@ export async function serveFile({
 	json(res, HTTP_OK, { path: rel, contents })
 }
 
-// GET /api/file-contents - one reviewed file's old/new contents, fetched on demand so the full
-// contents never have to ride /api/state. Resolves from git/the working tree via readFileContents,
+// GET /file-contents - one reviewed file's old/new contents, fetched on demand so the full
+// contents never have to ride /state. Resolves from git/the working tree via readFileContents,
 // never from embedded copies (the state embeds none).
 export async function serveFileContents({
 	ctx,
@@ -56,7 +56,7 @@ export async function serveFileContents({
 			status: HTTP_NOT_FOUND,
 			code: 'NOT_FOUND',
 			error: `"${rel}" is not part of this review.`,
-			fix: 'Reload the desk (GET /api/state) if the diff changed.',
+			fix: 'Reload the desk (GET /state) if the diff changed.',
 		})
 	try {
 		// newOid is the file-level staleness key (the new-side blob OID); oldOid is hashed locally
@@ -79,7 +79,7 @@ export async function serveFileContents({
 			status: HTTP_NOT_FOUND,
 			code: 'NOT_FOUND',
 			error: `Could not read contents for "${rel}": ${errorMessage(error)}`,
-			fix: 'The desk may be stale after a rebase - reload it (GET /api/state).',
+			fix: 'The desk may be stale after a rebase - reload it (GET /state).',
 		})
 	}
 }

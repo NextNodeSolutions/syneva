@@ -134,11 +134,15 @@ export async function postDeskComment(
 	question: DeskQuestion,
 	body: string,
 ): Promise<void> {
-	const response = await fetch(new URL(API_PATHS.comment, desk.url), {
+	const headers: Record<string, string> = {
+		'content-type': 'application/json',
+	}
+	if (desk.key) headers.authorization = `Bearer ${desk.key}`
+	const response = await fetch(`${desk.url}${API_PATHS.comment}`, {
 		method: 'POST',
 		signal: AbortSignal.timeout(POST_COMMENT_TIMEOUT_MS),
 		redirect: 'error',
-		headers: { 'content-type': 'application/json' },
+		headers,
 		body: JSON.stringify({
 			path: question.path,
 			side: question.side,

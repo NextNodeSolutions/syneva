@@ -51,9 +51,9 @@ export default {
 			prose({
 				id: 'loop',
 				title: 'Everywhere else,<br>a short loop.',
-				body: `<p data-reveal-item>Start the desk in the background, then wait for events and branch on their kind. This is the shape; <code>syneva spec</code> has every detail.</p>${terminal(
+				body: `<p data-reveal-item>Open the desk on the hub (the command returns at once, and starts the hub when none runs), then wait for events and branch on their kind. This is the shape; <code>syneva spec</code> has every detail.</p>${terminal(
 					[
-						'$ syneva --session auth &',
+						'$ syneva open --session auth',
 						'$ while ev=$(syneva await); do',
 						'    case "$(jq -r .kind <<<"$ev")" in',
 						'      question) syneva comment --path … --line … --body "…" ;;',
@@ -71,11 +71,13 @@ export default {
 				title: 'Subcommands.',
 				body: specTable(
 					[
+						['syneva open', 'Open a desk on the hub, or reload the live one for this repo and session. Prints its URL as JSON.'],
+						['syneva desks', 'List the live desks of this repo, with their URLs.'],
 						['syneva await', 'Block until the next event and print it as one JSON envelope.'],
 						['syneva comment', 'Reply on a path, line and side. Appears live in the thread.'],
 						['syneva status', 'A one-line “doing X now” beside your spinner.'],
 						['syneva reload', 'Re-diff the working tree into the open tab, optionally with a new guide.'],
-						['syneva stop', 'Shut the desk down. Idempotent; review state stays saved.'],
+						['syneva close', 'Close the desk. Idempotent; the hub keeps running and review state stays saved.'],
 						['syneva spec', 'Print the whole contract.'],
 					],
 					['Command', 'What it does'],

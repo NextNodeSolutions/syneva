@@ -29,31 +29,37 @@ I'm not saying this is *the* review surface. I built it in a week and I'm still 
 
 3. **Build from a checkout:** `pnpm build` - tsc compiles the backend, Vite bundles the browser frontend (ui + tokenization worker).
 
-2. **Start a review:**
+2. **Run the hub** (once per machine, optional - the first `syneva open` starts one for you):
 
    ```bash
-   syneva                       # review the working-tree diff
-   syneva --diff staged         # review the staged diff
-   syneva file path/to/plan.md  # review a single file or artifact (e.g. a generated plan)
-   syneva pr feature-branch     # review a branch's commits vs its merge-base
+   syneva start                 # the hub: dashboard + every desk at http://127.0.0.1:4747/
+   syneva start --detach        # same, in the background (log in ~/.syneva/hub/hub.log)
    ```
 
-   Syneva opens in your browser and stays open. You review and click **Send to Agent**; the agent attaches, acts on each send, and replies in the same tab. The full agent contract — modes, the event loop, all flags (`--repo`, `--path`, `--port`, `--no-open`, `--guide`, …), `ReviewResult`, and the guide's grouping schema — is printed by **`syneva spec`**.
+3. **Open a review desk** on it, from inside the repository:
 
-### Reviewing on a remote machine
+   ```bash
+   syneva open                       # the working-tree diff (shorthand: syneva)
+   syneva open --diff staged         # the staged diff
+   syneva open file path/to/plan.md  # a single file or artifact (e.g. a generated plan)
+   syneva open pr feature-branch     # a branch's commits vs its merge-base
+   ```
 
-By default the desk binds to `127.0.0.1` — loopback-only, unreachable from any other device. For a remote-dev setup (the agent and desk run on a server, you review from a browser on your laptop), `--host` binds it wider:
+   The desk opens in your browser at its own stable URL (`/d/<id>/` on the hub) and stays open until you close it, from the tab or from the dashboard. You review and click **Send to Agent**; the agent attaches, acts on each send, and replies in the same tab. Every project and every desk shows on the dashboard: how far each review is, whether an agent is listening, what is waiting. The full agent contract — the hub, modes, the event loop, all flags (`--repo`, `--path`, `--port`, `--no-open`, `--guide`, …), `ReviewResult`, and the guide's grouping schema — is printed by **`syneva spec`**.
+
+### Reviewing from another machine (a hosted hub)
+
+By default the hub binds to `127.0.0.1` — loopback-only, unreachable from any other device. To review from elsewhere (the agents and the hub run on a server or in a cloud workspace, you review from a browser on your laptop), bind it wider **with an access key**:
 
 ```bash
-syneva --host 0.0.0.0                 # bind all interfaces; prints a hostname-based URL to open
-syneva --host 100.64.1.5              # bind one specific address (e.g. a tailnet IP)
-SYNEVA_HOST=0.0.0.0 syneva            # same, via env — the default when --host is absent
+syneva start --host 0.0.0.0 --key "$(openssl rand -hex 24)"      # every request needs the key
+syneva start --host 0.0.0.0 --key … --public-url https://review.example.com/   # behind a reverse proxy
 ```
 
-The printed URL is what you open in the remote browser; the agent's `syneva await`/`comment`/`reload` subcommands keep talking to the desk over loopback on the same machine, so they're unaffected. If you reach the desk by a name that isn't the machine's hostname or the bound address (a tailnet MagicDNS FQDN, say), add it to `SYNEVA_ALLOWED_HOSTS` (comma-separated) so the origin guard accepts it.
+Browsers sign in once at `/login` (the key is kept as an HttpOnly cookie, never in the URL); the CLI and the pi listener read `SYNEVA_KEY` (and `SYNEVA_HUB` when the hub is not the local default). The hub refuses to bind beyond loopback without a key unless you pass `--insecure`, which is for a fully trusted network only: a personal tailnet, or a host whose firewall blocks the port from everything else. If you reach the hub by a name that isn't the machine's hostname, the bound address or the public URL (a tailnet MagicDNS FQDN, say), add it to `SYNEVA_ALLOWED_HOSTS` (comma-separated) so the origin guard accepts it.
 
 > [!WARNING]
-> **The desk API is unauthenticated.** Anyone who can reach the bound address can drive the desk — run your configured editor command, stage and reset changes, mutate the git index, read any file in the repo. Bind beyond loopback **only** on a fully trusted network: a personal tailnet, or a host whose firewall blocks the port from everything else. **Never on a shared office/coffee-shop LAN.**
+> **Whoever holds the key holds the hub.** It can run your configured editor command, stage and reset changes, mutate the git index and read any file in the registered repos. Treat the key like an SSH key, and never expose an `--insecure` hub on a shared office/coffee-shop LAN.
 
 ## Features
 
@@ -73,13 +79,18 @@ The printed URL is what you open in the remote browser; the agent's `syneva awai
 Syneva is opinionated about exactly one thing: the review surface. It's a protocol and an interface, nothing more. How you review, and what you review with, stays yours.
 
 - **No model runs here.** Syneva doesn't call an LLM or orchestrate one. It renders the diff, validates the structured input it's given, and hands a result back.
-- **Your agent, not ours.** The contract is plain JSON over stdout and a localhost server, with no assumption about who's on the other end: Cursor, Codex, a shell script. The review grouping, the answers to your questions, the code changes themselves are all *your* agent's work. Syneva just gives it somewhere to land.
-- **Local and private.** The server binds to loopback (`127.0.0.1`) on a stable per-session port. No telemetry. Your browser may fetch a web font; switch to system fonts and even that stops. (For remote-dev setups, `--host` can bind it wider — see [Reviewing on a remote machine](#reviewing-on-a-remote-machine); the default stays loopback-only.)
+- **Your agent, not ours.** The contract is plain JSON over stdout and the hub's HTTP API, with no assumption about who's on the other end: Cursor, Codex, a shell script. The review grouping, the answers to your questions, the code changes themselves are all *your* agent's work. Syneva just gives it somewhere to land.
+- **One hub, every project.** Agents never run a server. The hub is one long-running process per machine; each desk is siloed (its own review state, event stream and mutation lock) and keeps one stable URL, so a reopened or restored desk lands in the same tab.
+- **Local and private.** The hub binds to loopback (`127.0.0.1`) on one fixed port. No telemetry. Your browser may fetch a web font; switch to system fonts and even that stops. (A hosted hub binds wider behind an access key — see [Reviewing from another machine](#reviewing-from-another-machine-a-hosted-hub); the default stays loopback-only.)
 - **It won't touch your repo unless you ask.** Syneva never edits your tracked files.
 
 ## Roadmap
 
 Immediate to-dos, in rough priority order.
+
+- [ ] **Remote runners**: let an agent on another machine feed a hosted hub (the hub holds the review, the runner holds the repo), so the hub no longer has to sit next to the repositories.
+- [ ] **Control center**: a dynamic Astro app over the hub API (`/api/hub/*`) with statistics across projects and hubs; the hub's built-in dashboard stays the lightweight local view.
+- [ ] **Desktop app**: a macOS/Linux/Windows shell that runs the hub and opens the dashboard without a terminal.
 
 - [ ] **Command palette**: add a discoverable Cmd/Ctrl+Shift+P palette for common review actions: file filter, find in diffs, next/previous file or change, accept/reject/request change, approve file, toggle layout/settings/sidebar, open in editor, reload, and Send to Agent. Keep keyboard shortcuts as the fast path, but make every major action searchable.
 - [ ] **Commit/range/branch review modes**: expand beyond working/staged/file/PR branch reviews with `syneva commit <ref>`, `syneva range <base>..<head>` / `<base>...<head>`, and `syneva branch <base>` so Syneva can review historical or comparison diffs without requiring a dirty working tree.

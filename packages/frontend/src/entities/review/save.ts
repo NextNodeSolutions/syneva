@@ -1,6 +1,6 @@
 import type { ReviewerSave } from './model'
 
-// The reviewer-owned slice posted to /api/save - never the whole (multi-MB) ReviewState.
+// The reviewer-owned slice posted to /save - never the whole (multi-MB) ReviewState.
 // The server holds rawDiff/file contents/changes/etc. authoritatively and merges only these
 // fields. It's a full picture of the reviewer-owned state (snapshot semantics), so the
 // coalesced trailing save re-derives it and latest wins. Enumerating keys explicitly (rather

@@ -1,4 +1,4 @@
-// The desk's serialized /api/state body, cached across requests.
+// The desk's serialized /state body, cached across requests.
 //
 // Building it is not cheap: browserState() walks every change block, decision, comment and guide of
 // a diff that can span a whole PR, and JSON.stringify then copies all of it - on a desk whose tab

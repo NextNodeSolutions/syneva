@@ -7,7 +7,8 @@ import type { GitPort } from './ports.js'
 // A small LRU of resolved file contents, so the tab re-opening a file (or re-fetching after a
 // render) doesn't re-spawn `git show`. Keyed by root + path + contentHash: contentHash is the
 // new-side blob OID, so a reload that rewrites the file changes the key and the stale entry
-// falls out naturally (no explicit invalidation). Process-global - one desk per process.
+// falls out naturally (no explicit invalidation). Process-global, shared by every desk the hub
+// hosts: the key carries the repo root, so two desks never collide.
 const CONTENTS_CACHE_CAP = 30
 const contentsCache = new Map<string, FileContents>()
 
@@ -53,7 +54,7 @@ function evictLeastRecentlyUsed(): void {
 }
 
 // pr: the diff is base..HEAD, so both sides are committed objects. Read strictly, so a git object
-// dropped by a mid-session rebase throws (→ /api/file-contents 404s with a reload hint) instead of
+// dropped by a mid-session rebase throws (→ /file-contents 404s with a reload hint) instead of
 // silently serving empty. `changeKind` says which sides exist: an added file has no old side, a
 // deletion no new side, so a legitimately absent side is "" WITHOUT a read.
 async function prContents(

@@ -79,7 +79,7 @@ configureMarkdownRuntime({
 	onLoadError: () =>
 		toast('Markdown rendering could not load. Reopen the file to retry.'),
 	// The blob route is named only by the review-file API boundary - shared markdown
-	// receives the resolver injected here (repo-relative images rewrite to /api/blob).
+	// receives the resolver injected here (repo-relative images rewrite to /blob).
 	repoImageSrc: repoBlobUrl,
 })
 // Display preferences live in ~/.syneva/settings.json (localStorage is per-origin and the port is

@@ -23,14 +23,13 @@ export function DeskCovers(): ReactElement {
 					<div className="desk-closed-card">
 						<strong>Desk closed.</strong>
 						<p>
-							The Syneva desk stopped. All review state is saved
-							on disk; the attached agent was told the review
-							ended.
+							This desk left the hub. All review state is saved on
+							disk; the attached agent was told the review ended.
 						</p>
 						<p>
 							Reopen it in the repo with{' '}
-							<code>{`syneva --session ${S.state ? S.state.session : ''}`}</code>
-							.
+							<code>{`syneva open --session ${S.state ? S.state.session : ''}`}</code>
+							, or go <a href="/">back to the dashboard</a>.
 						</p>
 					</div>
 				</div>

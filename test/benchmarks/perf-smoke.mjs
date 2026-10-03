@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 // Perf regression gate: generates a throwaway ~1,000-file git repo (every file edited in
-// the working tree, plus one oversized generated file), starts a real desk against dist/,
-// and asserts the PRD's budgets with CI-safe margins. The point is catching order-of-magnitude
+// the working tree, plus one oversized generated file), starts a real hub against dist/,
+// opens a desk on it, and asserts the PRD's budgets with CI-safe margins. The point is catching order-of-magnitude
 // regressions - the 170 MB payload / ~2,550 sequential-spawn kind - not millisecond drift.
 // Run: pnpm build && pnpm perf-smoke
 import { execFileSync, spawn } from 'node:child_process'
@@ -38,9 +38,11 @@ const DESK_URL_TIMEOUT_MS = 30_000
 const POLL_ATTEMPTS = 150
 const POLL_INTERVAL_MS = 100
 const JSON_INDENT = 2
-// Bound lazily from the desk's startup line once it launches - see waitForDeskUrl. The desk
-// silently falls back to a random port when a fixed one is taken, so assuming a port here made
-// every fetch fail confusingly on a busy machine; we read the port it actually bound instead.
+// Bound lazily from the hub's startup line once it launches - see waitForDeskUrl. The hub runs
+// on `--port 0` (a random free port) so the gate never collides with a developer's own hub; we
+// read the port it actually bound instead of assuming one. HUB keeps its trailing slash; BASE is
+// the opened desk's API base (HUB + api/desks/<id>) so BASE + "/state" is well-formed.
+let HUB
 let BASE
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
@@ -48,9 +50,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms))
 const bigLines = tag =>
 	`${Array.from({ length: 6000 }, (_, i) => `${tag} line ${i}`).join('\n')}\n`
 
-// The desk prints `Syneva <session>: http://127.0.0.1:<port>/` to stderr once it's listening.
+// The hub prints `Syneva hub: http://127.0.0.1:<port>/` to stderr once it's listening.
 // Read that line (accumulating chunks - it can arrive split) and return the origin without the
-// trailing slash, so BASE + "/api/..." is well-formed.
+// trailing slash.
 const waitForDeskUrl = child =>
 	new Promise((resolve, reject) => {
 		let buf = ''
@@ -125,11 +127,11 @@ function budget({ name, actual, limit, unit, note }) {
 		)
 }
 
-// Poll /api/poll until the desk answers. Sequential by design (each probe depends on the
+// Poll the hub's health until it answers. Sequential by design (each probe depends on the
 // previous), so it recurses instead of awaiting inside a loop.
 async function waitForPoll(base, attemptsLeft) {
 	try {
-		const res = await fetch(`${base}/api/poll`)
+		const res = await fetch(`${base}/api/hub/health`)
 		if (res.ok) return true
 	} catch {
 		// Not listening yet.
@@ -140,8 +142,8 @@ async function waitForPoll(base, attemptsLeft) {
 }
 
 try {
-	// Point HOME at a throwaway dir so the persisted review file lands somewhere we control and
-	// clean up, hermetic like packages/backend/src/bootstrap/server.test.ts.
+	// Point HOME at a throwaway dir so the persisted review file and the hub's own registry land
+	// somewhere we control and clean up.
 	homeDir = mkdtempSync(path.join(tmpdir(), 'syneva-perf-home-'))
 	process.env.HOME = homeDir
 
@@ -175,28 +177,30 @@ try {
 	writeFileSync(path.join(tmp, 'generated-bundle.txt'), bigLines('edited'))
 
 	const startedAt = Date.now()
-	desk = spawn(
-		'node',
-		[CLI, '--repo', tmp, '--session', ID, '--port', '0', '--no-open'],
-		{
-			// stderr piped so we can read the bound URL; stdout ignored.
-			stdio: ['ignore', 'ignore', 'pipe'],
-			env: { ...process.env, SYNEVA_NO_UPDATE_CHECK: '1' },
-		},
+	desk = spawn('node', [CLI, 'start', '--port', '0', '--no-open'], {
+		// stderr piped so we can read the bound URL; stdout ignored.
+		stdio: ['ignore', 'ignore', 'pipe'],
+		env: { ...process.env, SYNEVA_NO_UPDATE_CHECK: '1' },
+	})
+	const origin = await waitForDeskUrl(desk)
+	HUB = `${origin}/`
+	const isUp = await waitForPoll(origin, POLL_ATTEMPTS)
+	assert.ok(isUp, 'hub answered /api/hub/health before the poll loop gave up')
+	const opened = JSON.parse(
+		cli('open', '--hub', HUB, '--repo', tmp, '--session', ID, '--no-open'),
 	)
-	BASE = await waitForDeskUrl(desk)
-	const isUp = await waitForPoll(BASE, POLL_ATTEMPTS)
+	assert.ok(opened.ok, 'open accepted')
+	BASE = `${HUB}api/desks/${opened.deskId}`
 	const startupMs = Date.now() - startedAt
-	assert.ok(isUp, 'desk answered /api/poll before the poll loop gave up')
 	budget({
 		name: 'startup',
 		actual: startupMs,
 		limit: BUDGET_STARTUP_MS,
 		unit: 'ms',
-		note: '(desk start → first successful /api/poll)',
+		note: '(hub start → desk opened on it)',
 	})
 
-	const stateText = await getText('/api/state')
+	const stateText = await getText('/state')
 	const state = JSON.parse(stateText)
 	assert.equal(state.mode, 'repo')
 	assert.ok(
@@ -279,7 +283,9 @@ try {
 		`line one 0 CHANGED AGAIN\nline two 0\nline three 0\n`,
 	)
 	const reloadStart = Date.now()
-	const reloaded = JSON.parse(cli('reload', '--repo', tmp, '--session', ID))
+	const reloaded = JSON.parse(
+		cli('reload', '--hub', HUB, '--repo', tmp, '--session', ID),
+	)
 	const reloadMs = Date.now() - reloadStart
 	assert.ok(reloaded.ok, 'reload accepted')
 	budget({
@@ -290,8 +296,10 @@ try {
 		note: '',
 	})
 
-	const stop = JSON.parse(cli('stop', '--repo', tmp, '--session', ID))
-	assert.ok(stop.ok, 'stop acked')
+	const closed = JSON.parse(
+		cli('close', '--hub', HUB, '--repo', tmp, '--session', ID),
+	)
+	assert.ok(closed.ok, 'close acked')
 
 	process.stdout.write('\nPERF SMOKE PASS\n')
 	process.stdout.write(

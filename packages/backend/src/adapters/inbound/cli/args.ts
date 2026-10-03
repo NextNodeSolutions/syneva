@@ -3,12 +3,10 @@ import path from 'node:path'
 
 import { errorMessage } from '../../../application/errors.js'
 import { validateGuide } from '../../../domain/guide.js'
-import { sanitizeSession } from '../../../domain/identity.js'
 import { warn } from '../../outbound/console.js'
-import { findLiveDesks } from '../../outbound/filesystem/desk.js'
-import { getBranch, getGitRoot } from '../../outbound/git/repo.js'
+import { getGitRoot } from '../../outbound/git/repo.js'
 
-import type { Guide, ReviewMode } from '@syneva/contracts/review'
+import type { Guide } from '@syneva/contracts/review'
 
 // A flag that was never passed has no key at all, so every read is `| undefined`: callers
 // default it instead of trusting the index signature's non-null type.
@@ -38,61 +36,37 @@ export function parseArgs(argv: string[]): CliArgs {
 	return parsed
 }
 
+// The leading bare words before the first flag: `open file plan.md` → ['file', 'plan.md'].
+export function leadingPositionals(argv: string[]): string[] {
+	const words: string[] = []
+	for (const arg of argv) {
+		if (arg.startsWith(FLAG_PREFIX)) break
+		words.push(arg)
+	}
+	return words
+}
+
+// A flag's string value, or undefined when absent or given bare (`--session` with no value).
+export function flagText(args: CliArgs, key: string): string | undefined {
+	const flag = args[key]
+	if (typeof flag !== 'string' || !flag.length) return undefined
+	return flag
+}
+
 export function resolveRepo(args: CliArgs): string {
-	return path.resolve(String(args.repo ?? process.cwd()))
+	return path.resolve(flagText(args, 'repo') ?? process.cwd())
 }
 
 // The repo root, falling back to the requested path when git can't resolve it (a
-// non-repo directory still gets a desk-less error rather than a crash).
+// non-repo directory still gets a clear hub error rather than a crash).
 export async function resolveRoot(args: CliArgs): Promise<string> {
 	const requested = resolveRepo(args)
 	return getGitRoot(requested).catch(() => requested)
 }
 
-// Default session per mode: <branch> / file-<path> / pr-<ref>, overridable.
-export function deskSession(
-	mode: ReviewMode,
-	target: string | undefined,
-	branch: string,
-	override?: string,
-): string {
-	if (override) return sanitizeSession(override)
-	if (mode === 'file') return sanitizeSession(`file-${target ?? 'file'}`)
-	if (mode === 'pr')
-		return sanitizeSession(`pr-${prHeadLabel(target, branch)}`)
-	return sanitizeSession(branch || 'review')
-}
-
-// A PR desk is named after its head: the resolved target when one was given, else the
-// checked-out branch, else a bare "pr" so the session name is never empty.
-function prHeadLabel(target: string | undefined, branch: string): string {
-	if (target) return target
-	if (branch) return branch
-	return 'pr'
-}
-
-// For await/comment/reload: honor --session, else auto-find the lone live desk
-// (so the agent needn't know the mode prefix), else fall back to the branch.
-export async function resolveActionSession(
-	root: string,
-	args: CliArgs,
-): Promise<string> {
-	if (typeof args.session === 'string') return sanitizeSession(args.session)
-	const liveDesks = await findLiveDesks(root)
-	if (liveDesks.length > 1) {
-		warn(
-			`Multiple live desks for this repo (${liveDesks.map(desk => desk.session).join(', ')}); pass --session <id>.`,
-		)
-		process.exit(1)
-	}
-	const onlyLiveDesk = liveDesks.at(0)
-	if (onlyLiveDesk) return onlyLiveDesk.session
-	return sanitizeSession((await getBranch(root)) || 'review')
-}
-
-// Read + validate a guide JSON file for the `--guide` start flag. Returns the validated
-// guide, undefined when the flag is absent, or null on any error (after printing why) so
-// the caller can abort.
+// Read + validate a guide JSON file for the `--guide` flag. Returns the validated guide,
+// undefined when the flag is absent, or null on any error (after printing why) so the caller
+// can abort.
 export function loadGuideArg(
 	guideFlag: string | boolean | undefined,
 ): Guide | undefined | null {
@@ -119,13 +93,4 @@ export function loadGuideArg(
 		return null
 	}
 	return validation.guide
-}
-
-// A `syneva pr <ref>` target is a PR number (`123`) or a GitHub PR URL when it matches these;
-// anything else is treated as a plain branch name (the original behavior).
-export function isPrRef(ref: string): boolean {
-	return (
-		/^\d+$/.test(ref) ||
-		/^https?:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+/.test(ref)
-	)
 }

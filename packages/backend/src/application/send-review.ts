@@ -61,7 +61,7 @@ export function reviewerSavePatch(body: unknown): Record<string, unknown> {
 	)
 }
 
-// The one applier for a decoded reviewer save (both /api/save and /api/send): only PRESENT
+// The one applier for a decoded reviewer save (both /save and /send): only PRESENT
 // keys replace - absent keys mean "unchanged" - and each key is spelled against ReviewState,
 // so no raw or unknown patch can ever reach the state.
 export function applyReviewerSave(

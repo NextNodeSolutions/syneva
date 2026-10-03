@@ -35,7 +35,7 @@ export function isCurrentDesk(instance: string | undefined): boolean {
 }
 
 // Move the transient DeskStatus fields off a server payload into the store. They must never enter
-// S.state: persist() posts S.state back to /api/save, and the persisted review must not carry desk
+// S.state: persist() posts S.state back to /save, and the persisted review must not carry desk
 // liveness.
 function adoptLiveness(status: Partial<DeskStatus>): void {
 	S.agentActivity = status.agentActivity?.body ?? null

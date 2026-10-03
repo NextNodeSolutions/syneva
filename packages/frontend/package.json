@@ -6,7 +6,7 @@
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
-		"build": "node ../../scripts/clean-dist.mjs && vite build && cp src/app/index.html dist/index.html",
+		"build": "node ../../scripts/clean-dist.mjs && vite build && cp src/app/index.html dist/index.html && cp src/app/dashboard.html dist/dashboard.html",
 		"check": "tsc --noEmit"
 	},
 	"dependencies": {

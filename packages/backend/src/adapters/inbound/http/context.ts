@@ -17,17 +17,17 @@ import type {
 } from '../../../application/ports.js'
 import type { StateBodyCache } from '../../../application/state-cache.js'
 import type { ReviewState } from '../../../domain/review.js'
-import type { Binding } from './binding.js'
-import type { ServerOptions } from './options.js'
-import type { IdleWatchdog } from './shutdown.js'
+import type { DeskLiveness } from './liveness.js'
 
 // The persist outcome a route needs: the stamped root to commit plus the file it was written to.
 export type PersistedState = { state: ReviewState; file: string }
 
-// Everything a route needs from the running desk: the live review, the launch options, the
-// origin guard's authority set, the liveness collaborators, and the state-ownership operations
-// every route shares (commit, persist, and the write mutex).
+// Everything a route needs from one hosted desk: the live review, the liveness collaborators,
+// the capability ports, and the state-ownership operations every route shares (commit, persist,
+// and the write mutex). The hub holds one of these per desk; nothing here is process-wide.
 export type DeskContext = {
+	// Changes whenever the desk is (re)created - on a hub restart, the restored desk carries a new
+	// one, which is how an open tab learns it must refresh (see /poll).
 	instanceId: string
 	// The current immutable state root. Copy-on-write: mutations never edit a root in place -
 	// they build a NEW root (unchanged branches shared by reference) and publish it with
@@ -35,64 +35,62 @@ export type DeskContext = {
 	// without the write mutex and can never observe an in-place intermediate.
 	readonly state: ReviewState
 	// The application revision: monotonic, advanced ONLY when a mutation commits a different
-	// state root (commit of the same root is a no-op). The /api/state body cache keys on it.
+	// state root (commit of the same root is a no-op). The /state body cache keys on it.
 	readonly revision: number
-	options: ServerOptions
-	binding: Binding
 	events: EventStream
 	activity: DeskActivity
-	watchdog: IdleWatchdog
-	// Application-owned capability ports, wired by the composition root (bootstrap/server).
+	liveness: DeskLiveness
+	// Application-owned capability ports, wired by the composition root (bootstrap/hub).
 	git: GitPort
 	store: ReviewStorePort
 	settings: SettingsPort
 	editor: EditorPort
 	// Serialize every mutating route through one promise-chain mutex. Mutual exclusion ORDERS
-	// writes - a concurrent /api/send and /api/reload each compute their next root from the
+	// writes - a concurrent /send and /reload each compute their next root from the
 	// latest committed one, so neither can overwrite the other mid-flight (this is the exact
 	// window the two-actor design opens: an agent calls `syneva reload` while the reviewer hits
 	// Send). It no longer guards READS: copy-on-write state makes `ctx.state` a consistent
-	// snapshot on its own. The /api/await-send long-poll MUST stay out - it parks for the
+	// snapshot on its own. The /await-send long-poll MUST stay out - it parks for the
 	// length of a round, so serializing it would wedge every mutation behind a waiter that
 	// only a mutation releases.
 	serialize: Serializer
 	// Publish a mutation's next state root - the ONLY way live state changes. A root that
 	// differs from the current one becomes the live state and advances the revision; the same
-	// root is a no-op, so an unchanged desk keeps serving its cached /api/state body.
+	// root is a no-op, so an unchanged desk keeps serving its cached /state body.
 	commit(next: ReviewState): void
 	// Persist `next` and hand back the stamped root to commit (the stamp the written file
 	// carries - updatedAt/persistFile - is adopted as a state change like any other) plus the
 	// file's path (Send writes its result artifact next to it).
 	persist(next: ReviewState): Promise<PersistedState>
-	// The serialized /api/state body, keyed on the application revision plus the transient
+	// The serialized /state body, keyed on the application revision plus the transient
 	// desk status (see state-cache.ts).
 	stateBodyCache: StateBodyCache
 	status(): DeskStatus
-	// Reflect the live git index onto the review for the read routes (/api/state, /api/tree).
+	// Reflect the live git index onto the review for the read routes (/state, /tree).
 	// The index snapshot is read OUTSIDE the write mutex (a git spawn is the desk's slowest
 	// operation); the conditional commit re-validates under it - a mutation that landed
 	// mid-read re-computes against the newest root instead of overwriting it. An unchanged
 	// index commits nothing, so the same root keeps serving the cached body.
 	refreshStaged(): Promise<void>
-	shutdown(reason: 'idle' | 'stop'): void
+	// Close this desk on the hub: a `closed` event reaches a parked agent waiter, then the desk
+	// leaves the registry. The review state stays saved; the hub keeps running.
+	close(): void
 }
 
 export function createDeskContext(
 	state: ReviewState,
-	options: ServerOptions,
 	collaborators: {
-		binding: Binding
 		events: EventStream
 		activity: DeskActivity
-		watchdog: IdleWatchdog
+		liveness: DeskLiveness
 		git: GitPort
 		store: ReviewStorePort
 		settings: SettingsPort
 		editor: EditorPort
-		shutdown: (reason: 'idle' | 'stop') => void
+		close: () => void
 	},
 ): DeskContext {
-	const { events, activity, git, store, shutdown } = collaborators
+	const { events, activity, git, store, close } = collaborators
 	const runMutation = createSerializer()
 	const stateBodyCache = createStateBodyCache()
 	const owner = createStateOwner(state)
@@ -100,7 +98,6 @@ export function createDeskContext(
 		// The collaborators ARE the context's collaborators - spread, not re-listed.
 		...collaborators,
 		instanceId: randomUUID(),
-		options,
 		stateBodyCache,
 		get state(): ReviewState {
 			return owner.state
@@ -124,7 +121,7 @@ export function createDeskContext(
 		persist(next: ReviewState): Promise<PersistedState> {
 			return persistState(store, next)
 		},
-		shutdown,
+		close,
 	}
 }
 
@@ -149,7 +146,7 @@ function deskStatus(events: EventStream, activity: DeskActivity): DeskStatus {
 	}
 }
 
-// Reflect the live git index onto the review for the read routes (/api/state, /api/tree).
+// Reflect the live git index onto the review for the read routes (/state, /tree).
 // The index snapshot is read OUTSIDE the write mutex (a git spawn is the desk's slowest
 // operation); the conditional commit re-validates under it - a mutation that landed
 // mid-read re-computes against the newest root instead of overwriting it. An unchanged

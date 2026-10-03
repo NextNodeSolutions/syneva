@@ -142,6 +142,27 @@ async function resolveScope(
 	return { root, relative: path.relative(root, requested) }
 }
 
+// A desk with nothing to review yet: the same shape as a built review, over an empty diff.
+// The hub keeps such a desk open (the agent's next reload fills it) instead of refusing it,
+// so a review can be set up before the changes exist.
+export async function emptyReviewState(
+	cwd: string,
+	query: BuildQuery,
+	git: GitPort,
+): Promise<ReviewState> {
+	const root = await git.getGitRoot(cwd).catch(() => cwd)
+	return makeReviewState({
+		mode: query.mode ?? 'repo',
+		session: query.session,
+		root,
+		target: query.target,
+		base: query.base,
+		staged: !!query.staged,
+		head: await git.getHead(root),
+		source: { files: [], changes: [], rawDiff: '' },
+	})
+}
+
 function makeReviewState(input: {
 	mode: ReviewMode
 	session: string
