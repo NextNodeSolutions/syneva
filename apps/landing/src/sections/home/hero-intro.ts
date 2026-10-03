@@ -1,6 +1,6 @@
+import { animate } from '@syneva/motion/animate'
 import { EASE, toBezier } from '@syneva/motion/easing'
 import { playEntrance } from '@syneva/motion/scenes'
-import { animate } from 'motion/mini'
 
 import type { AnimateOptions } from '@syneva/motion/options'
 

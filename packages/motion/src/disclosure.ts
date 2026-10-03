@@ -1,5 +1,4 @@
-import { animate } from 'motion/mini'
-
+import { animate } from './animate'
 import { EASE, toBezier } from './easing'
 import { reducedMotion } from './preference'
 

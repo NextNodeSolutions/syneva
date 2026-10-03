@@ -1,6 +1,6 @@
+import { animate } from '@syneva/motion/animate'
 import { EASE, toBezier } from '@syneva/motion/easing'
 import { reducedMotion } from '@syneva/motion/preference'
-import { animate } from 'motion/mini'
 
 import {
 	canInterpolate,

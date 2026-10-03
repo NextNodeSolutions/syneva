@@ -1,4 +1,4 @@
-import type { animate } from 'motion/mini'
+import type { animate } from './animate'
 
 // animate()'s options, plus the pseudo-element target: Motion forwards
 // pseudoElement to the Web Animations API (its NativeAnimation reads it),
