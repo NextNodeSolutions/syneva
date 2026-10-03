@@ -1,0 +1,74 @@
+---
+// The site header: wordmark, section triggers, the morphing dropdown that
+// holds every section's menu, the primary action and the phone toggle.
+import { OPEN_SOURCE, SECTIONS, sectionOf } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import Brand from '@shared/ui/Brand.astro'
+import { inputMarker } from '@shared/ui/brand.stylex'
+import NavPanel from './NavPanel.astro'
+import { actionMarker, dropdownMarker, navMarker, triggerMarker } from './markers.stylex'
+import { instant } from './instant.styles'
+import { nav } from './navigation.styles'
+
+type Props = { route: string }
+
+const { route } = Astro.props
+const active = sectionOf(route)
+const current = (href: string) => (href === route ? 'page' : undefined)
+const isOpenSource = route === OPEN_SOURCE.href
+const START = '/get-started/'
+---
+
+<header {...sx(nav.shell, navMarker, inputMarker)} data-navigation>
+	<Brand />
+	<nav {...sx(nav.links)} id="site-navigation" aria-label="Main navigation" data-nav-links>
+		{
+			SECTIONS.map(section => (
+				<button
+					{...sx(nav.item, nav.trigger, active === section && nav.current, instant.transitions, triggerMarker)}
+					id={`${section.id}-trigger`}
+					type="button"
+					aria-expanded="false"
+					aria-controls={`${section.id}-menu`}
+					data-nav-trigger
+				>
+					{section.label} <svg {...sx(nav.chevron, instant.transitions)} viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"></path></svg>
+				</button>
+			))
+		}
+		<a
+			{...sx(nav.item, nav.direct, isOpenSource && nav.current, instant.transitions)}
+			href={OPEN_SOURCE.href}
+			aria-current={current(OPEN_SOURCE.href)}>Open source</a
+		>
+		<span {...sx(nav.indicator, instant.transitions)} aria-hidden="true"></span>
+	</nav>
+	<a {...sx(nav.action, instant.transitions, actionMarker)} href={START} aria-current={current(START)}>
+		Get started <span {...sx(nav.actionArrow, instant.transitions)} aria-hidden="true">→</span>
+	</a>
+	<button
+		{...sx(nav.toggle, instant.transitions)}
+		type="button"
+		aria-expanded="false"
+		aria-controls="site-navigation"
+		aria-label="Open navigation"
+		data-nav-toggle
+	>
+		<span {...sx(nav.toggleLabel)}>Menu</span>
+		<svg {...sx(nav.toggleIcon)} viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7h12M4 13h12"></path></svg>
+	</button>
+	<div {...sx(nav.dropdown, dropdownMarker)} data-open="false" data-nav-dropdown>
+		{SECTIONS.map(section => <NavPanel section={section} route={route} />)}
+	</div>
+	<noscript {...sx(nav.noscript)}>
+		{
+			[...SECTIONS.map(section => [section.href, section.label]), [OPEN_SOURCE.href, OPEN_SOURCE.title]].map(
+				([href, label]) => <a href={href}>{label}</a>,
+			)
+		}
+	</noscript>
+</header>
+
+<script>
+	import '../model/navigation.bind'
+</script>

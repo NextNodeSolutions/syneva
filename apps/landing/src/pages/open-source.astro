@@ -1,29 +1,8 @@
 ---
-import OpenBox from '../art/resources/OpenBox.astro'
-import Button from '../components/Button.astro'
-import CtaBand from '../components/CtaBand.astro'
-import PageHero from '../components/page/PageHero.astro'
-import Prose from '../components/page/Prose.astro'
-import ProseText from '../components/page/ProseText.astro'
-import RuledList from '../components/page/RuledList.astro'
-import SpecTable from '../components/page/SpecTable.astro'
-import TextLink from '../components/TextLink.astro'
-import { REPO_URL } from '../content/site-map'
-import Document from '../layouts/Document.astro'
+import Document from '@app/layouts/Document.astro'
+import OpenSourcePage from '@views/resources/ui/OpenSourcePage.astro'
 
 const route = '/open-source/'
-const WHY = [
-	['Trust you can verify.', 'Your review surface reads your code. You should be able to read it back.'],
-	['An agent-neutral contract.', 'Plain JSON and localhost HTTP, versioned with the CLI. Any harness can implement it; none owns it.'],
-	['No lock-in, by construction.', 'Your verdicts live in files on your disk, in a documented shape.'],
-] as const
-const REPOSITORY = [
-	['apps/syneva', 'The published CLI and pi package.'],
-	['packages/contracts', 'The shared wire shapes and the agent spec.'],
-	['packages/backend', 'The local server: git, state, the HTTP API.'],
-	['packages/frontend', 'The desk itself, rendered with @pierre/diffs.'],
-	['site', 'This website.'],
-] as const
 ---
 
 <Document
@@ -32,26 +11,5 @@ const REPOSITORY = [
 	title="Open source · Syneva"
 	description="Syneva is MIT licensed and built in the open: a protocol and an interface you can read end to end. No model inside, no telemetry, no account."
 >
-	<PageHero
-		route={route}
-		crumb="Open source"
-		title="A protocol you can read. Code you can fork."
-		lede="Syneva is MIT licensed and built in the open. A tool that sees your diffs should be one you can inspect end to end: no model inside, no telemetry, no account."
-		caption="The slot where a model would go is empty, on purpose."
-	>
-		<Fragment slot="actions"><Button href={REPO_URL} label="Star it on GitHub" /><TextLink href="/resources/connect-your-agent/" label="Read the contract" /></Fragment>
-		<OpenBox slot="art" />
-	</PageHero>
-	<Prose id="why" title="Why open.">
-		<RuledList items={WHY} />
-	</Prose>
-	<Prose id="repo" title={'What’s in<br>the repository.'}>
-		<SpecTable rows={REPOSITORY} head={['Path', 'What lives there']} />
-	</Prose>
-	<Prose id="contribute" title="Build it with us.">
-		<ProseText>Issues and pull requests are welcome. Commits follow Conventional Commits, and releases are cut automatically from them. The roadmap is public in the README: a command palette, more review modes, and lazy loading for very large diffs.</ProseText>
-		<ProseText>Syneva started as a fork of <TextLink href="https://github.com/ymansurozer/galley" label="Galley" isExternal />, and is grateful for it.</ProseText>
-		<ProseText><TextLink href={`${REPO_URL}/issues`} label="Open an issue" isExternal /></ProseText>
-	</Prose>
-	<CtaBand />
+	<OpenSourcePage route={route} />
 </Document>

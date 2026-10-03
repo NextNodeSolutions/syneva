@@ -1,0 +1,45 @@
+---
+// The previous and next pages of the route's section; at either end, the
+// way back to the section's overview.
+import type { Page, Section } from '@entities/site/model/site-map'
+import { siblingsOf } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import Icon from '@entities/site/ui/Icon.astro'
+import { pager as p } from './index-rows.styles'
+import { pagerLinkMarker } from './page-index.stylex'
+
+type Props = { route: string }
+
+const { route } = Astro.props
+const { section, previous, next } = siblingsOf(route)
+type Cell = { item?: Page; isNext: boolean }
+const cells: Cell[] = [
+	{ item: previous, isNext: false },
+	{ item: next, isNext: true },
+]
+const label = ({ item, isNext }: Cell): string => {
+	if (item) return isNext ? 'Next →' : '← Previous'
+	return isNext ? 'Back to →' : '← Back to'
+}
+const words = (cell: Cell, overview: Section): [string, string] =>
+	cell.item ? [cell.item.title, cell.item.blurb] : [overview.overview, overview.footer]
+---
+
+{
+	section && (
+		<nav {...sx(p.root)} aria-label={`${section.label} pages`}>
+			{cells.map(cell => {
+				const [title, blurb] = words(cell, section)
+				const text = [cell.isNext ? p.nextText : !cell.item && p.wide]
+				return (
+					<a {...sx(p.link, cell.isNext && p.next, pagerLinkMarker)} href={cell.item?.href ?? section.href}>
+						<small {...sx(p.direction)}>{label(cell)}</small>
+						{cell.item && <Icon name={cell.item.icon} css={[p.icon, cell.isNext && p.nextIcon]} />}
+						<strong {...sx(p.title, text)}>{title}</strong>
+						<span {...sx(p.blurb, text)}>{blurb}</span>
+					</a>
+				)
+			})}
+		</nav>
+	)
+}

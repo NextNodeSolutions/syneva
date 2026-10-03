@@ -1,0 +1,66 @@
+---
+import GuideSort from './art/GuideSort.astro'
+import GuideStamp from './art/GuideStamp.astro'
+import Button from '@shared/ui/Button.astro'
+import Chapter from '@widgets/chapter/ui/Chapter.astro'
+import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
+import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
+import Callout from '@shared/ui/prose/Callout.astro'
+import PageHero from '@widgets/page-hero/ui/PageHero.astro'
+import Pager from '@widgets/page-index/ui/Pager.astro'
+import Prose from '@shared/ui/prose/Prose.astro'
+import ProseText from '@shared/ui/prose/ProseText.astro'
+import SpecTable from '@shared/ui/prose/SpecTable.astro'
+import Terminal from '@shared/ui/prose/Terminal.astro'
+import TextLink from '@shared/ui/TextLink.astro'
+
+type Props = { route: string }
+
+const { route } = Astro.props
+
+const GUIDE = [
+	'# guide.json, written by your agent',
+	'{ "files": [',
+	'  { "path": "contracts/review.ts", "category": "Contracts" },',
+	'  { "path": "auth/session.ts",     "category": "Behavior" },',
+	'  { "path": "api/middleware.ts",   "category": "Behavior" },',
+	'  { "path": "pages/desk.tsx",      "category": "Interface" }',
+	'] }',
+	'',
+	'$ syneva --guide /tmp/guide.json',
+]
+const FIELDS = [
+	['files', 'Required. One entry per reviewed file.'],
+	['files[].path', 'Required. Repo-relative path.'],
+	['files[].category', 'The section it is listed under. Defaults to “Changes”.'],
+	['files[].order', 'Ascending review order. Defaults to array position.'],
+] as const
+---
+
+<PageHero
+	route={route}
+	crumb="Guided walkthrough"
+	title="A reading order,<br>not a pile of files."
+	state="available"
+	lede={'Git lists changed files alphabetically. Understanding doesn’t work that way. Your agent knows what it changed and why, so let it hand you the order: contracts first, behavior next, the interface last.'}
+	caption="Same six files. One order makes sense of them."
+>
+	<Fragment slot="actions"><Button href="/get-started/" label="Try it on your diff" /><TextLink href="/resources/connect-your-agent/" label="How agents attach a guide" /></Fragment>
+	<GuideSort slot="art" />
+</PageHero>
+<Prose id="guide" title="One small JSON file.">
+	<ProseText>A guide is a list of files with an optional section name and order. Your agent writes it outside the working tree and passes it at start, or swaps it in later. Syneva validates it, renders it as sections in the Walkthrough tab, and runs no model to do so.</ProseText>
+	<Terminal lines={GUIDE} title="guide.json" />
+	<SpecTable rows={FIELDS} head={['Field', 'Meaning']} />
+</Prose>
+<Prose id="nothing-hidden" title="Nothing hidden.<br>Ever.">
+	<Callout lead={'A guide reorders and labels. It can’t remove.'}>Files the guide doesn&rsquo;t mention land in a trailing Other section. A guide carries no prose and no flags, and your verdicts, comments and Send work exactly the same with or without one.</Callout>
+	<ProseText>That is a deliberate limit. A reading order is advice from the agent that wrote the code; the decision about what deserves your attention stays with you.</ProseText>
+</Prose>
+<Chapter id="stamped" title="Stamped to<br>its diff." isReverse caption="Guide → stamped diff → reload → refreshed guide">
+	<ChapterText>A guide is tied to the diff it was written for, and survives reloads and restarts.</ChapterText>
+	<ChapterText>When a reload moves the diff past it, the desk says the grouping may be out of date. Your agent regenerates it and swaps it in with a single command, without restarting your review.</ChapterText>
+	<GuideStamp slot="art" />
+</Chapter>
+<CtaBand />
+<Pager route={route} />

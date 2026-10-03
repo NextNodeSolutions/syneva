@@ -1,0 +1,28 @@
+---
+// Local by design: the desk runs next to your repository and calls no model.
+import TextLink from '@shared/ui/TextLink.astro'
+import { section } from '@shared/ui/section.styles'
+import LocalFigure from './art/LocalFigure.astro'
+import { REPO_URL } from '@entities/site/model/site-map'
+import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { local as l } from './sections.styles'
+---
+
+<section {...revealGroup(true, section.ruled, section.pad, l.section)} id="local" aria-labelledby="local-title">
+	<div>
+		<h2 {...revealItem()} id="local-title">Your code stays<br />on your machine.</h2>
+		<p {...revealItem(l.text)}>Review doesn’t need another cloud service. Syneva opens next to your repository, on loopback, and never calls a model. Your agent does the thinking; Syneva gives you a better place to judge it.</p>
+		<ul {...revealItem(l.points)}>
+			<li {...sx(l.point)}>Binds to 127.0.0.1 on a stable port per session</li>
+			<li {...sx(l.point)}>Decisions saved under <code {...sx(l.code)}>~/.syneva</code>, restored after a restart</li>
+			<li {...sx(l.point)}>Never edits your tracked files</li>
+		</ul>
+		<p {...revealItem(l.text, l.note)}>
+			<TextLink href={`${REPO_URL}/blob/main/test/benchmarks/history.json`} label="Recorded performance evidence" isExternal /><br />Historical runs published September 17, 2026. Not a guarantee for your repository.
+		</p>
+	</div>
+	<figure {...revealItem()} {...scene}>
+		<LocalFigure />
+	</figure>
+</section>

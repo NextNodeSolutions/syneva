@@ -1,29 +1,8 @@
 ---
-import WorkingTree from '../../art/workflows/WorkingTree.astro'
-import Command from '../../components/Command.astro'
-import CtaBand from '../../components/CtaBand.astro'
-import PageHero from '../../components/page/PageHero.astro'
-import Pager from '../../components/page/Pager.astro'
-import Prose from '../../components/page/Prose.astro'
-import ProseText from '../../components/page/ProseText.astro'
-import RuledList from '../../components/page/RuledList.astro'
-import Terminal from '../../components/page/Terminal.astro'
-import Document from '../../layouts/Document.astro'
+import Document from '@app/layouts/Document.astro'
+import WorkingTreePage from '@views/workflows/ui/WorkingTreePage.astro'
 
 const route = '/workflows/working-tree/'
-const NARROW = [
-	'# everything your agent changed',
-	'$ syneva',
-	'',
-	'# only what lives under src/auth',
-	'$ syneva --path src/auth',
-]
-const ROUND = [
-	['Your agent edits.', 'It works in your working tree, as it always does.'],
-	['You review.', 'Keep, undo, ask and request changes on the desk, then Send.'],
-	['Your agent acts and reloads.', 'It applies your verdict, then runs syneva reload to re-diff its edits into your open tab.'],
-	['Only what changed resets.', 'Rewritten changes come back pending; untouched ones keep your verdict. Repeat until there’s nothing left to say.'],
-] as const
 ---
 
 <Document
@@ -32,24 +11,5 @@ const ROUND = [
 	title="Working tree review · Syneva"
 	description="Run syneva in your repository and review everything your agent just changed: modified files as diffs, new files as full-file additions. Narrow it with --path."
 >
-	<PageHero
-		route={route}
-		crumb="Working tree"
-		title="Everything your agent just changed."
-		state="available"
-		lede="Run <code>syneva</code> in your repository and the working-tree diff opens in your browser. Modified files show as diffs, new untracked files as full-file additions, and nothing your agent touched is left out."
-		caption="The whole diff, or a lens on one path."
-	>
-		<Command slot="actions" text="syneva" label="Review the working tree" />
-		<WorkingTree slot="art" />
-	</PageHero>
-	<Prose id="narrow" title="Big diff?<br>Narrow it.">
-		<ProseText>Agents rarely change one thing. When a round touches several areas, start a desk on the part you want to judge first and keep the rest for later.</ProseText>
-		<Terminal lines={NARROW} title="your repository" />
-	</Prose>
-	<Prose id="round" title="One round,<br>start to finish.">
-		<RuledList items={ROUND} />
-	</Prose>
-	<CtaBand />
-	<Pager route={route} />
+	<WorkingTreePage route={route} />
 </Document>

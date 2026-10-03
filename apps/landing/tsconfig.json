@@ -1,6 +1,20 @@
 {
 	// The shared Astro preset (astro/tsconfigs/strict plus NextNode's strictness).
 	"extends": "@nextnode-solutions/standards/typescript/astro",
+	"compilerOptions": {
+		// The FSD layer aliases (Astro applies tsconfig paths to its Vite build):
+		// app -> views -> widgets -> features -> entities -> shared, strictly
+		// downward; src/pages holds the routes, which compose app and views.
+		// Enforced by oxlint's layer rules.
+		"paths": {
+			"@app/*": ["./src/app/*"],
+			"@views/*": ["./src/views/*"],
+			"@widgets/*": ["./src/widgets/*"],
+			"@features/*": ["./src/features/*"],
+			"@entities/*": ["./src/entities/*"],
+			"@shared/*": ["./src/shared/*"]
+		}
+	},
 	"include": [
 		".astro/types.d.ts",
 		"src/**/*",
