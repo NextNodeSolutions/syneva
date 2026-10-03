@@ -1,22 +1,89 @@
 import standards from '@nextnode-solutions/standards/oxlint'
 import { defineConfig } from 'oxlint'
 
+import type { OxlintOverride } from 'oxlint'
+
 // Cross-layer imports are aliased (each sliced layer below declares its upward
 // alias bans); these relative variants close the textual bypass so a sliced
 // layer cannot reach another layer - or another slice of its own layer - by
-// spelling the path relatively. The enumerated climbs (../ through ../../../)
-// cover the deepest current frontend nesting; from deeper files a shallower
-// climb resolves inside the own slice (where the target never exists), so the
-// variants only ever fire on real escapes. Intra-slice imports (./peer,
-// ../model) stay relative and remain legal; app/ and worker/ are composition
-// roots and import every layer by design.
+// spelling the path relatively. The enumerated climbs (../ through
+// ../../../../) cover the deepest current nesting (the landing's
+// views/*/ui/art); from deeper files a shallower climb resolves inside the own
+// slice (where the target never exists), so the variants only ever fire on
+// real escapes. Intra-slice imports (./peer, ../model) stay relative and
+// remain legal; app/ and worker/ are composition roots and import every layer
+// by design.
 const relativeLayerEscapes = (...targets: string[]): string[] =>
 	targets.flatMap(target => [
 		`../${target}`,
 		`../${target}/**`,
 		`../../${target}/**`,
 		`../../../${target}/**`,
+		`../../../../${target}/**`,
 	])
+
+// The landing's FSD layers (apps/landing/src): app -> views -> widgets ->
+// features -> entities -> shared, strictly downward; src/pages holds the
+// Astro routes, which compose app and views. A sliced layer also bans its own
+// alias: slices never import each other, intra-slice imports stay relative.
+// oxlint parses the .ts modules only; the .astro components follow the same
+// rules by convention. Each rule set repeats the Motion ban of the
+// apps/landing/** override, which it replaces for its files.
+const LANDING_LAYERS = [
+	'app',
+	'views',
+	'widgets',
+	'features',
+	'entities',
+	'shared',
+]
+const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
+const LANDING_MOTION_BAN = {
+	group: ['motion', 'motion/**'],
+	message:
+		'the landing animates through @syneva/motion only - import animate from @syneva/motion/animate, or export the Motion API you need from the package first.',
+}
+const landingLayer = (layer: string): OxlintOverride => {
+	const above = LANDING_LAYERS.slice(0, LANDING_LAYERS.indexOf(layer))
+	const others = LANDING_LAYERS.filter(other => other !== layer)
+	return {
+		files: [`apps/landing/src/${layer}/**/*.ts`],
+		rules: {
+			'eslint/no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						LANDING_MOTION_BAN,
+						...(above.length > 0
+							? [
+									{
+										group: above.flatMap(other => [
+											`@${other}`,
+											`@${other}/**`,
+										]),
+										message: `${layer} never imports a layer above it (${above.join(', ')}).`,
+									},
+								]
+							: []),
+						...(LANDING_SLICED.has(layer)
+							? [
+									{
+										group: [`@${layer}/**`],
+										message: `${layer} slices never import each other; intra-slice imports are relative.`,
+									},
+								]
+							: []),
+						{
+							group: relativeLayerEscapes(...others),
+							message:
+								'cross-layer imports use the layer aliases - relative paths must stay inside the slice.',
+						},
+					],
+				},
+			],
+		},
+	}
+}
 
 export default defineConfig({
 	extends: [standards],
@@ -44,11 +111,13 @@ export default defineConfig({
 			// against the SVG it draws. Naming each one would hide the figure behind
 			// its legend, so the rule stays on for everything else in the app.
 			files: [
-				'apps/landing/src/art/**',
-				'apps/landing/src/sections/home/hero.choreography.ts',
-				'apps/landing/src/sections/home/hero.timeline.ts',
-				'apps/landing/src/sections/home/hero.verdict.ts',
-				'apps/landing/src/sections/home/Hero{Card,Glyph,Ledger,Stage}.astro',
+				'apps/landing/src/views/*/ui/art/**',
+				'apps/landing/src/views/home/ui/circuit/**',
+				'apps/landing/src/shared/ui/drawing/**',
+				'apps/landing/src/views/home/ui/hero.choreography.ts',
+				'apps/landing/src/views/home/ui/hero.timeline.ts',
+				'apps/landing/src/views/home/ui/hero.verdict.ts',
+				'apps/landing/src/views/home/ui/Hero{Card,Glyph,Ledger,Stage}.astro',
 			],
 			rules: { 'eslint/no-magic-numbers': 'off' },
 		},
@@ -58,7 +127,7 @@ export default defineConfig({
 			// the code compares.
 			files: [
 				'apps/landing/src/**/*.astro',
-				'apps/landing/src/sections/resources/faq-content.ts',
+				'apps/landing/src/views/resources/ui/faq-content.ts',
 			],
 			rules: { 'nextnode/no-confusable-chars': 'off' },
 		},
@@ -156,6 +225,7 @@ export default defineConfig({
 				],
 			},
 		},
+		...LANDING_LAYERS.map(landingLayer),
 		{
 			// Layer boundaries between the workspace packages (plus the relative bans
 			// that keep intra-package escapes closed):

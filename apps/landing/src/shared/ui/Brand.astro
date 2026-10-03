@@ -1,0 +1,17 @@
+---
+// The wordmark: the Syneva mark (it turns on hover) and the name.
+import { sx } from '../lib/sx'
+import { brand } from './brand.styles'
+import { brandMarker } from './brand.stylex'
+
+const MARK = 'M12 2v5m0 10v5M2 12h5m10 0h5M5 5l4 4m6 6 4 4M5 19l4-4m6-6 4-4'
+const DIAMOND = 'M8 12l4-4 4 4-4 4Z'
+---
+
+<a {...sx(brand.link, brandMarker)} href="/" aria-label="Syneva home">
+	<svg {...sx(brand.mark)} viewBox="0 0 24 24" aria-hidden="true">
+		<path d={MARK}></path>
+		<path d={DIAMOND}></path>
+	</svg>
+	syneva
+</a>

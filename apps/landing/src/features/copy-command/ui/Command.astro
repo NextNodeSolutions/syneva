@@ -1,0 +1,29 @@
+---
+// A selectable command with copy feedback and a manual-copy failure state
+// (command.client.ts wires every [data-command]).
+import type { Part } from '@shared/lib/sx'
+import { sx } from '@shared/lib/sx'
+import { command as c } from './command.styles'
+import { copyMarker } from './command.stylex'
+
+type Props = { text: string; label?: string; isInstall?: boolean; css?: Part }
+
+const { text, label = 'Command', isInstall = false, css } = Astro.props
+// Ids only need to be unique within the page.
+Astro.locals.commandCount = (Astro.locals.commandCount ?? 0) + 1
+const id = `command-${Astro.locals.commandCount}`
+---
+
+<div {...sx(c.box, isInstall && c.install, css)} data-command>
+	<span {...sx(c.prompt)} aria-hidden="true">$</span><input
+		{...sx(c.field)}
+		id={id}
+		value={text}
+		readonly
+		aria-label={label}
+		spellcheck="false"
+	/><button {...sx(c.copy, copyMarker)} type="button" aria-label={`Copy: ${text}`} data-copy>
+		<svg {...sx(c.iconCopy)} viewBox="0 0 20 20" aria-hidden="true"><path d="M7 7h9v10H7ZM4 13H2V2h10v2"></path></svg>
+		<svg {...sx(c.iconCheck)} viewBox="0 0 20 20" aria-hidden="true"><path d="m4 11 5 5 8-11"></path></svg>
+	</button><span {...sx(c.status)} role="status" aria-live="polite" data-copy-status></span>
+</div>

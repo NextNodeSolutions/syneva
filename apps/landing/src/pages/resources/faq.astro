@@ -1,14 +1,6 @@
 ---
-import FaqArt from '../../art/resources/FaqArt.astro'
-import CtaBand from '../../components/CtaBand.astro'
-import PageHero from '../../components/page/PageHero.astro'
-import Pager from '../../components/page/Pager.astro'
-import TextLink from '../../components/TextLink.astro'
-import { REPO_URL } from '../../content/site-map'
-import Document from '../../layouts/Document.astro'
-import { FAQ } from '../../sections/resources/faq-content'
-import QaBlock from '../../sections/resources/QaBlock.astro'
-import QaIndex from '../../sections/resources/QaIndex.astro'
+import Document from '@app/layouts/Document.astro'
+import FaqPage from '@views/resources/ui/FaqPage.astro'
 
 const route = '/resources/faq/'
 ---
@@ -19,18 +11,5 @@ const route = '/resources/faq/'
 	title="Questions & answers · Syneva"
 	description={'Straight answers about Syneva: what it does and doesn’t do, how agents attach, where your review lives, and what’s next.'}
 >
-	<PageHero
-		route={route}
-		crumb="Questions & answers"
-		title="Straight answers."
-		lede={'What Syneva does, what it deliberately doesn’t, and where your code goes. If your question isn’t here, ask it on GitHub.'}
-		caption="Short answers first. Details where they matter."
-	>
-		<TextLink slot="actions" href={`${REPO_URL}/issues`} label="Ask on GitHub" isExternal />
-		<FaqArt slot="art" />
-	</PageHero>
-	<QaIndex groups={FAQ} />
-	{FAQ.map((group, index) => <QaBlock group={group} index={index} />)}
-	<CtaBand />
-	<Pager route={route} />
+	<FaqPage route={route} />
 </Document>

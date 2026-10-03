@@ -1,0 +1,73 @@
+---
+// Changelog: shipped work as a day-by-day stacked rail.
+import { sx } from '@shared/lib/sx'
+import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
+import Drawing from '@shared/ui/drawing/Drawing.astro'
+import { anim, move } from '@shared/ui/drawing/anim'
+import { shape } from '@shared/ui/drawing/shape.styles'
+import { text } from '@shared/ui/drawing/text.styles'
+import { resourcesArt as r } from './resources-art.styles'
+
+// Real commit counts per day, Sept 15 to Oct 2 2026: [day, feat, fix, perf].
+const HISTORY = [
+	['09-15', 3, 0, 0],
+	['09-16', 1, 0, 0],
+	['09-17', 0, 1, 0],
+	['09-18', 0, 0, 0],
+	['09-19', 1, 2, 3],
+	['09-20', 1, 4, 4],
+	['09-21', 0, 4, 1],
+	['09-22', 1, 2, 5],
+	['09-23', 5, 5, 3],
+	['09-24', 0, 0, 0],
+	['09-25', 0, 0, 0],
+	['09-26', 0, 0, 0],
+	['09-27', 0, 0, 0],
+	['09-28', 0, 0, 0],
+	['09-29', 0, 0, 0],
+	['09-30', 0, 2, 0],
+	['10-01', 1, 0, 0],
+	['10-02', 2, 2, 0],
+] as const
+const BASE = 320
+const STEP = 28
+const CELL = 11
+const KIND = { feat: r.feat, fix: r.fix, perf: r.perf } as const
+type Kind = keyof typeof KIND
+const LAST = HISTORY.length - 1
+// A date under every fourth day, and under the last one.
+const TICK_EVERY = 4
+const hasTick = (i: number): boolean => (i % TICK_EVERY === 0 && i < LAST - 1) || i === LAST
+const cellsOf = (feat: number, fix: number, perf: number): Kind[] => [
+	...Array.from({ length: feat }, (): Kind => 'feat'),
+	...Array.from({ length: fix }, (): Kind => 'fix'),
+	...Array.from({ length: perf }, (): Kind => 'perf'),
+]
+---
+
+<Drawing viewBox="0 0 600 400" compact="36 40 540 330" labelledby="hist-title hist-desc">
+	<title id="hist-title">Shipped, day by day</title>
+	<desc id="hist-desc">Feature, fix and performance commits per day from September 15 to October 2, 2026, taken from the repository history. The busiest day, September 23, shipped the review notes panel.</desc>
+	<ArtFrame id="hist" width={600} height={400} />
+	<text {...anim('fade', 0, text.tiny)} x="52" y="66">COMMITS PER DAY · FROM THE GIT HISTORY</text>
+	<g {...anim('fade', 0.1)}><rect {...sx(r.feat)} x="52" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="68" y="93">FEAT</text><rect {...sx(r.fix)} x="120" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="136" y="93">FIX</text><rect {...sx(r.perf)} x="180" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="196" y="93">PERF</text></g>
+	<path {...anim('draw', 0, shape.route)} pathLength="1" d={`M44 ${BASE + 2}H556`}></path>
+	{
+		HISTORY.map(([day, feat, fix, perf], i) => {
+			const x = 52 + i * STEP
+			return (
+				<Fragment>
+					<g {...move(0.2 + i * 0.05, 0, 30)}>
+						{cellsOf(feat, fix, perf).map((kind, k) => (
+							<rect {...sx(KIND[kind])} x={x} y={BASE - 12 - k * CELL} width="10" height="10" />
+						))}
+					</g>
+					<path {...sx(shape.hair)} d={`M${x + 5} ${BASE + 2}v5`} />
+					{hasTick(i) && <text {...sx(text.tiny)} x={x + 5} y={BASE + 22} text-anchor="middle">{day.replace('-', '/')}</text>}
+				</Fragment>
+			)
+		})
+	}
+	<path {...anim('draw', 1.4, shape.route, shape.routeAccent)} pathLength="1" d="M281 160V130h40"></path>
+	<text {...anim('fade', 1.5, text.tiny, text.accent)} x="326" y="134">REVIEW NOTES PANEL</text>
+</Drawing>

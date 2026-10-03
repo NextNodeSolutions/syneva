@@ -8,6 +8,13 @@ import { linkedPages } from './integrations/linked-pages'
 // One root for StyleX's file-based hashes, whatever directory the build runs
 // from: markers and variables defined in packages/* keep the same class names.
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url))
+const SRC = fileURLToPath(new URL('./src', import.meta.url))
+// StyleX resolves the modules that define markers and variables itself, so
+// the FSD layer aliases (tsconfig.json) are repeated for it.
+const LAYERS = ['app', 'views', 'widgets', 'features', 'entities', 'shared']
+const STYLEX_ALIASES = Object.fromEntries(
+	LAYERS.map(layer => [`@${layer}/*`, [`${SRC}/${layer}/*`]]),
+)
 
 // The public site is fully static: every route prerenders to
 // dist/<route>/index.html (directory URLs, as the assets host serves them)
@@ -28,6 +35,7 @@ export default defineConfig({
 					type: 'commonJS',
 					rootDir: REPO_ROOT,
 				},
+				aliases: STYLEX_ALIASES,
 				// Fail the build on an unsupported property instead of silently
 				// dropping it (StyleX's default).
 				propertyValidationMode: 'throw',

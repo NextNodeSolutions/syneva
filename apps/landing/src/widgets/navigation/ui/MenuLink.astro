@@ -1,0 +1,30 @@
+---
+// A product or resource menu row: icon, title (and badge), blurb, arrow.
+import type { Page } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import Icon from '@entities/site/ui/Icon.astro'
+import { menuLinkMarker } from './markers.stylex'
+import { menuLink } from './menu.styles'
+import { instant } from './instant.styles'
+
+type Props = { page: Page; route: string; isPreviewing?: boolean }
+
+const { page, route, isPreviewing = false } = Astro.props
+---
+
+<a
+	{...sx(menuLink.base, !isPreviewing && menuLink.resourceHover, instant.transitions, menuLinkMarker)}
+	href={page.href}
+	data-preview={isPreviewing ? page.preview : undefined}
+	data-menu-row
+	aria-current={page.href === route ? 'page' : undefined}
+>
+	<Icon name={page.icon} css={[menuLink.icon, instant.transitions]} />
+	<span {...sx(menuLink.text)}>
+		<strong {...sx(menuLink.title)}>
+			{page.title}{page.badge && <Fragment> <em {...sx(menuLink.badge)}>{page.badge}</em></Fragment>}
+		</strong>
+		<small {...sx(menuLink.blurb)}>{page.blurb}</small>
+	</span>
+	<span {...sx(menuLink.arrow)} aria-hidden="true">→</span>
+</a>
