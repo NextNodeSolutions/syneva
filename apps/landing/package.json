@@ -2,7 +2,7 @@
 	"name": "@syneva/landing",
 	"version": "0.0.0",
 	"private": true,
-	"description": "The public site at syneva.dev: a static Astro site styled with StyleX and animated with Motion. Built to dist/, assembled for deploy by the root build.",
+	"description": "The public site at syneva.dev: a static Astro site styled with StyleX and animated with Motion. Built to dist/, the static assets the Worker deploy serves directly.",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
