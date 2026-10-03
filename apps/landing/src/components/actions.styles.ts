@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color, ease } from '@syneva/tokens/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color, ease } from '@syneva/design-system/tokens.stylex'
 
 import { buttonMarker, textLinkMarker } from './actions.stylex'
 import { chapterCopyMarker } from './chapter/chapter.stylex'

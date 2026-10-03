@@ -68,8 +68,8 @@ export default defineConfig({
 			// utility classes to the heuristic.
 			files: [
 				'apps/landing/**',
+				'packages/design-system/**',
 				'packages/motion/**',
-				'packages/tokens/**',
 			],
 			rules: { 'nextnode/no-detached-tailwind': 'off' },
 		},

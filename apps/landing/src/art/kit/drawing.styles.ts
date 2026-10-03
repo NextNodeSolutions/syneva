@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
+import { media } from '@syneva/design-system/media.stylex'
 
 import { chapterArtMarker } from './drawing.stylex'
 

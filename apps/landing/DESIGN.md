@@ -15,7 +15,7 @@ This system belongs to the standalone public site. The repository-root `DESIGN.m
 
 ## Colors
 
-`@syneva/tokens` (`packages/tokens/src/tokens.stylex.ts`) owns the palette as StyleX variables that keep their literal names (`var(--paper)`, `var(--accent)`, ...); use them rather than repeating color values.
+`@syneva/design-system` (`packages/design-system/src/tokens.stylex.ts`) owns the palette as StyleX variables that keep their literal names (`var(--paper)`, `var(--accent)`, ...); use them rather than repeating color values.
 
 - `--paper`, `--white`: light page and control surfaces.
 - `--ink`, `--muted`: headings and supporting text.
@@ -33,7 +33,7 @@ The heading scale, weights, tracking and responsive sizes are defined in `src/st
 
 ## Layout
 
-A centered, ruled frame contains wide editorial sections and paired copy/drawing chapters. The chapters alternate sides on desktop and put explanation before drawing on phones. The breakpoints live in `@syneva/tokens` (`media.stylex.ts`); each component's StyleX styles own its measurements.
+A centered, ruled frame contains wide editorial sections and paired copy/drawing chapters. The chapters alternate sides on desktop and put explanation before drawing on phones. The breakpoints live in `@syneva/design-system` (`media.stylex.ts`); each component's StyleX styles own its measurements.
 
 Navigation stays compact. The primary action remains distinct from the text-link alternative. Avoid feature-card grids that fragment the Before/After reading order.
 

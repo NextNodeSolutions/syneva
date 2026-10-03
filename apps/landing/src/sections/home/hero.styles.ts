@@ -1,11 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color, ease, font } from '@syneva/design-system/tokens.stylex'
 import { motionRoot } from '@syneva/motion/root.stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color, ease, font } from '@syneva/tokens/tokens.stylex'
 
 import { heroMarker, newsMarker } from './hero.stylex'
 
-import type { When } from '@syneva/tokens/when'
+import type { When } from '@syneva/design-system/when'
 
 const lit = (): string => stylex.when.ancestor(':is(.is-lit)', heroMarker)
 const newsHover = (): string => stylex.when.ancestor(':hover', newsMarker)

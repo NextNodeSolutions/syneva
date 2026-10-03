@@ -1,10 +1,10 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color, ease } from '@syneva/tokens/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color, ease } from '@syneva/design-system/tokens.stylex'
 
 import { motionRoot } from './root.stylex'
 
-import type { When } from '@syneva/tokens/when'
+import type { When } from '@syneva/design-system/when'
 
 // Hidden poses: where an element waits before its entrance plays. They apply
 // only with reduced-motion no-preference and an armed root, so the markup is

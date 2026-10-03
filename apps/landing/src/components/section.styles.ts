@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color } from '@syneva/tokens/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color } from '@syneva/design-system/tokens.stylex'
 
 // The vertical rhythm every wide section shares, and the hairline that
 // separates one section from the next.

@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { color } from '@syneva/tokens/tokens.stylex'
+import { color } from '@syneva/design-system/tokens.stylex'
 
 // Workflows drawings: where a review's diff comes from.
 export const workflowsArt = stylex.create({

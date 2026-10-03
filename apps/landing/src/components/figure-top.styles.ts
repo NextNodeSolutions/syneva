@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color, font } from '@syneva/tokens/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color, font } from '@syneva/design-system/tokens.stylex'
 
 // The mono caption bar above a figure: what it shows, then what it is.
 export const figureTop = stylex.create({
