@@ -1,0 +1,95 @@
+{
+	"name": "Morphing product navigation",
+	"items": [
+		{
+			"id": "sections",
+			"requirement": "The desktop navbar contains Product, Workflows, Resources, Open source, and a distinct Get started action.",
+			"source": "User request for multiple product-relevant links and submenus"
+		},
+		{
+			"id": "product",
+			"requirement": "The open Product dropdown contains Review desk, Guided walkthrough, Ask your agent, and Plan desk links.",
+			"source": "User request; PRODUCT.md capabilities"
+		},
+		{
+			"id": "compact-rows",
+			"requirement": "The Product menu has five compact, content-sized link rows without oversized vertical gaps.",
+			"source": "User-reported Product menu rows stretch on opening and move into place on hover"
+		},
+		{
+			"id": "prototype",
+			"requirement": "Plan desk is visibly labeled Prototype.",
+			"source": "Existing landing-page product truth"
+		},
+		{
+			"id": "preview",
+			"requirement": "The Product dropdown includes a product-specific illustrative preview beside the links on desktop.",
+			"source": "Reference dropdown has substantive side content"
+		},
+		{
+			"id": "light",
+			"requirement": "The navbar and dropdown preserve the landing page's light palette, restrained petrol blue accent, and Geist typography.",
+			"source": "site/DESIGN.md"
+		},
+		{
+			"id": "floating",
+			"requirement": "The dropdown floats above the hero without moving the page content.",
+			"source": "User's morphing dropdown video reference"
+		},
+		{
+			"id": "pages",
+			"requirement": "Every menu link, menu footer and the Open source link lead to their own page on the site; GitHub stays reachable from the footer and the Open source page.",
+			"source": "Human brief: each link and sublink gets its own page"
+		},
+		{
+			"id": "current",
+			"requirement": "The section of the current page is marked on its trigger, and the current page is marked inside its menu.",
+			"source": "Multi-page navigation"
+		},
+		{
+			"id": "morph",
+			"requirement": "The dropdown unfolds from its trigger and folds back on dismissal; switching sections continuously resizes and repositions the same floating shell without stretching text.",
+			"source": "Current human request: beautiful morphs entering, leaving, and inside navigation; verify through interaction"
+		},
+		{
+			"id": "single-morph-clock",
+			"requirement": "Switching navbar sections coordinates shell movement, panel slides and staged rows on one animation clock without delayed row opacity compounding the panel fade.",
+			"source": "User correction: the morphs fight each other; preserve animations and synchronize them instead of deleting them. Verify frame-by-frame through interaction."
+		},
+		{
+			"id": "readable-handover",
+			"requirement": "During menu and preview switching, outgoing text clears before incoming text becomes visible; intermediate frames never show two superimposed menus or illustrations.",
+			"source": "User reports navigation still broken; a frozen 90ms Product-to-Roadmap frame on port 4321 showed overlapping blurred text. Verify intermediate frames, not just completed animation states."
+		},
+		{
+			"id": "hover-then-click",
+			"requirement": "The first click on a hover-opened trigger keeps its dropdown open. A second deliberate click dismisses it.",
+			"source": "Real pointer reproduction on the user's port 4321: hovering Product and then clicking Product closed the menu."
+		},
+		{
+			"id": "interrupted-morph",
+			"requirement": "Rapidly changing direction between navbar links continues from the currently rendered dropdown and content positions without snapping to a previous start or end state.",
+			"source": "User request for ultra-smooth switching between links; verify interrupted transitions through interaction."
+		},
+		{
+			"id": "sharp-navigation-text",
+			"requirement": "Menu and preview text stay unblurred throughout opening, switching and closing.",
+			"source": "User reports excessive opening blur; inspect computed filters during the animation, including ancestor filters."
+		},
+		{
+			"id": "independent-preview-motion",
+			"requirement": "Hovering Product rows during a menu morph leaves the menu animation and its original finish time unchanged.",
+			"source": "User reports continued unsmooth motion; preview changes canceled and restarted the shared 420ms animation. Verify animation identity and deadline during interruption."
+		},
+		{
+			"id": "preview-continuity",
+			"requirement": "Hovering Product rows moves one shared selection background and reveals the corresponding illustrative preview with staged content.",
+			"source": "Current human request: motion inside the navigation; verify through interaction"
+		},
+		{
+			"id": "mobile",
+			"requirement": "At narrow widths the navbar collapses into a Menu toggle; opening it shows the same dropdown content and it is fully operable.",
+			"source": "site/AGENTS.md responsive declaration (600/900/1280)"
+		}
+	]
+}

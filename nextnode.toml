@@ -1,0 +1,34 @@
+# Landing page deploy — Cloudflare Workers (static assets), CI-only.
+# The pipeline (NextNodeSolutions/core deploy-workers.yml) reads this file:
+# plan → quality → provision (Terraform) → deploy (wrangler). Local machines
+# never deploy (see ~/.pi/agent/AGENTS.md).
+[project]
+name = "syneva-landing"
+type = "app"
+# The reviewed app runs locally by design - the public site for the apex is
+# the landing. Workers custom domains: syneva.dev (prod), dev.syneva.dev (dev).
+domain = "syneva.dev"
+# Quality scripts are root-only pnpm scripts (oxlint over the monorepo), not
+# turbo tasks - filter=false makes the matrix run them with plain pnpm.
+filter = false
+
+[environment]
+development = true
+
+[deploy]
+target = "cloudflare-workers"
+# No runtime secrets: the site is static and stateless.
+
+[deploy.services.web]
+url = "syneva.dev"
+# Static-assets-only Worker (core deploy-workers pipeline): no script at all -
+# the site is pure static, requests are answered by the assets, so there is no
+# _worker.js convention to feed the infra and no source dir for wrangler's
+# assets guard to refuse. The assets root is declared directly.
+entry = false
+assets = "dist"
+
+[scripts]
+lint = "lint"
+test = false # repo policy: no test suite yet
+build = false # the workflow's pnpm build assembles dist/ via build:landing

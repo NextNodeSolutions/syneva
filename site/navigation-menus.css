@@ -1,0 +1,254 @@
+.nav-panel {
+	/* One spacing system for every menu: the same inset around the link
+	   area and the same padding inside each link, so content sits on the
+	   same lines whichever menu the shell morphs to, and the footer text
+	   lines up with the link content above it. */
+	--menu-inset: 8px;
+	--menu-link-padding-block: 14px;
+	--menu-link-padding-inline: 12px;
+	--menu-icon-size: 20px;
+	--menu-icon-gap: 13px;
+	/* A whole-pixel title line keeps every row a whole number of pixels,
+	   so the preview highlight (placed from offsetTop/offsetHeight) and
+	   the shell height (rounded up) land exactly on the rows. */
+	--menu-title-line: calc(20 / 14);
+}
+.product-menu {
+	--panel-width: 640px;
+}
+.workflows-menu {
+	--panel-width: 540px;
+}
+.resources-menu {
+	--panel-width: 340px;
+}
+.product-menu-body {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	padding: var(--menu-inset);
+	gap: var(--menu-inset);
+}
+.product-links {
+	position: relative;
+	isolation: isolate;
+}
+.product-links::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
+	height: calc(var(--selection-height, 66) * 1px);
+	background: var(--paper);
+	border-radius: 5px;
+	transform: translateY(calc(var(--selection-y, 0) * 1px));
+	z-index: -1;
+	pointer-events: none;
+}
+.product-links .is-previewed > svg { color: var(--accent); }
+.product-links .is-previewed .menu-arrow { opacity: 1; transform: none; }
+.menu-link {
+	display: flex;
+	align-items: center;
+	gap: var(--menu-icon-gap);
+	padding: var(--menu-link-padding-block) var(--menu-link-padding-inline);
+	min-height: 66px;
+	border-radius: 5px;
+	transition:
+		background-color 150ms var(--ease-out),
+		color 150ms var(--ease-out);
+}
+.menu-link > svg {
+	width: var(--menu-icon-size);
+	height: var(--menu-icon-size);
+	flex-shrink: 0;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.4;
+}
+.menu-link > span:not(.menu-arrow) {
+	min-width: 0;
+}
+.menu-link strong {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: var(--menu-title-line);
+}
+.menu-link small {
+	display: block;
+	margin-top: 4px;
+	font-size: 12px;
+	color: var(--muted);
+	line-height: 1.5;
+}
+.menu-link em {
+	color: var(--accent);
+	background: var(--wash);
+	border-radius: 3px;
+	padding: 2px 5px;
+	font-size: 9px;
+	font-style: normal;
+	font-weight: 500;
+}
+.menu-arrow {
+	margin-left: auto;
+	align-self: center;
+	color: var(--muted);
+	font-size: 15px;
+	opacity: 0;
+	transform: translate(-3px, 3px);
+	transition:
+		opacity 150ms,
+		transform 150ms var(--ease-out);
+}
+.menu-link:focus-visible,
+.workflow-link:focus-visible {
+	outline-offset: -3px;
+}
+.menu-link:focus-visible .menu-arrow {
+	opacity: 1;
+	transform: none;
+}
+.menu-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	min-height: 49px;
+	padding: 13px calc(var(--menu-inset) + var(--menu-link-padding-inline));
+	border-top: 1px solid var(--line);
+	background: var(--paper);
+	font-size: 11px;
+	line-height: 1.5;
+}
+.menu-footer > span:first-child {
+	color: var(--muted);
+}
+.menu-footer > span:last-child {
+	white-space: nowrap;
+}
+.menu-footer:focus-visible {
+	outline-offset: -5px;
+}
+.workflow-links {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	padding: var(--menu-inset);
+	column-gap: var(--menu-inset);
+}
+.workflow-link {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	padding: var(--menu-link-padding-block) var(--menu-link-padding-inline);
+	/* Same title-to-blurb step as .menu-link small. */
+	gap: 4px;
+	border-radius: 5px;
+}
+.workflow-link strong {
+	display: flex;
+	justify-content: space-between;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: var(--menu-title-line);
+}
+.workflow-link strong span {
+	color: var(--muted);
+}
+.workflow-link > span {
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--muted);
+}
+.workflow-link code {
+	font: 11px/16px var(--mono);
+	color: var(--accent);
+	margin-top: 4px;
+}
+/* The row rule is its own unrounded line: a border-top on the rounded
+   link would curl down at both ends. */
+.workflow-link:nth-child(n + 3)::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
+	border-top: 1px solid var(--line);
+}
+.local-note {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+.resource-links {
+	padding: var(--menu-inset);
+}
+.preview-dot {
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--green);
+	flex-shrink: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+	.nav-trigger:hover {
+		color: var(--accent);
+	}
+	.resource-links .menu-link:hover,
+	.workflow-link:hover {
+		background: var(--paper);
+	}
+	.menu-link:hover .menu-arrow {
+		opacity: 1;
+		transform: none;
+	}
+	.menu-footer:hover > span:last-child {
+		color: var(--accent);
+	}
+}
+
+/* Section-aware navigation: the trigger of the section you are in keeps a
+   quiet accent mark, and the current page is marked inside its menu. */
+.nav-trigger.is-section,
+.nav-direct.is-section {
+	color: var(--accent);
+}
+.menu-link[aria-current='page'],
+.workflow-link[aria-current='page'] {
+	background: var(--paper);
+	box-shadow: inset 2px 0 0 var(--accent);
+}
+.menu-footer[aria-current='page'] > span:last-child {
+	color: var(--accent);
+}
+.workflow-link strong {
+	align-items: center;
+	gap: var(--menu-icon-gap);
+}
+.workflow-link strong > svg {
+	width: var(--menu-icon-size);
+	height: var(--menu-icon-size);
+	flex-shrink: 0;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.4;
+}
+.workflow-link strong > span {
+	margin-left: auto;
+}
+.workflow-link code {
+	background: none;
+	padding: 0;
+}
+.menu-link > svg {
+	transition: color 150ms var(--ease-out), transform 300ms var(--ease-spring);
+}
+@media (hover: hover) and (pointer: fine) {
+	.menu-link:hover > svg,
+	.workflow-link:hover strong > svg {
+		color: var(--accent);
+	}
+	.menu-link:hover > svg {
+		transform: scale(1.08);
+	}
+}

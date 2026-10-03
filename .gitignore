@@ -1,0 +1,20 @@
+.prd/
+prototypes/
+node_modules/
+dist/
+.pi/
+*.log
+.DS_Store
+
+# Playwright MCP test artifacts (screenshots/snapshots)
+.playwright-mcp/
+.desk/
+
+# Impeccable design tooling (live-mode config + session journal)
+.impeccable/
+
+# Scratch output of test/benchmarks/browser-bench.mjs (run-local measurement)
+browser-bench-results.json
+
+# Turborepo daemon/cache state
+.turbo/

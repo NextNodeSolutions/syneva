@@ -1,0 +1,43 @@
+{
+	"name": "syneva-monorepo",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Workspace root for Syneva - the publishable CLI lives in apps/syneva, the build units in packages/*.",
+	"license": "MIT",
+	"type": "module",
+	"packageManager": "pnpm@10.33.2",
+	"engines": {
+		"node": ">=22"
+	},
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": ">=24"
+		}
+	},
+	"scripts": {
+		"dev": "pnpm --filter syneva dev",
+		"dev:site": "node scripts/serve-site.mjs",
+		"build": "turbo run build && pnpm build:landing",
+		"build:landing": "node scripts/build-landing.mjs",
+		"start": "node apps/syneva/dist/cli.js",
+		"check": "turbo run check && tsc -p tsconfig.node.json",
+		"lint": "oxlint --deny-warnings",
+		"lint:types": "oxlint --type-aware --deny-warnings",
+		"lint:fix": "oxlint --fix",
+		"format": "oxfmt --write .",
+		"format:check": "oxfmt --check .",
+		"perf-smoke": "node test/benchmarks/perf-smoke.mjs",
+		"bench": "node test/benchmarks/bench-fixtures.mjs && node test/benchmarks/browser-bench.mjs",
+		"release": "pnpm lint && pnpm lint:types && pnpm format:check && pnpm check && pnpm build && pnpm --filter syneva exec semantic-release"
+	},
+	"devDependencies": {
+		"@nextnode-solutions/standards": "1.25.0",
+		"@types/node": "latest",
+		"oxfmt": "0.67.0",
+		"oxlint": "1.82.0",
+		"oxlint-tsgolint": "7.0.2001",
+		"turbo": "latest",
+		"typescript": "latest"
+	}
+}

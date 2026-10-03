@@ -1,0 +1,147 @@
+@media (max-width: 900px) {
+	.navigation {
+		gap: 12px;
+	}
+	.navigation .nav-links {
+		gap: 0;
+	}
+	.nav-trigger,
+	.nav-direct {
+		font-size: 13px;
+		padding-inline: 8px;
+	}
+}
+@media (max-width: 700px) {
+	.navigation {
+		padding-inline: 20px;
+	}
+	.navigation > .nav-action {
+		margin-left: auto;
+		font-size: 12px;
+		padding: 9px 11px;
+		white-space: nowrap;
+	}
+	.nav-toggle {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		padding: 0 5px;
+		min-height: 44px;
+		background: none;
+		border: 0;
+		font-size: 13px;
+	}
+	.nav-toggle svg {
+		width: 20px;
+		height: 20px;
+		stroke: currentColor;
+		stroke-width: 1.5;
+	}
+	.navigation .nav-links {
+		display: none;
+		position: absolute;
+		top: calc(100% + 8px);
+		left: 12px;
+		right: 12px;
+		padding: 4px;
+		background: var(--white);
+		border: 1px solid var(--line);
+		border-radius: 8px;
+	}
+	.navigation[data-mobile-open='true'] .nav-links {
+		display: flex;
+		justify-content: space-between;
+	}
+	.nav-trigger,
+	.nav-direct {
+		min-height: 44px;
+		padding-inline: 8px;
+		font-size: 12px;
+	}
+	.nav-trigger {
+		gap: 2px;
+	}
+	.nav-trigger svg {
+		width: 12px;
+		height: 12px;
+	}
+	.nav-direct {
+		margin-left: 0;
+		gap: 4px;
+	}
+	.nav-indicator {
+		bottom: 4px;
+	}
+	.nav-panel {
+		--panel-width: var(--nav-available);
+	}
+	.product-menu-body {
+		grid-template-columns: 1fr;
+	}
+	.product-menu .nav-preview {
+		display: none;
+	}
+	.product-menu .menu-footer > span:first-child {
+		display: none;
+	}
+	/* Keep the overview link on the right, as in the other menus. */
+	.product-menu .menu-footer > span:last-child {
+		margin-left: auto;
+	}
+	.menu-arrow {
+		opacity: 1;
+		transform: none;
+	}
+	.workflow-links {
+		grid-template-columns: 1fr;
+	}
+	.workflow-link + .workflow-link::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto;
+		border-top: 1px solid var(--line);
+	}
+}
+@media (max-width: 360px) {
+	.nav-toggle-label {
+		display: none;
+	}
+	.navigation {
+		gap: 8px;
+		padding-inline: 16px;
+	}
+	.nav-trigger,
+	.nav-direct {
+		padding-inline: 5px;
+	}
+}
+.navigation[data-input='keyboard'] * {
+	transition-duration: 0s !important;
+	transition-delay: 0s !important;
+}
+@media (prefers-reduced-motion: reduce) {
+	.navigation * {
+		transition: none !important;
+	}
+	.nav-panel,
+	.menu-arrow {
+		transform: none;
+	}
+}
+/* Narrow phones: the four section links must fit the open bar without
+   clipping "Open source"; the bar may still scroll as a last resort. */
+@media (max-width: 400px) {
+	.navigation .nav-links {
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.nav-trigger,
+	.nav-direct {
+		padding-inline: 6px;
+		font-size: 11.5px;
+	}
+	.nav-trigger svg {
+		width: 10px;
+		height: 10px;
+	}
+}

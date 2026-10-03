@@ -1,0 +1,12 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"types": ["node"],
+		"rootDir": "."
+	},
+	// One noEmit pass (the preset's default) for the root-level NodeNext-checked
+	// files that never ship: the lint/format configs. Each workspace package
+	// carries its own tsconfig (apps/syneva checks its extension module and the
+	// tsdown config; packages/frontend checks the bundler world).
+	"include": ["oxlint.config.ts", "oxfmt.config.ts"]
+}

@@ -1,0 +1,152 @@
+/* One clock: dispatch, open, read, decide, return. The static pose tells the
+   whole story. Connections belong to ports; annotations belong to sheets. */
+.circuit {
+  --cycle: 14s;
+  --review-ease: cubic-bezier(.76, 0, .24, 1);
+  --leaf-fill: var(--white);
+  --leaf-border: var(--line-strong);
+  --leaf-side: var(--iso-side);
+  --code-ink: var(--muted);
+  --code-accent: var(--signal);
+}
+.circuit-art { background: var(--paper); }
+.circuit-routes { stroke: var(--line-strong); stroke-width: 1; stroke-linecap: round; }
+/* Dots have one meaning: the next revision, not a second forward route. */
+.return-route { stroke-dasharray: 1 7; }
+.circuit-port { fill: var(--paper); stroke: var(--line-strong); stroke-width: 1; }
+.station-foot { fill: var(--iso-platform); stroke: var(--line-strong); }
+.station-rim { fill: var(--iso-side); stroke: var(--line-strong); stroke-linejoin: round; }
+.station-mark { color: var(--muted); }
+.leaf-face { fill: var(--leaf-fill); stroke: var(--leaf-border); stroke-width: 1.2; stroke-linejoin: round; }
+.leaf-edge { fill: var(--leaf-side); stroke: var(--leaf-border); stroke-width: 1; stroke-linejoin: round; }
+.leaf-fold { fill: none; stroke: var(--leaf-border); }
+.leaf-code { fill: none; stroke: var(--code-ink); stroke-width: 3; stroke-linecap: square; }
+.code-accent { stroke: var(--code-accent); stroke-width: 5; }
+.code-faint { opacity: .35; }
+.source-leaves { --code-accent: var(--line-strong); }
+.review-seat { fill: var(--wash); fill-opacity: .4; stroke: var(--accent); }
+.review-layer { transform: translateY(var(--lift)); }
+.layer-critical { --lift: -156px; --rest: 0px; --leaf-border: var(--accent); --leaf-side: var(--iso-wash-side); color: var(--accent); }
+.layer-important { --lift: -66px; --rest: 10px; --code-accent: var(--line-strong); color: var(--line-strong); }
+.layer-tested { --lift: 24px; --rest: 20px; --leaf-fill: var(--mint); --leaf-side: var(--iso-mint-side); --code-accent: var(--green); color: var(--green); }
+.critical-margin { stroke: var(--accent); stroke-width: 2; }
+.focus-frame { stroke: var(--accent); stroke-width: 1.2; transform-origin: 0 0; }
+.focus-owner { fill: var(--accent); }
+.focus-owner path { stroke: var(--accent); stroke-width: 1; }
+.focus-owner text { font: 10px var(--mono); letter-spacing: .08em; }
+.reading-sweep { fill: var(--signal); opacity: 0; }
+.layer-note path { stroke: currentColor; stroke-width: 1; }
+.layer-note circle { fill: currentColor; }
+.note-title { fill: var(--ink); font: 500 14px var(--sans); transform: translateY(-18px); }
+.layer-critical .note-title { fill: var(--accent); }
+.note-detail { fill: var(--muted); font: 12px var(--sans); transform: translateY(-18px); }
+.station-title { fill: var(--ink); font: 500 17px var(--sans); letter-spacing: -.02em; }
+.station-detail { fill: var(--muted); font: 12px var(--sans); }
+.loop-label { fill: var(--muted); font: 10px var(--mono); letter-spacing: .09em; }
+.verdict-accepted { --leaf-fill: var(--mint); --leaf-side: var(--iso-mint-side); --leaf-border: var(--green); --code-accent: var(--green); }
+.verdict-seal ellipse { fill: var(--mint); stroke: var(--green); }
+.flow-signal {
+  --signal-size: 16px;
+  stroke: var(--signal);
+  stroke-width: 2;
+  stroke-dasharray: var(--signal-size) calc(var(--route-length) + var(--signal-size));
+  stroke-dashoffset: var(--signal-size);
+  opacity: 0;
+}
+.signal-out { stroke: var(--green); }
+.signal-return { --signal-size: 28px; stroke-width: 1.6; }
+/* Only the three short signal strokes repaint. Sheets use transform/opacity;
+   the connecting paths are measured once per responsive layout, never per frame. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .circuit :is(.dispatch-sheet, .review-layer, .layer-note, .focus-frame, .focus-owner, .reading-sweep, .verdict-accepted, .verdict-seal, .flow-signal) {
+    animation-duration: var(--cycle);
+    animation-timing-function: var(--review-ease);
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+  }
+  html.js .dispatch-sheet { animation-name: review-dispatch; }
+  html.js .circuit .review-layer { animation-name: review-open; animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  html.js .layer-important { animation-delay: 60ms; }
+  html.js .layer-tested { animation-delay: 120ms; }
+  html.js .layer-note { animation-name: review-annotations; }
+  html.js .focus-frame { animation-name: review-focus; }
+  html.js .focus-owner { animation-name: review-attention; }
+  html.js .reading-sweep { animation-name: review-read; }
+  html.js .verdict-accepted { animation-name: review-accepted; }
+  html.js .verdict-seal { animation-name: review-seal; }
+  html.js .signal-in { animation-name: review-signal-in; }
+  /* A steady handoff and return keep the longer routes from rushing midway. */
+  html.js .circuit :is(.signal-out, .signal-return) { animation-timing-function: linear; }
+  html.js .signal-out { animation-name: review-signal-out; }
+  html.js .signal-return { animation-name: review-signal-return; }
+}
+@keyframes review-dispatch {
+  0%, 6%, 25%, 100% { transform: translateY(0); }
+  12%, 19% { transform: translateY(-9px); }
+}
+@keyframes review-open {
+  0%, 25%, 59%, 100% { transform: translateY(var(--rest)); }
+  31%, 54% { transform: translateY(var(--lift)); }
+}
+@keyframes review-annotations {
+  0%, 28%, 54%, 100% { opacity: 0; }
+  33%, 49% { opacity: 1; }
+}
+@keyframes review-focus {
+  0%, 31%, 53%, 100% { opacity: 0; transform: scale(1.07); }
+  35%, 48% { opacity: 1; transform: scale(1); }
+}
+@keyframes review-attention {
+  0%, 32%, 52%, 100% { opacity: 0; }
+  36%, 48% { opacity: 1; }
+}
+@keyframes review-read {
+  0%, 35% { opacity: 0; transform: translate(0, 0); }
+  37% { opacity: .1; transform: translate(0, 0); }
+  44% { opacity: .1; transform: translate(220px, 110px); }
+  46%, 100% { opacity: 0; transform: translate(220px, 110px); }
+}
+@keyframes review-accepted {
+  0%, 63%, 99%, 100% { opacity: 0; }
+  69%, 95% { opacity: 1; }
+}
+@keyframes review-seal {
+  0%, 65%, 99%, 100% { opacity: 0; transform: translateY(-4px); }
+  73%, 95% { opacity: 1; transform: translateY(0); }
+}
+@keyframes review-signal-in {
+  0%, 14% { opacity: 0; stroke-dashoffset: var(--signal-size); }
+  15% { opacity: 1; stroke-dashoffset: var(--signal-size); }
+  25% { opacity: 1; stroke-dashoffset: calc(-1 * var(--route-length)); }
+  26%, 100% { opacity: 0; stroke-dashoffset: calc(-1 * var(--route-length)); }
+}
+@keyframes review-signal-out {
+  0%, 47% { opacity: 0; stroke-dashoffset: var(--signal-size); }
+  48% { opacity: 1; stroke-dashoffset: var(--signal-size); }
+  63% { opacity: 1; stroke-dashoffset: calc(-1 * var(--route-length)); }
+  64%, 100% { opacity: 0; stroke-dashoffset: calc(-1 * var(--route-length)); }
+}
+@keyframes review-signal-return {
+  0%, 73% { opacity: 0; stroke-dashoffset: var(--signal-size); }
+  74% { opacity: 1; stroke-dashoffset: var(--signal-size); }
+  97% { opacity: 1; stroke-dashoffset: calc(-1 * var(--route-length)); }
+  98%, 100% { opacity: 0; stroke-dashoffset: calc(-1 * var(--route-length)); }
+}
+@media (max-width: 900px) {
+  .note-title { font-size: 17px; }
+  .note-detail { font-size: 15px; }
+  .station-detail { display: none; }
+  .station-title { font-size: 21px; }
+}
+@media (max-width: 600px) {
+  .circuit-art { height: auto; min-height: 0; aspect-ratio: 45 / 26; }
+  .source-station { translate: 64px 52px; }
+  .verdict-station { translate: -64px 52px; }
+  .station-title { font-size: 28px; transform: translateY(211px); }
+  .focus-owner text { font: 500 23px var(--sans); letter-spacing: 0; }
+  /* Keep their clock alive so widening the viewport cannot restart the notes. */
+  .layer-note { visibility: hidden; }
+  .loop-label, .circuit-register { display: none; }
+  .leaf-face, .station-foot { stroke-width: 1.5; }
+  .circuit-routes { stroke-width: 1.3; }
+}

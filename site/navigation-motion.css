@@ -1,0 +1,52 @@
+/* Staged rows follow their panel's progress, not a second animation clock. */
+@media (prefers-reduced-motion: no-preference) {
+  .nav-panel .menu-link, .nav-panel .workflow-link {
+    --row-start: calc(var(--menu-order, 0) * 0.035);
+    --row-progress: clamp(0, calc((var(--progress, 0) - var(--row-start)) / (1 - var(--row-start))), 1);
+    translate: 0 calc((1 - var(--row-progress)) * 8px);
+  }
+  .nav-dropdown .is-illustrating .preview-code span {
+    animation: preview-line 550ms var(--nav-ease) both;
+  }
+  .nav-dropdown .is-illustrating .diff-plus { animation-delay: 100ms; }
+  .nav-dropdown .is-illustrating .diff-plus:last-child { animation-delay: 170ms; }
+  .nav-dropdown .is-illustrating .preview-verdict {
+    animation: preview-answer 500ms var(--nav-ease) 450ms both;
+  }
+  .nav-dropdown .is-illustrating .preview-conversation > div {
+    animation: preview-answer 500ms var(--nav-ease) 140ms both;
+  }
+  .nav-dropdown .is-illustrating .preview-conversation > div:last-child { animation-delay: 360ms; }
+  .nav-dropdown .is-illustrating .preview-plan > div {
+    animation: preview-line 650ms var(--nav-ease) 160ms both;
+  }
+  .nav-dropdown .is-illustrating .pa-node,
+  .nav-dropdown .is-illustrating .preview-shelf > div {
+    animation: preview-answer 550ms var(--nav-ease) both;
+  }
+  .nav-dropdown .is-illustrating .pa-node:nth-child(2),
+  .nav-dropdown .is-illustrating .preview-shelf > div:nth-child(2) { animation-delay: 100ms; }
+  .nav-dropdown .is-illustrating .pa-node:nth-child(3),
+  .nav-dropdown .is-illustrating .preview-shelf > div:nth-child(3) { animation-delay: 200ms; }
+  .navigation[data-mobile-open='true'] .nav-links {
+    animation: navigation-arrive 280ms var(--nav-ease) both;
+  }
+}
+@keyframes preview-line {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes preview-answer {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes navigation-arrive {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+html[data-motion-paused] .navigation *,
+.nav-dropdown[data-open='false'] * { animation-play-state: paused !important; }
+.navigation[data-input='keyboard'] * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .nav-panel .menu-link, .nav-panel .workflow-link { opacity: 1; translate: none; }
+}
