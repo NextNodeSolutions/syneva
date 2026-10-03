@@ -1,0 +1,55 @@
+---
+// Chapter: asking on the exact line, with the agent answering in place.
+import { sx } from '../../lib/sx'
+import ArtFrame from '../kit/ArtFrame.astro'
+import Drawing from '../kit/Drawing.astro'
+import { anim } from '../kit/anim'
+import { shape } from '../kit/shape.styles'
+import { text } from '../kit/text.styles'
+import { homeArt as h } from './home-art.styles'
+---
+
+<Drawing viewBox="0 0 520 520" compact="34 50 452 420" labelledby="ask-art-title ask-art-desc">
+	<title id="ask-art-title">A question anchored to the changed line</title>
+	<desc id="ask-art-desc">On line 19 of api/middleware.ts you ask why the session is verified there. While your agent reads, its status shows beside the thread; then its answer lands on the same line. A second comment on line 20 is a change request that rides along with your verdict. Illustrative, not a screenshot.</desc>
+	<ArtFrame id="ask" width={520} height={520} />
+	<g {...anim('rise', 0)}>
+		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="58" width="440" height="404"></rect>
+		<text {...sx(text.file, text.strong)} x="56" y="84">api/middleware.ts</text>
+		<path {...sx(shape.hair)} d="M40 98h440"></path>
+		<text {...sx(text.ln)} x="72" y="124" text-anchor="end">18</text><text {...sx(text.code)} x="88" y="124">const token = readCookie(req)</text>
+		<rect {...sx(shape.bandAdd)} x="41" y="134" width="438" height="24"></rect>
+		<text {...sx(text.ln)} x="72" y="151" text-anchor="end">19</text><text {...sx(text.code, text.green)} x="88" y="151">+ await verifySession(req)</text>
+	</g>
+	<path {...anim('draw', 0.5, h.askAnchor)} pathLength="1" d="M56 158v18"></path>
+	<g {...anim('rise', 0.6)}>
+		<rect {...sx(h.askThread)} x="56" y="176" width="408" height="142"></rect>
+		<path {...sx(h.askRail)} d="M56 176v142"></path>
+		<g>
+			<rect {...sx(h.askTab, h.askTabOn)} x="72" y="190" width="40" height="18"></rect>
+			<text {...sx(text.tiny, text.white)} x="92" y="203" text-anchor="middle">ASK</text>
+			<rect {...sx(h.askTab)} x="116" y="190" width="110" height="18"></rect>
+			<text {...sx(text.tiny)} x="171" y="203" text-anchor="middle">REQUEST CHANGE</text>
+			<text {...sx(text.tiny)} x="448" y="203" text-anchor="end">⌘⇧↵</text>
+		</g>
+		<text {...sx(text.tiny)} x="72" y="230">YOU</text>
+		<text {...anim('type', 0.9, text.copy)} x="72" y="248">Why verify the session here and not in the router?</text>
+		<g {...anim('fade', 1.7)}>
+			<circle {...anim('spin', undefined, h.askSpin)} cx="76" cy="270" r="4"></circle>
+			<text {...sx(text.small)} x="88" y="274">Agent · reading auth/session.ts…</text>
+		</g>
+		<text {...anim('fade', 2.4, text.tiny, text.accent)} x="72" y="290">YOUR AGENT</text>
+		<text {...anim('type', 2.5, text.copy)} x="72" y="308">So an expired session returns 401 before any handler.</text>
+	</g>
+	<g {...anim('rise', 0.1)}>
+		<text {...sx(text.ln)} x="72" y="346" text-anchor="end">20</text><text {...sx(text.code)} x="88" y="346">return next()</text>
+	</g>
+	<g {...anim('rise', 3.2)}>
+		<rect {...sx(h.askChange)} x="56" y="360" width="408" height="58"></rect>
+		<path {...sx(h.askChangeRail)} d="M56 360v58"></path>
+		<text {...sx(text.tiny, text.accent)} x="72" y="381">REQUEST CHANGE</text>
+		<text {...sx(text.copy)} x="72" y="402">Log why the session was rejected.</text>
+		<text {...sx(text.tiny)} x="448" y="381" text-anchor="end">RIDES TO THE HANDOFF →</text>
+	</g>
+	<text {...anim('fade', 3.6, text.tiny)} x="56" y="444">THE ANSWER LIVES ON THE LINE IT EXPLAINS</text>
+</Drawing>

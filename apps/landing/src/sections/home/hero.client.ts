@@ -1,0 +1,54 @@
+import { booted } from '@syneva/motion/boot'
+import { reducedMotion } from '@syneva/motion/preference'
+import { syncScenes } from '@syneva/motion/scenes'
+
+import { playIntro } from './hero-intro'
+import { bindPointer } from './hero-pointer'
+import { choreograph } from './hero.choreography'
+import { palette } from './hero.timeline'
+
+import type { Scope } from './hero.timeline'
+
+// The hero's runtime: the review round loops on the instrument from the
+// moment the module runs, the headline enters once the runtime boots, and
+// the pointer adds depth. The markup is the static pose, so cancelling the
+// round lands every piece there; reduced motion never starts it.
+const hero = document.querySelector<HTMLElement>('[data-hero]')
+const svg = hero?.querySelector('[data-hero-stage]')
+
+const scope: Scope = {
+	one: name => svg?.querySelector(`[data-hs="${name}"]`) ?? null,
+	all: name => [...(svg?.querySelectorAll(`[data-hs="${name}"]`) ?? [])],
+}
+
+let isRunning = false
+
+function start(): void {
+	if (isRunning || !svg) return
+	isRunning = true
+	choreograph(scope, palette())
+	syncScenes()
+}
+
+function stop(): void {
+	if (!isRunning || !svg) return
+	isRunning = false
+	svg.getAnimations({ subtree: true }).forEach(animation =>
+		animation.cancel(),
+	)
+}
+
+// The preference is read live: switching to reduce cancels the running round,
+// switching back restarts it from the top.
+reducedMotion.addEventListener('change', () => {
+	if (reducedMotion.matches) stop()
+	else start()
+})
+
+if (hero && svg) {
+	if (!reducedMotion.matches) start()
+	bindPointer(hero, svg)
+}
+await booted()
+if (!reducedMotion.matches) playIntro()
+syncScenes()

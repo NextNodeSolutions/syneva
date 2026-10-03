@@ -1,0 +1,10 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		// Browser runtime: the preset's ES2024 plus the DOM.
+		"lib": ["ES2024", "DOM", "DOM.Iterable"]
+	},
+	// Source package: consumers compile it with their own StyleX build, so the
+	// check is the only task and the preset's bundler/noEmit defaults fit.
+	"include": ["src/**/*.ts"]
+}

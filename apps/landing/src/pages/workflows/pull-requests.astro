@@ -1,0 +1,56 @@
+---
+import BranchGraph from '../../art/workflows/BranchGraph.astro'
+import Command from '../../components/Command.astro'
+import CtaBand from '../../components/CtaBand.astro'
+import PageHero from '../../components/page/PageHero.astro'
+import Pager from '../../components/page/Pager.astro'
+import Prose from '../../components/page/Prose.astro'
+import RuledList from '../../components/page/RuledList.astro'
+import Terminal from '../../components/page/Terminal.astro'
+import Document from '../../layouts/Document.astro'
+
+const route = '/workflows/pull-requests/'
+const REFS = [
+	'# a pull request number, resolved through gh',
+	'$ syneva pr 128',
+	'',
+	'# a GitHub URL',
+	'$ syneva pr https://github.com/acme/app/pull/128',
+	'',
+	'# a branch, against a base you choose',
+	'$ syneva pr feature/auth --base main',
+]
+const RULES = [
+	['Verdicts map to review states.', 'Approve means approve, reject means request changes. Nothing is staged: the diff is already committed.'],
+	['Your agent amends the branch.', 'It applies your verdict to the branch’s commits, leaves approved hunks alone, and you review the next round in the same tab.'],
+	['Your working tree stays safe.', 'If you have uncommitted tracked changes, Syneva refuses to check out the branch instead of clobbering them.'],
+	['gh for numbers and URLs.', 'Branch names work with git alone. PR numbers and URLs need the GitHub CLI, installed and signed in.'],
+] as const
+---
+
+<Document
+	route={route}
+	page="sub"
+	title="Pull request review · Syneva"
+	description="Review a branch the way it will land: syneva pr takes a branch name, a PR number or a GitHub URL, checks it out and diffs it against its merge-base."
+>
+	<PageHero
+		route={route}
+		crumb="Pull requests"
+		title="A whole branch, against its merge-base."
+		state="available"
+		lede={'Review a branch’s commits the way they will land. <code>syneva pr</code> takes a branch name, a pull request number or a GitHub URL, checks the branch out and diffs it against its merge-base.'}
+		caption={'Only the branch’s own commits. Main’s new work stays out.'}
+	>
+		<Command slot="actions" text="syneva pr 128" label="Review a pull request" />
+		<BranchGraph slot="art" />
+	</PageHero>
+	<Prose id="refs" title="Any way you<br>name the branch.">
+		<Terminal lines={REFS} title="your repository" />
+	</Prose>
+	<Prose id="rules" title="How a branch<br>review works.">
+		<RuledList items={RULES} />
+	</Prose>
+	<CtaBand />
+	<Pager route={route} />
+</Document>

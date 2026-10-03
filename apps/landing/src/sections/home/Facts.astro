@@ -1,0 +1,35 @@
+---
+// Numbers we can actually promise: product facts, never adoption metrics.
+import { section } from '../../components/section.styles'
+import { revealGroup, revealItem } from '../../lib/reveal'
+import { sx } from '../../lib/sx'
+import { facts as f } from './sections.styles'
+
+const REVIEW_MODES = 4
+const PERCENT = 100
+const FACTS = [
+	[0, 'changes auto-approved. Every verdict is a click you made.'],
+	[1, 'tab for the whole loop: review, questions and the next revision.'],
+	[REVIEW_MODES, 'review modes: working tree, staged, a branch or PR, a single file.'],
+	[PERCENT, 'local. No model inside, no telemetry, no account.'],
+] as const
+---
+
+<section {...revealGroup(true, section.ruled, section.pad)} id="facts" aria-labelledby="facts-title">
+	<div {...sx(f.head)}>
+		<h2 {...revealItem()} id="facts-title">Numbers we can<br />actually promise.</h2>
+		<p {...revealItem(f.headText)}>No adoption charts, no borrowed logos. These are product facts: true on your machine the moment you install it.</p>
+	</div>
+	<div {...sx(f.stats)}>
+		{
+			FACTS.map(([count, label], i) => (
+				<div {...revealItem(f.stat)}>
+					<span {...sx(f.number, i === 0 && f.first)} data-count={count}>
+						{count}{count === PERCENT && <span {...sx(f.unit)}>%</span>}
+					</span>
+					<span {...sx(f.label)}>{label}</span>
+				</div>
+			))
+		}
+	</div>
+</section>

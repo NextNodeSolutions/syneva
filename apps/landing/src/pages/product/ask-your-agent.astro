@@ -1,0 +1,60 @@
+---
+import AskFork from '../../art/product/AskFork.astro'
+import AskSequence from '../../art/product/AskSequence.astro'
+import Button from '../../components/Button.astro'
+import Chapter from '../../components/chapter/Chapter.astro'
+import ChapterText from '../../components/chapter/ChapterText.astro'
+import CtaBand from '../../components/CtaBand.astro'
+import PageHero from '../../components/page/PageHero.astro'
+import Pager from '../../components/page/Pager.astro'
+import Prose from '../../components/page/Prose.astro'
+import ProseText from '../../components/page/ProseText.astro'
+import RuledList from '../../components/page/RuledList.astro'
+import TextLink from '../../components/TextLink.astro'
+import Document from '../../layouts/Document.astro'
+
+const route = '/product/ask-your-agent/'
+const READ_ONLY = [
+	['Live progress.', 'A one-line status, like “reading auth/session.ts…”, sits beside your thread while the agent works.'],
+	['Nothing gets lost.', 'Questions still open when you Send travel with the result as openQuestions.'],
+] as const
+const INTENTS = [
+	['Ask · ⌘⇧↵', 'You want to understand. The agent explains on the line, right away.'],
+	['Request change · ⌘↵', 'You want something different. The request rides to the handoff as requestedChanges and the agent applies it after Send.'],
+	['Whole-file comments · ⇧C', 'Some feedback belongs to a file, not a line. Same two intents, addressed to the file itself.'],
+	['Resolve when settled · r', 'Close a thread when it’s answered, reopen it if it isn’t. The review notes panel (n) lists every thread across files.'],
+] as const
+---
+
+<Document
+	route={route}
+	page="sub"
+	title="Ask your agent · Syneva"
+	description="Ask about the exact line and get the answer there. Your agent reads, posts a live status, and replies in the thread, while you keep reviewing. Change requests ride along with your verdict."
+>
+	<PageHero
+		route={route}
+		crumb="Ask your agent"
+		title="Ask on the line.<br>The answer lands there."
+		state="available"
+		lede={'When a change doesn’t make sense, ask about it where it is. Your agent reads the code, posts a live status while it works, and answers in the thread on that exact line. You keep reviewing the whole time.'}
+		caption="Ask for an answer now. Request a change for the next round."
+	>
+		<Fragment slot="actions"><Button href="/get-started/" label="Start a local review" /><TextLink href="/resources/connect-your-agent/" label="How your agent answers" /></Fragment>
+		<AskFork slot="art" />
+	</PageHero>
+	<Chapter id="read-only" title="A question is<br>not a code change." list={READ_ONLY} caption="You → desk → agent → your thread">
+		<ChapterText>Answering is read-only. Your agent reads for context and replies on the line; it never edits tracked files to answer you, unless your question asks it to.</ChapterText>
+		<ChapterText>Questions don&rsquo;t block you either. Ask as many as you like without waiting, keep moving through the diff, and read the answers when they land.</ChapterText>
+		<AskSequence slot="art" />
+	</Chapter>
+	<Prose id="intents" title="Two intents,<br>one keystroke apart.">
+		<RuledList items={INTENTS} />
+	</Prose>
+	<Prose id="pi" title="Even better<br>in pi.">
+		<ProseText>With the pi package, each desk gets one read-only correspondent thread that answers every question for that review. Your main agent session is woken only for what needs it: a finished review, a closed desk, or a failed answer. The Q&amp;A context stays out of the session that holds your code changes.</ProseText>
+		<ProseText>Outside pi, any agent can answer with <code>syneva await</code> and <code>syneva comment</code>.</ProseText>
+	</Prose>
+	<CtaBand />
+	<Pager route={route} />
+</Document>

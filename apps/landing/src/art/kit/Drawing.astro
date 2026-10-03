@@ -1,0 +1,28 @@
+---
+// The root <svg> of every drawing: its viewBox, the phone frame it reframes
+// to (data-compact, swapped by scripts/frames.ts) and its accessible name.
+import type { Part } from '../../lib/sx'
+import { sx } from '../../lib/sx'
+import { drawingMarker } from './art.stylex'
+import { drawing } from './drawing.styles'
+
+type Props = { viewBox: string; compact?: string; labelledby: string; isDense?: boolean; css?: Part }
+
+const { viewBox, compact, labelledby, isDense = false, css } = Astro.props
+const isSubpage = Astro.locals.page === 'sub'
+const fitOf = (): Part => {
+	if (!isSubpage) return compact && drawing.compact
+	return compact ? drawing.subpageCompact : drawing.subpage
+}
+const fit = fitOf()
+---
+
+<svg
+	{...sx(drawing.root, fit, css, drawingMarker, isDense && 'is-dense')}
+	viewBox={viewBox}
+	data-compact={compact}
+	role="img"
+	aria-labelledby={labelledby}
+>
+	<slot />
+</svg>

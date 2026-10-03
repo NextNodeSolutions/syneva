@@ -1,0 +1,6 @@
+{
+	"extends": "../../tsconfig.base.json",
+	// Source package: consumers compile it with their own StyleX build, so the
+	// check is the only task and the preset's bundler/noEmit defaults fit.
+	"include": ["src/**/*.ts"]
+}

@@ -1,0 +1,14 @@
+---
+// Whether the page describes the CLI today or a prototype direction.
+import { sx } from '../../lib/sx'
+import { pageStatus as s } from './page-hero.styles'
+
+type Props = { state: 'available' | 'prototype' }
+
+const { state } = Astro.props
+const isPrototype = state === 'prototype'
+---
+
+<p {...sx(s.root, isPrototype && s.prototype)}>
+	<span {...sx(s.dot)} aria-hidden="true"></span>{isPrototype ? 'Prototype · not in the CLI today' : 'Available now · in the CLI'}
+</p>

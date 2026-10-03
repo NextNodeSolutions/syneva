@@ -1,0 +1,56 @@
+---
+import PlanQueue from '../../art/product/PlanQueue.astro'
+import PlanToday from '../../art/product/PlanToday.astro'
+import Chapter from '../../components/chapter/Chapter.astro'
+import ChapterText from '../../components/chapter/ChapterText.astro'
+import CtaBand from '../../components/CtaBand.astro'
+import Callout from '../../components/page/Callout.astro'
+import PageHero from '../../components/page/PageHero.astro'
+import Pager from '../../components/page/Pager.astro'
+import Prose from '../../components/page/Prose.astro'
+import ProseCommand from '../../components/page/ProseCommand.astro'
+import RuledList from '../../components/page/RuledList.astro'
+import TextLink from '../../components/TextLink.astro'
+import Document from '../../layouts/Document.astro'
+
+const route = '/product/plan-desk/'
+const DIRECTION = [
+	['See the shape of the work.', 'Read a plan as a map of claims, as a document, or as source.'],
+	['Rank claims by risk.', 'Surface the assumptions that would hurt most if wrong, and what would prove them.'],
+	['Settle decisions before the diff.', 'Question the claim, not the code it would have produced.'],
+	['Hand back a clearer brief.', 'Your settled decisions become the agent’s starting point, through the same contract as a code review.'],
+] as const
+---
+
+<Document
+	route={route}
+	page="sub"
+	title="Plan desk (prototype) · Syneva"
+	description={'A prototype direction for Syneva: turn an agent’s plan into claims you can rank, question and settle before any code exists. Today, syneva file already reviews a plan line by line.'}
+>
+	<PageHero
+		route={route}
+		crumb="Plan desk"
+		title="Question the plan before the code exists."
+		state="prototype"
+		lede={'The cheapest bug is the one you argue out of the plan. The plan desk is where Syneva is heading next: an agent’s proposal turned into claims you can rank, question and settle before a single line is written.'}
+		caption="Prototype concept. Not in the CLI today."
+	>
+		<Fragment slot="actions"><TextLink href="#today" label="What works today" /><TextLink href="/resources/changelog/" label="Follow progress in the changelog" /></Fragment>
+		<PlanQueue slot="art" />
+	</PageHero>
+	<Chapter id="today" title="Available today:<br>review the plan as a file." caption="syneva file → rendered markdown → comments on blocks">
+		<ChapterText>You don&rsquo;t have to wait for the plan desk to review a plan. Point Syneva at the file your agent wrote and review it like code.</ChapterText>
+		<ChapterText>Markdown renders with a Rendered and Source toggle, and you can comment on any rendered block. Your agent answers in the thread, and your requests go back with Send.</ChapterText>
+		<ProseCommand slot="after" text="syneva file plan.md" label="Review a plan file" />
+		<PlanToday slot="art" />
+	</Chapter>
+	<Prose id="direction" title={'What we’re<br>exploring.'}>
+		<RuledList items={DIRECTION} />
+	</Prose>
+	<Prose id="honest" title="Prototype<br>means prototype.">
+		<Callout lead="The claim map and the risk-ranked queue on this page are not shipped.">They are the direction, drawn honestly. Everything else on this site describes what the CLI does today.</Callout>
+	</Prose>
+	<CtaBand />
+	<Pager route={route} />
+</Document>

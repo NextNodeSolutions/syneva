@@ -1,0 +1,33 @@
+---
+// A desk's file list: the command that opened it, then each file with a
+// bar for its kind of change.
+import { sx } from '../../lib/sx'
+import { anim } from '../kit/anim'
+import { shape } from '../kit/shape.styles'
+import { text } from '../kit/text.styles'
+import { workflowsArt as w } from './workflows-art.styles'
+
+type Props = {
+	files: readonly (readonly [string, 'mod' | 'add'])[]
+	x: number
+	y: number
+	label: string
+	delay: number
+}
+
+const { files, x, y, label, delay } = Astro.props
+const WIDTH = 210
+const HEAD = 36
+const ROW = 24
+---
+
+<g {...anim('rise', delay)}>
+	<rect {...sx(shape.panel, shape.panelWhite)} x={x} y={y} width={WIDTH} height={HEAD + files.length * ROW}></rect><text {...sx(text.code, text.accent)} x={x + 14} y={y + 22}>{label}</text><path {...sx(shape.hair)} d={`M${x} ${y + 32}h${WIDTH}`}></path>{
+		files.map(([name, kind], i) => (
+			<Fragment>
+				<rect {...sx(kind === 'add' ? w.barAdd : w.barMod)} x={x + 14} y={y + 44 + i * ROW} width="4" height="10" />
+				<text {...sx(text.file)} x={x + 26} y={y + 53 + i * ROW}>{name}</text>
+			</Fragment>
+		))
+	}
+</g>

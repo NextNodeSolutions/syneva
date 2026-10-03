@@ -1,0 +1,22 @@
+{
+	"name": "@syneva/tokens",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Syneva's public-site design tokens as StyleX variables and constants: palette, type, easing, layout and breakpoints.",
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		"./tokens.stylex": "./src/tokens.stylex.ts",
+		"./media.stylex": "./src/media.stylex.ts",
+		"./when": "./src/when.ts"
+	},
+	"scripts": {
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@stylexjs/stylex": "0.19.1"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3"
+	}
+}

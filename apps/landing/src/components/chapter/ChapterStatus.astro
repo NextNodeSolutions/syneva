@@ -1,0 +1,12 @@
+---
+// Availability, stated as product truth: available now, or a prototype.
+import { sx } from '../../lib/sx'
+import ChapterText from './ChapterText.astro'
+import { chapter } from './chapter.styles'
+
+type Props = { label: string; isPrototype?: boolean }
+
+const { label, isPrototype = false } = Astro.props
+---
+
+<ChapterText><span {...sx(chapter.status, isPrototype && chapter.prototype)}>{label}</span></ChapterText>

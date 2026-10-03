@@ -1,0 +1,11 @@
+---
+// The 20px arrow that closes every primary action.
+import type { Part } from '../lib/sx'
+import { sx } from '../lib/sx'
+
+type Props = { css?: Part }
+
+const { css } = Astro.props
+---
+
+<svg {...sx(css)} viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"></path></svg>

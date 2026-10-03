@@ -1,0 +1,52 @@
+---
+// The verdict column: every changed file and your verdict on it, the
+// progress strip, and Send.
+import { sx } from '../../lib/sx'
+import HeroGlyph from './HeroGlyph.astro'
+import { hs } from './hero-stage.styles'
+
+const LEDGER = [
+	['contracts/review.ts', 'yes'],
+	['auth/session.ts', 'yes'],
+	['api/middleware.ts', 'yes'],
+	['pages/desk.tsx', 'no'],
+	['lib/hash.ts', 'yes'],
+	['README.md', 'yes'],
+] as const
+const ROW = 34
+const FIRST = 72
+---
+
+<g {...sx(hs.layer, hs.phoneHidden)} data-hs="ledger">
+	<text {...sx(hs.kicker)} x="562" y="40">YOUR VERDICT</text>
+	<text {...sx(hs.sub)} x="562" y="58" data-hs="round-1">Round 1 · decided by you</text>
+	<text {...sx(hs.sub)} x="562" y="58" opacity="0" data-hs="round-2">Round 2 · one file to re-read</text>
+	<rect {...sx(hs.ledgerBox)} x="562" y="72" width="178" height="244"></rect>
+	{
+		LEDGER.map(([name, verdict], i) => {
+			const top = FIRST + i * ROW
+			// Every row starts pending; the verdict lands on top of it.
+			return (
+				<Fragment>
+					{i > 0 && <path {...sx(hs.hair)} d={`M562 ${top}h178`} />}
+					<text {...sx(hs.file)} x="574" y={top + 21}>{name}</text>
+					<HeroGlyph kind="pending" x={722} y={top + 17} />
+					<g {...sx(hs.box)} data-hs="verdict" data-row={i}><HeroGlyph kind={verdict} x={722} y={top + 17} /></g>
+					{verdict === 'no' && <g {...sx(hs.box)} opacity="0" data-hs="row-pending"><HeroGlyph kind="pending" x={722} y={top + 17} /></g>}
+				</Fragment>
+			)
+		})
+	}
+	<path {...sx(hs.hair)} d="M562 276h178"></path>
+	<rect {...sx(hs.track)} x="574" y="290" width="154" height="3"></rect>
+	<rect {...sx(hs.fill)} x="574" y="290" width="154" height="3" data-hs="fill"></rect>
+	<text {...sx(hs.tiny)} x="574" y="307" data-hs="progress-1">6/6 DECIDED BY YOU</text><text {...sx(hs.tiny)} x="574" y="307" opacity="0" data-hs="progress-2">5/6 · 1 BACK TO PENDING</text>
+	<g {...sx(hs.box)}>
+		<rect {...sx(hs.sendBox)} x="562" y="324" width="178" height="28" data-hs="send-box"></rect>
+		<text {...sx(hs.sendLabel)} x="576" y="342.5" data-hs="send-label">Send to agent</text>
+		<text {...sx(hs.sendLabel)} x="576" y="342.5" opacity="0" data-hs="send-sent">Sent · agent revising</text>
+		<text {...sx(hs.sendKey)} x="728" y="342" text-anchor="end">⇧S</text>
+	</g>
+	<circle {...sx(hs.port)} cx="562" cy="123" r="2.5"></circle>
+	<circle {...sx(hs.port)} cx="651" cy="352" r="2.5"></circle>
+</g>
