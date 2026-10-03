@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/tokens/media.stylex'
-import { color, ease, font } from '@syneva/tokens/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color, ease, font } from '@syneva/design-system/tokens.stylex'
 
 import { disclosureMarker } from './disclosure.stylex'
 

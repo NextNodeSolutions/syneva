@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { color, ease, font } from '@syneva/tokens/tokens.stylex'
+import { color, ease, font } from '@syneva/design-system/tokens.stylex'
 
 import { copyMarker } from './command.stylex'
 import { pageActionsMarker } from './page/page.stylex'
