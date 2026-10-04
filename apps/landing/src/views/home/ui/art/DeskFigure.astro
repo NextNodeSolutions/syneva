@@ -60,7 +60,7 @@ const progress = `${settled} OF ${ROWS.length} SETTLED`
 		<rect {...sx(shape.panel, shape.panelWhite)} x="214" y="64" width="272" height="392"></rect>
 		<text {...sx(text.file, text.strong)} x="228" y="90">auth/session.ts</text><text {...sx(text.tiny)} x="472" y="90" text-anchor="end">3 CHANGES</text>
 		<path {...sx(shape.hair)} d="M214 102h272"></path>
-		<text {...sx(text.tiny)} x="228" y="124">@@ 12 · VERIFY THE SESSION</text>
+		<text {...sx(text.tiny)} x="228" y="124">@@ 12 · VERIFY SESSION</text>
 		<rect {...anim('sweep', 0.9, shape.bandYes)} x="215" y="150" width="270" height="44"></rect>
 		<text {...sx(text.code)} x="228" y="146">export function handle(req) {'{'}</text>
 		<text {...sx(text.code, text.green)} x="228" y="168">+  await verifySession(req)</text>
@@ -70,7 +70,7 @@ const progress = `${settled} OF ${ROWS.length} SETTLED`
 			<text {...sx(text.tiny, text.green)} x="428" y="124.5" text-anchor="middle">✓ KEPT · {HOTKEYS.keep}</text>
 		</g>
 		<path {...sx(shape.hair)} d="M214 212h272"></path>
-		<text {...sx(text.tiny)} x="228" y="234">@@ 41 · CACHE THE USER</text>
+		<text {...sx(text.tiny)} x="228" y="234">@@ 41 · CACHE USER</text>
 		<rect {...anim('sweep', 1.7, shape.bandNo)} x="215" y="244" width="270" height="22"></rect>
 		<text {...sx(text.code, text.accent)} x="228" y="260">+  cache.set(token, user)</text>
 		<path {...anim('draw', 2, shape.strike)} d="M246 256h158"></path>
