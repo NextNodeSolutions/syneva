@@ -5,8 +5,10 @@ import { draw, FADE_END, FADE_START, loop, pop, travel } from './hero-timeline'
 import type { Palette } from './hero-palette'
 import type { Scope } from './hero-timeline'
 
-// The second half of the hero round (see hero-choreography.ts): the verdict
-// is made, recorded, sent, and the next revision comes back.
+// The second half of the hero round (see hero-choreography.ts): you give
+// your verdict, the ledger records it, Send hands it to your agent, and the
+// agent's next revision comes back.
+
 // The cursor's pose: where its tip points, and its press.
 const at = (x: number, y: number, scale = 1): { transform: string } => ({
 	transform: `translate(${x}px, ${y}px) scale(${scale})`,
