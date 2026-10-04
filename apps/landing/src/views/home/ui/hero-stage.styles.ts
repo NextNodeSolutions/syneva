@@ -6,7 +6,6 @@ const mono = (size: string): string => `${size} ${font['--mono']}`
 const sans = (size: string): string => `${size} ${font['--sans']}`
 
 // The hero instrument: one review round drawn as a flat technical figure.
-// Pieces the timeline scales or moves transform from their own box.
 export const heroStage = stylex.create({
 	root: { overflow: 'visible' },
 	kicker: {
@@ -142,7 +141,12 @@ export const heroStage = stylex.create({
 	},
 	// Pointer depth drifts the three columns a few pixels apart.
 	layer: { transition: `translate .9s ${ease['--ease-out']}` },
-	box: { transformBox: 'fill-box' },
+	// Pieces the timeline scales transform about their own centre, and the
+	// ones it grows sideways (code bars, the strike, the progress fill) from
+	// their left edge. The cursor keeps the view box: its moves are
+	// coordinates on the figure.
+	fillBox: { transformBox: 'fill-box', transformOrigin: 'center' },
+	fillBoxLeft: { transformBox: 'fill-box', transformOrigin: 'left center' },
 	// The instrument reframes onto the desk on phones (data-compact): its side
 	// columns and long routes would only show as cut-off fragments.
 	phoneHidden: { display: { default: null, [media.phone]: 'none' } },

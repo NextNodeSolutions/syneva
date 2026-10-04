@@ -58,14 +58,14 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 				<text {...sx(heroStage.lineNumber)} x="262" y={y} text-anchor="end">{line}</text>
 				{sign && <text {...sx(heroStage.sign, tone)} x="270" y={y}>{sign}</text>}
 				<text {...sx(heroStage.code, tone)} x={codeX} y={y}>{code}</text>
-				{isStruck && <path {...sx(heroStage.strike)} d={`M${codeX} ${y - STRIKE.rise}h${STRIKE.width}`} {...stagePart('strike')} />}
+				{isStruck && <path {...sx(heroStage.strike, heroStage.fillBoxLeft)} d={`M${codeX} ${y - STRIKE.rise}h${STRIKE.width}`} {...stagePart('strike')} />}
 			</g>
 		))
 	}
 	<path {...sx(heroStage.gutterCheck)} pathLength="1" d="m241 171 3 3 5.5-6.5" {...stagePart('gutter-check')}></path>
 	<path {...sx(heroStage.gutterCheck)} pathLength="1" d="m241 195 3 3 5.5-6.5" {...stagePart('gutter-check')}></path>
 	<path {...sx(heroStage.leader)} pathLength="1" d="M510 179V244" {...stagePart('leader')}></path>
-	<g {...sx(heroStage.box)} {...stagePart('chip')}>
+	<g {...sx(heroStage.fillBox)} {...stagePart('chip')}>
 		<circle {...sx(heroStage.chipDot)} cx="510" cy="170" r="9"></circle>
 		<text {...sx(heroStage.chipText)} x="510" y="174" text-anchor="middle">?</text>
 	</g>

@@ -57,12 +57,6 @@ export type Scope = {
 export const loop = (element: Part, frames: readonly Frame[]): void =>
 	loopTimeline(element, frames, CLOCK)
 
-export const setBox = (element: Part, origin: string, box?: string): void => {
-	if (!(element instanceof SVGElement)) return
-	element.style.setProperty('transform-origin', origin)
-	if (box) element.style.setProperty('transform-box', box)
-}
-
 // Appear at `start` over `length`, from the `from` pose to the `to` pose,
 // stay, and leave with the round.
 type Entrance = {

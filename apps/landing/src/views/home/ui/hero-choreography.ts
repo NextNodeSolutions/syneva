@@ -7,7 +7,6 @@ import {
 	pop,
 	present,
 	reveal,
-	setBox,
 	SPRING,
 	travel,
 } from './hero-timeline'
@@ -28,7 +27,6 @@ function arrive({ one, all }: Scope): void {
 		'translate(18px, -100px) rotate(-3deg)',
 	]
 	all('card').forEach((card, i) => {
-		setBox(card, 'center')
 		const away = scattered[i] ?? 'none'
 		const settle = 1.25 + i * 0.14
 		loop(card, [
@@ -45,7 +43,6 @@ function arrive({ one, all }: Scope): void {
 	draw(one('rail'), 2.05, 0.6)
 	present(one('rail-dots'), 2.1, { length: 0.4 })
 	present(one('more'), 2.2, { length: 0.4 })
-	setBox(one('focus'), 'center')
 	present(one('focus'), 2.45, {
 		from: { transform: 'scale(1.1)' },
 		to: { transform: 'none' },
@@ -58,7 +55,6 @@ function writeBars({ all }: Scope): void {
 	all('bar').forEach(bar => {
 		const card = Number(bar.getAttribute('data-card'))
 		const row = Number(bar.getAttribute('data-row'))
-		setBox(bar, 'left center', 'fill-box')
 		const isRejected = bar.closest('[data-verdict="no"]') !== null
 		const write = 0.45 + card * 0.16 + row * 0.13
 		const frames: Frame[] = [
@@ -111,7 +107,6 @@ function read({ one, all }: Scope, color: Palette): void {
 		[FADE_START, { opacity: 1, fill: color.mint }],
 		[FADE_END, { opacity: 0, fill: color.mint }],
 	])
-	setBox(one('strike'), 'left center', 'fill-box')
 	present(one('strike'), 3.65, {
 		from: { transform: 'scaleX(0)' },
 		to: { transform: 'none' },
@@ -127,7 +122,6 @@ function read({ one, all }: Scope, color: Palette): void {
 
 // 5.0 - 7.7  You ask on line 14; your agent answers on the same line.
 function ask({ one, all }: Scope): void {
-	setBox(one('chip'), 'center')
 	pop(one('chip'), 5.05)
 	draw(one('leader'), 5.3, 0.3)
 	present(one('thread'), 5.45, {

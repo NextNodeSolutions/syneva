@@ -5,7 +5,6 @@ import {
 	IN_OUT,
 	loop,
 	pop,
-	setBox,
 	SPRING,
 	travel,
 } from './hero-timeline'
@@ -21,9 +20,7 @@ const at = (x: number, y: number, scale = 1): { transform: string } => ({
 
 // 7.6 - 9.5  Your cursor accepts the change; the verdict travels on.
 export function accept({ one, all }: Scope, color: Palette): void {
-	const cursor = one('cursor')
-	setBox(cursor, '0 0', 'view-box')
-	loop(cursor, [
+	loop(one('cursor'), [
 		[0, { opacity: 0, ...at(650, 300) }],
 		[7.55, { opacity: 0, ...at(650, 300) }],
 		[7.75, { opacity: 1, ...at(650, 300) }, IN_OUT],
@@ -63,7 +60,6 @@ const isRejected = (verdict: Element): boolean =>
 export function decide({ one, all }: Scope): void {
 	const verdicts = all('verdict')
 	verdicts.forEach(verdict => {
-		setBox(verdict, 'center')
 		const start = 9.4 + Number(verdict.getAttribute('data-turn')) * 0.2
 		if (!isRejected(verdict)) {
 			pop(verdict, start)
@@ -81,7 +77,6 @@ export function decide({ one, all }: Scope): void {
 	// The revised file is pending again: progress gives back its share.
 	const kept = verdicts.filter(verdict => !isRejected(verdict)).length
 	const settled = `scaleX(${kept / verdicts.length})`
-	setBox(one('fill'), 'left center', 'fill-box')
 	loop(one('fill'), [
 		[0, { transform: 'scaleX(0)', opacity: 1 }],
 		[9.4, { transform: 'scaleX(0)', opacity: 1 }],
@@ -136,9 +131,7 @@ export function send({ one }: Scope, color: Palette): void {
 
 // 13.1 - 14.4  The agent rewrites one file; it alone comes back pending.
 export function revise({ one }: Scope): void {
-	setBox(one('rev'), 'center')
 	pop(one('rev'), 13.95)
-	setBox(one('row-pending'), 'center')
 	pop(one('row-pending'), 14.1)
 	loop(one('round-1'), [
 		[0, { opacity: 1 }],

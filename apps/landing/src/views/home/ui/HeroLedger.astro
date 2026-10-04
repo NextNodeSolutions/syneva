@@ -26,17 +26,17 @@ const TOTAL = HERO_FILES.length
 					{i > 0 && <path {...sx(heroStage.hair)} d={`M562 ${top}h178`} />}
 					<text {...sx(heroStage.file)} x="574" y={top + 21}>{file.path}</text>
 					<HeroGlyph kind="pending" x={722} y={top + 17} />
-					<g {...sx(heroStage.box)} {...stagePart('verdict')} data-verdict={file.verdict} data-turn={turnOf(file)}><HeroGlyph kind={file.verdict} x={722} y={top + 17} /></g>
-					{file.verdict === 'no' && <g {...sx(heroStage.box)} opacity="0" {...stagePart('row-pending')}><HeroGlyph kind="pending" x={722} y={top + 17} /></g>}
+					<g {...sx(heroStage.fillBox)} {...stagePart('verdict')} data-verdict={file.verdict} data-turn={turnOf(file)}><HeroGlyph kind={file.verdict} x={722} y={top + 17} /></g>
+					{file.verdict === 'no' && <g {...sx(heroStage.fillBox)} opacity="0" {...stagePart('row-pending')}><HeroGlyph kind="pending" x={722} y={top + 17} /></g>}
 				</Fragment>
 			)
 		})
 	}
 	<path {...sx(heroStage.hair)} d="M562 276h178"></path>
 	<rect {...sx(heroStage.track)} x="574" y="290" width="154" height="3"></rect>
-	<rect {...sx(heroStage.fill)} x="574" y="290" width="154" height="3" {...stagePart('fill')}></rect>
+	<rect {...sx(heroStage.fill, heroStage.fillBoxLeft)} x="574" y="290" width="154" height="3" {...stagePart('fill')}></rect>
 	<text {...sx(heroStage.tiny)} x="574" y="307" {...stagePart('progress-1')}>{TOTAL}/{TOTAL} DECIDED BY YOU</text><text {...sx(heroStage.tiny)} x="574" y="307" opacity="0" {...stagePart('progress-2')}>{TOTAL - REJECTED_COUNT}/{TOTAL} · {REJECTED_COUNT} BACK TO PENDING</text>
-	<g {...sx(heroStage.box)}>
+	<g>
 		<rect {...sx(heroStage.sendBox)} x="562" y="324" width="178" height="28" {...stagePart('send-box')}></rect>
 		<text {...sx(heroStage.sendLabel)} x="576" y="342.5" {...stagePart('send-label')}>Send to agent</text>
 		<text {...sx(heroStage.sendLabel)} x="576" y="342.5" opacity="0" {...stagePart('send-sent')}>Sent · agent revising</text>
