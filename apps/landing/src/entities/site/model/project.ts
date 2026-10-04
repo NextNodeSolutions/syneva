@@ -1,6 +1,9 @@
 // The project's facts: how to install and start Syneva, and where its
 // source, history and issues live on GitHub.
 export const INSTALL_COMMAND = 'npm install -g syneva'
+// The runtime the published CLI requires (apps/syneva/package.json
+// engines.node).
+export const NODE_REQUIREMENT = 'Node 22+'
 // Run inside a repository, it opens a desk over the working tree.
 export const START_COMMAND = 'syneva'
 

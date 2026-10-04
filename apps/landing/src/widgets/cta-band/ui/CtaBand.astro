@@ -1,6 +1,6 @@
 ---
 // The start band: two commands to a first desk, and where to read more.
-import { INSTALL_COMMAND, REPO_URL, START_COMMAND } from '@entities/site/model/project'
+import { INSTALL_COMMAND, NODE_REQUIREMENT, REPO_URL, START_COMMAND } from '@entities/site/model/project'
 import { PAGES } from '@entities/site/model/site-map'
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
@@ -22,7 +22,7 @@ import { band } from './cta-band.styles'
 		</div>
 	</div>
 	<div {...revealItem(band.install)}>
-		<p {...sx(band.label)}>Install · Node 22+ and git</p>
+		<p {...sx(band.label)}>Install · {NODE_REQUIREMENT} and git</p>
 		<Command text={INSTALL_COMMAND} label="Installation command" css={command.onWash} />
 		<p {...sx(band.label, band.next)}>Then, inside your repository</p>
 		<Command text={START_COMMAND} label="Start a review" css={command.onWash} />

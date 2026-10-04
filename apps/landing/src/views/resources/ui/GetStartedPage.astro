@@ -8,14 +8,14 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { INSTALL_COMMAND, ISSUES_URL, REPO_URL, START_COMMAND } from '@entities/site/model/project'
+import { INSTALL_COMMAND, ISSUES_URL, NODE_REQUIREMENT, REPO_URL, START_COMMAND } from '@entities/site/model/project'
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import StartFlow from './art/StartFlow.astro'
 import { SPEC_COMMAND } from '@entities/desk/model/agent-contract'
 
 const REQUIREMENTS = [
-	['Node 22+', 'For the CLI.'],
+	[NODE_REQUIREMENT, 'For the CLI.'],
 	['git', 'Every review mode reads your repository through git.'],
 	['A browser', 'The desk is a tab on localhost.'],
 	['Your coding agent', 'Codex, Cursor, pi, or anything that runs a shell command.'],
