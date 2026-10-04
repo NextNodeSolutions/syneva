@@ -2,10 +2,10 @@
 // The FAQ's topics, each linked to its block, with its question count.
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
+import { twoDigits } from '@shared/lib/two-digits'
 import type { QaGroup } from '../model/faq'
 import { qaAnchor } from '../model/faq'
 import { qa } from './qa.styles'
-import { twoDigits } from '@shared/lib/two-digits'
 
 type Props = { groups: readonly QaGroup[] }
 

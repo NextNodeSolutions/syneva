@@ -1,5 +1,4 @@
 ---
-import DeskLayers from './art/DeskLayers.astro'
 import Button from '@shared/ui/Button.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
 import IndexRows from '@widgets/page-index/ui/IndexRows.astro'
@@ -9,6 +8,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
+import DeskLayers from './art/DeskLayers.astro'
 
 const COMMITMENTS = [
 	['No model runs inside Syneva.', 'It never calls an LLM and never orchestrates one. It renders the diff, validates what it is given, and hands a result back.'],
