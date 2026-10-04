@@ -16,6 +16,14 @@ const isMouse = (event: PointerEvent): boolean => event.pointerType === 'mouse'
 // A click without a press count came from the keyboard (Enter or Space).
 const isKeyboardActivation = (event: MouseEvent): boolean => event.detail === 0
 
+// Keys that move focus along the bar's triggers, wrapping at both ends.
+const ARROWS: Record<string, (index: number, count: number) => number> = {
+	ArrowRight: (index, count) => (index + 1) % count,
+	ArrowLeft: (index, count) => (index + count - 1) % count,
+	Home: () => 0,
+	End: (_index, count) => count - 1,
+}
+
 type InputMode = 'pointer' | 'keyboard'
 
 export class Navigation {
@@ -50,14 +58,6 @@ export class Navigation {
 		// The product menu starts on its first row's preview.
 		const [first] = this.#previewLinks
 		if (first) this.selectPreview(first)
-	}
-
-	get root(): HTMLElement {
-		return this.#root
-	}
-
-	get triggers(): HTMLElement[] {
-		return this.#triggers
 	}
 
 	get isOpen(): boolean {
@@ -119,7 +119,7 @@ export class Navigation {
 		this.#toggle.setAttribute('aria-label', TOGGLE_LABEL[state])
 	}
 
-	showPanel(trigger: HTMLElement, mode: InputMode = 'pointer'): void {
+	#showPanel(trigger: HTMLElement, mode: InputMode = 'pointer'): void {
 		this.cancelTimers()
 		this.#root.dataset.input = mode
 		if (trigger === this.#currentTrigger) return
@@ -137,23 +137,40 @@ export class Navigation {
 		this.#dropdown.dataset.open = 'true'
 	}
 
-	focusPanel(trigger: HTMLElement): void {
-		this.showPanel(trigger, 'keyboard')
+	#focusPanel(trigger: HTMLElement): void {
+		this.#showPanel(trigger, 'keyboard')
 		this.#currentPanel?.querySelector('a')?.focus()
+	}
+
+	// A key on a trigger moves along the bar or, with ArrowDown, into the
+	// trigger's panel. Returns whether the key was such a move.
+	moveFrom(trigger: HTMLElement, key: string): boolean {
+		if (key === 'ArrowDown') {
+			this.#focusPanel(trigger)
+			return true
+		}
+		const move = ARROWS[key]
+		if (!move) return false
+		const count = this.#triggers.length
+		const next =
+			this.#triggers[move(this.#triggers.indexOf(trigger), count)]
+		next?.focus()
+		if (next) this.#showPanel(next, 'keyboard')
+		return true
 	}
 
 	scheduleOpen(trigger: HTMLElement, event: PointerEvent): void {
 		if (compact.matches || !isMouse(event)) return
 		this.cancelTimers()
 		this.#openTimer = setTimeout(
-			() => this.showPanel(trigger),
+			() => this.#showPanel(trigger),
 			this.#currentPanel ? 0 : OPEN_DELAY_MS,
 		)
 	}
 
 	activate(trigger: HTMLElement, event: MouseEvent): void {
 		if (isKeyboardActivation(event)) {
-			this.focusPanel(trigger)
+			this.#focusPanel(trigger)
 			return
 		}
 		if (
@@ -164,7 +181,7 @@ export class Navigation {
 			return
 		}
 		// Hover may already have opened it before the first deliberate click.
-		this.showPanel(trigger)
+		this.#showPanel(trigger)
 		this.#clickedTrigger = trigger
 	}
 
@@ -194,7 +211,7 @@ export class Navigation {
 		this.#isBarOpen = true
 		this.#renderBar()
 		const isKeyboard = isKeyboardActivation(event)
-		this.showPanel(first, isKeyboard ? 'keyboard' : 'pointer')
+		this.#showPanel(first, isKeyboard ? 'keyboard' : 'pointer')
 		if (isKeyboard) first.focus()
 	}
 
@@ -240,6 +257,12 @@ export class Navigation {
 		this.dismiss()
 		this.positionPanel()
 		if (hasFocus) target?.focus()
+	}
+
+	dismissOnOutsidePress(event: PointerEvent): void {
+		if (event.target instanceof Node && this.#root.contains(event.target))
+			return
+		this.dismiss()
 	}
 
 	dismissOnFocusExit(event: FocusEvent): void {

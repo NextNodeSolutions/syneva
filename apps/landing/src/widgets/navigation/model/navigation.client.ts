@@ -6,13 +6,6 @@ import type { NavigationParts } from './navigation-parts'
 
 // Wires the header's listeners to its controller. Rows stagger in from their
 // panel's progress (--menu-order).
-const ARROWS: Record<string, (index: number, count: number) => number> = {
-	ArrowRight: (index, count) => (index + 1) % count,
-	ArrowLeft: (index, count) => (index + count - 1) % count,
-	Home: () => 0,
-	End: (_index, count) => count - 1,
-}
-
 function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
 	trigger.addEventListener('pointerenter', event =>
 		navigation.scheduleOpen(trigger, event),
@@ -21,18 +14,7 @@ function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
 		navigation.activate(trigger, event),
 	)
 	trigger.addEventListener('keydown', event => {
-		if (event.key === 'ArrowDown') {
-			event.preventDefault()
-			navigation.focusPanel(trigger)
-			return
-		}
-		const move = ARROWS[event.key]
-		if (!move) return
-		event.preventDefault()
-		const { triggers } = navigation
-		const next = triggers[move(triggers.indexOf(trigger), triggers.length)]
-		next?.focus()
-		if (next) navigation.showPanel(next, 'keyboard')
+		if (navigation.moveFrom(trigger, event.key)) event.preventDefault()
 	})
 }
 
@@ -42,15 +24,9 @@ function bindPreview(navigation: Navigation, link: HTMLElement): void {
 }
 
 function bindDocument(navigation: Navigation): void {
-	document.addEventListener('pointerdown', event => {
-		if (
-			!(
-				event.target instanceof Node &&
-				navigation.root.contains(event.target)
-			)
-		)
-			navigation.dismiss()
-	})
+	document.addEventListener('pointerdown', event =>
+		navigation.dismissOnOutsidePress(event),
+	)
 	document.addEventListener('keydown', event => {
 		if (event.key !== 'Escape' || !navigation.isOpen) return
 		event.preventDefault()
