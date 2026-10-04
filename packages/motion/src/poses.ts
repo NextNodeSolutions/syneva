@@ -24,6 +24,7 @@ export const POSE_VALUES = {
 	// The accent rule rests just short of opaque while it draws.
 	ruleOpacity: 0.9,
 	rise: 'translateY(10px)',
+	lineRise: 'translateY(108%)',
 	// A typed line's clip reaches this far past its box, left edge aside.
 	typeOutset: TYPE_OUTSET_PX,
 	typeClipped: `inset(-${TYPE_OUTSET_PX}px 100% -${TYPE_OUTSET_PX}px 0)`,
@@ -135,6 +136,18 @@ export const poses = stylex.create({
 	spin: {
 		transformBox: hidden('fill-box'),
 		transformOrigin: hidden('center'),
+	},
+	// The home headline's intro: a line rises out of its clip (an overflow:
+	// hidden parent) and a highlight band (its ::before) sweeps in behind it.
+	lineRise: {
+		transform: hidden(POSE_VALUES.lineRise),
+		...safetyNet(showAnyway),
+	},
+	band: {
+		'::before': {
+			transform: hidden('scaleX(0)'),
+			...safetyNet(bandAnyway),
+		},
 	},
 	// Pieces the page's own intro animates: they keep only the safety net.
 	stalledShow: safetyNet(showAnyway),
