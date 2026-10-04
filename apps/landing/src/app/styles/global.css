@@ -88,6 +88,8 @@ code {
 	background: var(--wash);
 	color: var(--ink);
 	padding: 1px 5px;
+	/* A chip split across lines looks broken; the commands it holds are short. */
+	white-space: nowrap;
 }
 /* Without scripts the header lists its sections as plain links; markup inside
    <noscript> is raw text to a scripted page, so it carries no classes. */
