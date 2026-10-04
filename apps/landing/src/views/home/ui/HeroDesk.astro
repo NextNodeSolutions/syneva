@@ -1,6 +1,7 @@
 ---
 // The desk's column of the hero instrument: the change opened on your local
 // desk, its diff rows, the question you ask on line 14 and the agent's answer.
+import { DESK_ORIGIN } from '@entities/desk/model/desk-origin'
 import { PATH_LENGTH } from '@syneva/motion/poses'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
@@ -35,7 +36,7 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 
 <g {...sx(heroStage.layer)} {...stagePart('desk')}>
 	<text {...sx(heroStage.kicker)} x="236" y="40">YOUR DESK</text>
-	<text {...sx(heroStage.sub, heroStage.mono)} x="236" y="58">localhost:41873</text>
+	<text {...sx(heroStage.sub, heroStage.mono)} x="236" y="58">{DESK_ORIGIN}</text>
 	<rect {...sx(shape.panelWhite)} x="236" y="72" width="292" height="280"></rect>
 	<g opacity="0" {...stagePart('idle')}>
 		<text {...sx(heroStage.tiny)} x="382" y="215" text-anchor="middle">WAITING FOR YOUR AGENT’S DIFF</text>
