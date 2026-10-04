@@ -1,7 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 
-import { chapterArtMarker } from './drawing.stylex'
+import { chapterArtMarker } from './chapter-art.stylex'
 
 const inChapter = (): string =>
 	stylex.when.ancestor(':is(figure)', chapterArtMarker)

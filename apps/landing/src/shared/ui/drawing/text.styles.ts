@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-import { drawingMarker } from './art.stylex'
+import { drawingMarker } from './drawing.stylex'
 
 // Text sizes are SVG user units: figures render between roughly 0.75x
 // (phones) and 1.25x (desktop chapters). On phones, reframed drawings and
