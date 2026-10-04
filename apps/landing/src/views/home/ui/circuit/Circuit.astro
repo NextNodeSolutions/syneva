@@ -25,7 +25,7 @@ import { circuit } from './circuit.styles'
 	css={circuit.root}
 	data-circuit
 >
-	<g slot="frame" {...sx(circuit.register)} fill="none" stroke="var(--line)"><path d="M28 44V28h16m1072 0h16v16M28 436v16h16m1072 0h16v-16"></path></g>
+	<g slot="frame" {...sx(circuit.register)}><path d="M28 44V28h16m1072 0h16v16M28 436v16h16m1072 0h16v-16"></path></g>
 	<defs>
 		<clipPath id="review-face-clip"><use href="#review-face"></use></clipPath>
 		{WIRES.map(({ id, from, to, route, d }) => <path id={id} data-from={from} data-to={to} data-route={route} d={d} />)}
@@ -40,7 +40,7 @@ import { circuit } from './circuit.styles'
 			</g>
 		</g>
 		<g id="review-mark" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M0-11v6M0 5v6M-11 0h6M5 0h6M-8-8l4 4M4 4l4 4M-8 8l4-4M4-4l4-4"></path><path d="m0-3 3 3-3 3-3-3Z"></path></g>
-		<g id="verdict-check" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m-7 0 5 5 10-11"></path></g>
+		<g {...sx(circuit.verdictCheck)} id="verdict-check"><path d="m-7 0 5 5 10-11"></path></g>
 	</defs>
 	<g>
 		{/* Visible conductors and travelling signals share the same paths. */}

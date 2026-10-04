@@ -20,7 +20,11 @@ export const circuit = stylex.create({
 		'--code-ink': color['--muted'],
 		'--code-accent': color['--signal'],
 	},
-	register: { display: { default: null, [media.phone]: 'none' } },
+	register: {
+		display: { default: null, [media.phone]: 'none' },
+		fill: 'none',
+		stroke: color['--line'],
+	},
 	routes: {
 		stroke: color['--line-strong'],
 		strokeWidth: { default: 1, [media.phone]: 1.3 },
@@ -158,6 +162,13 @@ export const circuit = stylex.create({
 		'--code-accent': color['--green'],
 	},
 	sealEllipse: { fill: color['--mint'], stroke: color['--green'] },
+	verdictCheck: {
+		fill: 'none',
+		stroke: color['--green'],
+		strokeWidth: 2,
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round',
+	},
 	signal: {
 		'--signal-size': '16px',
 		stroke: color['--signal'],
