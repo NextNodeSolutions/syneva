@@ -1,11 +1,12 @@
 import { inView } from './engine'
 import { reducedMotion } from './preference'
 
-// Offscreen scenes, hidden tabs and reduced motion pause every animation
-// inside a [data-motion-scene]; a scene that comes back resumes each one
-// where it paused. Scenes that start animating later (a reveal, a timeline)
-// sync themselves right after, so new animations are paused before their
-// first frame if their scene is out of view.
+// Offscreen scenes and hidden tabs pause every animation inside a
+// [data-motion-scene]; a scene that comes back resumes each one where it
+// paused. Reduced motion pauses the loops and finishes the entrances.
+// Scenes that start animating later (a reveal, a timeline) sync themselves
+// right after, so new animations are paused before their first frame if
+// their scene is out of view.
 const SCENE = '[data-motion-scene]'
 const SCENE_AMOUNT = 0.05
 const visible = new Set<Element>()
@@ -22,6 +23,19 @@ const isPastEnd = (animation: Animation): boolean =>
 function pauseScene(scene: Element): void {
 	for (const animation of scene.getAnimations({ subtree: true }))
 		if (animation.playState === 'running') animation.pause()
+}
+
+// A loop never ends; an entrance does. Reduced motion lands an entrance on
+// its finished pose (Motion commits it) instead of holding it mid-flight or
+// in its delay, where it would keep the element hidden while the hidden
+// poses are off.
+const isLoop = (animation: Animation): boolean =>
+	animation.effect?.getComputedTiming().endTime === Infinity
+
+function settleScene(scene: Element): void {
+	pauseScene(scene)
+	for (const animation of scene.getAnimations({ subtree: true }))
+		if (!isLoop(animation)) animation.finish()
 }
 
 function resumeScene(scene: Element): void {
@@ -46,7 +60,8 @@ export function syncScenes(root: Element | Document = document): void {
 		isGloballyPaused,
 	)
 	for (const scene of scenesWithin(root))
-		if (isGloballyPaused || !visible.has(scene)) pauseScene(scene)
+		if (reducedMotion.matches) settleScene(scene)
+		else if (document.hidden || !visible.has(scene)) pauseScene(scene)
 		else resumeScene(scene)
 }
 
