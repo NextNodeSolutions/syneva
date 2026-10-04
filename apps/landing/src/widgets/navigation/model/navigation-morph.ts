@@ -14,6 +14,7 @@ import {
 } from './navigation-channels'
 import { measureNavigation } from './navigation-geometry'
 
+import type { InputMode } from './input-mode'
 import type { Channel, Frames, Values } from './navigation-channels'
 import type { NavigationParts } from './navigation-parts'
 
@@ -37,6 +38,7 @@ export class NavigationMorph {
 		preview: { target: {} },
 	}
 	#folded: Record<string, number> | undefined
+	#inputMode: InputMode = 'pointer'
 
 	constructor(
 		{
@@ -67,7 +69,7 @@ export class NavigationMorph {
 	#isInstant(): boolean {
 		return (
 			reducedMotion.matches ||
-			this.#navigation.dataset.input === 'keyboard' ||
+			this.#inputMode === 'keyboard' ||
 			!canInterpolate
 		)
 	}
@@ -241,6 +243,10 @@ export class NavigationMorph {
 			{ ...content.next, ...selection },
 			content.seeds,
 		)
+	}
+
+	setInputMode(mode: InputMode): void {
+		this.#inputMode = mode
 	}
 
 	finish(): void {

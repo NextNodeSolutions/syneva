@@ -2,6 +2,7 @@ import { compact } from './compact'
 import { NavigationMorph } from './navigation-morph'
 import { TOGGLE_LABEL } from './toggle-label'
 
+import type { InputMode } from './input-mode'
 import type { NavigationParts } from './navigation-parts'
 
 // The header's behavior: hover and click open a section's panel in the
@@ -24,8 +25,6 @@ const ARROWS: Record<string, (index: number, count: number) => number> = {
 	End: (_index, count) => count - 1,
 }
 
-type InputMode = 'pointer' | 'keyboard'
-
 export class Navigation {
 	readonly #root: HTMLElement
 	readonly #links: HTMLElement
@@ -40,6 +39,7 @@ export class Navigation {
 	#clickedTrigger: HTMLElement | undefined
 	#currentPanel: HTMLElement | undefined
 	#previewedLink: HTMLElement | undefined
+	#inputMode: InputMode = 'pointer'
 	// Whether the phone bar is open; #renderBar() writes it to the page.
 	#isBarOpen = false
 	#openTimer: ReturnType<typeof setTimeout> | undefined
@@ -121,7 +121,7 @@ export class Navigation {
 
 	#showPanel(trigger: HTMLElement, mode: InputMode = 'pointer'): void {
 		this.cancelTimers()
-		this.#root.dataset.input = mode
+		this.#setInputMode(mode)
 		if (trigger === this.#currentTrigger) return
 		this.#clickedTrigger = undefined
 		if (this.#dropdown.contains(document.activeElement)) trigger.focus()
@@ -189,7 +189,7 @@ export class Navigation {
 		if (
 			compact.matches ||
 			!isMouse(event) ||
-			this.#root.dataset.input === 'keyboard'
+			this.#inputMode === 'keyboard'
 		)
 			return
 		clearTimeout(this.#openTimer)
@@ -197,8 +197,15 @@ export class Navigation {
 	}
 
 	enterKeyboardMode(): void {
-		this.#root.dataset.input = 'keyboard'
+		this.#setInputMode('keyboard')
 		this.#morph.finish()
+	}
+
+	// data-input is for the styles; the morph is told directly.
+	#setInputMode(mode: InputMode): void {
+		this.#inputMode = mode
+		this.#root.dataset.input = mode
+		this.#morph.setInputMode(mode)
 	}
 
 	toggleBar(event: MouseEvent): void {
