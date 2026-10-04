@@ -1,7 +1,9 @@
 ---
 // One preview scene: a caption, the illustration (the slot) and a two-line
-// pitch. The caption's live dot marks an available page; a prototype has none.
+// pitch. The caption's live dot marks an available page; a prototype has
+// none and names its badge after the caption instead.
 import type { PreviewName } from '@entities/site/model/site-map'
+import { badgeOf } from '@entities/site/model/routes'
 import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import { sceneMarker } from './markers.stylex'
@@ -21,10 +23,12 @@ const {
 const page = SECTION_BY_ID.product.items.find(productPage => productPage.preview === name)
 if (!page) throw new Error(`No product page in the site map previews the "${name}" scene.`)
 const isAvailable = page.availability === 'available'
+const badge = badgeOf(page)
+const label = badge ? `${caption} · ${badge.toUpperCase()}` : caption
 ---
 
 <div {...sx(preview.scene, sceneMarker)} data-scene={name}>
-	<div {...sx(preview.caption)}><span>{caption}</span>{isAvailable && <span {...sx(preview.dot)}></span>}</div>
+	<div {...sx(preview.caption)}><span>{label}</span>{isAvailable && <span {...sx(preview.dot)}></span>}</div>
 	<slot />
 	<p {...sx(preview.pitch)}>{lead}<br /><strong {...sx(preview.pitchStrong)}>{point}</strong></p>
 </div>
