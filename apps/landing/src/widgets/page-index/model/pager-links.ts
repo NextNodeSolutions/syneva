@@ -36,8 +36,9 @@ function linkOf(
 // The previous and next sides of the route's section pager; none outside a
 // section.
 export function pagerLinks(route: string): PagerLink[] {
-	const { section, previous, next } = siblingsOf(route)
-	if (!section) return []
+	const siblings = siblingsOf(route)
+	if (!siblings) return []
+	const { section, previous, next } = siblings
 	return [
 		linkOf('previous', previous, section),
 		linkOf('next', next, section),

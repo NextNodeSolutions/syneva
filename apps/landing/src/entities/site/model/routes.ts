@@ -50,11 +50,14 @@ export function sectionOf(route: string): Section | undefined {
 	)
 }
 
-export type Siblings = { section?: Section; previous?: Page; next?: Page }
+// A route's section, and its neighbouring pages when the route is one of the
+// section's pages (its overview has none).
+export type Siblings = { section: Section; previous?: Page; next?: Page }
 
-export function siblingsOf(route: string): Siblings {
+// Routes outside every section (the home, open source) have no siblings.
+export function siblingsOf(route: string): Siblings | undefined {
 	const section = sectionOf(route)
-	if (!section) return {}
+	if (!section) return undefined
 	const index = section.items.findIndex(page => page.href === route)
 	if (index < 0) return { section }
 	return {
