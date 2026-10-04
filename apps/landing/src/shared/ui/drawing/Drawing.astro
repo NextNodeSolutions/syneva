@@ -26,7 +26,7 @@ type Props = DataAttributes & {
 	css?: Part
 }
 
-const { id, width, height, title, description, compact, density = 'regular', css, ...data } = Astro.props
+const { id, width, height, title, description, compact, density = 'regular', css, ...dataAttributes } = Astro.props
 const titleId = `${id}-title`
 const descriptionId = `${id}-desc`
 const isSubpage = Astro.locals.page === 'sub'
@@ -36,7 +36,7 @@ const fitOf = (): Part => {
 }
 const fit = fitOf()
 // A bare attribute arrives as true, which a spread would print as ="true".
-const hooks = Object.fromEntries(Object.entries(data).map(([name, value]) => [name, value === true ? '' : value]))
+const hooks = Object.fromEntries(Object.entries(dataAttributes).map(([name, value]) => [name, value === true ? '' : value]))
 ---
 
 <svg
