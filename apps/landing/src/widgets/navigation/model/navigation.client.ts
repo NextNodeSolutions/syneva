@@ -2,19 +2,18 @@ import { compact } from './compact'
 import { Navigation } from './navigation'
 import { queryNavigationParts } from './navigation-parts'
 
-import type { NavigationParts } from './navigation-parts'
+import type { NavigationParts, SectionMenu } from './navigation-parts'
 
 // The header's script: wires the DOM events to the navigation's intents and
 // keeps the dropdown placed as the layout changes.
-function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
+function bindTrigger(navigation: Navigation, menu: SectionMenu): void {
+	const { trigger } = menu
 	trigger.addEventListener('pointerenter', event =>
-		navigation.scheduleOpen(trigger, event),
+		navigation.scheduleOpen(menu, event),
 	)
-	trigger.addEventListener('click', event =>
-		navigation.activate(trigger, event),
-	)
+	trigger.addEventListener('click', event => navigation.activate(menu, event))
 	trigger.addEventListener('keydown', event => {
-		if (navigation.moveFrom(trigger, event.key)) event.preventDefault()
+		if (navigation.moveFrom(menu, event.key)) event.preventDefault()
 	})
 }
 
@@ -66,21 +65,21 @@ async function repositionAfterFonts(reposition: () => void): Promise<void> {
 // a panel changing size, and the webfonts.
 function bindLayout(
 	navigation: Navigation,
-	{ root, panels }: NavigationParts,
+	{ root, menus }: NavigationParts,
 ): void {
 	compact.addEventListener('change', () => navigation.adaptToBreakpoint())
 	const reposition = (): void => navigation.positionPanel()
 	window.addEventListener('resize', reposition)
 	const resizeObserver = new ResizeObserver(reposition)
 	resizeObserver.observe(root)
-	panels.forEach(panel => resizeObserver.observe(panel))
+	menus.forEach(({ panel }) => resizeObserver.observe(panel))
 	reposition()
 	void repositionAfterFonts(reposition)
 }
 
 const parts = queryNavigationParts(document)
 const navigation = new Navigation(parts)
-parts.triggers.forEach(trigger => bindTrigger(navigation, trigger))
+parts.menus.forEach(menu => bindTrigger(navigation, menu))
 parts.previewLinks.forEach(link => bindPreview(navigation, link))
 bindHeader(navigation, parts)
 bindDocument(navigation)

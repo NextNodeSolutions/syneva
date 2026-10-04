@@ -24,7 +24,7 @@ import type {
 	Values,
 } from './navigation-channels'
 import type { Geometry } from './navigation-geometry'
-import type { NavigationParts } from './navigation-parts'
+import type { NavigationParts, SectionMenu } from './navigation-parts'
 
 type Clock = 'menu' | 'preview'
 // A move on either clock, or the fold back on closing.
@@ -41,7 +41,7 @@ type Motion = { target: Values; controls?: ReturnType<typeof animate> }
 export class NavigationMorph {
 	readonly #navigation: HTMLElement
 	readonly #links: HTMLElement
-	readonly #panels: NavigationParts['panels']
+	readonly #panels: HTMLElement[]
 	readonly #scenes: HTMLElement[]
 	readonly #shell: Channel<GeometryName>
 	readonly #panelChannels: Channel<ContentName>[]
@@ -56,15 +56,15 @@ export class NavigationMorph {
 	constructor({
 		root,
 		links,
-		panels,
+		menus,
 		scenes,
-	}: Pick<NavigationParts, 'root' | 'links' | 'panels' | 'scenes'>) {
+	}: Pick<NavigationParts, 'root' | 'links' | 'menus' | 'scenes'>) {
 		this.#navigation = root
 		this.#links = links
-		this.#panels = panels
+		this.#panels = menus.map(({ panel }) => panel)
 		this.#scenes = scenes
 		this.#shell = registerChannel(root, '', GEOMETRY)
-		this.#panelChannels = panels.map((panel, index) =>
+		this.#panelChannels = this.#panels.map((panel, index) =>
 			registerChannel(panel, `panel-${index}-`, CONTENT),
 		)
 		this.#sceneChannels = scenes.map((scene, index) =>
@@ -156,18 +156,14 @@ export class NavigationMorph {
 		})
 	}
 
-	position(
-		trigger: HTMLElement | undefined,
-		panel: HTMLElement | undefined,
-	): void {
+	position(menu: SectionMenu | undefined): void {
 		// A panel's width reads --nav-available: write it before measuring.
 		this.#setPixels('--nav-available', availableWidth(this.#navigation))
-		if (!trigger || !panel) return
+		if (!menu) return
 		const geometry = measureNavigation({
 			navigation: this.#navigation,
 			links: this.#links,
-			trigger,
-			panel,
+			...menu,
 		})
 		this.#setPixels('--dropdown-max-height', geometry.maxHeight.dropdown)
 		this.#setPixels('--panel-max-height', geometry.maxHeight.panel)
@@ -179,7 +175,7 @@ export class NavigationMorph {
 		const content = revealChannels({
 			channels: this.#panelChannels,
 			target: this.#motions.menu.target,
-			selected: this.#panels.indexOf(panel),
+			selected: this.#panels.indexOf(menu.panel),
 			travel,
 			styles,
 		})

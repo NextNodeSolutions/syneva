@@ -4,13 +4,16 @@
 // header whose menus never open. A menu may have no preview rows.
 type NonEmptyArray<Item> = readonly [Item, ...Item[]]
 
+// A section's trigger and the panel its aria-controls names.
+export type SectionMenu = { trigger: HTMLElement; panel: HTMLElement }
+
 export type NavigationParts = {
 	root: HTMLElement
 	links: HTMLElement
 	dropdown: HTMLElement
 	toggle: HTMLElement
-	triggers: NonEmptyArray<HTMLElement>
-	panels: NonEmptyArray<HTMLElement>
+	// In the bar's order.
+	menus: NonEmptyArray<SectionMenu>
 	previewLinks: HTMLElement[]
 	scenes: HTMLElement[]
 }
@@ -37,6 +40,25 @@ function queryParts(
 	return [first, ...rest]
 }
 
+// Each trigger with the panel its aria-controls names: a trigger naming no
+// panel would open nothing.
+function pairMenus(
+	triggers: NonEmptyArray<HTMLElement>,
+	panels: readonly HTMLElement[],
+): NonEmptyArray<SectionMenu> {
+	const menuOf = (trigger: HTMLElement): SectionMenu => {
+		const id = trigger.getAttribute('aria-controls')
+		const panel = panels.find(candidate => candidate.id === id)
+		if (!panel)
+			throw new Error(
+				`The navigation trigger #${trigger.id} controls "${id}", which names no [data-nav-panel]: Navigation.astro must render the panel with that id.`,
+			)
+		return { trigger, panel }
+	}
+	const [first, ...rest] = triggers
+	return [menuOf(first), ...rest.map(menuOf)]
+}
+
 export function queryNavigationParts(scope: ParentNode): NavigationParts {
 	const root = queryPart(scope, 'data-navigation')
 	return {
@@ -44,8 +66,9 @@ export function queryNavigationParts(scope: ParentNode): NavigationParts {
 		links: queryPart(root, 'data-nav-links'),
 		dropdown: queryPart(root, 'data-nav-dropdown'),
 		toggle: queryPart(root, 'data-nav-toggle'),
-		triggers: queryParts(root, 'data-nav-trigger'),
-		panels: queryParts(root, 'data-nav-panel'),
+		menus: pairMenus(queryParts(root, 'data-nav-trigger'), [
+			...root.querySelectorAll<HTMLElement>('[data-nav-panel]'),
+		]),
 		previewLinks: [...root.querySelectorAll<HTMLElement>('[data-preview]')],
 		scenes: [...root.querySelectorAll<HTMLElement>('[data-scene]')],
 	}

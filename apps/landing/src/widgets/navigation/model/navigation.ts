@@ -5,7 +5,7 @@ import { PhoneBar } from './phone-bar'
 import { ProductPreview } from './product-preview'
 
 import type { InputMode } from './input-mode'
-import type { NavigationParts } from './navigation-parts'
+import type { NavigationParts, SectionMenu } from './navigation-parts'
 
 // A click without a press count came from the keyboard (Enter or Space).
 const isKeyboardActivation = (event: MouseEvent): boolean => event.detail === 0
@@ -28,16 +28,14 @@ type Focusable = { focus: () => void }
 export class Navigation {
 	readonly #root: HTMLElement
 	readonly #links: HTMLElement
-	readonly #triggers: NavigationParts['triggers']
+	readonly #menus: NavigationParts['menus']
 	readonly #dropdown: HTMLElement
-	readonly #panels: NavigationParts['panels']
 	readonly #morph: NavigationMorph
 	readonly #preview: ProductPreview
 	readonly #hoverIntent = new HoverIntent()
 	readonly #phoneBar: PhoneBar
-	#currentTrigger: HTMLElement | undefined
-	#clickedTrigger: HTMLElement | undefined
-	#currentPanel: HTMLElement | undefined
+	#openMenu: SectionMenu | undefined
+	#clickedMenu: SectionMenu | undefined
 	#inputMode: InputMode = 'pointer'
 
 	constructor(parts: NavigationParts) {
@@ -45,14 +43,13 @@ export class Navigation {
 		this.#links = parts.links
 		this.#dropdown = parts.dropdown
 		this.#phoneBar = new PhoneBar(parts.root, parts.toggle)
-		this.#triggers = parts.triggers
-		this.#panels = parts.panels
+		this.#menus = parts.menus
 		this.#morph = new NavigationMorph(parts)
 		this.#preview = new ProductPreview(parts, this.#morph)
 	}
 
 	get isOpen(): boolean {
-		return Boolean(this.#currentPanel) || this.#phoneBar.isOpen
+		return Boolean(this.#openMenu) || this.#phoneBar.isOpen
 	}
 
 	keepOpen(): void {
@@ -65,7 +62,7 @@ export class Navigation {
 	}
 
 	positionPanel(): void {
-		this.#morph.position(this.#currentTrigger, this.#currentPanel)
+		this.#morph.position(this.#openMenu)
 		this.#preview.reposition()
 	}
 
@@ -74,20 +71,19 @@ export class Navigation {
 	// key on it. The attribute is toggled, not the property, so a browser
 	// without inert still restyles the panel.
 	#hidePanel(): void {
-		this.#currentTrigger?.setAttribute('aria-expanded', 'false')
-		this.#currentPanel?.toggleAttribute('inert', true)
+		this.#openMenu?.trigger.setAttribute('aria-expanded', 'false')
+		this.#openMenu?.panel.toggleAttribute('inert', true)
 	}
 
 	#closePanel(): void {
 		this.#hoverIntent.cancel()
 		if (this.#dropdown.contains(document.activeElement))
-			this.#currentTrigger?.focus()
+			this.#openMenu?.trigger.focus()
 		this.#hidePanel()
 		this.#morph.close()
 		this.#dropdown.dataset.open = 'false'
-		this.#currentPanel = undefined
-		this.#currentTrigger = undefined
-		this.#clickedTrigger = undefined
+		this.#openMenu = undefined
+		this.#clickedMenu = undefined
 	}
 
 	dismiss(): void {
@@ -102,70 +98,63 @@ export class Navigation {
 		if (shouldRestore) this.#phoneBar.focus()
 	}
 
-	#showPanel(trigger: HTMLElement, mode: InputMode = 'pointer'): void {
+	#showPanel(menu: SectionMenu, mode: InputMode = 'pointer'): void {
 		this.#hoverIntent.cancel()
 		this.#setInputMode(mode)
-		if (trigger === this.#currentTrigger) return
-		this.#clickedTrigger = undefined
-		if (this.#dropdown.contains(document.activeElement)) trigger.focus()
+		if (menu === this.#openMenu) return
+		this.#clickedMenu = undefined
+		if (this.#dropdown.contains(document.activeElement))
+			menu.trigger.focus()
 		this.#hidePanel()
-		const panel = this.#panels.find(
-			candidate => candidate.id === trigger.getAttribute('aria-controls'),
-		)
-		this.#currentTrigger = trigger
-		this.#currentPanel = panel
+		this.#openMenu = menu
 		this.positionPanel()
-		panel?.toggleAttribute('inert', false)
-		trigger.setAttribute('aria-expanded', 'true')
+		menu.panel.toggleAttribute('inert', false)
+		menu.trigger.setAttribute('aria-expanded', 'true')
 		this.#dropdown.dataset.open = 'true'
 	}
 
-	#focusPanel(trigger: HTMLElement): void {
-		this.#showPanel(trigger, 'keyboard')
-		this.#currentPanel?.querySelector('a')?.focus()
+	#focusPanel(menu: SectionMenu): void {
+		this.#showPanel(menu, 'keyboard')
+		menu.panel.querySelector('a')?.focus()
 	}
 
 	// A key on a trigger moves along the bar or, with ArrowDown, into the
 	// trigger's panel. Returns whether the key was such a move.
-	moveFrom(trigger: HTMLElement, key: string): boolean {
+	moveFrom(menu: SectionMenu, key: string): boolean {
 		if (key === 'ArrowDown') {
-			this.#focusPanel(trigger)
+			this.#focusPanel(menu)
 			return true
 		}
 		const move = ARROWS[key]
 		if (!move) return false
-		const count = this.#triggers.length
-		const next =
-			this.#triggers[move(this.#triggers.indexOf(trigger), count)]
-		next?.focus()
+		const count = this.#menus.length
+		const next = this.#menus[move(this.#menus.indexOf(menu), count)]
+		next?.trigger.focus()
 		if (next) this.#showPanel(next, 'keyboard')
 		return true
 	}
 
-	scheduleOpen(trigger: HTMLElement, event: PointerEvent): void {
+	scheduleOpen(menu: SectionMenu, event: PointerEvent): void {
 		if (compact.matches) return
 		this.#hoverIntent.scheduleOpen(
 			event,
-			() => this.#showPanel(trigger),
-			this.#currentPanel ? 'open' : 'closed',
+			() => this.#showPanel(menu),
+			this.#openMenu ? 'open' : 'closed',
 		)
 	}
 
-	activate(trigger: HTMLElement, event: MouseEvent): void {
+	activate(menu: SectionMenu, event: MouseEvent): void {
 		if (isKeyboardActivation(event)) {
-			this.#focusPanel(trigger)
+			this.#focusPanel(menu)
 			return
 		}
-		if (
-			this.#currentTrigger === trigger &&
-			this.#clickedTrigger === trigger
-		) {
+		if (this.#openMenu === menu && this.#clickedMenu === menu) {
 			this.#closePanel()
 			return
 		}
 		// Hover may already have opened it before the first deliberate click.
-		this.#showPanel(trigger)
-		this.#clickedTrigger = trigger
+		this.#showPanel(menu)
+		this.#clickedMenu = menu
 	}
 
 	scheduleClose(event: PointerEvent): void {
@@ -190,18 +179,18 @@ export class Navigation {
 			this.dismiss()
 			return
 		}
-		const [first] = this.#triggers
+		const [first] = this.#menus
 		this.#phoneBar.open()
 		const isKeyboard = isKeyboardActivation(event)
 		this.#showPanel(first, isKeyboard ? 'keyboard' : 'pointer')
-		if (isKeyboard) first.focus()
+		if (isKeyboard) first.trigger.focus()
 	}
 
 	// Focus goes back to the toggle or the trigger only when it was in the
 	// header: a menu opened by hover leaves focus where it was on the page.
 	escape(): void {
 		const hadFocus = this.#root.contains(document.activeElement)
-		const target = this.#returnTarget(this.#currentTrigger)
+		const target = this.#returnTarget(this.#openMenu?.trigger)
 		this.dismiss()
 		if (hadFocus) target?.focus()
 	}
@@ -213,7 +202,7 @@ export class Navigation {
 	adaptToBreakpoint(): void {
 		const hasFocus = this.#root.contains(document.activeElement)
 		const target = this.#returnTarget(
-			this.#currentTrigger ?? this.#triggers[0],
+			this.#openMenu?.trigger ?? this.#menus[0].trigger,
 		)
 		this.dismiss()
 		this.positionPanel()
@@ -236,7 +225,7 @@ export class Navigation {
 			event.target instanceof Element &&
 			!event.target.getClientRects().length
 		this.dismiss()
-		if (hasHiddenFocus) this.#returnTarget(this.#triggers[0])?.focus()
+		if (hasHiddenFocus) this.#returnTarget(this.#menus[0].trigger)?.focus()
 	}
 
 	// Where focus returns as the menu closes: on phones the toggle, since the
