@@ -1,4 +1,6 @@
 ---
+import type { Guide, GuideFile } from '@syneva/contracts/review'
+
 import Button from '@shared/ui/Button.astro'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
 import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
@@ -26,11 +28,15 @@ const GUIDE = [
 	'',
 	'$ syneva --guide /tmp/guide.json',
 ]
+// The guide's field names come from the contract the desk reads, so a rename
+// there fails this build.
+const FILES = 'files' satisfies keyof Guide
+const fileField = (name: keyof GuideFile): string => `${FILES}[].${name}`
 const FIELDS = [
-	['files', 'Required. One entry per reviewed file.'],
-	['files[].path', 'Required. Repo-relative path.'],
-	['files[].category', 'The section it is listed under. Defaults to “Changes”.'],
-	['files[].order', 'Ascending review order. Defaults to array position.'],
+	[FILES, 'Required. One entry per reviewed file.'],
+	[fileField('path'), 'Required. Repo-relative path.'],
+	[fileField('category'), 'The section it is listed under. Defaults to “Changes”.'],
+	[fileField('order'), 'Ascending review order. Defaults to array position.'],
 ] as const
 ---
 
