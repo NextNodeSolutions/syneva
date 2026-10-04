@@ -87,20 +87,21 @@ const STEPS: Step[] = [
 	{ part: 'principles', keyframes: fadeIn, duration: 0.8, delay: 0.9 },
 ]
 
-// The figure is a scene: its step waits, paused, until it is in view.
-export function playIntro(): void {
-	for (const {
-		part,
-		keyframes,
-		duration,
-		delay,
-		ease = out,
-		pseudoElement,
-	} of STEPS) {
-		const options: AnimateOptions = { duration, delay, ease, pseudoElement }
-		for (const target of document.querySelectorAll(
-			`[data-hero-intro="${part}"]`,
-		))
-			animate(target, keyframes, options)
-	}
+// Starts every step and returns their playback, which hero.client.ts can
+// complete at once. The figure is a scene: its step waits, paused, until it
+// is in view.
+export function playIntro(): ReturnType<typeof animate>[] {
+	return STEPS.flatMap(
+		({ part, keyframes, duration, delay, ease = out, pseudoElement }) => {
+			const options: AnimateOptions = {
+				duration,
+				delay,
+				ease,
+				pseudoElement,
+			}
+			return [
+				...document.querySelectorAll(`[data-hero-intro="${part}"]`),
+			].map(target => animate(target, keyframes, options))
+		},
+	)
 }

@@ -12,7 +12,8 @@ import type { Scope } from './hero.timeline'
 // The hero's runtime: the review round loops on the instrument from the
 // moment the module runs, the headline enters once the runtime boots, and
 // the pointer adds depth. The markup is the static pose, so cancelling the
-// round lands every piece there; reduced motion never starts it.
+// round lands every piece there; reduced motion never starts it, and lands
+// the headline's entrance on its finished pose at once.
 const hero = document.querySelector<HTMLElement>('[data-hero]')
 const svg = hero?.querySelector('[data-hero-stage]')
 
@@ -50,5 +51,9 @@ if (hero && svg) {
 	bindPointer(hero, svg)
 }
 await booted()
-if (!reducedMotion.matches) playIntro()
+const intro = playIntro()
+// Completed under reduced motion, the entrance commits its finished pose, so
+// a later switch to no-preference never arms a hidden pose over a headline
+// nothing would play in again.
+if (reducedMotion.matches) intro.forEach(entrance => entrance.complete())
 syncScenes()
