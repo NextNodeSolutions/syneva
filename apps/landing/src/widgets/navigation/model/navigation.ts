@@ -2,6 +2,8 @@ import { compact } from './compact'
 import { NavigationMorph } from './navigation-morph'
 import { TOGGLE_LABEL } from './toggle-label'
 
+import type { NavigationParts } from './navigation-parts'
+
 // The header's behavior: hover and click open a section's panel in the
 // morphing dropdown, arrow keys move between triggers, Escape and outside
 // clicks dismiss, and on phones a toggle opens the link bar first.
@@ -22,6 +24,7 @@ export class Navigation {
 	readonly #triggers: HTMLElement[]
 	readonly #dropdown: HTMLElement
 	readonly #toggle: HTMLElement
+	readonly #panels: HTMLElement[]
 	readonly #scenes: HTMLElement[]
 	readonly #morph: NavigationMorph
 	#currentTrigger: HTMLElement | undefined
@@ -32,26 +35,15 @@ export class Navigation {
 	#openTimer: ReturnType<typeof setTimeout> | undefined
 	#closeTimer: ReturnType<typeof setTimeout> | undefined
 
-	constructor(
-		root: HTMLElement,
-		parts: {
-			links: HTMLElement
-			dropdown: HTMLElement
-			toggle: HTMLElement
-		},
-	) {
-		this.#root = root
+	constructor(parts: NavigationParts) {
+		this.#root = parts.root
 		this.#links = parts.links
 		this.#dropdown = parts.dropdown
 		this.#toggle = parts.toggle
-		this.#triggers = [
-			...root.querySelectorAll<HTMLElement>('[data-nav-trigger]'),
-		]
-		this.#scenes = [...root.querySelectorAll<HTMLElement>('[data-scene]')]
-		const panels = [
-			...root.querySelectorAll<HTMLElement>('[data-nav-panel]'),
-		]
-		this.#morph = new NavigationMorph(root, panels, this.#scenes, compact)
+		this.#triggers = parts.triggers
+		this.#panels = parts.panels
+		this.#scenes = parts.scenes
+		this.#morph = new NavigationMorph(parts, compact)
 	}
 
 	get root(): HTMLElement {
@@ -129,10 +121,9 @@ export class Navigation {
 		this.#clickedTrigger = undefined
 		if (this.#dropdown.contains(document.activeElement)) trigger.focus()
 		this.#hidePanel()
-		const panel =
-			document.getElementById(
-				trigger.getAttribute('aria-controls') ?? '',
-			) ?? undefined
+		const panel = this.#panels.find(
+			candidate => candidate.id === trigger.getAttribute('aria-controls'),
+		)
 		this.#currentTrigger = trigger
 		this.#currentPanel = panel
 		this.positionPanel()

@@ -15,6 +15,7 @@ import {
 import { measureNavigation } from './navigation-geometry'
 
 import type { Channel, Frames, Values } from './navigation-channels'
+import type { NavigationParts } from './navigation-parts'
 
 type Clock = 'menu' | 'preview'
 type Motion = { target: Values; controls?: ReturnType<typeof animate> }
@@ -24,6 +25,7 @@ type Motion = { target: Values; controls?: ReturnType<typeof animate> }
 // samples its rendered pose before retargeting.
 export class NavigationMorph {
 	readonly #navigation: HTMLElement
+	readonly #links: HTMLElement
 	readonly #panels: HTMLElement[]
 	readonly #scenes: HTMLElement[]
 	readonly #compact: MediaQueryList
@@ -37,16 +39,20 @@ export class NavigationMorph {
 	#folded: Record<string, number> | undefined
 
 	constructor(
-		navigation: HTMLElement,
-		panels: HTMLElement[],
-		scenes: HTMLElement[],
+		{
+			root,
+			links,
+			panels,
+			scenes,
+		}: Pick<NavigationParts, 'root' | 'links' | 'panels' | 'scenes'>,
 		compact: MediaQueryList,
 	) {
-		this.#navigation = navigation
+		this.#navigation = root
+		this.#links = links
 		this.#panels = panels
 		this.#scenes = scenes
 		this.#compact = compact
-		this.#shell = registerChannel(navigation, '', GEOMETRY)
+		this.#shell = registerChannel(root, '', GEOMETRY)
 		this.#panelChannels = panels.map((panel, index) =>
 			registerChannel(panel, `panel-${index}-`, CONTENT),
 		)
@@ -175,6 +181,7 @@ export class NavigationMorph {
 	): void {
 		const geometry = measureNavigation({
 			navigation: this.#navigation,
+			links: this.#links,
 			trigger,
 			panel,
 			compact: this.#compact,

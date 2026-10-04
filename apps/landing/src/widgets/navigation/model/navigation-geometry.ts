@@ -16,6 +16,7 @@ export type Geometry = {
 
 export type MeasureInput = {
 	navigation: HTMLElement
+	links: HTMLElement
 	trigger: HTMLElement | undefined
 	panel: HTMLElement | undefined
 	compact: MediaQueryList
@@ -35,6 +36,7 @@ function capHeight(navigation: HTMLElement, availableHeight: number): void {
 
 export function measureNavigation({
 	navigation,
+	links,
 	trigger,
 	panel,
 	compact,
@@ -43,8 +45,7 @@ export function measureNavigation({
 	const inset = isCompact ? MOBILE_INSET : DESKTOP_INSET
 	const available = navigation.clientWidth - inset * SIDES - BORDER_WIDTH
 	navigation.style.setProperty('--nav-available', `${available}px`)
-	const links = navigation.querySelector<HTMLElement>('[data-nav-links]')
-	if (!panel || !trigger || !links) return undefined
+	if (!panel || !trigger) return undefined
 	const headerRect = navigation.getBoundingClientRect()
 	const triggerRect = trigger.getBoundingClientRect()
 	const panelRect = panel.getBoundingClientRect()

@@ -1,5 +1,8 @@
 import { compact } from './compact'
 import { Navigation } from './navigation'
+import { queryNavigationParts } from './navigation-parts'
+
+import type { NavigationParts } from './navigation-parts'
 
 // Wires the header's listeners to its controller. Rows stagger in from their
 // panel's progress (--menu-order), and the product menu starts on its first
@@ -34,13 +37,10 @@ function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
 	})
 }
 
-function bindPreviews(navigation: Navigation): void {
-	const links = [
-		...navigation.root.querySelectorAll<HTMLElement>('[data-preview]'),
-	]
-	const scenes = [
-		...navigation.root.querySelectorAll<HTMLElement>('[data-scene]'),
-	]
+function bindPreviews(
+	navigation: Navigation,
+	{ previewLinks: links, scenes }: NavigationParts,
+): void {
 	const show = (link: HTMLElement): void => {
 		navigation.positionPreview(link)
 		links.forEach(candidate =>
@@ -78,13 +78,10 @@ function bindDocument(navigation: Navigation): void {
 	})
 }
 
-async function bindNavigation(root: HTMLElement): Promise<void> {
-	const links = root.querySelector<HTMLElement>('[data-nav-links]')
-	const dropdown = root.querySelector<HTMLElement>('[data-nav-dropdown]')
-	const toggle = root.querySelector<HTMLElement>('[data-nav-toggle]')
-	if (!links || !dropdown || !toggle) return
-	const navigation = new Navigation(root, { links, dropdown, toggle })
-	navigation.triggers.forEach(trigger => bindTrigger(navigation, trigger))
+async function bindNavigation(parts: NavigationParts): Promise<void> {
+	const { root, dropdown, toggle, panels } = parts
+	const navigation = new Navigation(parts)
+	parts.triggers.forEach(trigger => bindTrigger(navigation, trigger))
 	root.addEventListener('pointerenter', () => navigation.keepOpen())
 	root.addEventListener('pointerleave', event =>
 		navigation.scheduleClose(event),
@@ -100,8 +97,8 @@ async function bindNavigation(root: HTMLElement): Promise<void> {
 			navigation.dismiss()
 	})
 	bindDocument(navigation)
-	bindPreviews(navigation)
-	root.querySelectorAll('[data-nav-panel]').forEach(panel => {
+	bindPreviews(navigation, parts)
+	panels.forEach(panel => {
 		panel
 			.querySelectorAll<HTMLElement>('[data-menu-row]')
 			.forEach((row, index) => {
@@ -113,13 +110,10 @@ async function bindNavigation(root: HTMLElement): Promise<void> {
 	window.addEventListener('resize', reposition)
 	const resizeObserver = new ResizeObserver(reposition)
 	resizeObserver.observe(root)
-	root.querySelectorAll('[data-nav-panel]').forEach(panel =>
-		resizeObserver.observe(panel),
-	)
+	panels.forEach(panel => resizeObserver.observe(panel))
 	reposition()
 	await document.fonts.ready
 	reposition()
 }
 
-const root = document.querySelector<HTMLElement>('[data-navigation]')
-if (root) await bindNavigation(root)
+await bindNavigation(queryNavigationParts(document))
