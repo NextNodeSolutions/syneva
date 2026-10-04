@@ -33,7 +33,13 @@ function bindHeader(
 	dropdown.addEventListener('pointerenter', () =>
 		navigation.holdCurrentPanel(),
 	)
-	root.addEventListener('keydown', () => navigation.enterKeyboardMode())
+	root.addEventListener('keydown', event => {
+		navigation.enterKeyboardMode()
+		if (event.key !== 'Tab') return
+		const direction = event.shiftKey ? 'backward' : 'forward'
+		if (navigation.tabAround(event.target, direction))
+			event.preventDefault()
+	})
 	root.addEventListener('focusout', event =>
 		navigation.dismissOnFocusExit(event),
 	)

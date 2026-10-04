@@ -1,25 +1,16 @@
 import { compact } from './compact'
 import { HoverIntent } from './hover-intent'
+import { panelTabTarget, TRIGGER_MOVES } from './keyboard-order'
 import { NavigationMorph } from './navigation-morph'
 import { PhoneBar } from './phone-bar'
 import { ProductPreview } from './product-preview'
 
 import type { InputMode } from './input-mode'
+import type { TabDirection } from './keyboard-order'
 import type { NavigationParts, SectionMenu } from './navigation-parts'
 
 // A click without a press count came from the keyboard (Enter or Space).
 const isKeyboardActivation = (event: MouseEvent): boolean => event.detail === 0
-
-// Where a key moves from the trigger at index, among count triggers.
-type TriggerMove = (index: number, count: number) => number
-
-// Keys that move focus along the bar's triggers, wrapping at both ends.
-const TRIGGER_MOVES: Record<string, TriggerMove> = {
-	ArrowRight: (index, count) => (index + 1) % count,
-	ArrowLeft: (index, count) => (index + count - 1) % count,
-	Home: () => 0,
-	End: (_index, count) => count - 1,
-}
 
 // The header's panel state and focus: hover and click open a section's panel
 // in the morphing dropdown, arrow keys move between triggers, Escape and
@@ -146,6 +137,20 @@ export class Navigation {
 		const next = this.#menus[move(this.#menus.indexOf(menu), count)]
 		next?.trigger.focus()
 		if (next) this.#showPanel(next, 'keyboard')
+		return true
+	}
+
+	// Tab around the open panel follows the visual order; leaving the panel
+	// for the bar closes it. Returns whether Tab was such a move.
+	tabAround(from: EventTarget | null, direction: TabDirection): boolean {
+		const menu = this.#openMenu
+		if (!menu || !(from instanceof Element)) return false
+		const header = { root: this.#root, dropdown: this.#dropdown, menu }
+		const target = panelTabTarget(header, from, direction)
+		if (!target) return false
+		target.focus()
+		if (!menu.panel.contains(target) && target !== menu.trigger)
+			this.#closePanel()
 		return true
 	}
 
