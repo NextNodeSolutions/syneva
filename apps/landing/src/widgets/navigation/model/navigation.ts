@@ -10,6 +10,8 @@ const CLOSE_DELAY_MS = 180
 // Hover intent follows a mouse only: a touch or pen lift fires pointerleave
 // too, which would close the panel the tap just opened.
 const isMouse = (event: PointerEvent): boolean => event.pointerType === 'mouse'
+// A click without a press count came from the keyboard (Enter or Space).
+const isKeyboardActivation = (event: MouseEvent): boolean => event.detail === 0
 
 type Input = 'pointer' | 'keyboard'
 
@@ -148,7 +150,7 @@ export class Navigation {
 	}
 
 	click(trigger: HTMLElement, event: MouseEvent): void {
-		if (event.detail === 0) {
+		if (isKeyboardActivation(event)) {
 			this.focusPanel(trigger)
 			return
 		}
@@ -190,8 +192,9 @@ export class Navigation {
 		this.#root.dataset.mobileOpen = 'true'
 		this.#toggle.setAttribute('aria-expanded', 'true')
 		this.#toggle.setAttribute('aria-label', 'Close navigation')
-		this.showPanel(first, event.detail === 0 ? 'keyboard' : 'pointer')
-		if (event.detail === 0) first.focus()
+		const isKeyboard = isKeyboardActivation(event)
+		this.showPanel(first, isKeyboard ? 'keyboard' : 'pointer')
+		if (isKeyboard) first.focus()
 	}
 
 	// Focus goes back to the toggle or the trigger only when it was in the
