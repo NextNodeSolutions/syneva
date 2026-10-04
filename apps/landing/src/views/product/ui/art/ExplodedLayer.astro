@@ -1,11 +1,11 @@
 ---
 // One layer of the exploded desk: its sheet rests at y in the sheets' column
 // and travels in from `from` px away, carrying the layer's marks (the slot).
-import type { ComponentProps } from 'astro/types'
 import { move } from '@shared/ui/drawing/anim'
 import IsoSheet from './IsoSheet.astro'
+import type { Layer } from './desk-layers'
 
-type Props = { layer: { kind: ComponentProps<typeof IsoSheet>['kind']; y: number; from: number }; delay: number }
+type Props = { layer: Pick<Layer, 'kind' | 'y' | 'from'>; delay: number }
 
 const { layer, delay } = Astro.props
 const COLUMN_X = 220

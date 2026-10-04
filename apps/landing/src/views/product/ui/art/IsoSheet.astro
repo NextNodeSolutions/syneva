@@ -4,8 +4,9 @@
 // 128-unit square on the face.
 import { sx } from '@shared/lib/sx'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
+import type { Layer } from './desk-layers'
 
-type Props = { kind: 'diff' | 'guide' | 'thread' | 'verdict' }
+type Props = { kind: Layer['kind'] }
 
 const { kind } = Astro.props
 const ISO = 'matrix(.859 .43 -.859 .43 0 -55)'
