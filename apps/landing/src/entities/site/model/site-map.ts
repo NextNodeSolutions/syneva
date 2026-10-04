@@ -211,9 +211,6 @@ export const SECTIONS: readonly Section[] = SECTION_ORDER.map(
 	id => SECTION_BY_ID[id],
 )
 
-// The one page outside the sections, which the header links on its own.
-export const OPEN_SOURCE = PAGES.openSource
-
 const PROTOTYPE_BADGE = 'Prototype'
 
 // The badge beside a page's title in the menu and the overview rows: only a
