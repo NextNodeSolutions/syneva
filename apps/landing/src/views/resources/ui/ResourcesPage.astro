@@ -11,13 +11,15 @@ import { ISSUES_URL, REPO_URL } from '@entities/site/model/project'
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import ResourcesIndex from './art/ResourcesIndex.astro'
 import { SPEC_COMMAND, SPEC_COMMAND_LABEL } from '@entities/desk/model/agent-contract'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
 
 ---
 
 <PageHero
 	title="Everything for your first review."
 	lede={'Set up the desk, connect the agent you already use, get straight answers about what Syneva does and doesn’t do, and follow what ships.'}
-	caption="Four pages, from setup to what shipped."
+	caption={`${capitalize(countWord(SECTION_BY_ID.resources.items.length))} pages, from setup to what shipped.`}
 >
 	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Get started" /><TextLink href={`${REPO_URL}#readme`} label="Read the README" /></Fragment>
 	<ResourcesIndex slot="art" />
