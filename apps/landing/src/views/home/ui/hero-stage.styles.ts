@@ -7,7 +7,7 @@ const sans = (size: string): string => `${size} ${font['--sans']}`
 
 // The hero instrument: one review round drawn as a flat technical figure.
 // Pieces the timeline scales or moves transform from their own box.
-export const hs = stylex.create({
+export const heroStage = stylex.create({
 	root: { overflow: 'visible' },
 	kicker: {
 		font: `500 ${mono('10.5px')}`,
@@ -78,7 +78,7 @@ export const hs = stylex.create({
 	bandDel: { fill: color['--wash'] },
 	bandAdd: { fill: color['--mint'] },
 	sweep: { fill: color['--signal'], fillOpacity: 0.1 },
-	ln: { font: mono('10.5px'), fill: color['--line-strong'] },
+	lineNumber: { font: mono('10.5px'), fill: color['--line-strong'] },
 	code: { font: mono('11.5px'), fill: color['--ink'] },
 	sign: { font: mono('11.5px') },
 	del: { fill: color['--accent'] },

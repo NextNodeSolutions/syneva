@@ -12,7 +12,7 @@ const PRECISION = 2
 export function bindPointer(hero: HTMLElement, svg: Element): void {
 	if (!matchMedia(queries.finePointer).matches) return
 	const layers = Object.entries(DEPTHS).flatMap(([name, depth]) => {
-		const layer = svg.querySelector(`[data-hs="${name}"]`)
+		const layer = svg.querySelector(`[data-stage-part="${name}"]`)
 		return layer instanceof SVGElement ? [{ layer, depth }] : []
 	})
 	let frame = 0

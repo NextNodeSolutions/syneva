@@ -18,8 +18,10 @@ const hero = document.querySelector<HTMLElement>('[data-hero]')
 const svg = hero?.querySelector('[data-hero-stage]')
 
 const scope: Scope = {
-	one: name => svg?.querySelector(`[data-hs="${name}"]`) ?? null,
-	all: name => [...(svg?.querySelectorAll(`[data-hs="${name}"]`) ?? [])],
+	one: name => svg?.querySelector(`[data-stage-part="${name}"]`) ?? null,
+	all: name => [
+		...(svg?.querySelectorAll(`[data-stage-part="${name}"]`) ?? []),
+	],
 }
 
 let isRunning = false
