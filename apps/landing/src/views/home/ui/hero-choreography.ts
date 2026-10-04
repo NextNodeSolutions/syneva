@@ -94,7 +94,7 @@ function wait({ one }: Scope): void {
 
 // 2.7 - 5.0  The change opens on the desk and you read it.
 function read({ one, all }: Scope, color: Palette): void {
-	travel(one('signal-in'), 2.75, 0.55)
+	travel(one('signal-in'), 2.75, 0.55, 8)
 	present(one('head'), 3.05, { length: 0.3 })
 	all('row').forEach((row, i) => reveal(row, 3.2 + i * 0.12, 0.45))
 	present(one('band-del'), 3.35, { length: 0.3 })

@@ -48,16 +48,14 @@ export const heroStage = stylex.create({
 		strokeLinecap: 'round',
 		strokeWidth: 1.2,
 	},
+	// A signal is only seen in flight; travel() gives it its dash.
 	signal: {
+		stroke: color['--signal'],
 		strokeWidth: 2,
 		strokeLinecap: 'round',
 		opacity: 0,
-		strokeDasharray: '8 100',
-		strokeDashoffset: 8,
 	},
-	signalIn: { stroke: color['--signal'] },
 	signalOut: { stroke: color['--green'] },
-	signalBack: { stroke: color['--signal'], strokeDasharray: '5 100' },
 	loop: {
 		font: mono('9.5px'),
 		letterSpacing: '.1em',

@@ -49,7 +49,7 @@ export function accept({ one, all }: Scope, color: Palette): void {
 		[FADE_END, { stroke: color.muted }],
 	])
 	all('gutter-check').forEach((check, i) => draw(check, 8.55 + i * 0.15, 0.3))
-	travel(one('signal-out'), 8.95, 0.5)
+	travel(one('signal-out'), 8.95, 0.5, 8)
 }
 
 const isRejected = (verdict: Element): boolean =>
@@ -126,7 +126,7 @@ export function send({ one }: Scope, color: Palette): void {
 		[14.05, { opacity: 1 }],
 		[14.2, { opacity: 0 }],
 	])
-	travel(one('signal-back'), 11.5, 1.6)
+	travel(one('signal-back'), 11.5, 1.6, 5)
 }
 
 // 13.1 - 14.4  The agent rewrites one file; it alone comes back pending.

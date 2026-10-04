@@ -78,15 +78,29 @@ export function present(
 	])
 }
 
-export function travel(element: Part, start: number, length: number): void {
+// A signal runs its route as one dash of `dash` hundredths of the route:
+// it shows at `start`, enters from just before the route, takes `length` to
+// leave past its end, and hides again.
+const ROUTE_LENGTH = 100
+const FLASH = 0.02
+export function travel(
+	element: Part,
+	start: number,
+	length: number,
+	dash: number,
+): void {
+	if (!(element instanceof SVGGeometryElement)) return
+	element.setAttribute('pathLength', String(ROUTE_LENGTH))
+	element.style.setProperty('stroke-dasharray', `${dash} ${ROUTE_LENGTH}`)
+	const end = -ROUTE_LENGTH
 	loop(element, [
-		[0, { opacity: 0, strokeDashoffset: 8 }, 'linear'],
-		[start, { opacity: 0, strokeDashoffset: 8 }, 'linear'],
-		[start + 0.02, { opacity: 1, strokeDashoffset: 8 }, 'linear'],
-		[start + length, { opacity: 1, strokeDashoffset: -100 }, 'linear'],
+		[0, { opacity: 0, strokeDashoffset: dash }, 'linear'],
+		[start, { opacity: 0, strokeDashoffset: dash }, 'linear'],
+		[start + FLASH, { opacity: 1, strokeDashoffset: dash }, 'linear'],
+		[start + length, { opacity: 1, strokeDashoffset: end }, 'linear'],
 		[
-			start + length + 0.02,
-			{ opacity: 0, strokeDashoffset: -100 },
+			start + length + FLASH,
+			{ opacity: 0, strokeDashoffset: end },
 			'linear',
 		],
 	])
