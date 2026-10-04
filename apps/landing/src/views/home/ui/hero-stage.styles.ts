@@ -68,11 +68,6 @@ export const heroStage = stylex.create({
 		fill: color['--ink'],
 		letterSpacing: '-.01em',
 	},
-	undone: {
-		stroke: color['--accent'],
-		strokeWidth: 1.4,
-		strokeLinecap: 'round',
-	},
 	sendBox: { fill: color['--accent'] },
 	sendLabel: { font: `500 ${sans('12.5px')}`, fill: color['--white'] },
 	sendKey: { font: mono('10px'), fill: color['--white'], fillOpacity: 0.75 },

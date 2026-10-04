@@ -4,9 +4,9 @@
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import Check from '@shared/ui/drawing/Check.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
+import Undone from '@shared/ui/drawing/Undone.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
-import HeroUndone from './HeroUndone.astro'
 import { HERO_FILES, REJECTED_COUNT, turnOf } from './hero-round'
 import { verdictPart } from './hero-round-part'
 import { stagePart } from './hero-stage-part'
@@ -18,7 +18,7 @@ const TOTAL = HERO_FILES.length
 // Every row starts pending; the verdict lands on top of it, in the glyph
 // box at the row's right end.
 const GLYPH = { x: 715, rise: 10, size: 14 }
-const VERDICT_GLYPH = { yes: Check, no: HeroUndone }
+const VERDICT_GLYPH = { yes: Check, no: Undone }
 const rows = HERO_FILES.map((file, index) => ({
 	file,
 	top: FIRST + index * ROW,
