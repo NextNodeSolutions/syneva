@@ -38,8 +38,6 @@ export const prose = stylex.create({
 	},
 	title: { fontSize: 'clamp(30px, 3.4vw, 44px)' },
 	text: { maxWidth: '620px', ...afterFirst('18px') },
-	// The command a prose body (or a chapter) offers to copy.
-	command: { margin: '8px 0 28px', maxWidth: '360px' },
 })
 
 // Numbered points, each under its own rule with an accent square.

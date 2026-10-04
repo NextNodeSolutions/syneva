@@ -55,6 +55,8 @@ export const command = stylex.create({
 		flex: { default: null, [inPageActions()]: '1 1 260px' },
 		maxWidth: { default: null, [inPageActions()]: '340px' },
 	},
+	// The command a prose body (or a chapter) offers to copy, at reading width.
+	prose: { margin: '8px 0 28px', maxWidth: '360px' },
 	prompt: { color: color['--accent'], font: `14px ${font['--mono']}` },
 	field: {
 		...noBorder,
