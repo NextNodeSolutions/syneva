@@ -1,22 +1,17 @@
 ---
-// Product overview: the desk, exploded into the four layers it is made of.
+// Product overview: the desk, exploded into the layers it is made of.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
 import ExplodedLayer from './ExplodedLayer.astro'
+import { LAYERS } from './desk-layers'
+import type { Layer } from './desk-layers'
 
-// Each layer, bottom to top: what it carries, where it rests, where it
-// travels in from, and its legend.
-const LAYERS = [
-	{ kind: 'diff', y: 388, from: -138, label: '01 · THE DIFF', words: 'Everything your agent changed.' },
-	{ kind: 'guide', y: 296, from: -46, label: '02 · WALKTHROUGH', words: 'Your agent’s reading order.' },
-	{ kind: 'thread', y: 204, from: 46, label: '03 · THREADS', words: 'Questions pinned to the line.' },
-	{ kind: 'verdict', y: 112, from: 138, label: '04 · VERDICTS', words: 'Yours. Recorded per change.' },
-] as const
-type Layer = (typeof LAYERS)[number]
 const [diff, walkthrough, threads, verdicts] = LAYERS
 // The sheets arrive a beat apart, and their legends follow at the same pace.
 const BEAT = 0.12
@@ -52,7 +47,7 @@ const VERDICT_MARK = { kept: productArt.isoYes, undone: productArt.isoNo } as co
 	height={460}
 	compact="96 40 504 420"
 	title="The review desk, layer by layer"
-	description="Four stacked sheets: your agent's diff at the bottom, the walkthrough your agent can attach above it, the questions you pin to lines above that, and your verdicts on top."
+	description={`${capitalize(countWord(LAYERS.length))} stacked sheets: your agent's diff at the bottom, the walkthrough your agent can attach above it, the questions you pin to lines above that, and your verdicts on top.`}
 >
 	<ExplodedLayer layer={diff} delay={sheetDelay(diff)}>{
 		DIFF_LINES.map(({ width, change }, index) => (

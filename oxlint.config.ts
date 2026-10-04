@@ -119,10 +119,11 @@ export default defineConfig({
 		{
 			// The landing's copy is typeset: curly quotes, en dashes and the minus
 			// sign are the intended glyphs of text a visitor reads, never strings
-			// the code compares.
+			// the code compares. The drawings' data modules carry their labels.
 			files: [
 				'apps/landing/src/**/*.astro',
 				'apps/landing/src/entities/desk/model/agent-contract.ts',
+				'apps/landing/src/views/*/ui/art/*.ts',
 			],
 			rules: { 'nextnode/no-confusable-chars': 'off' },
 		},
