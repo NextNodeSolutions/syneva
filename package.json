@@ -17,9 +17,8 @@
 	},
 	"scripts": {
 		"dev": "pnpm --filter syneva dev",
-		"dev:site": "node scripts/serve-site.mjs",
-		"build": "turbo run build && pnpm build:landing",
-		"build:landing": "node scripts/build-landing.mjs",
+		"dev:site": "pnpm --filter @syneva/landing dev",
+		"build": "turbo run build",
 		"start": "node apps/syneva/dist/cli.js",
 		"check": "turbo run check && tsc -p tsconfig.node.json",
 		"lint": "oxlint --deny-warnings",

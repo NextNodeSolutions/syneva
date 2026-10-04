@@ -115,15 +115,13 @@ function decisionSummaries(
 function requestedChanges(
 	state: ReviewState,
 ): ReviewResult['requestedChanges'] {
-	return state.comments
-		.filter(isRequestedChange)
-		.map(comment => ({
-			path: comment.path,
-			lineNumber: comment.lineNumber,
-			side: comment.side,
-			body: comment.body,
-			anchor: commentAnchor(comment.lineNumber),
-		}))
+	return state.comments.filter(isRequestedChange).map(comment => ({
+		path: comment.path,
+		lineNumber: comment.lineNumber,
+		side: comment.side,
+		body: comment.body,
+		anchor: commentAnchor(comment.lineNumber),
+	}))
 }
 
 // A blank overall note is left off the wire entirely - the agent contract prints `overallNote` only

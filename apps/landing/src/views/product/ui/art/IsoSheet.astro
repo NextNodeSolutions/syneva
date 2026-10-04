@@ -1,0 +1,20 @@
+---
+// One sheet of the exploded desk: an isometric face with its edge, and the
+// sheet's own marks (the slot) drawn in a flat 128-unit square on the face.
+import { sx } from '@shared/lib/sx'
+import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+
+type Props = { tone?: 'guide' | 'thread' | 'verdict' }
+
+const { tone } = Astro.props
+const ISO = 'matrix(.859 .43 -.859 .43 0 -55)'
+const edge = [p.isoEdge, tone === 'guide' && p.edgeGuide, tone === 'verdict' && p.edgeVerdict]
+const face = [
+	p.isoFace,
+	tone === 'guide' && p.faceGuide,
+	tone === 'thread' && p.faceThread,
+	tone === 'verdict' && p.faceVerdict,
+]
+---
+
+<path {...sx(edge)} d="M-110 0 0 55 110 0v6L0 61-110 6Z"></path><path {...sx(face)} d="M0-55 110 0 0 55-110 0Z"></path><g transform={ISO}><slot /></g>

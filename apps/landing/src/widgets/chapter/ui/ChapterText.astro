@@ -1,0 +1,11 @@
+---
+// A chapter paragraph; `isNote` marks the honest note under a prototype.
+import { revealItem } from '@shared/lib/reveal'
+import { chapter } from './chapter.styles'
+
+type Props = { isNote?: boolean }
+
+const { isNote = false } = Astro.props
+---
+
+<p {...revealItem(chapter.text, isNote && chapter.note)}><slot /></p>

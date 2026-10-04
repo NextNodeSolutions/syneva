@@ -1,0 +1,48 @@
+---
+// A ruled chapter: an explanatory headline, its paragraphs (default slot), an
+// optional detail list, trailing actions (slot "after") and the drawing (slot
+// "art"), side by side and alternating sides with isReverse.
+import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { chapterCopyMarker } from '@shared/ui/actions.stylex'
+import { chapterArtMarker } from '@shared/ui/drawing/drawing.stylex'
+import { chapter as c } from './chapter.styles'
+
+type Props = {
+	id?: string
+	title: string
+	isReverse?: boolean
+	list?: readonly (readonly [string, string])[]
+	caption?: string
+}
+
+const { id, title, isReverse = false, list = [], caption } = Astro.props
+const isSubpage = Astro.locals.page === 'sub'
+---
+
+<section {...revealGroup(true, c.section, isSubpage && c.subSection)} id={id}>
+	<div {...sx(c.copy, isSubpage && c.subCopy, isReverse && c.reverseCopy, chapterCopyMarker)}>
+		<h2 {...revealItem(c.title, isSubpage && c.subTitle)} set:html={title} />
+		<slot />
+		{
+			list.length > 0 && (
+				<ul {...sx(c.list, isSubpage && c.subList)}>
+					{list.map(([head, text]) => (
+						<li {...revealItem(c.item, isSubpage && c.subItem)}>
+							<strong {...sx(c.itemHead)} set:html={head} />
+							<span {...sx(c.itemText)} set:html={text} />
+						</li>
+					))}
+				</ul>
+			)
+		}
+		<slot name="after" />
+	</div>
+	<figure
+		{...revealItem(c.art, isReverse && c.reverseArt, isSubpage && c.subArt, isSubpage && isReverse && c.subReverseArt, chapterArtMarker)}
+		{...scene}
+	>
+		<slot name="art" />
+		{caption && <figcaption {...sx(c.caption, isSubpage && c.subCaption)} set:html={caption} />}
+	</figure>
+</section>
