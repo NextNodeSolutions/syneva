@@ -4,14 +4,14 @@ import { reducedMotion } from '@syneva/motion/preference'
 import { syncScenes } from '@syneva/motion/scenes'
 
 import { playCircuit, retimeSignals } from './circuit-loop'
-import { routeCircuit } from './circuit-wires'
+import { placeLoopLabel, routeCircuit } from './circuit-wires'
 
 // The review circuit's runtime: route the wires now, again when the phone
-// frame swaps and once the fonts settled (they can shift a port by a pixel),
-// then run the loop unless the visitor prefers reduced motion. The loop runs
-// once: a preference switch during the boot wait starts it early, and the
-// boot then leaves it running.
-const compact = matchMedia(queries.phone)
+// layout moves the stations (frames.ts swaps the viewBox) and once the fonts
+// settled (they can shift a port by a pixel), then run the loop unless the
+// visitor prefers reduced motion. The loop runs once: a preference switch
+// during the boot wait starts it early, and the boot then leaves it running.
+const phone = matchMedia(queries.phone)
 const svg = document.querySelector<SVGSVGElement>('svg[data-circuit]')
 
 let lengths = new Map<string, number>()
@@ -20,7 +20,8 @@ let isRunning = false
 // A running loop keeps its place on the clock; only its signals' travel
 // follows the new routes.
 function route(circuit: SVGSVGElement): void {
-	lengths = routeCircuit(circuit, compact.matches)
+	lengths = routeCircuit(circuit)
+	placeLoopLabel(circuit)
 	if (isRunning) retimeSignals(circuit, lengths)
 }
 
@@ -40,7 +41,7 @@ function stop(circuit: SVGSVGElement): void {
 
 if (svg) {
 	route(svg)
-	compact.addEventListener('change', () => route(svg))
+	phone.addEventListener('change', () => route(svg))
 	reducedMotion.addEventListener('change', () => {
 		if (reducedMotion.matches) stop(svg)
 		else start(svg)
