@@ -79,7 +79,7 @@ export const footer = stylex.create({
 		lineHeight: 0.72,
 		margin: '-.12em 0 0 -.04em',
 		paddingBottom: '.2em',
-		color: '#dfe3d6',
+		color: color['--wordmark'],
 		whiteSpace: 'nowrap',
 		userSelect: 'none',
 	},

@@ -35,6 +35,9 @@ export const color = stylex.defineVars({
 	'--line': '#dcdfd4',
 	'--line-strong': '#a8afa1',
 	'--grid': '#e4e7dc',
+	// The footer's frame-wide wordmark: pale enough to sit in the field
+	// rather than read as text.
+	'--wordmark': '#dfe3d6',
 	'--field': '#eef0e7',
 	'--field-green': '#edf2e9',
 	// Thin sheet edges keep the drawings' depth inside the drawing.
