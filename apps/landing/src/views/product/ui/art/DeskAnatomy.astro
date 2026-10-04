@@ -26,6 +26,13 @@ const FILES = [
 	{ name: 'OTHER', y: 276, kind: 'section' },
 	{ name: 'README.md', y: 296, kind: 'yes' },
 ] as const
+// The progress strip across the top fills by the files you settled, and the
+// sidebar counts them.
+const TRACK_WIDTH = 552
+const reviewedFiles = FILES.filter(({ kind }) => kind !== 'section')
+const settled = reviewedFiles.filter(({ kind }) => kind === 'yes').length
+const fillWidth = (TRACK_WIDTH * settled) / reviewedFiles.length
+const progress = `${settled} OF ${reviewedFiles.length} FILES SETTLED`
 // The numbered parts: where each marker pops in, and its name in the legend.
 const MARKERS = [
 	{ step: 1, x: 150, y: 72, delay: 1.9, label: 'WALKTHROUGH' },
@@ -50,8 +57,8 @@ const LEGEND_GAP = '   '
 		<path {...sx(shape.hair)} d="M24 62h552M184 62v330M184 96h392"></path>
 		<text {...sx(text.label)} x="38" y="51">syneva</text><text {...sx(text.tiny)} x="300" y="50" text-anchor="middle">AUTH-REFACTOR · ROUND 2</text>
 		<rect {...sx(productArt.anatomySend)} x="486" y="37" width="80" height="18"></rect><text {...sx(text.tiny, text.white)} x="526" y="49.5" text-anchor="middle">SEND · {HOTKEYS.send}</text>
-		<rect {...sx(shape.track)} x="24" y="62" width="552" height="3"></rect>
-		<rect {...anim('sweep', 1.6, shape.fill)} x="24" y="62" width="330" height="3"></rect>
+		<rect {...sx(shape.track)} x="24" y="62" width={TRACK_WIDTH} height="3"></rect>
+		<rect {...anim('sweep', 1.6, shape.fill)} x="24" y="62" width={fillWidth} height="3"></rect>
 		<text {...sx(text.label)} x="38" y="86">WALKTHROUGH</text>
 		{
 			FILES.map(({ name, y, kind }) =>
@@ -66,7 +73,7 @@ const LEGEND_GAP = '   '
 			)
 		}
 		<rect {...loop('pulse', homeArt.deskCursor)} x="28" y="166" width="152" height="18"></rect>
-		<text {...sx(text.tiny)} x="38" y="378">3 OF 5 FILES SETTLED</text>
+		<text {...sx(text.tiny)} x="38" y="378">{progress}</text>
 		<text {...sx(text.file, text.strong)} x="198" y="84">auth/session.ts</text><text {...sx(text.tiny)} x="312" y="84">+12 −3</text>
 		<rect {...sx(shape.kbd)} x="470" y="72" width="96" height="17"></rect><text {...sx(text.tiny)} x="518" y="84" text-anchor="middle">APPROVE · {HOTKEYS.approveFile}</text>
 	</g>

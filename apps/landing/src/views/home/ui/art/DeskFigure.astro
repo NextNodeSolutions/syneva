@@ -23,6 +23,11 @@ const ROWS = [
 	['pages/desk.tsx', 302, 'pending'],
 	['README.md', 370, 'pending'],
 ] as const
+// The progress strip under the walkthrough fills by the files you settled.
+const TRACK_WIDTH = 138
+const settled = ROWS.filter(([, , state]) => state === 'yes').length
+const fillWidth = (TRACK_WIDTH * settled) / ROWS.length
+const progress = `${settled} OF ${ROWS.length} SETTLED`
 ---
 
 <Drawing
@@ -48,8 +53,8 @@ const ROWS = [
 		}
 		<rect {...anim('sweep', 0.4, homeArt.deskCursor)} x="38" y="198" width="158" height="22"></rect>
 		<path {...sx(shape.hair)} d="M34 414h166"></path>
-		<rect {...sx(shape.track)} x="48" y="428" width="138" height="3"></rect><rect {...sx(shape.fill)} x="48" y="428" width="56" height="3"></rect>
-		<text {...sx(text.tiny)} x="48" y="446">2 OF 5 SETTLED</text>
+		<rect {...sx(shape.track)} x="48" y="428" width={TRACK_WIDTH} height="3"></rect><rect {...sx(shape.fill)} x="48" y="428" width={fillWidth} height="3"></rect>
+		<text {...sx(text.tiny)} x="48" y="446">{progress}</text>
 	</g>
 	<g {...anim('rise', 0.2)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="214" y="64" width="272" height="392"></rect>
