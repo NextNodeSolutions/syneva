@@ -127,7 +127,7 @@ export default defineConfig({
 			// the code compares.
 			files: [
 				'apps/landing/src/**/*.astro',
-				'apps/landing/src/views/resources/ui/faq-content.ts',
+				'apps/landing/src/views/resources/model/*.ts',
 			],
 			rules: { 'nextnode/no-confusable-chars': 'off' },
 		},

@@ -2,18 +2,13 @@
 // The changelog's weeks: a date, a headline and the tagged changes.
 import { revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
+import type { ChangeKind, Week } from '../model/changelog'
 import { versionList } from './version-list.styles'
 
-export type Week = {
-	iso: string
-	label: string
-	title: string
-	changes: readonly (readonly ['feat' | 'fix' | 'perf', string])[]
-}
 type Props = { weeks: readonly Week[] }
 
 const { weeks } = Astro.props
-const TAG = { feat: versionList.feat, fix: versionList.fix, perf: versionList.perf } as const
+const TAG = { feat: versionList.feat, fix: versionList.fix, perf: versionList.perf } as const satisfies Record<ChangeKind, unknown>
 ---
 
 <ol {...sx(versionList.root)}>

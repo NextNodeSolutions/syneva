@@ -1,0 +1,104 @@
+// The FAQ, one block per domain: a title, a blurb and its questions with
+// their answers (answers are HTML). The topic index and the blocks are both
+// built from this list.
+export type QaItem = { question: string; answer: string }
+
+export type QaGroup = {
+	title: string
+	blurb: string
+	items: readonly QaItem[]
+}
+
+export const FAQ: readonly QaGroup[] = [
+	{
+		title: 'The basics',
+		blurb: 'What Syneva is, what I refused to build into it, and why your verdict stays yours.',
+		items: [
+			{
+				question: 'What is Syneva, in one sentence?',
+				answer: 'An integrated review environment for code you didn’t write by hand: a local browser desk where you judge your agent’s diff, question it on the line, and hand a structured verdict back.',
+			},
+			{
+				question: 'Does Syneva review code for me?',
+				answer: 'No. You review the code. Your own agent can set the reading order and answer your questions. Syneva records your decisions and hands them back to that agent.',
+			},
+			{
+				question: 'Does it ever auto-approve anything?',
+				answer: 'Never. Every change starts pending, and only your keypress records a verdict. A verdict is stored on that exact change, not inferred from git staging.',
+			},
+			{
+				question: 'What if the agent rewrites code I already accepted?',
+				answer: 'Each change is content-hashed. On reload, a rewritten change resets to pending while untouched work keeps your verdict. Approvals and comment anchors follow the same rule.',
+			},
+			{
+				question: 'What can I review?',
+				answer: 'Your working tree, your staged changes, a branch or pull request against its merge-base, or a single file such as a plan. See <a href="/workflows/">Workflows</a>.',
+			},
+		],
+	},
+	{
+		title: 'Your agent',
+		blurb: 'Bring the agent you already use. Here is what it may touch and what it gets back.',
+		items: [
+			{
+				question: 'Which coding agents work with it?',
+				answer: 'Any of them. The contract is plain JSON on stdout plus a localhost HTTP server. Syneva ships as a pi package, and Codex, Cursor or a shell script can drive the standalone CLI.',
+			},
+			{
+				question: 'Do I need pi?',
+				answer: 'No. pi gives you the smoothest loop (prompt templates, a correspondent thread for questions, a status command), but the CLI works on its own.',
+			},
+			{
+				question: 'Does my agent edit files while I review?',
+				answer: 'It shouldn’t, and the contract tells it so: answering a question is read-only, and edits happen between rounds, followed by <code>syneva reload</code>.',
+			},
+			{
+				question: 'What exactly does my agent receive when I Send?',
+				answer: 'A <code>ReviewResult</code>: what you accepted, rejected and requested, which files you approved or staged, any questions still open, and an optional overall note.',
+			},
+		],
+	},
+	{
+		title: 'Your code and data',
+		blurb: 'Your review stays on your machine. Here is where it lives and what survives a restart.',
+		items: [
+			{
+				question: 'Where does my review live?',
+				answer: 'On your machine, under <code>~/.syneva</code>. Every save is persisted, and a restart restores the session on the same port, so your open tab heals itself.',
+			},
+			{
+				question: 'Does Syneva send anything anywhere?',
+				answer: 'No telemetry, no account, no model calls. The desk binds to loopback by default. One honest footnote: your browser may fetch a web font for the desk; switch to system fonts and even that stops.',
+			},
+			{
+				question: 'Can I review from another machine?',
+				answer: 'Yes, with <code>--host</code>, for remote-dev setups. The desk API is unauthenticated, so only bind wider on a network you fully trust, like a personal tailnet.',
+			},
+			{
+				question: 'What happens if I close the tab?',
+				answer: 'Nothing is lost. A desk with no open tab and no attached agent exits after about two hours, and starting it again restores everything.',
+			},
+		],
+	},
+	{
+		title: 'Limits and what’s next',
+		blurb: 'What is still a prototype, what I am building next, and what it costs you.',
+		items: [
+			{
+				question: 'Can I use the plan desk today?',
+				answer: 'The dedicated plan desk is a prototype. You can already open a plan with <code>syneva file plan.md</code> and comment block by block.',
+			},
+			{
+				question: 'What’s on the roadmap?',
+				answer: 'In rough order: a command palette for every review action, commit, range and branch review modes, and lazy per-file loading with guards for very large and binary files.',
+			},
+			{
+				question: 'Is it free?',
+				answer: 'Yes. Syneva is open source under the MIT license.',
+			},
+		],
+	},
+]
+
+// The id of a topic's block, which the topic index links to.
+export const qaAnchor = (index: number): string => `qa-${index + 1}`

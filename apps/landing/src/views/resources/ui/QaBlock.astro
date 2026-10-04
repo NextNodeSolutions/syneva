@@ -6,14 +6,15 @@ import Disclosure from '@features/disclosure/ui/Disclosure.astro'
 import { stepIndex } from '@shared/ui/step-index.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import type { QaGroup } from './faq-content'
+import type { QaGroup } from '../model/faq'
+import { qaAnchor } from '../model/faq'
 import { qa } from './qa.styles'
 import { twoDigits } from '@shared/lib/step-number'
 
 type Props = { group: QaGroup; index: number }
 
 const { group, index } = Astro.props
-const id = `qa-${index + 1}`
+const id = qaAnchor(index)
 const count = `${group.items.length} question${group.items.length === 1 ? '' : 's'}`
 ---
 
@@ -24,6 +25,6 @@ const count = `${group.items.length} question${group.items.length === 1 ? '' : '
 		<p {...revealItem(chapter.text)}>{group.blurb}</p>
 	</div>
 	<div {...sx(qa.list)}>
-		{group.items.map(([question, answer]) => <Disclosure question={question} answer={answer} isQa />)}
+		{group.items.map(({ question, answer }) => <Disclosure question={question} answer={answer} isQa />)}
 	</div>
 </section>
