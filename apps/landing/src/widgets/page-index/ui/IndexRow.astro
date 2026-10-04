@@ -1,0 +1,40 @@
+---
+// One overview row: number, icon, title (and badge), blurb, the command a
+// workflow runs, and an arrow that steps on hover.
+import type { Page } from '@entities/site/model/site-map'
+import { badgeOf } from '@entities/site/model/site-map'
+import Icon from '@entities/site/ui/Icon.astro'
+import { revealItem } from '@shared/lib/reveal'
+import { twoDigits } from '@shared/lib/two-digits'
+import { sx } from '@shared/lib/sx'
+import { indexRows } from './index-rows.styles'
+import { indexRowMarker } from './page-index.stylex'
+
+type Props = { page: Page; index: number }
+
+const { page, index } = Astro.props
+const badge = badgeOf(page)
+---
+
+<a {...revealItem(indexRows.row, indexRowMarker)} href={page.href}>
+	<span {...sx(indexRows.number)}>{twoDigits(index + 1)}</span>
+	<Icon name={page.icon} css={indexRows.icon} />
+	<span>
+		<strong {...sx(indexRows.title)}>
+			{page.title}
+			{
+				badge && (
+					<Fragment>
+						{' '}
+						<em {...sx(indexRows.badge)}>{badge}</em>
+					</Fragment>
+				)
+			}
+		</strong>
+		<span {...sx(indexRows.blurb)}>{page.blurb}</span>
+	</span>
+	{'code' in page && <code {...sx(indexRows.code)}>{page.code}</code>}
+	<span {...sx(indexRows.arrow)} aria-hidden="true">
+		→
+	</span>
+</a>

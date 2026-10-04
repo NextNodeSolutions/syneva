@@ -16,6 +16,7 @@ const { page, index } = Astro.props
 // Product pages carry a preview scene; the others take a hover wash instead.
 const preview = 'preview' in page ? page.preview : undefined
 const hasPreview = Boolean(preview)
+const badge = badgeOf(page)
 ---
 
 <a
@@ -28,7 +29,7 @@ const hasPreview = Boolean(preview)
 	<Icon name={page.icon} css={[menuLink.icon, instant.transitions]} />
 	<span {...sx(menuLink.text)}>
 		<strong {...sx(menuLink.title)}>
-			{page.title}{badgeOf(page) && <Fragment> <em {...sx(menuLink.badge)}>{badgeOf(page)}</em></Fragment>}
+			{page.title}{badge && <Fragment> <em {...sx(menuLink.badge)}>{badge}</em></Fragment>}
 		</strong>
 		<small {...sx(menuLink.blurb)}>{page.blurb}</small>
 	</span>
