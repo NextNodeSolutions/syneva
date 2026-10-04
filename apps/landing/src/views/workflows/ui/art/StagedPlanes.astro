@@ -8,7 +8,7 @@ import Pending from '@shared/ui/drawing/Pending.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { workflowsArt } from './workflows-art.styles'
+import { STATUS_BAR } from './status-bar'
 
 // The working tree's five changed files: their row, the length of their
 // line and their status as git prints it (modified or added).
@@ -19,7 +19,6 @@ const CHANGES = [
 	{ y: 176, length: 90, status: 'M' },
 	{ y: 206, length: 140, status: 'M' },
 ] as const
-const BAR = { M: workflowsArt.barMod, A: workflowsArt.barAdd } as const
 ---
 
 <Drawing
@@ -36,7 +35,7 @@ const BAR = { M: workflowsArt.barMod, A: workflowsArt.barAdd } as const
 		{
 			CHANGES.map(({ y, length, status }) => (
 				<Fragment>
-					<rect {...sx(BAR[status])} x="66" y={y} width="4" height="12" />
+					<rect {...sx(STATUS_BAR[status])} x="66" y={y} width="4" height="12" />
 					<path {...sx(shape.lines)} d={`M78 ${y + 6}h${length}`} />
 				</Fragment>
 			))
