@@ -7,6 +7,10 @@ import type { IconName } from './icons'
 export const SITE_URL = 'https://syneva.dev'
 export const REPO_URL = 'https://github.com/walid-mos/syneva'
 
+// What a page describes: the CLI today, or a prototype direction. Product
+// and workflow pages state it in their hero; the menu and the overview rows
+// flag a prototype.
+export type Availability = 'available' | 'prototype'
 export type PreviewName = 'review' | 'guide' | 'ask' | 'plan'
 
 export type Page = {
@@ -14,7 +18,7 @@ export type Page = {
 	title: string
 	blurb: string
 	icon: IconName
-	badge?: string
+	availability?: Availability
 	preview?: PreviewName
 	code?: string
 }
@@ -46,6 +50,7 @@ export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
 				title: 'Review desk',
 				blurb: 'A verdict on every change your agent made.',
 				icon: 'desk',
+				availability: 'available',
 				preview: 'review',
 			},
 			{
@@ -53,6 +58,7 @@ export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
 				title: 'Guided walkthrough',
 				blurb: 'A reading order, not a pile of files.',
 				icon: 'guide',
+				availability: 'available',
 				preview: 'guide',
 			},
 			{
@@ -60,14 +66,15 @@ export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
 				title: 'Ask your agent',
 				blurb: 'Questions that stay on the exact line.',
 				icon: 'ask',
+				availability: 'available',
 				preview: 'ask',
 			},
 			{
 				href: '/product/plan-desk/',
 				title: 'Plan desk',
-				badge: 'Prototype',
 				blurb: 'Question the plan before the code exists.',
 				icon: 'plan',
+				availability: 'prototype',
 				preview: 'plan',
 			},
 		],
@@ -84,6 +91,7 @@ export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
 				title: 'Working tree',
 				blurb: 'Everything your agent just changed.',
 				icon: 'tree',
+				availability: 'available',
 				code: 'syneva',
 			},
 			{
@@ -91,6 +99,7 @@ export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
 				title: 'Staged changes',
 				blurb: 'A last, careful look before the commit.',
 				icon: 'staged',
+				availability: 'available',
 				code: 'syneva --diff staged',
 			},
 			{
@@ -98,6 +107,7 @@ export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
 				title: 'Pull requests',
 				blurb: 'A whole branch, against its merge-base.',
 				icon: 'branch',
+				availability: 'available',
 				code: 'syneva pr 128',
 			},
 			{
@@ -105,6 +115,7 @@ export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
 				title: 'A single file',
 				blurb: 'A plan, a spec, or one piece of code.',
 				icon: 'file',
+				availability: 'available',
 				code: 'syneva file plan.md',
 			},
 		],
@@ -153,6 +164,19 @@ export const OPEN_SOURCE: Page = {
 	title: 'Open source',
 	blurb: 'MIT licensed. A protocol you can read.',
 	icon: 'source',
+}
+
+const PROTOTYPE_BADGE = 'Prototype'
+
+// The badge beside a page's title in the menu and the overview rows: only a
+// prototype carries one.
+export const badgeOf = (page: Page): string | undefined =>
+	page.availability === 'prototype' ? PROTOTYPE_BADGE : undefined
+
+// The availability a route's hero states; overviews and resources state none.
+export function availabilityOf(route: string): Availability | undefined {
+	const pages = SECTIONS.flatMap(section => section.items)
+	return pages.find(page => page.href === route)?.availability
 }
 
 // Section of a route, for breadcrumbs, the active nav state and pagers.

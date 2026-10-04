@@ -26,19 +26,19 @@ const PLAN = [
 ---
 
 <Chapter id="desk" title="A big diff.<br>A smaller mental load." list={DESK} caption="Read in order → keep or undo → next change">
-	<ChapterStatus label="Review desk · available now" />
+	<ChapterStatus label="Review desk · available now" availability="available" />
 	<ChapterText>The agent has finished. Now it’s your turn. Read its work in a local browser desk, in the order that makes it make sense, and record a verdict on every change.</ChapterText>
 	<TextLink slot="after" href="/product/review-desk/" label="Explore the review desk" />
 	<DeskFigure slot="art" />
 </Chapter>
 <Chapter id="ask" title="Ask on the line.<br>Get the answer there." isReverse list={ASK} caption="Ask → agent reads → answer on the line">
-	<ChapterStatus label="Ask your agent · available now" />
+	<ChapterStatus label="Ask your agent · available now" availability="available" />
 	<ChapterText>Stop copying snippets into a chat window. Ask about the exact change, keep reviewing, and the answer lands in the thread where your question lives.</ChapterText>
 	<TextLink slot="after" href="/product/ask-your-agent/" label="See how questions work" />
 	<AskFigure slot="art" />
 </Chapter>
 <Chapter id="plan" title="A clear plan.<br>A better starting point." list={PLAN} caption="Plan → claims → decisions">
-	<ChapterStatus label="Plan desk · prototype" isPrototype />
+	<ChapterStatus label="Plan desk · prototype" availability="prototype" />
 	<ChapterText>The cheapest bug is the one you argue out of the plan. The plan desk we’re exploring turns an agent’s proposal into a map of claims you can question before any code exists.</ChapterText>
 	<ChapterText slot="after" isNote>A direction, not a shipped feature. Today, <code>syneva file plan.md</code> already reviews a plan line by line.</ChapterText>
 	<TextLink slot="after" href="/product/plan-desk/" label="Follow the plan desk" />

@@ -1,6 +1,7 @@
 ---
 // A product or resource menu row: icon, title (and badge), blurb, arrow.
 import type { Page } from '@entities/site/model/site-map'
+import { badgeOf } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Icon from '@entities/site/ui/Icon.astro'
 import { currentPage } from '../model/current-page'
@@ -23,7 +24,7 @@ const { page, isPreviewing = false } = Astro.props
 	<Icon name={page.icon} css={[menuLink.icon, instant.transitions]} />
 	<span {...sx(menuLink.text)}>
 		<strong {...sx(menuLink.title)}>
-			{page.title}{page.badge && <Fragment> <em {...sx(menuLink.badge)}>{page.badge}</em></Fragment>}
+			{page.title}{badgeOf(page) && <Fragment> <em {...sx(menuLink.badge)}>{badgeOf(page)}</em></Fragment>}
 		</strong>
 		<small {...sx(menuLink.blurb)}>{page.blurb}</small>
 	</span>

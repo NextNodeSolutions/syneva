@@ -1,22 +1,23 @@
 ---
 // The page hero: crumbs, title, status, lede and actions on the left, the
 // page's own drawing (slot "art") on the right.
+import { availabilityOf } from '@entities/site/model/site-map'
 import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
+import { pageActionsMarker } from '@shared/ui/actions.stylex'
 import Crumbs from './Crumbs.astro'
 import PageStatus from './PageStatus.astro'
 import { pageHero } from './page-hero.styles'
-import { pageActionsMarker } from '@shared/ui/actions.stylex'
 
 type Props = {
 	crumb: string
 	title: string
 	lede: string
-	state?: 'available' | 'prototype'
 	caption?: string
 }
 
-const { crumb, title, lede, state, caption } = Astro.props
+const { crumb, title, lede, caption } = Astro.props
+const availability = availabilityOf(Astro.url.pathname)
 const hasActions = Astro.slots.has('actions')
 ---
 
@@ -25,9 +26,9 @@ const hasActions = Astro.slots.has('actions')
 		<Crumbs title={crumb} />
 		<h1 {...revealItem(pageHero.title)} id="page-title" set:html={title} />
 		{
-			state && (
+			availability && (
 				<div {...revealItem()}>
-					<PageStatus state={state} />
+					<PageStatus availability={availability} />
 				</div>
 			)
 		}

@@ -2,6 +2,7 @@
 // Linked rows for an overview page, from the section's pages; a page with a
 // command (every workflow) shows the command it runs.
 import type { Page } from '@entities/site/model/site-map'
+import { badgeOf } from '@entities/site/model/site-map'
 import Icon from '@entities/site/ui/Icon.astro'
 import { revealItem } from '@shared/lib/reveal'
 import { twoDigits } from '@shared/lib/step-number'
@@ -23,10 +24,10 @@ const { pages } = Astro.props
 				<span>
 					<strong {...sx(indexRows.title)}>
 						{page.title}
-						{page.badge && (
+						{badgeOf(page) && (
 							<Fragment>
 								{' '}
-								<em {...sx(indexRows.badge)}>{page.badge}</em>
+								<em {...sx(indexRows.badge)}>{badgeOf(page)}</em>
 							</Fragment>
 						)}
 					</strong>

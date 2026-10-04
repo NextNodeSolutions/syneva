@@ -1,12 +1,14 @@
 ---
 // Availability, stated as product truth: available now, or a prototype.
+import type { Availability } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import ChapterText from './ChapterText.astro'
 import { chapter } from './chapter.styles'
 
-type Props = { label: string; isPrototype?: boolean }
+type Props = { label: string; availability: Availability }
 
-const { label, isPrototype = false } = Astro.props
+const { label, availability } = Astro.props
+const isPrototype = availability === 'prototype'
 ---
 
 <ChapterText><span {...sx(chapter.status, isPrototype && chapter.prototype)}>{label}</span></ChapterText>
