@@ -1,6 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 
 const rule = {
 	borderTopWidth: '1px',
@@ -47,7 +52,7 @@ export const footer = stylex.create({
 	},
 	link: {
 		fontSize: '14px',
-		transition: `color .15s ${ease['--ease-out']}`,
+		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		color: { default: null, ':hover': color['--accent'] },
 	},
 	word: {

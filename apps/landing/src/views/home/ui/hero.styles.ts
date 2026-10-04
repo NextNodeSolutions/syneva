@@ -1,6 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 import { motionRoot } from '@syneva/motion/root.stylex'
 
 import { heroMarker, newsMarker } from './hero.stylex'
@@ -71,7 +76,7 @@ export const hero = stylex.create({
 		backgroundColor: color['--white'],
 		fontSize: { default: '13px', [media.phone]: '12px' },
 		color: { default: color['--muted'], ':hover': color['--ink'] },
-		transition: `border-color .2s ${ease['--ease-out']}, color .2s ${ease['--ease-out']}`,
+		transition: `border-color ${duration['--duration-medium']} ${ease['--ease-out']}, color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		maxWidth: '100%',
 		opacity: hidden(0),
 	},
@@ -91,7 +96,7 @@ export const hero = stylex.create({
 	},
 	newsArrow: {
 		color: color['--ink'],
-		transition: `transform .2s ${ease['--ease-out']}`,
+		transition: `transform ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		flexShrink: 0,
 		transform: { default: null, [newsHover()]: 'translateX(3px)' },
 	},

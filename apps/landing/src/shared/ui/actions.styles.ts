@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease } from '@syneva/design-system/tokens.stylex'
+import { color, duration, ease } from '@syneva/design-system/tokens.stylex'
 
 import {
 	buttonMarker,
@@ -27,7 +27,7 @@ export const button = stylex.create({
 		padding: { default: '12px 22px', [media.phone]: '11px 16px' },
 		fontWeight: 500,
 		fontSize: { default: '15px', [media.phone]: '14px' },
-		transition: `background-color 150ms ${ease['--ease-out']}, border-color 150ms ${ease['--ease-out']}, transform 150ms ${ease['--ease-out']}`,
+		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, border-color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		transform: { default: null, ':active': 'scale(.97)' },
 	},
 	small: {
@@ -49,7 +49,7 @@ export const button = stylex.create({
 		stroke: 'currentColor',
 		strokeWidth: 1.5,
 		fill: 'none',
-		transition: `transform .15s ${ease['--ease-out']}`,
+		transition: `transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		transform: { default: null, [buttonHover()]: 'translateX(3px)' },
 	},
 })
@@ -66,7 +66,7 @@ export const textLink = stylex.create({
 			':hover': color['--accent'],
 		},
 		color: { default: null, ':hover': color['--accent'] },
-		transition: `color .15s ${ease['--ease-out']}, text-decoration-color .15s ${ease['--ease-out']}`,
+		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, text-decoration-color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		// A page's actions keep a touch-sized row on phones.
 		minHeight: {
 			default: null,
@@ -76,7 +76,7 @@ export const textLink = stylex.create({
 	inChapterSub: { marginTop: { default: null, [inChapter()]: '4px' } },
 	arrow: {
 		display: 'inline-block',
-		transition: `transform .15s ${ease['--ease-out']}`,
+		transition: `transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		transform: { default: null, [linkHover()]: 'translateX(3px)' },
 	},
 })

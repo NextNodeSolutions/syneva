@@ -1,6 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 
 import { menuLinkMarker, navMarker, workflowLinkMarker } from './markers.stylex'
 import { menuSpacing } from './menu.stylex'
@@ -58,7 +63,7 @@ export const menuLink = stylex.create({
 		padding: LINK_PADDING,
 		minHeight: '66px',
 		borderRadius: '5px',
-		transition: `background-color 150ms ${ease['--ease-out']}, color 150ms ${ease['--ease-out']}`,
+		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		outlineOffset: { default: null, ':focus-visible': '-3px' },
 		...currentPage,
 		...rowStagger,
@@ -77,7 +82,7 @@ export const menuLink = stylex.create({
 		fill: 'none',
 		stroke: 'currentColor',
 		strokeWidth: 1.4,
-		transition: `color 150ms ${ease['--ease-out']}, transform 300ms ${ease['--ease-spring']}`,
+		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, transform 300ms ${ease['--ease-spring']}`,
 		color: {
 			default: null,
 			[linkPreviewed()]: color['--accent'],
@@ -139,7 +144,7 @@ export const menuLink = stylex.create({
 			[media.compact]: 'none',
 			[media.motionReduced]: 'none',
 		},
-		transition: `opacity 150ms, transform 150ms ${ease['--ease-out']}`,
+		transition: `opacity ${duration['--duration-fast']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		transitionDuration: { default: null, [keyboard()]: '0s !important' },
 		transitionDelay: { default: null, [keyboard()]: '0s !important' },
 	},

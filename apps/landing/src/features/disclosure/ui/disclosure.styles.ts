@@ -1,6 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 
 import { disclosureMarker } from './disclosure.stylex'
 
@@ -26,7 +31,7 @@ export const disclosure = stylex.create({
 		cursor: 'pointer',
 		fontSize: '16px',
 		position: 'relative',
-		transition: `color .15s ${ease['--ease-out']}`,
+		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		color: { default: null, ':hover': color['--accent'] },
 		'::-webkit-details-marker': { display: 'none' },
 		'::after': {
@@ -46,7 +51,7 @@ export const disclosure = stylex.create({
 				default: 'rotate(45deg)',
 				[opened()]: 'rotate(225deg)',
 			},
-			transition: `transform 200ms ${ease['--ease-out']}, top 200ms ${ease['--ease-out']}`,
+			transition: `transform ${duration['--duration-medium']} ${ease['--ease-out']}, top ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		},
 	},
 	answer: { fontSize: '15px', padding: '0 34px 24px 0', maxWidth: '640px' },

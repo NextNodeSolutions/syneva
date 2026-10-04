@@ -1,6 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 
 import { indexRowMarker, pagerLinkMarker } from './page-index.stylex'
 
@@ -33,7 +38,7 @@ export const indexRows = stylex.create({
 		borderBottomStyle: 'solid',
 		borderBottomColor: LINE,
 		backgroundColor: { default: null, ':hover': 'rgb(255 255 255 / .6)' },
-		transition: `background-color .2s ${ease['--ease-out']}, padding .3s ${ease['--ease-out']}`,
+		transition: `background-color ${duration['--duration-medium']} ${ease['--ease-out']}, padding .3s ${ease['--ease-out']}`,
 	},
 	number: {
 		font: `12px ${font['--mono']}`,
@@ -47,7 +52,7 @@ export const indexRows = stylex.create({
 		stroke: { default: color['--ink'], [rowHover()]: color['--accent'] },
 		strokeWidth: 1.2,
 		transform: { default: null, [rowHover()]: 'scale(1.08)' },
-		transition: `stroke .2s ${ease['--ease-out']}, transform .4s ${ease['--ease-spring']}`,
+		transition: `stroke ${duration['--duration-medium']} ${ease['--ease-out']}, transform .4s ${ease['--ease-spring']}`,
 	},
 	title: {
 		display: 'flex',
@@ -81,7 +86,7 @@ export const indexRows = stylex.create({
 	},
 	arrow: {
 		fontSize: '20px',
-		transition: `transform .25s ${ease['--ease-out']}, color .2s`,
+		transition: `transform .25s ${ease['--ease-out']}, color ${duration['--duration-medium']}`,
 		transform: { default: null, [rowHover()]: 'translateX(4px)' },
 		color: { default: null, [rowHover()]: color['--accent'] },
 	},
@@ -104,7 +109,7 @@ export const pager = stylex.create({
 		columnGap: '14px',
 		rowGap: '4px',
 		padding: '34px var(--gutter)',
-		transition: `background-color .2s ${ease['--ease-out']}`,
+		transition: `background-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		backgroundColor: { default: null, ':hover': color['--white'] },
 	},
 	next: {

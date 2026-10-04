@@ -43,6 +43,15 @@ export const ease = stylex.defineVars({
 	'--ease-spring': 'cubic-bezier(.34, 1.36, .5, 1)',
 })
 
+// Transition times, named by speed because each serves both hover and state
+// changes. Text, fills and nudges on links, buttons and menu rows answer
+// fast; bordered fields, index rows, pagers and turning chevrons take the
+// medium time.
+export const duration = stylex.defineVars({
+	'--duration-fast': '150ms',
+	'--duration-medium': '200ms',
+})
+
 // The frame gutter narrows on tablets and phones; the ranges are exclusive
 // so the variable never depends on rule order.
 export const layout = stylex.defineVars({

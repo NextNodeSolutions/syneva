@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease } from '@syneva/design-system/tokens.stylex'
+import { color, duration, ease } from '@syneva/design-system/tokens.stylex'
 
 import {
 	actionMarker,
@@ -125,7 +125,7 @@ export const nav = stylex.create({
 		},
 		fontWeight: 450,
 		whiteSpace: 'nowrap',
-		transition: `color 150ms ${ease['--ease-out']}, background-color 150ms ${ease['--ease-out']}`,
+		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, background-color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 	},
 	trigger: {
 		gap: { default: '5px', [media.compact]: '2px' },
@@ -157,7 +157,7 @@ export const nav = stylex.create({
 		fill: 'none',
 		stroke: 'currentColor',
 		strokeWidth: 1.5,
-		transition: `transform 200ms ${navClock['--nav-ease']}`,
+		transition: `transform ${duration['--duration-medium']} ${navClock['--nav-ease']}`,
 		transform: { default: null, [triggerExpanded()]: 'rotate(180deg)' },
 	},
 	indicator: {
@@ -170,7 +170,7 @@ export const nav = stylex.create({
 		transform: 'translateX(calc(var(--indicator-x, 0) * 1px))',
 		opacity: { default: 0, [expanded()]: 1 },
 		pointerEvents: 'none',
-		transition: 'opacity 150ms',
+		transition: `opacity ${duration['--duration-fast']}`,
 	},
 	action: {
 		display: 'inline-flex',
@@ -193,11 +193,11 @@ export const nav = stylex.create({
 		paddingInline: { default: '15px', [media.compact]: '11px' },
 		marginLeft: { default: null, [media.compact]: 'auto' },
 		whiteSpace: 'nowrap',
-		transition: `background-color 150ms ${ease['--ease-out']}, border-color 150ms ${ease['--ease-out']}, transform 150ms ${ease['--ease-out']}`,
+		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, border-color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		transform: { default: null, ':active': 'scale(.97)' },
 	},
 	actionArrow: {
-		transition: `transform .15s ${ease['--ease-out']}`,
+		transition: `transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		transform: { default: null, [actionHover()]: 'translateX(2px)' },
 	},
 	toggle: {

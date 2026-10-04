@@ -1,6 +1,11 @@
 import { pageActionsMarker } from '@shared/ui/actions.stylex'
 import * as stylex from '@stylexjs/stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 
 import { copyMarker } from './command.stylex'
 
@@ -45,7 +50,7 @@ export const command = stylex.create({
 		},
 		backgroundColor: color['--white'],
 		minWidth: 0,
-		transition: `border-color .2s ${ease['--ease-out']}`,
+		transition: `border-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		// Among a page's actions it shares the row instead of filling it.
 		flex: { default: null, [inPageActions()]: '1 1 260px' },
 		maxWidth: { default: null, [inPageActions()]: '340px' },
