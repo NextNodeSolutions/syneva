@@ -8,6 +8,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
+import { commandOf } from '@entities/desk/model/agent-contract'
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import WorkflowHub from './art/WorkflowHub.astro'
 
@@ -19,7 +20,7 @@ const COMMANDS = [
 	['syneva pr <ref> --base main', 'The same, against a base you choose.'],
 	['syneva file <path>', 'One file, tracked or not.'],
 	['syneva --guide <file>', 'Attach your agent’s reading order to any of the above.'],
-	['syneva stop', 'Shut the desk down. Your review state stays saved.'],
+	[commandOf('stop'), 'Shut the desk down. Your review state stays saved.'],
 ] as const
 ---
 
