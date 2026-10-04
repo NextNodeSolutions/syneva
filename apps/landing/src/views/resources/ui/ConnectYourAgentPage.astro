@@ -10,7 +10,7 @@ import RuledList from '@shared/ui/prose/RuledList.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { REPO_URL } from '@entities/site/model/site-map'
+import { CONTRACT_SOURCE_URL } from '@entities/site/model/site-map'
 
 const PI = [
 	['/review and /plan.', 'Prompt templates that start a desk, attach your session and act on each event.'],
@@ -54,7 +54,7 @@ const ACTING = [
 	lede="The contract is plain JSON on stdout and a localhost HTTP server, documented in full by <code>syneva spec</code>. If your agent can run a shell command, it can receive your review."
 	caption="Five subcommands out, three events back."
 >
-	<Fragment slot="actions"><Command text="syneva spec" label="Print the agent contract" /><TextLink href={`${REPO_URL}/blob/main/packages/contracts/src/spec.ts`} label="Read the source" isExternal /></Fragment>
+	<Fragment slot="actions"><Command text="syneva spec" label="Print the agent contract" /><TextLink href={CONTRACT_SOURCE_URL} label="Read the source" isExternal /></Fragment>
 	<ProtocolWire slot="art" />
 </PageHero>
 <Prose id="pi" title={'With pi,<br>it’s wired for you.'}>
