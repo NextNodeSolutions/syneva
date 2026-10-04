@@ -1,5 +1,6 @@
 ---
 // Local section: everything runs inside your machine's boundary.
+import { commandOf } from '@entities/desk/model/agent-contract'
 import { DESK_ORIGIN } from '@entities/desk/model/desk-origin'
 import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
@@ -29,7 +30,7 @@ const AGENT_TO_REPO = 'M110 150v36q0 10 10 10h14q10 0 10 10v16'
 	<g {...anim('rise', 0.3)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="44" y="74" width="132" height="76"></rect>
 		<text {...sx(text.tiny)} x="56" y="94">YOUR AGENT</text>
-		<text {...sx(text.code)} x="56" y="122">$ syneva await</text>
+		<text {...sx(text.code)} x="56" y="122">$ {commandOf('await')}</text>
 		<rect {...loop('blink', homeArt.localCaret)} x="162" y="112" width="6" height="12"></rect>
 	</g>
 	<g {...anim('rise', 0.45)}>

@@ -31,12 +31,16 @@ export const SPEC_SUBCOMMAND = {
 	does: 'Print the whole contract.',
 } as const satisfies Subcommand
 
+type SubcommandName =
+	| (typeof SUBCOMMANDS)[number]['name']
+	| (typeof SPEC_SUBCOMMAND)['name']
+
 // A subcommand the way the agent runs it.
-export const commandOf = ({ name }: Subcommand): string => `syneva ${name}`
+export const commandOf = (name: SubcommandName): string => `syneva ${name}`
 
 // The command that prints the whole contract, and the name its copy box
 // reads out.
-export const SPEC_COMMAND = commandOf(SPEC_SUBCOMMAND)
+export const SPEC_COMMAND = commandOf(SPEC_SUBCOMMAND.name)
 export const SPEC_COMMAND_LABEL = 'Print the agent contract'
 
 // The events the desk answers with, back to the agent, by kind with what

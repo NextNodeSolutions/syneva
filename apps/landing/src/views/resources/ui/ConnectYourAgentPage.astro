@@ -29,7 +29,7 @@ const LOOP = [
 	'    esac',
 	'  done',
 ]
-const SUBCOMMAND_ROWS = [...SUBCOMMANDS, SPEC_SUBCOMMAND].map(subcommand => [commandOf(subcommand), subcommand.does] as const)
+const SUBCOMMAND_ROWS = [...SUBCOMMANDS, SPEC_SUBCOMMAND].map(subcommand => [commandOf(subcommand.name), subcommand.does] as const)
 const EVENT_ROWS = Object.entries(EVENTS)
 const ACTING = [
 	['rejected → revert it.', 'You don’t want that change.'],
