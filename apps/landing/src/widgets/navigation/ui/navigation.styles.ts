@@ -96,7 +96,10 @@ export const nav = stylex.create({
 		},
 		animationDuration: {
 			default: null,
-			[media.motionSafe]: { default: null, [mobileOpen()]: '280ms' },
+			[media.motionSafe]: {
+				default: null,
+				[mobileOpen()]: navClock['--nav-bar-duration'],
+			},
 		},
 		animationTimingFunction: {
 			default: null,

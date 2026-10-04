@@ -1,13 +1,14 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 
-// The morph's clock, read by the navigation runtime from the computed style
-// (durations as CSS times, travel in px) so the stylesheet stays the one
-// source.
+// The header's clock. The navigation runtime reads the morph's timings from
+// the computed style (durations as CSS times, travel in px) so the
+// stylesheet stays the one source; the phone link bar enters on it too.
 export const navClock = stylex.defineVars({
 	'--nav-menu-duration': '240ms',
 	'--nav-preview-duration': '150ms',
 	'--nav-close-duration': '160ms',
+	'--nav-bar-duration': '280ms',
 	'--nav-ease': 'cubic-bezier(0.22, 0.61, 0.36, 1)',
 	'--nav-panel-travel': '16',
 	'--nav-preview-travel': '24',

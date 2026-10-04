@@ -64,6 +64,14 @@ export const ease = stylex.defineVars({
 export const duration = stylex.defineVars({
 	'--duration-fast': '150ms',
 	'--duration-medium': '200ms',
+	// An icon's spring overshoots, so it runs twice the fill time beside it:
+	// a menu row's icon with its fast fills, an index row's with its medium.
+	'--duration-spring-fast': '300ms',
+	'--duration-spring-medium': '400ms',
+	// Hover motion that travels: an index row slides its content in, and its
+	// arrow steps ahead.
+	'--duration-shift': '300ms',
+	'--duration-step': '250ms',
 })
 
 // The frame gutter narrows on tablets and phones. StyleX writes a variable's

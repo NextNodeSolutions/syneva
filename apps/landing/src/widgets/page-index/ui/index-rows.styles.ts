@@ -40,7 +40,7 @@ export const indexRows = stylex.create({
 			default: null,
 			':hover': `color-mix(in srgb, ${color['--white']} 60%, transparent)`,
 		},
-		transition: `background-color ${duration['--duration-medium']} ${ease['--ease-out']}, padding .3s ${ease['--ease-out']}`,
+		transition: `background-color ${duration['--duration-medium']} ${ease['--ease-out']}, padding ${duration['--duration-shift']} ${ease['--ease-out']}`,
 	},
 	number: {
 		font: `12px ${font['--mono']}`,
@@ -54,7 +54,7 @@ export const indexRows = stylex.create({
 		stroke: { default: color['--ink'], [rowHover()]: color['--accent'] },
 		strokeWidth: 1.2,
 		transform: { default: null, [rowHover()]: 'scale(1.08)' },
-		transition: `stroke ${duration['--duration-medium']} ${ease['--ease-out']}, transform .4s ${ease['--ease-spring']}`,
+		transition: `stroke ${duration['--duration-medium']} ${ease['--ease-out']}, transform ${duration['--duration-spring-medium']} ${ease['--ease-spring']}`,
 	},
 	title: {
 		display: 'flex',
@@ -88,7 +88,7 @@ export const indexRows = stylex.create({
 	},
 	arrow: {
 		fontSize: '20px',
-		transition: `transform .25s ${ease['--ease-out']}, color ${duration['--duration-medium']}`,
+		transition: `transform ${duration['--duration-step']} ${ease['--ease-out']}, color ${duration['--duration-medium']}`,
 		transform: { default: null, [rowHover()]: 'translateX(4px)' },
 		color: { default: null, [rowHover()]: color['--accent'] },
 	},

@@ -81,7 +81,7 @@ export const menuLink = stylex.create({
 		fill: 'none',
 		stroke: 'currentColor',
 		strokeWidth: 1.4,
-		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, transform 300ms ${ease['--ease-spring']}`,
+		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-spring-fast']} ${ease['--ease-spring']}`,
 		color: {
 			default: null,
 			[linkPreviewed()]: color['--accent'],
