@@ -2,10 +2,11 @@
 import Document from '@app/layouts/Document.astro'
 import AskYourAgentPage from '@views/product/ui/AskYourAgentPage.astro'
 import { pageTitle } from '@entities/site/model/routes'
+import { PAGES } from '@entities/site/model/site-map'
 ---
 
 <Document
-	title={pageTitle('Ask your agent')}
+	title={pageTitle(PAGES.askYourAgent.title)}
 	description="Ask about the exact line and get the answer there. Your agent reads, posts a live status, and replies in the thread, while you keep reviewing. Change requests ride along with your verdict."
 >
 	<AskYourAgentPage />
