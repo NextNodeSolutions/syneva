@@ -33,7 +33,7 @@ const { pages } = Astro.props
 					</strong>
 					<span {...sx(indexRows.blurb)}>{page.blurb}</span>
 				</span>
-				{page.code && <code {...sx(indexRows.code)}>{page.code}</code>}
+				{'code' in page && <code {...sx(indexRows.code)}>{page.code}</code>}
 				<span {...sx(indexRows.arrow)} aria-hidden="true">
 					→
 				</span>

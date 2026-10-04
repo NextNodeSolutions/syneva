@@ -1,13 +1,13 @@
 ---
 // A workflows menu cell: icon and title, blurb, and the command that opens it.
-import type { Page } from '@entities/site/model/site-map'
+import type { WorkflowPage } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Icon from '@entities/site/ui/Icon.astro'
 import { currentPage } from '../model/current-page'
 import { workflowLinkMarker } from './markers.stylex'
 import { workflowLink } from './menu.styles'
 
-type Props = { page: Page; index: number }
+type Props = { page: WorkflowPage; index: number }
 
 const { page, index } = Astro.props
 // Rows after the first carry a rule; the second cell of the first row only

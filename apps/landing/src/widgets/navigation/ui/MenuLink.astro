@@ -17,7 +17,7 @@ const { page, isPreviewing = false } = Astro.props
 <a
 	{...sx(menuLink.base, !isPreviewing && menuLink.resourceHover, instant.transitions, menuLinkMarker)}
 	href={page.href}
-	data-preview={isPreviewing ? page.preview : undefined}
+	data-preview={isPreviewing && 'preview' in page ? page.preview : undefined}
 	data-menu-row
 	aria-current={currentPage(page.href, Astro.url.pathname)}
 >

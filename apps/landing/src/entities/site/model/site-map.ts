@@ -13,31 +13,43 @@ export const REPO_URL = 'https://github.com/walid-mos/syneva'
 export type Availability = 'available' | 'prototype'
 export type PreviewName = 'review' | 'guide' | 'ask' | 'plan'
 
-export type Page = {
-	href: string
-	title: string
-	blurb: string
-	icon: IconName
-	availability?: Availability
-	preview?: PreviewName
-	code?: string
+// What every page has: its route and how the menus present it.
+type BasePage = { href: string; title: string; blurb: string; icon: IconName }
+// A product page previews its scene in the product menu; a workflow page
+// opens with the command it runs.
+export type ProductPage = BasePage & {
+	availability: Availability
+	preview: PreviewName
 }
+export type WorkflowPage = BasePage & {
+	availability: Availability
+	code: string
+}
+export type Page = ProductPage | WorkflowPage | BasePage
 
 // Menus and the footer list the sections in this order.
 export const SECTION_ORDER = ['product', 'workflows', 'resources'] as const
 export type SectionId = (typeof SECTION_ORDER)[number]
 
-export type Section = {
-	id: SectionId
+// The kind of page each section lists.
+type SectionPages = {
+	product: ProductPage
+	workflows: WorkflowPage
+	resources: BasePage
+}
+
+type SectionOf<Id extends SectionId> = {
+	id: Id
 	label: string
 	href: string
 	overview: string
 	footer: string
-	items: Page[]
+	items: readonly SectionPages[Id][]
 }
 
-// The type keeps each key and its section's id in step.
-export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
+export type Section = { [Id in SectionId]: SectionOf<Id> }[SectionId]
+
+export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 	product: {
 		id: 'product',
 		label: 'Product',
@@ -170,13 +182,18 @@ const PROTOTYPE_BADGE = 'Prototype'
 
 // The badge beside a page's title in the menu and the overview rows: only a
 // prototype carries one.
-export const badgeOf = (page: Page): string | undefined =>
-	page.availability === 'prototype' ? PROTOTYPE_BADGE : undefined
+export function badgeOf(page: Page): string | undefined {
+	if (!('availability' in page) || page.availability !== 'prototype')
+		return undefined
+	return PROTOTYPE_BADGE
+}
 
 // The availability a route's hero states; overviews and resources state none.
 export function availabilityOf(route: string): Availability | undefined {
-	const pages = SECTIONS.flatMap(section => section.items)
-	return pages.find(page => page.href === route)?.availability
+	const pages = SECTIONS.flatMap((section): readonly Page[] => section.items)
+	const page = pages.find(candidate => candidate.href === route)
+	if (!page || !('availability' in page)) return undefined
+	return page.availability
 }
 
 // Section of a route, for breadcrumbs, the active nav state and pagers.
