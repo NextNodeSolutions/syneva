@@ -6,39 +6,10 @@ import FigureTop from '@shared/ui/FigureTop.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { section } from '@shared/ui/section.styles'
 import { REPO_URL } from '@entities/site/model/site-map'
-import { mapClasses } from '@shared/lib/map-classes'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import { handoff, json } from './handoff.styles'
-
-const k = (name: string) => `<span class="j-key">"${name}"</span>`
-const s = (text: string) => `<span class="j-str">"${text}"</span>`
-const n = (num: string) => `<span class="j-num">${num}</span>`
-const p = (marks: string) => `<span class="j-punc">${marks}</span>`
-const line = (body: string, kind = '') => `<span class="j-line${kind ? ` is-${kind}` : ''}">${body}</span>`
-const LISTING = [
-	line(`${p('{')} ${k('kind')}${p(':')} ${s('review')}${p(',')} ${k('result')}${p(': {')}`),
-	line(`  ${k('mode')}${p(':')} ${s('repo')}${p(',')}`),
-	line(`  ${k('accepted')}${p(': [{')} ${k('path')}${p(':')} ${s('auth/session.ts')}${p(',')} ${k('lineNumber')}${p(':')} ${n('14')}${p(',')}`, 'yes'),
-	line(`      ${k('side')}${p(':')} ${s('additions')}${p(',')} ${k('title')}${p(':')} ${s('Verify the session first')} ${p('}],')}`, 'yes'),
-	line(`  ${k('rejected')}${p(': [{')} ${k('path')}${p(':')} ${s('pages/desk.tsx')}${p(',')} ${k('lineNumber')}${p(':')} ${n('41')}${p(', … }],')}`, 'no'),
-	line(`  ${k('requestedChanges')}${p(': [{')} ${k('path')}${p(':')} ${s('api/middleware.ts')}${p(',')} ${k('lineNumber')}${p(':')} ${n('20')}${p(',')}`, 'ask'),
-	line(`      ${k('body')}${p(':')} ${s('Log why the session was rejected.')} ${p('}],')}`, 'ask'),
-	line(`  ${k('approvedFiles')}${p(': [')}${s('contracts/review.ts')}${p(',')} ${s('lib/hash.ts')}${p('],')}`),
-	line(`  ${k('openQuestions')}${p(': [],')}`),
-	line(`  ${k('overallNote')}${p(':')} ${s('Run the formatter after.')}`),
-	line(p('} }')),
-].join('')
-const listing = mapClasses(LISTING, {
-	'j-line': json.line,
-	'is-yes': json.yes,
-	'is-no': json.no,
-	'is-ask': json.ask,
-	'j-key': json.key,
-	'j-str': json.str,
-	'j-num': json.num,
-	'j-punc': json.punc,
-})
+import { HANDOFF_LISTING } from './handoff-listing'
+import { handoff } from './handoff.styles'
 ---
 
 <section {...revealRuledGroup(section.ruled, section.pad, handoff.section)} id="handoff" aria-labelledby="handoff-title">
@@ -53,7 +24,7 @@ const listing = mapClasses(LISTING, {
 	</div>
 	<figure {...revealItem(handoff.figure)}>
 		<FigureTop subject="$ syneva await" aside="EVENT · REVIEW" />
-		<pre {...sx(handoff.json)} aria-label="Illustrative review event" set:html={listing} />
+		<pre {...sx(handoff.json)} aria-label="Illustrative review event" set:html={HANDOFF_LISTING} />
 		<figcaption {...sx(handoff.caption)}>Illustrative round, trimmed. The full shape is versioned with the CLI: <code {...sx(handoff.code)}>syneva spec</code></figcaption>
 	</figure>
 </section>
