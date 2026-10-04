@@ -21,7 +21,7 @@ const isPosed = (kind: Kind): kind is Kind & keyof typeof poses =>
 const isMeasured = (kind: Kind): kind is Kind & keyof typeof PATH_LENGTH =>
 	Object.hasOwn(PATH_LENGTH, kind)
 
-export type AnimAttributes = Attributes & {
+type AnimAttributes = Attributes & {
 	[ATTRIBUTE.anim]: VocabularyKind
 	[ATTRIBUTE.delay]?: string
 	pathLength?: number
