@@ -4,13 +4,29 @@
 import { sx } from '@shared/lib/sx'
 import { heroStage } from './hero-stage.styles'
 
-const ROWS = [
-	{ line: '12', code: 'export function handle(req) {', y: 126 },
-	{ line: '13', sign: '−', code: 'return run(req)', y: 150, isDel: true },
-	{ line: '14', sign: '+', code: 'await verifySession(req)', y: 174 },
-	{ line: '15', sign: '+', code: 'return run(req)', y: 198 },
-	{ line: '16', code: '}', y: 222 },
+type RowKind = 'context' | 'added' | 'removed'
+
+// The opened change: line 13 is replaced by lines 14 and 15.
+const ROWS: readonly { line: string; kind: RowKind; code: string }[] = [
+	{ line: '12', kind: 'context', code: 'export function handle(req) {' },
+	{ line: '13', kind: 'removed', code: 'return run(req)' },
+	{ line: '14', kind: 'added', code: 'await verifySession(req)' },
+	{ line: '15', kind: 'added', code: 'return run(req)' },
+	{ line: '16', kind: 'context', code: '}' },
 ]
+// A changed line shows its sign in the gutter and sets its code past it; the
+// removed line is struck through.
+const ROW_KIND = {
+	context: { sign: undefined, tone: undefined, codeX: 284, isStruck: false },
+	added: { sign: '+', tone: heroStage.add, codeX: 298, isStruck: false },
+	removed: { sign: '−', tone: heroStage.del, codeX: 298, isStruck: true },
+} as const
+const FIRST_ROW_Y = 126
+const ROW_HEIGHT = 24
+// The strike spans the removed line's code, just above its baseline.
+const STRIKE = { width: 104, rise: 4 }
+const rows = ROWS.map((row, index) => ({ ...row, ...ROW_KIND[row.kind], y: FIRST_ROW_Y + index * ROW_HEIGHT }))
+const countOf = (kind: RowKind): number => ROWS.filter(row => row.kind === kind).length
 ---
 
 <g {...sx(heroStage.layer)} data-stage-part="desk">
@@ -23,7 +39,7 @@ const ROWS = [
 	</g>
 	<g data-stage-part="head">
 		<text {...sx(heroStage.file, heroStage.strong)} x="250" y="93">auth/session.ts</text>
-		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+2 −1</text>
+		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+{countOf('added')} −{countOf('removed')}</text>
 		<g><rect {...sx(heroStage.button)} x="460" y="80" width="28" height="16"></rect><path {...sx(heroStage.buttonGlyph)} d="m471 85 6 6m0-6-6 6"></path></g>
 		<g>
 			<rect {...sx(heroStage.button, heroStage.accept)} x="492" y="80" width="28" height="16" data-stage-part="accept"></rect>
@@ -35,12 +51,12 @@ const ROWS = [
 	<rect {...sx(heroStage.bandAdd)} x="237" y="158" width="290" height="48" data-stage-part="band-add"></rect>
 	<rect {...sx(heroStage.sweep)} x="237" y="110" width="290" height="24" opacity="0" data-stage-part="sweep"></rect>
 	{
-		ROWS.map(({ line, sign, code, y, isDel }) => (
+		rows.map(({ line, sign, tone, code, codeX, isStruck, y }) => (
 			<g data-stage-part="row">
 				<text {...sx(heroStage.lineNumber)} x="262" y={y} text-anchor="end">{line}</text>
-				{sign && <text {...sx(heroStage.sign, isDel ? heroStage.del : heroStage.add)} x="270" y={y}>{sign}</text>}
-				<text {...sx(heroStage.code, sign && (isDel ? heroStage.del : heroStage.add))} x={sign ? '298' : '284'} y={y}>{code}</text>
-				{isDel && <path {...sx(heroStage.strike)} d="M298 146h104" data-stage-part="strike" />}
+				{sign && <text {...sx(heroStage.sign, tone)} x="270" y={y}>{sign}</text>}
+				<text {...sx(heroStage.code, tone)} x={codeX} y={y}>{code}</text>
+				{isStruck && <path {...sx(heroStage.strike)} d={`M${codeX} ${y - STRIKE.rise}h${STRIKE.width}`} data-stage-part="strike" />}
 			</g>
 		))
 	}
