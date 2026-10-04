@@ -147,7 +147,6 @@ export const nav = stylex.create({
 			':is([aria-expanded="true"])': color['--accent'],
 			[media.finePointer]: { default: null, ':hover': color['--accent'] },
 		},
-		transform: { default: null, ':active': 'none' },
 	},
 	direct: {
 		marginLeft: { default: '5px', [media.navToggle]: 0 },
