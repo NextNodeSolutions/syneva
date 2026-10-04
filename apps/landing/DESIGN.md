@@ -27,9 +27,9 @@ This system belongs to the standalone public site. The repository-root `DESIGN.m
 
 ## Typography
 
-Self-hosted Geist handles display and body text; Geist Mono identifies paths, commands and drawing annotations. Font provenance and license live in `fonts/`.
+Self-hosted Geist handles display and body text; Geist Mono identifies paths, commands and drawing annotations. Font provenance and license live in `public/fonts/`.
 
-The heading scale, weights, tracking and responsive sizes are defined in `src/app/styles/global.css` (element typography) and the components' StyleX styles. Headings use sentence case and tight tracking; paragraphs remain open and readable. Supporting functional text must remain readable after SVG scaling, not merely have a large nominal font size.
+The heading scale, weights, tracking and responsive sizes are defined in `src/app/styles/global.css` (element typography, with the h2 size from the design system's `--h2-size`) and the components' StyleX styles. Headings use sentence case and tight tracking; paragraphs remain open and readable. Supporting functional text must remain readable after SVG scaling, not merely have a large nominal font size.
 
 ## Layout
 
@@ -50,12 +50,12 @@ Square controls, thin rules, routed paths and angular sheet geometry form the vi
 - **Actions:** petrol primary link, outlined navigation link, and underlined secondary links. Preserve the visible keyboard focus treatment.
 - **Hero headline (home):** the H1 is set as a two-line diff with a mono gutter. Line 1 is the agent's addition (line number, petrol `+`, pale blue band); line 2 is the human verdict (green check, mint band, `decide` in green with a drawn underline). It is the whole color system in one sentence: petrol follows the work, mint marks a human decision. Bands sweep in once; the text is real, selectable heading text.
 - **Hero instrument (home):** one review round drawn as a flat technical figure in three columns (your agent, your desk, your verdict) joined by ports and one dotted return route. `src/views/home/ui/hero.client.ts` drives it on a single 16s clock (`@syneva/motion/loop-timeline`, Motion over the Web Animations API): files settle into a reading order, a change opens, you ask, the agent answers on the line, you accept, the ledger fills, Send returns to the agent and only the rejected file comes back pending. The markup is the static pose. Pointer movement drifts the columns a few pixels apart and lights petrol registration crosses in the hero field; touch devices get neither. On phones the figure reframes onto the desk column (`data-compact`).
-- **Review circuit (How it works, `#how`):** the former hero drawing, now opening the loop section where its story belongs. Passive SVG animation: the changeset travels horizontally while its review layers separate vertically. Keep stage and playback controls out of the illustration.
+- **Review circuit (How it works, `#how`):** the drawing that opens the home page's loop section (`src/views/home/ui/circuit/`), one review round from your agent's diff to the next revision. Passive SVG animation: the changeset travels horizontally while its review layers separate vertically. Keep stage and playback controls out of the illustration.
 - **Trust register:** the stats under `#facts` (0 / 1 / 4 / 100%). The numbers are product facts (verdicts, the single tab, review modes, locality), never growth or adoption metrics; the copy says so openly.
 - **Confidence loop:** four numbered steps under `#how` on one ruled rail, read left to right. A sequential row, not a feature-card grid: the reading order is the story.
 - **Comparison (`#compare`):** a ruled table against two categories (your editor's diff, hosted AI review), never named competitors. Every cell must stay true for the category as a whole.
 - **Handoff contract:** the review event under `#handoff` as a fenced JSON document in mono type. Fields must match `packages/contracts/src/agent.ts` and the spec; mark the round as illustrative and trimmed.
-- **Chapters:** explanatory headline followed by availability status and concrete actions. Prototype status is product truth, not an eyebrow above the heading. Chapters alternate sides (`<Chapter isReverse>`).
+- **Chapters:** explanatory headline followed by availability status and concrete actions. Prototype status is product truth, not an eyebrow above the heading. Chapters alternate sides (`<Chapter artSide="left">` puts the drawing left of the copy).
 - **Installation:** a selectable command with copy feedback and a manual-copy failure state (every `[data-command]`, wired by `src/features/copy-command/model/command.client.ts`).
 - **FAQ:** native disclosure controls with direct answers.
 - **Footer:** pitch and primary action, a sitemap generated from the site map, and the wordmark sized from its container so it spans the frame.
@@ -86,4 +86,4 @@ Every component styles itself with StyleX in a colocated `*.styles.ts`; `src/app
 - **Don't** state an unmeasured number (speed, adoption, time saved) anywhere, including captions.
 - **Don't** compare against a named competitor; compare against categories, truthfully.
 
-The scoped component specimens are in `.impeccable/design.json`. The StyleX tokens remain the source of truth for implementation tokens; this document describes their use rather than defining a second palette.
+The StyleX tokens are the source of truth for implementation tokens; this document describes their use rather than defining a second palette.
