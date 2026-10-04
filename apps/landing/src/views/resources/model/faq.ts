@@ -1,6 +1,8 @@
 // The FAQ, one block per domain: a title, a blurb and its questions with
 // their answers (answers are HTML). The topic index and the blocks are both
 // built from this list.
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
+
 export type QaItem = { question: string; answer: string }
 
 export type QaGroup = {
@@ -32,7 +34,7 @@ export const FAQ: readonly QaGroup[] = [
 			},
 			{
 				question: 'What can I review?',
-				answer: 'Your working tree, your staged changes, a branch or pull request against its merge-base, or a single file such as a plan. See <a href="/workflows/">Workflows</a>.',
+				answer: `Your working tree, your staged changes, a branch or pull request against its merge-base, or a single file such as a plan. See <a href="${SECTION_BY_ID.workflows.href}">Workflows</a>.`,
 			},
 		],
 	},

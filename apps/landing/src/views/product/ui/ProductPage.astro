@@ -8,7 +8,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 
 const COMMITMENTS = [
 	['No model runs inside Syneva.', 'It never calls an LLM and never orchestrates one. It renders the diff, validates what it is given, and hands a result back.'],
@@ -29,7 +29,7 @@ const DAILY = [
 	lede={'Syneva is an integrated review environment: a browser desk on localhost where you read your agent’s diff in order, question it on the line and record a verdict on every change. It runs no model of its own. The judgment is yours, the agent is yours, and the code stays on your machine.'}
 	caption="Four layers, one desk. The verdicts on top are yours alone."
 >
-	<Fragment slot="actions"><Button href="/get-started/" label="Start a local review" /><TextLink href="/workflows/" label="See the four workflows" /></Fragment>
+	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Start a local review" /><TextLink href={SECTION_BY_ID.workflows.href} label="See the four workflows" /></Fragment>
 	<DeskLayers slot="art" />
 </PageHero>
 <Prose id="desk" title={'What’s on the desk.'}>

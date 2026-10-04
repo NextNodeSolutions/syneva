@@ -9,7 +9,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 
 const COMMANDS = [
 	['syneva', 'The working-tree diff, untracked files included.'],
@@ -29,7 +29,7 @@ const COMMANDS = [
 	lede="Review whatever your agent just did: the working tree, what you staged, a whole branch or pull request, or a single file like a plan. The desk, the keys and the handoff stay the same every time."
 	caption="Every mode produces the same verdict. Its mode field says how to read it."
 >
-	<Fragment slot="actions"><Button href="/get-started/" label="Start a local review" /><TextLink href="/product/" label={'What’s on the desk'} /></Fragment>
+	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Start a local review" /><TextLink href={SECTION_BY_ID.product.href} label={'What’s on the desk'} /></Fragment>
 	<WorkflowHub slot="art" />
 </PageHero>
 <Prose id="modes" title="Pick the one<br>that fits the moment.">
@@ -37,7 +37,7 @@ const COMMANDS = [
 </Prose>
 <Prose id="commands" title="Every command,<br>at a glance.">
 	<SpecTable rows={COMMANDS} head={['Command', 'What opens']} />
-	<ProseText>Your agent drives the rest of the loop with <code>await</code>, <code>comment</code>, <code>status</code> and <code>reload</code>. <TextLink href="/resources/connect-your-agent/" label="See the agent contract" /></ProseText>
+	<ProseText>Your agent drives the rest of the loop with <code>await</code>, <code>comment</code>, <code>status</code> and <code>reload</code>. <TextLink href={PAGES.connectYourAgent.href} label="See the agent contract" /></ProseText>
 </Prose>
 <Prose id="remote" title="Reviewing from<br>another machine?">
 	<ProseText>The desk binds to <code>127.0.0.1</code> by default. For a remote-dev setup, <code>--host</code> binds it wider so you can review from your laptop while the agent runs on a server; its subcommands keep talking over loopback.</ProseText>

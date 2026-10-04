@@ -1,14 +1,14 @@
 ---
 // The site footer: the pitch, a sitemap generated from the site map, the
 // frame-wide wordmark and the product's three promises.
-import { OPEN_SOURCE, REPO_URL, SECTIONS } from '@entities/site/model/site-map'
+import { PAGES, REPO_URL, SECTIONS } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Brand from '@shared/ui/Brand.astro'
 import Button from '@shared/ui/Button.astro'
 import { footer } from './footer.styles'
 
 const PROJECT = [
-	{ href: OPEN_SOURCE.href, label: 'Open source', isExternal: false },
+	{ href: PAGES.openSource.href, label: 'Open source', isExternal: false },
 	{ href: REPO_URL, label: 'GitHub', isExternal: true },
 	{ href: `${REPO_URL}/blob/main/LICENSE`, label: 'MIT license', isExternal: true },
 	{ href: `${REPO_URL}/issues`, label: 'Report an issue', isExternal: true },
@@ -20,7 +20,7 @@ const PROJECT = [
 		<div>
 			<Brand />
 			<p {...sx(footer.pitch)}>The review desk for code your agent wrote. Local, open source, and built for the human in the loop.</p>
-			<Button href="/get-started/" label="Start a local review" isSmall />
+			<Button href={PAGES.getStarted.href} label="Start a local review" isSmall />
 		</div>
 		<nav {...sx(footer.map)} aria-label="Site map">
 			{
@@ -36,7 +36,7 @@ const PROJECT = [
 				))
 			}
 			<div>
-				<a {...sx(footer.head)} href={OPEN_SOURCE.href}>Project</a>
+				<a {...sx(footer.head)} href={PAGES.openSource.href}>Project</a>
 				<ul {...sx(footer.list)}>
 					{
 						PROJECT.map(({ href, label, isExternal }) => (

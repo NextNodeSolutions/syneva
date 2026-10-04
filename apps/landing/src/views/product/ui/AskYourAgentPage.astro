@@ -11,6 +11,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
+import { PAGES } from '@entities/site/model/site-map'
 
 const READ_ONLY = [
 	['Live progress.', 'A one-line status, like “reading auth/session.ts…”, sits beside your thread while the agent works.'],
@@ -30,7 +31,7 @@ const INTENTS = [
 	lede={'When a change doesn’t make sense, ask about it where it is. Your agent reads the code, posts a live status while it works, and answers in the thread on that exact line. You keep reviewing the whole time.'}
 	caption="Ask for an answer now. Request a change for the next round."
 >
-	<Fragment slot="actions"><Button href="/get-started/" label="Start a local review" /><TextLink href="/resources/connect-your-agent/" label="How your agent answers" /></Fragment>
+	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Start a local review" /><TextLink href={PAGES.connectYourAgent.href} label="How your agent answers" /></Fragment>
 	<AskFork slot="art" />
 </PageHero>
 <Chapter id="read-only" title="A question is<br>not a code change." list={READ_ONLY} caption="You → desk → agent → your thread">

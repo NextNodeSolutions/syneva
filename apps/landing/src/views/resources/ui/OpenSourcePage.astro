@@ -8,7 +8,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { REPO_URL } from '@entities/site/model/site-map'
+import { PAGES, REPO_URL } from '@entities/site/model/site-map'
 
 const WHY = [
 	['Trust you can verify.', 'Your review surface reads your code. You should be able to read it back.'],
@@ -30,7 +30,7 @@ const REPOSITORY = [
 	lede="Syneva is MIT licensed and built in the open. A tool that sees your diffs should be one you can inspect end to end: no model inside, no telemetry, no account."
 	caption="The slot where a model would go is empty, on purpose."
 >
-	<Fragment slot="actions"><Button href={REPO_URL} label="Star it on GitHub" /><TextLink href="/resources/connect-your-agent/" label="Read the contract" /></Fragment>
+	<Fragment slot="actions"><Button href={REPO_URL} label="Star it on GitHub" /><TextLink href={PAGES.connectYourAgent.href} label="Read the contract" /></Fragment>
 	<OpenBox slot="art" />
 </PageHero>
 <Prose id="why" title="Why open.">

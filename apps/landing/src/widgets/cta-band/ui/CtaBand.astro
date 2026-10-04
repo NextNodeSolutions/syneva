@@ -1,6 +1,6 @@
 ---
 // The start band: two commands to a first desk, and where to read more.
-import { REPO_URL } from '@entities/site/model/site-map'
+import { PAGES, REPO_URL } from '@entities/site/model/site-map'
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import Command from '@features/copy-command/ui/Command.astro'
@@ -22,7 +22,7 @@ const {
 		<h2 {...revealItem(heading.section)} set:html={title} />
 		<p {...revealItem(band.text)} set:html={text} />
 		<div {...revealItem(band.links)}>
-			<TextLink href="/get-started/" label="Read the setup guide" />
+			<TextLink href={PAGES.getStarted.href} label="Read the setup guide" />
 			<TextLink href={REPO_URL} label="Star it on GitHub" isExternal />
 		</div>
 	</div>

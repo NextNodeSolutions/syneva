@@ -8,6 +8,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
+import { PAGES } from '@entities/site/model/site-map'
 
 const STATES = [
 	['Unchanged', 'The full file, ready for comments.'],
@@ -32,7 +33,7 @@ const STATES = [
 <Prose id="plans" title="Review the plan<br>before the code.">
 	<ProseText>The most expensive review is the one that happens after the code exists. Ask your agent for a plan, open it as a file, and settle the approach with comments on the exact paragraph.</ProseText>
 	<ProseText>With the pi package, the <code>/plan</code> prompt template wires that loop for you.</ProseText>
-	<ProseText><TextLink href="/product/plan-desk/" label="Where the plan desk is heading" /></ProseText>
+	<ProseText><TextLink href={PAGES.planDesk.href} label="Where the plan desk is heading" /></ProseText>
 </Prose>
 <CtaBand />
 <Pager />

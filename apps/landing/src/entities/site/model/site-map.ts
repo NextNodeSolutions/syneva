@@ -49,6 +49,108 @@ type SectionOf<Id extends SectionId> = {
 
 export type Section = { [Id in SectionId]: SectionOf<Id> }[SectionId]
 
+// The home, which no menu lists.
+export const HOME_HREF = '/'
+
+// Every page but the home, by slug: a link names its page through it
+// (PAGES.getStarted.href), and each section lists its pages from it.
+export const PAGES = {
+	reviewDesk: {
+		href: '/product/review-desk/',
+		title: 'Review desk',
+		blurb: 'A verdict on every change your agent made.',
+		icon: 'desk',
+		availability: 'available',
+		preview: 'review',
+	},
+	walkthrough: {
+		href: '/product/walkthrough/',
+		title: 'Guided walkthrough',
+		blurb: 'A reading order, not a pile of files.',
+		icon: 'guide',
+		availability: 'available',
+		preview: 'guide',
+	},
+	askYourAgent: {
+		href: '/product/ask-your-agent/',
+		title: 'Ask your agent',
+		blurb: 'Questions that stay on the exact line.',
+		icon: 'ask',
+		availability: 'available',
+		preview: 'ask',
+	},
+	planDesk: {
+		href: '/product/plan-desk/',
+		title: 'Plan desk',
+		blurb: 'Question the plan before the code exists.',
+		icon: 'plan',
+		availability: 'prototype',
+		preview: 'plan',
+	},
+	workingTree: {
+		href: '/workflows/working-tree/',
+		title: 'Working tree',
+		blurb: 'Everything your agent just changed.',
+		icon: 'tree',
+		availability: 'available',
+		code: 'syneva',
+	},
+	stagedChanges: {
+		href: '/workflows/staged-changes/',
+		title: 'Staged changes',
+		blurb: 'A last, careful look before the commit.',
+		icon: 'staged',
+		availability: 'available',
+		code: 'syneva --diff staged',
+	},
+	pullRequests: {
+		href: '/workflows/pull-requests/',
+		title: 'Pull requests',
+		blurb: 'A whole branch, against its merge-base.',
+		icon: 'branch',
+		availability: 'available',
+		code: 'syneva pr 128',
+	},
+	singleFile: {
+		href: '/workflows/single-file/',
+		title: 'A single file',
+		blurb: 'A plan, a spec, or one piece of code.',
+		icon: 'file',
+		availability: 'available',
+		code: 'syneva file plan.md',
+	},
+	getStarted: {
+		href: '/get-started/',
+		title: 'Get started',
+		blurb: 'From install to your first verdict.',
+		icon: 'start',
+	},
+	connectYourAgent: {
+		href: '/resources/connect-your-agent/',
+		title: 'Connect your agent',
+		blurb: 'The pi package and the CLI contract.',
+		icon: 'agent',
+	},
+	faq: {
+		href: '/resources/faq/',
+		title: 'Questions & answers',
+		blurb: 'Local state, agents, and limits.',
+		icon: 'faq',
+	},
+	changelog: {
+		href: '/resources/changelog/',
+		title: 'Changelog',
+		blurb: 'What shipped, straight from the history.',
+		icon: 'changelog',
+	},
+	openSource: {
+		href: '/open-source/',
+		title: 'Open source',
+		blurb: 'MIT licensed. A protocol you can read.',
+		icon: 'source',
+	},
+} satisfies Record<string, Page>
+
 export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 	product: {
 		id: 'product',
@@ -57,38 +159,10 @@ export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 		overview: 'Product overview',
 		footer: 'Every review, one continuous conversation.',
 		items: [
-			{
-				href: '/product/review-desk/',
-				title: 'Review desk',
-				blurb: 'A verdict on every change your agent made.',
-				icon: 'desk',
-				availability: 'available',
-				preview: 'review',
-			},
-			{
-				href: '/product/walkthrough/',
-				title: 'Guided walkthrough',
-				blurb: 'A reading order, not a pile of files.',
-				icon: 'guide',
-				availability: 'available',
-				preview: 'guide',
-			},
-			{
-				href: '/product/ask-your-agent/',
-				title: 'Ask your agent',
-				blurb: 'Questions that stay on the exact line.',
-				icon: 'ask',
-				availability: 'available',
-				preview: 'ask',
-			},
-			{
-				href: '/product/plan-desk/',
-				title: 'Plan desk',
-				blurb: 'Question the plan before the code exists.',
-				icon: 'plan',
-				availability: 'prototype',
-				preview: 'plan',
-			},
+			PAGES.reviewDesk,
+			PAGES.walkthrough,
+			PAGES.askYourAgent,
+			PAGES.planDesk,
 		],
 	},
 	workflows: {
@@ -98,38 +172,10 @@ export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 		overview: 'All workflows',
 		footer: 'On your machine. With your agent.',
 		items: [
-			{
-				href: '/workflows/working-tree/',
-				title: 'Working tree',
-				blurb: 'Everything your agent just changed.',
-				icon: 'tree',
-				availability: 'available',
-				code: 'syneva',
-			},
-			{
-				href: '/workflows/staged-changes/',
-				title: 'Staged changes',
-				blurb: 'A last, careful look before the commit.',
-				icon: 'staged',
-				availability: 'available',
-				code: 'syneva --diff staged',
-			},
-			{
-				href: '/workflows/pull-requests/',
-				title: 'Pull requests',
-				blurb: 'A whole branch, against its merge-base.',
-				icon: 'branch',
-				availability: 'available',
-				code: 'syneva pr 128',
-			},
-			{
-				href: '/workflows/single-file/',
-				title: 'A single file',
-				blurb: 'A plan, a spec, or one piece of code.',
-				icon: 'file',
-				availability: 'available',
-				code: 'syneva file plan.md',
-			},
+			PAGES.workingTree,
+			PAGES.stagedChanges,
+			PAGES.pullRequests,
+			PAGES.singleFile,
 		],
 	},
 	resources: {
@@ -139,30 +185,10 @@ export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 		overview: 'All resources',
 		footer: 'Open source. MIT licensed.',
 		items: [
-			{
-				href: '/get-started/',
-				title: 'Get started',
-				blurb: 'From install to your first verdict.',
-				icon: 'start',
-			},
-			{
-				href: '/resources/connect-your-agent/',
-				title: 'Connect your agent',
-				blurb: 'The pi package and the CLI contract.',
-				icon: 'agent',
-			},
-			{
-				href: '/resources/faq/',
-				title: 'Questions & answers',
-				blurb: 'Local state, agents, and limits.',
-				icon: 'faq',
-			},
-			{
-				href: '/resources/changelog/',
-				title: 'Changelog',
-				blurb: 'What shipped, straight from the history.',
-				icon: 'changelog',
-			},
+			PAGES.getStarted,
+			PAGES.connectYourAgent,
+			PAGES.faq,
+			PAGES.changelog,
 		],
 	},
 }
@@ -171,12 +197,8 @@ export const SECTIONS: readonly Section[] = SECTION_ORDER.map(
 	id => SECTION_BY_ID[id],
 )
 
-export const OPEN_SOURCE: Page = {
-	href: '/open-source/',
-	title: 'Open source',
-	blurb: 'MIT licensed. A protocol you can read.',
-	icon: 'source',
-}
+// The one page outside the sections, which the header links on its own.
+export const OPEN_SOURCE = PAGES.openSource
 
 const PROTOTYPE_BADGE = 'Prototype'
 

@@ -11,6 +11,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseCommand from '@features/copy-command/ui/ProseCommand.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
+import { PAGES } from '@entities/site/model/site-map'
 
 const DIRECTION = [
 	['See the shape of the work.', 'Read a plan as a map of claims, as a document, or as source.'],
@@ -26,7 +27,7 @@ const DIRECTION = [
 	lede={'The cheapest bug is the one you argue out of the plan. The plan desk is where Syneva is heading next: an agent’s proposal turned into claims you can rank, question and settle before a single line is written.'}
 	caption="Prototype concept. Not in the CLI today."
 >
-	<Fragment slot="actions"><TextLink href="#today" label="What works today" /><TextLink href="/resources/changelog/" label="Follow progress in the changelog" /></Fragment>
+	<Fragment slot="actions"><TextLink href="#today" label="What works today" /><TextLink href={PAGES.changelog.href} label="Follow progress in the changelog" /></Fragment>
 	<PlanQueue slot="art" />
 </PageHero>
 <Chapter id="today" title="Available today:<br>review the plan as a file." caption="syneva file → rendered markdown → comments on blocks">

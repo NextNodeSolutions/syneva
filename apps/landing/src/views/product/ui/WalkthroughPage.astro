@@ -13,6 +13,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
+import { PAGES } from '@entities/site/model/site-map'
 
 const GUIDE = [
 	'# guide.json, written by your agent',
@@ -39,7 +40,7 @@ const FIELDS = [
 	lede={'Git lists changed files alphabetically. Understanding doesn’t work that way. Your agent knows what it changed and why, so let it hand you the order: contracts first, behavior next, the interface last.'}
 	caption="Same six files. One order makes sense of them."
 >
-	<Fragment slot="actions"><Button href="/get-started/" label="Try it on your diff" /><TextLink href="/resources/connect-your-agent/" label="How agents attach a guide" /></Fragment>
+	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Try it on your diff" /><TextLink href={PAGES.connectYourAgent.href} label="How agents attach a guide" /></Fragment>
 	<GuideSort slot="art" />
 </PageHero>
 <Prose id="guide" title="One small JSON file.">
