@@ -1,6 +1,6 @@
 import { EASE, toBezier } from './easing'
 import { animate } from './engine'
-import { POSE_VALUES } from './poses'
+import { moveStart, POSE_VALUES } from './poses'
 import { steps } from './steps'
 
 // The drawing vocabulary. An element opts in with data-anim="<kind>" and an
@@ -49,12 +49,6 @@ const typed = steps(TYPE_STEPS, progress => {
 	const outset = POSE_VALUES.typeOutset
 	return `inset(-${outset}px calc(${right}% - ${progress * outset}px) -${outset}px 0)`
 })
-
-function moveFrom(element: HTMLElement | SVGElement): string {
-	const x = element.style.getPropertyValue('--tx') || '0px'
-	const y = element.style.getPropertyValue('--ty') || '0px'
-	return `translate(${x}, ${y})`
-}
 
 // Starters receive the element's data-delay; entrances and signals wait a
 // beat (LAG_S) after the section arrives, pulses a longer one. An entrance
@@ -124,7 +118,7 @@ export const ENTRANCES = {
 		)
 		animate(
 			element,
-			{ transform: [moveFrom(element), 'none'] },
+			{ transform: [moveStart(element), 'none'] },
 			{ ...timing, ease: settle },
 		)
 	},

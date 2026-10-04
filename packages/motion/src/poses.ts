@@ -30,6 +30,13 @@ export const POSE_VALUES = {
 	typeUncovered: `inset(-${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px 0)`,
 } as const
 
+// A moving element starts offset by (x, y) px from its markup position:
+// moveOffset() writes the offset on the element, the move pose and the
+// runtime's first keyframe (moveStart()) read it.
+const OFFSET_X = '--tx'
+const OFFSET_Y = '--ty'
+const NO_OFFSET = '0px'
+
 const hidden = <T>(pose: T): When<When<T>> => ({
 	default: null,
 	[media.motionSafe]: { default: null, [armed()]: pose },
@@ -115,10 +122,12 @@ export const poses = stylex.create({
 		clipPath: hidden(POSE_VALUES.typeClipped),
 		...safetyNet(typeAnyway),
 	},
-	// The markup position is the resting one; --tx/--ty give the start offset.
+	// The markup position is the resting one; moveOffset() gives the start.
 	move: {
 		opacity: hidden(0),
-		transform: hidden('translate(var(--tx, 0px), var(--ty, 0px))'),
+		transform: hidden(
+			`translate(var(${OFFSET_X}, ${NO_OFFSET}), var(${OFFSET_Y}, ${NO_OFFSET}))`,
+		),
 		...safetyNet(showAnyway),
 	},
 	// A travelling signal is only ever seen in flight.
@@ -131,3 +140,13 @@ export const poses = stylex.create({
 	stalledShow: safetyNet(showAnyway),
 	stalledBand: { '::before': safetyNet(bandAnyway) },
 })
+
+export const moveOffset = (x: number, y: number): { style: string } => ({
+	style: `${OFFSET_X}:${x}px;${OFFSET_Y}:${y}px`,
+})
+
+export function moveStart(element: HTMLElement | SVGElement): string {
+	const offset = (name: string): string =>
+		element.style.getPropertyValue(name) || NO_OFFSET
+	return `translate(${offset(OFFSET_X)}, ${offset(OFFSET_Y)})`
+}

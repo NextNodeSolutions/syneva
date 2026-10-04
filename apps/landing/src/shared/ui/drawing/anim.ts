@@ -1,4 +1,4 @@
-import { poses } from '@syneva/motion/poses'
+import { moveOffset, poses } from '@syneva/motion/poses'
 
 import { sx } from '../../lib/sx'
 
@@ -49,7 +49,7 @@ export function move(
 ): AnimAttributes {
 	return {
 		...sx(poses.move, ...styles),
-		style: `--tx:${x}px;--ty:${y}px`,
+		...moveOffset(x, y),
 		'data-anim': 'move',
 		'data-delay': String(delay),
 	}
