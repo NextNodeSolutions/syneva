@@ -8,6 +8,7 @@
 import { sx } from '@shared/lib/sx'
 import CircuitLayer from './CircuitLayer.astro'
 import CircuitStation from './CircuitStation.astro'
+import { circuitPart, signalPart } from './circuit-part'
 import { LOOP_LABEL, PLATFORM_X, portsOn, ROW, WIRES } from './circuit-layout'
 import { circuit } from './circuit.styles'
 ---
@@ -37,15 +38,15 @@ import { circuit } from './circuit.styles'
 		<g {...sx(circuit.routes)} fill="none">
 			<use href="#flow-in"></use><use href="#flow-out"></use>
 			<use {...sx(circuit.returnRoute)} href="#flow-return"></use>
-			<use {...sx(circuit.signal)} href="#flow-in" data-signal="in"></use>
-			<use {...sx(circuit.signal, circuit.signalOut)} href="#flow-out" data-signal="out"></use>
-			<use {...sx(circuit.signal, circuit.signalReturn)} href="#flow-return" data-signal="return"></use>
+			<use {...sx(circuit.signal)} href="#flow-in" {...signalPart('in')}></use>
+			<use {...sx(circuit.signal, circuit.signalOut)} href="#flow-out" {...signalPart('out')}></use>
+			<use {...sx(circuit.signal, circuit.signalReturn)} href="#flow-return" {...signalPart('return')}></use>
 		</g>
 		<CircuitStation kind="source">
 			<g {...sx(circuit.sourceLeaves)}>
 				<use href="#review-leaf" transform="translate(0 -8) scale(.72)"></use>
 				<use href="#review-leaf" transform="translate(0 -19) scale(.72)"></use>
-				<g data-circuit-part="dispatch"><use href="#review-leaf" transform="translate(0 -30) scale(.72)"></use></g>
+				<g {...circuitPart('dispatch')}><use href="#review-leaf" transform="translate(0 -30) scale(.72)"></use></g>
 			</g>
 			<g {...sx(circuit.mark)} transform="translate(0 51) scale(1 .5)"><use href="#review-mark"></use></g>
 		</CircuitStation>
@@ -63,10 +64,10 @@ import { circuit } from './circuit.styles'
 		<CircuitStation kind="verdict">
 			<g transform="translate(0 -9) scale(.72)">
 				<use href="#review-leaf"></use>
-				<g {...sx(circuit.accepted)} data-circuit-part="accepted"><use href="#review-leaf"></use></g>
+				<g {...sx(circuit.accepted)} {...circuitPart('accepted')}><use href="#review-leaf"></use></g>
 			</g>
 			<g transform="translate(0 -21)">
-				<g data-circuit-part="seal">
+				<g {...circuitPart('seal')}>
 					<ellipse {...sx(circuit.sealEllipse)} rx="22" ry="11"></ellipse>
 					<g transform="scale(1 .5)"><use href="#verdict-check"></use></g>
 				</g>

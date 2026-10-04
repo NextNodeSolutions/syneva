@@ -1,9 +1,16 @@
 import { EASE } from '@syneva/motion/easing'
 import { loopTimeline } from '@syneva/motion/loop-timeline'
 
+import {
+	circuitPartSelector,
+	layerSelector,
+	signalSelector,
+} from './circuit-part'
+
 import type { Easing } from '@syneva/motion/easing'
 import type { Keyframes } from '@syneva/motion/engine'
 import type { Frame, Frames } from '@syneva/motion/loop-timeline'
+import type { CircuitPart, LayerKind, SignalName } from './circuit-part'
 
 // One 14s clock: dispatch, open, read, decide, return. The static pose tells
 // the whole story; only the three short signal strokes repaint, sheets move
@@ -13,16 +20,20 @@ const CYCLE_S = 14
 // Each layer rests stacked, `rest` px down, and lifts open to its --lift
 // (circuit.styles.ts, the static pose); a signal's dash is its
 // --signal-size. The minifier may rewrite a value, so it is parsed.
-const LAYERS = {
-	critical: { rest: 0, delay: 0 },
-	important: { rest: 10, delay: 0.06 },
-	tested: { rest: 20, delay: 0.12 },
-} as const
-const SIGNALS = {
-	in: { times: [0, 0.14, 0.15, 0.25, 0.26, 1], ease: EASE.review },
-	out: { times: [0, 0.47, 0.48, 0.63, 0.64, 1], ease: 'linear' },
-	return: { times: [0, 0.73, 0.74, 0.97, 0.98, 1], ease: 'linear' },
-} as const satisfies Record<string, { times: number[]; ease: Easing }>
+const LAYERS = [
+	{ kind: 'critical', rest: 0, delay: 0 },
+	{ kind: 'important', rest: 10, delay: 0.06 },
+	{ kind: 'tested', rest: 20, delay: 0.12 },
+] as const satisfies readonly { kind: LayerKind; rest: number; delay: number }[]
+const SIGNALS = [
+	{ name: 'in', times: [0, 0.14, 0.15, 0.25, 0.26, 1], ease: EASE.review },
+	{ name: 'out', times: [0, 0.47, 0.48, 0.63, 0.64, 1], ease: 'linear' },
+	{ name: 'return', times: [0, 0.73, 0.74, 0.97, 0.98, 1], ease: 'linear' },
+] as const satisfies readonly {
+	name: SignalName
+	times: number[]
+	ease: Easing
+}[]
 
 const pixels = (element: Element, property: string): number =>
 	Number.parseFloat(getComputedStyle(element).getPropertyValue(property))
@@ -95,7 +106,7 @@ const travel = (size: number, length: number): string[] => [
 	`${-length}px`,
 ]
 
-type PartLookup = (name: string) => Element
+type PartLookup = (name: CircuitPart) => Element
 
 // The changeset is dispatched, then its review layers lift apart and their
 // notes appear.
@@ -105,8 +116,8 @@ function unfold(svg: SVGSVGElement, part: PartLookup): void {
 		{ transform: hold('translateY(0px)', 'translateY(-9px)') },
 		{ times: [0, 0.06, 0.12, 0.19, 0.25, 1], ease: EASE.review },
 	)
-	Object.entries(LAYERS).forEach(([kind, { rest, delay }]) => {
-		const layer = svg.querySelector(`[data-circuit-layer="${kind}"]`)
+	LAYERS.forEach(({ kind, rest, delay }) => {
+		const layer = svg.querySelector(layerSelector(kind))
 		if (!layer) return
 		const lift = pixels(layer, '--lift')
 		loop(
@@ -120,7 +131,7 @@ function unfold(svg: SVGSVGElement, part: PartLookup): void {
 			{ times: [0, 0.25, 0.31, 0.54, 0.59, 1], ease: EASE.unfold, delay },
 		)
 	})
-	svg.querySelectorAll('[data-circuit-part="note"]').forEach(note => {
+	svg.querySelectorAll(circuitPartSelector('note')).forEach(note => {
 		loop(
 			note,
 			{ opacity: blink(1) },
@@ -173,8 +184,8 @@ function review(part: PartLookup): void {
 
 // The three signals travel their routes, measured from the live layout.
 function travelSignals(svg: SVGSVGElement, lengths: Map<string, number>): void {
-	Object.entries(SIGNALS).forEach(([name, { times, ease }]) => {
-		const signal = svg.querySelector(`[data-signal="${name}"]`)
+	SIGNALS.forEach(({ name, times, ease }) => {
+		const signal = svg.querySelector(signalSelector(name))
 		if (!signal) return
 		const route = signal.getAttribute('href')?.slice(1) ?? ''
 		loop(
@@ -196,10 +207,10 @@ export function playCircuit(
 	lengths: Map<string, number>,
 ): void {
 	const part: PartLookup = name => {
-		const found = svg.querySelector(`[data-circuit-part="${name}"]`)
+		const found = svg.querySelector(circuitPartSelector(name))
 		if (!found)
 			throw new Error(
-				`The review circuit has no ${name} part: mark it with data-circuit-part="${name}".`,
+				`The review circuit has no ${name} part: mark it with circuitPart('${name}').`,
 			)
 		return found
 	}
@@ -214,8 +225,8 @@ export function retimeSignals(
 	svg: SVGSVGElement,
 	lengths: Map<string, number>,
 ): void {
-	Object.keys(SIGNALS).forEach(name => {
-		const signal = svg.querySelector(`[data-signal="${name}"]`)
+	SIGNALS.forEach(({ name }) => {
+		const signal = svg.querySelector(signalSelector(name))
 		if (!signal) return
 		const route = signal.getAttribute('href')?.slice(1) ?? ''
 		const size = pixels(signal, '--signal-size')

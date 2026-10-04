@@ -1,3 +1,4 @@
+import { signalOnWire } from './circuit-part'
 import { loopLabelAt, routeWire } from './circuit-routing'
 
 import type { Route } from './circuit-routing'
@@ -28,9 +29,10 @@ export function routeCircuit(svg: SVGSVGElement): Map<string, number> {
 		path.setAttribute('d', routeWire(routeOf(path), from, to))
 		const length = path.getTotalLength()
 		lengths.set(path.id, length)
-		svg.querySelector<SVGElement>(
-			`[href="#${path.id}"][data-signal]`,
-		)?.style.setProperty('--route-length', `${length}px`)
+		svg.querySelector<SVGElement>(signalOnWire(path.id))?.style.setProperty(
+			'--route-length',
+			`${length}px`,
+		)
 	})
 	return lengths
 }
