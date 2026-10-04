@@ -31,6 +31,11 @@ export const POSE_VALUES = {
 	typeUncovered: `inset(-${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px 0)`,
 } as const
 
+// The pathLength a drawing's animated paths declare, so the dash values below
+// and in vocabulary.ts hold whatever a path really measures. A drawn line
+// hides behind one dash of its whole length; a signal travels in hundredths.
+export const PATH_LENGTH = { draw: 1, signal: 100 } as const
+
 // A moving element starts offset by (x, y) px from its markup position:
 // moveOffset() writes the offset on the element, the move pose and the
 // runtime's first keyframe (moveStart()) read it.
@@ -97,8 +102,8 @@ export const poses = stylex.create({
 		},
 	},
 	draw: {
-		strokeDasharray: hidden(1),
-		strokeDashoffset: hidden(1),
+		strokeDasharray: hidden(PATH_LENGTH.draw),
+		strokeDashoffset: hidden(PATH_LENGTH.draw),
 		...safetyNet(drawAnyway),
 	},
 	fade: { opacity: hidden(0), ...safetyNet(showAnyway) },

@@ -1,6 +1,6 @@
 import { EASE } from './easing'
 import { animate } from './engine'
-import { moveStart, POSE_VALUES } from './poses'
+import { moveStart, PATH_LENGTH, POSE_VALUES } from './poses'
 import { steps } from './steps'
 
 // The drawing vocabulary. An element opts in with data-anim="<kind>" and an
@@ -28,7 +28,7 @@ const TIMING = {
 	signalArrive: 0.64,
 	signalOff: 0.66,
 	signalDash: 7,
-	signalTravel: -100,
+	signalTravel: -PATH_LENGTH.signal,
 	pulse: 2.4,
 	pulseLow: 0.35,
 	blink: 1.1,
@@ -61,7 +61,7 @@ export const ENTRANCES = {
 	draw: (element, delay) =>
 		animate(
 			element,
-			{ strokeDashoffset: [1, 0] },
+			{ strokeDashoffset: [PATH_LENGTH.draw, 0] },
 			{ duration: TIMING.draw, delay: lag(delay), ease: out },
 		),
 	fade: (element, delay) =>
@@ -122,7 +122,7 @@ export const LOOPS = {
 	signal: (element, delay) => {
 		element.style.setProperty(
 			'stroke-dasharray',
-			`${TIMING.signalDash} ${PERCENT}`,
+			`${TIMING.signalDash} ${PATH_LENGTH.signal}`,
 		)
 		const shared = {
 			duration: TIMING.signal,
