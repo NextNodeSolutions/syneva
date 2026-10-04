@@ -7,6 +7,8 @@ import { playCircuit } from './circuit-loop'
 import { retimeSignals } from './circuit-signals'
 import { placeLoopLabel, routeCircuit } from './circuit-wires'
 
+import type { SignalName } from './circuit-part'
+
 // The review circuit's runtime: route the wires now, again when the phone
 // layout moves the stations (frames.ts swaps the viewBox) and once the fonts
 // settled (they can shift a port by a pixel), then run the loop unless the
@@ -15,7 +17,7 @@ import { placeLoopLabel, routeCircuit } from './circuit-wires'
 const phone = matchMedia(queries.phone)
 const svg = document.querySelector<SVGSVGElement>('svg[data-circuit]')
 
-let lengths = new Map<string, number>()
+let lengths = new Map<SignalName, number>()
 let isRunning = false
 
 // A running loop keeps its place on the clock; only its signals' travel

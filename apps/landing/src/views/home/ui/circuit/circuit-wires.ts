@@ -1,6 +1,8 @@
 import { RETURN_WIRE, WIRES } from './circuit-layout'
-import { signalOnWire } from './circuit-part'
+import { signalSelector } from './circuit-part'
 import { loopLabelAt, routeWire } from './circuit-routing'
+
+import type { SignalName } from './circuit-part'
 
 // The circuit's wires are re-routed from the ports' live positions: ports
 // include their responsive station transforms, and each signal references
@@ -28,23 +30,23 @@ function wirePath(svg: SVGSVGElement, id: string): SVGPathElement {
 	return path
 }
 
-// Returns each route's length, keyed by the path id its signal travels.
-export function routeCircuit(svg: SVGSVGElement): Map<string, number> {
-	const lengths = new Map<string, number>()
-	for (const { id, from, to, route } of WIRES) {
+// Returns each route's length, keyed by the signal that travels it.
+export function routeCircuit(svg: SVGSVGElement): Map<SignalName, number> {
+	const lengths = new Map<SignalName, number>()
+	for (const { id, from, to, route, signal } of WIRES) {
 		const path = wirePath(svg, id)
 		path.setAttribute(
 			'd',
 			routeWire(route, portPosition(svg, from), portPosition(svg, to)),
 		)
 		const length = path.getTotalLength()
-		lengths.set(id, length)
-		const signal = svg.querySelector<SVGElement>(signalOnWire(id))
-		if (!signal)
+		lengths.set(signal, length)
+		const signalUse = svg.querySelector<SVGElement>(signalSelector(signal))
+		if (!signalUse)
 			throw new Error(
-				`The circuit wire #${id} carries no signal: add a <use> with signalPart() that references it.`,
+				`The circuit wire #${id} carries no ${signal} signal: Circuit.astro draws it from WIRES with signalPart('${signal}').`,
 			)
-		signal.style.setProperty('--route-length', `${length}px`)
+		signalUse.style.setProperty('--route-length', `${length}px`)
 	}
 	return lengths
 }

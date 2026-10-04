@@ -1,5 +1,6 @@
 import { loopLabelAt, routeWire } from './circuit-routing'
 
+import type { SignalName } from './circuit-part'
 import type { Point, Route } from './circuit-routing'
 
 // The circuit on its wide frame: the source and verdict stations at either
@@ -37,11 +38,13 @@ const pointOf = (id: PortId): Point => {
 	return { x: PLATFORM_X[platform] + x, y: ROW + y }
 }
 
+// A wire joins two ports and carries one travelling signal.
 type Wire = {
 	readonly id: string
 	readonly from: PortId
 	readonly to: PortId
 	readonly route: Route
+	readonly signal: SignalName
 }
 
 export const RETURN_WIRE = {
@@ -49,6 +52,7 @@ export const RETURN_WIRE = {
 	from: 'verdict-return',
 	to: 'agent-return',
 	route: 'return',
+	signal: 'return',
 } as const satisfies Wire
 
 const routed = (wire: Wire): Wire & { readonly d: string } => ({
@@ -62,12 +66,14 @@ export const WIRES = [
 		from: 'agent-out',
 		to: 'review-in',
 		route: 'forward',
+		signal: 'in',
 	}),
 	routed({
 		id: 'flow-out',
 		from: 'review-out',
 		to: 'verdict-in',
 		route: 'forward',
+		signal: 'out',
 	}),
 	routed(RETURN_WIRE),
 ]

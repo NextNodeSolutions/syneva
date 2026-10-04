@@ -30,23 +30,18 @@ const travel = (size: number, length: number): string[] => [
 const signalOf = (svg: SVGSVGElement, name: SignalName): Element =>
 	findPart(svg, signalSelector(name), `signalPart('${name}')`)
 
-// A signal's dash offsets over its timing: it travels the whole wire it
-// references, as long as the live layout measured it. A signal without a
-// wire, or on a wire nothing routed, would sit still at 0px.
+// A signal's dash offsets over its timing: it travels its whole wire, as
+// long as the live layout measured it. A signal on no routed wire would sit
+// still at 0px.
 function signalTravel(
 	signal: Element,
 	name: SignalName,
-	lengths: Map<string, number>,
+	lengths: Map<SignalName, number>,
 ): string[] {
-	const wire = signal.getAttribute('href')?.slice(1)
-	if (!wire)
-		throw new Error(
-			`The circuit's ${name} signal references no wire: give it href="#<wire id>".`,
-		)
-	const length = lengths.get(wire)
+	const length = lengths.get(name)
 	if (!length)
 		throw new Error(
-			`The circuit's ${name} signal travels #${wire}, which routeCircuit() measured no length for: route it from WIRES in circuit-layout.ts.`,
+			`The circuit's ${name} signal rides no wire routeCircuit() measured: give it a WIRES entry in circuit-layout.ts.`,
 		)
 	return travel(pixels(signal, '--signal-size'), length)
 }
@@ -54,7 +49,7 @@ function signalTravel(
 // The three signals travel their routes, measured from the live layout.
 export function travelSignals(
 	svg: SVGSVGElement,
-	lengths: Map<string, number>,
+	lengths: Map<SignalName, number>,
 ): void {
 	SIGNALS.forEach(({ name, times, ease }) => {
 		const signal = signalOf(svg, name)
@@ -73,7 +68,7 @@ export function travelSignals(
 // on the clock and only their travel changes.
 export function retimeSignals(
 	svg: SVGSVGElement,
-	lengths: Map<string, number>,
+	lengths: Map<SignalName, number>,
 ): void {
 	SIGNALS.forEach(({ name }) => {
 		const signal = signalOf(svg, name)

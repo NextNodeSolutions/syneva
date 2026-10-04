@@ -17,19 +17,12 @@ export type LayerKind = 'tested' | 'important' | 'critical'
 // The travelling signals, by the leg of the loop they travel.
 export type SignalName = 'in' | 'out' | 'return'
 
-const SIGNAL = 'data-signal'
-
 export const { mark: circuitPart, selector: circuitPartSelector } =
 	partAttribute<CircuitPart>('data-circuit-part')
 export const { mark: layerPart, selector: layerSelector } =
 	partAttribute<LayerKind>('data-circuit-layer')
 export const { mark: signalPart, selector: signalSelector } =
-	partAttribute<SignalName>(SIGNAL)
-
-// The signal travelling a wire, found by the wire's id (circuit-wires.ts
-// routes wires, not signals).
-export const signalOnWire = (wireId: string): string =>
-	`[href="#${wireId}"][${SIGNAL}]`
+	partAttribute<SignalName>('data-signal')
 
 // Every piece the runtime drives is in the markup: a missing one is a bug in
 // Circuit.astro, not a piece to leave still.

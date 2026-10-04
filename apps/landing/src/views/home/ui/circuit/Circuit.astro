@@ -13,6 +13,9 @@ import CriticalFocus from './CriticalFocus.astro'
 import { circuitPart, signalPart } from './circuit-part'
 import { LOOP_LABEL, PLATFORM_X, portsOn, ROW, WIRES } from './circuit-layout'
 import { circuit } from './circuit.styles'
+
+// Each signal's tone, by the leg of the loop it travels.
+const SIGNAL_TONE = { in: null, out: circuit.signalOut, return: circuit.signalReturn } as const
 ---
 
 <Drawing
@@ -45,11 +48,8 @@ import { circuit } from './circuit.styles'
 	<g>
 		{/* Visible conductors and travelling signals share the same paths. */}
 		<g {...sx(circuit.routes)} fill="none">
-			<use href="#flow-in"></use><use href="#flow-out"></use>
-			<use {...sx(circuit.returnRoute)} href="#flow-return"></use>
-			<use {...sx(circuit.signal)} href="#flow-in" {...signalPart('in')}></use>
-			<use {...sx(circuit.signal, circuit.signalOut)} href="#flow-out" {...signalPart('out')}></use>
-			<use {...sx(circuit.signal, circuit.signalReturn)} href="#flow-return" {...signalPart('return')}></use>
+			{WIRES.map(({ id, route }) => <use {...sx(route === 'return' && circuit.returnRoute)} href={`#${id}`} />)}
+			{WIRES.map(({ id, signal }) => <use {...sx(circuit.signal, SIGNAL_TONE[signal])} href={`#${id}`} {...signalPart(signal)} />)}
 		</g>
 		<CircuitStation kind="source">
 			<g {...sx(circuit.sourceLeaves)}>

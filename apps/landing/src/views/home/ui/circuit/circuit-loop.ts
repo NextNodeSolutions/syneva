@@ -4,7 +4,7 @@ import { blink, hold, loop, pixels } from './circuit-clock'
 import { circuitPartSelector, findPart, layerSelector } from './circuit-part'
 import { travelSignals } from './circuit-signals'
 
-import type { CircuitPart, LayerKind } from './circuit-part'
+import type { CircuitPart, LayerKind, SignalName } from './circuit-part'
 
 // The circuit's loop on its clock (circuit-clock.ts): the changeset is
 // dispatched, its layers open, you read and decide, and the signals carry it
@@ -93,7 +93,7 @@ function review(part: PartLookup): void {
 
 export function playCircuit(
 	svg: SVGSVGElement,
-	lengths: Map<string, number>,
+	lengths: Map<SignalName, number>,
 ): void {
 	const part: PartLookup = name =>
 		findPart(svg, circuitPartSelector(name), `circuitPart('${name}')`)
