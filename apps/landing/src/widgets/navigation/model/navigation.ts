@@ -57,10 +57,6 @@ export class Navigation {
 		return this.#triggers
 	}
 
-	get currentTrigger(): HTMLElement | undefined {
-		return this.#currentTrigger
-	}
-
 	get isOpen(): boolean {
 		return (
 			Boolean(this.#currentPanel) ||
@@ -90,7 +86,7 @@ export class Navigation {
 		if (this.#currentPanel) this.#currentPanel.inert = true
 	}
 
-	closePanel(): void {
+	#closePanel(): void {
 		this.cancelTimers()
 		if (this.#dropdown.contains(document.activeElement))
 			this.#currentTrigger?.focus()
@@ -109,7 +105,7 @@ export class Navigation {
 			[this.#links, this.#dropdown].some(container =>
 				container.contains(focused),
 			)
-		this.closePanel()
+		this.#closePanel()
 		this.#root.dataset.mobileOpen = 'false'
 		this.#toggle.setAttribute('aria-expanded', 'false')
 		this.#toggle.setAttribute('aria-label', 'Open navigation')
@@ -160,7 +156,7 @@ export class Navigation {
 			this.#currentTrigger === trigger &&
 			this.#clickedTrigger === trigger
 		) {
-			this.closePanel()
+			this.#closePanel()
 			return
 		}
 		// Hover may already have opened it before the first deliberate click.
@@ -176,7 +172,7 @@ export class Navigation {
 		)
 			return
 		clearTimeout(this.#openTimer)
-		this.#closeTimer = setTimeout(() => this.closePanel(), CLOSE_DELAY_MS)
+		this.#closeTimer = setTimeout(() => this.#closePanel(), CLOSE_DELAY_MS)
 	}
 
 	keyboard(): void {
