@@ -3,7 +3,7 @@
 import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { ruledItem } from '@shared/ui/ruled-item.styles'
 import { section } from '@shared/ui/section.styles'
-import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
+import { revealCount, revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { facts } from './facts.styles'
 
@@ -28,7 +28,7 @@ const FACTS: readonly Fact[] = [
 		{
 			FACTS.map(({ count, unit, label }, i) => (
 				<div {...revealItem(ruledItem.base, facts.stat)}>
-					<span {...sx(facts.number, i === 0 && facts.first)} data-count={count}>
+					<span {...sx(facts.number, i === 0 && facts.first)} {...revealCount(count)}>
 						{count}{unit && <span {...sx(facts.unit)}>{unit}</span>}
 					</span>
 					<span {...sx(facts.label)}>{label}</span>
