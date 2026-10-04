@@ -69,11 +69,13 @@ export class Navigation {
 		this.#preview.reposition()
 	}
 
-	// inert alone holds a panel's state: it takes the closed panels out of
-	// the accessibility tree and the tab order, and the styles key on it.
+	// The inert attribute alone holds a panel's state: it takes the closed
+	// panels out of the accessibility tree and the tab order, and the styles
+	// key on it. The attribute is toggled, not the property, so a browser
+	// without inert still restyles the panel.
 	#hidePanel(): void {
 		this.#currentTrigger?.setAttribute('aria-expanded', 'false')
-		if (this.#currentPanel) this.#currentPanel.inert = true
+		this.#currentPanel?.toggleAttribute('inert', true)
 	}
 
 	#closePanel(): void {
@@ -113,7 +115,7 @@ export class Navigation {
 		this.#currentTrigger = trigger
 		this.#currentPanel = panel
 		this.positionPanel()
-		if (panel) panel.inert = false
+		panel?.toggleAttribute('inert', false)
 		trigger.setAttribute('aria-expanded', 'true')
 		this.#dropdown.dataset.open = 'true'
 	}
@@ -228,11 +230,12 @@ export class Navigation {
 	dismissOnFocusExit(event: FocusEvent): void {
 		const next = event.relatedTarget
 		if (next instanceof Node && this.#root.contains(next)) return
-		// A breakpoint can hide focus before its change event fires.
+		// A breakpoint can hide focus before its change event fires; a hidden
+		// element has no boxes (checkVisibility is missing in Safari before 17.4).
 		const hasHiddenFocus =
 			!next &&
 			event.target instanceof Element &&
-			!event.target.checkVisibility()
+			!event.target.getClientRects().length
 		this.dismiss()
 		if (hasHiddenFocus) this.#returnTarget(this.#triggers[0])?.focus()
 	}
