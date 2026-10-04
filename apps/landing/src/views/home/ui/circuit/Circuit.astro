@@ -28,7 +28,7 @@ import { circuit } from './circuit.styles'
 	<g slot="frame" {...sx(circuit.register)}><path d="M28 44V28h16m1072 0h16v16M28 436v16h16m1072 0h16v-16"></path></g>
 	<defs>
 		<clipPath id="review-face-clip"><use href="#review-face"></use></clipPath>
-		{WIRES.map(({ id, from, to, route, d }) => <path id={id} data-from={from} data-to={to} data-route={route} d={d} />)}
+		{WIRES.map(({ id, d }) => <path id={id} d={d} />)}
 		<g id="review-leaf">
 			<path {...sx(circuit.leafEdge)} d="M-112 0 0 56 112 0v5L0 61-112 5Z"></path>
 			<path {...sx(circuit.leafFace)} id="review-face" d="M0-56 112 0 0 56-112 0Z"></path>

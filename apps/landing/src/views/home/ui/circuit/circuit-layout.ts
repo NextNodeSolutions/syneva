@@ -44,7 +44,7 @@ type Wire = {
 	readonly route: Route
 }
 
-const RETURN_WIRE = {
+export const RETURN_WIRE = {
 	id: 'flow-return',
 	from: 'verdict-return',
 	to: 'agent-return',
