@@ -14,8 +14,21 @@ const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
 // Armed but never booted: the safety net shows everything after three seconds.
 const stalled = (): string =>
 	stylex.when.ancestor('[data-motion="pending"]', motionRoot)
-// The accent rule rests just short of opaque while it draws (see reveal.ts).
-const RULE_OPACITY = 0.9
+
+// The values the hidden poses hold, which the runtime's entrances (reveal.ts,
+// vocabulary.ts) start from. StyleX evaluates only values local to this file,
+// so they live here and the runtime imports them.
+const TYPE_OUTSET_PX = 4
+export const POSE_VALUES = {
+	itemRise: 'translateY(18px)',
+	// The accent rule rests just short of opaque while it draws.
+	ruleOpacity: 0.9,
+	rise: 'translateY(10px)',
+	// A typed line's clip reaches this far past its box, left edge aside.
+	typeOutset: TYPE_OUTSET_PX,
+	typeClipped: `inset(-${TYPE_OUTSET_PX}px 100% -${TYPE_OUTSET_PX}px 0)`,
+	typeUncovered: `inset(-${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px 0)`,
+} as const
 
 const hidden = <T>(pose: T): When<When<T>> => ({
 	default: null,
@@ -29,7 +42,7 @@ const whenStalled = <T>(fallback: T): When<When<T>> => ({
 const showAnyway = stylex.keyframes({ to: { opacity: 1, transform: 'none' } })
 const drawAnyway = stylex.keyframes({ to: { strokeDashoffset: 0 } })
 const typeAnyway = stylex.keyframes({
-	to: { clipPath: 'inset(-4px -4px -4px 0)' },
+	to: { clipPath: POSE_VALUES.typeUncovered },
 })
 const bandAnyway = stylex.keyframes({ to: { transform: 'none' } })
 
@@ -55,7 +68,7 @@ export const poses = stylex.create({
 	// index in the group (see reveal.ts).
 	revealItem: {
 		opacity: hidden(0),
-		transform: hidden('translateY(18px)'),
+		transform: hidden(POSE_VALUES.itemRise),
 		...safetyNet(showAnyway),
 	},
 	// [data-rule]: an accent rule draws over the section's top border, then
@@ -72,7 +85,7 @@ export const poses = stylex.create({
 			backgroundColor: hidden(color['--accent']),
 			transform: hidden('scaleX(0)'),
 			transformOrigin: hidden('left'),
-			opacity: hidden(RULE_OPACITY),
+			opacity: hidden(POSE_VALUES.ruleOpacity),
 		},
 	},
 	draw: {
@@ -83,7 +96,7 @@ export const poses = stylex.create({
 	fade: { opacity: hidden(0), ...safetyNet(showAnyway) },
 	rise: {
 		opacity: hidden(0),
-		transform: hidden('translateY(10px)'),
+		transform: hidden(POSE_VALUES.rise),
 		...safetyNet(showAnyway),
 	},
 	pop: {
@@ -99,7 +112,7 @@ export const poses = stylex.create({
 		...safetyNet(showAnyway),
 	},
 	type: {
-		clipPath: hidden('inset(-4px 100% -4px 0)'),
+		clipPath: hidden(POSE_VALUES.typeClipped),
 		...safetyNet(typeAnyway),
 	},
 	// The markup position is the resting one; --tx/--ty give the start offset.

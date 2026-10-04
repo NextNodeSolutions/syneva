@@ -1,5 +1,6 @@
 import { EASE, toBezier } from './easing'
 import { animate } from './engine'
+import { POSE_VALUES } from './poses'
 import { steps } from './steps'
 
 // The drawing vocabulary. An element opts in with data-anim="<kind>" and an
@@ -9,7 +10,6 @@ import { steps } from './steps'
 const LAG_S = 0.25
 const PULSE_LAG_S = 1.2
 const TYPE_STEPS = 28
-const TYPE_INSET_PX = 4
 const PERCENT = 100
 
 const out = toBezier(EASE.out)
@@ -40,15 +40,14 @@ const TIMING = {
 const HALF = 0.5
 
 // The typed line uncovers its clip-path one character-width at a time.
-// Both ends are the stylesheet's own values; the steps between interpolate
-// the right inset the way CSS does.
-const TYPE_FROM = 'inset(-4px 100% -4px 0)'
-const TYPE_TO = 'inset(-4px -4px -4px 0)'
+// Both ends are the pose's own values; the steps between interpolate the
+// right inset the way CSS does.
 const typed = steps(TYPE_STEPS, progress => {
-	if (progress === 0) return TYPE_FROM
-	if (progress === 1) return TYPE_TO
+	if (progress === 0) return POSE_VALUES.typeClipped
+	if (progress === 1) return POSE_VALUES.typeUncovered
 	const right = (1 - progress) * PERCENT
-	return `inset(-4px calc(${right}% - ${progress * TYPE_INSET_PX}px) -4px 0)`
+	const outset = POSE_VALUES.typeOutset
+	return `inset(-${outset}px calc(${right}% - ${progress * outset}px) -${outset}px 0)`
 })
 
 function moveFrom(element: HTMLElement | SVGElement): string {
@@ -81,7 +80,7 @@ export const ENTRANCES = {
 	rise: (element, delay) => {
 		animate(
 			element,
-			{ opacity: [0, 1], transform: ['translateY(10px)', 'none'] },
+			{ opacity: [0, 1], transform: [POSE_VALUES.rise, 'none'] },
 			{ duration: TIMING.rise, delay: lag(delay), ease: out },
 		)
 	},

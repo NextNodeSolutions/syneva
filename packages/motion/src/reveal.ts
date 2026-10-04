@@ -2,6 +2,7 @@ import { countUp } from './count-up'
 import { EASE, toBezier } from './easing'
 import { animate, inView } from './engine'
 import { playVocabulary } from './play-vocabulary'
+import { POSE_VALUES } from './poses'
 import { reducedMotion } from './preference'
 import { syncScenes } from './scenes'
 
@@ -11,9 +12,9 @@ import type { AnimateOptions } from './engine'
 // children rise in with a stagger, a [data-rule] section draws an accent rule
 // that settles into its border, its facts count up and its drawings play.
 const REVEAL = { amount: 0.12, margin: '0px 0px -8% 0px' } as const
-const ITEM = { duration: 0.7, stagger: 0.07, rise: 'translateY(18px)' } as const
+const ITEM = { duration: 0.7, stagger: 0.07 } as const
 const STAGGER_CAP = 9
-const RULE = { duration: 1.4, delay: 0.05, drawn: 0.7, opacity: 0.9 } as const
+const RULE = { duration: 1.4, delay: 0.05, drawn: 0.7 } as const
 
 const out = toBezier(EASE.out)
 const RULE_TIMING: AnimateOptions = {
@@ -32,7 +33,7 @@ function revealGroup(group: Element): void {
 	if (reducedMotion.matches) return
 	animate(
 		itemsOf(group),
-		{ opacity: [0, 1], transform: [ITEM.rise, 'none'] },
+		{ opacity: [0, 1], transform: [POSE_VALUES.itemRise, 'none'] },
 		{
 			duration: ITEM.duration,
 			ease: out,
@@ -44,7 +45,7 @@ function revealGroup(group: Element): void {
 			group,
 			{
 				transform: ['scaleX(0)', 'scaleX(1)', 'scaleX(1)'],
-				opacity: [RULE.opacity, RULE.opacity, 0],
+				opacity: [POSE_VALUES.ruleOpacity, POSE_VALUES.ruleOpacity, 0],
 			},
 			RULE_TIMING,
 		)
