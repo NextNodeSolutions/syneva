@@ -2,13 +2,15 @@
 // element the script drives, found once. A missing part means the template
 // changed under the script, so the lookup fails loud instead of leaving a
 // header whose menus never open. A menu may have no preview rows.
+type NonEmptyArray<Item> = readonly [Item, ...Item[]]
+
 export type NavigationParts = {
 	root: HTMLElement
 	links: HTMLElement
 	dropdown: HTMLElement
 	toggle: HTMLElement
-	triggers: HTMLElement[]
-	panels: HTMLElement[]
+	triggers: NonEmptyArray<HTMLElement>
+	panels: NonEmptyArray<HTMLElement>
 	previewLinks: HTMLElement[]
 	scenes: HTMLElement[]
 }
@@ -24,10 +26,15 @@ function queryPart(scope: ParentNode, attribute: string): HTMLElement {
 	return part
 }
 
-function queryParts(scope: ParentNode, attribute: string): HTMLElement[] {
-	const parts = [...scope.querySelectorAll<HTMLElement>(`[${attribute}]`)]
-	if (!parts.length) throw missing(attribute)
-	return parts
+function queryParts(
+	scope: ParentNode,
+	attribute: string,
+): NonEmptyArray<HTMLElement> {
+	const [first, ...rest] = [
+		...scope.querySelectorAll<HTMLElement>(`[${attribute}]`),
+	]
+	if (!first) throw missing(attribute)
+	return [first, ...rest]
 }
 
 export function queryNavigationParts(scope: ParentNode): NavigationParts {

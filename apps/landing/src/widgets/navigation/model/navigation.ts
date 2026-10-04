@@ -28,9 +28,9 @@ type Focusable = { focus: () => void }
 export class Navigation {
 	readonly #root: HTMLElement
 	readonly #links: HTMLElement
-	readonly #triggers: HTMLElement[]
+	readonly #triggers: NavigationParts['triggers']
 	readonly #dropdown: HTMLElement
-	readonly #panels: HTMLElement[]
+	readonly #panels: NavigationParts['panels']
 	readonly #morph: NavigationMorph
 	readonly #preview: ProductPreview
 	readonly #hoverIntent = new HoverIntent()
@@ -191,7 +191,6 @@ export class Navigation {
 			return
 		}
 		const [first] = this.#triggers
-		if (!first) return
 		this.#phoneBar.open()
 		const isKeyboard = isKeyboardActivation(event)
 		this.#showPanel(first, isKeyboard ? 'keyboard' : 'pointer')

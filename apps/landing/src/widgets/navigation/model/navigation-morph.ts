@@ -41,7 +41,7 @@ type Motion = { target: Values; controls?: ReturnType<typeof animate> }
 export class NavigationMorph {
 	readonly #navigation: HTMLElement
 	readonly #links: HTMLElement
-	readonly #panels: HTMLElement[]
+	readonly #panels: NavigationParts['panels']
 	readonly #scenes: HTMLElement[]
 	readonly #shell: Channel<GeometryName>
 	readonly #panelChannels: Channel<ContentName>[]
