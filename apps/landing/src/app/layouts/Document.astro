@@ -17,6 +17,8 @@ type Props = { title: string; description: string }
 
 const { title, description } = Astro.props
 const canonical = `${SITE_URL}${Astro.url.pathname}`
+// The 404 answers every missing address, so it claims no URL of its own.
+const hasAddress = Astro.locals.page !== 'lost'
 ---
 
 <!doctype html>
@@ -27,12 +29,12 @@ const canonical = `${SITE_URL}${Astro.url.pathname}`
 		<meta name="theme-color" content={hexColor.paper} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
-		<link rel="canonical" href={canonical} />
+		{hasAddress && <link rel="canonical" href={canonical} />}
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content={SITE_NAME} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
-		<meta property="og:url" content={canonical} />
+		{hasAddress && <meta property="og:url" content={canonical} />}
 		<meta property="og:image" content={`${SITE_URL}/og.png`} />
 		<meta name="twitter:card" content="summary_large_image" />
 		<link rel="icon" href="/mark.svg" type="image/svg+xml" />
