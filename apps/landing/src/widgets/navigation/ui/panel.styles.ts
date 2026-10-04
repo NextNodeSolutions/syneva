@@ -69,6 +69,7 @@ export const panel = stylex.create({
 		},
 	},
 	resourceLinks: { padding: INSET },
+	// WorkflowLink.astro rules its cells by this column count (COLUMNS).
 	workflowLinks: {
 		display: 'grid',
 		gridTemplateColumns: { default: '1fr 1fr', [media.navToggle]: '1fr' },
