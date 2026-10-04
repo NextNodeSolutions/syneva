@@ -18,8 +18,6 @@ const ARROWS: Record<string, (index: number, count: number) => number> = {
 	End: (_index, count) => count - 1,
 }
 
-type Focusable = { focus: () => void }
-
 // The header's panel state and focus: hover and click open a section's panel
 // in the morphing dropdown, arrow keys move between triggers, Escape and
 // outside presses dismiss, and on phones the toggle opens the link bar first.
@@ -96,6 +94,20 @@ export class Navigation {
 		this.#closePanel()
 		this.#phoneBar.close()
 		if (shouldRestore) this.#phoneBar.focus()
+	}
+
+	// Focus that was in the header moves, before the dismissal, to what the
+	// dismissal leaves shown: on phones the toggle, since the bar folds and
+	// hides the triggers, else the open trigger or the first one. Moving it
+	// first leaves the dismissal nothing to restore. A menu opened by hover
+	// leaves focus where it was on the page.
+	#dismissRestoringFocus(focused: EventTarget | null): void {
+		const target = compact.matches
+			? this.#phoneBar
+			: (this.#openMenu?.trigger ?? this.#menus[0].trigger)
+		if (focused instanceof Node && this.#root.contains(focused))
+			target.focus()
+		this.dismiss()
 	}
 
 	#showPanel(menu: SectionMenu, mode: InputMode = 'pointer'): void {
@@ -186,13 +198,8 @@ export class Navigation {
 		if (isKeyboard) first.trigger.focus()
 	}
 
-	// Focus goes back to the toggle or the trigger only when it was in the
-	// header: a menu opened by hover leaves focus where it was on the page.
 	escape(): void {
-		const hadFocus = this.#root.contains(document.activeElement)
-		const target = this.#returnTarget(this.#openMenu?.trigger)
-		this.dismiss()
-		if (hadFocus) target?.focus()
+		this.#dismissRestoringFocus(document.activeElement)
 	}
 
 	selectPreview(link: HTMLElement): void {
@@ -200,13 +207,8 @@ export class Navigation {
 	}
 
 	adaptToBreakpoint(): void {
-		const hasFocus = this.#root.contains(document.activeElement)
-		const target = this.#returnTarget(
-			this.#openMenu?.trigger ?? this.#menus[0].trigger,
-		)
-		this.dismiss()
+		this.#dismissRestoringFocus(document.activeElement)
 		this.positionPanel()
-		if (hasFocus) target?.focus()
 	}
 
 	dismissOnOutsidePress(event: PointerEvent): void {
@@ -224,13 +226,7 @@ export class Navigation {
 			!next &&
 			event.target instanceof Element &&
 			!event.target.getClientRects().length
-		this.dismiss()
-		if (hasHiddenFocus) this.#returnTarget(this.#menus[0].trigger)?.focus()
-	}
-
-	// Where focus returns as the menu closes: on phones the toggle, since the
-	// dismissal folds the bar and hides the triggers, else the given trigger.
-	#returnTarget(trigger: HTMLElement | undefined): Focusable | undefined {
-		return compact.matches ? this.#phoneBar : trigger
+		if (hasHiddenFocus) this.#dismissRestoringFocus(event.target)
+		else this.dismiss()
 	}
 }
