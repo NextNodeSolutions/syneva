@@ -13,9 +13,11 @@ const ARROWS: Record<string, (index: number, count: number) => number> = {
 
 function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
 	trigger.addEventListener('pointerenter', event =>
-		navigation.hover(trigger, event),
+		navigation.scheduleOpen(trigger, event),
 	)
-	trigger.addEventListener('click', event => navigation.click(trigger, event))
+	trigger.addEventListener('click', event =>
+		navigation.activate(trigger, event),
+	)
 	trigger.addEventListener('keydown', event => {
 		if (event.key === 'ArrowDown') {
 			event.preventDefault()
@@ -84,10 +86,14 @@ async function bindNavigation(root: HTMLElement): Promise<void> {
 	const navigation = new Navigation(root, { links, dropdown, toggle })
 	navigation.triggers.forEach(trigger => bindTrigger(navigation, trigger))
 	root.addEventListener('pointerenter', () => navigation.keepOpen())
-	root.addEventListener('pointerleave', event => navigation.leave(event))
+	root.addEventListener('pointerleave', event =>
+		navigation.scheduleClose(event),
+	)
 	dropdown.addEventListener('pointerenter', () => navigation.cancelTimers())
-	root.addEventListener('keydown', () => navigation.keyboard())
-	root.addEventListener('focusout', event => navigation.focusLeft(event))
+	root.addEventListener('keydown', () => navigation.enterKeyboardMode())
+	root.addEventListener('focusout', event =>
+		navigation.dismissOnFocusExit(event),
+	)
 	toggle.addEventListener('click', event => navigation.toggleBar(event))
 	root.addEventListener('click', event => {
 		if (event.target instanceof Element && event.target.closest('a'))
@@ -102,7 +108,7 @@ async function bindNavigation(root: HTMLElement): Promise<void> {
 				row.style.setProperty('--menu-order', String(index))
 			})
 	})
-	compact.addEventListener('change', () => navigation.breakpointChanged())
+	compact.addEventListener('change', () => navigation.adaptToBreakpoint())
 	const reposition = (): void => navigation.positionPanel()
 	window.addEventListener('resize', reposition)
 	const resizeObserver = new ResizeObserver(reposition)

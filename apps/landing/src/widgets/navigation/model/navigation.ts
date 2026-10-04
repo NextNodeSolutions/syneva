@@ -13,7 +13,7 @@ const isMouse = (event: PointerEvent): boolean => event.pointerType === 'mouse'
 // A click without a press count came from the keyboard (Enter or Space).
 const isKeyboardActivation = (event: MouseEvent): boolean => event.detail === 0
 
-type Input = 'pointer' | 'keyboard'
+type InputMode = 'pointer' | 'keyboard'
 
 export class Navigation {
 	readonly #root: HTMLElement
@@ -114,9 +114,9 @@ export class Navigation {
 		if (shouldRestore) this.#toggle.focus()
 	}
 
-	showPanel(trigger: HTMLElement, input: Input = 'pointer'): void {
+	showPanel(trigger: HTMLElement, mode: InputMode = 'pointer'): void {
 		this.cancelTimers()
-		this.#root.dataset.input = input
+		this.#root.dataset.input = mode
 		if (trigger === this.#currentTrigger) return
 		this.#clickedTrigger = undefined
 		if (this.#dropdown.contains(document.activeElement)) trigger.focus()
@@ -140,7 +140,7 @@ export class Navigation {
 		this.#currentPanel?.querySelector('a')?.focus()
 	}
 
-	hover(trigger: HTMLElement, event: PointerEvent): void {
+	scheduleOpen(trigger: HTMLElement, event: PointerEvent): void {
 		if (compact.matches || !isMouse(event)) return
 		this.cancelTimers()
 		this.#openTimer = setTimeout(
@@ -149,7 +149,7 @@ export class Navigation {
 		)
 	}
 
-	click(trigger: HTMLElement, event: MouseEvent): void {
+	activate(trigger: HTMLElement, event: MouseEvent): void {
 		if (isKeyboardActivation(event)) {
 			this.focusPanel(trigger)
 			return
@@ -166,7 +166,7 @@ export class Navigation {
 		this.#clickedTrigger = trigger
 	}
 
-	leave(event: PointerEvent): void {
+	scheduleClose(event: PointerEvent): void {
 		if (
 			compact.matches ||
 			!isMouse(event) ||
@@ -177,7 +177,7 @@ export class Navigation {
 		this.#closeTimer = setTimeout(() => this.#closePanel(), CLOSE_DELAY_MS)
 	}
 
-	keyboard(): void {
+	enterKeyboardMode(): void {
 		this.#root.dataset.input = 'keyboard'
 		this.#morph.finish()
 	}
@@ -215,7 +215,7 @@ export class Navigation {
 		)
 	}
 
-	breakpointChanged(): void {
+	adaptToBreakpoint(): void {
 		const hasFocus = this.#root.contains(document.activeElement)
 		const target = compact.matches
 			? this.#toggle
@@ -225,7 +225,7 @@ export class Navigation {
 		if (hasFocus) target?.focus()
 	}
 
-	focusLeft(event: FocusEvent): void {
+	dismissOnFocusExit(event: FocusEvent): void {
 		const next = event.relatedTarget
 		if (next instanceof Node && this.#root.contains(next)) return
 		// A breakpoint can hide focus before its change event fires.
