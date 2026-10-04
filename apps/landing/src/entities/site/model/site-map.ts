@@ -31,7 +31,7 @@ export type WorkflowPage = BasePage & {
 export type Page = ProductPage | WorkflowPage | BasePage
 
 // Menus and the footer list the sections in this order.
-export const SECTION_ORDER = ['product', 'workflows', 'resources'] as const
+const SECTION_ORDER = ['product', 'workflows', 'resources'] as const
 export type SectionId = (typeof SECTION_ORDER)[number]
 
 // The kind of page each section lists.
