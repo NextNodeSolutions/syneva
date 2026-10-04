@@ -1,10 +1,10 @@
 ---
-// The review circuit, formerly the hero drawing: the full diff travels
-// horizontally while its review layers separate vertically. It opens the How
-// it works section, where its loop (diff, focus, verdict, next revision) is
-// the story being told. Its wires and loop label are routed at build time
-// (circuit-layout.ts); circuit.client.ts re-routes them from the ports' live
-// positions and runs its loop.
+// The review circuit: the full diff travels horizontally while its review
+// layers separate vertically. It opens the How it works section, where its
+// loop (diff, focus, verdict, next revision) is the story being told. Its
+// wires and loop label are routed at build time (circuit-layout.ts);
+// circuit.client.ts re-routes them from the ports' live positions and runs
+// its loop.
 import { sx } from '@shared/lib/sx'
 import CircuitLayer from './CircuitLayer.astro'
 import CircuitStation from './CircuitStation.astro'

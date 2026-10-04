@@ -7,8 +7,8 @@ import type { Frame } from '@syneva/motion/loop-timeline'
 
 // One 14s clock: dispatch, open, read, decide, return. The static pose tells
 // the whole story; only the three short signal strokes repaint, sheets move
-// with transform and opacity. Times are fractions of the cycle; every segment
-// eases on its own, like the stylesheet's keyframes did.
+// with transform and opacity. Times are fractions of the cycle, and every
+// segment eases on its own.
 const CYCLE_S = 14
 // Each layer rests stacked, `rest` px down, and lifts open to its --lift
 // (circuit.styles.ts, the static pose); a signal's dash is its
