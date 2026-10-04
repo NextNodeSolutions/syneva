@@ -21,7 +21,7 @@ const PROJECT = [
 		<div>
 			<Brand />
 			<p {...sx(footer.pitch)}>The review desk for code your agent wrote. Local, open source, and built for the human in the loop.</p>
-			<Button href={PAGES.getStarted.href} label="Start a local review" isSmall />
+			<Button href={PAGES.getStarted.href} label="Start a local review" css={footer.action} />
 		</div>
 		<nav {...sx(footer.map)} aria-label="Site map">
 			{

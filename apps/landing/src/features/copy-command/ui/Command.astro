@@ -6,12 +6,12 @@ import { sx } from '@shared/lib/sx'
 import { command } from './command.styles'
 import { copyMarker } from './command.stylex'
 
-type Props = { text: string; label?: string; isInstall?: boolean; css?: Part }
+type Props = { text: string; label?: string; css?: Part }
 
-const { text, label = 'Command', isInstall = false, css } = Astro.props
+const { text, label = 'Command', css } = Astro.props
 ---
 
-<div {...sx(command.box, isInstall && command.install, css)} data-command>
+<div {...sx(command.box, css)} data-command>
 	<span {...sx(command.prompt)} aria-hidden="true">$</span><input
 		{...sx(command.field)}
 		name="command"

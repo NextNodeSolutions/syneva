@@ -30,12 +30,6 @@ export const button = stylex.create({
 		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, border-color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		transform: { default: null, ':active': 'scale(.97)' },
 	},
-	small: {
-		minHeight: '44px',
-		fontSize: '14px',
-		padding: '10px 16px',
-		gap: '18px',
-	},
 	primary: {
 		color: color['--white'],
 		backgroundColor: {

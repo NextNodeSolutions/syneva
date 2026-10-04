@@ -55,14 +55,6 @@ export const command = stylex.create({
 		flex: { default: null, [inPageActions()]: '1 1 260px' },
 		maxWidth: { default: null, [inPageActions()]: '340px' },
 	},
-	// In the install band the field sits on the wash: paper ground, petrol rule.
-	install: {
-		borderColor: {
-			default: color['--accent-line'],
-			':has(.is-copied)': color['--green'],
-		},
-		backgroundColor: color['--paper'],
-	},
 	prompt: { color: color['--accent'], font: `14px ${font['--mono']}` },
 	field: {
 		...noBorder,

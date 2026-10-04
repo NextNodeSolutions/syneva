@@ -27,6 +27,13 @@ export const footer = stylex.create({
 		paddingInline: layout['--gutter'],
 	},
 	pitch: { margin: '18px 0 26px', fontSize: '15px', maxWidth: '320px' },
+	// A compact primary action under the pitch.
+	action: {
+		minHeight: '44px',
+		fontSize: '14px',
+		padding: '10px 16px',
+		gap: '18px',
+	},
 	map: {
 		display: 'grid',
 		gridTemplateColumns: {

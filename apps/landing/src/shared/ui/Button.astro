@@ -6,11 +6,11 @@ import ArrowRight from './ArrowRight.astro'
 import { button } from './actions.styles'
 import { buttonMarker } from './actions.stylex'
 
-type Props = { href: string; label: string; isSmall?: boolean; css?: Part }
+type Props = { href: string; label: string; css?: Part }
 
-const { href, label, isSmall = false, css } = Astro.props
+const { href, label, css } = Astro.props
 ---
 
-<a {...sx(button.base, isSmall && button.small, button.primary, css, buttonMarker)} href={href}>
+<a {...sx(button.base, button.primary, css, buttonMarker)} href={href}>
 	{label} <ArrowRight css={button.arrow} />
 </a>

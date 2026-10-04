@@ -30,4 +30,12 @@ export const band = stylex.create({
 		marginBottom: '10px',
 	},
 	next: { marginTop: '30px' },
+	// The commands sit on the wash: paper ground, petrol rule.
+	command: {
+		borderColor: {
+			default: color['--accent-line'],
+			':has(.is-copied)': color['--green'],
+		},
+		backgroundColor: color['--paper'],
+	},
 })
