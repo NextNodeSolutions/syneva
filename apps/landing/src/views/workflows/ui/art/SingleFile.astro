@@ -1,6 +1,7 @@
 ---
 // Single file: three states, and markdown reviewed as rendered blocks.
 import { sx } from '@shared/lib/sx'
+import AskThread from '@shared/ui/drawing/AskThread.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -47,8 +48,9 @@ const STATES = [
 	</g>
 	<path {...anim('draw', 0.9, homeArt.askAnchor)} d="M408 254h28"></path>
 	<g {...anim('rise', 1.1)}>
-		<rect {...sx(homeArt.askThread)} x="436" y="214" width="140" height="92"></rect><path {...sx(homeArt.askRail)} d="M436 214v92"></path>
-		<text {...sx(text.tiny)} x="448" y="234">YOU · ASK</text><text {...sx(text.small)} x="448" y="252">Who flips the</text><text {...sx(text.small)} x="448" y="268">flag in step 2?</text>
-		<text {...sx(text.tiny, text.accent)} x="448" y="292">ON THIS BLOCK</text>
+		<AskThread x={436} y={214} width={140} height={92}>
+			<text {...sx(text.tiny)} x="448" y="234">YOU · ASK</text><text {...sx(text.small)} x="448" y="252">Who flips the</text><text {...sx(text.small)} x="448" y="268">flag in step 2?</text>
+			<text {...sx(text.tiny, text.accent)} x="448" y="292">ON THIS BLOCK</text>
+		</AskThread>
 	</g>
 </Drawing>

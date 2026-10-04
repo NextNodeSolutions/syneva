@@ -2,6 +2,7 @@
 // Plan desk: what already works today, with syneva file.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
+import AskThread from '@shared/ui/drawing/AskThread.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -30,9 +31,10 @@ import { text } from '@shared/ui/drawing/text.styles'
 	</g>
 	<path {...anim('draw', 0.6, homeArt.askAnchor)} d="M348 190h34"></path>
 	<g {...anim('rise', 0.8)}>
-		<rect {...sx(homeArt.askThread)} x="382" y="150" width="166" height="88"></rect><path {...sx(homeArt.askRail)} d="M382 150v88"></path>
-		<text {...sx(text.tiny)} x="394" y="170">YOU · ASK</text><text {...sx(text.small)} x="394" y="188">What happens when</text><text {...sx(text.small)} x="394" y="204">the session expires?</text>
-		<text {...sx(text.tiny, text.accent)} x="394" y="226">AGENT IS ANSWERING…</text>
+		<AskThread x={382} y={150} width={166} height={88}>
+			<text {...sx(text.tiny)} x="394" y="170">YOU · ASK</text><text {...sx(text.small)} x="394" y="188">What happens when</text><text {...sx(text.small)} x="394" y="204">the session expires?</text>
+			<text {...sx(text.tiny, text.accent)} x="394" y="226">AGENT IS ANSWERING…</text>
+		</AskThread>
 	</g>
 	<text {...anim('fade', 1.2, text.code)} x="56" y="322">$ syneva file plan.md</text>
 </Drawing>

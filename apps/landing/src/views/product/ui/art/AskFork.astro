@@ -2,6 +2,7 @@
 // Ask your agent: one line, two intents.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
+import AskThread from '@shared/ui/drawing/AskThread.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -37,9 +38,10 @@ const TO_CHANGE = 'M300 220C340 220 340 300 380 300'
 	</g>
 	<text {...anim('fade', 0.8, text.tiny, text.accent)} x="380" y="34">ASK · ⌘⇧↵ · ANSWERED NOW</text>
 	<g {...anim('rise', 0.9)}>
-		<rect {...sx(homeArt.askThread)} x="380" y="44" width="190" height="112"></rect><path {...sx(homeArt.askRail)} d="M380 44v112"></path>
-		<text {...sx(text.tiny)} x="394" y="64">YOU</text><text {...sx(text.copy)} x="394" y="82">Why verify here?</text>
-		<text {...sx(text.tiny, text.accent)} x="394" y="108">YOUR AGENT</text><text {...sx(text.small)} x="394" y="126">So an expired session</text><text {...sx(text.small)} x="394" y="142">returns 401 first.</text>
+		<AskThread x={380} y={44} width={190} height={112}>
+			<text {...sx(text.tiny)} x="394" y="64">YOU</text><text {...sx(text.copy)} x="394" y="82">Why verify here?</text>
+			<text {...sx(text.tiny, text.accent)} x="394" y="108">YOUR AGENT</text><text {...sx(text.small)} x="394" y="126">So an expired session</text><text {...sx(text.small)} x="394" y="142">returns 401 first.</text>
+		</AskThread>
 	</g>
 	<text {...anim('fade', 1, text.tiny)} x="380" y="262">REQUEST CHANGE · ⌘↵</text>
 	<g {...anim('rise', 1.1)}>

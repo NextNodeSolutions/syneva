@@ -2,6 +2,7 @@
 // 404: the page you wanted, as a rejected change.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
+import AskThread from '@shared/ui/drawing/AskThread.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -27,8 +28,9 @@ import { text } from '@shared/ui/drawing/text.styles'
 	</g>
 	<path {...anim('draw', 1, homeArt.askAnchor)} d="M70 178v28"></path>
 	<g {...anim('rise', 1.1)}>
-		<rect {...sx(homeArt.askThread)} x="56" y="206" width="420" height="78"></rect><path {...sx(homeArt.askRail)} d="M56 206v78"></path>
-		<text {...sx(text.tiny)} x="72" y="226">YOU · ASK</text><text {...sx(text.copy)} x="72" y="244">Where did this page go?</text>
-		<text {...anim('fade', 1.6, text.small)} x="72" y="270">It isn&rsquo;t here. Every page that exists is linked below.</text>
+		<AskThread x={56} y={206} width={420} height={78}>
+			<text {...sx(text.tiny)} x="72" y="226">YOU · ASK</text><text {...sx(text.copy)} x="72" y="244">Where did this page go?</text>
+			<text {...anim('fade', 1.6, text.small)} x="72" y="270">It isn&rsquo;t here. Every page that exists is linked below.</text>
+		</AskThread>
 	</g>
 </Drawing>
