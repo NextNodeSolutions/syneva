@@ -1,5 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 
+import { media } from './media.stylex'
+
 // The variables keep literal custom-property names: the global stylesheet,
 // SVG paints and the motion timelines read the same names StyleX writes, so
 // one definition serves the three of them.
@@ -52,12 +54,12 @@ export const duration = stylex.defineVars({
 	'--duration-medium': '200ms',
 })
 
-// The frame gutter narrows on tablets and phones; the ranges are exclusive
-// so the variable never depends on rule order.
+// The frame gutter narrows on tablets and phones. StyleX writes a variable's
+// width queries widest first, so the phone value wins where both match.
 export const layout = stylex.defineVars({
 	'--gutter': {
 		default: '48px',
-		'@media (min-width: 601px) and (max-width: 900px)': '30px',
-		'@media (max-width: 600px)': '20px',
+		[media.narrow]: '30px',
+		[media.phone]: '20px',
 	},
 })
