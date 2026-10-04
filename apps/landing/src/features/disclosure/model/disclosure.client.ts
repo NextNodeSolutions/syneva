@@ -21,36 +21,43 @@ const remeasure = (): void => {
 	moving.forEach(run => run())
 }
 
-function clearAnswer(answer: HTMLElement | null): void {
-	answer?.getAnimations().forEach(animation => animation.cancel())
-	answer?.style.removeProperty('opacity')
-	answer?.style.removeProperty('transform')
+function clearAnswer(answer: HTMLElement): void {
+	answer.getAnimations().forEach(animation => animation.cancel())
+	answer.style.removeProperty('opacity')
+	answer.style.removeProperty('transform')
 }
 
-function fadeAnswer(
-	answer: HTMLElement | null,
-	fade: number,
-	isOpening: boolean,
-): void {
-	if (!answer) return
-	// The closing fade holds at 0 until the row folds shut, so the answer never
-	// pops back to full opacity in the last frames.
-	const keyframes = isOpening
-		? {
-				opacity: [fade, 1],
-				transform: [`translateY(${(fade - 1) * RISE_PX}px)`, 'none'],
-			}
-		: { opacity: [fade, 0] }
-	animate(answer, keyframes, { duration: DURATION_S, ease })
+// The opening answer rises in from its current opacity.
+function fadeAnswerIn(answer: HTMLElement, fade: number): void {
+	animate(
+		answer,
+		{
+			opacity: [fade, 1],
+			transform: [`translateY(${(fade - 1) * RISE_PX}px)`, 'none'],
+		},
+		{ duration: DURATION_S, ease },
+	)
 }
 
+// The closing fade holds at 0 until the row folds shut, so the answer never
+// pops back to full opacity in the last frames.
+function fadeAnswerOut(answer: HTMLElement, fade: number): void {
+	animate(answer, { opacity: [fade, 0] }, { duration: DURATION_S, ease })
+}
+
+// Disclosure.astro and QaDisclosure.astro render a summary and its answer, so
+// a row missing either is broken.
 function bindDisclosure(details: HTMLDetailsElement): void {
 	const summary = details.querySelector('summary')
-	if (!summary) return
-	const answer =
-		summary.nextElementSibling instanceof HTMLElement
-			? summary.nextElementSibling
-			: null
+	if (!summary)
+		throw new Error(
+			'A [data-disclosure] row has no <summary>: render it with Disclosure.astro or QaDisclosure.astro.',
+		)
+	const answer = summary.nextElementSibling
+	if (!(answer instanceof HTMLElement))
+		throw new Error(
+			`The disclosure row "${summary.textContent}" has no answer after its <summary>: render it with Disclosure.astro or QaDisclosure.astro.`,
+		)
 	let isOpening = false
 	const settle = (): void => {
 		if (!isOpening) details.removeAttribute('open')
@@ -64,10 +71,7 @@ function bindDisclosure(details: HTMLDetailsElement): void {
 		// Measure before stopping: the running animations hold the live values.
 		const from = details.getBoundingClientRect().height
 		// A shut row's answer is not rendered, so it fades in from nothing.
-		const fade =
-			answer && details.open
-				? Number(getComputedStyle(answer).opacity)
-				: 0
+		const fade = details.open ? Number(getComputedStyle(answer).opacity) : 0
 		details.getAnimations().forEach(animation => animation.cancel())
 		clearAnswer(answer)
 		details.classList.toggle('is-closing', !isOpening)
@@ -81,7 +85,8 @@ function bindDisclosure(details: HTMLDetailsElement): void {
 		moving.add(run)
 		// The fade starts first so the height's completion, which clears both,
 		// always runs after the fade committed its last frame.
-		fadeAnswer(answer, fade, isOpening)
+		if (isOpening) fadeAnswerIn(answer, fade)
+		else fadeAnswerOut(answer, fade)
 		animate(
 			details,
 			{ height: [`${from}px`, `${to}px`] },
