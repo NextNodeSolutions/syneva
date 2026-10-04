@@ -1,5 +1,7 @@
 ---
 // Resources overview: a ruled table of contents.
+import { sectionById } from '@entities/site/model/site-map'
+import { twoDigits } from '@shared/lib/step-number'
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -8,16 +10,17 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { resourcesArt } from './resources-art.styles'
 
-const ENTRIES = [
-	{ title: 'Get started', n: '01', words: 'From install to your first verdict' },
-	{ title: 'Connect your agent', n: '02', words: 'The pi package and the CLI contract' },
-	{ title: 'Questions & answers', n: '03', words: 'Local state, agents, limits' },
-	{ title: 'Changelog', n: '04', words: 'What shipped, from the history' },
-] as const
 const ROW = 70
 // The leader starts after the title, at the head font's average advance.
 const ADVANCE = 9.6
 const leaderAt = (title: string, i: number): string => `M${title.length * ADVANCE + 82} ${128 + i * ROW}H486`
+// The resources section's pages, as the site map lists them.
+const entries = sectionById('resources').items.map(({ title, blurb }, i) => ({
+	title,
+	blurb,
+	number: twoDigits(i + 1),
+	leader: leaderAt(title, i),
+}))
 ---
 
 <Drawing
@@ -31,12 +34,12 @@ const leaderAt = (title: string, i: number): string => `M${title.length * ADVANC
 	<text {...anim('fade', 0, text.tiny)} x="70" y="80">CONTENTS</text>
 	<path {...anim('draw', 0.1, shape.inkLine)} d="M70 92h460"></path>
 	{
-		ENTRIES.map(({ title, n, words }, i) => (
+		entries.map(({ title, blurb, number, leader }, i) => (
 			<g {...anim('rise', 0.2 + i * 0.12)}>
 				<text {...sx(text.head)} x="70" y={132 + i * ROW}>{title}</text>
-				<text {...sx(text.small)} x="70" y={152 + i * ROW}>{words}</text>
-				<path {...sx(resourcesArt.tocLeader)} d={leaderAt(title, i)} />
-				<text {...sx(text.label, text.accent)} x="530" y={132 + i * ROW} text-anchor="end">{n}</text>
+				<text {...sx(text.small)} x="70" y={152 + i * ROW}>{blurb}</text>
+				<path {...sx(resourcesArt.tocLeader)} d={leader} />
+				<text {...sx(text.label, text.accent)} x="530" y={132 + i * ROW} text-anchor="end">{number}</text>
 				<path {...sx(shape.hair)} d={`M70 ${170 + i * ROW}h460`} />
 			</g>
 		))
