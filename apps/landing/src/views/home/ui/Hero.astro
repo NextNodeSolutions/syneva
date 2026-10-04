@@ -3,6 +3,7 @@
 // your verdict), the pitch and its actions, and the review-round instrument,
 // then the principle strip under it. Its intro (hero-intro.ts) plays every
 // part rendered here, the strip included.
+import { PAGES } from '@entities/site/model/site-map'
 import { poses } from '@syneva/motion/poses'
 
 import Button from '@shared/ui/Button.astro'
@@ -21,7 +22,7 @@ import { heroMarker, newsMarker } from './hero.stylex'
 
 <section {...sx(hero.root, heroMarker)} aria-labelledby="hero-title" data-hero>
 	<div {...sx(hero.field)} aria-hidden="true"><span {...sx(hero.light)}></span></div>
-	<a {...sx(poses.fade, hero.news, newsMarker)} href="/resources/changelog/" {...introPart('news')}>
+	<a {...sx(poses.fade, hero.news, newsMarker)} href={PAGES.changelog.href} {...introPart('news')}>
 		<span {...sx(hero.newsTag)}>New</span><span {...sx(hero.newsText)}>Review notes: every comment and question, one keystroke away</span><span {...sx(hero.newsArrow)} aria-hidden="true">→</span>
 	</a>
 	<h1 {...sx(hero.title)} id="hero-title">
@@ -38,7 +39,7 @@ import { heroMarker, newsMarker } from './hero.stylex'
 		<div {...sx(poses.fade, heroBody.copy)} {...introPart('copy')}>
 			<p {...sx(heroBody.lede)}>Syneva is the review desk for code your agent wrote. Read the diff in a reading order, ask about the exact line, give every change a verdict, and hand a structured result back to your agent. Same tab, every round.</p>
 			<div {...sx(heroBody.actions)}>
-				<Button href="/get-started/" label="Start a local review" />
+				<Button href={PAGES.getStarted.href} label="Start a local review" />
 				<TextLink href="#how" label="See how it works" arrow="↓" />
 			</div>
 			<Command text="npm install -g syneva" label="Installation command" css={heroBody.command} />

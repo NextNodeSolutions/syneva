@@ -5,7 +5,7 @@
 import FigureTop from '@shared/ui/FigureTop.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { section } from '@shared/ui/section.styles'
-import { REPO_URL } from '@entities/site/model/site-map'
+import { PAGES, REPO_URL } from '@entities/site/model/site-map'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { HANDOFF_LISTING } from './handoff-listing'
@@ -18,7 +18,7 @@ import { handoff } from './handoff.styles'
 		<p {...revealItem(handoff.text)}>Send to Agent hands back a structured <code {...sx(handoff.code)}>ReviewResult</code>, printed to stdout and written to disk. Not a screenshot, not a vibe: your agent knows exactly what you kept, what you undid, and what you asked for.</p>
 		<p {...revealItem(handoff.text)}>It acts on the round, calls <code {...sx(handoff.code)}>syneva reload</code>, and the same tab shows its next revision. Your settled decisions carry over; its new edits come back pending.</p>
 		<div {...revealItem(handoff.links)}>
-			<TextLink href="/resources/connect-your-agent/" label="Connect your agent" />
+			<TextLink href={PAGES.connectYourAgent.href} label="Connect your agent" />
 			<TextLink href={`${REPO_URL}/blob/main/packages/contracts/src/spec.ts`} label="Read the full contract" />
 		</div>
 	</div>

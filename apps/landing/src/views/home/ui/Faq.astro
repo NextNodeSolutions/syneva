@@ -1,5 +1,6 @@
 ---
 // A few things worth knowing, with the full questions and answers one link away.
+import { PAGES } from '@entities/site/model/site-map'
 import TextLink from '@shared/ui/TextLink.astro'
 import Disclosure from '@features/disclosure/ui/Disclosure.astro'
 import { section } from '@shared/ui/section.styles'
@@ -19,7 +20,7 @@ const QUESTIONS = [
 <section {...revealRuledGroup(section.ruled, section.pad, faq.section)} id="faq" aria-labelledby="faq-title">
 	<div>
 		<h2 {...revealItem(faq.title)} id="faq-title">A few things<br />worth knowing.</h2>
-		<p {...revealItem(faq.link)}><TextLink href="/resources/faq/" label="All questions & answers" /></p>
+		<p {...revealItem(faq.link)}><TextLink href={PAGES.faq.href} label="All questions & answers" /></p>
 	</div>
 	<div>
 		{QUESTIONS.map(([question, answer]) => <Disclosure question={question} answer={answer} />)}
