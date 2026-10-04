@@ -9,11 +9,6 @@ const stroke = (paint: string): { stroke: string; fill: string } => ({
 })
 
 export const shape = stylex.create({
-	// A reframed drawing never scales past ~1.5x its subject.
-	compactFrame: {
-		maxWidth: { default: null, [media.phone]: '460px' },
-		marginInline: { default: null, [media.phone]: 'auto' },
-	},
 	secondary: { display: { default: null, [media.phone]: 'none' } },
 	register: { stroke: color['--line-strong'] },
 	panel: { fill: color['--paper'], stroke: color['--line-strong'] },
