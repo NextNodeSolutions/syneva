@@ -3,6 +3,7 @@
 // native disclosures on the right.
 import { chapter } from '@widgets/chapter/ui/chapter.styles'
 import Disclosure from '@features/disclosure/ui/Disclosure.astro'
+import { heading } from '@shared/ui/heading.styles'
 import { stepIndex } from '@shared/ui/step-index.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
@@ -21,7 +22,7 @@ const count = `${group.items.length} question${group.items.length === 1 ? '' : '
 <section {...revealRuledGroup(chapter.section, chapter.subSection, qa.block)} id={id} aria-labelledby={`${id}-title`}>
 	<div {...sx(chapter.copy, chapter.subCopy, qa.copy)}>
 		<span {...revealItem(stepIndex.base)}>{twoDigits(index + 1)} · {count}</span>
-		<h2 {...revealItem(chapter.title, chapter.subTitle)} id={`${id}-title`}>{group.title}</h2>
+		<h2 {...revealItem(heading.section, heading.subpage)} id={`${id}-title`}>{group.title}</h2>
 		<p {...revealItem(chapter.text)}>{group.blurb}</p>
 	</div>
 	<div {...sx(qa.list)}>

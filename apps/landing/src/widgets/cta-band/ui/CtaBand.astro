@@ -5,6 +5,7 @@ import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import Command from '@features/copy-command/ui/Command.astro'
 import TextLink from '@shared/ui/TextLink.astro'
+import { heading } from '@shared/ui/heading.styles'
 import { band } from './cta-band.styles'
 import { section } from '@shared/ui/section.styles'
 
@@ -18,7 +19,7 @@ const {
 
 <section {...revealGroup(section.ruled, section.pad, band.root)}>
 	<div>
-		<h2 {...revealItem(band.title)} set:html={title} />
+		<h2 {...revealItem(heading.section)} set:html={title} />
 		<p {...revealItem(band.text)} set:html={text} />
 		<div {...revealItem(band.links)}>
 			<TextLink href="/get-started/" label="Read the setup guide" />

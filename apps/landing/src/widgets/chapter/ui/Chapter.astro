@@ -6,6 +6,7 @@ import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { chapterCopyMarker } from '@shared/ui/actions.stylex'
 import { chapterArtMarker } from '@shared/ui/drawing/drawing.stylex'
+import { heading } from '@shared/ui/heading.styles'
 import { chapter } from './chapter.styles'
 
 type Props = {
@@ -22,7 +23,7 @@ const isSubpage = Astro.locals.page === 'sub'
 
 <section {...revealRuledGroup(chapter.section, isSubpage && chapter.subSection)} id={id}>
 	<div {...sx(chapter.copy, isSubpage && chapter.subCopy, isReverse && chapter.reverseCopy, chapterCopyMarker)}>
-		<h2 {...revealItem(chapter.title, isSubpage && chapter.subTitle)} set:html={title} />
+		<h2 {...revealItem(heading.section, isSubpage && heading.subpage)} set:html={title} />
 		<slot />
 		{
 			list.length > 0 && (

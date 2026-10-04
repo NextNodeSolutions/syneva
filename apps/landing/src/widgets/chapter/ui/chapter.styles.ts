@@ -51,18 +51,6 @@ export const chapter = stylex.create({
 		gridColumn: { default: 2, [media.stacked]: 'auto' },
 		gridRow: { default: 1, [media.stacked]: 'auto' },
 	},
-	title: {
-		fontSize: {
-			default: 'clamp(32px, 3.7vw, 46px)',
-			[media.phone]: '34px',
-		},
-	},
-	subTitle: {
-		fontSize: {
-			default: 'clamp(32px, 3.7vw, 46px)',
-			[media.phone]: '32px',
-		},
-	},
 	text: { marginTop: '22px', fontSize: '16px', maxWidth: '520px' },
 	status: {
 		display: 'inline-flex',

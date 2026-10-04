@@ -14,12 +14,6 @@ export const band = stylex.create({
 		backgroundColor: color['--wash'],
 		scrollMarginTop: '24px',
 	},
-	title: {
-		fontSize: {
-			default: 'clamp(32px, 3.7vw, 46px)',
-			[media.phone]: '34px',
-		},
-	},
 	text: {
 		margin: '22px 0 26px',
 		maxWidth: '420px',
