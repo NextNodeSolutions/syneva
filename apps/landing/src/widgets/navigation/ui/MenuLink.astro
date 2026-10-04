@@ -10,15 +10,18 @@ import { menuLink } from './menu.styles'
 import { instant } from './instant.styles'
 import { menuOrder } from './menu-order'
 
-type Props = { page: Page; index: number; isPreviewing?: boolean }
+type Props = { page: Page; index: number }
 
-const { page, index, isPreviewing = false } = Astro.props
+const { page, index } = Astro.props
+// Product pages carry a preview scene; the others take a hover wash instead.
+const preview = 'preview' in page ? page.preview : undefined
+const hasPreview = Boolean(preview)
 ---
 
 <a
-	{...sx(menuLink.base, !isPreviewing && menuLink.resourceHover, instant.transitions, menuLinkMarker)}
+	{...sx(menuLink.base, !hasPreview && menuLink.resourceHover, instant.transitions, menuLinkMarker)}
 	href={page.href}
-	data-preview={isPreviewing && 'preview' in page ? page.preview : undefined}
+	data-preview={preview}
 	{...menuOrder(index)}
 	aria-current={currentPage(page.href, Astro.url.pathname)}
 >
