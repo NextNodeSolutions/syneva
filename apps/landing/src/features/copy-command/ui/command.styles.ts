@@ -101,10 +101,13 @@ export const command = stylex.create({
 			[copied()]: ease['--ease-spring'],
 		},
 	},
+	// Under the box, out of flow: the gap before whatever follows holds one
+	// line, so the status never wraps into a second one that would cover it.
 	status: {
 		position: 'absolute',
 		top: 'calc(100% + 6px)',
 		left: 0,
+		whiteSpace: 'nowrap',
 		font: `11px ${font['--mono']}`,
 		color: {
 			default: color['--green'],
