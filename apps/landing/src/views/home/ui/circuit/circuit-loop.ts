@@ -1,8 +1,9 @@
 import { EASE } from '@syneva/motion/easing'
-import { animate } from '@syneva/motion/engine'
+import { loopTimeline } from '@syneva/motion/loop-timeline'
 
 import type { Easing } from '@syneva/motion/easing'
 import type { Keyframes } from '@syneva/motion/engine'
+import type { Frame } from '@syneva/motion/loop-timeline'
 
 // One 14s clock: dispatch, open, read, decide, return. The static pose tells
 // the whole story; only the three short signal strokes repaint, sheets move
@@ -28,19 +29,23 @@ const pixels = (element: Element, property: string): number =>
 
 type Timing = { times: readonly number[]; ease: Easing; delay?: number }
 
+// A piece is written as its values at six fractions of the cycle; they
+// become the loop timeline's frames on the circuit's clock.
 function loop(
 	element: Element | null,
-	values: Keyframes,
+	keyframes: Keyframes,
 	{ times, ease, delay = 0 }: Timing,
 ): void {
-	if (!element) return
-	animate(element, values, {
-		duration: CYCLE_S,
-		delay,
-		repeat: Infinity,
-		times: [...times],
-		ease: times.map(() => ease),
-	})
+	const frames = times.map((time, index): Frame => [
+		time * CYCLE_S,
+		Object.fromEntries(
+			Object.entries(keyframes).map(([property, values]) => [
+				property,
+				values[index] ?? '',
+			]),
+		),
+	])
+	loopTimeline(element, frames, { cycle: CYCLE_S, delay, easing: ease })
 }
 
 // Hidden, shown, shown, hidden: a piece appears between t1 and t2.
