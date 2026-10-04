@@ -14,13 +14,13 @@ const { groups } = Astro.props
 
 <nav {...revealGroup(qa.index)} aria-label="Questions by topic">
 	{
-		groups.map(({ title, blurb, items }, index) => (
-			<a {...revealItem(qa.topic)} href={`#${qaAnchor(index)}`}>
+		groups.map(group => (
+			<a {...revealItem(qa.topic)} href={`#${qaAnchor(group)}`}>
 				<strong {...sx(qa.topicTitle)}>
-					{title}
-					<small {...sx(qa.topicCount)}>{twoDigits(items.length)}</small>
+					{group.title}
+					<small {...sx(qa.topicCount)}>{twoDigits(group.items.length)}</small>
 				</strong>
-				<span {...sx(qa.topicBlurb)}>{blurb}</span>
+				<span {...sx(qa.topicBlurb)}>{group.blurb}</span>
 			</a>
 		))
 	}

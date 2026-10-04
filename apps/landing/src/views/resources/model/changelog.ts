@@ -1,101 +1,13 @@
-// The changelog, curated from the repository history (Conventional Commits).
-// Product changes only; refactors and chores stay in git log.
-export const CHANGE_KINDS = ['feat', 'fix', 'perf'] as const
-export type ChangeKind = (typeof CHANGE_KINDS)[number]
+import { getCollection } from 'astro:content'
 
-export type Week = {
-	iso: string
-	label: string
-	title: string
-	changes: readonly (readonly [ChangeKind, string])[]
+import type { CollectionEntry } from 'astro:content'
+
+// One week of the changelog (src/content/changelog.json); its id is the
+// week's first day as an ISO date.
+export type Week = CollectionEntry<'changelog'>
+
+// The changelog's weeks, newest first.
+export async function recentWeeks(): Promise<Week[]> {
+	const weeks = await getCollection('changelog')
+	return weeks.toSorted((newer, older) => older.id.localeCompare(newer.id))
 }
-
-export const WEEKS: readonly Week[] = [
-	{
-		iso: '2026-09-30',
-		label: 'September 30 – October 2',
-		title: 'A public home, and fewer surprises',
-		changes: [
-			['feat', 'Syneva gets its public site, served as static assets.'],
-			[
-				'fix',
-				'A stale strip appears when the working diff moves under your review.',
-			],
-			[
-				'fix',
-				'pi: questions go straight to the correspondent; your session wakes only for reviews.',
-			],
-		],
-	},
-	{
-		iso: '2026-09-23',
-		label: 'September 23',
-		title: 'Review notes',
-		changes: [
-			[
-				'feat',
-				'Review notes panel (n): every comment and question across files, with jumps.',
-			],
-			[
-				'feat',
-				'Filter, lens and a keyboard cursor inside the notes panel.',
-			],
-			[
-				'feat',
-				'Navigation follows the active view order; resolve and approve from the notes.',
-			],
-			['feat', 'Signing off a file moves you to the next unsigned one.'],
-			[
-				'feat',
-				'Scoped reset: clear decisions but keep your notes, or reset approved files only.',
-			],
-			[
-				'fix',
-				'Interrupted file swaps keep their visible rows; stale async paints are ignored.',
-			],
-			[
-				'perf',
-				'The visible part of a diff gets its color first, from the plain grid.',
-			],
-		],
-	},
-	{
-		iso: '2026-09-19',
-		label: 'September 19 – 22',
-		title: 'A faster, steadier desk',
-		changes: [
-			['feat', 'The desk chrome moves to React over a reactive store.'],
-			['perf', 'The opening viewport is colored before the first paint.'],
-			[
-				'perf',
-				'Syntax highlighting follows what you can see, one grammar per language.',
-			],
-			[
-				'feat',
-				'Frontend performance is tracked as data, time to color included.',
-			],
-			['fix', 'Empty untracked files show as additions.'],
-		],
-	},
-	{
-		iso: '2026-09-15',
-		label: 'September 15 – 17',
-		title: 'Closing the loop',
-		changes: [
-			[
-				'feat',
-				'Close the desk from the browser; your agent receives a closed event.',
-			],
-			[
-				'feat',
-				'Hide approved changes (⇧H) to focus a multi-round review.',
-			],
-			[
-				'feat',
-				'One correspondent thread per desk answers your questions.',
-			],
-			['feat', 'A read-only answer subagent ships with the pi package.'],
-			['fix', 'Prompts wait for the desk URL instead of sleeping.'],
-		],
-	},
-]

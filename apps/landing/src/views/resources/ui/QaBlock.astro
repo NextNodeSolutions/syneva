@@ -11,16 +11,16 @@ import type { QaGroup } from '../model/faq'
 import { qaAnchor } from '../model/faq'
 import { qa } from './qa.styles'
 
-type Props = { group: QaGroup; index: number }
+type Props = { group: QaGroup }
 
-const { group, index } = Astro.props
-const id = qaAnchor(index)
+const { group } = Astro.props
+const id = qaAnchor(group)
 const count = `${group.items.length} question${group.items.length === 1 ? '' : 's'}`
 ---
 
 <section {...revealRuledGroup(qa.block)} id={id} aria-labelledby={`${id}-title`}>
 	<div {...sx(qa.copy)}>
-		<span {...revealItem(stepIndex.base)}>{twoDigits(index + 1)} · {count}</span>
+		<span {...revealItem(stepIndex.base)}>{twoDigits(group.position)} · {count}</span>
 		<h2 {...revealItem(heading.section, heading.subpage)} id={`${id}-title`}>{group.title}</h2>
 		<p {...revealItem(qa.blurb)}>{group.blurb}</p>
 	</div>

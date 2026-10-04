@@ -6,8 +6,8 @@ import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import type { ChangeKind } from '../../model/changelog'
-import { CHANGE_KINDS } from '../../model/changelog'
+import type { ChangeKind } from '../../model/change-kinds'
+import { CHANGE_KINDS } from '../../model/change-kinds'
 
 type DayCount = { day: string } & Record<ChangeKind, number>
 

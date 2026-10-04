@@ -5,10 +5,12 @@ import Pager from '@widgets/page-index/ui/Pager.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { ISSUES_URL } from '@entities/site/model/site-map'
 import FaqArt from './art/FaqArt.astro'
-import { FAQ } from '../model/faq'
+import { faqGroups } from '../model/faq'
 import QaBlock from './QaBlock.astro'
 import QaIndex from './QaIndex.astro'
 
+
+const groups = await faqGroups()
 ---
 
 <PageHero
@@ -19,7 +21,7 @@ import QaIndex from './QaIndex.astro'
 	<TextLink slot="actions" href={ISSUES_URL} label="Ask on GitHub" />
 	<FaqArt slot="art" />
 </PageHero>
-<QaIndex groups={FAQ} />
-{FAQ.map((group, index) => <QaBlock group={group} index={index} />)}
+<QaIndex groups={groups} />
+{groups.map(group => <QaBlock group={group} />)}
 <CtaBand />
 <Pager />

@@ -6,8 +6,10 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { REPO_URL } from '@entities/site/model/site-map'
 import HistoryRail from './art/HistoryRail.astro'
-import { WEEKS } from '../model/changelog'
+import { recentWeeks } from '../model/changelog'
 import VersionList from './VersionList.astro'
+
+const weeks = await recentWeeks()
 ---
 
 <PageHero
@@ -19,7 +21,7 @@ import VersionList from './VersionList.astro'
 	<HistoryRail slot="art" />
 </PageHero>
 <Prose id="log" title="Recent changes.">
-	<VersionList weeks={WEEKS} />
+	<VersionList weeks={weeks} />
 </Prose>
 <CtaBand />
 <Pager />
