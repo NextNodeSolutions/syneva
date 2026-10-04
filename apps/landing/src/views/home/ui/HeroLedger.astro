@@ -3,18 +3,12 @@
 // progress strip, and Send.
 import { sx } from '@shared/lib/sx'
 import HeroGlyph from './HeroGlyph.astro'
+import { HERO_FILES, REJECTED_COUNT, turnOf } from './hero-round'
 import { heroStage } from './hero-stage.styles'
 
-const LEDGER = [
-	['contracts/review.ts', 'yes'],
-	['auth/session.ts', 'yes'],
-	['api/middleware.ts', 'yes'],
-	['pages/desk.tsx', 'no'],
-	['lib/hash.ts', 'yes'],
-	['README.md', 'yes'],
-] as const
 const ROW = 34
 const FIRST = 72
+const TOTAL = HERO_FILES.length
 ---
 
 <g {...sx(heroStage.layer, heroStage.phoneHidden)} data-stage-part="ledger">
@@ -23,16 +17,16 @@ const FIRST = 72
 	<text {...sx(heroStage.sub)} x="562" y="58" opacity="0" data-stage-part="round-2">Round 2 · one file to re-read</text>
 	<rect {...sx(heroStage.ledgerBox)} x="562" y="72" width="178" height="244"></rect>
 	{
-		LEDGER.map(([name, verdict], i) => {
+		HERO_FILES.map((file, i) => {
 			const top = FIRST + i * ROW
 			// Every row starts pending; the verdict lands on top of it.
 			return (
 				<Fragment>
 					{i > 0 && <path {...sx(heroStage.hair)} d={`M562 ${top}h178`} />}
-					<text {...sx(heroStage.file)} x="574" y={top + 21}>{name}</text>
+					<text {...sx(heroStage.file)} x="574" y={top + 21}>{file.path}</text>
 					<HeroGlyph kind="pending" x={722} y={top + 17} />
-					<g {...sx(heroStage.box)} data-stage-part="verdict" data-row={i}><HeroGlyph kind={verdict} x={722} y={top + 17} /></g>
-					{verdict === 'no' && <g {...sx(heroStage.box)} opacity="0" data-stage-part="row-pending"><HeroGlyph kind="pending" x={722} y={top + 17} /></g>}
+					<g {...sx(heroStage.box)} data-stage-part="verdict" data-verdict={file.verdict} data-turn={turnOf(file)}><HeroGlyph kind={file.verdict} x={722} y={top + 17} /></g>
+					{file.verdict === 'no' && <g {...sx(heroStage.box)} opacity="0" data-stage-part="row-pending"><HeroGlyph kind="pending" x={722} y={top + 17} /></g>}
 				</Fragment>
 			)
 		})
@@ -40,7 +34,7 @@ const FIRST = 72
 	<path {...sx(heroStage.hair)} d="M562 276h178"></path>
 	<rect {...sx(heroStage.track)} x="574" y="290" width="154" height="3"></rect>
 	<rect {...sx(heroStage.fill)} x="574" y="290" width="154" height="3" data-stage-part="fill"></rect>
-	<text {...sx(heroStage.tiny)} x="574" y="307" data-stage-part="progress-1">6/6 DECIDED BY YOU</text><text {...sx(heroStage.tiny)} x="574" y="307" opacity="0" data-stage-part="progress-2">5/6 · 1 BACK TO PENDING</text>
+	<text {...sx(heroStage.tiny)} x="574" y="307" data-stage-part="progress-1">{TOTAL}/{TOTAL} DECIDED BY YOU</text><text {...sx(heroStage.tiny)} x="574" y="307" opacity="0" data-stage-part="progress-2">{TOTAL - REJECTED_COUNT}/{TOTAL} · {REJECTED_COUNT} BACK TO PENDING</text>
 	<g {...sx(heroStage.box)}>
 		<rect {...sx(heroStage.sendBox)} x="562" y="324" width="178" height="28" data-stage-part="send-box"></rect>
 		<text {...sx(heroStage.sendLabel)} x="576" y="342.5" data-stage-part="send-label">Send to agent</text>

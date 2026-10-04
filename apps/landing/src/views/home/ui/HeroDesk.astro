@@ -2,12 +2,13 @@
 // The desk's column of the hero instrument: the change opened on your local
 // desk, its diff rows, the question you ask on line 14 and the agent's answer.
 import { sx } from '@shared/lib/sx'
+import { DESK_FILE } from './hero-round'
 import { heroStage } from './hero-stage.styles'
 
-type RowKind = 'context' | 'added' | 'removed'
+import type { LineKind } from './hero-round'
 
 // The opened change: line 13 is replaced by lines 14 and 15.
-const ROWS: readonly { line: string; kind: RowKind; code: string }[] = [
+const ROWS: readonly { line: string; kind: LineKind; code: string }[] = [
 	{ line: '12', kind: 'context', code: 'export function handle(req) {' },
 	{ line: '13', kind: 'removed', code: 'return run(req)' },
 	{ line: '14', kind: 'added', code: 'await verifySession(req)' },
@@ -26,7 +27,7 @@ const ROW_HEIGHT = 24
 // The strike spans the removed line's code, just above its baseline.
 const STRIKE = { width: 104, rise: 4 }
 const rows = ROWS.map((row, index) => ({ ...row, ...ROW_KIND[row.kind], y: FIRST_ROW_Y + index * ROW_HEIGHT }))
-const countOf = (kind: RowKind): number => ROWS.filter(row => row.kind === kind).length
+const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind).length
 ---
 
 <g {...sx(heroStage.layer)} data-stage-part="desk">
@@ -38,7 +39,7 @@ const countOf = (kind: RowKind): number => ROWS.filter(row => row.kind === kind)
 		<rect {...sx(heroStage.caret)} x="379" y="225" width="6" height="11" data-stage-part="caret"></rect>
 	</g>
 	<g data-stage-part="head">
-		<text {...sx(heroStage.file, heroStage.strong)} x="250" y="93">auth/session.ts</text>
+		<text {...sx(heroStage.file, heroStage.strong)} x="250" y="93">{DESK_FILE.path}</text>
 		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+{countOf('added')} −{countOf('removed')}</text>
 		<g><rect {...sx(heroStage.button)} x="460" y="80" width="28" height="16"></rect><path {...sx(heroStage.buttonGlyph)} d="m471 85 6 6m0-6-6 6"></path></g>
 		<g>

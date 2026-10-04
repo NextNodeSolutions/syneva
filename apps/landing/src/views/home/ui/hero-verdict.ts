@@ -55,14 +55,17 @@ export function accept({ one, all }: Scope, color: Palette): void {
 	travel(one('signal-out'), 8.95, 0.5)
 }
 
-// 9.4 - 10.8  Every file gets your verdict; the ledger fills.
+const isRejected = (verdict: Element): boolean =>
+	verdict.getAttribute('data-verdict') === 'no'
+
+// 9.4 - 10.8  Every file gets your verdict, one turn after another; the
+// ledger fills.
 export function decide({ one, all }: Scope): void {
-	const order = [1, 0, 2, 3, 4, 5]
-	all('verdict').forEach(verdict => {
-		const row = Number(verdict.getAttribute('data-row'))
+	const verdicts = all('verdict')
+	verdicts.forEach(verdict => {
 		setBox(verdict, 'center')
-		const start = 9.4 + order.indexOf(row) * 0.2
-		if (row !== 3) {
+		const start = 9.4 + Number(verdict.getAttribute('data-turn')) * 0.2
+		if (!isRejected(verdict)) {
 			pop(verdict, start)
 			return
 		}
@@ -75,18 +78,20 @@ export function decide({ one, all }: Scope): void {
 			[14.25, { opacity: 0, transform: 'scale(.6)' }],
 		])
 	})
+	// The revised file is pending again: progress gives back its share.
+	const kept = verdicts.filter(verdict => !isRejected(verdict)).length
+	const settled = `scaleX(${kept / verdicts.length})`
 	setBox(one('fill'), 'left center', 'fill-box')
 	loop(one('fill'), [
 		[0, { transform: 'scaleX(0)', opacity: 1 }],
 		[9.4, { transform: 'scaleX(0)', opacity: 1 }],
 		[10.75, { transform: 'scaleX(1)', opacity: 1 }],
-		// The revised file is pending again: progress gives back one sixth.
 		[14.1, { transform: 'scaleX(1)', opacity: 1 }],
-		[14.5, { transform: 'scaleX(.8333)', opacity: 1 }],
-		[FADE_START, { transform: 'scaleX(.8333)', opacity: 1 }],
-		[FADE_END, { transform: 'scaleX(.8333)', opacity: 0 }],
+		[14.5, { transform: settled, opacity: 1 }],
+		[FADE_START, { transform: settled, opacity: 1 }],
+		[FADE_END, { transform: settled, opacity: 0 }],
 	])
-	// The count reads 6/6 only once every verdict is in.
+	// The count reads complete only once every verdict is in.
 	loop(one('progress-1'), [
 		[0, { opacity: 0 }],
 		[10.6, { opacity: 0 }],

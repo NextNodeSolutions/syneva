@@ -62,13 +62,14 @@ function writeBars(): void {
 			.filter(other => other.getAttribute('data-bar') === String(card))
 			.indexOf(bar)
 		setBox(bar, 'left center', 'fill-box')
+		const isRejected = bar.closest('[data-verdict="no"]') !== null
 		const write = 0.45 + card * 0.16 + row * 0.13
 		const frames: Frame[] = [
 			[0, { transform: 'scaleX(0)' }],
 			[write, { transform: 'scaleX(0)' }],
 			[write + 0.4, { transform: 'none' }],
 		]
-		if (card === 2)
+		if (isRejected)
 			frames.push(
 				[13.15, { transform: 'none' }],
 				[13.35, { transform: 'scaleX(0)' }],
