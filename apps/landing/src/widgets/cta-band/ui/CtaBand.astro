@@ -8,19 +8,12 @@ import TextLink from '@shared/ui/TextLink.astro'
 import { heading } from '@shared/ui/heading.styles'
 import { section } from '@shared/ui/section.styles'
 import { band } from './cta-band.styles'
-
-type Props = { title?: string; text?: string }
-
-const {
-	title = 'Keep the speed.<br>Keep the understanding.',
-	text = 'Two commands to your first desk. Bring the agent you already use.',
-} = Astro.props
 ---
 
 <section {...revealGroup(section.ruled, section.pad, band.root)}>
 	<div>
-		<h2 {...revealItem(heading.section)} set:html={title} />
-		<p {...revealItem(band.text)} set:html={text} />
+		<h2 {...revealItem(heading.section)}>Keep the speed.<br />Keep the understanding.</h2>
+		<p {...revealItem(band.text)}>Two commands to your first desk. Bring the agent you already use.</p>
 		<div {...revealItem(band.links)}>
 			<TextLink href={PAGES.getStarted.href} label="Read the setup guide" />
 			<TextLink href={REPO_URL} label="Star it on GitHub" />
