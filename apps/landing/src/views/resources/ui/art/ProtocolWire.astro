@@ -9,9 +9,8 @@ import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
+import { EVENTS, SUBCOMMANDS } from '../../model/agent-contract'
 
-const VERBS = ['await', 'comment', 'status', 'reload', 'stop'] as const
-const EVENTS = ['question', 'review', 'closed'] as const
 const VERB_STEP = 56
 const EVENT_STEP = 58
 const PILL_WIDTH = 52
@@ -37,7 +36,7 @@ const BACK = 'M420 240H180'
 	<path {...sx(productArt.headMuted)} d="M420 180l-7-4v8Z"></path><path {...sx(productArt.headAccent)} d="M180 240l7-4v8Z"></path>
 	<text {...anim('fade', 0.7, text.tiny)} x="300" y="116" text-anchor="middle">SUBCOMMANDS · AGENT → DESK</text>
 	{
-		VERBS.map((verb, i) => (
+		SUBCOMMANDS.map(({ name: verb }, i) => (
 			<g {...anim('pop', 0.8 + i * 0.1)}>
 				<rect {...sx(shape.kbd)} x={162 + i * VERB_STEP} y="128" width={PILL_WIDTH} height="18" />
 				<text {...sx(text.tiny)} x={162 + PILL_WIDTH / 2 + i * VERB_STEP} y="140.5" text-anchor="middle">{verb}</text>
@@ -46,7 +45,7 @@ const BACK = 'M420 240H180'
 	}
 	<text {...anim('fade', 1.3, text.tiny, text.accent)} x="300" y="310" text-anchor="middle">EVENTS · DESK → AGENT</text>
 	{
-		EVENTS.map((event, i) => (
+		EVENTS.map(({ kind: event }, i) => (
 			<g {...anim('pop', 1.4 + i * 0.12)}>
 				<rect {...sx(shape.kbd, shape.no)} x={222 + i * EVENT_STEP} y="272" width={PILL_WIDTH} height="18" />
 				<text {...sx(text.tiny, text.accent)} x={222 + PILL_WIDTH / 2 + i * EVENT_STEP} y="284.5" text-anchor="middle">{event}</text>
