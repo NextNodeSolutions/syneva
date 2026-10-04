@@ -1,4 +1,5 @@
 import { EASE } from '@syneva/motion/easing'
+import { loopTimeline } from '@syneva/motion/loop-timeline'
 
 import { blink, hold, loop, pixels } from './circuit-clock'
 import { circuitPartSelector, findPart, layerSelector } from './circuit-part'
@@ -99,5 +100,5 @@ export function playCircuit(
 		findPart(svg, circuitPartSelector(name), `circuitPart('${name}')`)
 	unfold(svg, part)
 	review(part)
-	travelSignals(svg, lengths)
+	travelSignals(svg, lengths, loopTimeline)
 }

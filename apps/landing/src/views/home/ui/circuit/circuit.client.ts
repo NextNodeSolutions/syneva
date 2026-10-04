@@ -1,10 +1,11 @@
 import { queries } from '@syneva/design-system/media.stylex'
 import { booted } from '@syneva/motion/boot'
+import { retimeLoop } from '@syneva/motion/loop-timeline'
 import { reducedMotion } from '@syneva/motion/preference'
 import { syncScenes } from '@syneva/motion/scenes'
 
 import { playCircuit } from './circuit-loop'
-import { retimeSignals } from './circuit-signals'
+import { travelSignals } from './circuit-signals'
 import { placeLoopLabel, routeCircuit } from './circuit-wires'
 
 import type { SignalName } from './circuit-part'
@@ -25,7 +26,7 @@ let isRunning = false
 function route(circuit: SVGSVGElement): void {
 	lengths = routeCircuit(circuit)
 	placeLoopLabel(circuit)
-	if (isRunning) retimeSignals(circuit, lengths)
+	if (isRunning) travelSignals(circuit, lengths, retimeLoop)
 }
 
 function start(circuit: SVGSVGElement): void {

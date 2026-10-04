@@ -23,7 +23,7 @@ type Timing = {
 
 // A piece states one value per time of its timing: a missing one is a bug in
 // the piece, not a value to guess.
-export function valueAt(
+function valueAt(
 	values: readonly (string | number)[],
 	index: number,
 	property: string,
@@ -36,12 +36,16 @@ export function valueAt(
 	return timedValue
 }
 
+// Starts a loop on the circuit's clock, or retimes a running one.
+type Runner = typeof loopTimeline
+
 // A piece is written as its values at six fractions of the cycle; they
 // become the loop timeline's frames on the circuit's clock.
 export function loop(
 	element: Element,
 	keyframes: Keyframes,
 	{ times, ease, delay = 0 }: Timing,
+	run: Runner = loopTimeline,
 ): void {
 	const frameAt = (time: number, index: number): Frame => ({
 		time: time * CYCLE_S,
@@ -57,7 +61,7 @@ export function loop(
 		frameAt(firstTime, 0),
 		...laterTimes.map((time, index) => frameAt(time, index + 1)),
 	]
-	loopTimeline(element, frames, { cycle: CYCLE_S, delay, easing: ease })
+	run(element, frames, { cycle: CYCLE_S, delay, easing: ease })
 }
 
 // Six values, one per time of a piece's timing: its resting value at the

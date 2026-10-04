@@ -1,9 +1,10 @@
 import { EASE } from '@syneva/motion/easing'
 
-import { blink, loop, pixels, valueAt } from './circuit-clock'
+import { blink, loop, pixels } from './circuit-clock'
 import { findPart, signalSelector } from './circuit-part'
 
 import type { Easing } from '@syneva/motion/easing'
+import type { loopTimeline } from '@syneva/motion/loop-timeline'
 import type { SignalName } from './circuit-part'
 
 // The three signals on the circuit's clock: each shows on its leg of the
@@ -46,10 +47,13 @@ function signalTravel(
 	return travel(pixels(signal, '--signal-size'), length)
 }
 
-// The three signals travel their routes, measured from the live layout.
+// The three signals travel their routes, measured from the live layout. A
+// new layout retimes them (retimeLoop): the running signals keep their place
+// on the clock and only their travel changes.
 export function travelSignals(
 	svg: SVGSVGElement,
 	lengths: Map<SignalName, number>,
+	run: typeof loopTimeline,
 ): void {
 	SIGNALS.forEach(({ name, times, ease }) => {
 		const signal = signalOf(svg, name)
@@ -60,35 +64,7 @@ export function travelSignals(
 				strokeDashoffset: signalTravel(signal, name, lengths),
 			},
 			{ times, ease },
+			run,
 		)
-	})
-}
-
-// A new layout re-measures the routes: the running signals keep their place
-// on the clock and only their travel changes.
-export function retimeSignals(
-	svg: SVGSVGElement,
-	lengths: Map<SignalName, number>,
-): void {
-	SIGNALS.forEach(({ name }) => {
-		const signal = signalOf(svg, name)
-		const offsets = signalTravel(signal, name, lengths)
-		signal.getAnimations().forEach(animation => {
-			const { effect } = animation
-			if (!(effect instanceof KeyframeEffect)) return
-			const frames = effect.getKeyframes()
-			if (!frames.some(frame => 'strokeDashoffset' in frame)) return
-			effect.setKeyframes(
-				frames.map((frame, index) =>
-					Object.assign({}, frame, {
-						strokeDashoffset: valueAt(
-							offsets,
-							index,
-							'strokeDashoffset',
-						),
-					}),
-				),
-			)
-		})
 	})
 }
