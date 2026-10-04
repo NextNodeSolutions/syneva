@@ -154,9 +154,6 @@ export const poses = stylex.create({
 			...safetyNet(bandAnyway),
 		},
 	},
-	// Pieces the page's own intro animates: they keep only the safety net.
-	stalledShow: safetyNet(showAnyway),
-	stalledBand: { '::before': safetyNet(bandAnyway) },
 })
 
 export const moveOffset = (x: number, y: number): { style: string } => ({
