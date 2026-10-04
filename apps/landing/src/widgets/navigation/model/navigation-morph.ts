@@ -4,6 +4,7 @@ import { reducedMotion } from '@syneva/motion/preference'
 
 import { readProperty, toSeconds } from './computed-style'
 import { contentFrames } from './handover-frames'
+import { readClock } from './nav-clock'
 import {
 	canInterpolate,
 	CONTENT,
@@ -15,6 +16,7 @@ import { revealChannels } from './reveal-channels'
 
 import type { Frames } from './handover-frames'
 import type { InputMode } from './input-mode'
+import type { ClockName } from './nav-clock'
 import type {
 	Channel,
 	ContentName,
@@ -25,6 +27,12 @@ import type { Geometry } from './navigation-geometry'
 import type { NavigationParts } from './navigation-parts'
 
 type Clock = 'menu' | 'preview'
+// A move on either clock, or the fold back on closing.
+const DURATION: Record<Clock | 'close', ClockName> = {
+	menu: '--nav-menu-duration',
+	preview: '--nav-preview-duration',
+	close: '--nav-close-duration',
+}
 type Motion = { target: Values; controls?: ReturnType<typeof animate> }
 
 // Menu geometry and content share one clock; preview hovers run on their own,
@@ -98,9 +106,7 @@ export class NavigationMorph {
 		)
 		const timing =
 			next[this.#shell.property('reveal')] === '0' ? 'close' : clock
-		const duration = toSeconds(
-			readProperty(styles, `--nav-${timing}-duration`),
-		)
+		const duration = toSeconds(readClock(styles, DURATION[timing]))
 		const frames = contentFrames({ ...origin, ...seeds }, destination, [
 			this.#panelChannels,
 			this.#sceneChannels,
@@ -124,7 +130,7 @@ export class NavigationMorph {
 	// whole move and the hand-over keyframes are linear in its progress.
 	#play(frames: Frames, duration: number): ReturnType<typeof animate> {
 		const ease = toBezier(
-			readProperty(getComputedStyle(this.#navigation), '--nav-ease'),
+			readClock(getComputedStyle(this.#navigation), '--nav-ease'),
 		)
 		const keyframes = Object.fromEntries(
 			[...frames].map(([name, frame]) => [name, frame.values]),
@@ -170,7 +176,7 @@ export class NavigationMorph {
 		this.#folded = geometry.folded
 		const styles = getComputedStyle(this.#navigation)
 		const travel = Number.parseFloat(
-			readProperty(styles, '--nav-panel-travel'),
+			readClock(styles, '--nav-panel-travel'),
 		)
 		const content = revealChannels({
 			channels: this.#panelChannels,
@@ -212,7 +218,7 @@ export class NavigationMorph {
 			target: this.#motions.preview.target,
 			selected: this.#scenes.indexOf(scene),
 			travel: Number.parseFloat(
-				readProperty(styles, '--nav-preview-travel'),
+				readClock(styles, '--nav-preview-travel'),
 			),
 			styles,
 		})
