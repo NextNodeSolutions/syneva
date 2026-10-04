@@ -26,7 +26,7 @@ import { handoff } from './handoff.styles'
 	</div>
 	<figure {...revealItem(handoff.figure)}>
 		<FigureTop aside="EVENT · REVIEW">$ {commandOf('await')}</FigureTop>
-		<pre {...sx(handoff.json)} aria-label="Illustrative review event" set:html={HANDOFF_LISTING} />
+		<pre {...sx(handoff.json)} set:html={HANDOFF_LISTING} />
 		<figcaption {...sx(handoff.caption)}>Illustrative round, trimmed. The full shape is versioned with the CLI: <code {...sx(handoff.code)}>{SPEC_COMMAND}</code></figcaption>
 	</figure>
 </section>
