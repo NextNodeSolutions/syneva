@@ -1,5 +1,6 @@
 ---
 // Local section: everything runs inside your machine's boundary.
+import { DESK_ORIGIN } from '@entities/desk/model/desk-origin'
 import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -35,7 +36,7 @@ const AGENT_TO_REPO = 'M110 150v36q0 10 10 10h14q10 0 10 10v16'
 		<rect {...sx(shape.panel, shape.panelWhite)} x="244" y="74" width="140" height="76"></rect>
 		<path {...sx(shape.hair)} d="M244 92h140"></path>
 		<rect {...sx(shape.dot)} x="252" y="80" width="5" height="5"></rect>
-		<text {...sx(text.tiny)} x="262" y="86">localhost:41873</text>
+		<text {...sx(text.tiny)} x="262" y="86">{DESK_ORIGIN}</text>
 		<text {...sx(text.small)} x="256" y="116">Your desk</text>
 		<Check x={256} y={126} />
 		<text {...sx(text.tiny)} x="272" y="136">3 KEPT · 1 UNDONE</text>
