@@ -108,6 +108,20 @@ const travel = (size: number, length: number): string[] => [
 
 type PartLookup = (name: CircuitPart) => Element
 
+// Every piece the loop drives is in the markup: a missing one is a bug in
+// Circuit.astro, not a piece to leave still.
+function find(svg: SVGSVGElement, selector: string, mark: string): Element {
+	const found = svg.querySelector(selector)
+	if (!found)
+		throw new Error(
+			`The review circuit has no ${selector}: mark it with ${mark}.`,
+		)
+	return found
+}
+
+const signalOf = (svg: SVGSVGElement, name: SignalName): Element =>
+	find(svg, signalSelector(name), `signalPart('${name}')`)
+
 // The changeset is dispatched, then its review layers lift apart and their
 // notes appear.
 function unfold(svg: SVGSVGElement, part: PartLookup): void {
@@ -117,8 +131,7 @@ function unfold(svg: SVGSVGElement, part: PartLookup): void {
 		{ times: [0, 0.06, 0.12, 0.19, 0.25, 1], ease: EASE.review },
 	)
 	LAYERS.forEach(({ kind, rest, delay }) => {
-		const layer = svg.querySelector(layerSelector(kind))
-		if (!layer) return
+		const layer = find(svg, layerSelector(kind), `layerPart('${kind}')`)
 		const lift = pixels(layer, '--lift')
 		loop(
 			layer,
@@ -182,23 +195,36 @@ function review(part: PartLookup): void {
 	)
 }
 
-// A signal's dash offsets over its timing: it travels the whole route it
-// references, as long as the live layout measured it.
-function signalTravel(signal: Element, lengths: Map<string, number>): string[] {
-	const route = signal.getAttribute('href')?.slice(1) ?? ''
-	return travel(pixels(signal, '--signal-size'), lengths.get(route) ?? 0)
+// A signal's dash offsets over its timing: it travels the whole wire it
+// references, as long as the live layout measured it. A signal without a
+// wire, or on a wire nothing routed, would sit still at 0px.
+function signalTravel(
+	signal: Element,
+	name: SignalName,
+	lengths: Map<string, number>,
+): string[] {
+	const wire = signal.getAttribute('href')?.slice(1)
+	if (!wire)
+		throw new Error(
+			`The circuit's ${name} signal references no wire: give it href="#<wire id>".`,
+		)
+	const length = lengths.get(wire)
+	if (!length)
+		throw new Error(
+			`The circuit's ${name} signal travels #${wire}, which routeCircuit() measured no length for: route it from WIRES in circuit-layout.ts.`,
+		)
+	return travel(pixels(signal, '--signal-size'), length)
 }
 
 // The three signals travel their routes, measured from the live layout.
 function travelSignals(svg: SVGSVGElement, lengths: Map<string, number>): void {
 	SIGNALS.forEach(({ name, times, ease }) => {
-		const signal = svg.querySelector(signalSelector(name))
-		if (!signal) return
+		const signal = signalOf(svg, name)
 		loop(
 			signal,
 			{
 				opacity: blink(1),
-				strokeDashoffset: signalTravel(signal, lengths),
+				strokeDashoffset: signalTravel(signal, name, lengths),
 			},
 			{ times, ease },
 		)
@@ -209,14 +235,8 @@ export function playCircuit(
 	svg: SVGSVGElement,
 	lengths: Map<string, number>,
 ): void {
-	const part: PartLookup = name => {
-		const found = svg.querySelector(circuitPartSelector(name))
-		if (!found)
-			throw new Error(
-				`The review circuit has no ${name} part: mark it with circuitPart('${name}').`,
-			)
-		return found
-	}
+	const part: PartLookup = name =>
+		find(svg, circuitPartSelector(name), `circuitPart('${name}')`)
 	unfold(svg, part)
 	review(part)
 	travelSignals(svg, lengths)
@@ -229,9 +249,8 @@ export function retimeSignals(
 	lengths: Map<string, number>,
 ): void {
 	SIGNALS.forEach(({ name }) => {
-		const signal = svg.querySelector(signalSelector(name))
-		if (!signal) return
-		const offsets = signalTravel(signal, lengths)
+		const signal = signalOf(svg, name)
+		const offsets = signalTravel(signal, name, lengths)
 		signal.getAnimations().forEach(animation => {
 			const { effect } = animation
 			if (!(effect instanceof KeyframeEffect)) return
