@@ -47,7 +47,10 @@ function fadeAnswerOut(answer: HTMLElement, fade: number): void {
 
 // Disclosure.astro and QaDisclosure.astro render a summary and its answer, so
 // a row missing either is broken.
-function bindDisclosure(details: HTMLDetailsElement): void {
+function partsOf(details: HTMLDetailsElement): {
+	summary: HTMLElement
+	answer: HTMLElement
+} {
 	const summary = details.querySelector('summary')
 	if (!summary)
 		throw new Error(
@@ -58,7 +61,15 @@ function bindDisclosure(details: HTMLDetailsElement): void {
 		throw new Error(
 			`The disclosure row "${summary.textContent}" has no answer after its <summary>: render it with Disclosure.astro or QaDisclosure.astro.`,
 		)
+	return { summary, answer }
+}
+
+function bindDisclosure(details: HTMLDetailsElement): void {
+	const { summary, answer } = partsOf(details)
 	let isOpening = false
+	// The fold this script runs on the row. Only it is cancelled on a reversal:
+	// the row's reveal entrance runs on the same element and must finish.
+	let fold: ReturnType<typeof animate> | undefined
 	const settle = (): void => {
 		if (!isOpening) details.removeAttribute('open')
 		details.classList.remove('is-closing')
@@ -66,13 +77,14 @@ function bindDisclosure(details: HTMLDetailsElement): void {
 		details.style.removeProperty('height')
 		clearAnswer(answer)
 		moving.delete(run)
+		fold = undefined
 	}
 	const run = (): void => {
 		// Measure before stopping: the running animations hold the live values.
 		const from = details.getBoundingClientRect().height
 		// A shut row's answer is not rendered, so it fades in from nothing.
 		const fade = details.open ? Number(getComputedStyle(answer).opacity) : 0
-		details.getAnimations().forEach(animation => animation.cancel())
+		fold?.cancel()
 		clearAnswer(answer)
 		details.classList.toggle('is-closing', !isOpening)
 		if (isOpening) details.setAttribute('open', '')
@@ -87,7 +99,7 @@ function bindDisclosure(details: HTMLDetailsElement): void {
 		// always runs after the fade committed its last frame.
 		if (isOpening) fadeAnswerIn(answer, fade)
 		else fadeAnswerOut(answer, fade)
-		animate(
+		fold = animate(
 			details,
 			{ height: [`${from}px`, `${to}px`] },
 			{ duration: DURATION_S, ease, onComplete: settle },
