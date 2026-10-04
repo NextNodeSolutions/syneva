@@ -10,6 +10,7 @@ import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { INSTALL_COMMAND, ISSUES_URL, PAGES, REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 
 const REQUIREMENTS = [
 	['Node 22+', 'For the CLI.'],
@@ -29,12 +30,12 @@ const LOOP = [
 	'$ syneva reload         # shows its next revision in your tab',
 ]
 const FIRST_KEYS = [
-	['j / k', 'Move between changes'],
-	['⇧Y / ⇧N', 'Keep or undo the change'],
-	['c, then ⌘⇧↵', 'Ask your agent about the line'],
-	['⇧A', 'Approve the whole file'],
-	['⇧S', 'Send your verdict to the agent'],
-	['?', 'Every other key'],
+	[`${HOTKEYS.nextChange} / ${HOTKEYS.previousChange}`, 'Move between changes'],
+	[`${HOTKEYS.keep} / ${HOTKEYS.undo}`, 'Keep or undo the change'],
+	[`${HOTKEYS.commentOnLine}, then ${HOTKEYS.ask}`, 'Ask your agent about the line'],
+	[HOTKEYS.approveFile, 'Approve the whole file'],
+	[HOTKEYS.send, 'Send your verdict to the agent'],
+	[HOTKEYS.keyboardMap, 'Every other key'],
 ] as const
 ---
 

@@ -12,24 +12,24 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import { PAGES } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import KbdGrid from './KbdGrid.astro'
 
-// The real desk bindings (packages/frontend/src/app/hotkeys-*.ts).
 const KEYS = [
-	['j', 'Next change'],
-	['k', 'Previous change'],
-	['⇧Y', 'Keep the change'],
-	['⇧N', 'Undo the change'],
-	['⇧A', 'Approve the whole file'],
-	['c', 'Comment on the line'],
-	['⇧C', 'Comment on the file'],
-	['⇧→', 'Next file, in reading order'],
-	['w', 'Tree or walkthrough'],
-	['n', 'Review notes'],
-	['⇧H', 'Hide approved changes'],
-	['⇧E', 'Open in your editor'],
-	['⇧S', 'Send to agent'],
-	['?', 'The full keyboard map'],
+	[HOTKEYS.nextChange, 'Next change'],
+	[HOTKEYS.previousChange, 'Previous change'],
+	[HOTKEYS.keep, 'Keep the change'],
+	[HOTKEYS.undo, 'Undo the change'],
+	[HOTKEYS.approveFile, 'Approve the whole file'],
+	[HOTKEYS.commentOnLine, 'Comment on the line'],
+	[HOTKEYS.commentOnFile, 'Comment on the file'],
+	[HOTKEYS.nextFile, 'Next file, in reading order'],
+	[HOTKEYS.switchView, 'Tree or walkthrough'],
+	[HOTKEYS.reviewNotes, 'Review notes'],
+	[HOTKEYS.hideApproved, 'Hide approved changes'],
+	[HOTKEYS.openEditor, 'Open in your editor'],
+	[HOTKEYS.send, 'Send to agent'],
+	[HOTKEYS.keyboardMap, 'The full keyboard map'],
 ] as const
 const VERDICTS = [
 	['Nothing is auto-approved.', 'Every change starts pending. Only your keypress settles it.'],
