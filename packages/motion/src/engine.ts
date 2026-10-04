@@ -15,3 +15,7 @@ export type { FrameData } from 'motion'
 // pseudoElement to the Web Animations API (its NativeAnimation reads it),
 // but the options type does not declare it.
 export type AnimateOptions = AnimationOptions & { pseudoElement?: string }
+
+// animate()'s keyframes as the site writes them: each animated property with
+// its values from the first frame to the last.
+export type Keyframes = Record<string, (string | number)[]>
