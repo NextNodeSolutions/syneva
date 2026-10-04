@@ -6,6 +6,7 @@ import Check from '@shared/ui/drawing/Check.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
 import Undone from '@shared/ui/drawing/Undone.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
+import { text } from '@shared/ui/drawing/text.styles'
 import { sx } from '@shared/lib/sx'
 import { HERO_FILES, REJECTED_COUNT, turnOf } from './hero-round'
 import { verdictPart } from './hero-round-part'
@@ -36,7 +37,7 @@ const rows = HERO_FILES.map((file, index) => ({
 		rows.map(({ file, top, turn, Verdict }, index) => (
 			<Fragment>
 				{index > 0 && <path {...sx(shape.hair)} d={`M562 ${top}h178`} />}
-				<text {...sx(heroStage.file)} x="574" y={top + 21}>{file.path}</text>
+				<text {...sx(text.file)} x="574" y={top + 21}>{file.path}</text>
 				<Pending x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} />
 				<g {...sx(heroStage.fillBox)} {...verdictPart(file.verdict, turn)}><Verdict x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>
 				{file.verdict === 'no' && <g {...sx(heroStage.fillBox)} opacity="0" {...stagePart('row-pending')}><Pending x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>}
@@ -46,7 +47,7 @@ const rows = HERO_FILES.map((file, index) => ({
 	<path {...sx(shape.hair)} d="M562 276h178"></path>
 	<rect {...sx(shape.track)} x="574" y="290" width="154" height="3"></rect>
 	<rect {...sx(shape.fill, heroStage.fillBoxLeft)} x="574" y="290" width="154" height="3" {...stagePart('fill')}></rect>
-	<text {...sx(heroStage.tiny)} x="574" y="307" {...stagePart('progress-1')}>{TOTAL}/{TOTAL} DECIDED BY YOU</text><text {...sx(heroStage.tiny)} x="574" y="307" opacity="0" {...stagePart('progress-2')}>{TOTAL - REJECTED_COUNT}/{TOTAL} · {REJECTED_COUNT} BACK TO PENDING</text>
+	<text {...sx(text.tiny)} x="574" y="307" {...stagePart('progress-1')}>{TOTAL}/{TOTAL} DECIDED BY YOU</text><text {...sx(text.tiny)} x="574" y="307" opacity="0" {...stagePart('progress-2')}>{TOTAL - REJECTED_COUNT}/{TOTAL} · {REJECTED_COUNT} BACK TO PENDING</text>
 	<g>
 		<rect {...sx(heroStage.sendBox)} x="562" y="324" width="178" height="28" {...stagePart('send-box')}></rect>
 		<text {...sx(heroStage.sendLabel)} x="576" y="342.5" {...stagePart('send-label')}>Send to agent</text>

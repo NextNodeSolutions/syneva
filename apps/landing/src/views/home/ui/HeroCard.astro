@@ -3,6 +3,7 @@
 // each marked in the gutter as added, removed or context.
 import { twoDigits } from '@shared/lib/two-digits'
 import { shape } from '@shared/ui/drawing/shape.styles'
+import { text } from '@shared/ui/drawing/text.styles'
 import { sx } from '@shared/lib/sx'
 import { barPart, cardPart } from './hero-round-part'
 import { heroStage } from './hero-stage.styles'
@@ -19,7 +20,7 @@ const y = 72 + position * 98
 <g transform={`translate(30 ${y})`}>
 	<g {...sx(heroStage.fillBox)} {...cardPart(verdict)}>
 		<rect {...sx(shape.kbd)} width="172" height="84"></rect>
-		<text {...sx(heroStage.index)} x="12" y="20">{twoDigits(position + 1)}</text><text {...sx(heroStage.file)} x="34" y="20">{path}</text>
+		<text {...sx(heroStage.index)} x="12" y="20">{twoDigits(position + 1)}</text><text {...sx(text.file)} x="34" y="20">{path}</text>
 		<path {...sx(shape.hair)} d="M0 30h172"></path>
 		{
 			bars.map(({ kind, width }, row) => (

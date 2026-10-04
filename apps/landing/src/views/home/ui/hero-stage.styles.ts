@@ -1,5 +1,4 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/design-system/media.stylex'
 import { color, ease, font } from '@syneva/design-system/tokens.stylex'
 
 const mono = (size: string): string => `${size} ${font['--mono']}`
@@ -15,14 +14,6 @@ export const heroStage = stylex.create({
 	},
 	sub: { font: sans('12px'), fill: color['--muted'] },
 	mono: { font: mono('11px') },
-	tiny: {
-		font: mono('9.5px'),
-		fontSize: { default: null, [media.phone]: '10.5px' },
-		letterSpacing: '.06em',
-		fill: color['--muted'],
-	},
-	file: { font: mono('10.5px'), fill: color['--ink'] },
-	strong: { fontWeight: 600 },
 	index: { font: `500 ${mono('10.5px')}`, fill: color['--accent'] },
 	bar: { fill: color['--line-strong'] },
 	faintBar: { fill: color['--line'] },
@@ -49,11 +40,7 @@ export const heroStage = stylex.create({
 		strokeLinejoin: 'round',
 	},
 	acceptGlyph: { stroke: color['--green'] },
-	lineNumber: { font: mono('10.5px'), fill: color['--line-strong'] },
-	code: { font: mono('11.5px'), fill: color['--ink'] },
 	sign: { font: mono('11.5px') },
-	removed: { fill: color['--accent'] },
-	added: { fill: color['--green'] },
 	strike: { stroke: color['--accent'], strokeWidth: 1.2 },
 	leader: { stroke: color['--accent'], fill: 'none' },
 	chipText: { font: `600 ${sans('11px')}`, fill: color['--accent'] },

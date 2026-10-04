@@ -5,6 +5,7 @@ import { DESK_ORIGIN } from '@entities/desk/model/desk-origin'
 import { PATH_LENGTH } from '@syneva/motion/poses'
 import AskThread from '@shared/ui/drawing/AskThread.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
+import { text } from '@shared/ui/drawing/text.styles'
 import { sx } from '@shared/lib/sx'
 import { DESK_FILE } from './hero-round'
 import { stagePart } from './hero-stage-part'
@@ -24,8 +25,8 @@ const ROWS: readonly { line: string; kind: LineKind; code: string }[] = [
 // removed line is struck through.
 const ROW_KIND = {
 	context: { sign: undefined, tone: undefined, codeX: 284, isStruck: false },
-	added: { sign: '+', tone: heroStage.added, codeX: 298, isStruck: false },
-	removed: { sign: '−', tone: heroStage.removed, codeX: 298, isStruck: true },
+	added: { sign: '+', tone: text.green, codeX: 298, isStruck: false },
+	removed: { sign: '−', tone: text.accent, codeX: 298, isStruck: true },
 } as const
 const FIRST_ROW_Y = 126
 const ROW_HEIGHT = 24
@@ -40,11 +41,11 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 	<text {...sx(heroStage.sub, heroStage.mono)} x="236" y="58">{DESK_ORIGIN}</text>
 	<rect {...sx(shape.panelWhite)} x="236" y="72" width="292" height="280"></rect>
 	<g opacity="0" {...stagePart('idle')}>
-		<text {...sx(heroStage.tiny)} x="382" y="215" text-anchor="middle">WAITING FOR YOUR AGENT’S DIFF</text>
+		<text {...sx(text.tiny)} x="382" y="215" text-anchor="middle">WAITING FOR YOUR AGENT’S DIFF</text>
 		<rect {...sx(heroStage.caret)} x="379" y="225" width="6" height="11" {...stagePart('caret')}></rect>
 	</g>
 	<g {...stagePart('head')}>
-		<text {...sx(heroStage.file, heroStage.strong)} x="250" y="93">{DESK_FILE.path}</text>
+		<text {...sx(text.file, text.strong)} x="250" y="93">{DESK_FILE.path}</text>
 		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+{countOf('added')} −{countOf('removed')}</text>
 		<g><rect {...sx(shape.kbd)} x="460" y="80" width="28" height="16"></rect><path {...sx(heroStage.buttonGlyph)} d="m471 85 6 6m0-6-6 6"></path></g>
 		<g>
@@ -59,9 +60,9 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 	{
 		rows.map(({ line, sign, tone, code, codeX, isStruck, y }) => (
 			<g {...stagePart('row')}>
-				<text {...sx(heroStage.lineNumber)} x="262" y={y} text-anchor="end">{line}</text>
+				<text {...sx(text.lineNumber)} x="262" y={y} text-anchor="end">{line}</text>
 				{sign && <text {...sx(heroStage.sign, tone)} x="270" y={y}>{sign}</text>}
-				<text {...sx(heroStage.code, tone)} x={codeX} y={y}>{code}</text>
+				<text {...sx(text.code, tone)} x={codeX} y={y}>{code}</text>
 				{isStruck && <path {...sx(heroStage.strike, heroStage.fillBoxLeft)} d={`M${codeX} ${y - STRIKE.rise}h${STRIKE.width}`} {...stagePart('strike')} />}
 			</g>
 		))
