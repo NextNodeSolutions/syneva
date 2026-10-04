@@ -11,7 +11,7 @@ import {
 	GEOMETRY,
 	registerChannel,
 } from './navigation-channels'
-import { measureNavigation } from './navigation-geometry'
+import { availableWidth, measureNavigation } from './navigation-geometry'
 import { revealChannels } from './reveal-channels'
 
 import type { Frames } from './handover-frames'
@@ -160,13 +160,17 @@ export class NavigationMorph {
 		trigger: HTMLElement | undefined,
 		panel: HTMLElement | undefined,
 	): void {
+		// A panel's width reads --nav-available: write it before measuring.
+		this.#setPixels('--nav-available', availableWidth(this.#navigation))
+		if (!trigger || !panel) return
 		const geometry = measureNavigation({
 			navigation: this.#navigation,
 			links: this.#links,
 			trigger,
 			panel,
 		})
-		if (!geometry || !panel) return
+		this.#setPixels('--dropdown-max-height', geometry.maxHeight.dropdown)
+		this.#setPixels('--panel-max-height', geometry.maxHeight.panel)
 		this.#folded = geometry.folded
 		const styles = getComputedStyle(this.#navigation)
 		const travel = Number.parseFloat(
@@ -189,6 +193,10 @@ export class NavigationMorph {
 				? { ...this.#shell.values(this.#folded), ...content.seeds }
 				: content.seeds
 		this.#animateTo('menu', next, seeds)
+	}
+
+	#setPixels(name: string, pixels: number): void {
+		this.#navigation.style.setProperty(name, `${pixels}px`)
 	}
 
 	close(): void {
