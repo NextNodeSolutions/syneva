@@ -1,4 +1,4 @@
-import { animate } from './animate'
+import { animate } from './engine'
 
 import type { Easing } from './easing'
 

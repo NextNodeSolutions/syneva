@@ -1,5 +1,5 @@
-import { animate } from './animate'
 import { EASE, toBezier } from './easing'
+import { animate } from './engine'
 import { reducedMotion } from './preference'
 
 // Disclosures ease open and shut instead of jumping. The native <details>

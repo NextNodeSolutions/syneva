@@ -1,5 +1,5 @@
-import { animate } from '@syneva/motion/animate'
 import { EASE, toBezier } from '@syneva/motion/easing'
+import { animate } from '@syneva/motion/engine'
 
 import type { Easing } from '@syneva/motion/easing'
 

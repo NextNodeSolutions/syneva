@@ -8,15 +8,14 @@
 	"exports": {
 		"./root.stylex": "./src/root.stylex.ts",
 		"./poses": "./src/poses.ts",
-		"./animate": "./src/animate.ts",
+		"./engine": "./src/engine.ts",
 		"./easing": "./src/easing.ts",
 		"./boot": "./src/boot.ts",
 		"./preference": "./src/preference.ts",
 		"./reveal": "./src/reveal.ts",
 		"./scenes": "./src/scenes.ts",
 		"./timeline": "./src/timeline.ts",
-		"./disclosure": "./src/disclosure.ts",
-		"./options": "./src/options.ts"
+		"./disclosure": "./src/disclosure.ts"
 	},
 	"scripts": {
 		"check": "tsc --noEmit"

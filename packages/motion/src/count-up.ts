@@ -1,8 +1,7 @@
-import { cancelFrame, frame } from 'motion'
-
+import { cancelFrame, frame } from './engine'
 import { reducedMotion } from './preference'
 
-import type { FrameData } from 'motion'
+import type { FrameData } from './engine'
 
 // A product fact counts up from zero the first time its section arrives. It
 // only rewrites text, so it rides Motion's frame loop (batched with every

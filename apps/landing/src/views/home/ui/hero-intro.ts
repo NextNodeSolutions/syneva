@@ -1,7 +1,7 @@
-import { animate } from '@syneva/motion/animate'
 import { EASE, toBezier } from '@syneva/motion/easing'
+import { animate } from '@syneva/motion/engine'
 
-import type { AnimateOptions } from '@syneva/motion/options'
+import type { AnimateOptions } from '@syneva/motion/engine'
 
 // The headline's entrance, once the runtime boots: the gutters fade in, both
 // lines rise out of their clips, the bands sweep behind them, the + and the

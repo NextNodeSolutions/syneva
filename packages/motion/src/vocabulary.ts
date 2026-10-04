@@ -1,5 +1,5 @@
-import { animate } from './animate'
 import { EASE, toBezier } from './easing'
+import { animate } from './engine'
 import { steps } from './stepped'
 
 // The drawing vocabulary. An element opts in with data-anim="<kind>" and an

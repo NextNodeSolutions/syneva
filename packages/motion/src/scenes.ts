@@ -1,5 +1,4 @@
-import { inView } from 'motion'
-
+import { inView } from './engine'
 import { reducedMotion } from './preference'
 
 // Offscreen scenes, hidden tabs and reduced motion pause every animation

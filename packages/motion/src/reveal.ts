@@ -1,13 +1,11 @@
-import { inView } from 'motion'
-
-import { animate } from './animate'
 import { countUp } from './count-up'
 import { EASE, toBezier } from './easing'
+import { animate, inView } from './engine'
 import { playVocabulary } from './placement'
 import { reducedMotion } from './preference'
 import { syncScenes } from './scenes'
 
-import type { AnimateOptions } from './options'
+import type { AnimateOptions } from './engine'
 
 // Reveal groups arrive once: a [data-reveal] section's [data-reveal-item]
 // children rise in with a stagger, a [data-rule] section draws an accent rule

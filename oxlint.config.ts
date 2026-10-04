@@ -41,7 +41,7 @@ const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
 const LANDING_MOTION_BAN = {
 	group: ['motion', 'motion/**'],
 	message:
-		'the landing animates through @syneva/motion only - import animate from @syneva/motion/animate, or export the Motion API you need from the package first.',
+		'the landing animates through @syneva/motion only - import the engine from @syneva/motion/engine, or export the Motion API you need from it first.',
 }
 const landingLayer = (layer: string): OxlintOverride => {
 	const above = LANDING_LAYERS.slice(0, LANDING_LAYERS.indexOf(layer))
@@ -210,12 +210,23 @@ export default defineConfig({
 			rules: { 'eslint/no-await-in-loop': 'off' },
 		},
 		{
-			// The landing reaches Motion only through @syneva/motion: the package is the
-			// one place that names the animation engine (animate.ts re-exports the
-			// motion/mini animate; inView and frame live in reveal/scenes/count-up), so
-			// the engine can change without touching the site. A Motion API the site
-			// needs is exported from the package first.
+			// The landing reaches Motion only through @syneva/motion, whose engine.ts is
+			// the one module that names the animation engine, so the engine can change
+			// without touching the site. A Motion API the site needs is exported from
+			// engine.ts first.
 			files: ['apps/landing/**'],
+			rules: {
+				'eslint/no-restricted-imports': [
+					'error',
+					{ patterns: [LANDING_MOTION_BAN] },
+				],
+			},
+		},
+		{
+			// Inside @syneva/motion too, engine.ts alone names Motion: the other modules
+			// import the engine from it.
+			files: ['packages/motion/src/**/*.ts'],
+			excludeFiles: ['packages/motion/src/engine.ts'],
 			rules: {
 				'eslint/no-restricted-imports': [
 					'error',
@@ -224,7 +235,7 @@ export default defineConfig({
 							{
 								group: ['motion', 'motion/**'],
 								message:
-									'the landing animates through @syneva/motion only - import animate from @syneva/motion/animate, or export the Motion API you need from the package first.',
+									'engine.ts is the one seam of @syneva/motion onto Motion - import the engine from ./engine, or export the Motion API you need from it first.',
 							},
 						],
 					},
