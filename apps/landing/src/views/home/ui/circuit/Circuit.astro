@@ -41,7 +41,14 @@ import { circuit } from './circuit.styles'
 			<use {...sx(circuit.signal, circuit.signalOut)} href="#flow-out" data-signal="out"></use>
 			<use {...sx(circuit.signal, circuit.signalReturn)} href="#flow-return" data-signal="return"></use>
 		</g>
-		<CircuitStation kind="source" />
+		<CircuitStation kind="source">
+			<g {...sx(circuit.sourceLeaves)}>
+				<use href="#review-leaf" transform="translate(0 -8) scale(.72)"></use>
+				<use href="#review-leaf" transform="translate(0 -19) scale(.72)"></use>
+				<g data-circuit-part="dispatch"><use href="#review-leaf" transform="translate(0 -30) scale(.72)"></use></g>
+			</g>
+			<g {...sx(circuit.mark)} transform="translate(0 51) scale(1 .5)"><use href="#review-mark"></use></g>
+		</CircuitStation>
 		<g transform={`translate(${PLATFORM_X.review} ${ROW})`}>
 			<path {...sx(circuit.foot)} d="M0-76 152 0 0 76-152 0Z"></path><path {...sx(circuit.rim)} d="M-152 0v8L0 84 152 8V0"></path>
 			<path {...sx(circuit.seat)} d="M0-61 122 0 0 61-122 0Z"></path>
@@ -53,7 +60,18 @@ import { circuit } from './circuit.styles'
 			<CircuitLayer kind="important" />
 			<CircuitLayer kind="critical" />
 		</g>
-		<CircuitStation kind="verdict" />
+		<CircuitStation kind="verdict">
+			<g transform="translate(0 -9) scale(.72)">
+				<use href="#review-leaf"></use>
+				<g {...sx(circuit.accepted)} data-circuit-part="accepted"><use href="#review-leaf"></use></g>
+			</g>
+			<g transform="translate(0 -21)">
+				<g data-circuit-part="seal">
+					<ellipse {...sx(circuit.sealEllipse)} rx="22" ry="11"></ellipse>
+					<g transform="scale(1 .5)"><use href="#verdict-check"></use></g>
+				</g>
+			</g>
+		</CircuitStation>
 		<text {...sx(circuit.loopLabel)} x={LOOP_LABEL.x} y={LOOP_LABEL.y} text-anchor="middle" data-loop-label>SAME TAB. NEXT REVISION.</text>
 	</g>
 </svg>

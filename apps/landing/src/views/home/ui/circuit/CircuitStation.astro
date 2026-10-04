@@ -1,6 +1,7 @@
 ---
-// A station platform on the circuit: the source (your full diff, from which
-// one sheet is dispatched) or the verdict (the accepted sheet and its seal).
+// A station platform on the circuit: its foot and rim, its ports and its
+// caption. Circuit.astro passes what stands on it: the source's stack of
+// sheets, or the verdict's accepted sheet and seal.
 import { sx } from '@shared/lib/sx'
 import { PLATFORM_X, portsOn, ROW } from './circuit-layout'
 import { circuit } from './circuit.styles'
@@ -8,41 +9,18 @@ import { circuit } from './circuit.styles'
 type Props = { kind: 'source' | 'verdict' }
 
 const { kind } = Astro.props
-const isSource = kind === 'source'
 const STATION = {
-	source: { rim: 'm-124 0 0 7L0 69 124 7V0', title: 'Your full diff', detail: 'Every change from your agent' },
-	verdict: { rim: 'M-124 0v7L0 69 124 7V0', title: 'Ship with confidence', detail: "Code you've reviewed" },
+	source: { css: circuit.sourceStation, title: 'Your full diff', detail: 'Every change from your agent' },
+	verdict: { css: circuit.verdictStation, title: 'Ship with confidence', detail: "Code you've reviewed" },
 }
+// The rim hangs 7 under the platform's side corners and 69 under its front.
+const RIM = 'M-124 0v7L0 69 124 7V0'
 const station = STATION[kind]
 ---
 
-<g {...sx(isSource ? circuit.sourceStation : circuit.verdictStation)} transform={`translate(${PLATFORM_X[kind]} ${ROW})`} data-station={kind}>
-	<path {...sx(circuit.foot)} d="M0-62 124 0 0 62-124 0Z"></path><path {...sx(circuit.rim)} d={station.rim}></path>
-	{
-		isSource ? (
-			<Fragment>
-				<g {...sx(circuit.sourceLeaves)}>
-					<use href="#review-leaf" transform="translate(0 -8) scale(.72)" />
-					<use href="#review-leaf" transform="translate(0 -19) scale(.72)" />
-					<g data-circuit-part="dispatch"><use href="#review-leaf" transform="translate(0 -30) scale(.72)" /></g>
-				</g>
-				<g {...sx(circuit.mark)} transform="translate(0 51) scale(1 .5)"><use href="#review-mark" /></g>
-			</Fragment>
-		) : (
-			<Fragment>
-				<g transform="translate(0 -9) scale(.72)">
-					<use href="#review-leaf" />
-					<g {...sx(circuit.accepted)} data-circuit-part="accepted"><use href="#review-leaf" /></g>
-				</g>
-				<g transform="translate(0 -21)">
-					<g data-circuit-part="seal">
-						<ellipse {...sx(circuit.sealEllipse)} rx="22" ry="11" />
-						<g transform="scale(1 .5)"><use href="#verdict-check" /></g>
-					</g>
-				</g>
-			</Fragment>
-		)
-	}
+<g {...sx(station.css)} transform={`translate(${PLATFORM_X[kind]} ${ROW})`} data-station={kind}>
+	<path {...sx(circuit.foot)} d="M0-62 124 0 0 62-124 0Z"></path><path {...sx(circuit.rim)} d={RIM}></path>
+	<slot />
 	{portsOn(kind).map(([id, { x, y }]) => <circle {...sx(circuit.port)} id={id} cx={x} cy={y} r="2.5" />)}
 	<text {...sx(circuit.stationTitle)} y="-128" text-anchor="middle">{station.title}</text><text {...sx(circuit.stationDetail)} y="-109" text-anchor="middle">{station.detail}</text>
 </g>
