@@ -1,7 +1,6 @@
 ---
 // Pull requests: a branch reviewed against its merge-base.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -18,10 +17,14 @@ const FEATURE = [
 ] as const
 ---
 
-<Drawing viewBox="0 0 600 420" compact="30 20 560 380" labelledby="pr-title pr-desc">
-	<title id="pr-title">A branch against its merge-base</title>
-	<desc id="pr-desc">syneva pr takes a branch name, a pull request number or a GitHub URL. The branch's commits since the merge-base with main are what you review; commits that landed on main in the meantime stay out of the diff.</desc>
-	<ArtFrame id="pr" width={600} height={420} />
+<Drawing
+	id="pr"
+	width={600}
+	height={420}
+	compact="30 20 560 380"
+	title="A branch against its merge-base"
+	description="syneva pr takes a branch name, a pull request number or a GitHub URL. The branch's commits since the merge-base with main are what you review; commits that landed on main in the meantime stay out of the diff."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="44" width="520" height="62"></rect>
 		<text {...sx(text.code)} x="56" y="68">$ syneva pr 128</text>

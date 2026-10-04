@@ -1,7 +1,6 @@
 ---
 // Changelog: shipped work as a day-by-day stacked rail.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -45,10 +44,14 @@ const cellsOf = (feat: number, fix: number, perf: number): Kind[] => [
 ]
 ---
 
-<Drawing viewBox="0 0 600 400" compact="36 40 540 330" labelledby="hist-title hist-desc">
-	<title id="hist-title">Shipped, day by day</title>
-	<desc id="hist-desc">Feature, fix and performance commits per day from September 15 to October 2, 2026, taken from the repository history. The busiest day, September 23, shipped the review notes panel.</desc>
-	<ArtFrame id="hist" width={600} height={400} />
+<Drawing
+	id="hist"
+	width={600}
+	height={400}
+	compact="36 40 540 330"
+	title="Shipped, day by day"
+	description="Feature, fix and performance commits per day from September 15 to October 2, 2026, taken from the repository history. The busiest day, September 23, shipped the review notes panel."
+>
 	<text {...anim('fade', 0, text.tiny)} x="52" y="66">COMMITS PER DAY · FROM THE GIT HISTORY</text>
 	<g {...anim('fade', 0.1)}><rect {...sx(resourcesArt.feat)} x="52" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="68" y="93">FEAT</text><rect {...sx(resourcesArt.fix)} x="120" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="136" y="93">FIX</text><rect {...sx(resourcesArt.perf)} x="180" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="196" y="93">PERF</text></g>
 	<path {...anim('draw', 0, shape.route)} pathLength="1" d={`M44 ${BASE + 2}H556`}></path>

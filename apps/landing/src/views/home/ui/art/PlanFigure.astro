@@ -1,7 +1,6 @@
 ---
 // Chapter: the plan desk prototype - a plan becomes a map of decisions.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -23,10 +22,14 @@ const DOTS = [
 ] as const
 ---
 
-<Drawing viewBox="0 0 520 520" compact="44 60 456 440" labelledby="plan-art-title plan-art-desc">
-	<title id="plan-art-title">A plan becomes a map of decisions</title>
-	<desc id="plan-art-desc">A plan document routes into three claims: an assumption that needs proof, a question for the agent, and a decision that is understood. Illustrative prototype concept.</desc>
-	<ArtFrame id="plan" width={520} height={520} />
+<Drawing
+	id="plan-art"
+	width={520}
+	height={520}
+	compact="44 60 456 440"
+	title="A plan becomes a map of decisions"
+	description="A plan document routes into three claims: an assumption that needs proof, a question for the agent, and a decision that is understood. Illustrative prototype concept."
+>
 	<g {...anim('rise', 0)}>
 		<path d="M64 100h-8v-8h8M212 92h8v8" {...sx(shape.inkLine)}></path>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="64" y="100" width="156" height="212"></rect>

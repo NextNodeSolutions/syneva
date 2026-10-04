@@ -2,7 +2,6 @@
 // Ask your agent: one line, two intents.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -12,10 +11,14 @@ const TO_ASK = 'M300 220C340 220 340 96 380 96'
 const TO_CHANGE = 'M300 220C340 220 340 300 380 300'
 ---
 
-<Drawing viewBox="0 0 600 440" compact="20 24 566 400" labelledby="fork-title fork-desc">
-	<title id="fork-title">One line, two intents</title>
-	<desc id="fork-desc">From a changed line, an Ask goes to your agent and its answer comes back into the thread right away. A Request change stays on the line and rides along with your verdict when you Send, as a requestedChanges entry.</desc>
-	<ArtFrame id="fork" width={600} height={440} />
+<Drawing
+	id="fork"
+	width={600}
+	height={440}
+	compact="20 24 566 400"
+	title="One line, two intents"
+	description="From a changed line, an Ask goes to your agent and its answer comes back into the thread right away. A Request change stays on the line and rides along with your verdict when you Send, as a requestedChanges entry."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="30" y="150" width="270" height="110"></rect>
 		<text {...sx(text.file, text.strong)} x="44" y="172">api/middleware.ts</text><path {...sx(shape.hair)} d="M30 182h270"></path>

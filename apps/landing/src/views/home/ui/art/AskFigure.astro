@@ -1,7 +1,6 @@
 ---
 // Chapter: asking on the exact line, with the agent answering in place.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -9,10 +8,14 @@ import { text } from '@shared/ui/drawing/text.styles'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 ---
 
-<Drawing viewBox="0 0 520 520" compact="34 50 452 420" labelledby="ask-art-title ask-art-desc">
-	<title id="ask-art-title">A question anchored to the changed line</title>
-	<desc id="ask-art-desc">On line 19 of api/middleware.ts you ask why the session is verified there. While your agent reads, its status shows beside the thread; then its answer lands on the same line. A second comment on line 20 is a change request that rides along with your verdict. Illustrative, not a screenshot.</desc>
-	<ArtFrame id="ask" width={520} height={520} />
+<Drawing
+	id="ask-art"
+	width={520}
+	height={520}
+	compact="34 50 452 420"
+	title="A question anchored to the changed line"
+	description="On line 19 of api/middleware.ts you ask why the session is verified there. While your agent reads, its status shows beside the thread; then its answer lands on the same line. A second comment on line 20 is a change request that rides along with your verdict. Illustrative, not a screenshot."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="58" width="440" height="404"></rect>
 		<text {...sx(text.file, text.strong)} x="56" y="84">api/middleware.ts</text>

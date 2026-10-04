@@ -2,17 +2,20 @@
 // Plan desk: what already works today, with syneva file.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 ---
 
-<Drawing viewBox="0 0 600 330" compact="20 20 566 300" labelledby="today-title today-desc">
-	<title id="today-title">Reviewing a plan today, with syneva file</title>
-	<desc id="today-desc">Today the CLI opens a plan as a single file. Markdown renders with a Rendered and Source toggle, and you can comment on any rendered block; your agent answers in the thread.</desc>
-	<ArtFrame id="today" width={600} height={330} />
+<Drawing
+	id="today"
+	width={600}
+	height={330}
+	compact="20 20 566 300"
+	title="Reviewing a plan today, with syneva file"
+	description="Today the CLI opens a plan as a single file. Markdown renders with a Rendered and Source toggle, and you can comment on any rendered block; your agent answers in the thread."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="40" width="520" height="260"></rect>
 		<text {...sx(text.file, text.strong)} x="56" y="64">plan.md</text>

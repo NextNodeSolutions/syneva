@@ -1,7 +1,6 @@
 ---
 // Working tree: modified and untracked files, and --path as a lens.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -28,10 +27,14 @@ const TO_ALL = 'M250 150C300 150 300 100 350 100'
 const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 ---
 
-<Drawing viewBox="0 0 600 400" compact="20 30 566 350" labelledby="wt-title wt-desc">
-	<title id="wt-title">The working tree, whole or narrowed</title>
-	<desc id="wt-desc">Your repository has three modified files and one new untracked file. syneva reviews all four, the new one as a full-file addition. syneva --path src/auth narrows the desk to the two files under src/auth.</desc>
-	<ArtFrame id="wt" width={600} height={400} />
+<Drawing
+	id="wt"
+	width={600}
+	height={400}
+	compact="20 30 566 350"
+	title="The working tree, whole or narrowed"
+	description="Your repository has three modified files and one new untracked file. syneva reviews all four, the new one as a full-file addition. syneva --path src/auth narrows the desk to the two files under src/auth."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel)} x="40" y="60" width="210" height="196"></rect><text {...sx(text.tiny)} x="40" y="50">YOUR REPOSITORY</text>{
 			ROWS.map(({ name, status, y }) => (

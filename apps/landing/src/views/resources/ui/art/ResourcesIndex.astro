@@ -2,7 +2,6 @@
 // Resources overview: a ruled table of contents.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -21,10 +20,14 @@ const ADVANCE = 9.6
 const leaderAt = (title: string, i: number): string => `M${title.length * ADVANCE + 82} ${128 + i * ROW}H486`
 ---
 
-<Drawing viewBox="0 0 600 420" compact="50 60 500 330" labelledby="toc-title toc-desc">
-	<title id="toc-title">Resources, as a table of contents</title>
-	<desc id="toc-desc">Four resources listed like a book's contents: get started, connect your agent, questions and answers, and the changelog.</desc>
-	<ArtFrame id="toc" width={600} height={420} />
+<Drawing
+	id="toc"
+	width={600}
+	height={420}
+	compact="50 60 500 330"
+	title="Resources, as a table of contents"
+	description="Four resources listed like a book's contents: get started, connect your agent, questions and answers, and the changelog."
+>
 	<text {...anim('fade', 0, text.tiny)} x="70" y="80">CONTENTS</text>
 	<path {...anim('draw', 0.1, shape.inkLine)} pathLength="1" d="M70 92h460"></path>
 	{

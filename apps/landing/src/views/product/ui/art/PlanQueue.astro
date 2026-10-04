@@ -2,7 +2,6 @@
 // Plan desk (prototype): a plan becomes a queue of claims ranked by risk.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -23,10 +22,14 @@ const CLAIM_TONE = { risk: [homeArt.planClaim, homeArt.planRisk], question: [hom
 const rowY = (i: number): number => 96 + i * 72
 ---
 
-<Drawing viewBox="0 0 600 420" compact="270 30 320 380" labelledby="queue-title queue-desc">
-	<title id="queue-title">A plan as a queue of claims</title>
-	<desc id="queue-desc">Prototype concept. Sentences highlighted in a plan become claims, ranked by risk: an assumption that needs proof first, then a question for the agent, then claims already settled.</desc>
-	<ArtFrame id="queue" width={600} height={420} />
+<Drawing
+	id="queue"
+	width={600}
+	height={420}
+	compact="270 30 320 380"
+	title="A plan as a queue of claims"
+	description="Prototype concept. Sentences highlighted in a plan become claims, ranked by risk: an assumption that needs proof first, then a question for the agent, then claims already settled."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="30" y="70" width="210" height="300"></rect>
 		<text {...sx(text.label)} x="30" y="56">plan.md</text>

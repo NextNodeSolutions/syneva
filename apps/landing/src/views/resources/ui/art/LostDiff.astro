@@ -2,17 +2,19 @@
 // 404: the page you wanted, as a rejected change.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 ---
 
-<Drawing viewBox="0 0 560 320" labelledby="lost-title lost-desc">
-	<title id="lost-title">This page, as a diff</title>
-	<desc id="lost-desc">A diff where the path you asked for is removed and the home page is added, with a question thread asking where the page went.</desc>
-	<ArtFrame id="lost" width={560} height={320} />
+<Drawing
+	id="lost"
+	width={560}
+	height={320}
+	title="This page, as a diff"
+	description="A diff where the path you asked for is removed and the home page is added, with a question thread asking where the page went."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="50" width="480" height="128"></rect>
 		<text {...sx(text.file, text.strong)} x="56" y="74">routes.ts</text><text {...sx(text.tiny)} x="504" y="74" text-anchor="end">+1 −1</text>

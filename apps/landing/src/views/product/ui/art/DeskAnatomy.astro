@@ -2,7 +2,6 @@
 // Review desk: an annotated wireframe of the desk.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
@@ -33,10 +32,14 @@ const MARKERS = [
 ] as const
 ---
 
-<Drawing viewBox="0 0 600 450" compact="176 22 408 380" labelledby="anat-title anat-desc">
-	<title id="anat-title">Anatomy of the review desk</title>
-	<desc id="anat-desc">A wireframe of the desk with five numbered parts: the walkthrough sidebar, the keep and undo verdicts on each change, a question thread anchored to a line, the review progress strip, and the Send to agent button. Illustrative, not a screenshot.</desc>
-	<ArtFrame id="anat" width={600} height={450} />
+<Drawing
+	id="anat"
+	width={600}
+	height={450}
+	compact="176 22 408 380"
+	title="Anatomy of the review desk"
+	description="A wireframe of the desk with five numbered parts: the walkthrough sidebar, the keep and undo verdicts on each change, a question thread anchored to a line, the review progress strip, and the Send to agent button. Illustrative, not a screenshot."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="24" y="30" width="552" height="362"></rect>
 		<path {...sx(shape.hair)} d="M24 62h552M184 62v330M184 96h392"></path>

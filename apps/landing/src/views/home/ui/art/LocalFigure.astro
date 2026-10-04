@@ -12,9 +12,15 @@ const DESK_TO_REPO = 'M310 150v36q0 10-10 10h-14q-10 0-10 10v16'
 const AGENT_TO_REPO = 'M110 150v36q0 10 10 10h14q10 0 10 10v16'
 ---
 
-<Drawing viewBox="0 0 520 340" compact="12 14 500 318" labelledby="local-art-title local-art-desc">
-	<title id="local-art-title">Everything stays inside your machine</title>
-	<desc id="local-art-desc">Your agent, the review desk on localhost and your repository sit inside your machine, talking over loopback and git. The line to the internet is cut: no model call, no telemetry, no account.</desc>
+<Drawing
+	id="local-art"
+	width={520}
+	height={340}
+	compact="12 14 500 318"
+	isFrameless
+	title="Everything stays inside your machine"
+	description="Your agent, the review desk on localhost and your repository sit inside your machine, talking over loopback and git. The line to the internet is cut: no model call, no telemetry, no account."
+>
 	<path {...anim('draw', 0, homeArt.localBoundary)} pathLength="1" d="M20 40h380v280H20Z"></path>
 	<text {...anim('fade', 0.3, text.label)} x="34" y="30">YOUR MACHINE</text>
 	<g {...anim('rise', 0.3)}>

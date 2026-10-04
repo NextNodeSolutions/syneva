@@ -1,7 +1,6 @@
 ---
 // Chapter: the review desk - a reading order on the left, verdicts on the right.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
 import { anim, loop } from '@shared/ui/drawing/anim'
@@ -24,10 +23,14 @@ const ROWS = [
 ] as const
 ---
 
-<Drawing viewBox="0 0 520 520" compact="206 56 288 408" labelledby="desk-art-title desk-art-desc">
-	<title id="desk-art-title">A reading order and a verdict on every change</title>
-	<desc id="desk-art-desc">On the left, your agent's walkthrough groups files into contracts, behavior, interface and a trailing Other section, so nothing is hidden. On the right, the open file's first change is kept, the second is undone, and the third waits for your verdict. Illustrative, not a screenshot.</desc>
-	<ArtFrame id="desk" width={520} height={520} />
+<Drawing
+	id="desk-art"
+	width={520}
+	height={520}
+	compact="206 56 288 408"
+	title="A reading order and a verdict on every change"
+	description="On the left, your agent's walkthrough groups files into contracts, behavior, interface and a trailing Other section, so nothing is hidden. On the right, the open file's first change is kept, the second is undone, and the third waits for your verdict. Illustrative, not a screenshot."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel)} x="34" y="64" width="166" height="392"></rect>
 		<text {...sx(text.label)} x="48" y="90">WALKTHROUGH</text>

@@ -2,7 +2,6 @@
 // Connect your agent: the wire between the agent and the desk.
 import { sx } from '@shared/lib/sx'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
@@ -19,10 +18,15 @@ const OUT = 'M180 180H420'
 const BACK = 'M420 240H180'
 ---
 
-<Drawing viewBox="0 0 600 420" compact="30 90 540 290" labelledby="wire-title wire-desc" isDense>
-	<title id="wire-title">The contract between your agent and the desk</title>
-	<desc id="wire-desc">Your agent talks to the desk with five CLI subcommands: await, comment, status, reload and stop. The desk answers with three kinds of event: question, review and closed. Everything is plain JSON on stdout and a localhost HTTP server.</desc>
-	<ArtFrame id="wire" width={600} height={420} />
+<Drawing
+	id="wire"
+	width={600}
+	height={420}
+	compact="30 90 540 290"
+	isDense
+	title="The contract between your agent and the desk"
+	description="Your agent talks to the desk with five CLI subcommands: await, comment, status, reload and stop. The desk answers with three kinds of event: question, review and closed. Everything is plain JSON on stdout and a localhost HTTP server."
+>
 	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="40" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="54" y="172">YOUR AGENT</text><text {...sx(text.small)} x="54" y="194">Any agent,</text><text {...sx(text.small)} x="54" y="211">Codex, Cursor,</text><text {...sx(text.small)} x="54" y="228">pi, a script</text><text {...sx(text.code, text.accent)} x="54" y="256">$ syneva …</text></g>
 	<g {...anim('rise', 0.2)}><rect {...sx(shape.panel, shape.panelWhite)} x="420" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="434" y="172">YOUR DESK</text><text {...sx(text.small)} x="434" y="198">localhost, the tab</text><text {...sx(text.small)} x="434" y="216">you review in</text><Check x={434} y={236} size={12} /><rect {...sx(shape.pending)} x="452" y="236" width="12" height="12"></rect></g>
 	<g fill="none">

@@ -3,7 +3,6 @@
 import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -20,10 +19,14 @@ const SOURCES = [
 const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340 220`
 ---
 
-<Drawing viewBox="0 0 600 440" compact="20 30 570 380" labelledby="hub-title hub-desc">
-	<title id="hub-title">Four ways in, one desk</title>
-	<desc id="hub-desc">The working tree, staged changes, a branch or pull request, and a single file each feed the same local desk, which produces one structured verdict whose mode tells your agent how to read it.</desc>
-	<ArtFrame id="hub" width={600} height={440} />
+<Drawing
+	id="hub"
+	width={600}
+	height={440}
+	compact="20 30 570 380"
+	title="Four ways in, one desk"
+	description="The working tree, staged changes, a branch or pull request, and a single file each feed the same local desk, which produces one structured verdict whose mode tells your agent how to read it."
+>
 	<g fill="none">
 		{
 			SOURCES.map(({ y }, i) => (

@@ -2,7 +2,6 @@
 // Get started: three commands, then the desk opens in your browser.
 import { sx } from '@shared/lib/sx'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
@@ -20,10 +19,14 @@ const STEP_DELAY = 0.6
 const TO_DESK = 'M334 228C352 228 352 200 370 200'
 ---
 
-<Drawing viewBox="0 0 600 420" compact="24 30 316 370" labelledby="start-title start-desc">
-	<title id="start-title">Three commands to your first review</title>
-	<desc id="start-desc">Install the CLI with npm, run syneva in your repository and a desk opens on localhost in your browser, then your agent attaches with syneva await and receives your verdict as JSON.</desc>
-	<ArtFrame id="startflow" width={600} height={420} />
+<Drawing
+	id="start"
+	width={600}
+	height={420}
+	compact="24 30 316 370"
+	title="Three commands to your first review"
+	description="Install the CLI with npm, run syneva in your repository and a desk opens on localhost in your browser, then your agent attaches with syneva await and receives your verdict as JSON."
+>
 	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="34" y="40" width="300" height="340"></rect><path {...sx(shape.hair)} d="M34 56h300"></path><rect {...sx(resourcesArt.termDotAccent)} x="42" y="45" width="6" height="6"></rect><rect {...sx(resourcesArt.termDot)} x="52" y="45" width="6" height="6"></rect><rect {...sx(resourcesArt.termDot)} x="62" y="45" width="6" height="6"></rect></g>
 	{
 		STEPS.map(({ label, command, output, y }, i) => (

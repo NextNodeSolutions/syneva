@@ -1,17 +1,21 @@
 ---
 // Walkthrough: a guide is stamped to the diff it was written for.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 ---
 
-<Drawing viewBox="0 0 600 240" compact="30 40 550 190" labelledby="stamp-title stamp-desc" isDense>
-	<title id="stamp-title">A guide is stamped to its diff</title>
-	<desc id="stamp-desc">The guide is attached to the diff it was written for and survives reloads. When a reload moves the diff past it, the desk notes that the grouping may be out of date, and your agent can swap in a new guide with syneva reload --guide.</desc>
-	<ArtFrame id="stamp" width={600} height={240} />
+<Drawing
+	id="stamp"
+	width={600}
+	height={240}
+	compact="30 40 550 190"
+	isDense
+	title="A guide is stamped to its diff"
+	description="The guide is attached to the diff it was written for and survives reloads. When a reload moves the diff past it, the desk notes that the grouping may be out of date, and your agent can swap in a new guide with syneva reload --guide."
+>
 	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="40" y="60" width="150" height="110"></rect><text {...sx(text.tiny)} x="54" y="82">GUIDE.JSON</text><path {...sx(shape.lines)} d="M54 100h100M54 116h80M54 132h110M54 148h70"></path></g>
 	<path {...anim('draw', 0.4, shape.route)} pathLength="1" d="M190 115h60"></path>
 	<g {...anim('rise', 0.5)}><rect {...sx(shape.panel)} x="250" y="60" width="150" height="110"></rect><text {...sx(text.tiny)} x="264" y="82">DIFF · ROUND 1</text><rect {...sx(shape.bandYes)} x="251" y="96" width="148" height="20"></rect><text {...sx(text.tiny, text.green)} x="264" y="110">STAMPED ✓</text><path {...sx(shape.lines)} d="M264 134h96M264 150h70"></path></g>

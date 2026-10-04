@@ -1,7 +1,6 @@
 ---
 // Single file: three states, and markdown reviewed as rendered blocks.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -16,10 +15,14 @@ const STATES = [
 ] as const
 ---
 
-<Drawing viewBox="0 0 600 430" compact="30 30 560 390" labelledby="sf-title sf-desc">
-	<title id="sf-title">One file, tracked or not</title>
-	<desc id="sf-desc">syneva file opens one file. An unchanged file shows in full, a changed file shows as a diff you can stage, and an untracked file shows in full for a verdict. Markdown renders, and you can comment on any rendered block, including the file's own images.</desc>
-	<ArtFrame id="sf" width={600} height={430} />
+<Drawing
+	id="sf"
+	width={600}
+	height={430}
+	compact="30 30 560 390"
+	title="One file, tracked or not"
+	description="syneva file opens one file. An unchanged file shows in full, a changed file shows as a diff you can stage, and an untracked file shows in full for a verdict. Markdown renders, and you can comment on any rendered block, including the file's own images."
+>
 	{
 		STATES.map(({ label, words, x }, i) => (
 			<g {...anim('rise', i * 0.12)}>

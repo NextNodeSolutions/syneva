@@ -1,14 +1,29 @@
 ---
-// The root <svg> of every drawing: its viewBox, the phone frame it reframes
-// to (data-compact, swapped by scripts/frames.ts) and its accessible name.
+// The root <svg> of every drawing: its viewBox and ruled frame, the phone
+// frame it reframes to (data-compact, swapped by frames.ts) and its
+// accessible name. The id names the title, the description and the frame's
+// grid, so it must be unique on its page.
 import type { Part } from '../../lib/sx'
 import { sx } from '../../lib/sx'
+import ArtFrame from './ArtFrame.astro'
 import { drawingMarker } from './art.stylex'
 import { drawing } from './drawing.styles'
 
-type Props = { viewBox: string; compact?: string; labelledby: string; isDense?: boolean; css?: Part }
+type Props = {
+	id: string
+	width: number
+	height: number
+	title: string
+	description: string
+	compact?: string
+	isDense?: boolean
+	isFrameless?: boolean
+	css?: Part
+}
 
-const { viewBox, compact, labelledby, isDense = false, css } = Astro.props
+const { id, width, height, title, description, compact, isDense = false, isFrameless = false, css } = Astro.props
+const titleId = `${id}-title`
+const descriptionId = `${id}-desc`
 const isSubpage = Astro.locals.page === 'sub'
 const fitOf = (): Part => {
 	if (!isSubpage) return compact && drawing.compact
@@ -19,10 +34,13 @@ const fit = fitOf()
 
 <svg
 	{...sx(drawing.root, fit, css, drawingMarker, isDense && 'is-dense')}
-	viewBox={viewBox}
+	viewBox={`0 0 ${width} ${height}`}
 	data-compact={compact}
 	role="img"
-	aria-labelledby={labelledby}
+	aria-labelledby={`${titleId} ${descriptionId}`}
 >
+	<title id={titleId}>{title}</title>
+	<desc id={descriptionId}>{description}</desc>
+	{!isFrameless && <ArtFrame id={id} width={width} height={height} />}
 	<slot />
 </svg>

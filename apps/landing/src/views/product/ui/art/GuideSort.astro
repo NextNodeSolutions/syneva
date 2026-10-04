@@ -2,7 +2,6 @@
 // Walkthrough: the git order on the left becomes the guide's order on the
 // right; each file travels from its place in git's list to its section.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -26,10 +25,14 @@ const chips = SECTIONS.flatMap((section, s) => section.rows.map(([name, y]) => (
 const orderOf = (name: string): number => chips.findIndex(chip => chip.name === name) + 1
 ---
 
-<Drawing viewBox="0 0 600 420" compact="300 40 290 360" labelledby="sort-title sort-desc">
-	<title id="sort-title">From git's order to a reading order</title>
-	<desc id="sort-desc">On the left, six changed files in the order git lists them. On the right, the same files in the order your agent's guide sets: contracts first, then behavior, then the interface. Two files the guide does not mention land in a trailing Other section, so nothing is hidden.</desc>
-	<ArtFrame id="sort" width={600} height={420} />
+<Drawing
+	id="sort"
+	width={600}
+	height={420}
+	compact="300 40 290 360"
+	title="From git's order to a reading order"
+	description="On the left, six changed files in the order git lists them. On the right, the same files in the order your agent's guide sets: contracts first, then behavior, then the interface. Two files the guide does not mention land in a trailing Other section, so nothing is hidden."
+>
 	<text {...sx(text.tiny)} x="30" y="72">AS GIT LISTS IT</text>
 	<text {...sx(text.tiny, text.accent)} x="330" y="56">AS YOUR AGENT GUIDES IT</text>
 	{
