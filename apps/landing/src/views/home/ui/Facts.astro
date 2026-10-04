@@ -1,12 +1,14 @@
 ---
 // Numbers we can actually promise: product facts, never adoption metrics.
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { ruledItem } from '@shared/ui/ruled-item.styles'
 import { section } from '@shared/ui/section.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { facts } from './facts.styles'
 
-const REVIEW_MODES = 4
+// One review mode per workflow page.
+const REVIEW_MODES = SECTION_BY_ID.workflows.items.length
 const PERCENT = 100
 const FACTS = [
 	[0, 'changes auto-approved. Every verdict is a click you made.'],
