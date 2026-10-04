@@ -5,7 +5,7 @@ import type { Page, Section } from '@entities/site/model/site-map'
 import { siblingsOf } from '@entities/site/model/routes'
 import { sx } from '@shared/lib/sx'
 import Icon from '@entities/site/ui/Icon.astro'
-import { pager } from './index-rows.styles'
+import { pager } from './pager.styles'
 import { pagerLinkMarker } from './page-index.stylex'
 
 const { section, previous, next } = siblingsOf(Astro.url.pathname)
