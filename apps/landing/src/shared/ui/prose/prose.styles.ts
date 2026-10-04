@@ -3,8 +3,8 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
 // Plain prose: a heading column and a body column, ruled from the section
-// above, stacking under 900px. A paragraph that follows something in the
-// body keeps its distance.
+// above, stacking on narrow screens. A paragraph that follows something in
+// the body keeps its distance.
 export const prose = stylex.create({
 	root: {
 		display: 'grid',

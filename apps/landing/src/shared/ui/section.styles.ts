@@ -21,7 +21,7 @@ export const section = stylex.create({
 		borderTopColor: color['--line'],
 	},
 	// A heading row: the title, and its lede aligned to the title's foot,
-	// stacking under 900px.
+	// stacking on narrow screens.
 	head: {
 		display: 'grid',
 		gridTemplateColumns: {
