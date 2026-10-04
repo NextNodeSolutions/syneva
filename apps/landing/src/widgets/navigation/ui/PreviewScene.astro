@@ -1,0 +1,28 @@
+---
+// One preview scene: a caption, the illustration (the slot) and a two-line
+// pitch. A prototype's caption carries no live dot.
+import type { PreviewName } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import { sceneMarker } from './markers.stylex'
+import { preview } from './preview.styles'
+
+type Props = {
+	name: PreviewName
+	caption: string
+	pitch: readonly [lead: string, point: string]
+	isPrototype?: boolean
+}
+
+const {
+	name,
+	caption,
+	pitch: [lead, point],
+	isPrototype = false,
+} = Astro.props
+---
+
+<div {...sx(preview.scene, sceneMarker)} data-scene={name}>
+	<div {...sx(preview.caption)}><span>{caption}</span>{!isPrototype && <span {...sx(preview.dot)}></span>}</div>
+	<slot />
+	<p {...sx(preview.pitch)}>{lead}<br /><strong {...sx(preview.pitchStrong)}>{point}</strong></p>
+</div>
