@@ -7,6 +7,7 @@ import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
+import { PAGES } from '@entities/site/model/site-map'
 
 const REFS = [
 	'# a pull request number, resolved through gh',
@@ -31,7 +32,7 @@ const RULES = [
 	lede={'Review a branch’s commits the way they will land. <code>syneva pr</code> takes a branch name, a pull request number or a GitHub URL, checks the branch out and diffs it against its merge-base.'}
 	caption={'Only the branch’s own commits. Main’s new work stays out.'}
 >
-	<Command slot="actions" text="syneva pr 128" label="Review a pull request" />
+	<Command slot="actions" text={PAGES.pullRequests.code} label="Review a pull request" />
 	<BranchGraph slot="art" />
 </PageHero>
 <Prose id="refs" title="Any way you<br>name the branch.">

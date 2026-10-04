@@ -6,6 +6,7 @@ import PageHero from '@widgets/page-hero/ui/PageHero.astro'
 import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
+import { PAGES } from '@entities/site/model/site-map'
 
 const WHEN = [
 	['Committing in slices.', 'Your agent made a dozen changes; you want to ship three of them now. Stage them, review them, commit them.'],
@@ -23,7 +24,7 @@ const GOOD_TO_KNOW = [
 	lede="Stage what you think is ready, then review exactly that. <code>syneva --diff staged</code> opens the index, so the desk shows what your next commit will contain and nothing else."
 	caption={'The working tree can stay messy. The commit shouldn’t.'}
 >
-	<Command slot="actions" text="syneva --diff staged" label="Review staged changes" />
+	<Command slot="actions" text={PAGES.stagedChanges.code} label="Review staged changes" />
 	<StagedPlanes slot="art" />
 </PageHero>
 <Prose id="when" title={'When it’s the<br>right lens.'}>

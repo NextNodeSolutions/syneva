@@ -8,6 +8,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
+import { PAGES } from '@entities/site/model/site-map'
 
 const NARROW = [
 	'# everything your agent changed',
@@ -29,7 +30,7 @@ const ROUND = [
 	lede="Run <code>syneva</code> in your repository and the working-tree diff opens in your browser. Modified files show as diffs, new untracked files as full-file additions, and nothing your agent touched is left out."
 	caption="The whole diff, or a lens on one path."
 >
-	<Command slot="actions" text="syneva" label="Review the working tree" />
+	<Command slot="actions" text={PAGES.workingTree.code} label="Review the working tree" />
 	<WorkingTree slot="art" />
 </PageHero>
 <Prose id="narrow" title="Big diff?<br>Narrow it.">
