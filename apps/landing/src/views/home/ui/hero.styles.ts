@@ -13,8 +13,10 @@ import { heroMarker, newsMarker } from './hero.stylex'
 const heroHover = (): string => stylex.when.ancestor(':hover', heroMarker)
 const newsHover = (): string => stylex.when.ancestor(':hover', newsMarker)
 
-const LIGHT =
-	"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 19v10M19 24h10' stroke='%231888b0' stroke-width='1.2'/%3E%3C/svg%3E\")"
+// One registration cross per 48px tile, as a mask: its stroke only shapes
+// the light, and the light's own background paints it.
+const CROSS =
+	"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 19v10M19 24h10' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E\")"
 
 export const hero = stylex.create({
 	root: {
@@ -43,12 +45,11 @@ export const hero = stylex.create({
 	// The pointer light: accent registration crosses wake up around the cursor
 	// while it is over the hero (hero-pointer.ts follows it with --mx/--my),
 	// for a fine pointer and without reduced motion, as the pointer depth.
+	// The crosses are the tile mask of a --signal layer (::before); the light
+	// itself fades the layer out around the cursor.
 	light: {
 		position: 'absolute',
 		inset: 0,
-		backgroundImage: LIGHT,
-		backgroundSize: '48px 48px',
-		backgroundPosition: `calc(${layout['--gutter']} - 25px) -25px`,
 		opacity: {
 			default: 0,
 			[media.finePointer]: {
@@ -59,6 +60,15 @@ export const hero = stylex.create({
 		maskImage:
 			'radial-gradient(circle 190px at var(--mx, 70%) var(--my, 20%), #000 0%, rgb(0 0 0 / .4) 45%, transparent 100%)',
 		transition: `opacity .5s ${ease['--ease-out']}`,
+		'::before': {
+			content: "''",
+			position: 'absolute',
+			inset: 0,
+			backgroundColor: color['--signal'],
+			maskImage: CROSS,
+			maskSize: '48px 48px',
+			maskPosition: `calc(${layout['--gutter']} - 25px) -25px`,
+		},
 	},
 	news: {
 		display: 'inline-flex',
