@@ -1,4 +1,5 @@
 import { changeKey } from './change-blocks.js'
+import { isRequestedChange } from './comments.js'
 
 import type { Decision, ReviewState } from './review.js'
 
@@ -37,12 +38,7 @@ export function computeApprovedFiles(state: ReviewState): string[] {
 		if (decision.status === 'rejected') rejected.add(decision.path)
 	const openChanges = new Set<string>()
 	for (const comment of state.comments)
-		if (
-			comment.status === 'open' &&
-			comment.role !== 'agent' &&
-			comment.intent !== 'question'
-		)
-			openChanges.add(comment.path)
+		if (isRequestedChange(comment)) openChanges.add(comment.path)
 	const isSignedOff = (filePath: string): boolean => {
 		const signedHash = signOffHashes[filePath]
 		return !!signedHash && signedHash === currentHashes.get(filePath)

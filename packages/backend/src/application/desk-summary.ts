@@ -2,6 +2,7 @@ import path from 'node:path'
 
 import { deskPagePath } from '@syneva/contracts/routes'
 
+import { isRequestedChange } from '../domain/comments.js'
 import { computeApprovedFiles } from '../domain/decisions.js'
 
 import { computeOpenQuestions } from './review-result.js'
@@ -39,13 +40,9 @@ export function deskSummary(
 			change => change.status !== 'pending',
 		).length,
 		openQuestions: computeOpenQuestions(state).length,
-		// Mirrors requestedChanges in review-result.ts: open, reviewer-authored, non-question.
-		openRequests: state.comments.filter(
-			comment =>
-				comment.status === 'open' &&
-				comment.role !== 'agent' &&
-				comment.intent !== 'question',
-		).length,
+		// The requested-change classification (domain/comments.ts): open, reviewer-authored,
+		// non-question - the same rule the agent handoff rides out on.
+		openRequests: state.comments.filter(isRequestedChange).length,
 		agentListening: status.agentListening,
 		agentActivity: status.agentActivity,
 		queuedQuestions: status.queuedQuestions,

@@ -1,4 +1,4 @@
-import { commentAnchor } from '../domain/comments.js'
+import { commentAnchor, isRequestedChange } from '../domain/comments.js'
 import {
 	computeApprovedFiles,
 	effectiveDecisions,
@@ -103,12 +103,7 @@ function requestedChanges(
 	state: ReviewState,
 ): ReviewResult['requestedChanges'] {
 	return state.comments
-		.filter(
-			comment =>
-				comment.status === 'open' &&
-				comment.role !== 'agent' &&
-				comment.intent !== 'question',
-		)
+		.filter(isRequestedChange)
 		.map(comment => ({
 			path: comment.path,
 			lineNumber: comment.lineNumber,
