@@ -132,6 +132,12 @@ export default defineConfig({
 			rules: { 'nextnode/no-confusable-chars': 'off' },
 		},
 		{
+			// Astro hands middleware the request's locals to fill before any page
+			// renders: assigning to context.locals is the framework's contract.
+			files: ['apps/landing/src/middleware.ts'],
+			rules: { 'eslint/no-param-reassign': 'off' },
+		},
+		{
 			// The public site and its packages use no Tailwind: CSS keyword strings
 			// they hand to the DOM ('fill-box', 'left center') only look like
 			// utility classes to the heuristic.

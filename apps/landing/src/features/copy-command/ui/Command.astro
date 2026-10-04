@@ -9,15 +9,12 @@ import { copyMarker } from './command.stylex'
 type Props = { text: string; label?: string; isInstall?: boolean; css?: Part }
 
 const { text, label = 'Command', isInstall = false, css } = Astro.props
-// Ids only need to be unique within the page.
-Astro.locals.commandCount = (Astro.locals.commandCount ?? 0) + 1
-const id = `command-${Astro.locals.commandCount}`
 ---
 
 <div {...sx(c.box, isInstall && c.install, css)} data-command>
 	<span {...sx(c.prompt)} aria-hidden="true">$</span><input
 		{...sx(c.field)}
-		id={id}
+		name="command"
 		value={text}
 		readonly
 		aria-label={label}

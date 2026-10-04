@@ -12,13 +12,10 @@ import { SITE_URL } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import { document as d } from './document.styles'
 
-type Props = { route: string; title: string; description: string; page: App.PageKind }
+type Props = { route: string; title: string; description: string }
 
-const { route, title, description, page } = Astro.props
+const { route, title, description } = Astro.props
 const canonical = `${SITE_URL}${route}`
-// Sections shared by the landing and the subpages restyle themselves by the
-// kind of page they render in (read through Astro.locals.page).
-Astro.locals.page = page
 ---
 
 <!doctype html>
