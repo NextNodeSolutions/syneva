@@ -33,11 +33,17 @@ const assemble = spawnSync('node', ['scripts/build-dist.mjs'], {
 if (assemble.status !== 0) process.exit(assemble.status ?? 1)
 
 const children = [
-	// Backend from source; cwd stays this package so the assets adapter's
-	// process.cwd()/dist fallback resolves the assembled UI.
-	spawn('pnpm', ['exec', 'tsx', 'watch', BACKEND_CLI], {
+	// Backend from source as the hub (the persistent process a desk command talks to):
+	// `tsx watch` restarts it on backend changes and desks restore on restart. A bare
+	// CLI run here instead would open a desk through hub autostart - and autostart's
+	// detached spawn runs plain `node` on this TypeScript source, which cannot resolve
+	// the backend's NodeNext `.js`-specifier imports, so it would fail on every start.
+	// --no-open: a restart must not pop a new dashboard tab; the URL is announced.
+	// SYNEVA_NO_UPDATE_CHECK: a watch restart must never block on the update prompt.
+	spawn('pnpm', ['exec', 'tsx', 'watch', BACKEND_CLI, 'start', '--no-open'], {
 		cwd: PACKAGE_ROOT,
 		stdio: 'inherit',
+		env: { ...process.env, SYNEVA_NO_UPDATE_CHECK: '1' },
 	}),
 	// Frontend watch rebuilds directly into the served dist.
 	spawn('pnpm', ['exec', 'vite', 'build', '--watch'], {
