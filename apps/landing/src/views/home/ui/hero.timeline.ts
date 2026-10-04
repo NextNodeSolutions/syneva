@@ -1,4 +1,4 @@
-import { EASE, toBezier } from '@syneva/motion/easing'
+import { EASE } from '@syneva/motion/easing'
 import { loopTimeline } from '@syneva/motion/loop-timeline'
 
 import type {
@@ -10,9 +10,9 @@ import type {
 // The hero instrument's clock and the moves its choreography is written in.
 // One 16s clock drives every piece, so the round can never drift out of
 // sync. Times are seconds on the clock.
-const EASE_OUT = toBezier(EASE.out)
-export const IN_OUT = toBezier(EASE.inOut)
-export const SPRING = toBezier(EASE.springWide)
+const EASE_OUT = EASE.out
+export const IN_OUT = EASE.inOut
+export const SPRING = EASE.springWide
 const CLOCK: Clock = { cycle: 16, delay: 0.9, easing: EASE_OUT }
 // The loop closes by fading the round out, so the next one starts clean.
 export const FADE_START = 15.1

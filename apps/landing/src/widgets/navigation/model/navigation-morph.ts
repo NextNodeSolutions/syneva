@@ -1,4 +1,4 @@
-import { EASE, toBezier } from '@syneva/motion/easing'
+import { toBezier } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 import { reducedMotion } from '@syneva/motion/preference'
 
@@ -104,7 +104,7 @@ export class NavigationMorph {
 	// whole move and the hand-over keyframes are linear in its progress.
 	#play(frames: Frames, duration: number): ReturnType<typeof animate> {
 		const ease = toBezier(
-			read(getComputedStyle(this.#navigation), '--nav-ease') || EASE.menu,
+			read(getComputedStyle(this.#navigation), '--nav-ease'),
 		)
 		const keyframes = Object.fromEntries(
 			[...frames].map(([name, frame]) => [name, frame.values]),

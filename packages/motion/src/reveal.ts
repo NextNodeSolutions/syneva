@@ -1,5 +1,5 @@
 import { countUp } from './count-up'
-import { EASE, toBezier } from './easing'
+import { EASE } from './easing'
 import { animate, inView } from './engine'
 import { playVocabulary } from './play-vocabulary'
 import { POSE_VALUES } from './poses'
@@ -17,7 +17,7 @@ const ITEM = { duration: 0.7, stagger: 0.07 } as const
 const STAGGER_CAP = 9
 const RULE = { duration: 1.4, delay: 0.05, drawn: 0.7 } as const
 
-const out = toBezier(EASE.out)
+const { out } = EASE
 const RULE_TIMING: AnimateOptions = {
 	duration: RULE.duration,
 	delay: RULE.delay,

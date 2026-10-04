@@ -1,4 +1,4 @@
-import { EASE, toBezier } from './easing'
+import { EASE } from './easing'
 import { animate } from './engine'
 import { moveStart, POSE_VALUES } from './poses'
 import { steps } from './steps'
@@ -12,9 +12,7 @@ const PULSE_LAG_S = 1.2
 const TYPE_STEPS = 28
 const PERCENT = 100
 
-const out = toBezier(EASE.out)
-const spring = toBezier(EASE.spring)
-const settle = toBezier(EASE.settle)
+const { out, spring, settle } = EASE
 
 const TIMING = {
 	draw: 1.1,

@@ -1,4 +1,4 @@
-import { EASE, toBezier } from '@syneva/motion/easing'
+import { EASE } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 
 import type { Easing } from '@syneva/motion/easing'
@@ -8,8 +8,8 @@ import type { Easing } from '@syneva/motion/easing'
 // with transform and opacity. Times are fractions of the cycle; every segment
 // eases on its own, like the stylesheet's keyframes did.
 const CYCLE_S = 14
-const REVIEW = toBezier(EASE.review)
-const UNFOLD = toBezier(EASE.unfold)
+const REVIEW = EASE.review
+const UNFOLD = EASE.unfold
 const LAYERS = {
 	critical: { rest: 0, lift: -156, delay: 0 },
 	important: { rest: 10, lift: -66, delay: 0.06 },

@@ -1,4 +1,4 @@
-import { EASE, toBezier } from './easing'
+import { EASE } from './easing'
 import { animate } from './engine'
 import { reducedMotion } from './preference'
 
@@ -11,7 +11,7 @@ import { reducedMotion } from './preference'
 // re-measure continues instead of jumping.
 const DURATION_S = 0.34
 const RISE_PX = 6
-const ease = toBezier(EASE.out)
+const ease = EASE.out
 
 // Rows mid-motion re-measure when text can rewrap (resize, a late font), so
 // they glide to the new height instead of snapping to it when they finish.

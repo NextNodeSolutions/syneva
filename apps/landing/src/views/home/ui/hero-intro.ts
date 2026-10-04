@@ -1,4 +1,4 @@
-import { EASE, toBezier } from '@syneva/motion/easing'
+import { EASE } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 
 import type { AnimateOptions } from '@syneva/motion/engine'
@@ -7,8 +7,7 @@ import type { AnimateOptions } from '@syneva/motion/engine'
 // lines rise out of their clips, the bands sweep behind them, the + and the
 // check land, the underline draws under "decide", and the pitch, the figure
 // and the principle strip follow.
-const out = toBezier(EASE.out)
-const spring = toBezier(EASE.spring)
+const { out, spring } = EASE
 
 type Step = {
 	part: string

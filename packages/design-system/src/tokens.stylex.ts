@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 
+import { curves } from './curves.stylex'
 import { media } from './media.stylex'
 
 // The variables keep literal custom-property names: the global stylesheet,
@@ -49,8 +50,8 @@ export const font = stylex.defineVars({
 })
 
 export const ease = stylex.defineVars({
-	'--ease-out': 'cubic-bezier(.2, 0, 0, 1)',
-	'--ease-spring': 'cubic-bezier(.34, 1.36, .5, 1)',
+	'--ease-out': curves.out,
+	'--ease-spring': curves.spring,
 })
 
 // Transition times, named by speed because each serves both hover and state
