@@ -2,6 +2,7 @@ import { compact } from './compact'
 import { HoverIntent } from './hover-intent'
 import { NavigationMorph } from './navigation-morph'
 import { PhoneBar } from './phone-bar'
+import { ProductPreview } from './product-preview'
 
 import type { InputMode } from './input-mode'
 import type { NavigationParts } from './navigation-parts'
@@ -25,22 +26,21 @@ type Focusable = { focus: () => void }
 // The header's panel state and focus: hover and click open a section's panel
 // in the morphing dropdown, arrow keys move between triggers, Escape and
 // outside presses dismiss, and on phones the toggle opens the link bar first.
-// Hover timing and the phone bar live in their own classes.
+// Hover timing, the phone bar and the product preview live in their own
+// classes.
 export class Navigation {
 	readonly #root: HTMLElement
 	readonly #links: HTMLElement
 	readonly #triggers: HTMLElement[]
 	readonly #dropdown: HTMLElement
 	readonly #panels: HTMLElement[]
-	readonly #previewLinks: HTMLElement[]
-	readonly #scenes: HTMLElement[]
 	readonly #morph: NavigationMorph
+	readonly #preview: ProductPreview
 	readonly #hoverIntent = new HoverIntent()
 	readonly #phoneBar: PhoneBar
 	#currentTrigger: HTMLElement | undefined
 	#clickedTrigger: HTMLElement | undefined
 	#currentPanel: HTMLElement | undefined
-	#previewedLink: HTMLElement | undefined
 	#inputMode: InputMode = 'pointer'
 
 	constructor(parts: NavigationParts) {
@@ -50,12 +50,8 @@ export class Navigation {
 		this.#phoneBar = new PhoneBar(parts.root, parts.toggle)
 		this.#triggers = parts.triggers
 		this.#panels = parts.panels
-		this.#previewLinks = parts.previewLinks
-		this.#scenes = parts.scenes
 		this.#morph = new NavigationMorph(parts, compact)
-		// The product menu starts on its first row's preview.
-		const [first] = this.#previewLinks
-		if (first) this.selectPreview(first)
+		this.#preview = new ProductPreview(parts, this.#morph)
 	}
 
 	get isOpen(): boolean {
@@ -73,7 +69,7 @@ export class Navigation {
 
 	positionPanel(): void {
 		this.#morph.position(this.#currentTrigger, this.#currentPanel)
-		if (this.#previewedLink) this.#positionPreview(this.#previewedLink)
+		this.#preview.reposition()
 	}
 
 	// inert alone holds a panel's state: it takes the closed panels out of
@@ -216,29 +212,8 @@ export class Navigation {
 		if (hadFocus) target?.focus()
 	}
 
-	// A product row previews its scene: the shared selection background moves
-	// to the row, and the row and its scene are marked for the styles.
 	selectPreview(link: HTMLElement): void {
-		this.#previewedLink = link
-		this.#positionPreview(link)
-		this.#previewLinks.forEach(candidate =>
-			candidate.classList.toggle('is-previewed', candidate === link),
-		)
-		this.#scenes.forEach(scene =>
-			scene.classList.toggle(
-				'is-current',
-				scene.dataset.scene === link.dataset.preview,
-			),
-		)
-	}
-
-	#positionPreview(link: HTMLElement): void {
-		this.#morph.preview(
-			this.#scenes.find(
-				scene => scene.dataset.scene === link.dataset.preview,
-			),
-			link,
-		)
+		this.#preview.select(link)
 	}
 
 	adaptToBreakpoint(): void {
