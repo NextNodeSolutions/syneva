@@ -9,27 +9,22 @@ import { anim, move } from '@shared/ui/drawing/anim'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
+import { GUIDE_SECTIONS, GUIDE_FILE_COUNT, UNMENTIONED_FILE_COUNT } from './guide-sections'
 
-// The guide's sections, then the trailing Other section for the files the
-// guide never mentions; each file sits on its row's y.
-const SECTIONS = [
-	{ label: '01 · CONTRACTS', kind: 'guided', y: 84, rows: [['contracts/review.ts', 92]] },
-	{ label: '02 · BEHAVIOR', kind: 'guided', y: 146, rows: [['auth/session.ts', 154], ['api/middleware.ts', 190]] },
-	{ label: '03 · INTERFACE', kind: 'guided', y: 246, rows: [['pages/desk.tsx', 254]] },
-	{ label: 'OTHER · LISTED ANYWAY', kind: 'other', y: 308, rows: [['README.md', 316], ['lib/hash.ts', 352]] },
-] as const
 const LABEL_TONE = { guided: text.accent, other: null } as const
 const CHIP = { guided: null, other: productArt.guideChipOther } as const
 // Chips are numbered in reading order across sections; git lists the same
 // files sorted by path.
-const READING_ORDER: readonly string[] = SECTIONS.flatMap(section => section.rows.map(([name]) => name))
+const READING_ORDER: readonly string[] = GUIDE_SECTIONS.flatMap(section => section.rows.map(([name]) => name))
 const GIT_ORDER = READING_ORDER.toSorted()
 const ROW = 44
 const TOP = 92
 const ghostY = (name: string): number => TOP + GIT_ORDER.indexOf(name) * ROW
 const orderOf = (name: string): number => READING_ORDER.indexOf(name) + 1
 // Each chip travels in from its place in git's list, in reading order.
-const sections = SECTIONS.map(({ label, kind, y, rows }, sectionIndex) => ({
+const sections = GUIDE_SECTIONS.map(({ label, kind, y, rows }, sectionIndex) => ({
 	label,
 	kind,
 	labelY: y - 4,
@@ -47,7 +42,7 @@ const sections = SECTIONS.map(({ label, kind, y, rows }, sectionIndex) => ({
 	height={420}
 	compact="300 40 290 360"
 	title="From git's order to a reading order"
-	description="On the left, six changed files in the order git lists them. On the right, the same files in the order your agent's guide sets: contracts first, then behavior, then the interface. Two files the guide does not mention land in a trailing Other section, so nothing is hidden."
+	description={`On the left, ${countWord(GUIDE_FILE_COUNT)} changed files in the order git lists them. On the right, the same files in the order your agent's guide sets: contracts first, then behavior, then the interface. ${capitalize(countWord(UNMENTIONED_FILE_COUNT))} files the guide does not mention land in a trailing Other section, so nothing is hidden.`}
 >
 	<text {...sx(text.tiny)} x="30" y="72">AS GIT LISTS IT</text>
 	<text {...sx(text.tiny, text.accent)} x="330" y="56">AS YOUR AGENT GUIDES IT</text>

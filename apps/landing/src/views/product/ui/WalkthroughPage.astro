@@ -14,8 +14,10 @@ import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { PAGES } from '@entities/site/model/site-map'
+import { countWord } from '@shared/lib/count-word'
 import GuideSort from './art/GuideSort.astro'
 import GuideStamp from './art/GuideStamp.astro'
+import { GUIDE_FILE_COUNT } from './art/guide-sections'
 
 const GUIDE = [
 	'# guide.json, written by your agent',
@@ -43,7 +45,7 @@ const FIELDS = [
 <PageHero
 	title="A reading order,<br>not a pile of files."
 	lede={'Git lists changed files alphabetically. Understanding doesn’t work that way. Your agent knows what it changed and why, so let it hand you the order: contracts first, behavior next, the interface last.'}
-	caption="Same six files. One order makes sense of them."
+	caption={`Same ${countWord(GUIDE_FILE_COUNT)} files. One order makes sense of them.`}
 >
 	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Try it on your diff" /><TextLink href={PAGES.connectYourAgent.href} label="How agents attach a guide" /></Fragment>
 	<GuideSort slot="art" />
