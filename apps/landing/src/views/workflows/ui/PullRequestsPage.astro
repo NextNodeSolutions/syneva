@@ -8,9 +8,6 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const REFS = [
 	'# a pull request number, resolved through gh',
@@ -31,7 +28,6 @@ const RULES = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Pull requests"
 	title="A whole branch, against its merge-base."
 	state="available"
@@ -48,4 +44,4 @@ const RULES = [
 	<RuledList items={RULES} />
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

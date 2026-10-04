@@ -1,14 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import AskYourAgentPage from '@views/product/ui/AskYourAgentPage.astro'
-
-const route = '/product/ask-your-agent/'
 ---
 
 <Document
-	route={route}
 	title="Ask your agent · Syneva"
 	description="Ask about the exact line and get the answer there. Your agent reads, posts a live status, and replies in the thread, while you keep reviewing. Change requests ride along with your verdict."
 >
-	<AskYourAgentPage route={route} />
+	<AskYourAgentPage />
 </Document>

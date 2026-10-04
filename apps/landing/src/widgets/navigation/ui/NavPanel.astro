@@ -9,9 +9,10 @@ import { menuFooterMarker } from './markers.stylex'
 import { menuFooter } from './menu-footer.styles'
 import { panel } from './panel.styles'
 
-type Props = { section: Section; route: string }
+type Props = { section: Section }
 
-const { section, route } = Astro.props
+const { section } = Astro.props
+const route = Astro.url.pathname
 const isProduct = section.id === 'product'
 const current = (href: string) => (href === route ? 'page' : undefined)
 ---
@@ -28,7 +29,7 @@ const current = (href: string) => (href === route ? 'page' : undefined)
 		isProduct && (
 			<div {...sx(panel.productBody)}>
 				<div {...sx(panel.productLinks)}>
-					{section.items.map(page => <MenuLink page={page} route={route} isPreviewing />)}
+					{section.items.map(page => <MenuLink page={page} isPreviewing />)}
 				</div>
 				<PreviewScenes />
 			</div>
@@ -37,14 +38,14 @@ const current = (href: string) => (href === route ? 'page' : undefined)
 	{
 		section.id === 'workflows' && (
 			<div {...sx(panel.workflowLinks)}>
-				{section.items.map((page, index) => <WorkflowLink page={page} route={route} index={index} />)}
+				{section.items.map((page, index) => <WorkflowLink page={page} index={index} />)}
 			</div>
 		)
 	}
 	{
 		section.id === 'resources' && (
 			<div {...sx(panel.resourceLinks)}>
-				{section.items.map(page => <MenuLink page={page} route={route} />)}
+				{section.items.map(page => <MenuLink page={page} />)}
 			</div>
 		)
 	}

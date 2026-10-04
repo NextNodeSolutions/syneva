@@ -9,14 +9,10 @@ import { FAQ } from './faq-content'
 import QaBlock from './QaBlock.astro'
 import QaIndex from './QaIndex.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 ---
 
 <PageHero
-	route={route}
 	crumb="Questions & answers"
 	title="Straight answers."
 	lede={'What Syneva does, what it deliberately doesn’t, and where your code goes. If your question isn’t here, ask it on GitHub.'}
@@ -28,4 +24,4 @@ const { route } = Astro.props
 <QaIndex groups={FAQ} />
 {FAQ.map((group, index) => <QaBlock group={group} index={index} />)}
 <CtaBand />
-<Pager route={route} />
+<Pager />

@@ -6,9 +6,9 @@ import Icon from '@entities/site/ui/Icon.astro'
 import { workflowLinkMarker } from './markers.stylex'
 import { workflowLink } from './menu.styles'
 
-type Props = { page: Page; route: string; index: number }
+type Props = { page: Page; index: number }
 
-const { page, route, index } = Astro.props
+const { page, index } = Astro.props
 // Rows after the first carry a rule; the second cell of the first row only
 // once the grid stacks into one column.
 const SECOND_ROW = 2
@@ -25,7 +25,7 @@ const isRuledWhenStacked = index === 1
 	)}
 	href={page.href}
 	data-menu-row
-	aria-current={page.href === route ? 'page' : undefined}
+	aria-current={page.href === Astro.url.pathname ? 'page' : undefined}
 >
 	<strong {...sx(workflowLink.title)}>
 		<Icon name={page.icon} css={workflowLink.icon} />

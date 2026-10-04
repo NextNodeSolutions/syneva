@@ -1,14 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import WalkthroughPage from '@views/product/ui/WalkthroughPage.astro'
-
-const route = '/product/walkthrough/'
 ---
 
 <Document
-	route={route}
 	title="Guided walkthrough · Syneva"
 	description="Let your agent hand you a reading order: files grouped into sections, general to specific. Files the guide does not list still appear under Other. Nothing is hidden."
 >
-	<WalkthroughPage route={route} />
+	<WalkthroughPage />
 </Document>

@@ -12,9 +12,6 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const READ_ONLY = [
 	['Live progress.', 'A one-line status, like “reading auth/session.ts…”, sits beside your thread while the agent works.'],
@@ -29,7 +26,6 @@ const INTENTS = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Ask your agent"
 	title="Ask on the line.<br>The answer lands there."
 	state="available"
@@ -52,4 +48,4 @@ const INTENTS = [
 	<ProseText>Outside pi, any agent can answer with <code>syneva await</code> and <code>syneva comment</code>.</ProseText>
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

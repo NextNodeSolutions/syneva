@@ -10,9 +10,6 @@ import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { sectionById } from '@entities/site/model/site-map'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const COMMITMENTS = [
 	['No model runs inside Syneva.', 'It never calls an LLM and never orchestrates one. It renders the diff, validates what it is given, and hands a result back.'],
@@ -28,7 +25,6 @@ const DAILY = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Product"
 	title="The review desk for code your agent wrote."
 	lede={'Syneva is an integrated review environment: a browser desk on localhost where you read your agent’s diff in order, question it on the line and record a verdict on every change. It runs no model of its own. The judgment is yours, the agent is yours, and the code stays on your machine.'}

@@ -12,9 +12,6 @@ import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { REPO_URL } from '@entities/site/model/site-map'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const PI = [
 	['/review and /plan.', 'Prompt templates that start a desk, attach your session and act on each event.'],
@@ -54,7 +51,6 @@ const ACTING = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Connect your agent"
 	title="Any agent can drive the desk."
 	lede="The contract is plain JSON on stdout and a localhost HTTP server, documented in full by <code>syneva spec</code>. If your agent can run a shell command, it can receive your review."
@@ -81,4 +77,4 @@ const ACTING = [
 	<RuledList items={ACTING} />
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

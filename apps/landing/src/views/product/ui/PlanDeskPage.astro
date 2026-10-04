@@ -12,9 +12,6 @@ import ProseCommand from '@features/copy-command/ui/ProseCommand.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const DIRECTION = [
 	['See the shape of the work.', 'Read a plan as a map of claims, as a document, or as source.'],
@@ -25,7 +22,6 @@ const DIRECTION = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Plan desk"
 	title="Question the plan before the code exists."
 	state="prototype"
@@ -48,4 +44,4 @@ const DIRECTION = [
 	<Callout lead="The claim map and the risk-ranked queue on this page are not shipped.">They are the direction, drawn honestly. Everything else on this site describes what the CLI does today.</Callout>
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

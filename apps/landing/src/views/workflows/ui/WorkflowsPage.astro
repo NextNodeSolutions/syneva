@@ -11,9 +11,6 @@ import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { sectionById } from '@entities/site/model/site-map'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const COMMANDS = [
 	['syneva', 'The working-tree diff, untracked files included.'],
@@ -28,7 +25,6 @@ const COMMANDS = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Workflows"
 	title="Four ways in.<br>One desk."
 	lede="Review whatever your agent just did: the working tree, what you staged, a whole branch or pull request, or a single file like a plan. The desk, the keys and the handoff stay the same every time."

@@ -9,9 +9,6 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const STATES = [
 	['Unchanged', 'The full file, ready for comments.'],
@@ -22,7 +19,6 @@ const STATES = [
 ---
 
 <PageHero
-	route={route}
 	crumb="A single file"
 	title="One file. A plan, a spec, a piece of code."
 	state="available"
@@ -41,4 +37,4 @@ const STATES = [
 	<ProseText><TextLink href="/product/plan-desk/" label="Where the plan desk is heading" /></ProseText>
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

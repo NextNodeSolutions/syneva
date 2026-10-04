@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import stylexVite from '@stylexjs/unplugin/vite'
 
 import { linkedPages } from './integrations/linked-pages'
+import { SITE_URL } from './src/entities/site/model/site-map'
 
 // One root for StyleX's file-based hashes, whatever directory the build runs
 // from: markers and variables defined in packages/* keep the same class names.
@@ -21,7 +22,7 @@ const STYLEX_ALIASES = Object.fromEntries(
 // and 404.html. StyleX compiles at build time and appends its atomic CSS to
 // the site stylesheet; Motion drives the animations on the client.
 export default defineConfig({
-	site: 'https://syneva.dev',
+	site: SITE_URL,
 	output: 'static',
 	build: { format: 'directory', inlineStylesheets: 'never' },
 	integrations: [linkedPages()],

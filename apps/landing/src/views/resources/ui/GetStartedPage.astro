@@ -11,9 +11,6 @@ import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { REPO_URL } from '@entities/site/model/site-map'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const REQUIREMENTS = [
 	['Node 22+', 'For the CLI.'],
@@ -41,7 +38,6 @@ const FIRST_KEYS = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Get started"
 	title="From install to your first verdict."
 	lede="Two commands open a desk. One more lets your agent hear back. Here is the whole path, for pi and for every other agent."
@@ -72,4 +68,4 @@ const FIRST_KEYS = [
 	<SpecTable rows={FIRST_KEYS} head={['Keys', 'Does']} />
 	<Callout lead={'That’s the loop.'} isGreen>Your agent acts on the verdict, reloads, and the next round lands in the same tab. Stuck somewhere? <TextLink href="/resources/faq/" label="Questions & answers" /> or <TextLink href={`${REPO_URL}/issues`} label="open an issue" isExternal />.</Callout>
 </Prose>
-<Pager route={route} />
+<Pager />

@@ -12,10 +12,10 @@ import { SITE_URL } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import { documentShell } from './document.styles'
 
-type Props = { route: string; title: string; description: string }
+type Props = { title: string; description: string }
 
-const { route, title, description } = Astro.props
-const canonical = `${SITE_URL}${route}`
+const { title, description } = Astro.props
+const canonical = `${SITE_URL}${Astro.url.pathname}`
 ---
 
 <!doctype html>
@@ -43,7 +43,7 @@ const canonical = `${SITE_URL}${route}`
 	<body>
 		<a {...sx(documentShell.skip)} href="#main">Skip to content</a>
 		<div {...sx(documentShell.frame)}>
-			<Navigation route={route} />
+			<Navigation />
 			<main id="main">
 				<slot />
 			</main>

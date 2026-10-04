@@ -10,9 +10,7 @@ import { actionMarker, dropdownMarker, navMarker, triggerMarker } from './marker
 import { instant } from './instant.styles'
 import { nav } from './navigation.styles'
 
-type Props = { route: string }
-
-const { route } = Astro.props
+const route = Astro.url.pathname
 const active = sectionOf(route)
 const current = (href: string) => (href === route ? 'page' : undefined)
 const isOpenSource = route === OPEN_SOURCE.href
@@ -58,7 +56,7 @@ const START = '/get-started/'
 		<svg {...sx(nav.toggleIcon)} viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7h12M4 13h12"></path></svg>
 	</button>
 	<div {...sx(nav.dropdown, dropdownMarker)} data-open="false" data-nav-dropdown>
-		{SECTIONS.map(section => <NavPanel section={section} route={route} />)}
+		{SECTIONS.map(section => <NavPanel section={section} />)}
 	</div>
 	<noscript {...sx(nav.noscript)}>
 		{

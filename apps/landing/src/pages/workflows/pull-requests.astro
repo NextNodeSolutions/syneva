@@ -1,14 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import PullRequestsPage from '@views/workflows/ui/PullRequestsPage.astro'
-
-const route = '/workflows/pull-requests/'
 ---
 
 <Document
-	route={route}
 	title="Pull request review · Syneva"
 	description="Review a branch the way it will land: syneva pr takes a branch name, a PR number or a GitHub URL, checks it out and diffs it against its merge-base."
 >
-	<PullRequestsPage route={route} />
+	<PullRequestsPage />
 </Document>

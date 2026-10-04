@@ -1,14 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import ReviewDeskPage from '@views/product/ui/ReviewDeskPage.astro'
-
-const route = '/product/review-desk/'
 ---
 
 <Document
-	route={route}
 	title="Review desk · Syneva"
 	description="Judge every change your agent made: keep or undo each hunk, approve whole files, comment on lines, and send a structured verdict back. Keyboard-first and local."
 >
-	<ReviewDeskPage route={route} />
+	<ReviewDeskPage />
 </Document>

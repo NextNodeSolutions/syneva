@@ -9,9 +9,6 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const NARROW = [
 	'# everything your agent changed',
@@ -29,7 +26,6 @@ const ROUND = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Working tree"
 	title="Everything your agent just changed."
 	state="available"
@@ -47,4 +43,4 @@ const ROUND = [
 	<RuledList items={ROUND} />
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

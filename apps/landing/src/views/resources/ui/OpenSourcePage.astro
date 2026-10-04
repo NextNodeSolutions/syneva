@@ -10,9 +10,6 @@ import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { REPO_URL } from '@entities/site/model/site-map'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 const WHY = [
 	['Trust you can verify.', 'Your review surface reads your code. You should be able to read it back.'],
@@ -29,7 +26,6 @@ const REPOSITORY = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Open source"
 	title="A protocol you can read. Code you can fork."
 	lede="Syneva is MIT licensed and built in the open. A tool that sees your diffs should be one you can inspect end to end: no model inside, no telemetry, no account."

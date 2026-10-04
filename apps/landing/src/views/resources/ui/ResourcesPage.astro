@@ -10,14 +10,10 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { REPO_URL, sectionById } from '@entities/site/model/site-map'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 ---
 
 <PageHero
-	route={route}
 	crumb="Resources"
 	title="Everything for your first review."
 	lede={'Set up the desk, connect the agent you already use, get straight answers about what Syneva does and doesn’t do, and follow what ships.'}

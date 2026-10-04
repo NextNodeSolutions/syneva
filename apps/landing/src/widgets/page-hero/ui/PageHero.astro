@@ -9,7 +9,6 @@ import { pageHero } from './page-hero.styles'
 import { pageActionsMarker } from '@shared/ui/actions.stylex'
 
 type Props = {
-	route: string
 	crumb: string
 	title: string
 	lede: string
@@ -17,13 +16,13 @@ type Props = {
 	caption?: string
 }
 
-const { route, crumb, title, lede, state, caption } = Astro.props
+const { crumb, title, lede, state, caption } = Astro.props
 const hasActions = Astro.slots.has('actions')
 ---
 
 <section {...revealGroup(pageHero.root)} aria-labelledby="page-title">
 	<div {...sx(pageHero.copy)}>
-		<Crumbs route={route} title={crumb} />
+		<Crumbs title={crumb} />
 		<h1 {...revealItem(pageHero.title)} id="page-title" set:html={title} />
 		{
 			state && (

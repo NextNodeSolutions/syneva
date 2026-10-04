@@ -9,9 +9,6 @@ import { REPO_URL } from '@entities/site/model/site-map'
 import type { Week } from './VersionList.astro'
 import VersionList from './VersionList.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 // Curated from the repository history (Conventional Commits). Product
 // changes only; refactors and chores stay in git log.
@@ -68,7 +65,6 @@ const WEEKS: Week[] = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Changelog"
 	title="What shipped."
 	lede="Straight from the git history, grouped by week and written for humans. Releases are cut automatically from the commit messages; this page tells you what they mean for your review."
@@ -81,4 +77,4 @@ const WEEKS: Week[] = [
 	<VersionList weeks={WEEKS} />
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

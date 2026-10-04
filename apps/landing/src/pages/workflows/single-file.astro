@@ -1,14 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import SingleFilePage from '@views/workflows/ui/SingleFilePage.astro'
-
-const route = '/workflows/single-file/'
 ---
 
 <Document
-	route={route}
 	title="Single file review · Syneva"
 	description="syneva file opens one file, tracked or not: a plan, a spec, an issue draft or a piece of code. Markdown renders, and you can comment on any rendered block."
 >
-	<SingleFilePage route={route} />
+	<SingleFilePage />
 </Document>

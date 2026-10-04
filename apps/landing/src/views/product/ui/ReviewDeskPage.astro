@@ -13,9 +13,6 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import KbdGrid from './KbdGrid.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
 
 // The real desk bindings (packages/frontend/src/app/hotkeys-*.ts).
 const KEYS = [
@@ -48,7 +45,6 @@ const ROUNDS = [
 ---
 
 <PageHero
-	route={route}
 	crumb="Review desk"
 	title="A verdict on every change."
 	state="available"
@@ -71,4 +67,4 @@ const ROUNDS = [
 	<RuledList items={ROUNDS} />
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

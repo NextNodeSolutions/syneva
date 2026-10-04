@@ -1,14 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import ChangelogPage from '@views/resources/ui/ChangelogPage.astro'
-
-const route = '/resources/changelog/'
 ---
 
 <Document
-	route={route}
 	title="Changelog · Syneva"
 	description="What shipped in Syneva, straight from the repository history: review notes, a faster desk, and a tighter loop between you and your agent."
 >
-	<ChangelogPage route={route} />
+	<ChangelogPage />
 </Document>

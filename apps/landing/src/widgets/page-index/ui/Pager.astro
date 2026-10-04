@@ -8,10 +8,7 @@ import Icon from '@entities/site/ui/Icon.astro'
 import { pager } from './index-rows.styles'
 import { pagerLinkMarker } from './page-index.stylex'
 
-type Props = { route: string }
-
-const { route } = Astro.props
-const { section, previous, next } = siblingsOf(route)
+const { section, previous, next } = siblingsOf(Astro.url.pathname)
 type Cell = { item?: Page; isNext: boolean }
 const cells: Cell[] = [
 	{ item: previous, isNext: false },
