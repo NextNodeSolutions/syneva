@@ -45,8 +45,10 @@ const children = [
 		stdio: 'inherit',
 		env: { ...process.env, SYNEVA_NO_UPDATE_CHECK: '1' },
 	}),
-	// Frontend watch rebuilds directly into the served dist.
-	spawn('pnpm', ['exec', 'vite', 'build', '--watch'], {
+	// Frontend watch rebuilds directly into the served dist. --logLevel warn: the
+	// default reporter prints a line per emitted chunk (~70 shiki grammar/theme
+	// chunks) on every rebuild; warnings and errors stay visible.
+	spawn('pnpm', ['exec', 'vite', 'build', '--watch', '--logLevel', 'warn'], {
 		cwd: FRONTEND_DIR,
 		stdio: 'inherit',
 		env: {
