@@ -119,10 +119,12 @@ export const nav = stylex.create({
 		justifyContent: 'center',
 		minHeight: '44px',
 		paddingBlock: 0,
+		// The four items fit the link bar down to 320px; below that it scrolls.
 		paddingInline: {
 			default: '13px',
 			[media.narrow]: '8px',
 			[media.smallPhone]: '6px',
+			[media.tinyPhone]: '3px',
 		},
 		// `border: 0` resets the style and colour too, not just the width.
 		borderWidth: 0,
@@ -137,6 +139,13 @@ export const nav = stylex.create({
 		},
 		fontWeight: 450,
 		whiteSpace: 'nowrap',
+		// The link bar scrolls on small phones and clips anything outside its
+		// box, so the focus ring draws inside the item there, as the panel
+		// rows' does.
+		outlineOffset: {
+			default: null,
+			[media.smallPhone]: { default: null, ':focus-visible': '-3px' },
+		},
 		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, background-color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 	},
 	trigger: {
