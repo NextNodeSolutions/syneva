@@ -13,11 +13,14 @@ export type Frame = readonly [
 	props: AnimatedProperties,
 	segment?: SegmentEasing,
 ]
+// A timeline has at least one frame, and its first frame names the
+// properties every other frame states.
+export type Frames = readonly [Frame, ...Frame[]]
 export type Clock = { cycle: number; delay: number; easing: Easing }
 
 type Keyframe = { offset: number; props: AnimatedProperties; easing: Easing }
 
-function expand(frames: readonly Frame[], clock: Clock): Keyframe[] {
+function expand(frames: Frames, clock: Clock): Keyframe[] {
 	const keyframes: Keyframe[] = []
 	frames.forEach(([time, props, segment], index) => {
 		const offset = time / clock.cycle
@@ -55,16 +58,14 @@ function valueAt({ offset, props }: Keyframe, name: string): string | number {
 
 // Loops the frames forever on `element`, after the clock's start delay.
 export function loopTimeline(
-	element: Element | null,
-	frames: readonly Frame[],
+	element: Element,
+	frames: Frames,
 	clock: Clock,
 ): void {
-	if (!element) return
 	const keyframes = expand(frames, clock)
-	const [first] = keyframes
-	if (!first) return
+	const [[, firstProps]] = frames
 	const values = Object.fromEntries(
-		Object.keys(first.props).map(name => [
+		Object.keys(firstProps).map(name => [
 			name,
 			keyframes.map(keyframe => valueAt(keyframe, name)),
 		]),

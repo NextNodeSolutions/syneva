@@ -19,7 +19,14 @@ const hero = document.querySelector<HTMLElement>('[data-hero]')
 const svg = hero?.querySelector('[data-hero-stage]')
 
 const scope: Scope = {
-	one: name => svg?.querySelector(stagePartSelector(name)) ?? null,
+	one: name => {
+		const part = svg?.querySelector(stagePartSelector(name))
+		if (!part)
+			throw new Error(
+				`The hero stage has no ${name} part: mark it with stagePart('${name}').`,
+			)
+		return part
+	},
 	all: name => [...(svg?.querySelectorAll(stagePartSelector(name)) ?? [])],
 }
 

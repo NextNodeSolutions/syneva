@@ -3,7 +3,7 @@ import { loopTimeline } from '@syneva/motion/loop-timeline'
 
 import type { Easing } from '@syneva/motion/easing'
 import type { Keyframes } from '@syneva/motion/engine'
-import type { Frame } from '@syneva/motion/loop-timeline'
+import type { Frame, Frames } from '@syneva/motion/loop-timeline'
 
 // One 14s clock: dispatch, open, read, decide, return. The static pose tells
 // the whole story; only the three short signal strokes repaint, sheets move
@@ -27,7 +27,11 @@ const SIGNALS = {
 const pixels = (element: Element, property: string): number =>
 	Number.parseFloat(getComputedStyle(element).getPropertyValue(property))
 
-type Timing = { times: readonly number[]; ease: Easing; delay?: number }
+type Timing = {
+	times: readonly [number, ...number[]]
+	ease: Easing
+	delay?: number
+}
 
 // A piece states one value per time of its timing: a missing one is a bug in
 // the piece, not a value to guess.
@@ -47,11 +51,11 @@ function valueAt(
 // A piece is written as its values at six fractions of the cycle; they
 // become the loop timeline's frames on the circuit's clock.
 function loop(
-	element: Element | null,
+	element: Element,
 	keyframes: Keyframes,
 	{ times, ease, delay = 0 }: Timing,
 ): void {
-	const frames = times.map((time, index): Frame => [
+	const frameAt = (time: number, index: number): Frame => [
 		time * CYCLE_S,
 		Object.fromEntries(
 			Object.entries(keyframes).map(([property, values]) => [
@@ -59,7 +63,12 @@ function loop(
 				valueAt(values, index, property),
 			]),
 		),
-	])
+	]
+	const [firstTime, ...laterTimes] = times
+	const frames: Frames = [
+		frameAt(firstTime, 0),
+		...laterTimes.map((time, index) => frameAt(time, index + 1)),
+	]
 	loopTimeline(element, frames, { cycle: CYCLE_S, delay, easing: ease })
 }
 
@@ -76,7 +85,7 @@ const travel = (size: number, length: number): string[] => [
 	`${-length}px`,
 ]
 
-type Part = (name: string) => Element | null
+type Part = (name: string) => Element
 
 // The changeset is dispatched, then its review layers lift apart and their
 // notes appear.
@@ -176,8 +185,14 @@ export function playCircuit(
 	svg: SVGSVGElement,
 	lengths: Map<string, number>,
 ): void {
-	const part: Part = name =>
-		svg.querySelector(`[data-circuit-part="${name}"]`)
+	const part: Part = name => {
+		const found = svg.querySelector(`[data-circuit-part="${name}"]`)
+		if (!found)
+			throw new Error(
+				`The review circuit has no ${name} part: mark it with data-circuit-part="${name}".`,
+			)
+		return found
+	}
 	unfold(svg, part)
 	review(part)
 	travelSignals(svg, lengths)

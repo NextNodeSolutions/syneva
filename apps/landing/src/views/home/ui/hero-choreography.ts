@@ -58,7 +58,7 @@ function writeBars({ all }: Scope): void {
 		const row = Number(bar.getAttribute('data-row'))
 		const isRejected = bar.closest('[data-verdict="no"]') !== null
 		const write = 0.45 + card * 0.16 + row * 0.13
-		const frames: Frame[] = [
+		const frames: [Frame, ...Frame[]] = [
 			[0, { transform: 'scaleX(0)' }],
 			[write, { transform: 'scaleX(0)' }],
 			[write + 0.4, { transform: 'none' }],
@@ -74,6 +74,12 @@ function writeBars({ all }: Scope): void {
 	})
 }
 
+// The waiting caret shows at `time` and hides a quarter second later.
+const caretBlink = (time: number): readonly [Frame, Frame] => [
+	[time, { opacity: 1 }, 'hold'],
+	[time + 0.25, { opacity: 0 }, 'hold'],
+]
+
 // Until a change opens, the desk says what it is waiting for.
 function wait({ one }: Scope): void {
 	loop(one('idle'), [
@@ -84,13 +90,10 @@ function wait({ one }: Scope): void {
 		[FADE_END, { opacity: 0 }],
 		[FADE_END + 0.25, { opacity: 1 }],
 	])
-	loop(
-		one('caret'),
-		[0, 0.5, 1, 1.5, 2, 2.5].flatMap((time): Frame[] => [
-			[time, { opacity: 1 }, 'hold'],
-			[time + 0.25, { opacity: 0 }, 'hold'],
-		]),
-	)
+	loop(one('caret'), [
+		...caretBlink(0),
+		...[0.5, 1, 1.5, 2, 2.5].flatMap(caretBlink),
+	])
 }
 
 // 2.7 - 5.0  The change opens on the desk and you read it.

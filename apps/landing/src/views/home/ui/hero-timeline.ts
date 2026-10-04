@@ -5,7 +5,7 @@ import { PATH_LENGTH } from '@syneva/motion/poses'
 import type {
 	AnimatedProperties,
 	Clock,
-	Frame,
+	Frames,
 } from '@syneva/motion/loop-timeline'
 import type { StagePart } from './hero-stage-part'
 
@@ -17,13 +17,12 @@ const CLOCK: Clock = { cycle: 16, delay: 0.9, easing: EASE.out }
 export const FADE_START = 15.1
 export const FADE_END = 15.7
 
-export type Part = Element | null
 export type Scope = {
-	one: (name: StagePart) => Part
+	one: (name: StagePart) => Element
 	all: (name: StagePart) => Element[]
 }
 
-export const loop = (element: Part, frames: readonly Frame[]): void =>
+export const loop = (element: Element, frames: Frames): void =>
 	loopTimeline(element, frames, CLOCK)
 
 // Appear at `start` over `length`, from the `from` pose to the `to` pose,
@@ -34,7 +33,7 @@ type Entrance = {
 	to?: AnimatedProperties
 }
 export function present(
-	element: Part,
+	element: Element,
 	start: number,
 	{ length = 0.35, from = {}, to = {} }: Entrance = {},
 ): void {
@@ -52,7 +51,7 @@ export function present(
 // leave past its end, and hides again.
 const FLASH = 0.02
 export function travel(
-	element: Part,
+	element: Element,
 	start: number,
 	length: number,
 	dash: number,
@@ -77,7 +76,7 @@ export function travel(
 	])
 }
 
-export function reveal(element: Part, start: number, length: number): void {
+export function reveal(element: Element, start: number, length: number): void {
 	const hidden = 'inset(-3px 100% -3px 0)'
 	const shown = 'inset(-3px -3px -3px 0)'
 	loop(element, [
@@ -89,7 +88,7 @@ export function reveal(element: Part, start: number, length: number): void {
 	])
 }
 
-export function draw(element: Part, start: number, length = 0.35): void {
+export function draw(element: Element, start: number, length = 0.35): void {
 	const dash = { strokeDasharray: '1 1' }
 	loop(element, [
 		[0, { ...dash, strokeDashoffset: 1, opacity: 1 }],
@@ -100,7 +99,7 @@ export function draw(element: Part, start: number, length = 0.35): void {
 	])
 }
 
-export function pop(element: Part, start: number): void {
+export function pop(element: Element, start: number): void {
 	loop(element, [
 		[0, { opacity: 0, transform: 'scale(0)' }],
 		[start, { opacity: 1, transform: 'scale(0)' }, EASE.springWide],
