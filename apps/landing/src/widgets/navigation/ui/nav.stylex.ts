@@ -20,3 +20,14 @@ export const navFrame = stylex.defineVars({
 	'--nav-dropdown-inset': { default: '24px', [media.navToggle]: '12px' },
 	'--nav-dropdown-border': '1px',
 })
+
+// The dropdown's bounds, measured and written by the runtime in px
+// (navigation-morph.ts): the width a panel may take and the heights the
+// viewport leaves. Until the first measure they hold initial, the
+// guaranteed-invalid value, so a property reading one keeps its own initial
+// value.
+export const navBounds = stylex.defineVars({
+	'--nav-available': 'initial',
+	'--dropdown-max-height': 'initial',
+	'--panel-max-height': 'initial',
+})

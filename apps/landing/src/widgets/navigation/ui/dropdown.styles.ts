@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
 import { navMarker } from './markers.stylex'
-import { navClock, navFrame } from './nav.stylex'
+import { navBounds, navClock, navFrame } from './nav.stylex'
 
 const keyboard = (): string =>
 	stylex.when.ancestor('[data-input="keyboard"]', navMarker)
@@ -16,7 +16,7 @@ export const dropdown = stylex.create({
 		left: 0,
 		width: 'calc(var(--width, 0) * 1px)',
 		height: 'calc(var(--height, 0) * 1px)',
-		maxHeight: 'var(--dropdown-max-height)',
+		maxHeight: navBounds['--dropdown-max-height'],
 		overflow: 'hidden',
 		isolation: 'isolate',
 		backgroundColor: color['--white'],

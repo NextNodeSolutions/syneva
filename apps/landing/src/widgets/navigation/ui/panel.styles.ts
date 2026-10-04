@@ -3,6 +3,7 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
 import { menuSpacing } from './menu.stylex'
+import { navBounds } from './nav.stylex'
 
 const INSET = menuSpacing.inset
 
@@ -11,7 +12,7 @@ export const panel = stylex.create({
 		position: 'absolute',
 		top: 0,
 		left: 0,
-		width: 'min(var(--panel-width), var(--nav-available))',
+		width: `min(var(--panel-width), ${navBounds['--nav-available']})`,
 		opacity: 'var(--opacity, 0)',
 		transform: {
 			default: 'translateX(calc(var(--offset, 0) * 1px))',
@@ -22,7 +23,7 @@ export const panel = stylex.create({
 		// The open panel scrolls inside the shell when the viewport is short.
 		maxHeight: {
 			default: null,
-			':not([inert])': 'var(--panel-max-height)',
+			':not([inert])': navBounds['--panel-max-height'],
 		},
 		overflowY: { default: null, ':not([inert])': 'auto' },
 		overscrollBehavior: { default: null, ':not([inert])': 'contain' },
@@ -31,19 +32,19 @@ export const panel = stylex.create({
 	product: {
 		'--panel-width': {
 			default: '640px',
-			[media.navToggle]: 'var(--nav-available)',
+			[media.navToggle]: navBounds['--nav-available'],
 		},
 	},
 	workflows: {
 		'--panel-width': {
 			default: '540px',
-			[media.navToggle]: 'var(--nav-available)',
+			[media.navToggle]: navBounds['--nav-available'],
 		},
 	},
 	resources: {
 		'--panel-width': {
 			default: '340px',
-			[media.navToggle]: 'var(--nav-available)',
+			[media.navToggle]: navBounds['--nav-available'],
 		},
 	},
 	productBody: {

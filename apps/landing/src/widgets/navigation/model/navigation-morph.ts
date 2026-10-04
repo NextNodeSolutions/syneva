@@ -14,6 +14,7 @@ import {
 import { availableWidth, measureNavigation } from './navigation-geometry'
 import { revealChannels } from './reveal-channels'
 
+import type { navBounds } from '../ui/nav.stylex'
 import type { Frames } from './handover-frames'
 import type { InputMode } from './input-mode'
 import type { ClockName } from './nav-clock'
@@ -34,6 +35,8 @@ const DURATION: Record<Clock | 'close', ClockName> = {
 	close: '--nav-close-duration',
 }
 type Motion = { target: Values; controls?: ReturnType<typeof animate> }
+// The bounds the morph measures and writes; nav.stylex.ts declares them.
+type BoundName = Extract<keyof typeof navBounds, `--${string}`>
 
 // Menu geometry and content share one clock; preview hovers run on their own,
 // so selecting a product row never restarts the menu's movement. Each clock
@@ -191,7 +194,7 @@ export class NavigationMorph {
 		this.#animateTo('menu', next, seeds)
 	}
 
-	#setPixels(name: string, pixels: number): void {
+	#setPixels(name: BoundName, pixels: number): void {
 		this.#navigation.style.setProperty(name, `${pixels}px`)
 	}
 
