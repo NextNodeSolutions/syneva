@@ -71,9 +71,7 @@ function bindDocument(navigation: Navigation): void {
 	document.addEventListener('keydown', event => {
 		if (event.key !== 'Escape' || !navigation.isOpen) return
 		event.preventDefault()
-		const target = navigation.returnTarget()
-		navigation.dismiss()
-		target?.focus()
+		navigation.escape()
 	})
 }
 

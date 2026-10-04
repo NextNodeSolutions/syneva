@@ -201,8 +201,13 @@ class Navigation {
 		if (event.detail === 0) first.focus()
 	}
 
-	returnTarget(): HTMLElement | undefined {
-		return compact.matches ? this.#toggle : this.#currentTrigger
+	// Focus goes back to the toggle or the trigger only when it was in the
+	// header: a menu opened by hover leaves focus where it was on the page.
+	escape(): void {
+		const hadFocus = this.#root.contains(document.activeElement)
+		const target = compact.matches ? this.#toggle : this.#currentTrigger
+		this.dismiss()
+		if (hadFocus) target?.focus()
 	}
 
 	positionPreview(link: HTMLElement): void {
