@@ -18,6 +18,9 @@ export const principles = stylex.create({
 		font: `12px ${font['--mono']}`,
 		fontSize: { default: null, [media.phone]: '11px' },
 		backgroundColor: color['--paper'],
+		listStyle: 'none',
+		margin: 0,
+		padding: 0,
 	},
 	item: {
 		display: 'flex',
