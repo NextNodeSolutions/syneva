@@ -22,6 +22,7 @@ export const homeArt = stylex.create({
 	gapRound: { fill: color['--mint'], stroke: color['--green'] },
 	gapTag: { fill: color['--white'], stroke: color['--accent'] },
 	gapPointer: { stroke: color['--green'], fill: 'none' },
+	gapHatch: { stroke: color['--signal'], strokeWidth: 1.2, opacity: 0.42 },
 	deskCursor: {
 		fill: color['--signal'],
 		fillOpacity: 0.1,

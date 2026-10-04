@@ -25,7 +25,7 @@ const ROUNDS = [
 	title="The review gap"
 	description="A conceptual drawing with no data. The code your agent writes climbs steeply through a session while the code you can read with real attention rises slowly; the space between them is the review gap. A stepped green line shows review rounds settling the work as it arrives."
 >
-	<defs><pattern id="gap-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0v7" stroke="var(--signal)" stroke-width="1.2" opacity=".42"></path></pattern></defs>
+	<defs><pattern id="gap-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path {...sx(homeArt.gapHatch)} d="M0 0v7"></path></pattern></defs>
 	<path {...anim('draw', 0, shape.route)} d="M56 44V316H520"></path>
 	<text {...anim('fade', 0.2, text.label)} x="64" y="40">LINES IN THE DIFF</text>
 	<text {...anim('fade', 0.2, text.label)} x="520" y="340" text-anchor="end">ONE AGENT SESSION →</text>

@@ -11,6 +11,7 @@ const stroke = (paint: string): { stroke: string; fill: string } => ({
 export const shape = stylex.create({
 	secondary: { display: { default: null, [media.phone]: 'none' } },
 	register: { stroke: color['--line-strong'] },
+	grid: stroke(color['--grid']),
 	panel: { fill: color['--paper'], stroke: color['--line-strong'] },
 	panelWhite: { fill: color['--white'], stroke: color['--ink'] },
 	panelMint: { fill: color['--mint'], stroke: color['--green'] },

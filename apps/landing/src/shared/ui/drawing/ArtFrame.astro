@@ -14,7 +14,7 @@ const register = `M${EDGE} ${MARK}V${EDGE}h12M${width - MARK} ${EDGE}h12v12M${ED
 
 <defs>
 	<pattern id={`${id}-grid`} width={CELL} height={CELL} patternUnits="userSpaceOnUse">
-		<path d={`M${CELL} 0H0V${CELL}`} fill="none" stroke="var(--grid)"></path>
+		<path {...sx(shape.grid)} d={`M${CELL} 0H0V${CELL}`}></path>
 	</pattern>
 </defs>
 <rect width={width} height={height} fill={`url(#${id}-grid)`}></rect>
