@@ -14,9 +14,9 @@ const TAG = { feat: versionList.feat, fix: versionList.fix, perf: versionList.pe
 
 <ol {...sx(versionList.root)}>
 	{
-		weeks.map(({ id, data: { label, title, changes } }) => (
+		weeks.map(({ firstDay, label, title, changes }) => (
 			<li {...revealItem(versionList.week)}>
-				<time {...sx(versionList.date)} datetime={id}>{label}</time>
+				<time {...sx(versionList.date)} datetime={firstDay}>{label}</time>
 				<h3 {...sx(versionList.title)}>{title}</h3>
 				<ul {...sx(versionList.changes)}>
 					{changes.map(({ kind, text }) => (

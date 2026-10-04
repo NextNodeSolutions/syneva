@@ -1,9 +1,10 @@
 import { getCollection } from 'astro:content'
 
-import type { CollectionEntry } from 'astro:content'
+import type { z } from 'astro/zod'
+import type { faqTopic } from '../../../content.config'
 
 // One FAQ topic, as src/content/faq.json holds it.
-export type QaGroup = CollectionEntry<'faq'>['data']
+export type QaGroup = z.infer<typeof faqTopic>
 
 // The FAQ's topics in page order: the topic index and the blocks both read it.
 export async function faqGroups(): Promise<QaGroup[]> {
