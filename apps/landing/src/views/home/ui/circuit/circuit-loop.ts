@@ -182,20 +182,23 @@ function review(part: PartLookup): void {
 	)
 }
 
+// A signal's dash offsets over its timing: it travels the whole route it
+// references, as long as the live layout measured it.
+function signalTravel(signal: Element, lengths: Map<string, number>): string[] {
+	const route = signal.getAttribute('href')?.slice(1) ?? ''
+	return travel(pixels(signal, '--signal-size'), lengths.get(route) ?? 0)
+}
+
 // The three signals travel their routes, measured from the live layout.
 function travelSignals(svg: SVGSVGElement, lengths: Map<string, number>): void {
 	SIGNALS.forEach(({ name, times, ease }) => {
 		const signal = svg.querySelector(signalSelector(name))
 		if (!signal) return
-		const route = signal.getAttribute('href')?.slice(1) ?? ''
 		loop(
 			signal,
 			{
 				opacity: blink(1),
-				strokeDashoffset: travel(
-					pixels(signal, '--signal-size'),
-					lengths.get(route) ?? 0,
-				),
+				strokeDashoffset: signalTravel(signal, lengths),
 			},
 			{ times, ease },
 		)
@@ -228,17 +231,21 @@ export function retimeSignals(
 	SIGNALS.forEach(({ name }) => {
 		const signal = svg.querySelector(signalSelector(name))
 		if (!signal) return
-		const route = signal.getAttribute('href')?.slice(1) ?? ''
-		const size = pixels(signal, '--signal-size')
+		const offsets = signalTravel(signal, lengths)
 		signal.getAnimations().forEach(animation => {
 			const { effect } = animation
 			if (!(effect instanceof KeyframeEffect)) return
 			const frames = effect.getKeyframes()
 			if (!frames.some(frame => 'strokeDashoffset' in frame)) return
-			const values = travel(size, lengths.get(route) ?? 0)
 			effect.setKeyframes(
 				frames.map((frame, index) =>
-					Object.assign(frame, { strokeDashoffset: values[index] }),
+					Object.assign({}, frame, {
+						strokeDashoffset: valueAt(
+							offsets,
+							index,
+							'strokeDashoffset',
+						),
+					}),
 				),
 			)
 		})
