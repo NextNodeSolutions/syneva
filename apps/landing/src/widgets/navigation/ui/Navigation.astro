@@ -56,7 +56,7 @@ const MENUS: Record<SectionId, typeof ProductMenu> = {
 		<span {...sx(nav.indicator, instant.transitions)} aria-hidden="true"></span>
 	</nav>
 	<a {...sx(headerActions.action, instant.transitions, actionMarker)} href={PAGES.getStarted.href} aria-current={currentPage(PAGES.getStarted.href, route)}>
-		Get started <span {...sx(headerActions.actionArrow, instant.transitions)} aria-hidden="true">→</span>
+		{PAGES.getStarted.title} <span {...sx(headerActions.actionArrow, instant.transitions)} aria-hidden="true">→</span>
 	</a>
 	<button
 		{...sx(headerActions.toggle, instant.transitions)}
