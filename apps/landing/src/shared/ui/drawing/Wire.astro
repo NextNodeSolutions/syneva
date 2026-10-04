@@ -1,14 +1,14 @@
 ---
-// A wire between two parts of a drawing: a route that draws in and a signal
-// that keeps travelling along the same path. The signal paints right after
-// its route, under any wire drawn later.
+// A wire between two parts of a drawing: a route that draws in and, when the
+// wire carries one, a signal that keeps travelling along the same path. The
+// signal paints right after its route, under any wire drawn later.
 import type { Part } from '../../lib/sx'
 import { anim } from './anim'
 import { shape } from './shape.styles'
 
-type Props = { d: string; drawDelay: number; signalDelay: number; routeCss?: Part; signalCss?: Part }
+type Props = { d: string; drawDelay: number; signalDelay?: number; routeCss?: Part; signalCss?: Part }
 
 const { d, drawDelay, signalDelay, routeCss, signalCss } = Astro.props
 ---
 
-<path {...anim('draw', drawDelay, shape.route, routeCss)} d={d}></path><path {...anim('signal', signalDelay, shape.signal, signalCss)} d={d}></path>
+<path {...anim('draw', drawDelay, shape.route, routeCss)} d={d}></path>{signalDelay !== undefined && <path {...anim('signal', signalDelay, shape.signal, signalCss)} d={d}></path>}

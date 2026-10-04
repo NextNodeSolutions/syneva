@@ -8,7 +8,15 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { resourcesArt } from './resources-art.styles'
 
-const AGENTS = ['Any agent', 'Codex', 'Cursor', 'pi', 'your script'] as const
+// Only the first and the last agent send a signal into the desk.
+type Agent = { name: string; signalDelay?: number }
+const AGENTS: readonly Agent[] = [
+	{ name: 'Any agent', signalDelay: 1.6 },
+	{ name: 'Codex' },
+	{ name: 'Cursor' },
+	{ name: 'pi' },
+	{ name: 'your script', signalDelay: 3 },
+]
 const ROW = 52
 const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW} 200 210 240 210`
 ---
@@ -22,18 +30,16 @@ const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW
 	description="Any agent plugs into Syneva over JSON on stdout. Syneva serves your desk over localhost HTTP. The slot where a model would sit is empty, on purpose. MIT licensed."
 >
 	{
-		AGENTS.map((name, i) => (
+		AGENTS.map(({ name, signalDelay }, i) => (
 			<Fragment>
 				<g {...anim('rise', i * 0.08)}>
 					<rect {...sx(shape.panel, shape.panelWhite)} x="40" y={86 + i * ROW} width="120" height="34" />
 					<text {...sx(text.file)} x="54" y={107 + i * ROW}>{name}</text>
 				</g>
-				<path {...anim('draw', 0.5 + i * 0.06, shape.route)} d={wireOf(i)} />
+				<Wire d={wireOf(i)} drawDelay={0.5 + i * 0.06} signalDelay={signalDelay} />
 			</Fragment>
 		))
 	}
-	<path {...anim('signal', 1.6, shape.signal)} d="M160 103C200 103 200 210 240 210"></path>
-	<path {...anim('signal', 3, shape.signal)} d="M160 311C200 311 200 210 240 210"></path>
 	<g {...anim('rise', 0.4)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="240" y="120" width="160" height="180"></rect>
 		<text {...sx(text.label)} x="256" y="146">syneva</text>
