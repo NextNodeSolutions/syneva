@@ -19,10 +19,10 @@ const COMMANDS = [
 	[PAGES.workingTree.code, 'The working-tree diff, untracked files included.'],
 	['syneva --path src/auth', 'The same, narrowed to one path.'],
 	[PAGES.stagedChanges.code, 'Only what is staged in the index.'],
-	['syneva pr <ref>', 'A branch, PR number or GitHub URL vs its merge-base.'],
-	['syneva pr <ref> --base main', 'The same, against a base you choose.'],
-	['syneva file <path>', 'One file, tracked or not.'],
-	['syneva --guide <file>', 'Attach your agent’s reading order to any of the above.'],
+	['syneva pr &lt;ref&gt;', 'A branch, PR number or GitHub URL vs its merge-base.'],
+	['syneva pr &lt;ref&gt; --base main', 'The same, against a base you choose.'],
+	['syneva file &lt;path&gt;', 'One file, tracked or not.'],
+	['syneva --guide &lt;file&gt;', 'Attach your agent’s reading order to any of the above.'],
 	[commandOf('stop'), 'Shut the desk down. Your review state stays saved.'],
 ] as const
 // The round's subcommands besides stop, which the table above lists.
