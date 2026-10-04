@@ -55,6 +55,17 @@ export const command = stylex.create({
 		flex: { default: null, [inPageActions()]: '1 1 260px' },
 		maxWidth: { default: null, [inPageActions()]: '340px' },
 	},
+	// A command on a wash: paper ground, petrol rule. Merged over the box, its
+	// border colour replaces the box's whole value, so it restates the focus
+	// and copied states (the field drops its outline).
+	onWash: {
+		borderColor: {
+			default: color['--accent-line'],
+			':focus-within': color['--ink'],
+			':has(.is-copied)': color['--green'],
+		},
+		backgroundColor: color['--paper'],
+	},
 	// The command a prose body (or a chapter) offers to copy, at reading width.
 	prose: { margin: '8px 0 28px', maxWidth: '360px' },
 	prompt: { color: color['--accent'], font: `14px ${font['--mono']}` },

@@ -30,15 +30,4 @@ export const band = stylex.create({
 		marginBottom: '10px',
 	},
 	next: { marginTop: '30px' },
-	// The commands sit on the wash: paper ground, petrol rule. Merged over the
-	// command's box, this border colour replaces the box's whole value, so it
-	// restates the focus and copied states (the field drops its outline).
-	command: {
-		borderColor: {
-			default: color['--accent-line'],
-			':focus-within': color['--ink'],
-			':has(.is-copied)': color['--green'],
-		},
-		backgroundColor: color['--paper'],
-	},
 })

@@ -5,6 +5,7 @@ import { PAGES } from '@entities/site/model/site-map'
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import Command from '@features/copy-command/ui/Command.astro'
+import { command } from '@features/copy-command/ui/command.styles'
 import TextLink from '@shared/ui/TextLink.astro'
 import { heading } from '@shared/ui/heading.styles'
 import { section } from '@shared/ui/section.styles'
@@ -22,8 +23,8 @@ import { band } from './cta-band.styles'
 	</div>
 	<div {...revealItem(band.install)}>
 		<p {...sx(band.label)}>Install · Node 22+ and git</p>
-		<Command text={INSTALL_COMMAND} label="Installation command" css={band.command} />
+		<Command text={INSTALL_COMMAND} label="Installation command" css={command.onWash} />
 		<p {...sx(band.label, band.next)}>Then, inside your repository</p>
-		<Command text={START_COMMAND} label="Start a review" css={band.command} />
+		<Command text={START_COMMAND} label="Start a review" css={command.onWash} />
 	</div>
 </section>
