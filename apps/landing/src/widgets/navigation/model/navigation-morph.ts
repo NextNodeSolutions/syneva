@@ -12,6 +12,7 @@ import {
 	registerChannel,
 } from './navigation-channels'
 import { measureNavigation } from './navigation-geometry'
+import { revealChannels } from './reveal-channels'
 
 import type { Frames } from './handover-frames'
 import type { InputMode } from './input-mode'
@@ -148,40 +149,6 @@ export class NavigationMorph {
 		})
 	}
 
-	#revealChannels(
-		clock: Clock,
-		selected: number,
-		travel: number,
-	): { next: Values; seeds: Values } {
-		const channels =
-			clock === 'menu' ? this.#panelChannels : this.#sceneChannels
-		const previous = channels.findIndex(
-			channel =>
-				this.#motions[clock].target[channel.progress ?? ''] === '1',
-		)
-		const direction = selected < previous ? -1 : 1
-		const styles = getComputedStyle(this.#navigation)
-		const next: Values = {}
-		const seeds: Values = {}
-		channels.forEach((channel, index) => {
-			const isSelected = index === selected
-			Object.assign(
-				next,
-				channelValues(channel, {
-					progress: isSelected ? 1 : 0,
-					opacity: isSelected ? 1 : 0,
-					offset: isSelected ? 0 : -direction * travel,
-				}),
-			)
-			if (
-				isSelected &&
-				Number(readProperty(styles, channel.progress ?? '')) === 0
-			)
-				seeds[channel.offset ?? ''] = String(direction * travel)
-		})
-		return { next, seeds }
-	}
-
 	position(
 		trigger: HTMLElement | undefined,
 		panel: HTMLElement | undefined,
@@ -199,11 +166,13 @@ export class NavigationMorph {
 		const travel = Number.parseFloat(
 			readProperty(styles, '--nav-panel-travel'),
 		)
-		const content = this.#revealChannels(
-			'menu',
-			this.#panels.indexOf(panel),
+		const content = revealChannels({
+			channels: this.#panelChannels,
+			target: this.#motions.menu.target,
+			selected: this.#panels.indexOf(panel),
 			travel,
-		)
+			styles,
+		})
 		const next = {
 			...channelValues(this.#shell, { ...geometry.open, reveal: 1 }),
 			...content.next,
@@ -234,17 +203,16 @@ export class NavigationMorph {
 		if (!scene) return
 		// Keep an outgoing illustration alive until its shared fade completes.
 		scene.classList.add('is-illustrating')
-		const travel = Number.parseFloat(
-			readProperty(
-				getComputedStyle(this.#navigation),
-				'--nav-preview-travel',
+		const styles = getComputedStyle(this.#navigation)
+		const content = revealChannels({
+			channels: this.#sceneChannels,
+			target: this.#motions.preview.target,
+			selected: this.#scenes.indexOf(scene),
+			travel: Number.parseFloat(
+				readProperty(styles, '--nav-preview-travel'),
 			),
-		)
-		const content = this.#revealChannels(
-			'preview',
-			this.#scenes.indexOf(scene),
-			travel,
-		)
+			styles,
+		})
 		const selection = channelValues(this.#shell, {
 			'selection-y': link.offsetTop,
 			'selection-height': link.offsetHeight,
