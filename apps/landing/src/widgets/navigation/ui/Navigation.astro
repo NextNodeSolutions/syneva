@@ -40,7 +40,7 @@ const START = '/get-started/'
 		<a
 			{...sx(nav.item, nav.direct, isOpenSource && nav.current, instant.transitions)}
 			href={OPEN_SOURCE.href}
-			aria-current={currentPage(OPEN_SOURCE.href, route)}>Open source</a
+			aria-current={currentPage(OPEN_SOURCE.href, route)}>{OPEN_SOURCE.title}</a
 		>
 		<span {...sx(nav.indicator, instant.transitions)} aria-hidden="true"></span>
 	</nav>
@@ -61,13 +61,7 @@ const START = '/get-started/'
 	<div {...sx(dropdown.base, dropdownMarker)} data-open="false" data-nav-dropdown>
 		{SECTIONS.map(section => <NavPanel section={section} />)}
 	</div>
-	<noscript {...sx(nav.noscript)}>
-		{
-			[...SECTIONS.map(section => [section.href, section.label]), [OPEN_SOURCE.href, OPEN_SOURCE.title]].map(
-				([href, label]) => <a href={href}>{label}</a>,
-			)
-		}
-	</noscript>
+	<noscript {...sx(nav.noscript)}>{SECTIONS.map(section => <a href={section.href}>{section.label}</a>)}</noscript>
 </header>
 
 <script>

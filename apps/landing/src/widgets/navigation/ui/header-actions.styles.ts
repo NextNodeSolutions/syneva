@@ -2,9 +2,13 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, duration, ease } from '@syneva/design-system/tokens.stylex'
 
-import { actionMarker } from './markers.stylex'
+import { actionMarker, navMarker } from './markers.stylex'
 
 const actionHover = (): string => stylex.when.ancestor(':hover', actionMarker)
+// Without scripts the noscript links are parsed into the header and the
+// toggle, which would open nothing, gives way to them.
+const scriptless = (): string =>
+	stylex.when.ancestor(':has(noscript a)', navMarker)
 
 // The header's actions after the links: the primary action, and the toggle
 // that opens the link bar on phones.
@@ -38,7 +42,10 @@ export const headerActions = stylex.create({
 		transform: { default: null, [actionHover()]: 'translateX(2px)' },
 	},
 	toggle: {
-		display: { default: 'none', [media.navToggle]: 'flex' },
+		display: {
+			default: 'none',
+			[media.navToggle]: { default: 'flex', [scriptless()]: 'none' },
+		},
 		alignItems: { default: null, [media.navToggle]: 'center' },
 		gap: { default: null, [media.navToggle]: '5px' },
 		paddingBlock: { default: null, [media.navToggle]: 0 },

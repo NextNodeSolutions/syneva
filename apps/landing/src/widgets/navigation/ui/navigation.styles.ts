@@ -10,6 +10,11 @@ import {
 import { navMarker, triggerMarker } from './markers.stylex'
 import { navClock } from './nav.stylex'
 
+// Without scripts the noscript links are parsed into the header and stand in
+// for the triggers, which would open nothing. With scripts they stay text, so
+// the triggers show from the first paint.
+const scriptless = (): string =>
+	stylex.when.ancestor(':has(noscript a)', navMarker)
 const mobileOpen = (): string =>
 	stylex.when.ancestor('[data-mobile-open="true"]', navMarker)
 const expanded = (): string =>
@@ -126,6 +131,7 @@ export const nav = stylex.create({
 		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, background-color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 	},
 	trigger: {
+		display: { default: 'inline-flex', [scriptless()]: 'none' },
 		gap: { default: '5px', [media.navToggle]: '2px' },
 		color: {
 			default: null,
