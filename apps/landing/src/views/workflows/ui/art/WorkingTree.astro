@@ -8,6 +8,7 @@ import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import type { ComponentProps } from 'astro/types'
+import { countWord } from '@shared/lib/count-word'
 import FileList from './FileList.astro'
 
 type ChangedFile = ComponentProps<typeof FileList>['files'][number]
@@ -29,6 +30,7 @@ const LENS = 'src/auth'
 const PATH_FLAG = `--path ${LENS}`
 const ALL = ROWS.flatMap(({ name, status }): ChangedFile[] => (status ? [{ name, status }] : []))
 const AUTH = ALL.filter(({ name }) => name.startsWith(`${LENS}/`))
+const MODIFIED_COUNT = ALL.filter(({ status }) => status === 'M').length
 const TO_ALL = 'M250 150C300 150 300 100 350 100'
 const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 ---
@@ -39,7 +41,7 @@ const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 	height={400}
 	compact="20 30 566 350"
 	title="The working tree, whole or narrowed"
-	description="Your repository has three modified files and one new untracked file. syneva reviews all four, the new one as a full-file addition. syneva --path src/auth narrows the desk to the two files under src/auth."
+	description={`Your repository has ${countWord(MODIFIED_COUNT)} modified files and ${countWord(ALL.length - MODIFIED_COUNT)} new untracked file. syneva reviews all ${countWord(ALL.length)}, the new one as a full-file addition. syneva ${PATH_FLAG} narrows the desk to the ${countWord(AUTH.length)} files under ${LENS}.`}
 >
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel)} x="40" y="60" width="210" height="196"></rect><text {...sx(text.tiny)} x="40" y="50">YOUR REPOSITORY</text>{

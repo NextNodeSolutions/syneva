@@ -12,6 +12,7 @@ import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
+import { countWord } from '@shared/lib/count-word'
 import AnatomyMarker from './AnatomyMarker.astro'
 
 // The walkthrough sidebar: section heads, and files with their verdict.
@@ -50,7 +51,7 @@ const LEGEND_GAP = '   '
 	height={450}
 	compact="182 22 402 380"
 	title="Anatomy of the review desk"
-	description="A wireframe of the desk with five numbered parts: the walkthrough sidebar, the keep and undo verdicts on each change, a question thread anchored to a line, the review progress strip, and the Send to agent button. Illustrative, not a screenshot."
+	description={`A wireframe of the desk with ${countWord(MARKERS.length)} numbered parts: the walkthrough sidebar, the keep and undo verdicts on each change, a question thread anchored to a line, the review progress strip, and the Send to agent button. Illustrative, not a screenshot.`}
 >
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="24" y="30" width="552" height="362"></rect>

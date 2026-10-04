@@ -11,11 +11,14 @@ import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
+import { commandOf } from '@entities/desk/model/agent-contract'
 
 const STEPS = [
 	{ label: '01 · INSTALL', command: `$ ${INSTALL_COMMAND}`, output: 'added 1 package', y: 70 },
 	{ label: '02 · OPEN A DESK', command: `$ ${START_COMMAND}`, output: `desk ready · http://${DESK_ORIGIN}`, y: 180 },
-	{ label: '03 · ATTACH YOUR AGENT', command: '$ syneva await', output: '{ "kind": "review", "result": … }', y: 290 },
+	{ label: '03 · ATTACH YOUR AGENT', command: `$ ${commandOf('await')}`, output: '{ "kind": "review", "result": … }', y: 290 },
 ] as const
 const LAST = STEPS.length - 1
 const STEP_DELAY = 0.6
@@ -27,8 +30,8 @@ const TO_DESK = 'M334 228C352 228 352 200 370 200'
 	width={600}
 	height={420}
 	compact="24 30 316 370"
-	title="Three commands to your first review"
-	description="Install the CLI with npm, run syneva in your repository and a desk opens on localhost in your browser, then your agent attaches with syneva await and receives your verdict as JSON."
+	title={`${capitalize(countWord(STEPS.length))} commands to your first review`}
+	description={`Install the CLI with npm, run ${START_COMMAND} in your repository and a desk opens on localhost in your browser, then your agent attaches with ${commandOf('await')} and receives your verdict as JSON.`}
 >
 	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="34" y="40" width="300" height="340"></rect><path {...sx(shape.hair)} d="M34 56h300"></path><rect {...sx(shape.no)} x="42" y="45" width="6" height="6"></rect><rect {...sx(shape.kbd)} x="52" y="45" width="6" height="6"></rect><rect {...sx(shape.kbd)} x="62" y="45" width="6" height="6"></rect></g>
 	{
