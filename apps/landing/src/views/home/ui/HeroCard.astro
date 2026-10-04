@@ -2,6 +2,7 @@
 // One of the agent's file cards: its position and path, then its code bars,
 // each marked in the gutter as added, removed or context.
 import { twoDigits } from '@shared/lib/two-digits'
+import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
 import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
@@ -17,9 +18,9 @@ const y = 72 + position * 98
 
 <g transform={`translate(30 ${y})`}>
 	<g {...sx(heroStage.fillBox)} {...stagePart('card')} data-verdict={verdict}>
-		<rect {...sx(heroStage.sheet)} width="172" height="84"></rect>
+		<rect {...sx(shape.kbd)} width="172" height="84"></rect>
 		<text {...sx(heroStage.index)} x="12" y="20">{twoDigits(position + 1)}</text><text {...sx(heroStage.file)} x="34" y="20">{path}</text>
-		<path {...sx(heroStage.hair)} d="M0 30h172"></path>
+		<path {...sx(shape.hair)} d="M0 30h172"></path>
 		{
 			bars.map(({ kind, width }, row) => (
 				<Fragment>

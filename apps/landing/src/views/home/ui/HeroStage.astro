@@ -5,9 +5,13 @@
 // a verdict, Send hands it back and only the rejected file comes back pending.
 //
 // The markup IS the static pose (round 1, decided and ready to send): without
-// JS or with reduced motion the figure still tells the whole story.
+// JS or with reduced motion the figure still tells the whole story. On phones
+// it reframes onto the desk (data-compact) and hides the side columns and the
+// long routes, which would only show as cut-off fragments.
 // hero.client.ts adds the timeline, one 16s clock for everything; data-stage-part
 // names each piece it drives.
+import { poses } from '@syneva/motion/poses'
+
 import { drawing } from '@shared/ui/drawing/drawing.styles'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
@@ -35,16 +39,16 @@ const BACK = 'M651 352V388q0 12-12 12H128q-12 0-12-12V352'
 	<defs><pattern id="hero-stage-grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="var(--grid)"></path></pattern></defs>
 	<g>
 		<rect width="760" height="440" fill="url(#hero-stage-grid)"></rect>
-		<path {...sx(shape.register, heroStage.phoneHidden)} d="M8 20V8h12M740 8h12v12M8 420v12h12M740 432h12v-12" fill="none"></path>
-		<g {...sx(heroStage.phoneHidden)} fill="none">
-			<path {...sx(heroStage.route)} d={TO_DESK}></path>
-			<path {...sx(heroStage.route)} d={TO_LEDGER}></path>
-			<path {...sx(heroStage.return)} d={BACK}></path>
-			<path {...sx(heroStage.signal)} d={TO_DESK} {...stagePart('signal-in')}></path>
-			<path {...sx(heroStage.signal, heroStage.signalOut)} d={TO_LEDGER} {...stagePart('signal-out')}></path>
-			<path {...sx(heroStage.signal)} d={BACK} {...stagePart('signal-back')}></path>
+		<path {...sx(shape.register, shape.secondary)} d="M8 20V8h12M740 8h12v12M8 420v12h12M740 432h12v-12" fill="none"></path>
+		<g {...sx(shape.secondary)} fill="none">
+			<path {...sx(shape.route)} d={TO_DESK}></path>
+			<path {...sx(shape.route)} d={TO_LEDGER}></path>
+			<path {...sx(shape.route, shape.routeDotted)} d={BACK}></path>
+			<path {...sx(shape.signal, poses.signal)} d={TO_DESK} {...stagePart('signal-in')}></path>
+			<path {...sx(shape.signal, poses.signal, shape.signalGreen)} d={TO_LEDGER} {...stagePart('signal-out')}></path>
+			<path {...sx(shape.signal, poses.signal)} d={BACK} {...stagePart('signal-back')}></path>
 		</g>
-		<text {...sx(heroStage.loop, heroStage.phoneHidden)} x="384" y="424" text-anchor="middle">SAME TAB · NEXT ROUND</text>
+		<text {...sx(heroStage.loop, shape.secondary)} x="384" y="424" text-anchor="middle">SAME TAB · NEXT ROUND</text>
 
 		<HeroAgent />
 
