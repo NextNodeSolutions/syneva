@@ -7,7 +7,7 @@ import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
 import { twoDigits } from '@shared/lib/step-number'
 
 const GIT_ORDER = ['README.md', 'api/middleware.ts', 'auth/session.ts', 'contracts/review.ts', 'lib/hash.ts', 'pages/desk.tsx']
@@ -35,7 +35,7 @@ const orderOf = (name: string): number => chips.findIndex(chip => chip.name === 
 	{
 		GIT_ORDER.map((name, i) => (
 			<Fragment>
-				<rect {...sx(p.guideGhost)} x="30" y={TOP + i * ROW} width="210" height="28" />
+				<rect {...sx(productArt.guideGhost)} x="30" y={TOP + i * ROW} width="210" height="28" />
 				<text {...sx(text.file, text.muted)} x="44" y={110 + i * ROW}>{name}</text>
 			</Fragment>
 		))
@@ -51,7 +51,7 @@ const orderOf = (name: string): number => chips.findIndex(chip => chip.name === 
 					const order = orderOf(name)
 					return (
 						<g {...move(0.5 + order * 0.2, -300, ghostY(name) - ry)}>
-							<rect {...sx(p.guideChip, s === OTHER && p.guideChipOther)} x="330" y={ry} width="240" height="28" />
+							<rect {...sx(productArt.guideChip, s === OTHER && productArt.guideChipOther)} x="330" y={ry} width="240" height="28" />
 							<text {...sx(text.file)} x="344" y={ry + 18}>{name}</text>
 							<text {...sx(text.tiny)} x="556" y={ry + 18} text-anchor="end">{twoDigits(order)}</text>
 						</g>

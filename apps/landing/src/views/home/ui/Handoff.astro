@@ -9,7 +9,7 @@ import { REPO_URL } from '@entities/site/model/site-map'
 import { mapClasses } from '@shared/lib/class-map'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import { handoff as h, json } from './handoff.styles'
+import { handoff, json } from './handoff.styles'
 
 const k = (name: string) => `<span class="j-key">"${name}"</span>`
 const s = (text: string) => `<span class="j-str">"${text}"</span>`
@@ -41,19 +41,19 @@ const listing = mapClasses(LISTING, {
 })
 ---
 
-<section {...revealRuledGroup(section.ruled, section.pad, h.section)} id="handoff" aria-labelledby="handoff-title">
+<section {...revealRuledGroup(section.ruled, section.pad, handoff.section)} id="handoff" aria-labelledby="handoff-title">
 	<div>
 		<h2 {...revealItem()} id="handoff-title">The verdict,<br />as a contract.</h2>
-		<p {...revealItem(h.text)}>Send to Agent hands back a structured <code {...sx(h.code)}>ReviewResult</code>, printed to stdout and written to disk. Not a screenshot, not a vibe: your agent knows exactly what you kept, what you undid, and what you asked for.</p>
-		<p {...revealItem(h.text)}>It acts on the round, calls <code {...sx(h.code)}>syneva reload</code>, and the same tab shows its next revision. Your settled decisions carry over; its new edits come back pending.</p>
-		<div {...revealItem(h.links)}>
+		<p {...revealItem(handoff.text)}>Send to Agent hands back a structured <code {...sx(handoff.code)}>ReviewResult</code>, printed to stdout and written to disk. Not a screenshot, not a vibe: your agent knows exactly what you kept, what you undid, and what you asked for.</p>
+		<p {...revealItem(handoff.text)}>It acts on the round, calls <code {...sx(handoff.code)}>syneva reload</code>, and the same tab shows its next revision. Your settled decisions carry over; its new edits come back pending.</p>
+		<div {...revealItem(handoff.links)}>
 			<TextLink href="/resources/connect-your-agent/" label="Connect your agent" />
 			<TextLink href={`${REPO_URL}/blob/main/packages/contracts/src/spec.ts`} label="Read the full contract" isExternal />
 		</div>
 	</div>
-	<figure {...revealItem(h.figure)}>
+	<figure {...revealItem(handoff.figure)}>
 		<FigureTop subject="$ syneva await" aside="EVENT · REVIEW" />
-		<pre {...sx(h.json)} aria-label="Illustrative review event" set:html={listing} />
-		<figcaption {...sx(h.caption)}>Illustrative round, trimmed. The full shape is versioned with the CLI: <code {...sx(h.code)}>syneva spec</code></figcaption>
+		<pre {...sx(handoff.json)} aria-label="Illustrative review event" set:html={listing} />
+		<figcaption {...sx(handoff.caption)}>Illustrative round, trimmed. The full shape is versioned with the CLI: <code {...sx(handoff.code)}>syneva spec</code></figcaption>
 	</figure>
 </section>

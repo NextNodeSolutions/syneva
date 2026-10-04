@@ -2,7 +2,7 @@
 // One review layer on the circuit: tested at the bottom, important, then the
 // critical sheet that lifts highest and takes your focus.
 import { sx } from '@shared/lib/sx'
-import { circuit as c } from './circuit.styles'
+import { circuit } from './circuit.styles'
 
 type Props = { kind: 'tested' | 'important' | 'critical' }
 
@@ -16,25 +16,25 @@ const [title, detail] = NOTE[kind]
 const isCritical = kind === 'critical'
 ---
 
-<g {...sx(c.layer, c[kind])} data-circuit-layer={kind}>
+<g {...sx(circuit.layer, circuit[kind])} data-circuit-layer={kind}>
 	{kind === 'tested' && <use href="#review-leaf" transform="translate(0 10)" />}
 	<use href="#review-leaf"></use>
 	{kind === 'tested' && <g transform="translate(64 5) scale(1 .5)"><use href="#verdict-check" /></g>}
 	{
 		isCritical && (
 			<Fragment>
-				<path {...sx(c.criticalMargin)} d="m-97-3 13-6m-4 15 13-6m-4 15 13-6" />
-				<g clip-path="url(#review-face-clip)"><path {...sx(c.sweep)} d="m-160-80 112 56v18l-112-56Z" data-circuit-part="sweep" /></g>
-				<g {...sx(c.focusFrame)} fill="none" data-circuit-part="focus"><path d="m-128-10 0-10 22-11m212 0 22 11v10M-128 13v10l22 11m212 0 22-11V13" /></g>
-				<g {...sx(c.focusOwner)} data-circuit-part="owner">
-					<path {...sx(c.focusOwnerPath)} d="M0-58v-12" />
-					<text {...sx(c.focusOwnerText)} y="-80" text-anchor="middle">YOUR FOCUS</text>
+				<path {...sx(circuit.criticalMargin)} d="m-97-3 13-6m-4 15 13-6m-4 15 13-6" />
+				<g clip-path="url(#review-face-clip)"><path {...sx(circuit.sweep)} d="m-160-80 112 56v18l-112-56Z" data-circuit-part="sweep" /></g>
+				<g {...sx(circuit.focusFrame)} fill="none" data-circuit-part="focus"><path d="m-128-10 0-10 22-11m212 0 22 11v10M-128 13v10l22 11m212 0 22-11V13" /></g>
+				<g {...sx(circuit.focusOwner)} data-circuit-part="owner">
+					<path {...sx(circuit.focusOwnerPath)} d="M0-58v-12" />
+					<text {...sx(circuit.focusOwnerText)} y="-80" text-anchor="middle">YOUR FOCUS</text>
 				</g>
 			</Fragment>
 		)
 	}
-	<g {...sx(c.note)} data-circuit-part="note">
-		<path {...sx(c.notePath)} d="M112 0h38"></path><circle {...sx(c.noteDot)} cx="112" r="2"></circle>
-		<text {...sx(c.noteTitle, isCritical && c.criticalTitle)} x="162" y="-3">{title}</text><text {...sx(c.noteDetail)} x="162" y="15">{detail}</text>
+	<g {...sx(circuit.note)} data-circuit-part="note">
+		<path {...sx(circuit.notePath)} d="M112 0h38"></path><circle {...sx(circuit.noteDot)} cx="112" r="2"></circle>
+		<text {...sx(circuit.noteTitle, isCritical && circuit.criticalTitle)} x="162" y="-3">{title}</text><text {...sx(circuit.noteDetail)} x="162" y="15">{detail}</text>
 	</g>
 </g>

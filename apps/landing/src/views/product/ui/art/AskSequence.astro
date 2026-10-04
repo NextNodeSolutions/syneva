@@ -5,7 +5,7 @@ import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { text } from '@shared/ui/drawing/text.styles'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
 
 const LANES = [
 	{ name: 'YOU', x: 90 },
@@ -21,8 +21,8 @@ const STEPS = [
 	{ from: 510, to: 300, y: 204, label: 'syneva comment (the answer)', tone: 'accent' },
 	{ from: 300, to: 90, y: 244, label: 'Answer in your thread', tone: 'green' },
 ] as const
-const LINE = { accent: p.lineAccent, green: p.lineGreen, muted: p.lineMuted } as const
-const HEAD = { accent: p.headAccent, green: p.headGreen, muted: p.headMuted } as const
+const LINE = { accent: productArt.lineAccent, green: productArt.lineGreen, muted: productArt.lineMuted } as const
+const HEAD = { accent: productArt.headAccent, green: productArt.headGreen, muted: productArt.headMuted } as const
 const ARROW = 4
 ---
 
@@ -33,9 +33,9 @@ const ARROW = 4
 	{
 		LANES.map(({ name, x }) => (
 			<Fragment>
-				<rect {...sx(p.lane)} x={x - LANE_HALF} y="30" width="112" height="24" />
+				<rect {...sx(productArt.lane)} x={x - LANE_HALF} y="30" width="112" height="24" />
 				<text {...sx(text.tiny)} x={x} y="46" text-anchor="middle">{name}</text>
-				<path {...sx(p.laneRule)} d={`M${x} 54V292`} />
+				<path {...sx(productArt.laneRule)} d={`M${x} 54V292`} />
 			</Fragment>
 		))
 	}
@@ -45,7 +45,7 @@ const ARROW = 4
 			const delay = 0.5 + i * 0.4
 			return (
 				<Fragment>
-					<path {...anim('draw', delay, p.sequenceLine, LINE[tone])} pathLength="1" d={`M${from} ${y}H${to + direction * ARROW}`} />
+					<path {...anim('draw', delay, productArt.sequenceLine, LINE[tone])} pathLength="1" d={`M${from} ${y}H${to + direction * ARROW}`} />
 					<path {...anim('pop', delay + 0.3, HEAD[tone])} d={`M${to} ${y}l${direction * 7}-4v8Z`} />
 					<text {...anim('fade', delay + 0.2, text.small)} x={(from + to) / 2} y={y - 8} text-anchor="middle">{label}</text>
 				</Fragment>

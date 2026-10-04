@@ -2,13 +2,13 @@
 // A boxed aside: a lead line, then its explanation (the default slot).
 import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
-import { callout as c } from './prose.styles'
+import { callout } from './prose.styles'
 
 type Props = { lead: string; isGreen?: boolean }
 
 const { lead, isGreen = false } = Astro.props
 ---
 
-<div {...revealItem(c.root, isGreen && c.green)}>
-	<div><p {...sx(c.lead)} set:html={lead} /><p {...sx(c.rest)}><slot /></p></div>
+<div {...revealItem(callout.root, isGreen && callout.green)}>
+	<div><p {...sx(callout.lead)} set:html={lead} /><p {...sx(callout.rest)}><slot /></p></div>
 </div>

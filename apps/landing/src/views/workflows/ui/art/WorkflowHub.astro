@@ -9,7 +9,7 @@ import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { GLYPHS } from './glyphs'
-import { workflowsArt as w } from './workflows-art.styles'
+import { workflowsArt } from './workflows-art.styles'
 
 const SOURCES = [
 	{ glyph: 'tree', title: 'Working tree', command: 'syneva', y: 50 },
@@ -40,7 +40,7 @@ const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340
 			<g {...anim('rise', i * 0.12)}>
 				<rect {...sx(shape.panel, shape.panelWhite)} x="30" y={y} width="210" height="64" />
 				<g transform={`translate(46 ${y + 14})`}>
-					<path {...sx(w.hubGlyph)} d={GLYPHS[glyph]} />
+					<path {...sx(workflowsArt.hubGlyph)} d={GLYPHS[glyph]} />
 				</g>
 				<text {...sx(text.copy)} x="80" y={y + 28}>{title}</text>
 				<text {...sx(text.code, text.accent)} x="80" y={y + 48}>{command}</text>

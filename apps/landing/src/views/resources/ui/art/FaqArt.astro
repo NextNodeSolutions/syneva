@@ -1,13 +1,13 @@
 ---
 // Questions & answers: a disclosure list with one answer open.
 import { sx } from '@shared/lib/sx'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { resourcesArt as r } from './resources-art.styles'
+import { resourcesArt } from './resources-art.styles'
 
 const CLOSED = ['Does it ever auto-approve?', 'Which agents work with it?', 'Where does my review live?'] as const
 const ROW = 50
@@ -18,9 +18,9 @@ const ROW = 50
 	<desc id="qa-desc">A list of questions with the first one open: does Syneva review code for me? No. You do; your agent helps.</desc>
 	<ArtFrame id="qa" width={600} height={400} />
 	<path {...anim('draw', 0, shape.inkLine)} pathLength="1" d="M60 70h480"></path>
-	<g {...anim('rise', 0.2)}><text {...sx(text.head)} x="60" y="104">Does Syneva review code for me?</text><path {...sx(r.chevron, r.chevronOpen)} d="M520 92l8 8 8-8"></path></g>
-	<rect {...anim('sweep', 0.5, r.answer)} x="60" y="120" width="480" height="96"></rect>
-	<path {...anim('draw', 0.6, h.askRail)} pathLength="1" d="M60 120v96"></path>
+	<g {...anim('rise', 0.2)}><text {...sx(text.head)} x="60" y="104">Does Syneva review code for me?</text><path {...sx(resourcesArt.chevron, resourcesArt.chevronOpen)} d="M520 92l8 8 8-8"></path></g>
+	<rect {...anim('sweep', 0.5, resourcesArt.answer)} x="60" y="120" width="480" height="96"></rect>
+	<path {...anim('draw', 0.6, homeArt.askRail)} pathLength="1" d="M60 120v96"></path>
 	<text {...anim('type', 0.8, text.copy, text.accent)} x="80" y="152">No. You review the code.</text>
 	<text {...anim('fade', 1.4, text.small)} x="80" y="176">Your agent sets the order and answers your questions.</text>
 	<text {...anim('fade', 1.5, text.small)} x="80" y="196">Syneva records your verdicts and hands them back.</text>
@@ -29,7 +29,7 @@ const ROW = 50
 			<g {...anim('rise', 0.3 + i * 0.1)}>
 				<path {...sx(shape.hair)} d={`M60 ${236 + i * ROW}h480`} />
 				<text {...sx(text.copy)} x="60" y={266 + i * ROW}>{question}</text>
-				<path {...sx(r.chevron)} d={`M524 ${256 + i * ROW}l6 6 6-6`} />
+				<path {...sx(resourcesArt.chevron)} d={`M524 ${256 + i * ROW}l6 6 6-6`} />
 			</g>
 		))
 	}

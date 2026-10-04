@@ -7,10 +7,10 @@
 import { sx } from '@shared/lib/sx'
 import CircuitLayer from './CircuitLayer.astro'
 import CircuitStation from './CircuitStation.astro'
-import { circuit as c } from './circuit.styles'
+import { circuit } from './circuit.styles'
 ---
 
-<svg {...sx(c.root)} viewBox="0 0 1160 480" role="img" aria-labelledby="circuit-title circuit-desc" data-circuit>
+<svg {...sx(circuit.root)} viewBox="0 0 1160 480" role="img" aria-labelledby="circuit-title circuit-desc" data-circuit>
 	<title id="circuit-title">The review, in two dimensions</title>
 	<desc id="circuit-desc">The full diff passes from your agent into a local review. Its layers open vertically: critical, important, and tested. You make your decisions during review, then ship code you've examined with confidence. A dotted return connection carries the next revision back to the agent. An illustrative human review, not automatic approval or a product screenshot.</desc>
 	<defs>
@@ -19,34 +19,34 @@ import { circuit as c } from './circuit.styles'
 		<path id="flow-out" data-from="review-out" data-to="verdict-in"></path>
 		<path id="flow-return" data-from="verdict-return" data-to="agent-return" data-route="return"></path>
 		<g id="review-leaf">
-			<path {...sx(c.leafEdge)} d="M-112 0 0 56 112 0v5L0 61-112 5Z"></path>
-			<path {...sx(c.leafFace)} id="review-face" d="M0-56 112 0 0 56-112 0Z"></path>
-			<path {...sx(c.leafFold)} d="M0 56v5"></path>
-			<g {...sx(c.leafCode)} transform="matrix(.8 .4 -.8 .4 0 -39)">
-				<path {...sx(c.codeAccent)} d="M0 0h47"></path>
+			<path {...sx(circuit.leafEdge)} d="M-112 0 0 56 112 0v5L0 61-112 5Z"></path>
+			<path {...sx(circuit.leafFace)} id="review-face" d="M0-56 112 0 0 56-112 0Z"></path>
+			<path {...sx(circuit.leafFold)} d="M0 56v5"></path>
+			<g {...sx(circuit.leafCode)} transform="matrix(.8 .4 -.8 .4 0 -39)">
+				<path {...sx(circuit.codeAccent)} d="M0 0h47"></path>
 				<path d="M0 17h18m10 0h44M0 34h32m10 0h40M0 51h14m10 0h39M0 68h42"></path>
-				<path {...sx(c.codeFaint)} d="M81 0h14M90 34h8M72 51h20M51 68h15"></path>
+				<path {...sx(circuit.codeFaint)} d="M81 0h14M90 34h8M72 51h20M51 68h15"></path>
 			</g>
 		</g>
 		<g id="review-mark" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M0-11v6M0 5v6M-11 0h6M5 0h6M-8-8l4 4M4 4l4 4M-8 8l4-4M4-4l4-4"></path><path d="m0-3 3 3-3 3-3-3Z"></path></g>
 		<g id="verdict-check" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m-7 0 5 5 10-11"></path></g>
 	</defs>
-	<g {...sx(c.register)} fill="none" stroke="var(--line)"><path d="M28 44V28h16m1072 0h16v16M28 436v16h16m1072 0h16v-16"></path></g>
+	<g {...sx(circuit.register)} fill="none" stroke="var(--line)"><path d="M28 44V28h16m1072 0h16v16M28 436v16h16m1072 0h16v-16"></path></g>
 	<g>
 		{/* Visible conductors and travelling signals share the same paths. */}
-		<g {...sx(c.routes)} fill="none">
+		<g {...sx(circuit.routes)} fill="none">
 			<use href="#flow-in"></use><use href="#flow-out"></use>
-			<use {...sx(c.returnRoute)} href="#flow-return"></use>
-			<use {...sx(c.signal)} href="#flow-in" data-signal="in"></use>
-			<use {...sx(c.signal, c.signalOut)} href="#flow-out" data-signal="out"></use>
-			<use {...sx(c.signal, c.signalReturn)} href="#flow-return" data-signal="return"></use>
+			<use {...sx(circuit.returnRoute)} href="#flow-return"></use>
+			<use {...sx(circuit.signal)} href="#flow-in" data-signal="in"></use>
+			<use {...sx(circuit.signal, circuit.signalOut)} href="#flow-out" data-signal="out"></use>
+			<use {...sx(circuit.signal, circuit.signalReturn)} href="#flow-return" data-signal="return"></use>
 		</g>
 		<CircuitStation kind="source" />
 		<g transform="translate(580 312)">
-			<path {...sx(c.foot)} d="M0-76 152 0 0 76-152 0Z"></path><path {...sx(c.rim)} d="M-152 0v8L0 84 152 8V0"></path>
-			<path {...sx(c.seat)} d="M0-61 122 0 0 61-122 0Z"></path>
-			<g {...sx(c.mark)} transform="translate(0 68) scale(1 .5)"><use href="#review-mark"></use></g>
-			<circle {...sx(c.port)} id="review-in" cx="-152" cy="0" r="2.5"></circle><circle {...sx(c.port)} id="review-out" cx="152" cy="0" r="2.5"></circle>
+			<path {...sx(circuit.foot)} d="M0-76 152 0 0 76-152 0Z"></path><path {...sx(circuit.rim)} d="M-152 0v8L0 84 152 8V0"></path>
+			<path {...sx(circuit.seat)} d="M0-61 122 0 0 61-122 0Z"></path>
+			<g {...sx(circuit.mark)} transform="translate(0 68) scale(1 .5)"><use href="#review-mark"></use></g>
+			<circle {...sx(circuit.port)} id="review-in" cx="-152" cy="0" r="2.5"></circle><circle {...sx(circuit.port)} id="review-out" cx="152" cy="0" r="2.5"></circle>
 		</g>
 		<g transform="translate(580 276)">
 			<CircuitLayer kind="tested" />
@@ -54,6 +54,6 @@ import { circuit as c } from './circuit.styles'
 			<CircuitLayer kind="critical" />
 		</g>
 		<CircuitStation kind="verdict" />
-		<text {...sx(c.loopLabel)} text-anchor="middle" data-loop-label>SAME TAB. NEXT REVISION.</text>
+		<text {...sx(circuit.loopLabel)} text-anchor="middle" data-loop-label>SAME TAB. NEXT REVISION.</text>
 	</g>
 </svg>

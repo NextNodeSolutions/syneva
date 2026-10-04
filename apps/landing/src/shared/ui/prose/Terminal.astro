@@ -3,7 +3,7 @@
 // anything else output; an empty line keeps its height.
 import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
-import { terminal as t } from './prose.styles'
+import { terminal } from './prose.styles'
 
 type Props = { lines: readonly string[]; title: string }
 
@@ -15,17 +15,17 @@ const kindOf = (line: string): 'command' | 'comment' | 'output' => {
 }
 ---
 
-<figure {...revealItem(t.root)}>
-	<div {...sx(t.top)}>
-		<span {...sx(t.dots)} aria-hidden="true"><i {...sx(t.dot)}></i><i {...sx(t.dot)}></i><i {...sx(t.dot)}></i></span><span>{title}</span>
-	</div><pre {...sx(t.body)}>{
+<figure {...revealItem(terminal.root)}>
+	<div {...sx(terminal.top)}>
+		<span {...sx(terminal.dots)} aria-hidden="true"><i {...sx(terminal.dot)}></i><i {...sx(terminal.dot)}></i><i {...sx(terminal.dot)}></i></span><span>{title}</span>
+	</div><pre {...sx(terminal.body)}>{
 		lines.map(line => {
 			const kind = kindOf(line)
 			if (kind === 'command')
 				return (
-					<span {...sx(t.command)}><span {...sx(t.prompt)} aria-hidden="true">$</span>{line.slice(PROMPT.length)}</span>
+					<span {...sx(terminal.command)}><span {...sx(terminal.prompt)} aria-hidden="true">$</span>{line.slice(PROMPT.length)}</span>
 				)
-			return <span {...sx(kind === 'comment' ? t.comment : t.output)}>{line || ' '}</span>
+			return <span {...sx(kind === 'comment' ? terminal.comment : terminal.output)}>{line || ' '}</span>
 		})
 	}</pre>
 </figure>

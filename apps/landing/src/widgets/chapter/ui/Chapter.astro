@@ -6,7 +6,7 @@ import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { chapterCopyMarker } from '@shared/ui/actions.stylex'
 import { chapterArtMarker } from '@shared/ui/drawing/drawing.stylex'
-import { chapter as c } from './chapter.styles'
+import { chapter } from './chapter.styles'
 
 type Props = {
 	id?: string
@@ -20,17 +20,17 @@ const { id, title, isReverse = false, list = [], caption } = Astro.props
 const isSubpage = Astro.locals.page === 'sub'
 ---
 
-<section {...revealRuledGroup(c.section, isSubpage && c.subSection)} id={id}>
-	<div {...sx(c.copy, isSubpage && c.subCopy, isReverse && c.reverseCopy, chapterCopyMarker)}>
-		<h2 {...revealItem(c.title, isSubpage && c.subTitle)} set:html={title} />
+<section {...revealRuledGroup(chapter.section, isSubpage && chapter.subSection)} id={id}>
+	<div {...sx(chapter.copy, isSubpage && chapter.subCopy, isReverse && chapter.reverseCopy, chapterCopyMarker)}>
+		<h2 {...revealItem(chapter.title, isSubpage && chapter.subTitle)} set:html={title} />
 		<slot />
 		{
 			list.length > 0 && (
-				<ul {...sx(c.list, isSubpage && c.subList)}>
+				<ul {...sx(chapter.list, isSubpage && chapter.subList)}>
 					{list.map(([head, text]) => (
-						<li {...revealItem(c.item, isSubpage && c.subItem)}>
-							<strong {...sx(c.itemHead)} set:html={head} />
-							<span {...sx(c.itemText)} set:html={text} />
+						<li {...revealItem(chapter.item, isSubpage && chapter.subItem)}>
+							<strong {...sx(chapter.itemHead)} set:html={head} />
+							<span {...sx(chapter.itemText)} set:html={text} />
 						</li>
 					))}
 				</ul>
@@ -39,10 +39,10 @@ const isSubpage = Astro.locals.page === 'sub'
 		<slot name="after" />
 	</div>
 	<figure
-		{...revealItem(c.art, isReverse && c.reverseArt, isSubpage && c.subArt, isSubpage && isReverse && c.subReverseArt, chapterArtMarker)}
+		{...revealItem(chapter.art, isReverse && chapter.reverseArt, isSubpage && chapter.subArt, isSubpage && isReverse && chapter.subReverseArt, chapterArtMarker)}
 		{...scene}
 	>
 		<slot name="art" />
-		{caption && <figcaption {...sx(c.caption, isSubpage && c.subCaption)} set:html={caption} />}
+		{caption && <figcaption {...sx(chapter.caption, isSubpage && chapter.subCaption)} set:html={caption} />}
 	</figure>
 </section>

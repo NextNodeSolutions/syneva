@@ -1,13 +1,13 @@
 ---
 // Resources overview: a ruled table of contents.
 import { sx } from '@shared/lib/sx'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { resourcesArt as r } from './resources-art.styles'
+import { resourcesArt } from './resources-art.styles'
 
 const ENTRIES = [
 	{ title: 'Get started', n: '01', words: 'From install to your first verdict' },
@@ -32,13 +32,13 @@ const leaderAt = (title: string, i: number): string => `M${title.length * ADVANC
 			<g {...anim('rise', 0.2 + i * 0.12)}>
 				<text {...sx(text.head)} x="70" y={132 + i * ROW}>{title}</text>
 				<text {...sx(text.small)} x="70" y={152 + i * ROW}>{words}</text>
-				<path {...sx(r.tocLeader)} d={leaderAt(title, i)} />
+				<path {...sx(resourcesArt.tocLeader)} d={leaderAt(title, i)} />
 				<text {...sx(text.label, text.accent)} x="530" y={132 + i * ROW} text-anchor="end">{n}</text>
 				<path {...sx(shape.hair)} d={`M70 ${170 + i * ROW}h460`} />
 			</g>
 		))
 	}
-	<rect {...move(0.9, 0, -60, r.tocRibbon)} x="548" y="92" width="14" height="80"></rect>
-	<path {...sx(r.tocRibbonCut)} d="M548 172l7-8 7 8"></path>
-	<rect {...anim('sweep', 1.2, h.deskCursor)} x="60" y="108" width="480" height="56"></rect>
+	<rect {...move(0.9, 0, -60, resourcesArt.tocRibbon)} x="548" y="92" width="14" height="80"></rect>
+	<path {...sx(resourcesArt.tocRibbonCut)} d="M548 172l7-8 7 8"></path>
+	<rect {...anim('sweep', 1.2, homeArt.deskCursor)} x="60" y="108" width="480" height="56"></rect>
 </Drawing>

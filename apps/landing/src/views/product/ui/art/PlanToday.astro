@@ -1,7 +1,7 @@
 ---
 // Plan desk: what already works today, with syneva file.
 import { sx } from '@shared/lib/sx'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
@@ -25,9 +25,9 @@ import { text } from '@shared/ui/drawing/text.styles'
 		<path {...sx(shape.lines)} d="M56 182h280M56 198h240"></path>
 		<path {...sx(shape.lines)} d="M56 236h360M56 252h300M56 268h200"></path>
 	</g>
-	<path {...anim('draw', 0.6, h.askAnchor)} pathLength="1" d="M348 190h34"></path>
+	<path {...anim('draw', 0.6, homeArt.askAnchor)} pathLength="1" d="M348 190h34"></path>
 	<g {...anim('rise', 0.8)}>
-		<rect {...sx(h.askThread)} x="382" y="150" width="166" height="88"></rect><path {...sx(h.askRail)} d="M382 150v88"></path>
+		<rect {...sx(homeArt.askThread)} x="382" y="150" width="166" height="88"></rect><path {...sx(homeArt.askRail)} d="M382 150v88"></path>
 		<text {...sx(text.tiny)} x="394" y="170">YOU · ASK</text><text {...sx(text.small)} x="394" y="188">What happens when</text><text {...sx(text.small)} x="394" y="204">the session expires?</text>
 		<text {...sx(text.tiny, text.accent)} x="394" y="226">AGENT IS ANSWERING…</text>
 	</g>

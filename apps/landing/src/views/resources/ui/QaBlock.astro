@@ -1,7 +1,7 @@
 ---
 // One FAQ topic: its number, title and blurb on the left, its questions as
 // native disclosures on the right.
-import { chapter as c } from '@widgets/chapter/ui/chapter.styles'
+import { chapter } from '@widgets/chapter/ui/chapter.styles'
 import Disclosure from '@features/disclosure/ui/Disclosure.astro'
 import { stepIndex } from '@shared/ui/step-index.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
@@ -17,11 +17,11 @@ const id = `qa-${index + 1}`
 const count = `${group.items.length} question${group.items.length === 1 ? '' : 's'}`
 ---
 
-<section {...revealRuledGroup(c.section, c.subSection, qa.block)} id={id} aria-labelledby={`${id}-title`}>
-	<div {...sx(c.copy, c.subCopy, qa.copy)}>
+<section {...revealRuledGroup(chapter.section, chapter.subSection, qa.block)} id={id} aria-labelledby={`${id}-title`}>
+	<div {...sx(chapter.copy, chapter.subCopy, qa.copy)}>
 		<span {...revealItem(stepIndex.base)}>{twoDigits(index + 1)} · {count}</span>
-		<h2 {...revealItem(c.title, c.subTitle)} id={`${id}-title`} set:html={group.title} />
-		<p {...revealItem(c.text)}>{group.blurb}</p>
+		<h2 {...revealItem(chapter.title, chapter.subTitle)} id={`${id}-title`} set:html={group.title} />
+		<p {...revealItem(chapter.text)}>{group.blurb}</p>
 	</div>
 	<div {...sx(qa.list)}>
 		{group.items.map(([question, answer]) => <Disclosure question={question} answer={answer} isQa />)}

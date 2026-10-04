@@ -3,7 +3,7 @@
 // overview), the page itself.
 import { siblingsOf } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
-import { pageHero as h } from './page-hero.styles'
+import { pageHero } from './page-hero.styles'
 
 type Props = { route: string; title: string }
 
@@ -12,12 +12,12 @@ const { section } = siblingsOf(route)
 const parent = section && section.href !== route ? section : undefined
 ---
 
-<nav {...sx(h.crumbs)} aria-label="Breadcrumb">
-	<a {...sx(h.crumbLink)} href="/">Syneva</a><span aria-hidden="true">/</span>{
+<nav {...sx(pageHero.crumbs)} aria-label="Breadcrumb">
+	<a {...sx(pageHero.crumbLink)} href="/">Syneva</a><span aria-hidden="true">/</span>{
 		parent && (
 			<Fragment>
-				<a {...sx(h.crumbLink)} href={parent.href}>{parent.label}</a><span aria-hidden="true">/</span>
+				<a {...sx(pageHero.crumbLink)} href={parent.href}>{parent.label}</a><span aria-hidden="true">/</span>
 			</Fragment>
 		)
-	}<span {...sx(h.crumbCurrent)} aria-current="page">{title}</span>
+	}<span {...sx(pageHero.crumbCurrent)} aria-current="page">{title}</span>
 </nav>

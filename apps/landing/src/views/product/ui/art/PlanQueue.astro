@@ -1,13 +1,13 @@
 ---
 // Plan desk (prototype): a plan becomes a queue of claims ranked by risk.
 import { sx } from '@shared/lib/sx'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
 import { twoDigits } from '@shared/lib/step-number'
 
 const CLAIMS = [
@@ -18,8 +18,8 @@ const CLAIMS = [
 ] as const
 const CELLS = [0, 1, 2] as const
 // A claim's risk fills its meter in one tone: three cells high, two mid.
-const RISK_TONE = { 3: p.riskHigh, 2: p.riskMid, 1: p.riskLow } as const
-const CLAIM_TONE = { risk: [h.planClaim, h.planRisk], question: [h.planClaim], yes: [h.planClaim, h.planSettled] } as const
+const RISK_TONE = { 3: productArt.riskHigh, 2: productArt.riskMid, 1: productArt.riskLow } as const
+const CLAIM_TONE = { risk: [homeArt.planClaim, homeArt.planRisk], question: [homeArt.planClaim], yes: [homeArt.planClaim, homeArt.planSettled] } as const
 const rowY = (i: number): number => 96 + i * 72
 ---
 
@@ -31,8 +31,8 @@ const rowY = (i: number): number => 96 + i * 72
 		<rect {...sx(shape.panel, shape.panelWhite)} x="30" y="70" width="210" height="300"></rect>
 		<text {...sx(text.label)} x="30" y="56">plan.md</text>
 		<path {...sx(shape.lines)} d="M48 96h150M48 112h120M48 168h160M48 184h90M48 240h140M48 256h170M48 312h110M48 328h150"></path>
-		<rect {...anim('sweep', 0.4, h.planHighlight)} x="44" y="128" width="170" height="20"></rect>
-		<rect {...anim('sweep', 0.5, p.queueMark)} x="44" y="200" width="150" height="20"></rect>
+		<rect {...anim('sweep', 0.4, homeArt.planHighlight)} x="44" y="128" width="170" height="20"></rect>
+		<rect {...anim('sweep', 0.5, productArt.queueMark)} x="44" y="200" width="150" height="20"></rect>
 		<rect {...anim('sweep', 0.6, shape.bandYes)} x="44" y="272" width="166" height="20"></rect>
 	</g>
 	<g fill="none">
@@ -41,7 +41,7 @@ const rowY = (i: number): number => 96 + i * 72
 		<path {...anim('draw', 1.1, shape.route, shape.routeGreen)} pathLength="1" d="M210 282C250 282 250 268 290 268"></path>
 	</g>
 	<text {...sx(text.tiny, text.accent)} x="290" y="76">RANKED BY RISK</text>
-	<g {...anim('pop', 1.6)}><rect {...sx(p.protoTag)} x="476" y="34" width="96" height="20"></rect><text {...sx(text.tiny, text.accent)} x="524" y="48" text-anchor="middle">PROTOTYPE</text></g>
+	<g {...anim('pop', 1.6)}><rect {...sx(productArt.protoTag)} x="476" y="34" width="96" height="20"></rect><text {...sx(text.tiny, text.accent)} x="524" y="48" text-anchor="middle">PROTOTYPE</text></g>
 	{
 		CLAIMS.map(({ words, risk, state, kind }, i) => (
 			<g {...anim('rise', 0.8 + i * 0.18)}>
@@ -50,7 +50,7 @@ const rowY = (i: number): number => 96 + i * 72
 				<text {...sx(text.copy)} x="326" y={rowY(i) + 22}>{words}</text>
 				<text {...sx(text.small)} x="326" y={rowY(i) + 41}>{state}</text>
 				{CELLS.map(k => (
-					<rect {...sx(p.riskCell, k < risk && RISK_TONE[risk])} x={528 + k * 12} y={rowY(i) + 14} width="9" height="9" />
+					<rect {...sx(productArt.riskCell, k < risk && RISK_TONE[risk])} x={528 + k * 12} y={rowY(i) + 14} width="9" height="9" />
 				))}
 			</g>
 		))

@@ -5,14 +5,14 @@ import Button from '@shared/ui/Button.astro'
 import { pageActionsMarker } from '@shared/ui/actions.stylex'
 import TextLink from '@shared/ui/TextLink.astro'
 import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
-import { lost as l } from './lost.styles'
+import { lost } from './lost.styles'
 ---
 
-<section {...revealGroup(l.root)} aria-labelledby="page-title">
+<section {...revealGroup(lost.root)} aria-labelledby="page-title">
 	<div>
-		<h1 {...revealItem(l.title)} id="page-title">This change<br />was undone.</h1>
-		<p {...revealItem(l.text)}>The page you asked for doesn&rsquo;t exist, or moved. Everything that does is one click away.</p>
-		<div {...revealItem(l.actions, pageActionsMarker)}><Button href="/" label="Back to the home page" /><TextLink href="/get-started/" label="Get started" /></div>
+		<h1 {...revealItem(lost.title)} id="page-title">This change<br />was undone.</h1>
+		<p {...revealItem(lost.text)}>The page you asked for doesn&rsquo;t exist, or moved. Everything that does is one click away.</p>
+		<div {...revealItem(lost.actions, pageActionsMarker)}><Button href="/" label="Back to the home page" /><TextLink href="/get-started/" label="Get started" /></div>
 	</div>
-	<figure {...revealItem(l.art)} {...scene}><LostDiff /></figure>
+	<figure {...revealItem(lost.art)} {...scene}><LostDiff /></figure>
 </section>

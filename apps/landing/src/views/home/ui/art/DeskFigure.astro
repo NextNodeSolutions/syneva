@@ -7,7 +7,7 @@ import Pending from '@shared/ui/drawing/Pending.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 
 const SIDE = [
 	['CONTRACTS', 118],
@@ -48,7 +48,7 @@ const ROWS = [
 				</Fragment>
 			))
 		}
-		<rect {...anim('sweep', 0.4, h.deskCursor)} x="38" y="198" width="158" height="22"></rect>
+		<rect {...anim('sweep', 0.4, homeArt.deskCursor)} x="38" y="198" width="158" height="22"></rect>
 		<path {...sx(shape.hair)} d="M34 414h166"></path>
 		<rect {...sx(shape.track)} x="48" y="428" width="138" height="3"></rect><rect {...sx(shape.fill)} x="48" y="428" width="56" height="3"></rect>
 		<text {...sx(text.tiny)} x="48" y="446">2 OF 5 SETTLED</text>
@@ -78,7 +78,7 @@ const ROWS = [
 		</g>
 		<path {...sx(shape.hair)} d="M214 300h272"></path>
 		<text {...sx(text.tiny)} x="228" y="322">@@ 60 · LOG THE SESSION</text>
-		<rect {...anim('pulse', undefined, h.deskNext)} x="220" y="330" width="260" height="26"></rect>
+		<rect {...anim('pulse', undefined, homeArt.deskNext)} x="220" y="330" width="260" height="26"></rect>
 		<text {...sx(text.code, text.green)} x="228" y="348">+  log.debug(session.id)</text>
 		<g {...anim('fade', 2.5)}>
 			<rect {...sx(shape.kbd)} x="228" y="378" width="16" height="16"></rect>

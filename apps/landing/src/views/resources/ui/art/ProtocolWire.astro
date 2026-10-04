@@ -1,14 +1,14 @@
 ---
 // Connect your agent: the wire between the agent and the desk.
 import { sx } from '@shared/lib/sx'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { resourcesArt as r } from './resources-art.styles'
+import { resourcesArt } from './resources-art.styles'
 
 const VERBS = ['await', 'comment', 'status', 'reload', 'stop'] as const
 const EVENTS = ['question', 'review', 'closed'] as const
@@ -31,12 +31,12 @@ const BACK = 'M420 240H180'
 		<path {...anim('signal', 1.8, shape.signal)} pathLength="100" d={OUT}></path>
 		<path {...anim('signal', 2.8, shape.signal)} pathLength="100" d={BACK}></path>
 	</g>
-	<path {...sx(p.headMuted)} d="M420 180l-7-4v8Z"></path><path {...sx(p.headAccent)} d="M180 240l7-4v8Z"></path>
+	<path {...sx(productArt.headMuted)} d="M420 180l-7-4v8Z"></path><path {...sx(productArt.headAccent)} d="M180 240l7-4v8Z"></path>
 	<text {...anim('fade', 0.7, text.tiny)} x="300" y="116" text-anchor="middle">SUBCOMMANDS · AGENT → DESK</text>
 	{
 		VERBS.map((verb, i) => (
 			<g {...anim('pop', 0.8 + i * 0.1)}>
-				<rect {...sx(r.wirePill)} x={162 + i * VERB_STEP} y="128" width="52" height="18" />
+				<rect {...sx(resourcesArt.wirePill)} x={162 + i * VERB_STEP} y="128" width="52" height="18" />
 				<text {...sx(text.tiny)} x={162 + PILL_HALF + i * VERB_STEP} y="140.5" text-anchor="middle">{verb}</text>
 			</g>
 		))
@@ -45,7 +45,7 @@ const BACK = 'M420 240H180'
 	{
 		EVENTS.map((event, i) => (
 			<g {...anim('pop', 1.4 + i * 0.12)}>
-				<rect {...sx(r.wirePill, r.wireEvent)} x={222 + i * EVENT_STEP} y="272" width="52" height="18" />
+				<rect {...sx(resourcesArt.wirePill, resourcesArt.wireEvent)} x={222 + i * EVENT_STEP} y="272" width="52" height="18" />
 				<text {...sx(text.tiny, text.accent)} x={222 + PILL_HALF + i * EVENT_STEP} y="284.5" text-anchor="middle">{event}</text>
 			</g>
 		))

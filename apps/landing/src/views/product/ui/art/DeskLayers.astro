@@ -7,7 +7,7 @@ import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import IsoSheet from './IsoSheet.astro'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
 
 // Each layer: where it rests, where it travels in from, and its legend.
 const LAYERS = [
@@ -34,26 +34,26 @@ const VERDICT_BARS = [70, 82, 60, 76] as const
 	<g {...sheetAt(0)}><g transform={at(0)}><IsoSheet>{
 		DIFF_BARS.map((width, i) => (
 			<Fragment>
-				<rect {...sx(i % 3 === 1 ? p.isoMarkDel : p.isoMarkAdd)} x="12" y={20 + i * 16} width="6" height="6" />
-				<rect {...sx(p.isoBar)} x="24" y={20 + i * 16} width={width} height="6" />
+				<rect {...sx(i % 3 === 1 ? productArt.isoMarkDel : productArt.isoMarkAdd)} x="12" y={20 + i * 16} width="6" height="6" />
+				<rect {...sx(productArt.isoBar)} x="24" y={20 + i * 16} width={width} height="6" />
 			</Fragment>
 		))
 	}</IsoSheet></g></g>
 	<g {...sheetAt(1)}><g transform={at(1)}><IsoSheet tone="guide">{
 		GUIDE_BARS.map(([first, second], i) => (
 			<Fragment>
-				<rect {...sx(p.isoNum)} x="12" y={16 + i * 38} width="12" height="12" />
-				<rect {...sx(p.isoBar)} x="32" y={18 + i * 38} width={first} height="7" />
-				<rect {...sx(p.isoBar, p.isoBarFaint)} x="32" y={32 + i * 38} width={second} height="5" />
+				<rect {...sx(productArt.isoNum)} x="12" y={16 + i * 38} width="12" height="12" />
+				<rect {...sx(productArt.isoBar)} x="32" y={18 + i * 38} width={first} height="7" />
+				<rect {...sx(productArt.isoBar, productArt.isoBarFaint)} x="32" y={32 + i * 38} width={second} height="5" />
 			</Fragment>
 		))
 	}</IsoSheet></g></g>
-	<g {...sheetAt(2)}><g transform={at(2)}><IsoSheet tone="thread"><rect {...sx(p.isoBar, p.isoBarFaint)} x="14" y="18" width="90" height="6"></rect><rect {...sx(p.isoBand)} x="10" y="34" width="110" height="14"></rect><rect {...sx(p.isoBar)} x="14" y="38" width="76" height="6"></rect><rect {...sx(p.isoBubble)} x="26" y="60" width="92" height="50"></rect><rect {...sx(p.isoRail)} x="26" y="60" width="4" height="50"></rect><rect {...sx(p.isoBar)} x="38" y="72" width="62" height="5"></rect><rect {...sx(p.isoBar, p.isoBarAccent)} x="38" y="90" width="48" height="5"></rect></IsoSheet></g></g>
+	<g {...sheetAt(2)}><g transform={at(2)}><IsoSheet tone="thread"><rect {...sx(productArt.isoBar, productArt.isoBarFaint)} x="14" y="18" width="90" height="6"></rect><rect {...sx(productArt.isoBand)} x="10" y="34" width="110" height="14"></rect><rect {...sx(productArt.isoBar)} x="14" y="38" width="76" height="6"></rect><rect {...sx(productArt.isoBubble)} x="26" y="60" width="92" height="50"></rect><rect {...sx(productArt.isoRail)} x="26" y="60" width="4" height="50"></rect><rect {...sx(productArt.isoBar)} x="38" y="72" width="62" height="5"></rect><rect {...sx(productArt.isoBar, productArt.isoBarAccent)} x="38" y="90" width="48" height="5"></rect></IsoSheet></g></g>
 	<g {...sheetAt(3)}><g transform={at(3)}><IsoSheet tone="verdict">{
 		VERDICT_BARS.map((width, i) => (
 			<Fragment>
-				<rect {...sx(p.isoBar)} x="14" y={20 + i * 26} width={width} height="7" />
-				<rect {...sx(i === 2 ? p.isoNo : p.isoYes)} x="104" y={16 + i * 26} width="14" height="14" />
+				<rect {...sx(productArt.isoBar)} x="14" y={20 + i * 26} width={width} height="7" />
+				<rect {...sx(i === 2 ? productArt.isoNo : productArt.isoYes)} x="104" y={16 + i * 26} width="14" height="14" />
 			</Fragment>
 		))
 	}</IsoSheet></g></g>

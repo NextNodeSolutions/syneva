@@ -4,7 +4,7 @@ import TextLink from '@shared/ui/TextLink.astro'
 import Disclosure from '@features/disclosure/ui/Disclosure.astro'
 import { section } from '@shared/ui/section.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
-import { faq as f } from './sections.styles'
+import { faq } from './sections.styles'
 
 const QUESTIONS = [
 	['Does Syneva review code for me?', 'No. You review the code. Your own agent can set the reading order and answer your questions. Syneva records your decisions and hands them back to that agent.'],
@@ -16,10 +16,10 @@ const QUESTIONS = [
 ] as const
 ---
 
-<section {...revealRuledGroup(section.ruled, section.pad, f.section)} id="faq" aria-labelledby="faq-title">
+<section {...revealRuledGroup(section.ruled, section.pad, faq.section)} id="faq" aria-labelledby="faq-title">
 	<div>
-		<h2 {...revealItem(f.title)} id="faq-title">A few things<br />worth knowing.</h2>
-		<p {...revealItem(f.link)}><TextLink href="/resources/faq/" label="All questions & answers" /></p>
+		<h2 {...revealItem(faq.title)} id="faq-title">A few things<br />worth knowing.</h2>
+		<p {...revealItem(faq.link)}><TextLink href="/resources/faq/" label="All questions & answers" /></p>
 	</div>
 	<div>
 		{QUESTIONS.map(([question, answer], i) => <Disclosure question={question} answer={answer} isFirst={i === 0} />)}

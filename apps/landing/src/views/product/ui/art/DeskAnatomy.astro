@@ -1,7 +1,7 @@
 ---
 // Review desk: an annotated wireframe of the desk.
 import { sx } from '@shared/lib/sx'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -10,7 +10,7 @@ import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import AnatomyMarker from './AnatomyMarker.astro'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
 
 // The walkthrough sidebar: section heads, and files with their verdict.
 const FILES = [
@@ -41,7 +41,7 @@ const MARKERS = [
 		<rect {...sx(shape.panel, shape.panelWhite)} x="24" y="30" width="552" height="362"></rect>
 		<path {...sx(shape.hair)} d="M24 62h552M184 62v330M184 96h392"></path>
 		<text {...sx(text.label)} x="38" y="51">syneva</text><text {...sx(text.tiny)} x="300" y="50" text-anchor="middle">AUTH-REFACTOR · ROUND 2</text>
-		<rect {...sx(p.anatomySend)} x="486" y="37" width="80" height="18"></rect><text {...sx(text.tiny, text.white)} x="526" y="49.5" text-anchor="middle">SEND · ⇧S</text>
+		<rect {...sx(productArt.anatomySend)} x="486" y="37" width="80" height="18"></rect><text {...sx(text.tiny, text.white)} x="526" y="49.5" text-anchor="middle">SEND · ⇧S</text>
 		<rect {...sx(shape.track)} x="24" y="62" width="552" height="3"></rect>
 		<rect {...anim('sweep', 1.6, shape.fill)} x="24" y="62" width="330" height="3"></rect>
 		<text {...sx(text.label)} x="38" y="86">WALKTHROUGH</text>
@@ -57,7 +57,7 @@ const MARKERS = [
 				),
 			)
 		}
-		<rect {...anim('pulse', undefined, h.deskCursor)} x="28" y="166" width="152" height="18"></rect>
+		<rect {...anim('pulse', undefined, homeArt.deskCursor)} x="28" y="166" width="152" height="18"></rect>
 		<text {...sx(text.tiny)} x="38" y="378">3 OF 5 FILES SETTLED</text>
 		<text {...sx(text.file, text.strong)} x="198" y="84">auth/session.ts</text><text {...sx(text.tiny)} x="312" y="84">+12 −3</text>
 		<rect {...sx(shape.kbd)} x="470" y="72" width="96" height="17"></rect><text {...sx(text.tiny)} x="518" y="84" text-anchor="middle">APPROVE · ⇧A</text>
@@ -76,11 +76,11 @@ const MARKERS = [
 	<g {...anim('pop', 0.9)}><rect {...sx(shape.chipYes)} x="494" y="136" width="72" height="20"></rect><text {...sx(text.tiny, text.green)} x="530" y="149.5" text-anchor="middle">✓ KEEP ⇧Y</text></g>
 	<g {...anim('pop', 1.25)}><rect {...sx(shape.chipNo)} x="494" y="194" width="72" height="20"></rect><text {...sx(text.tiny, text.accent)} x="530" y="207.5" text-anchor="middle">✕ UNDO ⇧N</text></g>
 	<g {...anim('rise', 1.5)}>
-		<path {...sx(h.askAnchor)} d="M214 214v40"></path>
-		<rect {...sx(h.askThread)} x="206" y="254" width="356" height="96"></rect><path {...sx(h.askRail)} d="M206 254v96"></path>
+		<path {...sx(homeArt.askAnchor)} d="M214 214v40"></path>
+		<rect {...sx(homeArt.askThread)} x="206" y="254" width="356" height="96"></rect><path {...sx(homeArt.askRail)} d="M206 254v96"></path>
 		<text {...sx(text.tiny)} x="222" y="275">YOU · ASK</text><text {...sx(text.copy)} x="222" y="293">Why not cache the user here?</text>
 		<text {...sx(text.tiny, text.accent)} x="222" y="318">YOUR AGENT</text><text {...sx(text.copy)} x="222" y="336">Tokens rotate, so the cache would go stale.</text>
 	</g>
 	{MARKERS.map(marker => <AnatomyMarker {...marker} />)}
-	<g {...anim('fade', 2.4, shape.secondary)}><text {...sx(text.tiny)} x="24" y="424"><tspan {...sx(p.anatomyKey)}>1</tspan> WALKTHROUGH   <tspan {...sx(p.anatomyKey)}>2</tspan> KEEP / UNDO   <tspan {...sx(p.anatomyKey)}>3</tspan> THREAD   <tspan {...sx(p.anatomyKey)}>4</tspan> PROGRESS   <tspan {...sx(p.anatomyKey)}>5</tspan> SEND</text></g>
+	<g {...anim('fade', 2.4, shape.secondary)}><text {...sx(text.tiny)} x="24" y="424"><tspan {...sx(productArt.anatomyKey)}>1</tspan> WALKTHROUGH   <tspan {...sx(productArt.anatomyKey)}>2</tspan> KEEP / UNDO   <tspan {...sx(productArt.anatomyKey)}>3</tspan> THREAD   <tspan {...sx(productArt.anatomyKey)}>4</tspan> PROGRESS   <tspan {...sx(productArt.anatomyKey)}>5</tspan> SEND</text></g>
 </Drawing>

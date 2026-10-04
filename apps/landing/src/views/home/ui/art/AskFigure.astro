@@ -6,7 +6,7 @@ import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 ---
 
 <Drawing viewBox="0 0 520 520" compact="34 50 452 420" labelledby="ask-art-title ask-art-desc">
@@ -21,21 +21,21 @@ import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
 		<rect {...sx(shape.bandAdd)} x="41" y="134" width="438" height="24"></rect>
 		<text {...sx(text.ln)} x="72" y="151" text-anchor="end">19</text><text {...sx(text.code, text.green)} x="88" y="151">+ await verifySession(req)</text>
 	</g>
-	<path {...anim('draw', 0.5, h.askAnchor)} pathLength="1" d="M56 158v18"></path>
+	<path {...anim('draw', 0.5, homeArt.askAnchor)} pathLength="1" d="M56 158v18"></path>
 	<g {...anim('rise', 0.6)}>
-		<rect {...sx(h.askThread)} x="56" y="176" width="408" height="142"></rect>
-		<path {...sx(h.askRail)} d="M56 176v142"></path>
+		<rect {...sx(homeArt.askThread)} x="56" y="176" width="408" height="142"></rect>
+		<path {...sx(homeArt.askRail)} d="M56 176v142"></path>
 		<g>
-			<rect {...sx(h.askTab, h.askTabOn)} x="72" y="190" width="40" height="18"></rect>
+			<rect {...sx(homeArt.askTab, homeArt.askTabOn)} x="72" y="190" width="40" height="18"></rect>
 			<text {...sx(text.tiny, text.white)} x="92" y="203" text-anchor="middle">ASK</text>
-			<rect {...sx(h.askTab)} x="116" y="190" width="110" height="18"></rect>
+			<rect {...sx(homeArt.askTab)} x="116" y="190" width="110" height="18"></rect>
 			<text {...sx(text.tiny)} x="171" y="203" text-anchor="middle">REQUEST CHANGE</text>
 			<text {...sx(text.tiny)} x="448" y="203" text-anchor="end">⌘⇧↵</text>
 		</g>
 		<text {...sx(text.tiny)} x="72" y="230">YOU</text>
 		<text {...anim('type', 0.9, text.copy)} x="72" y="248">Why verify the session here and not in the router?</text>
 		<g {...anim('fade', 1.7)}>
-			<circle {...anim('spin', undefined, h.askSpin)} cx="76" cy="270" r="4"></circle>
+			<circle {...anim('spin', undefined, homeArt.askSpin)} cx="76" cy="270" r="4"></circle>
 			<text {...sx(text.small)} x="88" y="274">Agent · reading auth/session.ts…</text>
 		</g>
 		<text {...anim('fade', 2.4, text.tiny, text.accent)} x="72" y="290">YOUR AGENT</text>
@@ -45,8 +45,8 @@ import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
 		<text {...sx(text.ln)} x="72" y="346" text-anchor="end">20</text><text {...sx(text.code)} x="88" y="346">return next()</text>
 	</g>
 	<g {...anim('rise', 3.2)}>
-		<rect {...sx(h.askChange)} x="56" y="360" width="408" height="58"></rect>
-		<path {...sx(h.askChangeRail)} d="M56 360v58"></path>
+		<rect {...sx(homeArt.askChange)} x="56" y="360" width="408" height="58"></rect>
+		<path {...sx(homeArt.askChangeRail)} d="M56 360v58"></path>
 		<text {...sx(text.tiny, text.accent)} x="72" y="381">REQUEST CHANGE</text>
 		<text {...sx(text.copy)} x="72" y="402">Log why the session was rejected.</text>
 		<text {...sx(text.tiny)} x="448" y="381" text-anchor="end">RIDES TO THE HANDOFF →</text>

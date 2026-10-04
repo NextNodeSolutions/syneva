@@ -5,7 +5,7 @@ import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import Crumbs from './Crumbs.astro'
 import PageStatus from './PageStatus.astro'
-import { pageHero as h } from './page-hero.styles'
+import { pageHero } from './page-hero.styles'
 import { pageActionsMarker } from '@shared/ui/actions.stylex'
 
 type Props = {
@@ -21,10 +21,10 @@ const { route, crumb, title, lede, state, caption } = Astro.props
 const hasActions = Astro.slots.has('actions')
 ---
 
-<section {...revealGroup(h.root)} aria-labelledby="page-title">
-	<div {...sx(h.copy)}>
+<section {...revealGroup(pageHero.root)} aria-labelledby="page-title">
+	<div {...sx(pageHero.copy)}>
 		<Crumbs route={route} title={crumb} />
-		<h1 {...revealItem(h.title)} id="page-title" set:html={title} />
+		<h1 {...revealItem(pageHero.title)} id="page-title" set:html={title} />
 		{
 			state && (
 				<div {...revealItem()}>
@@ -32,17 +32,17 @@ const hasActions = Astro.slots.has('actions')
 				</div>
 			)
 		}
-		<p {...revealItem(h.lede)} set:html={lede} />
+		<p {...revealItem(pageHero.lede)} set:html={lede} />
 		{
 			hasActions && (
-				<div {...revealItem(h.actions, pageActionsMarker)}>
+				<div {...revealItem(pageHero.actions, pageActionsMarker)}>
 					<slot name="actions" />
 				</div>
 			)
 		}
 	</div>
-	<figure {...revealItem(h.art)} {...scene}>
+	<figure {...revealItem(pageHero.art)} {...scene}>
 		<slot name="art" />
-		{caption && <figcaption {...sx(h.caption)} set:html={caption} />}
+		{caption && <figcaption {...sx(pageHero.caption)} set:html={caption} />}
 	</figure>
 </section>

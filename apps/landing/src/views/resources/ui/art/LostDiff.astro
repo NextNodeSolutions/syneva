@@ -1,7 +1,7 @@
 ---
 // 404: the page you wanted, as a rejected change.
 import { sx } from '@shared/lib/sx'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
@@ -23,9 +23,9 @@ import { text } from '@shared/ui/drawing/text.styles'
 		<rect {...anim('sweep', 0.8, shape.bandYes)} x="41" y="134" width="478" height="26"></rect>
 		<text {...sx(text.code, text.green)} x="56" y="152">+ /</text>
 	</g>
-	<path {...anim('draw', 1, h.askAnchor)} pathLength="1" d="M70 178v28"></path>
+	<path {...anim('draw', 1, homeArt.askAnchor)} pathLength="1" d="M70 178v28"></path>
 	<g {...anim('rise', 1.1)}>
-		<rect {...sx(h.askThread)} x="56" y="206" width="420" height="78"></rect><path {...sx(h.askRail)} d="M56 206v78"></path>
+		<rect {...sx(homeArt.askThread)} x="56" y="206" width="420" height="78"></rect><path {...sx(homeArt.askRail)} d="M56 206v78"></path>
 		<text {...sx(text.tiny)} x="72" y="226">YOU · ASK</text><text {...sx(text.copy)} x="72" y="244">Where did this page go?</text>
 		<text {...anim('fade', 1.6, text.small)} x="72" y="270">It isn&rsquo;t here. Every page that exists is linked below.</text>
 	</g>

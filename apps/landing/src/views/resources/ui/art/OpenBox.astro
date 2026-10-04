@@ -6,7 +6,7 @@ import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { resourcesArt as r } from './resources-art.styles'
+import { resourcesArt } from './resources-art.styles'
 
 const AGENTS = ['Any agent', 'Codex', 'Cursor', 'pi', 'your script'] as const
 const ROW = 52
@@ -33,7 +33,7 @@ const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW
 	<g {...anim('rise', 0.4)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="240" y="120" width="160" height="180"></rect>
 		<text {...sx(text.label)} x="256" y="146">syneva</text>
-		<rect {...sx(r.slot)} x="256" y="166" width="128" height="58"></rect>
+		<rect {...sx(resourcesArt.slot)} x="256" y="166" width="128" height="58"></rect>
 		<text {...sx(text.tiny)} x="320" y="192" text-anchor="middle">NO MODEL</text>
 		<text {...sx(text.tiny)} x="320" y="208" text-anchor="middle">HERE, ON PURPOSE</text>
 		<text {...sx(text.tiny)} x="256" y="252">RENDERS THE DIFF</text>
@@ -46,5 +46,5 @@ const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW
 	<path {...anim('signal', 2.2, shape.signal, shape.signalGreen)} pathLength="100" d="M400 210h60"></path>
 	<text {...anim('fade', 1.1, text.tiny)} x="430" y="198" text-anchor="middle">HTTP</text>
 	<g {...anim('rise', 1.2)}><rect {...sx(shape.panel, shape.panelMint)} x="460" y="170" width="100" height="80"></rect><text {...sx(text.tiny, text.green)} x="510" y="196" text-anchor="middle">YOUR DESK</text><text {...sx(text.small)} x="510" y="220" text-anchor="middle">localhost</text></g>
-	<g {...anim('pop', 1.6)}><rect {...sx(r.stamp)} x="464" y="300" width="92" height="44"></rect><text {...sx(text.head, text.accent)} x="510" y="329" text-anchor="middle">MIT</text></g>
+	<g {...anim('pop', 1.6)}><rect {...sx(resourcesArt.stamp)} x="464" y="300" width="92" height="44"></rect><text {...sx(text.head, text.accent)} x="510" y="329" text-anchor="middle">MIT</text></g>
 </Drawing>

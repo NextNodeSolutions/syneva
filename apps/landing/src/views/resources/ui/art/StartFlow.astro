@@ -1,14 +1,14 @@
 ---
 // Get started: three commands, then the desk opens in your browser.
 import { sx } from '@shared/lib/sx'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { resourcesArt as r } from './resources-art.styles'
+import { resourcesArt } from './resources-art.styles'
 
 const STEPS = [
 	{ label: '01 · INSTALL', command: '$ npm install -g syneva', output: 'added 1 package', y: 70 },
@@ -24,7 +24,7 @@ const TO_DESK = 'M334 228C352 228 352 200 370 200'
 	<title id="start-title">Three commands to your first review</title>
 	<desc id="start-desc">Install the CLI with npm, run syneva in your repository and a desk opens on localhost in your browser, then your agent attaches with syneva await and receives your verdict as JSON.</desc>
 	<ArtFrame id="startflow" width={600} height={420} />
-	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="34" y="40" width="300" height="340"></rect><path {...sx(shape.hair)} d="M34 56h300"></path><rect {...sx(r.termDotAccent)} x="42" y="45" width="6" height="6"></rect><rect {...sx(r.termDot)} x="52" y="45" width="6" height="6"></rect><rect {...sx(r.termDot)} x="62" y="45" width="6" height="6"></rect></g>
+	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="34" y="40" width="300" height="340"></rect><path {...sx(shape.hair)} d="M34 56h300"></path><rect {...sx(resourcesArt.termDotAccent)} x="42" y="45" width="6" height="6"></rect><rect {...sx(resourcesArt.termDot)} x="52" y="45" width="6" height="6"></rect><rect {...sx(resourcesArt.termDot)} x="62" y="45" width="6" height="6"></rect></g>
 	{
 		STEPS.map(({ label, command, output, y }, i) => (
 			<Fragment>
@@ -47,7 +47,7 @@ const TO_DESK = 'M334 228C352 228 352 200 370 200'
 		<rect {...sx(shape.bandNo)} x="431" y="172" width="138" height="16"></rect><path {...sx(shape.lines)} d="M440 180h80"></path>
 		<path {...sx(shape.lines)} d="M440 204h100M440 218h80M440 232h96"></path>
 		<Check x={548} y={140} size={12} delay={2} />
-		<rect {...sx(p.anatomySend)} x="486" y="272" width="76" height="18"></rect><text {...sx(text.tiny, text.white)} x="524" y="284.5" text-anchor="middle">SEND · ⇧S</text>
+		<rect {...sx(productArt.anatomySend)} x="486" y="272" width="76" height="18"></rect><text {...sx(text.tiny, text.white)} x="524" y="284.5" text-anchor="middle">SEND · ⇧S</text>
 	</g>
 	<text {...anim('fade', 1.8, text.tiny)} x="470" y="322" text-anchor="middle">OPENS IN YOUR BROWSER</text>
 </Drawing>

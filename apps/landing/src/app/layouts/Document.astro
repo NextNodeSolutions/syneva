@@ -10,7 +10,7 @@ import Footer from '@widgets/footer/ui/Footer.astro'
 import Navigation from '@widgets/navigation/ui/Navigation.astro'
 import { SITE_URL } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
-import { document as d } from './document.styles'
+import { documentShell } from './document.styles'
 
 type Props = { route: string; title: string; description: string }
 
@@ -41,8 +41,8 @@ const canonical = `${SITE_URL}${route}`
 		{import.meta.env.DEV && <link rel="stylesheet" href="/virtual:stylex.css" />}
 	</head>
 	<body>
-		<a {...sx(d.skip)} href="#main">Skip to content</a>
-		<div {...sx(d.frame)}>
+		<a {...sx(documentShell.skip)} href="#main">Skip to content</a>
+		<div {...sx(documentShell.frame)}>
 			<Navigation route={route} />
 			<main id="main">
 				<slot />

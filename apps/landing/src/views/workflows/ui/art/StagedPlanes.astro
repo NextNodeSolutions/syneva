@@ -8,7 +8,7 @@ import Pending from '@shared/ui/drawing/Pending.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { workflowsArt as w } from './workflows-art.styles'
+import { workflowsArt } from './workflows-art.styles'
 
 // The working tree's five changes: their row and the length of their line.
 const CHANGES = [
@@ -30,7 +30,7 @@ const CHANGES = [
 		{
 			CHANGES.map(([y, length], i) => (
 				<Fragment>
-					<rect {...sx(i === 1 ? w.barAdd : w.barMod)} x="66" y={y} width="4" height="12" />
+					<rect {...sx(i === 1 ? workflowsArt.barAdd : workflowsArt.barMod)} x="66" y={y} width="4" height="12" />
 					<path {...sx(shape.lines)} d={`M78 ${y + 6}h${length}`} />
 				</Fragment>
 			))

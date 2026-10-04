@@ -6,8 +6,8 @@ import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
-import { workflowsArt as w } from './workflows-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
+import { workflowsArt } from './workflows-art.styles'
 
 const STATES = [
 	{ label: 'UNCHANGED', words: 'full file', x: 40 },
@@ -38,13 +38,13 @@ const STATES = [
 		<path {...sx(shape.lines)} d="M56 204h320M56 220h260"></path>
 		<rect {...sx(shape.bandFocus)} x="48" y="234" width="360" height="40"></rect>
 		<path {...sx(shape.lines)} d="M56 250h300M56 264h220"></path>
-		<rect {...sx(w.image)} x="56" y="290" width="160" height="90"></rect>
-		<path {...sx(w.imageLine)} d="M64 368l40-34 26 20 30-28 48 42"></path><rect {...sx(w.sun)} x="182" y="302" width="12" height="12"></rect>
+		<rect {...sx(workflowsArt.image)} x="56" y="290" width="160" height="90"></rect>
+		<path {...sx(workflowsArt.imageLine)} d="M64 368l40-34 26 20 30-28 48 42"></path><rect {...sx(workflowsArt.sun)} x="182" y="302" width="12" height="12"></rect>
 		<text {...sx(text.tiny, shape.secondary)} x="230" y="374">IMAGES SERVED FROM THE REPO</text>
 	</g>
-	<path {...anim('draw', 0.9, h.askAnchor)} pathLength="1" d="M408 254h28"></path>
+	<path {...anim('draw', 0.9, homeArt.askAnchor)} pathLength="1" d="M408 254h28"></path>
 	<g {...anim('rise', 1.1)}>
-		<rect {...sx(h.askThread)} x="436" y="214" width="140" height="92"></rect><path {...sx(h.askRail)} d="M436 214v92"></path>
+		<rect {...sx(homeArt.askThread)} x="436" y="214" width="140" height="92"></rect><path {...sx(homeArt.askRail)} d="M436 214v92"></path>
 		<text {...sx(text.tiny)} x="448" y="234">YOU · ASK</text><text {...sx(text.small)} x="448" y="252">Who flips the</text><text {...sx(text.small)} x="448" y="268">flag in step 2?</text>
 		<text {...sx(text.tiny, text.accent)} x="448" y="292">ON THIS BLOCK</text>
 	</g>

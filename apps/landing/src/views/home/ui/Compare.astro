@@ -4,7 +4,7 @@
 import { section } from '@shared/ui/section.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import { compare as c } from './compare.styles'
+import { compare } from './compare.styles'
 
 const COLUMNS = ['Your editor’s diff', 'Hosted AI review'] as const
 const ROWS = [
@@ -18,27 +18,27 @@ const ROWS = [
 ---
 
 <section {...revealRuledGroup(section.ruled, section.pad)} id="compare" aria-labelledby="compare-title">
-	<div {...sx(c.head)}>
+	<div {...sx(compare.head)}>
 		<h2 {...revealItem()} id="compare-title">Built for the loop<br />your editor wasn’t.</h2>
-		<p {...revealItem(c.headText)}>Editors were designed for writing code. AI reviewers put a model between you and the diff. Syneva is a review surface for the human, with the agent that wrote the code one keystroke away.</p>
+		<p {...revealItem(compare.headText)}>Editors were designed for writing code. AI reviewers put a model between you and the diff. Syneva is a review surface for the human, with the agent that wrote the code one keystroke away.</p>
 	</div>
-	<div {...revealItem(c.scroll)}>
-		<table {...sx(c.table)}>
-			<thead {...sx(c.thead)}>
-				<tr {...sx(c.row)}>
-					<th {...sx(c.cell, c.column, c.stacked)} scope="col"><span {...sx(c.hidden)}>Aspect</span></th>
-					{COLUMNS.map(column => <th {...sx(c.cell, c.column, c.stacked)} scope="col">{column}</th>)}
-					<th {...sx(c.cell, c.column, c.columnUs, c.stacked)} scope="col">Syneva</th>
+	<div {...revealItem(compare.scroll)}>
+		<table {...sx(compare.table)}>
+			<thead {...sx(compare.thead)}>
+				<tr {...sx(compare.row)}>
+					<th {...sx(compare.cell, compare.column, compare.stacked)} scope="col"><span {...sx(compare.hidden)}>Aspect</span></th>
+					{COLUMNS.map(column => <th {...sx(compare.cell, compare.column, compare.stacked)} scope="col">{column}</th>)}
+					<th {...sx(compare.cell, compare.column, compare.columnUs, compare.stacked)} scope="col">Syneva</th>
 				</tr>
 			</thead>
-			<tbody {...sx(c.stacked)}>
+			<tbody {...sx(compare.stacked)}>
 				{
 					ROWS.map(([aspect, editor, hosted, us]) => (
-						<tr {...sx(c.row)}>
-							<th {...sx(c.cell, c.aspect)} scope="row">{aspect}</th>
-							<td {...sx(c.cell, c.value)} data-label={COLUMNS[0]}>{editor}</td>
-							<td {...sx(c.cell, c.value)} data-label={COLUMNS[1]}>{hosted}</td>
-							<td {...sx(c.cell, c.value, c.valueUs)} data-label="Syneva">{us}</td>
+						<tr {...sx(compare.row)}>
+							<th {...sx(compare.cell, compare.aspect)} scope="row">{aspect}</th>
+							<td {...sx(compare.cell, compare.value)} data-label={COLUMNS[0]}>{editor}</td>
+							<td {...sx(compare.cell, compare.value)} data-label={COLUMNS[1]}>{hosted}</td>
+							<td {...sx(compare.cell, compare.value, compare.valueUs)} data-label="Syneva">{us}</td>
 						</tr>
 					))
 				}
