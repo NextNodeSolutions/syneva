@@ -1,6 +1,6 @@
 import { EASE } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
-import { POSE_VALUES } from '@syneva/motion/poses'
+import { PATH_LENGTH, POSE_VALUES } from '@syneva/motion/poses'
 
 import { introPartSelector } from './hero-intro-part'
 
@@ -26,8 +26,9 @@ const rise = { opacity: [0, 1], transform: ['translateY(14px)', 'none'] }
 const lineRise = { transform: [POSE_VALUES.lineRise, 'none'] }
 const bandIn = { transform: ['scaleX(0)', 'scaleX(1)'] }
 const markPop = { transform: ['scale(0) rotate(-30deg)', 'none'] }
-// The check and the underline measure 1 (pathLength) under the draw pose.
-const draw = { strokeDashoffset: [1, 0] }
+// The check and the underline declare PATH_LENGTH.draw as their pathLength:
+// the draw pose hides each behind one dash that long.
+const draw = { strokeDashoffset: [PATH_LENGTH.draw, 0] }
 
 const STEPS: Step[] = [
 	{ part: 'gutter', keyframes: fadeIn, duration: 0.5, delay: 0.05 },

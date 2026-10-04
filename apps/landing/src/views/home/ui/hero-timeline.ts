@@ -88,11 +88,13 @@ export function reveal(element: Element, start: number, length: number): void {
 	])
 }
 
+// A drawn path declares PATH_LENGTH.draw as its pathLength and hides behind
+// one dash that long until it draws.
 export function draw(element: Element, start: number, length = 0.35): void {
-	const dash = { strokeDasharray: '1 1' }
+	const dash = { strokeDasharray: `${PATH_LENGTH.draw} ${PATH_LENGTH.draw}` }
 	loop(element, [
-		[0, { ...dash, strokeDashoffset: 1, opacity: 1 }],
-		[start, { ...dash, strokeDashoffset: 1, opacity: 1 }],
+		[0, { ...dash, strokeDashoffset: PATH_LENGTH.draw, opacity: 1 }],
+		[start, { ...dash, strokeDashoffset: PATH_LENGTH.draw, opacity: 1 }],
 		[start + length, { ...dash, strokeDashoffset: 0, opacity: 1 }],
 		[FADE_START, { ...dash, strokeDashoffset: 0, opacity: 1 }],
 		[FADE_END, { ...dash, strokeDashoffset: 0, opacity: 0 }],
