@@ -11,7 +11,7 @@ const PRINCIPLES = ['Local by default', 'Your agent, not ours', 'No model inside
 const THIRD = 2
 ---
 
-<div {...sx(principles.strip, poses.stalledShow)} role="list" {...introPart('principles')}>
+<div {...sx(poses.fade, principles.strip)} role="list" {...introPart('principles')}>
 	{
 		PRINCIPLES.map((principle, i) => (
 			<span

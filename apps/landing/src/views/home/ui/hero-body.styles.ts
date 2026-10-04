@@ -1,15 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
-import { motionRoot } from '@syneva/motion/root.stylex'
-
-import type { When } from '@syneva/design-system/when'
-
-const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
-const hidden = <T>(pose: T): When<When<T>> => ({
-	default: null,
-	[media.motionSafe]: { default: null, [armed()]: pose },
-})
 
 // Under the headline: the pitch and its actions beside the review-round
 // figure; on tablets the copy spreads over two columns above the figure.
@@ -33,7 +24,6 @@ export const heroBody = stylex.create({
 		gridTemplateColumns: { default: null, [media.tablet]: '1fr 1fr' },
 		columnGap: { default: null, [media.tablet]: '40px' },
 		alignItems: { default: null, [media.tablet]: 'start' },
-		opacity: hidden(0),
 	},
 	lede: {
 		fontSize: { default: '18px', [media.phone]: '16px' },
@@ -83,7 +73,6 @@ export const heroBody = stylex.create({
 		borderColor: color['--line-strong'],
 		backgroundColor: color['--paper'],
 		minWidth: 0,
-		opacity: hidden(0),
 	},
 	stageAside: { display: { default: null, [media.phone]: 'none' } },
 })

@@ -18,21 +18,21 @@ import { heroMarker, newsMarker } from './hero.stylex'
 
 <section {...sx(hero.root, heroMarker)} aria-labelledby="hero-title" data-hero>
 	<div {...sx(hero.field)} aria-hidden="true"><span {...sx(hero.light)}></span></div>
-	<a {...sx(hero.news, poses.stalledShow, newsMarker)} href="/resources/changelog/" {...introPart('news')}>
+	<a {...sx(poses.fade, hero.news, newsMarker)} href="/resources/changelog/" {...introPart('news')}>
 		<span {...sx(hero.newsTag)}>New</span><span {...sx(hero.newsText)}>Review notes: every comment and question, one keystroke away</span><span {...sx(hero.newsArrow)} aria-hidden="true">→</span>
 	</a>
 	<h1 {...sx(hero.title)} id="hero-title">
 		<span {...sx(hero.line)}>
-			<span {...sx(hero.gutter, poses.stalledShow)} aria-hidden="true" {...introPart('gutter')}><i {...sx(hero.number)}>1</i><b {...sx(hero.mark, hero.agentMark)} {...introPart('agent-mark')}>+</b></span>
-			<span {...sx(hero.clip, hero.agentBand, poses.stalledBand)} {...introPart('agent-band')}><span {...sx(hero.text, poses.stalledShow)} {...introPart('agent-text')}>Your agent writes.</span></span>
+			<span {...sx(poses.fade, hero.gutter)} aria-hidden="true" {...introPart('gutter')}><i {...sx(hero.number)}>1</i><b {...sx(poses.pop, hero.mark, hero.agentMark)} {...introPart('agent-mark')}>+</b></span>
+			<span {...sx(poses.band, hero.clip, hero.agentBand)} {...introPart('agent-band')}><span {...sx(poses.lineRise, hero.text)} {...introPart('agent-text')}>Your agent writes.</span></span>
 		</span>
 		<span {...sx(hero.line, hero.nextLine)}>
-			<span {...sx(hero.gutter, poses.stalledShow)} aria-hidden="true" {...introPart('gutter')}><i {...sx(hero.number)}>2</i><b {...sx(hero.mark)} {...introPart('human-mark')}><svg {...sx(hero.check)} viewBox="0 0 20 20"><path {...sx(poses.draw)} pathLength="1" d="m4 10.5 4 4 8-9" {...introPart('human-check')}></path></svg></b></span>
-			<span {...sx(hero.clip, hero.humanBand, poses.stalledBand)} {...introPart('human-band')}><span {...sx(hero.text, poses.stalledShow)} {...introPart('human-text')}>You <em {...sx(hero.decide)}>decide<svg {...sx(hero.underline)} viewBox="0 0 320 18" preserveAspectRatio="none" aria-hidden="true"><path {...sx(poses.draw, hero.underlinePath)} pathLength="1" d="M6 12C80 5 230 4 314 10" {...introPart('underline')}></path></svg></em> what ships.</span></span>
+			<span {...sx(poses.fade, hero.gutter)} aria-hidden="true" {...introPart('gutter')}><i {...sx(hero.number)}>2</i><b {...sx(poses.pop, hero.mark)} {...introPart('human-mark')}><svg {...sx(hero.check)} viewBox="0 0 20 20"><path {...sx(poses.draw)} pathLength="1" d="m4 10.5 4 4 8-9" {...introPart('human-check')}></path></svg></b></span>
+			<span {...sx(poses.band, hero.clip, hero.humanBand)} {...introPart('human-band')}><span {...sx(poses.lineRise, hero.text)} {...introPart('human-text')}>You <em {...sx(hero.decide)}>decide<svg {...sx(hero.underline)} viewBox="0 0 320 18" preserveAspectRatio="none" aria-hidden="true"><path {...sx(poses.draw, hero.underlinePath)} pathLength="1" d="M6 12C80 5 230 4 314 10" {...introPart('underline')}></path></svg></em> what ships.</span></span>
 		</span>
 	</h1>
 	<div {...sx(heroBody.body)}>
-		<div {...sx(heroBody.copy, poses.stalledShow)} {...introPart('copy')}>
+		<div {...sx(poses.fade, heroBody.copy)} {...introPart('copy')}>
 			<p {...sx(heroBody.lede)}>Syneva is the review desk for code your agent wrote. Read the diff in a reading order, ask about the exact line, give every change a verdict, and hand a structured result back to your agent. Same tab, every round.</p>
 			<div {...sx(heroBody.actions)}>
 				<Button href="/get-started/" label="Start a local review" />
@@ -41,7 +41,7 @@ import { heroMarker, newsMarker } from './hero.stylex'
 			<Command text="npm install -g syneva" label="Installation command" css={heroBody.command} />
 			<p {...sx(heroBody.works)}><span {...sx(heroBody.worksLead)}>Works with the agent you already use</span> Codex · Cursor · pi · your own scripts</p>
 		</div>
-		<figure {...sx(heroBody.stage, poses.stalledShow)} {...scene} {...introPart('stage')}>
+		<figure {...sx(poses.fade, heroBody.stage)} {...scene} {...introPart('stage')}>
 			<FigureTop subject="ONE REVIEW ROUND" aside="ILLUSTRATIVE · NOT A SCREENSHOT" isLive asideCss={heroBody.stageAside} />
 			<HeroStage />
 		</figure>

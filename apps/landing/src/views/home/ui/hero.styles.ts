@@ -7,22 +7,11 @@ import {
 	font,
 	layout,
 } from '@syneva/design-system/tokens.stylex'
-import { motionRoot } from '@syneva/motion/root.stylex'
 
 import { heroMarker, newsMarker } from './hero.stylex'
 
-import type { When } from '@syneva/design-system/when'
-
 const lit = (): string => stylex.when.ancestor(':is(.is-lit)', heroMarker)
 const newsHover = (): string => stylex.when.ancestor(':hover', newsMarker)
-const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
-
-// The intro's hidden poses: the headline sweeps in once the runtime boots
-// (see hero.client.ts). Reduced motion and no-JS render the finished pose.
-const hidden = <T>(pose: T): When<When<T>> => ({
-	default: null,
-	[media.motionSafe]: { default: null, [armed()]: pose },
-})
 
 const LIGHT =
 	"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 19v10M19 24h10' stroke='%231888b0' stroke-width='1.2'/%3E%3C/svg%3E\")"
@@ -76,7 +65,6 @@ export const hero = stylex.create({
 		color: { default: color['--muted'], ':hover': color['--ink'] },
 		transition: `border-color ${duration['--duration-medium']} ${ease['--ease-out']}, color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		maxWidth: '100%',
-		opacity: hidden(0),
 	},
 	newsText: {
 		overflow: 'hidden',
@@ -136,7 +124,6 @@ export const hero = stylex.create({
 		fontSize: { default: null, [media.narrow]: '11px' },
 		letterSpacing: 0,
 		color: color['--line-strong'],
-		opacity: hidden(0),
 	},
 	number: {
 		fontStyle: 'normal',
@@ -151,7 +138,6 @@ export const hero = stylex.create({
 		height: { default: '22px', [media.phone]: '18px' },
 		font: `500 18px/1 ${font['--mono']}`,
 		fontSize: { default: null, [media.phone]: '15px' },
-		transform: hidden('scale(0)'),
 	},
 	agentMark: { color: color['--accent'] },
 	check: {
@@ -175,7 +161,6 @@ export const hero = stylex.create({
 			inset: 0,
 			zIndex: -1,
 			transformOrigin: 'left',
-			transform: hidden('scaleX(0)'),
 		},
 	},
 	agentBand: {
@@ -191,7 +176,6 @@ export const hero = stylex.create({
 	text: {
 		display: 'block',
 		whiteSpace: { default: 'nowrap', [media.phone]: 'normal' },
-		transform: hidden('translateY(108%)'),
 	},
 	decide: {
 		position: 'relative',

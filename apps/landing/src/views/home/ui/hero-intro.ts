@@ -1,5 +1,6 @@
 import { EASE } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
+import { POSE_VALUES } from '@syneva/motion/poses'
 
 import { introPartSelector } from './hero-intro-part'
 
@@ -23,7 +24,7 @@ type Step = {
 
 const fadeIn = { opacity: [0, 1] }
 const rise = { opacity: [0, 1], transform: ['translateY(14px)', 'none'] }
-const lineRise = { transform: ['translateY(108%)', 'none'] }
+const lineRise = { transform: [POSE_VALUES.lineRise, 'none'] }
 const bandIn = { transform: ['scaleX(0)', 'scaleX(1)'] }
 const markPop = { transform: ['scale(0) rotate(-30deg)', 'none'] }
 // The check and the underline measure 1 (pathLength) under the draw pose.
