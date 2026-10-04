@@ -3,6 +3,7 @@
 // script, the ruled frame with the header and footer.
 import '../styles/global.css'
 
+import { hexColor } from '@syneva/design-system/tokens.stylex'
 import { ARM_SCRIPT } from '@syneva/motion/boot'
 import { motionRoot } from '@syneva/motion/root.stylex'
 
@@ -23,7 +24,7 @@ const canonical = `${SITE_URL}${Astro.url.pathname}`
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="theme-color" content="#f6f6f0" />
+		<meta name="theme-color" content={hexColor.paper} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		<link rel="canonical" href={canonical} />

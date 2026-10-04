@@ -6,11 +6,15 @@ import { media } from './media.stylex'
 // SVG paints and the motion timelines read the same names StyleX writes, so
 // one definition serves the three of them.
 
+// The paper colour also tints the browser's own chrome through the
+// document's theme-color meta, which needs the hex rather than a variable.
+export const hexColor = stylex.defineConsts({ paper: '#f6f6f0' })
+
 // Petrol blue (--accent) follows the work: trust and control, kin to the
 // NextNode teal, and far enough from --green that the agent's work never
 // reads as a verdict. Mint and green mark a human decision.
 export const color = stylex.defineVars({
-	'--paper': '#f6f6f0',
+	'--paper': hexColor.paper,
 	'--white': '#ffffff',
 	'--ink': '#191b18',
 	'--muted': '#60635c',
