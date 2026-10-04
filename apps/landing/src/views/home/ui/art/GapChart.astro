@@ -9,11 +9,11 @@ import { homeArt } from '@shared/ui/drawing/home-art.styles'
 
 const WRITTEN = 'M56 312C190 306 300 232 512 64'
 const ROUNDS = [
-	[171, 289, 2.2],
-	[252, 250, 2.45],
-	[342, 192, 2.7],
-	[420, 134, 2.95],
-	[503, 69, 3.2],
+	{ x: 171, y: 289, delay: 2.2 },
+	{ x: 252, y: 250, delay: 2.45 },
+	{ x: 342, y: 192, delay: 2.7 },
+	{ x: 420, y: 134, delay: 2.95 },
+	{ x: 503, y: 69, delay: 3.2 },
 ] as const
 ---
 
@@ -41,7 +41,7 @@ const ROUNDS = [
 	<text {...anim('fade', 1.2, text.small)} x="512" y="292" text-anchor="end">Read with real attention</text>
 	<path {...anim('draw', 1.9, homeArt.gapSteps)} d="M56 312H174V292H255V253H345V195H423V137H506V72"></path>
 	<g>
-		{ROUNDS.map(([x, y, delay]) => <rect {...anim('pop', delay, homeArt.gapRound)} x={x} y={y} width="6" height="6" />)}
+		{ROUNDS.map(({ x, y, delay }) => <rect {...anim('pop', delay, homeArt.gapRound)} x={x} y={y} width="6" height="6" />)}
 	</g>
 	<g {...anim('rise', 2.4)}>
 		<text {...sx(text.copy, text.green)} x="76" y="232">Settled on a desk,</text>

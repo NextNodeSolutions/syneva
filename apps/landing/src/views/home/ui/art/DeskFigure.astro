@@ -17,15 +17,15 @@ const SIDE = [
 	['OTHER', 344],
 ] as const
 const ROWS = [
-	['contracts/review.ts', 144, 'yes'],
-	['auth/session.ts', 212, 'current'],
-	['api/middleware.ts', 240, 'pending'],
-	['pages/desk.tsx', 302, 'pending'],
-	['README.md', 370, 'pending'],
+	{ name: 'contracts/review.ts', y: 144, state: 'yes' },
+	{ name: 'auth/session.ts', y: 212, state: 'current' },
+	{ name: 'api/middleware.ts', y: 240, state: 'pending' },
+	{ name: 'pages/desk.tsx', y: 302, state: 'pending' },
+	{ name: 'README.md', y: 370, state: 'pending' },
 ] as const
 // The progress strip under the walkthrough fills by the files you settled.
 const TRACK_WIDTH = 138
-const settled = ROWS.filter(([, , state]) => state === 'yes').length
+const settled = ROWS.filter(({ state }) => state === 'yes').length
 const fillWidth = (TRACK_WIDTH * settled) / ROWS.length
 const progress = `${settled} OF ${ROWS.length} SETTLED`
 ---
@@ -44,7 +44,7 @@ const progress = `${settled} OF ${ROWS.length} SETTLED`
 		<path {...sx(shape.hair)} d="M34 102h166"></path>
 		{SIDE.map(([label, y]) => <text {...sx(text.tiny, text.accent)} x="48" y={y}>{label}</text>)}
 		{
-			ROWS.map(([name, y, state]) => (
+			ROWS.map(({ name, y, state }) => (
 				<Fragment>
 					<text {...sx(text.file, state === 'current' && text.strong)} x="48" y={y}>{name}</text>
 					{state === 'yes' ? <Check x={180} y={y - 9} delay={0.5} /> : <Pending x={180} y={y - 9} />}
