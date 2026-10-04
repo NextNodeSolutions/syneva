@@ -1,4 +1,4 @@
-import type { AwaitEvent } from '@syneva/contracts/agent'
+import type { AwaitEvent, ReviewResult } from '@syneva/contracts/agent'
 
 // The agent contract as the site tells it; packages/contracts/src/spec.ts is
 // the full one, which `syneva spec` prints.
@@ -51,3 +51,16 @@ export const EVENTS = {
 	review: 'You clicked Send. The result field is your ReviewResult.',
 	closed: 'You ended the review from the browser. The round is over.',
 } as const satisfies Record<AwaitEvent['kind'], string>
+
+// The ReviewResult fields the site names, in the order it names them, then
+// the one optional field. Typed by the contract: a renamed field fails the
+// build until the site names it too.
+export const REVIEW_RESULT_FIELDS = [
+	'accepted',
+	'rejected',
+	'requestedChanges',
+	'approvedFiles',
+	'stagedFiles',
+	'openQuestions',
+] as const satisfies readonly (keyof ReviewResult)[]
+export const REVIEW_RESULT_NOTE = 'overallNote' satisfies keyof ReviewResult

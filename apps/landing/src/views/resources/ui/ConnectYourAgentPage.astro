@@ -10,7 +10,7 @@ import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { CONTRACT_SOURCE_URL } from '@entities/site/model/project'
-import { commandOf, EVENTS, SPEC_COMMAND, SPEC_COMMAND_LABEL, SPEC_SUBCOMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
+import { commandOf, EVENTS, REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE, SPEC_COMMAND, SPEC_COMMAND_LABEL, SPEC_SUBCOMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
 import { capitalize } from '@shared/lib/capitalize'
 import { countWord } from '@shared/lib/count-word'
 import ProtocolWire from './art/ProtocolWire.astro'
@@ -39,6 +39,14 @@ const ACTING = [
 	['accepted and approvedFiles → leave them.', 'They are settled. Touching them reopens them for review.'],
 	['Then syneva reload.', 'Your tab shows the next revision. Anything rewritten is pending again.'],
 ] as const
+// The result's fields as a sentence's list: names in code, the optional
+// note introduced as such.
+const FIELD_PARTS = new Intl.ListFormat('en-GB', { type: 'conjunction' })
+	.formatToParts([...REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE])
+	.map(({ type, value }) => {
+		if (type === 'literal') return { kind: 'text', value } as const
+		return { kind: value === REVIEW_RESULT_NOTE ? 'optional' : 'field', value } as const
+	})
 ---
 
 <PageHero
@@ -61,7 +69,7 @@ const ACTING = [
 </Prose>
 <Prose id="events" title="Events.">
 	<SpecTable rows={EVENT_ROWS} head={['Kind', 'Meaning']} />
-	<ProseText>A <code>ReviewResult</code> carries <code>accepted</code>, <code>rejected</code>, <code>requestedChanges</code>, <code>approvedFiles</code>, <code>stagedFiles</code>, <code>openQuestions</code> and an optional <code>overallNote</code>. The arrays are the review: there is no prose summary to parse.</ProseText>
+	<ProseText>A <code>ReviewResult</code> carries {FIELD_PARTS.map(({ kind, value }) => (kind === 'text' ? value : <Fragment>{kind === 'optional' && 'an optional '}<code>{value}</code></Fragment>))}. The arrays are the review: there is no prose summary to parse.</ProseText>
 </Prose>
 <Prose id="acting" title="How an agent<br>acts on a verdict.">
 	<RuledList items={ACTING} />
