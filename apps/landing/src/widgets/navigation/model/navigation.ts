@@ -7,9 +7,6 @@ import { ProductPreview } from './product-preview'
 import type { InputMode } from './input-mode'
 import type { NavigationParts } from './navigation-parts'
 
-// Hover intent follows a mouse only: a touch or pen lift fires pointerleave
-// too, which would close the panel the tap just opened.
-const isMouse = (event: PointerEvent): boolean => event.pointerType === 'mouse'
 // A click without a press count came from the keyboard (Enter or Space).
 const isKeyboardActivation = (event: MouseEvent): boolean => event.detail === 0
 
@@ -144,8 +141,9 @@ export class Navigation {
 	}
 
 	scheduleOpen(trigger: HTMLElement, event: PointerEvent): void {
-		if (compact.matches || !isMouse(event)) return
+		if (compact.matches) return
 		this.#hoverIntent.scheduleOpen(
+			event,
 			() => this.#showPanel(trigger),
 			this.#currentPanel ? 'open' : 'closed',
 		)
@@ -169,13 +167,8 @@ export class Navigation {
 	}
 
 	scheduleClose(event: PointerEvent): void {
-		if (
-			compact.matches ||
-			!isMouse(event) ||
-			this.#inputMode === 'keyboard'
-		)
-			return
-		this.#hoverIntent.scheduleClose(() => this.#closePanel())
+		if (compact.matches || this.#inputMode === 'keyboard') return
+		this.#hoverIntent.scheduleClose(event, () => this.#closePanel())
 	}
 
 	enterKeyboardMode(): void {

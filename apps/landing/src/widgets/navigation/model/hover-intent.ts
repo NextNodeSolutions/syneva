@@ -8,11 +8,16 @@ const CLOSE_DELAY_MS = 180
 
 type MenuState = 'closed' | 'open'
 
+// It follows a mouse only: a touch or pen lift fires pointerleave too, which
+// would close the panel the tap just opened.
+const isMouse = (event: PointerEvent): boolean => event.pointerType === 'mouse'
+
 export class HoverIntent {
 	#openTimer: ReturnType<typeof setTimeout> | undefined
 	#closeTimer: ReturnType<typeof setTimeout> | undefined
 
-	scheduleOpen(open: () => void, menu: MenuState): void {
+	scheduleOpen(event: PointerEvent, open: () => void, menu: MenuState): void {
+		if (!isMouse(event)) return
 		this.cancel()
 		this.#openTimer = setTimeout(
 			open,
@@ -20,7 +25,8 @@ export class HoverIntent {
 		)
 	}
 
-	scheduleClose(close: () => void): void {
+	scheduleClose(event: PointerEvent, close: () => void): void {
+		if (!isMouse(event)) return
 		clearTimeout(this.#openTimer)
 		this.#closeTimer = setTimeout(close, CLOSE_DELAY_MS)
 	}
