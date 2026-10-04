@@ -11,7 +11,8 @@ import { CHANGE_KINDS } from '../../model/change-kinds'
 
 type DayCount = { day: string } & Record<ChangeKind, number>
 
-// Real commit counts per day, Sept 15 to Oct 2 2026.
+// Real commit counts per day, from the repository history; days are
+// month-day pairs of HISTORY_YEAR.
 const HISTORY = [
 	{ day: '09-15', feat: 3, fix: 0, perf: 0 },
 	{ day: '09-16', feat: 1, fix: 0, perf: 0 },
@@ -64,6 +65,24 @@ const NOTES_PANEL_DAY: (typeof HISTORY)[number]['day'] = '09-23'
 const NOTES_PANEL_X = centerOf(HISTORY.findIndex(({ day }) => day === NOTES_PANEL_DAY))
 const POINTER_RUN = 40
 const POINTER_LABEL_GAP = 5
+// The description says the span and the busiest day in words, and names the
+// notes panel as the busiest day's work: a history where another day leads
+// fails the build until the sentence is rewritten.
+const HISTORY_YEAR = 2026
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const
+function spokenDay(day: string): string {
+	const [month, date] = day.split('-').map(Number)
+	// Months and dates start at 1, so a missing or zero part fails the check.
+	const name = month ? MONTH_NAMES[month - 1] : undefined
+	if (!name || !date) throw new Error(`The history day "${day}" is not a month-day pair.`)
+	return `${name} ${date}`
+}
+const dayTotal = (count: DayCount): number => CHANGE_KINDS.reduce((sum, kind) => sum + count[kind], 0)
+const [FIRST_DAY] = HISTORY
+// reduce over the non-empty history keeps its last day, then its busiest.
+const LAST_DAY = HISTORY.reduce<DayCount>((_previous, count) => count, FIRST_DAY)
+const BUSIEST_DAY = HISTORY.reduce<DayCount>((busiest, count) => (dayTotal(count) > dayTotal(busiest) ? count : busiest), FIRST_DAY)
+if (BUSIEST_DAY.day !== NOTES_PANEL_DAY) throw new Error(`The busiest history day is ${BUSIEST_DAY.day}, not the notes panel's ${NOTES_PANEL_DAY}: rewrite HistoryRail's description.`)
 ---
 
 <Drawing
@@ -72,7 +91,7 @@ const POINTER_LABEL_GAP = 5
 	height={400}
 	compact="36 40 540 330"
 	title="Shipped, day by day"
-	description="Feature, fix and performance commits per day from September 15 to October 2, 2026, taken from the repository history. The busiest day, September 23, shipped the review notes panel."
+	description={`Feature, fix and performance commits per day from ${spokenDay(FIRST_DAY.day)} to ${spokenDay(LAST_DAY.day)}, ${HISTORY_YEAR}, taken from the repository history. The busiest day, ${spokenDay(BUSIEST_DAY.day)}, shipped the review notes panel.`}
 >
 	<text {...anim('fade', 0, text.tiny)} x="52" y="66">COMMITS PER DAY · FROM THE GIT HISTORY</text>
 	<g {...anim('fade', 0.1)}>{
