@@ -26,10 +26,8 @@ const rise = { opacity: [0, 1], transform: ['translateY(14px)', 'none'] }
 const lineRise = { transform: ['translateY(108%)', 'none'] }
 const bandIn = { transform: ['scaleX(0)', 'scaleX(1)'] }
 const markPop = { transform: ['scale(0) rotate(-30deg)', 'none'] }
-// The dash lengths the check and the underline draw over (their markup sets
-// the underline's pathLength).
-const CHECK_LENGTH = 24
-const UNDERLINE_LENGTH = 100
+// The check and the underline measure 1 (pathLength) under the draw pose.
+const draw = { strokeDashoffset: [1, 0] }
 
 const STEPS: Step[] = [
 	{ part: 'gutter', keyframes: fadeIn, duration: 0.5, delay: 0.05 },
@@ -65,13 +63,13 @@ const STEPS: Step[] = [
 	},
 	{
 		part: 'human-check',
-		keyframes: { strokeDashoffset: [CHECK_LENGTH, 0] },
+		keyframes: draw,
 		duration: 0.5,
 		delay: 1.3,
 	},
 	{
 		part: 'underline',
-		keyframes: { strokeDashoffset: [UNDERLINE_LENGTH, 0] },
+		keyframes: draw,
 		duration: 0.8,
 		delay: 1.45,
 	},

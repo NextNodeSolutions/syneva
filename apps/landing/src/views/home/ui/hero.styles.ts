@@ -23,9 +23,6 @@ const hidden = <T>(pose: T): When<When<T>> => ({
 	default: null,
 	[media.motionSafe]: { default: null, [armed()]: pose },
 })
-// The dash lengths the check and the underline draw over (hero-intro.ts).
-const CHECK_LENGTH = 24
-const UNDERLINE_LENGTH = 100
 
 const LIGHT =
 	"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 19v10M19 24h10' stroke='%231888b0' stroke-width='1.2'/%3E%3C/svg%3E\")"
@@ -166,10 +163,6 @@ export const hero = stylex.create({
 		strokeLinecap: 'round',
 		strokeLinejoin: 'round',
 	},
-	checkPath: {
-		strokeDasharray: hidden(CHECK_LENGTH),
-		strokeDashoffset: hidden(CHECK_LENGTH),
-	},
 	clip: {
 		position: 'relative',
 		display: 'block',
@@ -219,7 +212,5 @@ export const hero = stylex.create({
 		stroke: color['--green'],
 		strokeWidth: 6,
 		strokeLinecap: 'round',
-		strokeDasharray: UNDERLINE_LENGTH,
-		strokeDashoffset: hidden(UNDERLINE_LENGTH),
 	},
 })
