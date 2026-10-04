@@ -2,12 +2,12 @@ import { booted } from '@syneva/motion/boot'
 import { reducedMotion } from '@syneva/motion/preference'
 import { syncScenes } from '@syneva/motion/scenes'
 
+import { choreograph } from './hero-choreography'
 import { playIntro } from './hero-intro'
 import { bindPointer } from './hero-pointer'
-import { choreograph } from './hero.choreography'
-import { palette } from './hero.timeline'
+import { palette } from './hero-timeline'
 
-import type { Scope } from './hero.timeline'
+import type { Scope } from './hero-timeline'
 
 // The hero's runtime: the review round loops on the instrument from the
 // moment the module runs, the headline enters once the runtime boots, and

@@ -8,11 +8,11 @@ import {
 	setBox,
 	SPRING,
 	travel,
-} from './hero.timeline'
+} from './hero-timeline'
 
-import type { Palette, Scope } from './hero.timeline'
+import type { Palette, Scope } from './hero-timeline'
 
-// The second half of the hero round (see hero.choreography.ts): the verdict
+// The second half of the hero round (see hero-choreography.ts): the verdict
 // is made, recorded, sent, and the next revision comes back.
 // The cursor's pose: where its tip points, and its press.
 const at = (x: number, y: number, scale = 1): { transform: string } => ({

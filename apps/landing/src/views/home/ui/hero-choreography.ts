@@ -10,11 +10,11 @@ import {
 	setBox,
 	SPRING,
 	travel,
-} from './hero.timeline'
-import { accept, decide, revise, send } from './hero.verdict'
+} from './hero-timeline'
+import { accept, decide, revise, send } from './hero-verdict'
 
 import type { Frame } from '@syneva/motion/loop-timeline'
-import type { Palette, Scope } from './hero.timeline'
+import type { Palette, Scope } from './hero-timeline'
 
 // The review round, phase by phase: files settle into a reading order, one
 // change opens on the desk, you ask, the agent answers, you accept, the
