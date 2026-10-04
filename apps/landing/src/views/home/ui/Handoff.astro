@@ -7,7 +7,7 @@ import TextLink from '@shared/ui/TextLink.astro'
 import { section } from '@shared/ui/section.styles'
 import { REPO_URL } from '@entities/site/model/site-map'
 import { mapClasses } from '@shared/lib/class-map'
-import { revealGroup, revealItem } from '@shared/lib/reveal'
+import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { handoff as h, json } from './handoff.styles'
 
@@ -41,7 +41,7 @@ const listing = mapClasses(LISTING, {
 })
 ---
 
-<section {...revealGroup(true, section.ruled, section.pad, h.section)} id="handoff" aria-labelledby="handoff-title">
+<section {...revealRuledGroup(section.ruled, section.pad, h.section)} id="handoff" aria-labelledby="handoff-title">
 	<div>
 		<h2 {...revealItem()} id="handoff-title">The verdict,<br />as a contract.</h2>
 		<p {...revealItem(h.text)}>Send to Agent hands back a structured <code {...sx(h.code)}>ReviewResult</code>, printed to stdout and written to disk. Not a screenshot, not a vibe: your agent knows exactly what you kept, what you undid, and what you asked for.</p>

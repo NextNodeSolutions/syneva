@@ -11,7 +11,7 @@ type Props = { groups: readonly QaGroup[] }
 const { groups } = Astro.props
 ---
 
-<nav {...revealGroup(false, qa.index)} aria-label="Questions by topic">
+<nav {...revealGroup(qa.index)} aria-label="Questions by topic">
 	{
 		groups.map(({ title, blurb, items }, index) => (
 			<a {...revealItem(qa.topic)} href={`#qa-${index + 1}`}>

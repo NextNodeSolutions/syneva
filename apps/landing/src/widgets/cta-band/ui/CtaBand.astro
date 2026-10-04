@@ -16,7 +16,7 @@ const {
 } = Astro.props
 ---
 
-<section {...revealGroup(false, section.ruled, section.pad, band.root)}>
+<section {...revealGroup(section.ruled, section.pad, band.root)}>
 	<div>
 		<h2 {...revealItem(band.title)} set:html={title} />
 		<p {...revealItem(band.text)} set:html={text} />

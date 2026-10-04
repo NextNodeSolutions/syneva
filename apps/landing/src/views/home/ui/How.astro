@@ -3,7 +3,7 @@
 import FigureTop from '@shared/ui/FigureTop.astro'
 import { stepIndex } from '@shared/ui/step-index.styles'
 import Circuit from './circuit/Circuit.astro'
-import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
+import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { how as w } from './how.styles'
 import { twoDigits } from '@shared/lib/step-number'
@@ -16,7 +16,7 @@ const STEPS = [
 ] as const
 ---
 
-<section {...revealGroup(true, w.section)} id="how" aria-labelledby="how-title">
+<section {...revealRuledGroup(w.section)} id="how" aria-labelledby="how-title">
 	<div {...sx(w.head)}>
 		<h2 {...revealItem()} id="how-title">One loop.<br />Same tab, every round.</h2>
 		<p {...revealItem(w.headText)}>Your agent’s full diff comes in. You read the critical parts closely, settle every change, and send your verdict back. The agent revises, and the next round lands in the tab you never closed.</p>

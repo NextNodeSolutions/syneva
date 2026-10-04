@@ -3,7 +3,7 @@
 import TextLink from '@shared/ui/TextLink.astro'
 import Disclosure from '@features/disclosure/ui/Disclosure.astro'
 import { section } from '@shared/ui/section.styles'
-import { revealGroup, revealItem } from '@shared/lib/reveal'
+import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { faq as f } from './sections.styles'
 
 const QUESTIONS = [
@@ -16,7 +16,7 @@ const QUESTIONS = [
 ] as const
 ---
 
-<section {...revealGroup(true, section.ruled, section.pad, f.section)} id="faq" aria-labelledby="faq-title">
+<section {...revealRuledGroup(section.ruled, section.pad, f.section)} id="faq" aria-labelledby="faq-title">
 	<div>
 		<h2 {...revealItem(f.title)} id="faq-title">A few things<br />worth knowing.</h2>
 		<p {...revealItem(f.link)}><TextLink href="/resources/faq/" label="All questions & answers" /></p>

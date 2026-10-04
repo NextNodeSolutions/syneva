@@ -21,7 +21,7 @@ const { route, crumb, title, lede, state, caption } = Astro.props
 const hasActions = Astro.slots.has('actions')
 ---
 
-<section {...revealGroup(false, h.root)} aria-labelledby="page-title">
+<section {...revealGroup(h.root)} aria-labelledby="page-title">
 	<div {...sx(h.copy)}>
 		<Crumbs route={route} title={crumb} />
 		<h1 {...revealItem(h.title)} id="page-title" set:html={title} />

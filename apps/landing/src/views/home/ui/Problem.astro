@@ -7,7 +7,7 @@ import { sx } from '@shared/lib/sx'
 import { problem as p } from './sections.styles'
 ---
 
-<section {...revealGroup(false, section.pad, p.section)} id="problem" aria-labelledby="problem-title">
+<section {...revealGroup(section.pad, p.section)} id="problem" aria-labelledby="problem-title">
 	<div>
 		<h2 {...revealItem()} id="problem-title">Writing code got faster.<br />Knowing what to trust didn’t.</h2>
 		<p {...revealItem(p.text)}>Your agent hands back a long plan and an even longer diff. Your editor shows it as a pile of files. So you scroll, you skim, you ask the agent what it changed, and sometimes you merge and hope.</p>

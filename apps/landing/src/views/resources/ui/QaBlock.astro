@@ -4,7 +4,7 @@
 import { chapter as c } from '@widgets/chapter/ui/chapter.styles'
 import Disclosure from '@features/disclosure/ui/Disclosure.astro'
 import { stepIndex } from '@shared/ui/step-index.styles'
-import { revealGroup, revealItem } from '@shared/lib/reveal'
+import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import type { QaGroup } from './faq-content'
 import { qa } from './qa.styles'
@@ -17,7 +17,7 @@ const id = `qa-${index + 1}`
 const count = `${group.items.length} question${group.items.length === 1 ? '' : 's'}`
 ---
 
-<section {...revealGroup(true, c.section, c.subSection, qa.block)} id={id} aria-labelledby={`${id}-title`}>
+<section {...revealRuledGroup(c.section, c.subSection, qa.block)} id={id} aria-labelledby={`${id}-title`}>
 	<div {...sx(c.copy, c.subCopy, qa.copy)}>
 		<span {...revealItem(stepIndex.base)}>{twoDigits(index + 1)} · {count}</span>
 		<h2 {...revealItem(c.title, c.subTitle)} id={`${id}-title`} set:html={group.title} />

@@ -1,7 +1,7 @@
 ---
 // Numbers we can actually promise: product facts, never adoption metrics.
 import { section } from '@shared/ui/section.styles'
-import { revealGroup, revealItem } from '@shared/lib/reveal'
+import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { facts as f } from './sections.styles'
 
@@ -15,7 +15,7 @@ const FACTS = [
 ] as const
 ---
 
-<section {...revealGroup(true, section.ruled, section.pad)} id="facts" aria-labelledby="facts-title">
+<section {...revealRuledGroup(section.ruled, section.pad)} id="facts" aria-labelledby="facts-title">
 	<div {...sx(f.head)}>
 		<h2 {...revealItem()} id="facts-title">Numbers we can<br />actually promise.</h2>
 		<p {...revealItem(f.headText)}>No adoption charts, no borrowed logos. These are product facts: true on your machine the moment you install it.</p>

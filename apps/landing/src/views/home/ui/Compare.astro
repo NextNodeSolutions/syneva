@@ -2,7 +2,7 @@
 // The comparison: your editor's diff, hosted AI review, Syneva. Every cell
 // stays true for the category as a whole.
 import { section } from '@shared/ui/section.styles'
-import { revealGroup, revealItem } from '@shared/lib/reveal'
+import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { compare as c } from './compare.styles'
 
@@ -17,7 +17,7 @@ const ROWS = [
 ] as const
 ---
 
-<section {...revealGroup(true, section.ruled, section.pad)} id="compare" aria-labelledby="compare-title">
+<section {...revealRuledGroup(section.ruled, section.pad)} id="compare" aria-labelledby="compare-title">
 	<div {...sx(c.head)}>
 		<h2 {...revealItem()} id="compare-title">Built for the loop<br />your editor wasn’t.</h2>
 		<p {...revealItem(c.headText)}>Editors were designed for writing code. AI reviewers put a model between you and the diff. Syneva is a review surface for the human, with the agent that wrote the code one keystroke away.</p>

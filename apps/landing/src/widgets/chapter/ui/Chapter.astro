@@ -2,7 +2,7 @@
 // A ruled chapter: an explanatory headline, its paragraphs (default slot), an
 // optional detail list, trailing actions (slot "after") and the drawing (slot
 // "art"), side by side and alternating sides with isReverse.
-import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
+import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { chapterCopyMarker } from '@shared/ui/actions.stylex'
 import { chapterArtMarker } from '@shared/ui/drawing/drawing.stylex'
@@ -20,7 +20,7 @@ const { id, title, isReverse = false, list = [], caption } = Astro.props
 const isSubpage = Astro.locals.page === 'sub'
 ---
 
-<section {...revealGroup(true, c.section, isSubpage && c.subSection)} id={id}>
+<section {...revealRuledGroup(c.section, isSubpage && c.subSection)} id={id}>
 	<div {...sx(c.copy, isSubpage && c.subCopy, isReverse && c.reverseCopy, chapterCopyMarker)}>
 		<h2 {...revealItem(c.title, isSubpage && c.subTitle)} set:html={title} />
 		<slot />
