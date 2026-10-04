@@ -7,21 +7,13 @@ import {
 	layout,
 } from '@syneva/design-system/tokens.stylex'
 
-import {
-	actionMarker,
-	dropdownMarker,
-	navMarker,
-	triggerMarker,
-} from './markers.stylex'
+import { navMarker, triggerMarker } from './markers.stylex'
 import { navClock } from './nav.stylex'
 
-const keyboard = (): string =>
-	stylex.when.ancestor('[data-input="keyboard"]', navMarker)
 const mobileOpen = (): string =>
 	stylex.when.ancestor('[data-mobile-open="true"]', navMarker)
 const expanded = (): string =>
 	stylex.when.siblingBefore('[aria-expanded="true"]', triggerMarker)
-const actionHover = (): string => stylex.when.ancestor(':hover', actionMarker)
 const triggerExpanded = (): string =>
 	stylex.when.ancestor('[aria-expanded="true"]', triggerMarker)
 
@@ -30,6 +22,8 @@ const arrive = stylex.keyframes({
 	to: { opacity: 1, transform: 'translateY(0)' },
 })
 
+// The header bar: the wordmark row, the section triggers with their
+// indicator, and the link bar the toggle opens on phones.
 export const nav = stylex.create({
 	shell: {
 		display: 'flex',
@@ -176,87 +170,5 @@ export const nav = stylex.create({
 		pointerEvents: 'none',
 		transition: `opacity ${duration['--duration-fast']}`,
 	},
-	action: {
-		display: 'inline-flex',
-		alignItems: 'center',
-		gap: '8px',
-		fontSize: { default: '13px', [media.navToggle]: '12px' },
-		fontWeight: 500,
-		borderWidth: '1px',
-		borderStyle: 'solid',
-		borderColor: {
-			default: color['--line-strong'],
-			':hover': color['--accent'],
-		},
-		backgroundColor: {
-			default: color['--white'],
-			':hover': color['--wash'],
-		},
-		color: { default: null, ':hover': color['--accent'] },
-		paddingBlock: '9px',
-		paddingInline: { default: '15px', [media.navToggle]: '11px' },
-		marginLeft: { default: null, [media.navToggle]: 'auto' },
-		whiteSpace: 'nowrap',
-		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, border-color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
-		transform: { default: null, ':active': 'scale(.97)' },
-	},
-	actionArrow: {
-		transition: `transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
-		transform: { default: null, [actionHover()]: 'translateX(2px)' },
-	},
-	toggle: {
-		display: { default: 'none', [media.navToggle]: 'flex' },
-		alignItems: { default: null, [media.navToggle]: 'center' },
-		gap: { default: null, [media.navToggle]: '5px' },
-		paddingBlock: { default: null, [media.navToggle]: 0 },
-		paddingInline: { default: null, [media.navToggle]: '5px' },
-		minHeight: { default: null, [media.navToggle]: '44px' },
-		backgroundColor: { default: null, [media.navToggle]: 'transparent' },
-		borderWidth: { default: null, [media.navToggle]: 0 },
-		borderStyle: { default: null, [media.navToggle]: 'none' },
-		borderColor: { default: null, [media.navToggle]: 'currentcolor' },
-		fontSize: { default: null, [media.navToggle]: '13px' },
-	},
-	toggleLabel: { display: { default: null, [media.tinyPhone]: 'none' } },
-	toggleIcon: {
-		width: { default: null, [media.navToggle]: '20px' },
-		height: { default: null, [media.navToggle]: '20px' },
-		stroke: { default: null, [media.navToggle]: 'currentColor' },
-		strokeWidth: { default: null, [media.navToggle]: 1.5 },
-	},
-	dropdown: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		width: 'calc(var(--width, 0) * 1px)',
-		height: 'calc(var(--height, 0) * 1px)',
-		maxHeight: 'var(--dropdown-max-height)',
-		overflow: 'hidden',
-		isolation: 'isolate',
-		backgroundColor: color['--white'],
-		borderWidth: '1px',
-		borderStyle: 'solid',
-		borderColor: color['--line'],
-		borderRadius: '12px',
-		boxShadow: `0 8px 16px -8px color-mix(in srgb, ${color['--ink']} 12%, transparent), 0 24px 56px -16px color-mix(in srgb, ${color['--ink']} 16%, transparent)`,
-		// Geometry and reveals share the single morph animation.
-		transform:
-			'translate3d(calc(var(--x, 0) * 1px), calc(var(--y, 0) * 1px), 0)',
-		opacity: 'clamp(0, calc(var(--reveal, 0) * 4), 1)',
-		visibility: { default: 'hidden', ':is([data-open="true"])': 'visible' },
-		pointerEvents: { default: 'none', ':is([data-open="true"])': 'auto' },
-		// Hidden only once the close morph is over. These longhands carry their
-		// own keyboard override: merging instant.transitions would replace them.
-		transitionProperty: 'visibility',
-		transitionDuration: { default: '0s', [keyboard()]: '0s !important' },
-		transitionTimingFunction: 'ease',
-		transitionDelay: {
-			default: navClock['--nav-close-duration'],
-			':is([data-open="true"])': '0s',
-			[keyboard()]: '0s !important',
-		},
-	},
 	noscript: { fontSize: '12px' },
 })
-
-export { dropdownMarker }
