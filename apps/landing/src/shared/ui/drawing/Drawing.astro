@@ -2,7 +2,8 @@
 // The root <svg> of every drawing: its viewBox and ruled frame, the phone
 // frame it reframes to (data-compact, swapped by frames.ts) and its
 // accessible name. The id names the title, the description and the frame's
-// grid, so it must be unique on its page.
+// grid, so it must be unique on its page. A drawing without the ruled frame
+// fills the frame slot with nothing.
 import type { Part } from '../../lib/sx'
 import { sx } from '../../lib/sx'
 import ArtFrame from './ArtFrame.astro'
@@ -17,11 +18,10 @@ type Props = {
 	description: string
 	compact?: string
 	isDense?: boolean
-	isFrameless?: boolean
 	css?: Part
 }
 
-const { id, width, height, title, description, compact, isDense = false, isFrameless = false, css } = Astro.props
+const { id, width, height, title, description, compact, isDense = false, css } = Astro.props
 const titleId = `${id}-title`
 const descriptionId = `${id}-desc`
 const isSubpage = Astro.locals.page === 'sub'
@@ -41,6 +41,6 @@ const fit = fitOf()
 >
 	<title id={titleId}>{title}</title>
 	<desc id={descriptionId}>{description}</desc>
-	{!isFrameless && <ArtFrame id={id} width={width} height={height} />}
+	<slot name="frame"><ArtFrame id={id} width={width} height={height} /></slot>
 	<slot />
 </svg>
