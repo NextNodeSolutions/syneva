@@ -1,7 +1,7 @@
 import { countUp } from './count-up'
 import { EASE, toBezier } from './easing'
 import { animate, inView } from './engine'
-import { playVocabulary } from './placement'
+import { playVocabulary } from './play-vocabulary'
 import { reducedMotion } from './preference'
 import { syncScenes } from './scenes'
 

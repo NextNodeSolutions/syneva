@@ -7,15 +7,15 @@ import type { Easing } from './easing'
 // that starts here]; 'hold' keeps the props until the next frame, then jumps
 // (CSS steps(1, end)).
 export type SegmentEasing = Easing | 'hold'
-export type Props = Record<string, string | number>
+export type AnimatedProperties = Record<string, string | number>
 export type Frame = readonly [
 	seconds: number,
-	props: Props,
+	props: AnimatedProperties,
 	segment?: SegmentEasing,
 ]
 export type Clock = { cycle: number; delay: number; easing: Easing }
 
-type Keyframe = { offset: number; props: Props; easing: Easing }
+type Keyframe = { offset: number; props: AnimatedProperties; easing: Easing }
 
 function expand(frames: readonly Frame[], clock: Clock): Keyframe[] {
 	const keyframes: Keyframe[] = []
@@ -43,7 +43,7 @@ function expand(frames: readonly Frame[], clock: Clock): Keyframe[] {
 }
 
 // Loops the frames forever on `element`, after the clock's start delay.
-export function track(
+export function loopTimeline(
 	element: Element | null,
 	frames: readonly Frame[],
 	clock: Clock,

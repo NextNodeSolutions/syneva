@@ -14,7 +14,7 @@
 		"./preference": "./src/preference.ts",
 		"./reveal": "./src/reveal.ts",
 		"./scenes": "./src/scenes.ts",
-		"./timeline": "./src/timeline.ts",
+		"./loop-timeline": "./src/loop-timeline.ts",
 		"./disclosure": "./src/disclosure.ts"
 	},
 	"scripts": {

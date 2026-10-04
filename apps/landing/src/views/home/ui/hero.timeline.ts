@@ -1,7 +1,11 @@
 import { EASE, toBezier } from '@syneva/motion/easing'
-import { track } from '@syneva/motion/timeline'
+import { loopTimeline } from '@syneva/motion/loop-timeline'
 
-import type { Clock, Frame, Props } from '@syneva/motion/timeline'
+import type {
+	AnimatedProperties,
+	Clock,
+	Frame,
+} from '@syneva/motion/loop-timeline'
 
 // The hero instrument's clock and the moves its choreography is written in.
 // One 16s clock drives every piece, so the round can never drift out of
@@ -50,7 +54,7 @@ export type Scope = {
 }
 
 export const loop = (element: Part, frames: readonly Frame[]): void =>
-	track(element, frames, CLOCK)
+	loopTimeline(element, frames, CLOCK)
 
 export const setBox = (element: Part, origin: string, box?: string): void => {
 	if (!(element instanceof SVGElement)) return
@@ -60,7 +64,11 @@ export const setBox = (element: Part, origin: string, box?: string): void => {
 
 // Appear at `start` over `length`, from the `from` pose to the `to` pose,
 // stay, and leave with the round.
-type Entrance = { length?: number; from?: Props; to?: Props }
+type Entrance = {
+	length?: number
+	from?: AnimatedProperties
+	to?: AnimatedProperties
+}
 export function present(
 	element: Part,
 	start: number,

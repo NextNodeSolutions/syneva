@@ -13,7 +13,7 @@ import {
 } from './hero.timeline'
 import { accept, decide, revise, send } from './hero.verdict'
 
-import type { Frame } from '@syneva/motion/timeline'
+import type { Frame } from '@syneva/motion/loop-timeline'
 import type { Palette, Scope } from './hero.timeline'
 
 // The review round, phase by phase: files settle into a reading order, one

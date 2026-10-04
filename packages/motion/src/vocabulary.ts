@@ -1,6 +1,6 @@
 import { EASE, toBezier } from './easing'
 import { animate } from './engine'
-import { steps } from './stepped'
+import { steps } from './steps'
 
 // The drawing vocabulary. An element opts in with data-anim="<kind>" and an
 // optional data-delay (seconds); its hidden pose is the matching poses.* style.
