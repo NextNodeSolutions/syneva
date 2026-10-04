@@ -8,6 +8,17 @@ export type Frames = Map<string, { values: string[]; times: number[] }>
 const EXIT_AT = 0.22
 const ENTER_AT = 0.7
 
+// Both snapshots carry every channel: a missing one is a bug in the
+// registry, not a value to guess.
+function valueOf(values: Values, name: string): string {
+	const channelValue = values[name]
+	if (channelValue === undefined)
+		throw new Error(
+			`The menu snapshot has no ${name}: register the channel before the morph reads it.`,
+		)
+	return channelValue
+}
+
 // One frame list per channel on the shared clock.
 export function contentFrames(
 	origin: Values,
@@ -18,7 +29,7 @@ export function contentFrames(
 		Object.keys(destination).map(key => [
 			key,
 			{
-				values: [origin[key] ?? '', destination[key] ?? ''],
+				values: [valueOf(origin, key), valueOf(destination, key)],
 				times: [0, 1],
 			},
 		]),
@@ -36,13 +47,17 @@ export function contentFrames(
 		outgoing.forEach(channel => {
 			const name = channel.property('opacity')
 			frames.set(name, {
-				values: [origin[name] ?? '', '0', destination[name] ?? ''],
+				values: [
+					valueOf(origin, name),
+					'0',
+					valueOf(destination, name),
+				],
 				times: [0, EXIT_AT, 1],
 			})
 		})
 		const name = incoming.property('opacity')
-		const from = origin[name] ?? ''
-		const to = destination[name] ?? ''
+		const from = valueOf(origin, name)
+		const to = valueOf(destination, name)
 		frames.set(name, {
 			values: [from, from, to, to],
 			times: [0, EXIT_AT, ENTER_AT, 1],
