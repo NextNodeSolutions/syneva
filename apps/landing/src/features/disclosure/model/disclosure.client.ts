@@ -1,12 +1,13 @@
-import { EASE } from './easing'
-import { animate } from './engine'
-import { reducedMotion } from './preference'
+import { EASE } from '@syneva/motion/easing'
+import { animate } from '@syneva/motion/engine'
+import { reducedMotion } from '@syneva/motion/preference'
 
-// Disclosures ease open and shut instead of jumping. The native <details>
-// stays the source of truth (keyboard, find-in-page and no-JS keep working);
-// the runtime only animates the height between its two states. Closing keeps
-// [open] until the motion ends so the answer stays visible while it folds
-// away; .is-closing turns the chevron back early. Every run starts from the
+// Disclosure rows ([data-disclosure], see Disclosure.astro) ease open and
+// shut instead of jumping. The native <details> stays the source of truth
+// (keyboard, find-in-page and no-JS keep working); the script only animates
+// the height between its two states. Closing keeps [open] until the motion
+// ends so the answer stays visible while it folds away; .is-closing turns the
+// chevron back early (disclosure.styles.ts). Every run starts from the
 // row's current height and the answer's current opacity, so a reversal or a
 // re-measure continues instead of jumping.
 const DURATION_S = 0.34
@@ -98,5 +99,6 @@ function bindDisclosure(details: HTMLDetailsElement): void {
 export function bindDisclosures(): void {
 	window.addEventListener('resize', remeasure, { passive: true })
 	document.fonts.addEventListener('loadingdone', remeasure)
-	document.querySelectorAll('details').forEach(bindDisclosure)
+	for (const row of document.querySelectorAll('[data-disclosure]'))
+		if (row instanceof HTMLDetailsElement) bindDisclosure(row)
 }

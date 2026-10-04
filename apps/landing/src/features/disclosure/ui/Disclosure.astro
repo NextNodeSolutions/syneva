@@ -1,6 +1,7 @@
 ---
-// One native <details> row: the question, then its answer. The motion
-// runtime eases it open and shut; without it the row still works natively.
+// One native <details> row: the question, then its answer.
+// model/disclosure.client.ts eases it open and shut; without it the row
+// still works natively.
 import { richText } from '@shared/lib/rich-text'
 import { revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
@@ -13,7 +14,7 @@ const { question, answer, isFirst = false, isQa = false } = Astro.props
 const answerHtml = isQa ? richText(answer, { a: disclosure.qaLink, code: disclosure.qaCode }) : answer
 ---
 
-<details {...revealItem(disclosure.row, isFirst && !isQa && disclosure.firstRow, isQa && disclosure.qaRow, disclosureMarker)}>
+<details {...revealItem(disclosure.row, isFirst && !isQa && disclosure.firstRow, isQa && disclosure.qaRow, disclosureMarker)} data-disclosure>
 	<summary {...sx(disclosure.summary, isQa && disclosure.qaSummary)} set:html={question} />
 	<p {...sx(disclosure.answer, isQa && disclosure.qaAnswer)} set:html={answerHtml} />
 </details>

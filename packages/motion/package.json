@@ -2,7 +2,7 @@
 	"name": "@syneva/motion",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Syneva's public-site motion runtime on Motion (motion.dev): hidden poses as StyleX styles, one-shot reveals, the drawing vocabulary, scene pausing, looping timelines and disclosures.",
+	"description": "Syneva's public-site motion runtime on Motion (motion.dev): hidden poses as StyleX styles, one-shot reveals, the drawing vocabulary, scene pausing and looping timelines.",
 	"license": "MIT",
 	"type": "module",
 	"exports": {
@@ -15,7 +15,6 @@
 		"./reveal": "./src/reveal.ts",
 		"./scenes": "./src/scenes.ts",
 		"./loop-timeline": "./src/loop-timeline.ts",
-		"./disclosure": "./src/disclosure.ts",
 		"./vocabulary": "./src/vocabulary.ts"
 	},
 	"scripts": {
