@@ -1,57 +1,16 @@
 ---
-// One dropdown panel: the section's links, then a footer linking its overview.
+// One dropdown panel: the frame the runtime opens and closes around a
+// section's menu.
 import type { Section } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
-import { currentPage } from '../model/current-page'
 import { panelId, triggerId } from '../model/section-ids'
-import MenuLink from './MenuLink.astro'
-import PreviewScenes from './PreviewScenes.astro'
-import WorkflowLink from './WorkflowLink.astro'
-import { menuFooterMarker } from './markers.stylex'
-import { menuFooter } from './menu-footer.styles'
 import { panel } from './panel.styles'
 
-type Props = { section: Section }
+type Props = { section: Pick<Section, 'id'> }
 
 const { section } = Astro.props
-const isProduct = section.id === 'product'
 ---
 
-<section
-	{...sx(panel.base, panel[section.id])}
-	id={panelId(section)}
-	aria-labelledby={triggerId(section)}
-	inert
-	data-nav-panel
->
-	{
-		isProduct && (
-			<div {...sx(panel.productBody)}>
-				<div {...sx(panel.productLinks)}>
-					{section.items.map((page, index) => <MenuLink page={page} index={index} />)}
-				</div>
-				<PreviewScenes />
-			</div>
-		)
-	}
-	{
-		section.id === 'workflows' && (
-			<div {...sx(panel.workflowLinks)}>
-				{section.items.map((page, index) => <WorkflowLink page={page} index={index} />)}
-			</div>
-		)
-	}
-	{
-		section.id === 'resources' && (
-			<div {...sx(panel.resourceLinks)}>
-				{section.items.map((page, index) => <MenuLink page={page} index={index} />)}
-			</div>
-		)
-	}
-	<a {...sx(menuFooter.base, menuFooterMarker)} href={section.href} aria-current={currentPage(section.href, Astro.url.pathname)}>
-		<span {...sx(menuFooter.pitch, isProduct && menuFooter.productPitch)}>{section.footer}</span>
-		<span {...sx(menuFooter.overview, isProduct && menuFooter.productOverview)}>
-			{section.overview} <span aria-hidden="true">→</span>
-		</span>
-	</a>
+<section {...sx(panel.base, panel[section.id])} id={panelId(section)} aria-labelledby={triggerId(section)} inert data-nav-panel>
+	<slot />
 </section>

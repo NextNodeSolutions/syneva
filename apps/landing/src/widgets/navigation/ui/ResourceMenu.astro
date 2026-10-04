@@ -1,0 +1,15 @@
+---
+// The resources menu: one row per resource page.
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import MenuFooter from './MenuFooter.astro'
+import MenuLink from './MenuLink.astro'
+import { panel } from './panel.styles'
+
+const section = SECTION_BY_ID.resources
+---
+
+<div {...sx(panel.resourceLinks)}>
+	{section.items.map((page, index) => <MenuLink page={page} index={index} />)}
+</div>
+<MenuFooter section={section} />
