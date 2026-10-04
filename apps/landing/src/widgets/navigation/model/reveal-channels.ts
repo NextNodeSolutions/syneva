@@ -1,4 +1,4 @@
-import { readProperty } from './computed-style'
+import { readProperty } from './read-property'
 
 import type { Channel, ContentName, Values } from './navigation-channels'
 

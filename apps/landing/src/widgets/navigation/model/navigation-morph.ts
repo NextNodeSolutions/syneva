@@ -2,7 +2,6 @@ import { toBezier } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 import { reducedMotion } from '@syneva/motion/preference'
 
-import { readProperty, toSeconds } from './computed-style'
 import { handoverFrames } from './handover-frames'
 import { readClock } from './nav-clock'
 import {
@@ -12,7 +11,9 @@ import {
 	registerChannel,
 } from './navigation-channels'
 import { availableWidth, measureNavigation } from './navigation-geometry'
+import { readProperty } from './read-property'
 import { revealChannels } from './reveal-channels'
+import { toSeconds } from './to-seconds'
 
 import type { navBounds } from '../ui/nav.stylex'
 import type { HandoverFrames } from './handover-frames'

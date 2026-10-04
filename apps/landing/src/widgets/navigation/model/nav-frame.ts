@@ -1,4 +1,4 @@
-import { readProperty } from './computed-style'
+import { readProperty } from './read-property'
 
 import type { navFrame } from '../ui/nav.stylex'
 

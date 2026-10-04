@@ -1,4 +1,4 @@
-import { readProperty } from './computed-style'
+import { readProperty } from './read-property'
 
 import type { navClock } from '../ui/nav.stylex'
 
