@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import stylexVite from '@stylexjs/unplugin/vite'
 
 import { linkedPages } from './integrations/linked-pages'
+import LAYERS from './layers.json' with { type: 'json' }
 import { SITE_URL } from './src/entities/site/model/site-map'
 
 // One root for StyleX's file-based hashes, whatever directory the build runs
@@ -11,8 +12,8 @@ import { SITE_URL } from './src/entities/site/model/site-map'
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url))
 const SRC = fileURLToPath(new URL('./src', import.meta.url))
 // StyleX resolves the modules that define markers and variables itself, so
-// the FSD layer aliases (tsconfig.json) are repeated for it.
-const LAYERS = ['app', 'views', 'widgets', 'features', 'entities', 'shared']
+// it gets the FSD layer aliases too (tsconfig.json declares them for
+// TypeScript and Vite).
 const STYLEX_ALIASES = Object.fromEntries(
 	LAYERS.map(layer => [`@${layer}/*`, [`${SRC}/${layer}/*`]]),
 )

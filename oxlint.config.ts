@@ -1,6 +1,8 @@
 import standards from '@nextnode-solutions/standards/oxlint'
 import { defineConfig } from 'oxlint'
 
+import LANDING_LAYERS from './apps/landing/layers.json' with { type: 'json' }
+
 import type { OxlintOverride } from 'oxlint'
 
 // Cross-layer imports are aliased (each sliced layer below declares its upward
@@ -22,21 +24,14 @@ const relativeLayerEscapes = (...targets: string[]): string[] =>
 		`../../../../${target}/**`,
 	])
 
-// The landing's FSD layers (apps/landing/src): app -> views -> widgets ->
-// features -> entities -> shared, strictly downward; src/pages holds the
-// Astro routes, which compose app and views. A sliced layer also bans its own
+// The landing's FSD layers (apps/landing/src, listed top to bottom in
+// apps/landing/layers.json): app -> views -> widgets -> features -> entities
+// -> shared, strictly downward; src/pages holds the Astro routes, which
+// compose app and views. A sliced layer also bans its own
 // alias: slices never import each other, intra-slice imports stay relative.
 // oxlint parses the .ts modules only; the .astro components follow the same
 // rules by convention. Each rule set repeats the Motion ban of the
 // apps/landing/** override, which it replaces for its files.
-const LANDING_LAYERS = [
-	'app',
-	'views',
-	'widgets',
-	'features',
-	'entities',
-	'shared',
-]
 const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
 const LANDING_MOTION_BAN = {
 	group: ['motion', 'motion/**'],
