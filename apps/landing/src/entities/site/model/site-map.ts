@@ -1,6 +1,7 @@
-// The site map. Navigation menus, the footer sitemap, breadcrumbs and the
-// per-section pagers all read this one table, so a page cannot exist in the
-// menu without existing on disk (the build checks every href has a route).
+// The site map. Navigation menus, the footer sitemap, breadcrumbs, page
+// heroes and the per-section pagers all read it, and links name their pages
+// through it; the build fails on any internal link without a built target
+// (integrations/linked-pages.ts).
 
 import type { IconName } from './icons'
 
