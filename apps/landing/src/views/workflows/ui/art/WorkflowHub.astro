@@ -4,6 +4,7 @@ import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
+import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
@@ -31,12 +32,11 @@ const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340
 		{
 			SOURCES.map(({ y }, i) => (
 				<Fragment>
-					<path {...anim('draw', 0.5 + i * 0.1, shape.route)} d={routeOf(y)} />
-					<path {...anim('signal', 1.4 + i * 0.8, shape.signal)} d={routeOf(y)} />
+					<Wire d={routeOf(y)} drawDelay={0.5 + i * 0.1} signalDelay={1.4 + i * 0.8} />
 					<circle {...sx(shape.port)} cx="240" cy={y + 32} r="2.5" />
 				</Fragment>
 			))
-		}<path {...anim('draw', 1.2, shape.route, shape.routeGreen)} d="M450 220h40"></path><path {...anim('signal', 2, shape.signal, shape.signalGreen)} d="M450 220h40"></path>
+		}<Wire d="M450 220h40" drawDelay={1.2} signalDelay={2} routeCss={shape.routeGreen} signalCss={shape.signalGreen} />
 	</g>
 	{
 		SOURCES.map(({ glyph, title, command, y }, i) => (

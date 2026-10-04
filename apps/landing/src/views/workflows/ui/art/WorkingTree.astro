@@ -2,6 +2,7 @@
 // Working tree: modified and untracked files, and --path as a lens.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
+import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
@@ -52,10 +53,8 @@ const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 	<path {...anim('draw', 0.9, shape.bracket)} d="M50 88v-10h8M50 122v10h8"></path>
 	<text {...anim('fade', 1, text.tiny, text.accent)} x="40" y="282">--path src/auth</text>
 	<g fill="none">
-		<path {...anim('draw', 0.5, shape.route)} d={TO_ALL}></path>
-		<path {...anim('draw', 1.1, shape.route, shape.routeAccent)} d={TO_AUTH}></path>
-		<path {...anim('signal', 1.6, shape.signal)} d={TO_ALL}></path>
-		<path {...anim('signal', 2.4, shape.signal)} d={TO_AUTH}></path>
+		<Wire d={TO_ALL} drawDelay={0.5} signalDelay={1.6} />
+		<Wire d={TO_AUTH} drawDelay={1.1} signalDelay={2.4} routeCss={shape.routeAccent} />
 	</g>
 	<FileList files={ALL} x={350} y={60} label="$ syneva" delay={0.6} />
 	<FileList files={AUTH} x={350} y={250} label="$ syneva --path src/auth" delay={1.2} />

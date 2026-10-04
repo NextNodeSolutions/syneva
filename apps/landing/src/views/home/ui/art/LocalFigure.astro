@@ -2,6 +2,7 @@
 // Local section: everything runs inside your machine's boundary.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
+import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
@@ -45,11 +46,9 @@ const AGENT_TO_REPO = 'M110 150v36q0 10 10 10h14q10 0 10 10v16'
 		<text {...sx(text.code)} x="156" y="270">git diff</text>
 	</g>
 	<g fill="none">
-		<path {...anim('draw', 0.8, shape.route)} d={TO_DESK}></path>
-		<path {...anim('draw', 0.9, shape.route)} d={DESK_TO_REPO}></path>
+		<Wire d={TO_DESK} drawDelay={0.8} signalDelay={1.6} signalCss={homeArt.localSignal} />
+		<Wire d={DESK_TO_REPO} drawDelay={0.9} signalDelay={2.4} signalCss={[homeArt.localSignal, homeArt.localSignalGreen]} />
 		<path {...anim('draw', 1, shape.route)} d={AGENT_TO_REPO}></path>
-		<path {...anim('signal', 1.6, homeArt.localSignal)} d={TO_DESK}></path>
-		<path {...anim('signal', 2.4, homeArt.localSignal, homeArt.localSignalGreen)} d={DESK_TO_REPO}></path>
 	</g>
 	<text {...anim('fade', 1.1, text.tiny)} x="210" y="104" text-anchor="middle">LOOPBACK</text>
 	<path {...anim('draw', 1.3, homeArt.localOut)} d="M400 180h48"></path>

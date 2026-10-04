@@ -2,6 +2,7 @@
 // Open source: a protocol, an interface, and no model inside.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
+import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
@@ -45,8 +46,7 @@ const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW
 	</g>
 	<circle {...sx(shape.port)} cx="240" cy="210" r="3"></circle>
 	<text {...anim('fade', 0.9, text.tiny)} x="200" y="70" text-anchor="middle">JSON · STDOUT</text>
-	<path {...anim('draw', 1, shape.route, shape.routeGreen)} d="M400 210h60"></path>
-	<path {...anim('signal', 2.2, shape.signal, shape.signalGreen)} d="M400 210h60"></path>
+	<Wire d="M400 210h60" drawDelay={1} signalDelay={2.2} routeCss={shape.routeGreen} signalCss={shape.signalGreen} />
 	<text {...anim('fade', 1.1, text.tiny)} x="430" y="198" text-anchor="middle">HTTP</text>
 	<g {...anim('rise', 1.2)}><rect {...sx(shape.panel, shape.panelMint)} x="460" y="170" width="100" height="80"></rect><text {...sx(text.tiny, text.green)} x="510" y="196" text-anchor="middle">YOUR DESK</text><text {...sx(text.small)} x="510" y="220" text-anchor="middle">localhost</text></g>
 	<g {...anim('pop', 1.6)}><rect {...sx(resourcesArt.stamp)} x="464" y="300" width="92" height="44"></rect><text {...sx(text.head, text.accent)} x="510" y="329" text-anchor="middle">MIT</text></g>

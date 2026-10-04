@@ -3,8 +3,8 @@
 // right; each file travels from its place in git's list to its section.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
+import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
-import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
 import { twoDigits } from '@shared/lib/step-number'
@@ -43,8 +43,7 @@ const orderOf = (name: string): number => chips.findIndex(chip => chip.name === 
 			</Fragment>
 		))
 	}
-	<path {...anim('draw', 0.2, shape.route)} d="M258 200h52"></path>
-	<path {...anim('signal', 2, shape.signal)} d="M258 200h52"></path>
+	<Wire d="M258 200h52" drawDelay={0.2} signalDelay={2} />
 	<text {...anim('fade', 0.3, text.tiny)} x="284" y="190" text-anchor="middle">--guide</text>
 	{
 		SECTIONS.map(({ label, y, rows }, sectionIndex) => (
