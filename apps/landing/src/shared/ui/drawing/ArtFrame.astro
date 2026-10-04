@@ -1,5 +1,6 @@
 ---
-// The ruled grid and corner marks Drawing lays under a framed drawing.
+// The ruled grid and corner marks Drawing lays under a framed drawing. A
+// drawing with its own corner marks passes them in the register slot.
 import { sx } from '../../lib/sx'
 import { shape } from './shape.styles'
 
@@ -18,4 +19,4 @@ const register = `M${EDGE} ${MARK}V${EDGE}h12M${width - MARK} ${EDGE}h12v12M${ED
 	</pattern>
 </defs>
 <rect width={width} height={height} fill={`url(#${id}-grid)`}></rect>
-<path {...sx(shape.register)} d={register} fill="none"></path>
+<slot name="register"><path {...sx(shape.register)} d={register} fill="none"></path></slot>

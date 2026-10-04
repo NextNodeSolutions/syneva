@@ -9,10 +9,11 @@
 // it reframes onto the desk (data-compact) and hides the side columns and the
 // long routes, which would only show as cut-off fragments.
 // hero.client.ts adds the timeline, one 16s clock for everything; data-stage-part
-// names each piece it drives. Its frame draws the kit's 26-unit grid itself:
-// its corner marks sit closer to the edge than ArtFrame's and hide on phones.
+// names each piece it drives. Its frame is the kit's grid with its own corner
+// marks, closer to the edge than ArtFrame's and hidden on phones.
 import { poses } from '@syneva/motion/poses'
 
+import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
@@ -37,11 +38,9 @@ const BACK = 'M651 352V388q0 12-12 12H128q-12 0-12-12V352'
 	css={heroStage.root}
 	data-hero-stage
 >
-	<Fragment slot="frame">
-		<defs><pattern id="hero-stage-grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="var(--grid)"></path></pattern></defs>
-		<rect width="760" height="440" fill="url(#hero-stage-grid)"></rect>
-		<path {...sx(shape.register, shape.secondary)} d="M8 20V8h12M740 8h12v12M8 420v12h12M740 432h12v-12" fill="none"></path>
-	</Fragment>
+	<ArtFrame slot="frame" id="hero-stage" width={760} height={440}>
+		<path slot="register" {...sx(shape.register, shape.secondary)} d="M8 20V8h12M740 8h12v12M8 420v12h12M740 432h12v-12" fill="none"></path>
+	</ArtFrame>
 	<g {...sx(shape.secondary)} fill="none">
 		<path {...sx(shape.route)} d={TO_DESK}></path>
 		<path {...sx(shape.route)} d={TO_LEDGER}></path>
