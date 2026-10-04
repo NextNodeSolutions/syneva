@@ -1,13 +1,13 @@
+import { EASE } from '@syneva/motion/easing'
+
 import {
 	draw,
 	FADE_END,
 	FADE_START,
-	IN_OUT,
 	loop,
 	pop,
 	present,
 	reveal,
-	SPRING,
 	travel,
 } from './hero-timeline'
 import { accept, decide, revise, send } from './hero-verdict'
@@ -34,7 +34,7 @@ function arrive({ one, all }: Scope): void {
 			[0, { opacity: 0, transform: away }],
 			[0.2 + i * 0.12, { opacity: 0, transform: away }],
 			[0.55 + i * 0.12, { opacity: 1, transform: away }],
-			[settle, { opacity: 1, transform: away }, SPRING],
+			[settle, { opacity: 1, transform: away }, EASE.springWide],
 			[settle + 0.75, { opacity: 1, transform: 'none' }],
 			[FADE_START, { opacity: 1, transform: 'none' }],
 			[FADE_END, { opacity: 0, transform: 'none' }],
@@ -115,7 +115,7 @@ function read({ one, all }: Scope, color: Palette): void {
 	loop(one('sweep'), [
 		[0, { opacity: 0, transform: 'translateY(0)' }],
 		[4.05, { opacity: 0, transform: 'translateY(0)' }],
-		[4.2, { opacity: 1, transform: 'translateY(0)' }, IN_OUT],
+		[4.2, { opacity: 1, transform: 'translateY(0)' }, EASE.inOut],
 		[5.05, { opacity: 1, transform: 'translateY(96px)' }],
 		[5.25, { opacity: 0, transform: 'translateY(96px)' }],
 	])

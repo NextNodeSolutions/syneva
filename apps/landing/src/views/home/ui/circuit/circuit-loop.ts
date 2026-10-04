@@ -2,14 +2,13 @@ import { EASE } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 
 import type { Easing } from '@syneva/motion/easing'
+import type { Keyframes } from '@syneva/motion/engine'
 
 // One 14s clock: dispatch, open, read, decide, return. The static pose tells
 // the whole story; only the three short signal strokes repaint, sheets move
 // with transform and opacity. Times are fractions of the cycle; every segment
 // eases on its own, like the stylesheet's keyframes did.
 const CYCLE_S = 14
-const REVIEW = EASE.review
-const UNFOLD = EASE.unfold
 // Each layer rests stacked, `rest` px down, and lifts open to its --lift
 // (circuit.styles.ts, the static pose); a signal's dash is its
 // --signal-size. The minifier may rewrite a value, so it is parsed.
@@ -19,7 +18,7 @@ const LAYERS = {
 	tested: { rest: 20, delay: 0.12 },
 } as const
 const SIGNALS = {
-	in: { times: [0, 0.14, 0.15, 0.25, 0.26, 1], ease: REVIEW },
+	in: { times: [0, 0.14, 0.15, 0.25, 0.26, 1], ease: EASE.review },
 	out: { times: [0, 0.47, 0.48, 0.63, 0.64, 1], ease: 'linear' },
 	return: { times: [0, 0.73, 0.74, 0.97, 0.98, 1], ease: 'linear' },
 } as const satisfies Record<string, { times: number[]; ease: Easing }>
@@ -27,12 +26,11 @@ const SIGNALS = {
 const pixels = (element: Element, property: string): number =>
 	Number.parseFloat(getComputedStyle(element).getPropertyValue(property))
 
-type Values = Record<string, (string | number)[]>
 type Timing = { times: readonly number[]; ease: Easing; delay?: number }
 
 function loop(
 	element: Element | null,
-	values: Values,
+	values: Keyframes,
 	{ times, ease, delay = 0 }: Timing,
 ): void {
 	if (!element) return
@@ -66,7 +64,7 @@ function unfold(svg: SVGSVGElement, part: Part): void {
 	loop(
 		part('dispatch'),
 		{ transform: hold('translateY(0px)', 'translateY(-9px)') },
-		{ times: [0, 0.06, 0.12, 0.19, 0.25, 1], ease: REVIEW },
+		{ times: [0, 0.06, 0.12, 0.19, 0.25, 1], ease: EASE.review },
 	)
 	Object.entries(LAYERS).forEach(([kind, { rest, delay }]) => {
 		const layer = svg.querySelector(`[data-circuit-layer="${kind}"]`)
@@ -80,14 +78,14 @@ function unfold(svg: SVGSVGElement, part: Part): void {
 					`translateY(${lift}px)`,
 				),
 			},
-			{ times: [0, 0.25, 0.31, 0.54, 0.59, 1], ease: UNFOLD, delay },
+			{ times: [0, 0.25, 0.31, 0.54, 0.59, 1], ease: EASE.unfold, delay },
 		)
 	})
 	svg.querySelectorAll('[data-circuit-part="note"]').forEach(note => {
 		loop(
 			note,
 			{ opacity: blink(1) },
-			{ times: [0, 0.28, 0.33, 0.49, 0.54, 1], ease: REVIEW },
+			{ times: [0, 0.28, 0.33, 0.49, 0.54, 1], ease: EASE.review },
 		)
 	})
 }
@@ -97,12 +95,12 @@ function review(part: Part): void {
 	loop(
 		part('focus'),
 		{ opacity: blink(1), transform: hold('scale(1.07)', 'scale(1)') },
-		{ times: [0, 0.31, 0.35, 0.48, 0.53, 1], ease: REVIEW },
+		{ times: [0, 0.31, 0.35, 0.48, 0.53, 1], ease: EASE.review },
 	)
 	loop(
 		part('owner'),
 		{ opacity: blink(1) },
-		{ times: [0, 0.32, 0.36, 0.48, 0.52, 1], ease: REVIEW },
+		{ times: [0, 0.32, 0.36, 0.48, 0.52, 1], ease: EASE.review },
 	)
 	loop(
 		part('sweep'),
@@ -117,12 +115,12 @@ function review(part: Part): void {
 				'translate(220px, 110px)',
 			],
 		},
-		{ times: [0, 0.35, 0.37, 0.44, 0.46, 1], ease: REVIEW },
+		{ times: [0, 0.35, 0.37, 0.44, 0.46, 1], ease: EASE.review },
 	)
 	loop(
 		part('accepted'),
 		{ opacity: blink(1) },
-		{ times: [0, 0.63, 0.69, 0.95, 0.99, 1], ease: REVIEW },
+		{ times: [0, 0.63, 0.69, 0.95, 0.99, 1], ease: EASE.review },
 	)
 	loop(
 		part('seal'),
@@ -130,7 +128,7 @@ function review(part: Part): void {
 			opacity: blink(1),
 			transform: hold('translateY(-4px)', 'translateY(0px)'),
 		},
-		{ times: [0, 0.65, 0.73, 0.95, 0.99, 1], ease: REVIEW },
+		{ times: [0, 0.65, 0.73, 0.95, 0.99, 1], ease: EASE.review },
 	)
 }
 

@@ -4,21 +4,20 @@ import { POSE_VALUES } from '@syneva/motion/poses'
 
 import { introPartSelector } from './hero-intro-part'
 
-import type { AnimateOptions } from '@syneva/motion/engine'
+import type { Easing } from '@syneva/motion/easing'
+import type { AnimateOptions, Keyframes } from '@syneva/motion/engine'
 import type { IntroPart } from './hero-intro-part'
 
 // The headline's entrance, once the runtime boots: the gutters fade in, both
 // lines rise out of their clips, the bands sweep behind them, the + and the
 // check land, the underline draws under "decide", and the pitch, the figure
 // and the principle strip follow.
-const { out, spring } = EASE
-
 type Step = {
 	part: IntroPart
-	keyframes: Record<string, (string | number)[]>
+	keyframes: Keyframes
 	duration: number
 	delay: number
-	ease?: typeof out
+	ease?: Easing
 	pseudoElement?: string
 }
 
@@ -53,14 +52,14 @@ const STEPS: Step[] = [
 		keyframes: markPop,
 		duration: 0.5,
 		delay: 0.6,
-		ease: spring,
+		ease: EASE.spring,
 	},
 	{
 		part: 'human-mark',
 		keyframes: markPop,
 		duration: 0.4,
 		delay: 1.2,
-		ease: spring,
+		ease: EASE.spring,
 	},
 	{
 		part: 'human-check',
@@ -94,7 +93,14 @@ const STEPS: Step[] = [
 // is in view.
 export function playIntro(): ReturnType<typeof animate>[] {
 	return STEPS.flatMap(
-		({ part, keyframes, duration, delay, ease = out, pseudoElement }) => {
+		({
+			part,
+			keyframes,
+			duration,
+			delay,
+			ease = EASE.out,
+			pseudoElement,
+		}) => {
 			const options: AnimateOptions = {
 				duration,
 				delay,

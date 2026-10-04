@@ -11,10 +11,7 @@ import type { StagePart } from './hero-stage-part'
 // The hero instrument's clock and the moves its choreography is written in.
 // One 16s clock drives every piece, so the round can never drift out of
 // sync. Times are seconds on the clock.
-const EASE_OUT = EASE.out
-export const IN_OUT = EASE.inOut
-export const SPRING = EASE.springWide
-const CLOCK: Clock = { cycle: 16, delay: 0.9, easing: EASE_OUT }
+const CLOCK: Clock = { cycle: 16, delay: 0.9, easing: EASE.out }
 // The loop closes by fading the round out, so the next one starts clean.
 export const FADE_START = 15.1
 export const FADE_END = 15.7
@@ -103,7 +100,7 @@ export function draw(element: Part, start: number, length = 0.35): void {
 export function pop(element: Part, start: number): void {
 	loop(element, [
 		[0, { opacity: 0, transform: 'scale(0)' }],
-		[start, { opacity: 1, transform: 'scale(0)' }, SPRING],
+		[start, { opacity: 1, transform: 'scale(0)' }, EASE.springWide],
 		[start + 0.4, { opacity: 1, transform: 'none' }],
 		[FADE_START, { opacity: 1, transform: 'none' }],
 		[FADE_END, { opacity: 0, transform: 'none' }],

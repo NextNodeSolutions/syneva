@@ -1,13 +1,6 @@
-import {
-	draw,
-	FADE_END,
-	FADE_START,
-	IN_OUT,
-	loop,
-	pop,
-	SPRING,
-	travel,
-} from './hero-timeline'
+import { EASE } from '@syneva/motion/easing'
+
+import { draw, FADE_END, FADE_START, loop, pop, travel } from './hero-timeline'
 
 import type { Palette } from './hero-palette'
 import type { Scope } from './hero-timeline'
@@ -24,11 +17,11 @@ export function accept({ one, all }: Scope, color: Palette): void {
 	loop(one('cursor'), [
 		[0, { opacity: 0, ...at(650, 300) }],
 		[7.55, { opacity: 0, ...at(650, 300) }],
-		[7.75, { opacity: 1, ...at(650, 300) }, IN_OUT],
+		[7.75, { opacity: 1, ...at(650, 300) }, EASE.inOut],
 		[8.25, { opacity: 1, ...at(504, 86) }],
 		[8.32, { opacity: 1, ...at(504, 86, 0.8) }],
 		[8.46, { opacity: 1, ...at(504, 86) }],
-		[10.35, { opacity: 1, ...at(504, 86) }, IN_OUT],
+		[10.35, { opacity: 1, ...at(504, 86) }, EASE.inOut],
 		[11.05, { opacity: 1, ...at(684, 334) }],
 		[11.13, { opacity: 1, ...at(684, 334, 0.8) }],
 		[11.27, { opacity: 1, ...at(684, 334) }],
@@ -69,7 +62,7 @@ export function decide({ one, all }: Scope): void {
 		// The rejected file: undone now, pending again once the agent revises.
 		loop(verdict, [
 			[0, { opacity: 0, transform: 'scale(0)' }],
-			[start, { opacity: 1, transform: 'scale(0)' }, SPRING],
+			[start, { opacity: 1, transform: 'scale(0)' }, EASE.springWide],
 			[start + 0.4, { opacity: 1, transform: 'none' }],
 			[14, { opacity: 1, transform: 'none' }],
 			[14.25, { opacity: 0, transform: 'scale(.6)' }],
