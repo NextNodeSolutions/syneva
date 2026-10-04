@@ -9,10 +9,9 @@ import { text } from '@shared/ui/drawing/text.styles'
 import { capitalize } from '@shared/lib/capitalize'
 import { countWord } from '@shared/lib/count-word'
 import ExplodedLayer from './ExplodedLayer.astro'
-import { LAYERS } from './desk-layers'
+import { LAYER, LAYERS } from './desk-layers'
 import type { Layer } from './desk-layers'
 
-const [diff, walkthrough, threads, verdicts] = LAYERS
 // The sheets arrive a beat apart, and their legends follow at the same pace.
 const BEAT = 0.12
 const beatOf = (layer: Layer): number => LAYERS.indexOf(layer) * BEAT
@@ -49,7 +48,7 @@ const VERDICT_MARK = { kept: productArt.isoYes, undone: productArt.isoNo } as co
 	title="The review desk, layer by layer"
 	description={`${capitalize(countWord(LAYERS.length))} stacked sheets: your agent's diff at the bottom, the walkthrough your agent can attach above it, the questions you pin to lines above that, and your verdicts on top.`}
 >
-	<ExplodedLayer layer={diff} delay={sheetDelay(diff)}>{
+	<ExplodedLayer layer={LAYER.diff} delay={sheetDelay(LAYER.diff)}>{
 		DIFF_LINES.map(({ width, change }, index) => (
 			<Fragment>
 				<rect {...sx(CHANGE_MARK[change])} x="12" y={20 + index * 16} width="6" height="6" />
@@ -57,7 +56,7 @@ const VERDICT_MARK = { kept: productArt.isoYes, undone: productArt.isoNo } as co
 			</Fragment>
 		))
 	}</ExplodedLayer>
-	<ExplodedLayer layer={walkthrough} delay={sheetDelay(walkthrough)}>{
+	<ExplodedLayer layer={LAYER.guide} delay={sheetDelay(LAYER.guide)}>{
 		GUIDE_BARS.map(([first, second], index) => (
 			<Fragment>
 				<rect {...sx(productArt.isoNumber)} x="12" y={16 + index * 38} width="12" height="12" />
@@ -66,8 +65,8 @@ const VERDICT_MARK = { kept: productArt.isoYes, undone: productArt.isoNo } as co
 			</Fragment>
 		))
 	}</ExplodedLayer>
-	<ExplodedLayer layer={threads} delay={sheetDelay(threads)}><rect {...sx(productArt.isoBar, productArt.isoBarFaint)} x="14" y="18" width="90" height="6"></rect><rect {...sx(productArt.isoBand)} x="10" y="34" width="110" height="14"></rect><rect {...sx(productArt.isoBar)} x="14" y="38" width="76" height="6"></rect><rect {...sx(productArt.isoBubble)} x="26" y="60" width="92" height="50"></rect><rect {...sx(productArt.isoRail)} x="26" y="60" width="4" height="50"></rect><rect {...sx(productArt.isoBar)} x="38" y="72" width="62" height="5"></rect><rect {...sx(productArt.isoBar, productArt.isoBarAccent)} x="38" y="90" width="48" height="5"></rect></ExplodedLayer>
-	<ExplodedLayer layer={verdicts} delay={sheetDelay(verdicts)}>{
+	<ExplodedLayer layer={LAYER.thread} delay={sheetDelay(LAYER.thread)}><rect {...sx(productArt.isoBar, productArt.isoBarFaint)} x="14" y="18" width="90" height="6"></rect><rect {...sx(productArt.isoBand)} x="10" y="34" width="110" height="14"></rect><rect {...sx(productArt.isoBar)} x="14" y="38" width="76" height="6"></rect><rect {...sx(productArt.isoBubble)} x="26" y="60" width="92" height="50"></rect><rect {...sx(productArt.isoRail)} x="26" y="60" width="4" height="50"></rect><rect {...sx(productArt.isoBar)} x="38" y="72" width="62" height="5"></rect><rect {...sx(productArt.isoBar, productArt.isoBarAccent)} x="38" y="90" width="48" height="5"></rect></ExplodedLayer>
+	<ExplodedLayer layer={LAYER.verdict} delay={sheetDelay(LAYER.verdict)}>{
 		VERDICT_ROWS.map(({ width, verdict }, index) => (
 			<Fragment>
 				<rect {...sx(productArt.isoBar)} x="14" y={20 + index * 26} width={width} height="7" />
