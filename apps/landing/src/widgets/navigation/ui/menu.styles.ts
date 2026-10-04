@@ -7,7 +7,7 @@ import {
 	font,
 } from '@syneva/design-system/tokens.stylex'
 
-import { menuLinkMarker, navMarker, workflowLinkMarker } from './markers.stylex'
+import { menuLinkMarker, workflowLinkMarker } from './markers.stylex'
 import { menuSpacing } from './menu.stylex'
 
 const LINK_PADDING = menuSpacing.linkPadding
@@ -15,8 +15,6 @@ const ICON = menuSpacing.icon
 const ICON_GAP = menuSpacing.iconGap
 const TITLE_LINE = menuSpacing.titleLine
 
-const keyboard = (): string =>
-	stylex.when.ancestor('[data-input="keyboard"]', navMarker)
 const linkHover = (): string => stylex.when.ancestor(':hover', menuLinkMarker)
 const linkFocus = (): string =>
 	stylex.when.ancestor(':focus-visible', menuLinkMarker)
@@ -55,6 +53,13 @@ const currentPage = {
 	},
 }
 
+// A row without a preview takes the paper wash on hover too.
+const hoverWash = {
+	default: null,
+	':is([aria-current="page"])': color['--paper'],
+	[media.finePointer]: { default: null, ':hover': color['--paper'] },
+}
+
 export const menuLink = stylex.create({
 	base: {
 		display: 'flex',
@@ -68,13 +73,7 @@ export const menuLink = stylex.create({
 		...currentPage,
 		...rowStagger,
 	},
-	resourceHover: {
-		backgroundColor: {
-			default: null,
-			':is([aria-current="page"])': color['--paper'],
-			[media.finePointer]: { default: null, ':hover': color['--paper'] },
-		},
-	},
+	resourceHover: { backgroundColor: hoverWash },
 	icon: {
 		width: ICON,
 		height: ICON,
@@ -145,8 +144,6 @@ export const menuLink = stylex.create({
 			[media.motionReduced]: 'none',
 		},
 		transition: `opacity ${duration['--duration-fast']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
-		transitionDuration: { default: null, [keyboard()]: '0s !important' },
-		transitionDelay: { default: null, [keyboard()]: '0s !important' },
 	},
 })
 
@@ -160,11 +157,7 @@ export const workflowLink = stylex.create({
 		gap: '4px',
 		borderRadius: '5px',
 		outlineOffset: { default: null, ':focus-visible': '-3px' },
-		backgroundColor: {
-			default: null,
-			':is([aria-current="page"])': color['--paper'],
-			[media.finePointer]: { default: null, ':hover': color['--paper'] },
-		},
+		backgroundColor: hoverWash,
 		boxShadow: currentPage.boxShadow,
 		...rowStagger,
 	},

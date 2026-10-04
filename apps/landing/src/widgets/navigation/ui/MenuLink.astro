@@ -29,5 +29,5 @@ const { page, index, isPreviewing = false } = Astro.props
 		</strong>
 		<small {...sx(menuLink.blurb)}>{page.blurb}</small>
 	</span>
-	<span {...sx(menuLink.arrow)} aria-hidden="true">→</span>
+	<span {...sx(menuLink.arrow, instant.transitions)} aria-hidden="true">→</span>
 </a>
