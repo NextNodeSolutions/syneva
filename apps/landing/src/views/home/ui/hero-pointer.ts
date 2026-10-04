@@ -17,9 +17,7 @@ export function bindPointer(hero: HTMLElement, { one }: Scope): void {
 		{ layer: one('agent'), depth: DEPTHS.agent },
 		{ layer: one('desk'), depth: DEPTHS.desk },
 		{ layer: one('ledger'), depth: DEPTHS.ledger },
-	].flatMap(({ layer, depth }) =>
-		layer instanceof SVGElement ? [{ layer, depth }] : [],
-	)
+	]
 	let frame = 0
 	hero.addEventListener('pointermove', event => {
 		cancelAnimationFrame(frame)

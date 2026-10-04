@@ -18,7 +18,7 @@ export const FADE_START = 15.1
 export const FADE_END = 15.7
 
 export type Scope = {
-	one: (name: StagePart) => Element
+	one: (name: StagePart) => SVGElement
 	all: (name: StagePart) => Element[]
 }
 
@@ -51,12 +51,11 @@ export function present(
 // leave past its end, and hides again.
 const FLASH = 0.02
 export function travel(
-	element: Element,
+	element: SVGElement,
 	start: number,
 	length: number,
 	dash: number,
 ): void {
-	if (!(element instanceof SVGGeometryElement)) return
 	element.setAttribute('pathLength', String(PATH_LENGTH.signal))
 	element.style.setProperty(
 		'stroke-dasharray',
