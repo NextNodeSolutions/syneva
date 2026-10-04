@@ -14,6 +14,8 @@ export const repoFile = (path: string): string =>
 	`${REPO_URL}/blob/main/${path}`
 // The agent contract's source, the one `syneva spec` prints.
 export const CONTRACT_SOURCE_URL = repoFile('packages/contracts/src/spec.ts')
+// Where questions, gaps and bugs go.
+export const ISSUES_URL = `${REPO_URL}/issues`
 
 // A route's document title.
 export const pageTitle = (name: string): string => `${name} · ${SITE_NAME}`

@@ -9,7 +9,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { INSTALL_COMMAND, PAGES, REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
+import { INSTALL_COMMAND, ISSUES_URL, PAGES, REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
 
 const REQUIREMENTS = [
 	['Node 22+', 'For the CLI.'],
@@ -66,6 +66,6 @@ const FIRST_KEYS = [
 </Prose>
 <Prose id="review" title="4. Review<br>and Send.">
 	<SpecTable rows={FIRST_KEYS} head={['Keys', 'Does']} />
-	<Callout lead={'That’s the loop.'} isGreen>Your agent acts on the verdict, reloads, and the next round lands in the same tab. Stuck somewhere? <TextLink href={PAGES.faq.href} label="Questions & answers" /> or <TextLink href={`${REPO_URL}/issues`} label="open an issue" isExternal />.</Callout>
+	<Callout lead={'That’s the loop.'} isGreen>Your agent acts on the verdict, reloads, and the next round lands in the same tab. Stuck somewhere? <TextLink href={PAGES.faq.href} label="Questions & answers" /> or <TextLink href={ISSUES_URL} label="open an issue" isExternal />.</Callout>
 </Prose>
 <Pager />

@@ -8,7 +8,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseCommand from '@features/copy-command/ui/ProseCommand.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { PAGES, REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
+import { ISSUES_URL, PAGES, REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
 
 ---
 
@@ -26,6 +26,6 @@ import { PAGES, REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
 <Prose id="spec" title="The contract,<br>from the source.">
 	<ProseText>The full agent contract (modes, events, flags and the <code>ReviewResult</code> shape) is versioned with the CLI and printed by one command. That is the copy your agent should read, because it always matches the binary you installed.</ProseText>
 	<ProseCommand text="syneva spec" label="Print the agent contract" />
-	<ProseText><TextLink href={`${REPO_URL}/issues`} label="Found a gap? Open an issue" isExternal /></ProseText>
+	<ProseText><TextLink href={ISSUES_URL} label="Found a gap? Open an issue" isExternal /></ProseText>
 </Prose>
 <CtaBand />

@@ -1,7 +1,7 @@
 ---
 // The site footer: the pitch, a sitemap generated from the site map, the
 // frame-wide wordmark and the product's three promises.
-import { PAGES, REPO_URL, repoFile, SECTIONS } from '@entities/site/model/site-map'
+import { ISSUES_URL, PAGES, REPO_URL, repoFile, SECTIONS } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Brand from '@shared/ui/Brand.astro'
 import Button from '@shared/ui/Button.astro'
@@ -11,7 +11,7 @@ const PROJECT = [
 	{ href: PAGES.openSource.href, label: 'Open source', isExternal: false },
 	{ href: REPO_URL, label: 'GitHub', isExternal: true },
 	{ href: repoFile('LICENSE'), label: 'MIT license', isExternal: true },
-	{ href: `${REPO_URL}/issues`, label: 'Report an issue', isExternal: true },
+	{ href: ISSUES_URL, label: 'Report an issue', isExternal: true },
 ]
 ---
 

@@ -8,7 +8,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { PAGES, REPO_URL } from '@entities/site/model/site-map'
+import { ISSUES_URL, PAGES, REPO_URL } from '@entities/site/model/site-map'
 
 const WHY = [
 	['Trust you can verify.', 'Your review surface reads your code. You should be able to read it back.'],
@@ -41,6 +41,6 @@ const REPOSITORY = [
 <Prose id="contribute" title="Build it with us.">
 	<ProseText>Issues and pull requests are welcome. Commits follow Conventional Commits, and releases are cut automatically from them. The roadmap is public in the README: a command palette, more review modes, and lazy loading for very large diffs.</ProseText>
 	<ProseText>Syneva started as a fork of <TextLink href="https://github.com/ymansurozer/galley" label="Galley" isExternal />, and is grateful for it.</ProseText>
-	<ProseText><TextLink href={`${REPO_URL}/issues`} label="Open an issue" isExternal /></ProseText>
+	<ProseText><TextLink href={ISSUES_URL} label="Open an issue" isExternal /></ProseText>
 </Prose>
 <CtaBand />
