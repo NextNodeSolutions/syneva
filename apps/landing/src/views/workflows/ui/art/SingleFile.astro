@@ -9,10 +9,11 @@ import { text } from '@shared/ui/drawing/text.styles'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import { workflowsArt } from './workflows-art.styles'
 
+// The three states syneva file opens; the drawing highlights the changed one.
 const STATES = [
-	{ label: 'UNCHANGED', words: 'full file', x: 40 },
-	{ label: 'CHANGED', words: 'diff · stageable', x: 220 },
-	{ label: 'UNTRACKED', words: 'full file · verdict', x: 400 },
+	{ label: 'UNCHANGED', words: 'full file', x: 40, isCurrent: false },
+	{ label: 'CHANGED', words: 'diff · stageable', x: 220, isCurrent: true },
+	{ label: 'UNTRACKED', words: 'full file · verdict', x: 400, isCurrent: false },
 ] as const
 ---
 
@@ -25,10 +26,10 @@ const STATES = [
 	description="syneva file opens one file. An unchanged file shows in full, a changed file shows as a diff you can stage, and an untracked file shows in full for a verdict. Markdown renders, and you can comment on any rendered block, including the file's own images."
 >
 	{
-		STATES.map(({ label, words, x }, i) => (
+		STATES.map(({ label, words, x, isCurrent }, i) => (
 			<g {...anim('rise', i * 0.12)}>
-				<rect {...sx(shape.panel, i === 1 && shape.panelWhite)} x={x} y="40" width="160" height="58" />
-				<text {...sx(text.tiny, i === 1 && text.accent)} x={x + 14} y="62">{label}</text>
+				<rect {...sx(shape.panel, isCurrent && shape.panelWhite)} x={x} y="40" width="160" height="58" />
+				<text {...sx(text.tiny, isCurrent && text.accent)} x={x + 14} y="62">{label}</text>
 				<text {...sx(text.small)} x={x + 14} y="84">{words}</text>
 			</g>
 		))

@@ -9,14 +9,16 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { workflowsArt } from './workflows-art.styles'
 
-// The working tree's five changes: their row and the length of their line.
+// The working tree's five changed files: their row, the length of their
+// line and their status as git prints it (modified or added).
 const CHANGES = [
-	[86, 150],
-	[116, 120],
-	[146, 170],
-	[176, 90],
-	[206, 140],
+	{ y: 86, length: 150, status: 'M' },
+	{ y: 116, length: 120, status: 'A' },
+	{ y: 146, length: 170, status: 'M' },
+	{ y: 176, length: 90, status: 'M' },
+	{ y: 206, length: 140, status: 'M' },
 ] as const
+const BAR = { M: workflowsArt.barMod, A: workflowsArt.barAdd } as const
 ---
 
 <Drawing
@@ -31,9 +33,9 @@ const CHANGES = [
 		<rect {...sx(shape.panel)} x="50" y="60" width="300" height="230"></rect>
 		<text {...sx(text.tiny)} x="50" y="50">WORKING TREE · 5 CHANGES</text>
 		{
-			CHANGES.map(([y, length], i) => (
+			CHANGES.map(({ y, length, status }) => (
 				<Fragment>
-					<rect {...sx(i === 1 ? workflowsArt.barAdd : workflowsArt.barMod)} x="66" y={y} width="4" height="12" />
+					<rect {...sx(BAR[status])} x="66" y={y} width="4" height="12" />
 					<path {...sx(shape.lines)} d={`M78 ${y + 6}h${length}`} />
 				</Fragment>
 			))
