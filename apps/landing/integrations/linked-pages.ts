@@ -13,8 +13,12 @@ import type { AstroIntegration } from 'astro'
 
 type Link = { path: string; route: string }
 
-// An href or src attribute, the only places the built pages reference a URL.
-const REFERENCE = /\s(?:href|src)="([^"]*)"/g
+// Where the built pages reference a URL: an href or src attribute, and the
+// share image's og:image meta (every other content attribute holds text).
+const REFERENCES = [
+	/\s(?:href|src)="([^"]*)"/g,
+	/<meta property="og:image" content="([^"]*)"/g,
+]
 const SITE_ORIGIN = new URL(SITE_URL).origin
 
 const htmlFiles = (root: string): string[] =>
@@ -37,7 +41,10 @@ function internalPath(reference: string, route: string): string | undefined {
 function linksOf(root: string, file: string): Link[] {
 	const route = routeOf(file)
 	const html = readFileSync(join(root, file), 'utf8')
-	return [...html.matchAll(REFERENCE)].flatMap(([, reference = '']) => {
+	const references = REFERENCES.flatMap(pattern =>
+		Array.from(html.matchAll(pattern)),
+	)
+	return references.flatMap(([, reference = '']) => {
 		const path = internalPath(reference, route)
 		return path ? [{ path, route }] : []
 	})
