@@ -2,6 +2,7 @@
 // Changelog: shipped work as a day-by-day stacked rail.
 import type { Style } from '@shared/lib/sx'
 import { sx } from '@shared/lib/sx'
+import { twoDigits } from '@shared/lib/two-digits'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -9,29 +10,29 @@ import { text } from '@shared/ui/drawing/text.styles'
 import type { ChangeKind } from '../../model/change-kinds'
 import { CHANGE_KINDS } from '../../model/change-kinds'
 
-type DayCount = { day: string } & Record<ChangeKind, number>
+type Day = { month: number; date: number }
+type DayCount = Day & Record<ChangeKind, number>
 
-// Real commit counts per day, from the repository history; days are
-// month-day pairs of HISTORY_YEAR.
+// Real commit counts per day of HISTORY_YEAR, from the repository history.
 const HISTORY = [
-	{ day: '09-15', feat: 3, fix: 0, perf: 0 },
-	{ day: '09-16', feat: 1, fix: 0, perf: 0 },
-	{ day: '09-17', feat: 0, fix: 1, perf: 0 },
-	{ day: '09-18', feat: 0, fix: 0, perf: 0 },
-	{ day: '09-19', feat: 1, fix: 2, perf: 3 },
-	{ day: '09-20', feat: 1, fix: 4, perf: 4 },
-	{ day: '09-21', feat: 0, fix: 4, perf: 1 },
-	{ day: '09-22', feat: 1, fix: 2, perf: 5 },
-	{ day: '09-23', feat: 5, fix: 5, perf: 3 },
-	{ day: '09-24', feat: 0, fix: 0, perf: 0 },
-	{ day: '09-25', feat: 0, fix: 0, perf: 0 },
-	{ day: '09-26', feat: 0, fix: 0, perf: 0 },
-	{ day: '09-27', feat: 0, fix: 0, perf: 0 },
-	{ day: '09-28', feat: 0, fix: 0, perf: 0 },
-	{ day: '09-29', feat: 0, fix: 0, perf: 0 },
-	{ day: '09-30', feat: 0, fix: 2, perf: 0 },
-	{ day: '10-01', feat: 1, fix: 0, perf: 0 },
-	{ day: '10-02', feat: 2, fix: 2, perf: 0 },
+	{ month: 9, date: 15, feat: 3, fix: 0, perf: 0 },
+	{ month: 9, date: 16, feat: 1, fix: 0, perf: 0 },
+	{ month: 9, date: 17, feat: 0, fix: 1, perf: 0 },
+	{ month: 9, date: 18, feat: 0, fix: 0, perf: 0 },
+	{ month: 9, date: 19, feat: 1, fix: 2, perf: 3 },
+	{ month: 9, date: 20, feat: 1, fix: 4, perf: 4 },
+	{ month: 9, date: 21, feat: 0, fix: 4, perf: 1 },
+	{ month: 9, date: 22, feat: 1, fix: 2, perf: 5 },
+	{ month: 9, date: 23, feat: 5, fix: 5, perf: 3 },
+	{ month: 9, date: 24, feat: 0, fix: 0, perf: 0 },
+	{ month: 9, date: 25, feat: 0, fix: 0, perf: 0 },
+	{ month: 9, date: 26, feat: 0, fix: 0, perf: 0 },
+	{ month: 9, date: 27, feat: 0, fix: 0, perf: 0 },
+	{ month: 9, date: 28, feat: 0, fix: 0, perf: 0 },
+	{ month: 9, date: 29, feat: 0, fix: 0, perf: 0 },
+	{ month: 9, date: 30, feat: 0, fix: 2, perf: 0 },
+	{ month: 10, date: 1, feat: 1, fix: 0, perf: 0 },
+	{ month: 10, date: 2, feat: 2, fix: 2, perf: 0 },
 ] as const satisfies readonly DayCount[]
 const BASE = 320
 const STEP = 28
@@ -55,14 +56,15 @@ const days = HISTORY.map((count, index) => ({
 	x: columnX(index),
 	center: centerOf(index),
 	cells: cellsOf(count),
-	date: count.day.replace('-', '/'),
+	date: `${twoDigits(count.month)}/${twoDigits(count.date)}`,
 	hasDate: isDated(index),
 	delay: 0.2 + index * 0.05,
 }))
-// The review notes panel shipped on 09-23. The pointer rises from above that
-// column's stack and runs right to its label.
-const NOTES_PANEL_DAY: (typeof HISTORY)[number]['day'] = '09-23'
-const NOTES_PANEL_X = centerOf(HISTORY.findIndex(({ day }) => day === NOTES_PANEL_DAY))
+const isSameDay = (day: Day, other: Day): boolean => day.month === other.month && day.date === other.date
+// The review notes panel shipped on September 23. The pointer rises from
+// above that column's stack and runs right to its label.
+const NOTES_PANEL_DAY: Day = { month: 9, date: 23 }
+const NOTES_PANEL_X = centerOf(HISTORY.findIndex(day => isSameDay(day, NOTES_PANEL_DAY)))
 const POINTER_RUN = 40
 const POINTER_LABEL_GAP = 5
 // The description says the span and the busiest day in words, and names the
@@ -70,11 +72,9 @@ const POINTER_LABEL_GAP = 5
 // fails the build until the sentence is rewritten.
 const HISTORY_YEAR = 2026
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const
-function spokenDay(day: string): string {
-	const [month, date] = day.split('-').map(Number)
-	// Months and dates start at 1, so a missing or zero part fails the check.
-	const name = month ? MONTH_NAMES[month - 1] : undefined
-	if (!name || !date) throw new Error(`The history day "${day}" is not a month-day pair.`)
+function spokenDay({ month, date }: Day): string {
+	const name = MONTH_NAMES[month - 1]
+	if (!name) throw new Error(`The history month ${month} is not a month of the year.`)
 	return `${name} ${date}`
 }
 const dayTotal = (count: DayCount): number => CHANGE_KINDS.reduce((sum, kind) => sum + count[kind], 0)
@@ -82,7 +82,7 @@ const [FIRST_DAY] = HISTORY
 // reduce over the non-empty history keeps its last day, then its busiest.
 const LAST_DAY = HISTORY.reduce<DayCount>((_previous, count) => count, FIRST_DAY)
 const BUSIEST_DAY = HISTORY.reduce<DayCount>((busiest, count) => (dayTotal(count) > dayTotal(busiest) ? count : busiest), FIRST_DAY)
-if (BUSIEST_DAY.day !== NOTES_PANEL_DAY) throw new Error(`The busiest history day is ${BUSIEST_DAY.day}, not the notes panel's ${NOTES_PANEL_DAY}: rewrite HistoryRail's description.`)
+if (!isSameDay(BUSIEST_DAY, NOTES_PANEL_DAY)) throw new Error(`The busiest history day is ${spokenDay(BUSIEST_DAY)}, not the notes panel's ${spokenDay(NOTES_PANEL_DAY)}: rewrite HistoryRail's description.`)
 ---
 
 <Drawing
@@ -91,7 +91,7 @@ if (BUSIEST_DAY.day !== NOTES_PANEL_DAY) throw new Error(`The busiest history da
 	height={400}
 	compact="36 40 540 330"
 	title="Shipped, day by day"
-	description={`Feature, fix and performance commits per day from ${spokenDay(FIRST_DAY.day)} to ${spokenDay(LAST_DAY.day)}, ${HISTORY_YEAR}, taken from the repository history. The busiest day, ${spokenDay(BUSIEST_DAY.day)}, shipped the review notes panel.`}
+	description={`Feature, fix and performance commits per day from ${spokenDay(FIRST_DAY)} to ${spokenDay(LAST_DAY)}, ${HISTORY_YEAR}, taken from the repository history. The busiest day, ${spokenDay(BUSIEST_DAY)}, shipped the review notes panel.`}
 >
 	<text {...anim('fade', 0, text.tiny)} x="52" y="66">COMMITS PER DAY · FROM THE GIT HISTORY</text>
 	<g {...anim('fade', 0.1)}>{
