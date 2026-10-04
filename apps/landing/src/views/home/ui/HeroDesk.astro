@@ -3,6 +3,7 @@
 // desk, its diff rows, the question you ask on line 14 and the agent's answer.
 import { DESK_ORIGIN } from '@entities/desk/model/desk-origin'
 import { PATH_LENGTH } from '@syneva/motion/poses'
+import AskThread from '@shared/ui/drawing/AskThread.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
 import { DESK_FILE } from './hero-round'
@@ -73,21 +74,21 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 		<text {...sx(heroStage.chipText)} x="510" y="174" text-anchor="middle">?</text>
 	</g>
 	<g {...stagePart('thread')}>
-		<rect {...sx(heroStage.threadBox)} x="250" y="244" width="264" height="94"></rect>
-		<path {...sx(heroStage.threadRail)} d="M250 244v94"></path>
-		<g {...stagePart('you')}>
-			<text {...sx(heroStage.who)} x="264" y="264">YOU · ASK</text>
-			<text {...sx(heroStage.message)} x="264" y="281">What if the session already expired?</text>
-		</g>
-		<g opacity="0" {...stagePart('typing')}>
-			<circle {...sx(shape.dotAccent)} cx="266" cy="318" r="2"></circle>
-			<circle {...sx(shape.dotAccent)} cx="274" cy="318" r="2"></circle>
-			<circle {...sx(shape.dotAccent)} cx="282" cy="318" r="2"></circle>
-		</g>
-		<g {...stagePart('agent-says')}>
-			<text {...sx(heroStage.who, heroStage.agentWho)} x="264" y="304">YOUR AGENT</text>
-			<text {...sx(heroStage.message)} x="264" y="321">It returns 401 before the handler runs.</text>
-		</g>
+		<AskThread x={250} y={244} width={264} height={94}>
+			<g {...stagePart('you')}>
+				<text {...sx(heroStage.who)} x="264" y="264">YOU · ASK</text>
+				<text {...sx(heroStage.message)} x="264" y="281">What if the session already expired?</text>
+			</g>
+			<g opacity="0" {...stagePart('typing')}>
+				<circle {...sx(shape.dotAccent)} cx="266" cy="318" r="2"></circle>
+				<circle {...sx(shape.dotAccent)} cx="274" cy="318" r="2"></circle>
+				<circle {...sx(shape.dotAccent)} cx="282" cy="318" r="2"></circle>
+			</g>
+			<g {...stagePart('agent-says')}>
+				<text {...sx(heroStage.who, heroStage.agentWho)} x="264" y="304">YOUR AGENT</text>
+				<text {...sx(heroStage.message)} x="264" y="321">It returns 401 before the handler runs.</text>
+			</g>
+		</AskThread>
 	</g>
 	<circle {...sx(shape.port)} cx="236" cy="170" r="2.5"></circle>
 	<circle {...sx(shape.port)} cx="528" cy="88" r="2.5"></circle>

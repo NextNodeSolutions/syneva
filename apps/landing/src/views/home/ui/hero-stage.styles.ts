@@ -57,8 +57,6 @@ export const heroStage = stylex.create({
 	strike: { stroke: color['--accent'], strokeWidth: 1.2 },
 	leader: { stroke: color['--accent'], fill: 'none' },
 	chipText: { font: `600 ${sans('11px')}`, fill: color['--accent'] },
-	threadBox: { fill: color['--wash-tint'], stroke: color['--line'] },
-	threadRail: { stroke: color['--accent'], strokeWidth: 2 },
 	who: {
 		font: mono('9.5px'),
 		letterSpacing: '.08em',
