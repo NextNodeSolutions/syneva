@@ -18,7 +18,7 @@ const RIM = 'M-124 0v7L0 69 124 7V0'
 const station = STATION[kind]
 ---
 
-<g {...sx(station.css)} transform={`translate(${PLATFORM_X[kind]} ${ROW})`} data-station={kind}>
+<g {...sx(station.css)} transform={`translate(${PLATFORM_X[kind]} ${ROW})`}>
 	<path {...sx(circuit.foot)} d="M0-62 124 0 0 62-124 0Z"></path><path {...sx(circuit.rim)} d={RIM}></path>
 	<slot />
 	{portsOn(kind).map(([id, { x, y }]) => <circle {...sx(circuit.port)} id={id} cx={x} cy={y} r="2.5" />)}
