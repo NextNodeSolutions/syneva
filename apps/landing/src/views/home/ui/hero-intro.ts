@@ -10,8 +10,10 @@ import type { IntroPart } from './hero-intro-part'
 
 // The headline's entrance, once the runtime boots: the gutters fade in, both
 // lines rise out of their clips, the bands sweep behind them, the + and the
-// check land, the underline draws under "decide", and the pitch, the figure
-// and the principle strip follow.
+// check land, the underline draws under "decide", and the figure and the
+// principle strip follow. The pitch rises with the headline and quickly: it is
+// the page's largest text, and the browser counts its paint as the page's
+// main content only once it is fully shown.
 type Step = {
 	part: IntroPart
 	keyframes: Keyframes
@@ -75,7 +77,7 @@ const STEPS: Step[] = [
 		delay: 1.45,
 	},
 	{ part: 'news', keyframes: rise, duration: 0.7, delay: 0 },
-	{ part: 'copy', keyframes: rise, duration: 0.8, delay: 0.5 },
+	{ part: 'copy', keyframes: rise, duration: 0.4, delay: 0 },
 	{
 		part: 'stage',
 		keyframes: {
