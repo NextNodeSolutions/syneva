@@ -1,6 +1,6 @@
 ---
 // The start band: two commands to a first desk, and where to read more.
-import { PAGES, REPO_URL } from '@entities/site/model/site-map'
+import { INSTALL_COMMAND, PAGES, REPO_URL } from '@entities/site/model/site-map'
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import Command from '@features/copy-command/ui/Command.astro'
@@ -28,7 +28,7 @@ const {
 	</div>
 	<div {...revealItem(band.install)}>
 		<p {...sx(band.label)}>Install · Node 22+ and git</p>
-		<Command text="npm install -g syneva" label="Installation command" isInstall />
+		<Command text={INSTALL_COMMAND} label="Installation command" isInstall />
 		<p {...sx(band.label, band.next)}>Then, inside your repository</p>
 		<Command text="syneva" label="Start a review" isInstall />
 	</div>

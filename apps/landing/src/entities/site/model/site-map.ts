@@ -7,6 +7,7 @@ import type { IconName } from './icons'
 export const SITE_NAME = 'Syneva'
 export const SITE_URL = 'https://syneva.dev'
 export const REPO_URL = 'https://github.com/walid-mos/syneva'
+export const INSTALL_COMMAND = 'npm install -g syneva'
 
 // A route's document title.
 export const pageTitle = (name: string): string => `${name} · ${SITE_NAME}`

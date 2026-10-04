@@ -9,7 +9,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { PAGES, REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
+import { INSTALL_COMMAND, PAGES, REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
 
 const REQUIREMENTS = [
 	['Node 22+', 'For the CLI.'],
@@ -18,7 +18,9 @@ const REQUIREMENTS = [
 	['Your coding agent', 'Codex, Cursor, pi, or anything that runs a shell command.'],
 	['gh (optional)', 'Only to review pull requests by number or URL.'],
 ] as const
-const INSTALL = ['# with pi: pin a tag or commit', '$ pi install git:github.com/walid-mos/syneva@<ref>', '', '# anywhere else', '$ npm install -g syneva']
+// pi installs from the repository's git source: its host and path.
+const { host, pathname } = new URL(REPO_URL)
+const INSTALL = ['# with pi: pin a tag or commit', `$ pi install git:${host}${pathname}@<ref>`, '', '# anywhere else', `$ ${INSTALL_COMMAND}`]
 const OPEN = ['$ cd your-repository', '$ syneva', '# desk ready, open in your browser']
 const LOOP = [
 	'# your agent, after it edits',
@@ -41,7 +43,7 @@ const FIRST_KEYS = [
 	lede="Two commands open a desk. One more lets your agent hear back. Here is the whole path, for pi and for every other agent."
 	caption="Install · open a desk · attach your agent"
 >
-	<Command slot="actions" text="npm install -g syneva" label="Installation command" />
+	<Command slot="actions" text={INSTALL_COMMAND} label="Installation command" />
 	<StartFlow slot="art" />
 </PageHero>
 <Prose id="requirements" title="What you need.">
