@@ -9,6 +9,7 @@ import { PATH_LENGTH, poses } from '@syneva/motion/poses'
 import Button from '@shared/ui/Button.astro'
 import Command from '@features/copy-command/ui/Command.astro'
 import FigureTop from '@shared/ui/FigureTop.astro'
+import LiveDot from '@shared/ui/LiveDot.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
@@ -46,7 +47,7 @@ import { heroMarker, newsMarker } from './hero.stylex'
 			<p {...sx(heroBody.works)}><span {...sx(heroBody.worksLead)}>Works with the agent you already use</span> Codex · Cursor · pi · your own scripts</p>
 		</div>
 		<figure {...sx(poses.fade, heroBody.stage)} {...scene} {...introPart('stage')}>
-			<FigureTop subject="ONE REVIEW ROUND" aside="ILLUSTRATIVE · NOT A SCREENSHOT" isLive asideCss={heroBody.stageAside} />
+			<FigureTop aside="ILLUSTRATIVE · NOT A SCREENSHOT" asideCss={heroBody.stageAside}><LiveDot />ONE REVIEW ROUND</FigureTop>
 			<HeroStage />
 		</figure>
 	</div>

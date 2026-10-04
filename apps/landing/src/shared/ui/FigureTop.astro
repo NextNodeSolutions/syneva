@@ -1,15 +1,16 @@
 ---
-// A figure's caption bar: its subject on the left, its nature on the right.
+// A figure's caption bar: its subject (the slot) on the left, its nature on
+// the right.
 import type { Part } from '../lib/sx'
 import { sx } from '../lib/sx'
 import { figureTop } from './figure-top.styles'
 
-type Props = { subject: string; aside: string; isLive?: boolean; asideCss?: Part }
+type Props = { aside: string; asideCss?: Part }
 
-const { subject, aside, isLive = false, asideCss } = Astro.props
+const { aside, asideCss } = Astro.props
 ---
 
 <div {...sx(figureTop.bar)}>
-	<span>{isLive && <span {...sx(figureTop.liveDot)} aria-hidden="true" />}{subject}</span>
+	<span><slot /></span>
 	<span {...sx(figureTop.aside, asideCss)}>{aside}</span>
 </div>
