@@ -147,6 +147,18 @@ export default defineConfig({
 				entryFileNames: '[name].js',
 				chunkFileNames: 'chunks/[name]-[hash].js',
 				hashCharacters: CHUNK_HASH_CHARS,
+				// Keep grammar dependencies and theme data out of oversized chunks
+				// without changing the language loaders or pulling in their dependencies.
+				onlyExplicitManualChunks: true,
+				manualChunks(id) {
+					if (id.endsWith('/@shikijs/langs/dist/cpp-macro.mjs'))
+						return 'cpp-macro'
+					const theme = id.match(
+						/\/@shikijs\/themes\/dist\/([\w-]+)\.mjs$/,
+					)?.[1]
+					if (!theme) return undefined
+					return `theme-${theme}`
+				},
 			},
 		},
 	}),
