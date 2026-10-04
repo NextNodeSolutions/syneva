@@ -6,9 +6,11 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 // leaves inside <defs> are drawn through <use>, so their paints read custom
 // properties each layer sets (leaf fill, border, side and code accent).
 export const circuit = stylex.create({
+	// Drawing sizes the root. The phone frame is a wide 900 units, so the
+	// circuit keeps the column's full width instead of the 460px cap a
+	// reframed drawing takes.
 	root: {
-		width: '100%',
-		height: 'auto',
+		maxWidth: { default: null, [media.phone]: 'none' },
 		minHeight: { default: null, [media.phone]: 0 },
 		aspectRatio: { default: null, [media.phone]: '45 / 26' },
 		backgroundColor: color['--paper'],

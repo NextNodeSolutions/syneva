@@ -9,10 +9,11 @@
 // it reframes onto the desk (data-compact) and hides the side columns and the
 // long routes, which would only show as cut-off fragments.
 // hero.client.ts adds the timeline, one 16s clock for everything; data-stage-part
-// names each piece it drives.
+// names each piece it drives. Its frame draws the kit's 26-unit grid itself:
+// its corner marks sit closer to the edge than ArtFrame's and hide on phones.
 import { poses } from '@syneva/motion/poses'
 
-import { drawing } from '@shared/ui/drawing/drawing.styles'
+import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
 import HeroAgent from './HeroAgent.astro'
@@ -26,36 +27,36 @@ const TO_LEDGER = 'M528 88C545 88 545 123 562 123'
 const BACK = 'M651 352V388q0 12-12 12H128q-12 0-12-12V352'
 ---
 
-<svg
-	{...sx(drawing.root, drawing.compact, heroStage.root)}
-	viewBox="0 0 760 440"
-	data-compact="224 22 316 342"
-	role="img"
-	aria-labelledby="hero-stage-title hero-stage-desc"
+<Drawing
+	id="hero-stage"
+	width={760}
+	height={440}
+	compact="224 22 316 342"
+	title="One review round, from your agent's diff to your verdict"
+	description="Your agent's six changed files settle into a reading order. One change opens on your local desk: you ask why the session is checked there, your agent answers on that line, and you accept it. Every file gets your verdict, one is rejected, and Send hands the result back. The agent revises, and only the rejected file returns as pending. Illustrative, not a screenshot."
+	css={heroStage.root}
 	data-hero-stage
 >
-	<title id="hero-stage-title">One review round, from your agent's diff to your verdict</title>
-	<desc id="hero-stage-desc">Your agent's six changed files settle into a reading order. One change opens on your local desk: you ask why the session is checked there, your agent answers on that line, and you accept it. Every file gets your verdict, one is rejected, and Send hands the result back. The agent revises, and only the rejected file returns as pending. Illustrative, not a screenshot.</desc>
-	<defs><pattern id="hero-stage-grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="var(--grid)"></path></pattern></defs>
-	<g>
+	<Fragment slot="frame">
+		<defs><pattern id="hero-stage-grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="var(--grid)"></path></pattern></defs>
 		<rect width="760" height="440" fill="url(#hero-stage-grid)"></rect>
 		<path {...sx(shape.register, shape.secondary)} d="M8 20V8h12M740 8h12v12M8 420v12h12M740 432h12v-12" fill="none"></path>
-		<g {...sx(shape.secondary)} fill="none">
-			<path {...sx(shape.route)} d={TO_DESK}></path>
-			<path {...sx(shape.route)} d={TO_LEDGER}></path>
-			<path {...sx(shape.route, shape.routeDotted)} d={BACK}></path>
-			<path {...sx(shape.signal, poses.signal)} d={TO_DESK} {...stagePart('signal-in')}></path>
-			<path {...sx(shape.signal, poses.signal, shape.signalGreen)} d={TO_LEDGER} {...stagePart('signal-out')}></path>
-			<path {...sx(shape.signal, poses.signal)} d={BACK} {...stagePart('signal-back')}></path>
-		</g>
-		<text {...sx(heroStage.loop, shape.secondary)} x="384" y="424" text-anchor="middle">SAME TAB · NEXT ROUND</text>
-
-		<HeroAgent />
-
-		<HeroDesk />
-
-		<HeroLedger />
-
-		<path {...sx(heroStage.cursor)} d="M0 0v15.5l4.2-4 3.1 6.9 3-1.4-3-6.7h6Z" opacity="0" {...stagePart('cursor')}></path>
+	</Fragment>
+	<g {...sx(shape.secondary)} fill="none">
+		<path {...sx(shape.route)} d={TO_DESK}></path>
+		<path {...sx(shape.route)} d={TO_LEDGER}></path>
+		<path {...sx(shape.route, shape.routeDotted)} d={BACK}></path>
+		<path {...sx(shape.signal, poses.signal)} d={TO_DESK} {...stagePart('signal-in')}></path>
+		<path {...sx(shape.signal, poses.signal, shape.signalGreen)} d={TO_LEDGER} {...stagePart('signal-out')}></path>
+		<path {...sx(shape.signal, poses.signal)} d={BACK} {...stagePart('signal-back')}></path>
 	</g>
-</svg>
+	<text {...sx(heroStage.loop, shape.secondary)} x="384" y="424" text-anchor="middle">SAME TAB · NEXT ROUND</text>
+
+	<HeroAgent />
+
+	<HeroDesk />
+
+	<HeroLedger />
+
+	<path {...sx(heroStage.cursor)} d="M0 0v15.5l4.2-4 3.1 6.9 3-1.4-3-6.7h6Z" opacity="0" {...stagePart('cursor')}></path>
+</Drawing>
