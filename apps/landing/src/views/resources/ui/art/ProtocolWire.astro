@@ -7,7 +7,6 @@ import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { resourcesArt } from './resources-art.styles'
 
 const VERBS = ['await', 'comment', 'status', 'reload', 'stop'] as const
 const EVENTS = ['question', 'review', 'closed'] as const
@@ -40,7 +39,7 @@ const BACK = 'M420 240H180'
 	{
 		VERBS.map((verb, i) => (
 			<g {...anim('pop', 0.8 + i * 0.1)}>
-				<rect {...sx(resourcesArt.wirePill)} x={162 + i * VERB_STEP} y="128" width="52" height="18" />
+				<rect {...sx(shape.kbd)} x={162 + i * VERB_STEP} y="128" width="52" height="18" />
 				<text {...sx(text.tiny)} x={162 + PILL_HALF + i * VERB_STEP} y="140.5" text-anchor="middle">{verb}</text>
 			</g>
 		))
@@ -49,7 +48,7 @@ const BACK = 'M420 240H180'
 	{
 		EVENTS.map((event, i) => (
 			<g {...anim('pop', 1.4 + i * 0.12)}>
-				<rect {...sx(resourcesArt.wirePill, resourcesArt.wireEvent)} x={222 + i * EVENT_STEP} y="272" width="52" height="18" />
+				<rect {...sx(shape.kbd, shape.no)} x={222 + i * EVENT_STEP} y="272" width="52" height="18" />
 				<text {...sx(text.tiny, text.accent)} x={222 + PILL_HALF + i * EVENT_STEP} y="284.5" text-anchor="middle">{event}</text>
 			</g>
 		))

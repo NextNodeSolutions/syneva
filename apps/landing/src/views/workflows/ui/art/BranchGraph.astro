@@ -39,7 +39,7 @@ const FEATURE = [
 		))
 	}
 	<path {...anim('draw', 0.8, workflowsArt.branch)} d="M160 300C200 300 220 190 280 190C320 190 330 160 360 160H520"></path>
-	{FEATURE.map(([x, y], i) => <circle {...anim('pop', 1.1 + i * 0.12, workflowsArt.commit, workflowsArt.commitFeature)} cx={x} cy={y} r="6" />)}
+	{FEATURE.map(([x, y], i) => <circle {...anim('pop', 1.1 + i * 0.12, workflowsArt.commit, shape.no)} cx={x} cy={y} r="6" />)}
 	<text {...anim('fade', 1.5, text.tiny, text.accent)} x="534" y="164">HEAD</text>
 	<text {...anim('fade', 1, text.tiny)} x="160" y="330" text-anchor="middle">MERGE-BASE</text>
 	<path {...anim('draw', 1.6, shape.bracket)} d="M176 142v-12h352v12"></path>

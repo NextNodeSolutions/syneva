@@ -6,7 +6,6 @@ import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import FileList from './FileList.astro'
-import { workflowsArt } from './workflows-art.styles'
 
 const ROWS = [
 	{ name: 'src/auth/session.ts', status: 'M', y: 92 },
@@ -42,7 +41,7 @@ const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 					<text {...sx(text.file, !status && text.muted)} x="58" y={y}>{name}</text>
 					{status && (
 						<Fragment>
-							<rect {...sx(status === 'A' ? workflowsArt.statusAdd : workflowsArt.statusMod)} x="216" y={y - 11} width="16" height="15" />
+							<rect {...sx(status === 'A' ? shape.yes : shape.no)} x="216" y={y - 11} width="16" height="15" />
 							<text {...sx(text.tiny, status === 'A' ? text.green : text.accent)} x="224" y={y} text-anchor="middle">{status}</text>
 						</Fragment>
 					)}
