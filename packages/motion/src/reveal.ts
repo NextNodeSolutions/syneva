@@ -45,7 +45,7 @@ const enter = (group: Element): ReturnType<typeof animate>[] => [
 	...playVocabulary(group, ENTRANCES),
 ]
 
-function revealGroup(group: Element): void {
+function playReveal(group: Element): void {
 	const entrances = enter(group)
 	// Reduced motion lands the entrances on their finished pose at once, so a
 	// later switch to no-preference never arms a hidden pose over content
@@ -78,5 +78,5 @@ let stopRevealing: (() => void) | undefined
 // instead of landing on a pose that was never seen.
 export function armReveals(): void {
 	stopRevealing?.()
-	stopRevealing = inView(`[${ATTRIBUTE.revealGroup}]`, revealGroup, REVEAL)
+	stopRevealing = inView(`[${ATTRIBUTE.revealGroup}]`, playReveal, REVEAL)
 }

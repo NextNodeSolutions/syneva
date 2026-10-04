@@ -10,7 +10,7 @@ import { reducedMotion } from './preference'
 // their scene is out of view.
 const SCENE = `[${ATTRIBUTE.scene}]`
 const SCENE_AMOUNT = 0.05
-const visible = new Set<Element>()
+const visibleScenes = new Set<Element>()
 
 // Entrances play once. Only a running animation is paused, and a paused one
 // is never rewound: play() on an animation sitting at its end restarts it
@@ -62,7 +62,7 @@ export function syncScenes(root: Element | Document = document): void {
 	)
 	for (const scene of scenesWithin(root))
 		if (reducedMotion.matches) settleScene(scene)
-		else if (document.hidden || !visible.has(scene)) pauseScene(scene)
+		else if (document.hidden || !visibleScenes.has(scene)) pauseScene(scene)
 		else resumeScene(scene)
 }
 
@@ -81,10 +81,10 @@ export function watchScenes(): void {
 	stopWatching = inView(
 		SCENE,
 		scene => {
-			visible.add(scene)
+			visibleScenes.add(scene)
 			syncScenes(scene)
 			return () => {
-				visible.delete(scene)
+				visibleScenes.delete(scene)
 				syncScenes(scene)
 			}
 		},
