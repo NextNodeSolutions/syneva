@@ -26,9 +26,9 @@ const BACK = 'M525 175V272q0 12-12 12H127q-12 0-12-12V175'
 >
 	<g fill="none">
 		<Wire d={TO_KEPT} drawDelay={0.4} signalDelay={1.8} />
-		<path {...anim('draw', 0.55, shape.route)} d={TO_UNDONE}></path>
+		<Wire d={TO_UNDONE} drawDelay={0.55} />
 		<Wire d={KEPT_TO_RELOAD} drawDelay={0.9} signalDelay={2.4} signalCss={shape.signalGreen} />
-		<path {...anim('draw', 1, shape.route)} d={UNDONE_TO_RELOAD}></path>
+		<Wire d={UNDONE_TO_RELOAD} drawDelay={1} />
 		<Wire d={BACK} drawDelay={1.4} signalDelay={3} routeCss={shape.routeDotted} />
 	</g>
 	<g {...anim('rise', 0)}><rect {...sx(shape.pending)} x="60" y="125" width="110" height="50"></rect><text {...sx(text.label)} x="115" y="148" text-anchor="middle">PENDING</text><text {...sx(text.small)} x="115" y="165" text-anchor="middle">every change</text></g>

@@ -49,7 +49,7 @@ const AGENT_TO_REPO = 'M110 150v36q0 10 10 10h14q10 0 10 10v16'
 	<g fill="none">
 		<Wire d={TO_DESK} drawDelay={0.8} signalDelay={1.6} signalCss={homeArt.localSignal} />
 		<Wire d={DESK_TO_REPO} drawDelay={0.9} signalDelay={2.4} signalCss={[homeArt.localSignal, homeArt.localSignalGreen]} />
-		<path {...anim('draw', 1, shape.route)} d={AGENT_TO_REPO}></path>
+		<Wire d={AGENT_TO_REPO} drawDelay={1} />
 	</g>
 	<text {...anim('fade', 1.1, text.tiny)} x="210" y="104" text-anchor="middle">LOOPBACK</text>
 	<path {...anim('draw', 1.3, homeArt.localOut)} d="M400 180h48"></path>
