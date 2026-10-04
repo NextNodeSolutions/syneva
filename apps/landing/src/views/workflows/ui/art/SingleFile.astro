@@ -1,5 +1,6 @@
 ---
 // Single file: three states, and markdown reviewed as rendered blocks.
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { sx } from '@shared/lib/sx'
 import AskThread from '@shared/ui/drawing/AskThread.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -37,7 +38,7 @@ const STATES = [
 	<g {...anim('rise', 0.4)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="118" width="380" height="280"></rect>
 		<text {...sx(text.file, text.strong)} x="56" y="140">docs/rollout.md</text>
-		<rect {...sx(shape.kbd)} x="270" y="128" width="138" height="18"></rect><text {...sx(text.tiny)} x="339" y="141" text-anchor="middle">RENDERED · SOURCE m</text>
+		<rect {...sx(shape.kbd)} x="270" y="128" width="138" height="18"></rect><text {...sx(text.tiny)} x="339" y="141" text-anchor="middle">RENDERED · SOURCE {HOTKEYS.toggleSource}</text>
 		<path {...sx(shape.hair)} d="M40 154h380"></path>
 		<text {...sx(text.head)} x="56" y="184">Rollout</text>
 		<path {...sx(shape.lines)} d="M56 204h320M56 220h260"></path>

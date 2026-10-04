@@ -1,5 +1,6 @@
 ---
 // Plan desk: what already works today, with syneva file.
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import AskThread from '@shared/ui/drawing/AskThread.astro'
@@ -21,7 +22,7 @@ import { text } from '@shared/ui/drawing/text.styles'
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="40" width="520" height="260"></rect>
 		<text {...sx(text.file, text.strong)} x="56" y="64">plan.md</text>
 		<rect {...sx(shape.kbd)} x="400" y="50" width="70" height="20"></rect><text {...sx(text.tiny)} x="435" y="64" text-anchor="middle">RENDERED</text>
-		<rect {...sx(shape.panel)} x="470" y="50" width="76" height="20"></rect><text {...sx(text.tiny)} x="508" y="64" text-anchor="middle">SOURCE · m</text>
+		<rect {...sx(shape.panel)} x="470" y="50" width="76" height="20"></rect><text {...sx(text.tiny)} x="508" y="64" text-anchor="middle">SOURCE · {HOTKEYS.toggleSource}</text>
 		<path {...sx(shape.hair)} d="M40 80h520"></path>
 		<text {...sx(text.head)} x="56" y="112">Move session checks into middleware</text>
 		<path {...sx(shape.lines)} d="M56 136h380M56 152h320"></path>

@@ -1,5 +1,6 @@
 ---
 // Review desk: an annotated wireframe of the desk.
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import AskThread from '@shared/ui/drawing/AskThread.astro'
@@ -48,7 +49,7 @@ const LEGEND_GAP = '   '
 		<rect {...sx(shape.panel, shape.panelWhite)} x="24" y="30" width="552" height="362"></rect>
 		<path {...sx(shape.hair)} d="M24 62h552M184 62v330M184 96h392"></path>
 		<text {...sx(text.label)} x="38" y="51">syneva</text><text {...sx(text.tiny)} x="300" y="50" text-anchor="middle">AUTH-REFACTOR · ROUND 2</text>
-		<rect {...sx(productArt.anatomySend)} x="486" y="37" width="80" height="18"></rect><text {...sx(text.tiny, text.white)} x="526" y="49.5" text-anchor="middle">SEND · ⇧S</text>
+		<rect {...sx(productArt.anatomySend)} x="486" y="37" width="80" height="18"></rect><text {...sx(text.tiny, text.white)} x="526" y="49.5" text-anchor="middle">SEND · {HOTKEYS.send}</text>
 		<rect {...sx(shape.track)} x="24" y="62" width="552" height="3"></rect>
 		<rect {...anim('sweep', 1.6, shape.fill)} x="24" y="62" width="330" height="3"></rect>
 		<text {...sx(text.label)} x="38" y="86">WALKTHROUGH</text>
@@ -67,7 +68,7 @@ const LEGEND_GAP = '   '
 		<rect {...loop('pulse', homeArt.deskCursor)} x="28" y="166" width="152" height="18"></rect>
 		<text {...sx(text.tiny)} x="38" y="378">3 OF 5 FILES SETTLED</text>
 		<text {...sx(text.file, text.strong)} x="198" y="84">auth/session.ts</text><text {...sx(text.tiny)} x="312" y="84">+12 −3</text>
-		<rect {...sx(shape.kbd)} x="470" y="72" width="96" height="17"></rect><text {...sx(text.tiny)} x="518" y="84" text-anchor="middle">APPROVE · ⇧A</text>
+		<rect {...sx(shape.kbd)} x="470" y="72" width="96" height="17"></rect><text {...sx(text.tiny)} x="518" y="84" text-anchor="middle">APPROVE · {HOTKEYS.approveFile}</text>
 	</g>
 	<g {...anim('fade', 0.3)}>
 		<CodeLine x={222} y={120} gap={12} lineNumber={12}>export function handle(req) &#123;</CodeLine>
@@ -80,8 +81,8 @@ const LEGEND_GAP = '   '
 		<path {...anim('draw', 1.3, shape.strike)} d="M238 204h148"></path>
 		<CodeLine x={222} y={230} gap={12} lineNumber={42}>   return user</CodeLine>
 	</g>
-	<g {...anim('pop', 0.9)}><rect {...sx(shape.chipYes)} x="494" y="136" width="72" height="20"></rect><text {...sx(text.tiny, text.green)} x="530" y="149.5" text-anchor="middle">✓ KEEP ⇧Y</text></g>
-	<g {...anim('pop', 1.25)}><rect {...sx(shape.chipNo)} x="494" y="194" width="72" height="20"></rect><text {...sx(text.tiny, text.accent)} x="530" y="207.5" text-anchor="middle">✕ UNDO ⇧N</text></g>
+	<g {...anim('pop', 0.9)}><rect {...sx(shape.chipYes)} x="494" y="136" width="72" height="20"></rect><text {...sx(text.tiny, text.green)} x="530" y="149.5" text-anchor="middle">✓ KEEP {HOTKEYS.keep}</text></g>
+	<g {...anim('pop', 1.25)}><rect {...sx(shape.chipNo)} x="494" y="194" width="72" height="20"></rect><text {...sx(text.tiny, text.accent)} x="530" y="207.5" text-anchor="middle">✕ UNDO {HOTKEYS.undo}</text></g>
 	<g {...anim('rise', 1.5)}>
 		<path {...sx(homeArt.askAnchor)} d="M214 214v40"></path>
 		<AskThread x={206} y={254} width={356} height={96}>

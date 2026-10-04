@@ -1,5 +1,6 @@
 ---
 // Chapter: asking on the exact line, with the agent answering in place.
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { sx } from '@shared/lib/sx'
 import AskThread from '@shared/ui/drawing/AskThread.astro'
 import CodeLine from '@shared/ui/drawing/CodeLine.astro'
@@ -34,7 +35,7 @@ import { homeArt } from '@shared/ui/drawing/home-art.styles'
 				<text {...sx(text.tiny, text.white)} x="92" y="203" text-anchor="middle">ASK</text>
 				<rect {...sx(homeArt.askTab)} x="116" y="190" width="110" height="18"></rect>
 				<text {...sx(text.tiny)} x="171" y="203" text-anchor="middle">REQUEST CHANGE</text>
-				<text {...sx(text.tiny)} x="448" y="203" text-anchor="end">⌘⇧↵</text>
+				<text {...sx(text.tiny)} x="448" y="203" text-anchor="end">{HOTKEYS.ask}</text>
 			</g>
 			<text {...sx(text.tiny)} x="72" y="230">YOU</text>
 			<text {...anim('type', 0.9, text.copy)} x="72" y="248">Why verify the session here and not in the router?</text>
