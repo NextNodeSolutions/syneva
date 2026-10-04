@@ -1,21 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
-import { motionRoot } from '@syneva/motion/root.stylex'
-
-const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
-// A dashed stroke that also draws on: while armed, the drawing pose's single
-// dash wins over the pattern.
-type Dashed = { readonly default: string } & Readonly<
-	Record<string, string | number>
->
-type DrawnDash = { readonly default: string } & Readonly<
-	Record<string, string | Dashed>
->
-const drawnDash = (pattern: string): DrawnDash => ({
-	default: pattern,
-	[media.motionSafe]: { default: pattern, [armed()]: 1 },
-})
 
 // The marks of the home page's drawings (the review gap chart, the desk, the
 // question, the plan and the local boundary), which the other sections'
@@ -73,7 +57,6 @@ export const homeArt = stylex.create({
 	localBoundary: {
 		fill: `color-mix(in srgb, ${color['--white']} 35%, transparent)`,
 		stroke: color['--ink'],
-		strokeDasharray: drawnDash('5 4'),
 	},
 	localCaret: { fill: color['--accent'] },
 	localSignal: {
@@ -83,11 +66,7 @@ export const homeArt = stylex.create({
 		strokeLinecap: 'round',
 	},
 	localSignalGreen: { stroke: color['--green'] },
-	localOut: {
-		stroke: color['--line-strong'],
-		strokeDasharray: drawnDash('3 3'),
-		fill: 'none',
-	},
+	localOut: { stroke: color['--line-strong'], fill: 'none' },
 	localCut: { fill: color['--wash'], stroke: color['--accent'] },
 	localCutX: {
 		stroke: color['--accent'],
