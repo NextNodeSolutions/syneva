@@ -10,8 +10,11 @@ import type { NavigationParts, SectionMenu } from './navigation-parts'
 // A click without a press count came from the keyboard (Enter or Space).
 const isKeyboardActivation = (event: MouseEvent): boolean => event.detail === 0
 
+// Where a key moves from the trigger at index, among count triggers.
+type TriggerMove = (index: number, count: number) => number
+
 // Keys that move focus along the bar's triggers, wrapping at both ends.
-const ARROWS: Record<string, (index: number, count: number) => number> = {
+const TRIGGER_MOVES: Record<string, TriggerMove> = {
 	ArrowRight: (index, count) => (index + 1) % count,
 	ArrowLeft: (index, count) => (index + count - 1) % count,
 	Home: () => 0,
@@ -137,7 +140,7 @@ export class Navigation {
 			this.#focusPanel(menu)
 			return true
 		}
-		const move = ARROWS[key]
+		const move = TRIGGER_MOVES[key]
 		if (!move) return false
 		const count = this.#menus.length
 		const next = this.#menus[move(this.#menus.indexOf(menu), count)]
