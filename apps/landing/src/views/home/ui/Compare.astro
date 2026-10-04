@@ -1,12 +1,16 @@
 ---
 // The comparison: your editor's diff, hosted AI review, Syneva. Every cell
 // stays true for the category as a whole.
+import { SITE_NAME } from '@entities/site/model/site-map'
 import { section } from '@shared/ui/section.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { compare } from './compare.styles'
 
-const COLUMNS = ['Your editor’s diff', 'Hosted AI review'] as const
+// Each row answers its aspect once per column, in this order; ours comes
+// last and carries the accent.
+const COLUMNS = ['Your editor’s diff', 'Hosted AI review', SITE_NAME] as const
+const isOurs = (column: string): boolean => column === SITE_NAME
 const ROWS = [
 	['Who judges the change', 'You, file by file', 'A model, on its servers', 'You, with your agent on call'],
 	['Order you read in', 'The file tree', 'The PR’s file list', 'A walkthrough your agent sets'],
@@ -27,18 +31,15 @@ const ROWS = [
 			<thead {...sx(compare.thead)}>
 				<tr {...sx(compare.row)}>
 					<th {...sx(compare.cell, compare.column, compare.stacked)} scope="col"><span {...sx(compare.hidden)}>Aspect</span></th>
-					{COLUMNS.map(column => <th {...sx(compare.cell, compare.column, compare.stacked)} scope="col">{column}</th>)}
-					<th {...sx(compare.cell, compare.column, compare.columnUs, compare.stacked)} scope="col">Syneva</th>
+					{COLUMNS.map(column => <th {...sx(compare.cell, compare.column, isOurs(column) && compare.columnUs, compare.stacked)} scope="col">{column}</th>)}
 				</tr>
 			</thead>
 			<tbody {...sx(compare.stacked)}>
 				{
-					ROWS.map(([aspect, editor, hosted, us]) => (
+					ROWS.map(([aspect, ...answers]) => (
 						<tr {...sx(compare.row)}>
 							<th {...sx(compare.cell, compare.aspect)} scope="row">{aspect}</th>
-							<td {...sx(compare.cell, compare.value)} data-label={COLUMNS[0]}>{editor}</td>
-							<td {...sx(compare.cell, compare.value)} data-label={COLUMNS[1]}>{hosted}</td>
-							<td {...sx(compare.cell, compare.value, compare.valueUs)} data-label="Syneva">{us}</td>
+							{COLUMNS.map((column, index) => <td {...sx(compare.cell, compare.value, isOurs(column) && compare.valueUs)} data-label={column}>{answers[index]}</td>)}
 						</tr>
 					))
 				}
