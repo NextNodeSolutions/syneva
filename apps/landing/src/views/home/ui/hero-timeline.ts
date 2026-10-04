@@ -1,5 +1,6 @@
 import { EASE } from '@syneva/motion/easing'
 import { loopTimeline } from '@syneva/motion/loop-timeline'
+import { PATH_LENGTH } from '@syneva/motion/poses'
 
 import type {
 	AnimatedProperties,
@@ -49,7 +50,6 @@ export function present(
 // A signal runs its route as one dash of `dash` hundredths of the route:
 // it shows at `start`, enters from just before the route, takes `length` to
 // leave past its end, and hides again.
-const ROUTE_LENGTH = 100
 const FLASH = 0.02
 export function travel(
 	element: Part,
@@ -58,9 +58,12 @@ export function travel(
 	dash: number,
 ): void {
 	if (!(element instanceof SVGGeometryElement)) return
-	element.setAttribute('pathLength', String(ROUTE_LENGTH))
-	element.style.setProperty('stroke-dasharray', `${dash} ${ROUTE_LENGTH}`)
-	const end = -ROUTE_LENGTH
+	element.setAttribute('pathLength', String(PATH_LENGTH.signal))
+	element.style.setProperty(
+		'stroke-dasharray',
+		`${dash} ${PATH_LENGTH.signal}`,
+	)
+	const end = -PATH_LENGTH.signal
 	loop(element, [
 		[0, { opacity: 0, strokeDashoffset: dash }, 'linear'],
 		[start, { opacity: 0, strokeDashoffset: dash }, 'linear'],

@@ -1,6 +1,7 @@
 ---
 // The agent's column of the hero instrument: its files settle into a reading
 // order on the rail, and the revised one is marked REV 2.
+import { PATH_LENGTH } from '@syneva/motion/poses'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
 import HeroCard from './HeroCard.astro'
@@ -12,7 +13,7 @@ import { heroStage } from './hero-stage.styles'
 <g {...sx(heroStage.layer, shape.secondary)} {...stagePart('agent')}>
 	<text {...sx(heroStage.kicker)} x="30" y="40">YOUR AGENT</text>
 	<text {...sx(heroStage.sub)} x="30" y="58">wrote {HERO_FILES.length} files · +214 −37</text>
-	<path {...sx(heroStage.rail)} pathLength="1" d="M18 92V288" {...stagePart('rail')}></path>
+	<path {...sx(heroStage.rail)} pathLength={PATH_LENGTH.draw} d="M18 92V288" {...stagePart('rail')}></path>
 	<g {...stagePart('rail-dots')}>
 		<rect {...sx(shape.dotAccent)} x="15" y="89" width="6" height="6"></rect>
 		<rect {...sx(shape.dotAccent)} x="15" y="187" width="6" height="6"></rect>
