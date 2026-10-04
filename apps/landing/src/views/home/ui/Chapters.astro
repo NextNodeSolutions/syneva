@@ -2,6 +2,7 @@
 // The three product chapters: the desk, questions on the line, the plan desk.
 import { PAGES } from '@entities/site/model/site-map'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
+import ChapterNote from '@widgets/chapter/ui/ChapterNote.astro'
 import ChapterStatus from '@widgets/chapter/ui/ChapterStatus.astro'
 import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
 import TextLink from '@shared/ui/TextLink.astro'
@@ -41,7 +42,7 @@ const PLAN = [
 <Chapter id="plan" title="A clear plan.<br>A better starting point." list={PLAN} caption="Plan → claims → decisions">
 	<ChapterStatus label="Plan desk · prototype" availability={PAGES.planDesk.availability} />
 	<ChapterText>The cheapest bug is the one you argue out of the plan. The plan desk we’re exploring turns an agent’s proposal into a map of claims you can question before any code exists.</ChapterText>
-	<ChapterText slot="after" isNote>A direction, not a shipped feature. Today, <code>syneva file plan.md</code> already reviews a plan line by line.</ChapterText>
+	<ChapterNote slot="after">A direction, not a shipped feature. Today, <code>syneva file plan.md</code> already reviews a plan line by line.</ChapterNote>
 	<TextLink slot="after" href={PAGES.planDesk.href} label="Follow the plan desk" />
 	<PlanFigure slot="art" />
 </Chapter>
