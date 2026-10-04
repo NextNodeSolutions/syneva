@@ -4,7 +4,7 @@ import { animate } from './animate'
 import { countUp } from './count-up'
 import { EASE, toBezier } from './easing'
 import { playVocabulary } from './placement'
-import { prefersStatic } from './preference'
+import { reducedMotion } from './preference'
 import { syncScenes } from './scenes'
 
 import type { AnimateOptions } from './options'
@@ -31,7 +31,7 @@ const itemsOf = (group: Element): Element[] => [
 ]
 
 function revealGroup(group: Element): void {
-	if (prefersStatic()) return
+	if (reducedMotion.matches) return
 	animate(
 		itemsOf(group),
 		{ opacity: [0, 1], transform: [ITEM.rise, 'none'] },

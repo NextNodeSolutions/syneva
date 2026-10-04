@@ -1,6 +1,6 @@
 import { cancelFrame, frame } from 'motion'
 
-import { prefersStatic } from './preference'
+import { reducedMotion } from './preference'
 
 import type { FrameData } from 'motion'
 
@@ -14,7 +14,7 @@ const quartOut = (progress: number): number => 1 - (1 - progress) ** QUART
 export function countUp(element: HTMLElement): void {
 	const target = Number(element.dataset.count)
 	const digits = element.firstChild
-	if (prefersStatic() || !Number.isFinite(target) || !digits) return
+	if (reducedMotion.matches || !Number.isFinite(target) || !digits) return
 	const startedAt = performance.now()
 	const tick = ({ timestamp }: FrameData): void => {
 		const progress = Math.min(
