@@ -8,8 +8,9 @@ import type { Keyframes } from './engine'
 
 // The drawing vocabulary. An element opts in with data-anim="<kind>" and an
 // optional data-delay (seconds); its hidden pose is the matching poses.* style.
-// Entrances play once, a beat after their section arrives; loops keep an
-// arrived scene quietly alive. Timings are the site's motion grammar.
+// Entrances play once, a beat after their section arrives; loops repeat
+// while their scene is in view. Every drawing on the site plays these
+// timings.
 const LAG_S = 0.25
 const TYPE_STEPS = 28
 const PERCENT = 100

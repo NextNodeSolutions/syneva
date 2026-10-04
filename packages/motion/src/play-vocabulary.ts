@@ -25,7 +25,7 @@ function delayOf(element: Element): number {
 // Starts every vocabulary element of this reveal group (not of a nested one)
 // whose kind `starters` holds, and returns what each started. An element
 // without a box (a drawing's secondary words on phones) plays unseen and
-// simply shows its finished pose if it gets one.
+// shows its finished pose if it gets one.
 export function playVocabulary<Kind extends string, Started>(
 	group: Element,
 	starters: Readonly<Record<Kind, Starter<Started>>>,
