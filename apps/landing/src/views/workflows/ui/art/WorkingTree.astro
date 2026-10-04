@@ -6,23 +6,28 @@ import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
+import type { ComponentProps } from 'astro/types'
 import FileList from './FileList.astro'
 
-const ROWS = [
+type ChangedFile = ComponentProps<typeof FileList>['files'][number]
+type Row = { name: string; y: number; status?: ChangedFile['status'] }
+
+// The repository's files; the changed ones carry their status.
+const ROWS: readonly Row[] = [
 	{ name: 'src/auth/session.ts', status: 'M', y: 92 },
 	{ name: 'src/auth/token.ts', status: 'M', y: 120 },
 	{ name: 'src/api/middleware.ts', status: 'M', y: 148 },
 	{ name: 'src/limits/rate.ts', status: 'A', y: 176 },
-	{ name: 'docs/plan.md', status: '', y: 204 },
-	{ name: 'package.json', status: '', y: 232 },
-] as const
-const ALL = [
-	['src/auth/session.ts', 'mod'],
-	['src/auth/token.ts', 'mod'],
-	['src/api/middleware.ts', 'mod'],
-	['src/limits/rate.ts', 'add'],
-] as const
-const AUTH = ALL.slice(0, 2)
+	{ name: 'docs/plan.md', y: 204 },
+	{ name: 'package.json', y: 232 },
+]
+const BADGE = { M: shape.no, A: shape.yes } as const
+const BADGE_TEXT = { M: text.accent, A: text.green } as const
+// syneva reviews every changed file; --path narrows the desk to one directory.
+const LENS = 'src/auth'
+const PATH_FLAG = `--path ${LENS}`
+const ALL = ROWS.flatMap(({ name, status }): ChangedFile[] => (status ? [{ name, status }] : []))
+const AUTH = ALL.filter(({ name }) => name.startsWith(`${LENS}/`))
 const TO_ALL = 'M250 150C300 150 300 100 350 100'
 const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 ---
@@ -42,8 +47,8 @@ const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 					<text {...sx(text.file, !status && text.muted)} x="58" y={y}>{name}</text>
 					{status && (
 						<Fragment>
-							<rect {...sx(status === 'A' ? shape.yes : shape.no)} x="216" y={y - 11} width="16" height="15" />
-							<text {...sx(text.tiny, status === 'A' ? text.green : text.accent)} x="224" y={y} text-anchor="middle">{status}</text>
+							<rect {...sx(BADGE[status])} x="216" y={y - 11} width="16" height="15" />
+							<text {...sx(text.tiny, BADGE_TEXT[status])} x="224" y={y} text-anchor="middle">{status}</text>
 						</Fragment>
 					)}
 				</Fragment>
@@ -51,13 +56,13 @@ const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 		}
 	</g>
 	<path {...anim('draw', 0.9, shape.bracket)} d="M50 88v-10h8M50 122v10h8"></path>
-	<text {...anim('fade', 1, text.tiny, text.accent)} x="40" y="282">--path src/auth</text>
+	<text {...anim('fade', 1, text.tiny, text.accent)} x="40" y="282">{PATH_FLAG}</text>
 	<g fill="none">
 		<Wire d={TO_ALL} drawDelay={0.5} signalDelay={1.6} />
 		<Wire d={TO_AUTH} drawDelay={1.1} signalDelay={2.4} routeCss={shape.routeAccent} />
 	</g>
 	<FileList files={ALL} x={350} y={60} label="$ syneva" delay={0.6} />
-	<FileList files={AUTH} x={350} y={250} label="$ syneva --path src/auth" delay={1.2} />
+	<FileList files={AUTH} x={350} y={250} label={`$ syneva ${PATH_FLAG}`} delay={1.2} />
 	<text {...anim('fade', 1.4, text.tiny, text.green, shape.secondary)} x="40" y="330">A · UNTRACKED → FULL-FILE ADDITION</text>
 	<text {...anim('fade', 1.5, text.tiny, shape.secondary)} x="40" y="348">UNCHANGED FILES STAY OUT</text>
 </Drawing>
