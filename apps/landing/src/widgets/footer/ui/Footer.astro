@@ -7,11 +7,12 @@ import Brand from '@shared/ui/Brand.astro'
 import Button from '@shared/ui/Button.astro'
 import { footer } from './footer.styles'
 
+// Links to another site (absolute URLs) point up-right.
 const PROJECT = [
-	{ href: PAGES.openSource.href, label: 'Open source', isExternal: false },
-	{ href: REPO_URL, label: 'GitHub', isExternal: true },
-	{ href: repoFile('LICENSE'), label: 'MIT license', isExternal: true },
-	{ href: ISSUES_URL, label: 'Report an issue', isExternal: true },
+	{ href: PAGES.openSource.href, label: 'Open source' },
+	{ href: REPO_URL, label: 'GitHub' },
+	{ href: repoFile('LICENSE'), label: 'MIT license' },
+	{ href: ISSUES_URL, label: 'Report an issue' },
 ]
 ---
 
@@ -39,11 +40,11 @@ const PROJECT = [
 				<a {...sx(footer.head)} href={PAGES.openSource.href}>Project</a>
 				<ul {...sx(footer.list)}>
 					{
-						PROJECT.map(({ href, label, isExternal }) => (
+						PROJECT.map(({ href, label }) => (
 							<li>
 								<a {...sx(footer.link)} href={href}>
 									{label}
-									{isExternal && <Fragment> <span aria-hidden="true">↗</span></Fragment>}
+									{URL.canParse(href) && <Fragment> <span aria-hidden="true">↗</span></Fragment>}
 								</a>
 							</li>
 						))
