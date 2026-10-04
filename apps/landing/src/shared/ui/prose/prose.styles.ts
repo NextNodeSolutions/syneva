@@ -178,10 +178,10 @@ export const callout = stylex.create({
 			width: '8px',
 			height: '8px',
 			marginTop: '8px',
-			backgroundColor: color['--accent'],
 		},
 	},
-	green: { '::before': { backgroundColor: color['--green'] } },
+	open: { '::before': { backgroundColor: color['--accent'] } },
+	settled: { '::before': { backgroundColor: color['--green'] } },
 	lead: { color: color['--ink'] },
 	rest: { color: color['--muted'], marginTop: '6px' },
 })
