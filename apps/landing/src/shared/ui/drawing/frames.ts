@@ -1,7 +1,9 @@
+import { queries } from '@syneva/design-system/media.stylex'
+
 // Drawings that reframe on phones declare data-compact="x y w h": below
 // 600px the viewBox swaps onto their subject instead of shrinking labels into
 // microtext. Listeners (the review circuit) re-route after every swap.
-export const compact = matchMedia('(max-width: 600px)')
+export const compact = matchMedia(queries.phone)
 
 const reframed = [...document.querySelectorAll('svg[data-compact]')]
 reframed.forEach(svg => {

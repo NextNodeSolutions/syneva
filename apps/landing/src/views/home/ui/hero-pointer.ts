@@ -1,3 +1,4 @@
+import { queries } from '@syneva/design-system/media.stylex'
 import { reducedMotion } from '@syneva/motion/preference'
 
 // Depth on pointer: the instrument's three columns drift a few pixels apart
@@ -9,7 +10,7 @@ const CENTER = 0.5
 const PRECISION = 2
 
 export function bindPointer(hero: HTMLElement, svg: Element): void {
-	if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return
+	if (!matchMedia(queries.finePointer).matches) return
 	const layers = Object.entries(DEPTHS).flatMap(([name, depth]) => {
 		const layer = svg.querySelector(`[data-hs="${name}"]`)
 		return layer instanceof SVGElement ? [{ layer, depth }] : []

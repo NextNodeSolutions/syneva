@@ -1,3 +1,5 @@
+import { queries } from '@syneva/design-system/media.stylex'
+
 import { NavigationMorph } from './navigation-morph'
 
 // The header's behavior: hover and click open a section's panel in the
@@ -6,8 +8,8 @@ import { NavigationMorph } from './navigation-morph'
 const OPEN_DELAY_MS = 60
 const CLOSE_DELAY_MS = 180
 
-const compact = matchMedia('(max-width: 700px)')
-const hoverPointer = matchMedia('(hover: hover) and (pointer: fine)')
+const compact = matchMedia(queries.navToggle)
+const hoverPointer = matchMedia(queries.finePointer)
 
 type Input = 'pointer' | 'keyboard'
 

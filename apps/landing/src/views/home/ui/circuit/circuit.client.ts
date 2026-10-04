@@ -1,3 +1,4 @@
+import { queries } from '@syneva/design-system/media.stylex'
 import { booted } from '@syneva/motion/boot'
 import { reducedMotion } from '@syneva/motion/preference'
 import { syncScenes } from '@syneva/motion/scenes'
@@ -8,7 +9,7 @@ import { routeCircuit } from './circuit-routing'
 // The review circuit's runtime: route the wires now, again when the phone
 // frame swaps and once the fonts settled (they can shift a port by a pixel),
 // then run the loop unless the visitor prefers reduced motion.
-const compact = matchMedia('(max-width: 600px)')
+const compact = matchMedia(queries.phone)
 const svg = document.querySelector<SVGSVGElement>('svg[data-circuit]')
 
 function start(circuit: SVGSVGElement): void {
