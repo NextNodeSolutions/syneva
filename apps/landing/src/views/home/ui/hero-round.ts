@@ -12,7 +12,7 @@ type HeroFile = {
 	readonly verdict: Verdict
 	readonly bars?: readonly Bar[]
 }
-type Card = HeroFile & { readonly bars: readonly Bar[] }
+export type Card = HeroFile & { readonly bars: readonly Bar[] }
 
 // The change your desk opens: you ask about it and accept it first.
 export const DESK_FILE = {

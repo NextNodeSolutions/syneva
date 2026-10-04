@@ -8,9 +8,9 @@ import { sx } from '@shared/lib/sx'
 import { barPart, cardPart } from './hero-round-part'
 import { heroStage } from './hero-stage.styles'
 
-import type { Bar, Verdict } from './hero-round'
+import type { Card } from './hero-round'
 
-type Props = { path: string; verdict: Verdict; position: number; bars: readonly Bar[] }
+type Props = Pick<Card, 'path' | 'verdict' | 'bars'> & { position: number }
 
 const { path, verdict, position, bars } = Astro.props
 const MARK = { added: heroStage.markAdded, removed: heroStage.markRemoved, context: heroStage.markContext }
