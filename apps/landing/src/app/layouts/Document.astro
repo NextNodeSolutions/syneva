@@ -9,7 +9,7 @@ import { motionRoot } from '@syneva/motion/root.stylex'
 
 import Footer from '@widgets/footer/ui/Footer.astro'
 import Navigation from '@widgets/navigation/ui/Navigation.astro'
-import { SITE_URL } from '@entities/site/model/site-map'
+import { SITE_NAME, SITE_URL } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import { documentShell } from './document.styles'
 
@@ -29,7 +29,7 @@ const canonical = `${SITE_URL}${Astro.url.pathname}`
 		<meta name="description" content={description} />
 		<link rel="canonical" href={canonical} />
 		<meta property="og:type" content="website" />
-		<meta property="og:site_name" content="Syneva" />
+		<meta property="og:site_name" content={SITE_NAME} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		<meta property="og:url" content={canonical} />

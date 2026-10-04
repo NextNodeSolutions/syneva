@@ -1,10 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import ChangelogPage from '@views/resources/ui/ChangelogPage.astro'
+import { pageTitle } from '@entities/site/model/site-map'
 ---
 
 <Document
-	title="Changelog · Syneva"
+	title={pageTitle('Changelog')}
 	description="What shipped in Syneva, straight from the repository history: review notes, a faster desk, and a tighter loop between you and your agent."
 >
 	<ChangelogPage />

@@ -1,10 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import ConnectYourAgentPage from '@views/resources/ui/ConnectYourAgentPage.astro'
+import { pageTitle } from '@entities/site/model/site-map'
 ---
 
 <Document
-	title="Connect your agent · Syneva"
+	title={pageTitle('Connect your agent')}
 	description="Any agent can drive the Syneva desk: plain JSON on stdout and a localhost HTTP server, documented in full by syneva spec. The pi package wires it up for you."
 >
 	<ConnectYourAgentPage />

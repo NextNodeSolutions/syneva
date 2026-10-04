@@ -1,10 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import GetStartedPage from '@views/resources/ui/GetStartedPage.astro'
+import { pageTitle } from '@entities/site/model/site-map'
 ---
 
 <Document
-	title="Get started · Syneva"
+	title={pageTitle('Get started')}
 	description={'Install Syneva, open a desk over your agent’s diff, and let your agent hear back. The whole path from install to your first verdict, for pi and for any other agent.'}
 >
 	<GetStartedPage />

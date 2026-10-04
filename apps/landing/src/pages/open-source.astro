@@ -1,10 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import OpenSourcePage from '@views/resources/ui/OpenSourcePage.astro'
+import { pageTitle } from '@entities/site/model/site-map'
 ---
 
 <Document
-	title="Open source · Syneva"
+	title={pageTitle('Open source')}
 	description="Syneva is MIT licensed and built in the open: a protocol and an interface you can read end to end. No model inside, no telemetry, no account."
 >
 	<OpenSourcePage />
