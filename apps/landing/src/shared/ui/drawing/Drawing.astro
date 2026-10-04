@@ -17,11 +17,12 @@ type Props = {
 	title: string
 	description: string
 	compact?: string
-	isDense?: boolean
+	// A dense diagram grows its labels on the phone frame.
+	density?: 'regular' | 'dense'
 	css?: Part
 }
 
-const { id, width, height, title, description, compact, isDense = false, css } = Astro.props
+const { id, width, height, title, description, compact, density = 'regular', css } = Astro.props
 const titleId = `${id}-title`
 const descriptionId = `${id}-desc`
 const isSubpage = Astro.locals.page === 'sub'
@@ -33,7 +34,7 @@ const fit = fitOf()
 ---
 
 <svg
-	{...sx(drawing.root, fit, css, drawingMarker, isDense && 'is-dense')}
+	{...sx(drawing.root, fit, css, drawingMarker, density === 'dense' && 'is-dense')}
 	viewBox={`0 0 ${width} ${height}`}
 	data-compact={compact}
 	role="img"
