@@ -83,3 +83,12 @@ export const layout = stylex.defineVars({
 		[media.phone]: '20px',
 	},
 })
+
+// The size global.css gives every h2 (a component's own heading style wins
+// over it): fluid down to its floor, then a step up on phones.
+export const typeScale = stylex.defineVars({
+	'--h2-size': {
+		default: 'clamp(32px, 4.2vw, 52px)',
+		[media.phone]: '33px',
+	},
+})

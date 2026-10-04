@@ -79,7 +79,7 @@ h3 {
 	text-wrap: balance;
 }
 h2 {
-	font-size: clamp(32px, 4.2vw, 52px);
+	font-size: var(--h2-size);
 }
 h3 {
 	font-size: 22px;
@@ -102,11 +102,6 @@ code {
 	margin-inline: 8px;
 }
 
-@media (max-width: 600px) {
-	h2 {
-		font-size: 33px;
-	}
-}
 /* Reduced motion is the complete static page: no smooth scrolling, no
    transition, no keyframe animation (the runtime cancels its own). */
 @media (prefers-reduced-motion: reduce) {
