@@ -41,7 +41,7 @@ function arrive({ one, all }: Scope): void {
 			[FADE_END, { opacity: 0, transform: 'none' }],
 		])
 	})
-	writeBars()
+	writeBars({ one, all })
 	draw(one('rail'), 2.05, 0.6)
 	present(one('rail-dots'), 2.1, { length: 0.4 })
 	present(one('more'), 2.2, { length: 0.4 })
@@ -54,13 +54,10 @@ function arrive({ one, all }: Scope): void {
 
 // Each card's code lines write in; the rejected file's lines are rewritten
 // after the verdict comes back.
-function writeBars(): void {
-	const bars = [...document.querySelectorAll('[data-hero-stage] [data-bar]')]
-	bars.forEach(bar => {
-		const card = Number(bar.getAttribute('data-bar'))
-		const row = bars
-			.filter(other => other.getAttribute('data-bar') === String(card))
-			.indexOf(bar)
+function writeBars({ all }: Scope): void {
+	all('bar').forEach(bar => {
+		const card = Number(bar.getAttribute('data-card'))
+		const row = Number(bar.getAttribute('data-row'))
 		setBox(bar, 'left center', 'fill-box')
 		const isRejected = bar.closest('[data-verdict="no"]') !== null
 		const write = 0.45 + card * 0.16 + row * 0.13
