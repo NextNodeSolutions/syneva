@@ -1,7 +1,8 @@
+import type { AwaitEvent } from '@syneva/contracts/agent'
+
 // The agent contract as the site tells it; packages/contracts/src/spec.ts is
 // the full one, which `syneva spec` prints.
 type Subcommand = { name: string; does: string }
-type DeskEvent = { kind: string; meaning: string }
 
 // The subcommands that drive a review round, out from the agent to the desk.
 export const SUBCOMMANDS = [
@@ -38,18 +39,11 @@ export const commandOf = ({ name }: Subcommand): string => `syneva ${name}`
 export const SPEC_COMMAND = commandOf(SPEC_SUBCOMMAND)
 export const SPEC_COMMAND_LABEL = 'Print the agent contract'
 
-// The events the desk answers with, back to the agent.
-export const EVENTS = [
-	{
-		kind: 'question',
-		meaning: 'You asked something. Answer it, read-only, on the same line.',
-	},
-	{
-		kind: 'review',
-		meaning: 'You clicked Send. The result field is your ReviewResult.',
-	},
-	{
-		kind: 'closed',
-		meaning: 'You ended the review from the browser. The round is over.',
-	},
-] as const satisfies readonly DeskEvent[]
+// The events the desk answers with, back to the agent, by kind with what
+// each means. The contract's event union keys them: a kind added or renamed
+// there fails this build until the site tells it too.
+export const EVENTS = {
+	question: 'You asked something. Answer it, read-only, on the same line.',
+	review: 'You clicked Send. The result field is your ReviewResult.',
+	closed: 'You ended the review from the browser. The round is over.',
+} as const satisfies Record<AwaitEvent['kind'], string>

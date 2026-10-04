@@ -45,7 +45,7 @@ const BACK = 'M420 240H180'
 	}
 	<text {...anim('fade', 1.3, text.tiny, text.accent)} x="300" y="310" text-anchor="middle">EVENTS · DESK → AGENT</text>
 	{
-		EVENTS.map(({ kind: event }, i) => (
+		Object.keys(EVENTS).map((event, i) => (
 			<g {...anim('pop', 1.4 + i * 0.12)}>
 				<rect {...sx(shape.kbd, shape.no)} x={222 + i * EVENT_STEP} y="272" width={PILL_WIDTH} height="18" />
 				<text {...sx(text.tiny, text.accent)} x={222 + PILL_WIDTH / 2 + i * EVENT_STEP} y="284.5" text-anchor="middle">{event}</text>

@@ -30,7 +30,7 @@ const LOOP = [
 	'  done',
 ]
 const SUBCOMMAND_ROWS = [...SUBCOMMANDS, SPEC_SUBCOMMAND].map(subcommand => [commandOf(subcommand), subcommand.does] as const)
-const EVENT_ROWS = EVENTS.map(({ kind, meaning }) => [kind, meaning] as const)
+const EVENT_ROWS = Object.entries(EVENTS)
 const ACTING = [
 	['rejected → revert it.', 'You don’t want that change.'],
 	['requestedChanges → make the edit.', 'At that path and line, or across the file for a whole-file request.'],
