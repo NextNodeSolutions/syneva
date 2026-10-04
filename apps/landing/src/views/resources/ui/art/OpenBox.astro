@@ -18,7 +18,7 @@ const AGENTS: readonly Agent[] = [
 	{ name: 'your script', signalDelay: 3 },
 ]
 const ROW = 52
-const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW} 200 210 240 210`
+const wireOf = (index: number): string => `M160 ${103 + index * ROW}C200 ${103 + index * ROW} 200 210 240 210`
 ---
 
 <Drawing
@@ -30,13 +30,13 @@ const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW
 	description="Any agent plugs into Syneva over JSON on stdout. Syneva serves your desk over localhost HTTP. The slot where a model would sit is empty, on purpose. MIT licensed."
 >
 	{
-		AGENTS.map(({ name, signalDelay }, i) => (
+		AGENTS.map(({ name, signalDelay }, index) => (
 			<Fragment>
-				<g {...anim('rise', i * 0.08)}>
-					<rect {...sx(shape.panel, shape.panelWhite)} x="40" y={86 + i * ROW} width="120" height="34" />
-					<text {...sx(text.file)} x="54" y={107 + i * ROW}>{name}</text>
+				<g {...anim('rise', index * 0.08)}>
+					<rect {...sx(shape.panel, shape.panelWhite)} x="40" y={86 + index * ROW} width="120" height="34" />
+					<text {...sx(text.file)} x="54" y={107 + index * ROW}>{name}</text>
 				</g>
-				<Wire d={wireOf(i)} drawDelay={0.5 + i * 0.06} signalDelay={signalDelay} />
+				<Wire d={wireOf(index)} drawDelay={0.5 + index * 0.06} signalDelay={signalDelay} />
 			</Fragment>
 		))
 	}

@@ -55,28 +55,28 @@ const VERDICT_MARK = { kept: productArt.isoYes, undone: productArt.isoNo } as co
 	description="Four stacked sheets: your agent's diff at the bottom, the walkthrough your agent can attach above it, the questions you pin to lines above that, and your verdicts on top."
 >
 	<ExplodedLayer layer={diff} delay={sheetDelay(diff)}>{
-		DIFF_LINES.map(({ width, change }, i) => (
+		DIFF_LINES.map(({ width, change }, index) => (
 			<Fragment>
-				<rect {...sx(CHANGE_MARK[change])} x="12" y={20 + i * 16} width="6" height="6" />
-				<rect {...sx(productArt.isoBar)} x="24" y={20 + i * 16} width={width} height="6" />
+				<rect {...sx(CHANGE_MARK[change])} x="12" y={20 + index * 16} width="6" height="6" />
+				<rect {...sx(productArt.isoBar)} x="24" y={20 + index * 16} width={width} height="6" />
 			</Fragment>
 		))
 	}</ExplodedLayer>
 	<ExplodedLayer layer={walkthrough} delay={sheetDelay(walkthrough)}>{
-		GUIDE_BARS.map(([first, second], i) => (
+		GUIDE_BARS.map(([first, second], index) => (
 			<Fragment>
-				<rect {...sx(productArt.isoNumber)} x="12" y={16 + i * 38} width="12" height="12" />
-				<rect {...sx(productArt.isoBar)} x="32" y={18 + i * 38} width={first} height="7" />
-				<rect {...sx(productArt.isoBar, productArt.isoBarFaint)} x="32" y={32 + i * 38} width={second} height="5" />
+				<rect {...sx(productArt.isoNumber)} x="12" y={16 + index * 38} width="12" height="12" />
+				<rect {...sx(productArt.isoBar)} x="32" y={18 + index * 38} width={first} height="7" />
+				<rect {...sx(productArt.isoBar, productArt.isoBarFaint)} x="32" y={32 + index * 38} width={second} height="5" />
 			</Fragment>
 		))
 	}</ExplodedLayer>
 	<ExplodedLayer layer={threads} delay={sheetDelay(threads)}><rect {...sx(productArt.isoBar, productArt.isoBarFaint)} x="14" y="18" width="90" height="6"></rect><rect {...sx(productArt.isoBand)} x="10" y="34" width="110" height="14"></rect><rect {...sx(productArt.isoBar)} x="14" y="38" width="76" height="6"></rect><rect {...sx(productArt.isoBubble)} x="26" y="60" width="92" height="50"></rect><rect {...sx(productArt.isoRail)} x="26" y="60" width="4" height="50"></rect><rect {...sx(productArt.isoBar)} x="38" y="72" width="62" height="5"></rect><rect {...sx(productArt.isoBar, productArt.isoBarAccent)} x="38" y="90" width="48" height="5"></rect></ExplodedLayer>
 	<ExplodedLayer layer={verdicts} delay={sheetDelay(verdicts)}>{
-		VERDICT_ROWS.map(({ width, verdict }, i) => (
+		VERDICT_ROWS.map(({ width, verdict }, index) => (
 			<Fragment>
-				<rect {...sx(productArt.isoBar)} x="14" y={20 + i * 26} width={width} height="7" />
-				<rect {...sx(VERDICT_MARK[verdict])} x="104" y={16 + i * 26} width="14" height="14" />
+				<rect {...sx(productArt.isoBar)} x="14" y={20 + index * 26} width={width} height="7" />
+				<rect {...sx(VERDICT_MARK[verdict])} x="104" y={16 + index * 26} width="14" height="14" />
 			</Fragment>
 		))
 	}</ExplodedLayer>

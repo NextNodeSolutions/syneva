@@ -99,8 +99,8 @@ const LEGEND_GAP = '   '
 	</g>
 	{MARKERS.map(({ step, x, y, delay }) => <AnatomyMarker step={step} x={x} y={y} delay={delay} />)}
 	<g {...anim('fade', 2.4, shape.secondary)}><text {...sx(text.tiny)} x="24" y="424">{
-		MARKERS.map(({ step, label }, i) => (
-			<Fragment>{i > 0 && LEGEND_GAP}<tspan {...sx(productArt.anatomyKey)}>{step}</tspan>{` ${label}`}</Fragment>
+		MARKERS.map(({ step, label }, index) => (
+			<Fragment>{index > 0 && LEGEND_GAP}<tspan {...sx(productArt.anatomyKey)}>{step}</tspan>{` ${label}`}</Fragment>
 		))
 	}</text></g>
 </Drawing>

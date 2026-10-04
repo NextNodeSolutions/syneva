@@ -20,8 +20,8 @@ const ICON_SCALE = 1.25
 const ICON_OFFSET = { x: 41, y: 10 } as const
 // The workflows section's pages, as the site map lists them: each card shows
 // the page's icon, title and command.
-const SOURCES = SECTION_BY_ID.workflows.items.map(({ title, icon, code }, i) => {
-	const y = TOP + i * ROW
+const SOURCES = SECTION_BY_ID.workflows.items.map(({ title, icon, code }, index) => {
+	const y = TOP + index * ROW
 	return { title, icon, command: code, y, iconTransform: `translate(${ICON_OFFSET.x} ${y + ICON_OFFSET.y}) scale(${ICON_SCALE})` }
 })
 const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340 220`
@@ -37,17 +37,17 @@ const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340
 >
 	<g fill="none">
 		{
-			SOURCES.map(({ y }, i) => (
+			SOURCES.map(({ y }, index) => (
 				<Fragment>
-					<Wire d={routeOf(y)} drawDelay={0.5 + i * 0.1} signalDelay={1.4 + i * 0.8} />
+					<Wire d={routeOf(y)} drawDelay={0.5 + index * 0.1} signalDelay={1.4 + index * 0.8} />
 					<circle {...sx(shape.port)} cx="240" cy={y + 32} r="2.5" />
 				</Fragment>
 			))
 		}<Wire d="M450 220h40" drawDelay={1.2} signalDelay={2} routeCss={shape.routeGreen} signalCss={shape.signalGreen} />
 	</g>
 	{
-		SOURCES.map(({ title, icon, command, y, iconTransform }, i) => (
-			<g {...anim('rise', i * 0.12)}>
+		SOURCES.map(({ title, icon, command, y, iconTransform }, index) => (
+			<g {...anim('rise', index * 0.12)}>
 				<rect {...sx(shape.panel, shape.panelWhite)} x="30" y={y} width="210" height="64" />
 				<g transform={iconTransform}>
 					<path {...sx(workflowsArt.hubGlyph)} d={ICONS[icon]} />

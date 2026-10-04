@@ -19,7 +19,7 @@ const CELLS = [0, 1, 2] as const
 // A claim's risk fills its meter in one tone: three cells high, two mid.
 const RISK_TONE = { 3: productArt.riskHigh, 2: productArt.riskMid, 1: productArt.riskLow } as const
 const CLAIM_TONE = { risk: [homeArt.planClaim, homeArt.planRisk], question: [homeArt.planClaim], yes: [homeArt.planClaim, homeArt.planSettled] } as const
-const rowY = (i: number): number => 96 + i * 72
+const rowY = (index: number): number => 96 + index * 72
 ---
 
 <Drawing
@@ -46,14 +46,14 @@ const rowY = (i: number): number => 96 + i * 72
 	<text {...sx(text.tiny, text.accent)} x="290" y="76">RANKED BY RISK</text>
 	<g {...anim('pop', 1.6)}><rect {...sx(productArt.protoTag)} x="476" y="34" width="96" height="20"></rect><text {...sx(text.tiny, text.accent)} x="524" y="48" text-anchor="middle">PROTOTYPE</text></g>
 	{
-		CLAIMS.map(({ words, risk, state, kind }, i) => (
-			<g {...anim('rise', 0.8 + i * 0.18)}>
-				<rect {...sx(CLAIM_TONE[kind])} x="290" y={rowY(i)} width="282" height="56" />
-				<text {...sx(text.tiny, text.accent)} x="304" y={rowY(i) + 21}>{twoDigits(i + 1)}</text>
-				<text {...sx(text.copy)} x="326" y={rowY(i) + 22}>{words}</text>
-				<text {...sx(text.small)} x="326" y={rowY(i) + 41}>{state}</text>
-				{CELLS.map(k => (
-					<rect {...sx(productArt.riskCell, k < risk && RISK_TONE[risk])} x={528 + k * 12} y={rowY(i) + 14} width="9" height="9" />
+		CLAIMS.map(({ words, risk, state, kind }, index) => (
+			<g {...anim('rise', 0.8 + index * 0.18)}>
+				<rect {...sx(CLAIM_TONE[kind])} x="290" y={rowY(index)} width="282" height="56" />
+				<text {...sx(text.tiny, text.accent)} x="304" y={rowY(index) + 21}>{twoDigits(index + 1)}</text>
+				<text {...sx(text.copy)} x="326" y={rowY(index) + 22}>{words}</text>
+				<text {...sx(text.small)} x="326" y={rowY(index) + 41}>{state}</text>
+				{CELLS.map(cell => (
+					<rect {...sx(productArt.riskCell, cell < risk && RISK_TONE[risk])} x={528 + cell * 12} y={rowY(index) + 14} width="9" height="9" />
 				))}
 			</g>
 		))

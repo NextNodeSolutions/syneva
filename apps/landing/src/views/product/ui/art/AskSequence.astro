@@ -26,11 +26,11 @@ const HEAD = { accent: productArt.headAccent, green: productArt.headGreen, muted
 const ARROW = 4
 // The line stops ARROW short of the lane it reaches, where the head points
 // back along it; the head pops and the label fades in after the line.
-const arrows = STEPS.map(({ from, to, y, label, tone }, i) => {
+const arrows = STEPS.map(({ from, to, y, label, tone }, index) => {
 	const start = LANES[from].x
 	const end = LANES[to].x
 	const backward = end > start ? -1 : 1
-	const delay = 0.5 + i * 0.4
+	const delay = 0.5 + index * 0.4
 	return {
 		line: `M${start} ${y}H${end + backward * ARROW}`,
 		head: `M${end} ${y}l${backward * 7}-4v8Z`,

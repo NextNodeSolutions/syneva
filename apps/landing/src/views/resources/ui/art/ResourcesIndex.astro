@@ -13,13 +13,13 @@ import { resourcesArt } from './resources-art.styles'
 const ROW = 70
 // The leader starts after the title, at the head font's average advance.
 const ADVANCE = 9.6
-const leaderAt = (title: string, i: number): string => `M${title.length * ADVANCE + 82} ${128 + i * ROW}H486`
+const leaderAt = (title: string, index: number): string => `M${title.length * ADVANCE + 82} ${128 + index * ROW}H486`
 // The resources section's pages, as the site map lists them.
-const entries = SECTION_BY_ID.resources.items.map(({ title, blurb }, i) => ({
+const entries = SECTION_BY_ID.resources.items.map(({ title, blurb }, index) => ({
 	title,
 	blurb,
-	number: twoDigits(i + 1),
-	leader: leaderAt(title, i),
+	number: twoDigits(index + 1),
+	leader: leaderAt(title, index),
 }))
 ---
 
@@ -34,13 +34,13 @@ const entries = SECTION_BY_ID.resources.items.map(({ title, blurb }, i) => ({
 	<text {...anim('fade', 0, text.tiny)} x="70" y="80">CONTENTS</text>
 	<path {...anim('draw', 0.1, shape.inkLine)} d="M70 92h460"></path>
 	{
-		entries.map(({ title, blurb, number, leader }, i) => (
-			<g {...anim('rise', 0.2 + i * 0.12)}>
-				<text {...sx(text.head)} x="70" y={132 + i * ROW}>{title}</text>
-				<text {...sx(text.small)} x="70" y={152 + i * ROW}>{blurb}</text>
+		entries.map(({ title, blurb, number, leader }, index) => (
+			<g {...anim('rise', 0.2 + index * 0.12)}>
+				<text {...sx(text.head)} x="70" y={132 + index * ROW}>{title}</text>
+				<text {...sx(text.small)} x="70" y={152 + index * ROW}>{blurb}</text>
 				<path {...sx(resourcesArt.tocLeader)} d={leader} />
-				<text {...sx(text.label, text.accent)} x="530" y={132 + i * ROW} text-anchor="end">{number}</text>
-				<path {...sx(shape.hair)} d={`M70 ${170 + i * ROW}h460`} />
+				<text {...sx(text.label, text.accent)} x="530" y={132 + index * ROW} text-anchor="end">{number}</text>
+				<path {...sx(shape.hair)} d={`M70 ${170 + index * ROW}h460`} />
 			</g>
 		))
 	}

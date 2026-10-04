@@ -51,10 +51,10 @@ const sections = SECTIONS.map(({ label, kind, y, rows }, sectionIndex) => ({
 	<text {...sx(text.tiny)} x="30" y="72">AS GIT LISTS IT</text>
 	<text {...sx(text.tiny, text.accent)} x="330" y="56">AS YOUR AGENT GUIDES IT</text>
 	{
-		GIT_ORDER.map((name, i) => (
+		GIT_ORDER.map((name, index) => (
 			<Fragment>
-				<rect {...sx(productArt.guideGhost)} x="30" y={TOP + i * ROW} width="210" height="28" />
-				<text {...sx(text.file, text.muted)} x="44" y={110 + i * ROW}>{name}</text>
+				<rect {...sx(productArt.guideGhost)} x="30" y={TOP + index * ROW} width="210" height="28" />
+				<text {...sx(text.file, text.muted)} x="44" y={110 + index * ROW}>{name}</text>
 			</Fragment>
 		))
 	}

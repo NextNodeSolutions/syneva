@@ -50,13 +50,13 @@ const centerOf = (index: number): number => columnX(index) + SQUARE / 2
 // A day's commits stack one square per commit, in the changelog's kind order.
 const cellsOf = (count: DayCount): ChangeKind[] =>
 	CHANGE_KINDS.flatMap(kind => Array.from({ length: count[kind] }, (): ChangeKind => kind))
-const days = HISTORY.map((count, i) => ({
-	x: columnX(i),
-	center: centerOf(i),
+const days = HISTORY.map((count, index) => ({
+	x: columnX(index),
+	center: centerOf(index),
 	cells: cellsOf(count),
 	date: count.day.replace('-', '/'),
-	hasDate: isDated(i),
-	delay: 0.2 + i * 0.05,
+	hasDate: isDated(index),
+	delay: 0.2 + index * 0.05,
 }))
 // The review notes panel shipped on 09-23. The pointer rises from above that
 // column's stack and runs right to its label.
@@ -88,8 +88,8 @@ const POINTER_LABEL_GAP = 5
 		days.map(({ x, center, cells, date, hasDate, delay }) => (
 			<Fragment>
 				<g {...move(delay, 0, 30)}>
-					{cells.map((kind, k) => (
-						<rect {...sx(KIND[kind])} x={x} y={BASE - 12 - k * CELL} width={SQUARE} height={SQUARE} />
+					{cells.map((kind, level) => (
+						<rect {...sx(KIND[kind])} x={x} y={BASE - 12 - level * CELL} width={SQUARE} height={SQUARE} />
 					))}
 				</g>
 				<path {...sx(shape.hair)} d={`M${center} ${BASE + 2}v5`} />

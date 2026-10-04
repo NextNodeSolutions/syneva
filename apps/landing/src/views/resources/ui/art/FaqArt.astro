@@ -28,11 +28,11 @@ const ROW = 50
 	<text {...anim('fade', 1.4, text.small)} x="80" y="176">Your agent sets the order and answers your questions.</text>
 	<text {...anim('fade', 1.5, text.small)} x="80" y="196">Syneva records your verdicts and hands them back.</text>
 	{
-		CLOSED.map((question, i) => (
-			<g {...anim('rise', 0.3 + i * 0.1)}>
-				<path {...sx(shape.hair)} d={`M60 ${236 + i * ROW}h480`} />
-				<text {...sx(text.copy)} x="60" y={266 + i * ROW}>{question}</text>
-				<path {...sx(resourcesArt.chevron)} d={`M524 ${256 + i * ROW}l6 6 6-6`} />
+		CLOSED.map((question, index) => (
+			<g {...anim('rise', 0.3 + index * 0.1)}>
+				<path {...sx(shape.hair)} d={`M60 ${236 + index * ROW}h480`} />
+				<text {...sx(text.copy)} x="60" y={266 + index * ROW}>{question}</text>
+				<path {...sx(resourcesArt.chevron)} d={`M524 ${256 + index * ROW}l6 6 6-6`} />
 			</g>
 		))
 	}

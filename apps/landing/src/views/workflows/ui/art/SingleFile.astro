@@ -27,8 +27,8 @@ const STATES = [
 	description="syneva file opens one file. An unchanged file shows in full, a changed file shows as a diff you can stage, and an untracked file shows in full for a verdict. Markdown renders, and you can comment on any rendered block, including the file's own images."
 >
 	{
-		STATES.map(({ label, words, x, isCurrent }, i) => (
-			<g {...anim('rise', i * 0.12)}>
+		STATES.map(({ label, words, x, isCurrent }, index) => (
+			<g {...anim('rise', index * 0.12)}>
 				<rect {...sx(shape.panel, isCurrent && shape.panelWhite)} x={x} y="40" width="160" height="58" />
 				<text {...sx(text.tiny, isCurrent && text.accent)} x={x + 14} y="62">{label}</text>
 				<text {...sx(text.small)} x={x + 14} y="84">{words}</text>
