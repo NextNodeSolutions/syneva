@@ -1,5 +1,6 @@
 ---
 // Pull requests: a branch reviewed against its merge-base.
+import { PAGES } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
@@ -27,7 +28,7 @@ const FEATURE = [
 >
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="44" width="520" height="62"></rect>
-		<text {...sx(text.code)} x="56" y="68">$ syneva pr 128</text>
+		<text {...sx(text.code)} x="56" y="68">$ {PAGES.pullRequests.code}</text>
 		<text {...sx(text.tiny)} x="544" y="68" text-anchor="end">OR A BRANCH, OR A GITHUB URL</text>
 		<text {...sx(text.small)} x="56" y="92">Numbers and URLs resolve through gh. The branch is checked out for you.</text>
 	</g>

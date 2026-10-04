@@ -32,7 +32,7 @@ const DIRECTION = [
 <Chapter id="today" title="Available today:<br>review the plan as a file." caption="syneva file → rendered markdown → comments on blocks">
 	<ChapterText>You don&rsquo;t have to wait for the plan desk to review a plan. Point Syneva at the file your agent wrote and review it like code.</ChapterText>
 	<ChapterText>Markdown renders with a Rendered and Source toggle, and you can comment on any rendered block. Your agent answers in the thread, and your requests go back with Send.</ChapterText>
-	<ProseCommand text="syneva file plan.md" label="Review a plan file" />
+	<ProseCommand text={PAGES.singleFile.code} label="Review a plan file" />
 	<PlanToday slot="art" />
 </Chapter>
 <Prose id="direction" title={'What we’re<br>exploring.'}>

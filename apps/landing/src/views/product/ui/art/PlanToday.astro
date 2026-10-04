@@ -1,6 +1,7 @@
 ---
 // Plan desk: what already works today, with syneva file.
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import { PAGES } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import AskThread from '@shared/ui/drawing/AskThread.astro'
@@ -37,5 +38,5 @@ import { text } from '@shared/ui/drawing/text.styles'
 			<text {...sx(text.tiny, text.accent)} x="394" y="226">AGENT IS ANSWERING…</text>
 		</AskThread>
 	</g>
-	<text {...anim('fade', 1.2, text.code)} x="56" y="322">$ syneva file plan.md</text>
+	<text {...anim('fade', 1.2, text.code)} x="56" y="322">$ {PAGES.singleFile.code}</text>
 </Drawing>

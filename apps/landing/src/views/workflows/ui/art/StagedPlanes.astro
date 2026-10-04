@@ -1,5 +1,6 @@
 ---
 // Staged: review the index, the exact content of your next commit.
+import { PAGES } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -54,7 +55,7 @@ const BAR = { M: workflowsArt.barMod, A: workflowsArt.barAdd } as const
 		<text {...sx(text.code, text.green)} x="236" y="283">+ export const LIMIT = 120</text>
 		<Check x={524} y={214} size={12} delay={1.2} /><Pending x={524} y={272} size={12} />
 		<path {...sx(shape.hair)} d="M220 304h330"></path>
-		<text {...sx(text.code)} x="236" y="336">$ syneva --diff staged</text>
+		<text {...sx(text.code)} x="236" y="336">$ {PAGES.stagedChanges.code}</text>
 	</g>
 	<path {...anim('draw', 1, shape.bracket)} d="M206 176v-24h24M564 176v-24h-24M206 344v24h24M564 344v24h-24"></path>
 	<text {...anim('fade', 1.3, text.tiny, text.accent)} x="385" y="390" text-anchor="middle">REVIEWED: THE INDEX, NOTHING ELSE</text>

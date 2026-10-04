@@ -12,9 +12,9 @@ import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import WorkflowHub from './art/WorkflowHub.astro'
 
 const COMMANDS = [
-	['syneva', 'The working-tree diff, untracked files included.'],
+	[PAGES.workingTree.code, 'The working-tree diff, untracked files included.'],
 	['syneva --path src/auth', 'The same, narrowed to one path.'],
-	['syneva --diff staged', 'Only what is staged in the index.'],
+	[PAGES.stagedChanges.code, 'Only what is staged in the index.'],
 	['syneva pr <ref>', 'A branch, PR number or GitHub URL vs its merge-base.'],
 	['syneva pr <ref> --base main', 'The same, against a base you choose.'],
 	['syneva file <path>', 'One file, tracked or not.'],

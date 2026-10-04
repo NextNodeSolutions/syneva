@@ -22,7 +22,7 @@ const GOOD_TO_KNOW = [
 
 <PageHero
 	title="A last, careful look before the commit."
-	lede="Stage what you think is ready, then review exactly that. <code>syneva --diff staged</code> opens the index, so the desk shows what your next commit will contain and nothing else."
+	lede={`Stage what you think is ready, then review exactly that. <code>${PAGES.stagedChanges.code}</code> opens the index, so the desk shows what your next commit will contain and nothing else.`}
 	caption={'The working tree can stay messy. The commit shouldn’t.'}
 >
 	<Command slot="actions" text={PAGES.stagedChanges.code} label="Review staged changes" />

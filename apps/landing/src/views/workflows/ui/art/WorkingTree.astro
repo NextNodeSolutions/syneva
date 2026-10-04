@@ -1,5 +1,6 @@
 ---
 // Working tree: modified and untracked files, and --path as a lens.
+import { PAGES } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Wire from '@shared/ui/drawing/Wire.astro'
@@ -61,8 +62,8 @@ const TO_AUTH = 'M250 106C320 106 280 290 350 290'
 		<Wire d={TO_ALL} drawDelay={0.5} signalDelay={1.6} />
 		<Wire d={TO_AUTH} drawDelay={1.1} signalDelay={2.4} routeCss={shape.routeAccent} />
 	</g>
-	<FileList files={ALL} x={350} y={60} label="$ syneva" delay={0.6} />
-	<FileList files={AUTH} x={350} y={250} label={`$ syneva ${PATH_FLAG}`} delay={1.2} />
+	<FileList files={ALL} x={350} y={60} label={`$ ${PAGES.workingTree.code}`} delay={0.6} />
+	<FileList files={AUTH} x={350} y={250} label={`$ ${PAGES.workingTree.code} ${PATH_FLAG}`} delay={1.2} />
 	<text {...anim('fade', 1.4, text.tiny, text.green, shape.secondary)} x="40" y="330">A · UNTRACKED → FULL-FILE ADDITION</text>
 	<text {...anim('fade', 1.5, text.tiny, shape.secondary)} x="40" y="348">UNCHANGED FILES STAY OUT</text>
 </Drawing>
