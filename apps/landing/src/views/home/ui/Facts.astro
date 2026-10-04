@@ -17,9 +17,9 @@ const FACTS = [
 ---
 
 <section {...revealRuledGroup(section.ruled, section.pad)} id="facts" aria-labelledby="facts-title">
-	<div {...sx(facts.head)}>
+	<div {...sx(section.head, facts.head)}>
 		<h2 {...revealItem()} id="facts-title">Numbers we can<br />actually promise.</h2>
-		<p {...revealItem(facts.headText)}>No adoption charts, no borrowed logos. These are product facts: true on your machine the moment you install it.</p>
+		<p {...revealItem(section.headText, facts.headText)}>No adoption charts, no borrowed logos. These are product facts: true on your machine the moment you install it.</p>
 	</div>
 	<div {...sx(facts.stats)}>
 		{

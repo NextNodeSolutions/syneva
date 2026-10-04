@@ -25,16 +25,7 @@ const US_LABEL = (): readonly string[] =>
 // phones the table stacks into one card per aspect, each cell labelled with
 // its column since the head is hidden.
 export const compare = stylex.create({
-	head: {
-		display: 'grid',
-		gridTemplateColumns: {
-			default: '1.25fr 1fr',
-			[media.narrow]: 'minmax(0, 1fr)',
-		},
-		gap: { default: '70px', [media.narrow]: '24px' },
-		marginBottom: '52px',
-	},
-	headText: { alignSelf: 'end', maxWidth: '440px' },
+	head: { marginBottom: '52px' },
 	scroll: { overflowX: { default: 'auto', [media.phone]: 'visible' } },
 	table: {
 		width: '100%',

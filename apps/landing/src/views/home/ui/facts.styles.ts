@@ -4,13 +4,8 @@ import { color } from '@syneva/design-system/tokens.stylex'
 
 // Trust register: product facts, styled as a ruled register.
 export const facts = stylex.create({
-	head: {
-		display: 'grid',
-		gridTemplateColumns: { default: '1.25fr 1fr', [media.narrow]: '1fr' },
-		gap: { default: '70px', [media.narrow]: '24px' },
-		marginBottom: { default: '64px', [media.narrow]: '44px' },
-	},
-	headText: { alignSelf: 'end', maxWidth: '430px' },
+	head: { marginBottom: { default: '64px', [media.narrow]: '44px' } },
+	headText: { maxWidth: '430px' },
 	stats: {
 		display: 'grid',
 		gridTemplateColumns: {

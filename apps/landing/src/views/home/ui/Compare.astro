@@ -18,9 +18,9 @@ const ROWS = [
 ---
 
 <section {...revealRuledGroup(section.ruled, section.pad)} id="compare" aria-labelledby="compare-title">
-	<div {...sx(compare.head)}>
+	<div {...sx(section.head, compare.head)}>
 		<h2 {...revealItem()} id="compare-title">Built for the loop<br />your editor wasn’t.</h2>
-		<p {...revealItem(compare.headText)}>Editors were designed for writing code. AI reviewers put a model between you and the diff. Syneva is a review surface for the human, with the agent that wrote the code one keystroke away.</p>
+		<p {...revealItem(section.headText)}>Editors were designed for writing code. AI reviewers put a model between you and the diff. Syneva is a review surface for the human, with the agent that wrote the code one keystroke away.</p>
 	</div>
 	<div {...revealItem(compare.scroll)}>
 		<table {...sx(compare.table)}>

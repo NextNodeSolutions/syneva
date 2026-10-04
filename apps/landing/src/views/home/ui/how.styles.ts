@@ -15,17 +15,10 @@ export const how = stylex.create({
 		scrollMarginTop: '12px',
 	},
 	head: {
-		display: 'grid',
-		gridTemplateColumns: {
-			default: '1.25fr 1fr',
-			[media.narrow]: 'minmax(0, 1fr)',
-		},
-		gap: { default: '70px', [media.narrow]: '24px' },
 		paddingTop: PAD,
 		paddingBottom: '56px',
 		paddingInline: layout['--gutter'],
 	},
-	headText: { alignSelf: 'end', maxWidth: '440px' },
 	figure: {
 		borderBlockWidth: '1px',
 		borderBlockStyle: 'solid',

@@ -18,4 +18,15 @@ export const section = stylex.create({
 		borderTopStyle: 'solid',
 		borderTopColor: color['--line'],
 	},
+	// A heading row: the title, and its lede aligned to the title's foot,
+	// stacking under 900px.
+	head: {
+		display: 'grid',
+		gridTemplateColumns: {
+			default: '1.25fr 1fr',
+			[media.narrow]: 'minmax(0, 1fr)',
+		},
+		gap: { default: '70px', [media.narrow]: '24px' },
+	},
+	headText: { alignSelf: 'end', maxWidth: '440px' },
 })
