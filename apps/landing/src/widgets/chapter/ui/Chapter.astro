@@ -22,7 +22,7 @@ const isSubpage = Astro.locals.page === 'sub'
 ---
 
 <section {...revealRuledGroup(chapter.section, isSubpage && chapter.subSection)} id={id}>
-	<div {...sx(chapter.copy, isSubpage && chapter.subCopy, isArtLeft && chapter.reverseCopy, chapterCopyMarker)}>
+	<div {...sx(chapter.copy, isSubpage && chapter.subCopy, isArtLeft && chapter.reverseCopy, isSubpage && isArtLeft && chapter.subReverseCopy, chapterCopyMarker)}>
 		<h2 {...revealItem(heading.section, isSubpage && heading.subpage)} set:html={title} />
 		<slot />
 	</div>

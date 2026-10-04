@@ -51,6 +51,12 @@ export const chapter = stylex.create({
 		gridColumn: { default: 2, [media.stacked]: 'auto' },
 		gridRow: { default: 1, [media.stacked]: 'auto' },
 	},
+	// A subpage chapter goes to one column from tablets down (subSection), so
+	// its swapped placement resets there too, not only once stacked.
+	subReverseCopy: {
+		gridColumn: { default: 2, [media.narrow]: 'auto' },
+		gridRow: { default: 1, [media.narrow]: 'auto' },
+	},
 	text: { marginTop: '22px', fontSize: '16px', maxWidth: '520px' },
 	status: {
 		display: 'inline-flex',
@@ -134,6 +140,8 @@ export const chapter = stylex.create({
 		borderTopColor: { default: null, [media.narrow]: LINE },
 	},
 	subReverseArt: {
+		gridColumn: { default: 1, [media.narrow]: 'auto' },
+		gridRow: { default: 1, [media.narrow]: 'auto' },
 		borderLeftWidth: 0,
 		borderLeftStyle: 'none',
 		borderLeftColor: 'currentcolor',
