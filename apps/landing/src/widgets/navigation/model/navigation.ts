@@ -222,14 +222,19 @@ export class Navigation {
 
 	dismissOnFocusExit(event: FocusEvent): void {
 		const next = event.relatedTarget
-		if (next instanceof Node && this.#root.contains(next)) return
-		// A breakpoint can hide focus before its change event fires; a hidden
-		// element has no boxes (checkVisibility is missing in Safari before 17.4).
-		const hasHiddenFocus =
-			!next &&
+		if (next instanceof Node) {
+			if (!this.#root.contains(next)) this.dismiss()
+			return
+		}
+		// Focus that moves nowhere is either a press on a non-focusable spot,
+		// inside the menu or out (outside presses dismiss on pointerdown), or a
+		// breakpoint hiding the focused element before its change event fires.
+		// Only the latter dismisses here; a hidden element has no boxes
+		// (checkVisibility is missing in Safari before 17.4).
+		if (
 			event.target instanceof Element &&
 			!event.target.getClientRects().length
-		if (hasHiddenFocus) this.#dismissRestoringFocus(event.target)
-		else this.dismiss()
+		)
+			this.#dismissRestoringFocus(event.target)
 	}
 }
