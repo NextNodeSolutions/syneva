@@ -1,5 +1,6 @@
 ---
 // How it works: one loop, drawn as the review circuit and told in four steps.
+import { START_COMMAND } from '@entities/site/model/project'
 import FigureTop from '@shared/ui/FigureTop.astro'
 import { ruledItem } from '@shared/ui/ruled-item.styles'
 import { section } from '@shared/ui/section.styles'
@@ -11,7 +12,7 @@ import { how } from './how.styles'
 import { twoDigits } from '@shared/lib/two-digits'
 
 const STEPS = [
-	['Open the desk', 'Run <code>syneva</code> next to your repository. The diff opens in your browser, on localhost. Nothing leaves your machine.'],
+	['Open the desk', `Run <code>${START_COMMAND}</code> next to your repository. The diff opens in your browser, on localhost. Nothing leaves your machine.`],
 	['Read in order', 'Your agent can attach a reading order that groups files into sections. Files it doesn’t list still appear, under Other.'],
 	['Ask on the line', 'Questions anchor to the exact change. Your agent answers in the same thread while you keep reviewing.'],
 	['Send the verdict', 'Keep or undo each change, then Send. Your agent receives a structured result and re-diffs its edits into the same tab.'],
