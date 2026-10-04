@@ -4,25 +4,26 @@
 import { sx } from '@shared/lib/sx'
 import HeroCard from './HeroCard.astro'
 import { CARDS, HERO_FILES } from './hero-round'
+import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
 ---
 
-<g {...sx(heroStage.layer, heroStage.phoneHidden)} data-stage-part="agent">
+<g {...sx(heroStage.layer, heroStage.phoneHidden)} {...stagePart('agent')}>
 	<text {...sx(heroStage.kicker)} x="30" y="40">YOUR AGENT</text>
 	<text {...sx(heroStage.sub)} x="30" y="58">wrote {HERO_FILES.length} files · +214 −37</text>
-	<path {...sx(heroStage.rail)} pathLength="1" d="M18 92V288" data-stage-part="rail"></path>
-	<g data-stage-part="rail-dots">
+	<path {...sx(heroStage.rail)} pathLength="1" d="M18 92V288" {...stagePart('rail')}></path>
+	<g {...stagePart('rail-dots')}>
 		<rect {...sx(heroStage.railDot)} x="15" y="89" width="6" height="6"></rect>
 		<rect {...sx(heroStage.railDot)} x="15" y="187" width="6" height="6"></rect>
 		<rect {...sx(heroStage.railDot)} x="15" y="285" width="6" height="6"></rect>
 	</g>
 	{CARDS.map(({ path, verdict, bars }, position) => <HeroCard path={path} verdict={verdict} position={position} bars={bars} />)}
-	<g {...sx(heroStage.box)} opacity="0" data-stage-part="rev">
+	<g {...sx(heroStage.box)} opacity="0" {...stagePart('rev')}>
 		<rect {...sx(heroStage.revBox)} x="156" y="277" width="40" height="15"></rect>
 		<text {...sx(heroStage.revText)} x="176" y="287.8" text-anchor="middle">REV 2</text>
 	</g>
-	<text {...sx(heroStage.sub)} x="202" y="374" text-anchor="end" data-stage-part="more">+{HERO_FILES.length - CARDS.length} more files</text>
-	<path {...sx(heroStage.focus, heroStage.box)} d="M22 176v-14h14M196 162h14v14M22 248v14h14M196 262h14v-14" fill="none" data-stage-part="focus"></path>
+	<text {...sx(heroStage.sub)} x="202" y="374" text-anchor="end" {...stagePart('more')}>+{HERO_FILES.length - CARDS.length} more files</text>
+	<path {...sx(heroStage.focus, heroStage.box)} d="M22 176v-14h14M196 162h14v14M22 248v14h14M196 262h14v-14" fill="none" {...stagePart('focus')}></path>
 	<circle {...sx(heroStage.port)} cx="202" cy="212" r="2.5"></circle>
 	<circle {...sx(heroStage.port)} cx="116" cy="352" r="2.5"></circle>
 </g>

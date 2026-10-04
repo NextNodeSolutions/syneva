@@ -14,6 +14,7 @@ import { sx } from '@shared/lib/sx'
 import HeroAgent from './HeroAgent.astro'
 import HeroDesk from './HeroDesk.astro'
 import HeroLedger from './HeroLedger.astro'
+import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
 
 const TO_DESK = 'M202 212C219 212 219 170 236 170'
@@ -39,9 +40,9 @@ const BACK = 'M651 352V388q0 12-12 12H128q-12 0-12-12V352'
 			<path {...sx(heroStage.route)} d={TO_DESK}></path>
 			<path {...sx(heroStage.route)} d={TO_LEDGER}></path>
 			<path {...sx(heroStage.return)} d={BACK}></path>
-			<path {...sx(heroStage.signal, heroStage.signalIn)} pathLength="100" d={TO_DESK} data-stage-part="signal-in"></path>
-			<path {...sx(heroStage.signal, heroStage.signalOut)} pathLength="100" d={TO_LEDGER} data-stage-part="signal-out"></path>
-			<path {...sx(heroStage.signal, heroStage.signalBack)} pathLength="100" d={BACK} data-stage-part="signal-back"></path>
+			<path {...sx(heroStage.signal, heroStage.signalIn)} pathLength="100" d={TO_DESK} {...stagePart('signal-in')}></path>
+			<path {...sx(heroStage.signal, heroStage.signalOut)} pathLength="100" d={TO_LEDGER} {...stagePart('signal-out')}></path>
+			<path {...sx(heroStage.signal, heroStage.signalBack)} pathLength="100" d={BACK} {...stagePart('signal-back')}></path>
 		</g>
 		<text {...sx(heroStage.loop, heroStage.phoneHidden)} x="384" y="424" text-anchor="middle">SAME TAB · NEXT ROUND</text>
 
@@ -51,6 +52,6 @@ const BACK = 'M651 352V388q0 12-12 12H128q-12 0-12-12V352'
 
 		<HeroLedger />
 
-		<path {...sx(heroStage.cursor, heroStage.box)} d="M0 0v15.5l4.2-4 3.1 6.9 3-1.4-3-6.7h6Z" opacity="0" data-stage-part="cursor"></path>
+		<path {...sx(heroStage.cursor, heroStage.box)} d="M0 0v15.5l4.2-4 3.1 6.9 3-1.4-3-6.7h6Z" opacity="0" {...stagePart('cursor')}></path>
 	</g>
 </svg>

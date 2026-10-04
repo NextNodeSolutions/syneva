@@ -1,7 +1,10 @@
 import { EASE } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 
+import { introPartSelector } from './hero-intro-part'
+
 import type { AnimateOptions } from '@syneva/motion/engine'
+import type { IntroPart } from './hero-intro-part'
 
 // The headline's entrance, once the runtime boots: the gutters fade in, both
 // lines rise out of their clips, the bands sweep behind them, the + and the
@@ -10,7 +13,7 @@ import type { AnimateOptions } from '@syneva/motion/engine'
 const { out, spring } = EASE
 
 type Step = {
-	part: string
+	part: IntroPart
 	keyframes: Record<string, (string | number)[]>
 	duration: number
 	delay: number
@@ -99,9 +102,9 @@ export function playIntro(): ReturnType<typeof animate>[] {
 				ease,
 				pseudoElement,
 			}
-			return [
-				...document.querySelectorAll(`[data-hero-intro="${part}"]`),
-			].map(target => animate(target, keyframes, options))
+			return [...document.querySelectorAll(introPartSelector(part))].map(
+				target => animate(target, keyframes, options),
+			)
 		},
 	)
 }

@@ -3,6 +3,7 @@
 // desk, its diff rows, the question you ask on line 14 and the agent's answer.
 import { sx } from '@shared/lib/sx'
 import { DESK_FILE } from './hero-round'
+import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
 
 import type { LineKind } from './hero-round'
@@ -30,57 +31,57 @@ const rows = ROWS.map((row, index) => ({ ...row, ...ROW_KIND[row.kind], y: FIRST
 const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind).length
 ---
 
-<g {...sx(heroStage.layer)} data-stage-part="desk">
+<g {...sx(heroStage.layer)} {...stagePart('desk')}>
 	<text {...sx(heroStage.kicker)} x="236" y="40">YOUR DESK</text>
 	<text {...sx(heroStage.sub, heroStage.mono)} x="236" y="58">localhost:41873</text>
 	<rect {...sx(heroStage.panel)} x="236" y="72" width="292" height="280"></rect>
-	<g opacity="0" data-stage-part="idle">
+	<g opacity="0" {...stagePart('idle')}>
 		<text {...sx(heroStage.tiny)} x="382" y="215" text-anchor="middle">WAITING FOR YOUR AGENT’S DIFF</text>
-		<rect {...sx(heroStage.caret)} x="379" y="225" width="6" height="11" data-stage-part="caret"></rect>
+		<rect {...sx(heroStage.caret)} x="379" y="225" width="6" height="11" {...stagePart('caret')}></rect>
 	</g>
-	<g data-stage-part="head">
+	<g {...stagePart('head')}>
 		<text {...sx(heroStage.file, heroStage.strong)} x="250" y="93">{DESK_FILE.path}</text>
 		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+{countOf('added')} −{countOf('removed')}</text>
 		<g><rect {...sx(heroStage.button)} x="460" y="80" width="28" height="16"></rect><path {...sx(heroStage.buttonGlyph)} d="m471 85 6 6m0-6-6 6"></path></g>
 		<g>
-			<rect {...sx(heroStage.button, heroStage.accept)} x="492" y="80" width="28" height="16" data-stage-part="accept"></rect>
-			<path {...sx(heroStage.buttonGlyph, heroStage.acceptGlyph)} d="m502 88 2.6 2.6 5-5.6" data-stage-part="accept-glyph"></path>
+			<rect {...sx(heroStage.button, heroStage.accept)} x="492" y="80" width="28" height="16" {...stagePart('accept')}></rect>
+			<path {...sx(heroStage.buttonGlyph, heroStage.acceptGlyph)} d="m502 88 2.6 2.6 5-5.6" {...stagePart('accept-glyph')}></path>
 		</g>
 	</g>
 	<path {...sx(heroStage.hair)} d="M236 104h292"></path>
-	<rect {...sx(heroStage.bandDel)} x="237" y="134" width="290" height="24" data-stage-part="band-del"></rect>
-	<rect {...sx(heroStage.bandAdd)} x="237" y="158" width="290" height="48" data-stage-part="band-add"></rect>
-	<rect {...sx(heroStage.sweep)} x="237" y="110" width="290" height="24" opacity="0" data-stage-part="sweep"></rect>
+	<rect {...sx(heroStage.bandDel)} x="237" y="134" width="290" height="24" {...stagePart('band-del')}></rect>
+	<rect {...sx(heroStage.bandAdd)} x="237" y="158" width="290" height="48" {...stagePart('band-add')}></rect>
+	<rect {...sx(heroStage.sweep)} x="237" y="110" width="290" height="24" opacity="0" {...stagePart('sweep')}></rect>
 	{
 		rows.map(({ line, sign, tone, code, codeX, isStruck, y }) => (
-			<g data-stage-part="row">
+			<g {...stagePart('row')}>
 				<text {...sx(heroStage.lineNumber)} x="262" y={y} text-anchor="end">{line}</text>
 				{sign && <text {...sx(heroStage.sign, tone)} x="270" y={y}>{sign}</text>}
 				<text {...sx(heroStage.code, tone)} x={codeX} y={y}>{code}</text>
-				{isStruck && <path {...sx(heroStage.strike)} d={`M${codeX} ${y - STRIKE.rise}h${STRIKE.width}`} data-stage-part="strike" />}
+				{isStruck && <path {...sx(heroStage.strike)} d={`M${codeX} ${y - STRIKE.rise}h${STRIKE.width}`} {...stagePart('strike')} />}
 			</g>
 		))
 	}
-	<path {...sx(heroStage.gutterCheck)} pathLength="1" d="m241 171 3 3 5.5-6.5" data-stage-part="gutter-check"></path>
-	<path {...sx(heroStage.gutterCheck)} pathLength="1" d="m241 195 3 3 5.5-6.5" data-stage-part="gutter-check"></path>
-	<path {...sx(heroStage.leader)} pathLength="1" d="M510 179V244" data-stage-part="leader"></path>
-	<g {...sx(heroStage.box)} data-stage-part="chip">
+	<path {...sx(heroStage.gutterCheck)} pathLength="1" d="m241 171 3 3 5.5-6.5" {...stagePart('gutter-check')}></path>
+	<path {...sx(heroStage.gutterCheck)} pathLength="1" d="m241 195 3 3 5.5-6.5" {...stagePart('gutter-check')}></path>
+	<path {...sx(heroStage.leader)} pathLength="1" d="M510 179V244" {...stagePart('leader')}></path>
+	<g {...sx(heroStage.box)} {...stagePart('chip')}>
 		<circle {...sx(heroStage.chipDot)} cx="510" cy="170" r="9"></circle>
 		<text {...sx(heroStage.chipText)} x="510" y="174" text-anchor="middle">?</text>
 	</g>
-	<g data-stage-part="thread">
+	<g {...stagePart('thread')}>
 		<rect {...sx(heroStage.threadBox)} x="250" y="244" width="264" height="94"></rect>
 		<path {...sx(heroStage.threadRail)} d="M250 244v94"></path>
-		<g data-stage-part="you">
+		<g {...stagePart('you')}>
 			<text {...sx(heroStage.who)} x="264" y="264">YOU · ASK</text>
 			<text {...sx(heroStage.message)} x="264" y="281">What if the session already expired?</text>
 		</g>
-		<g opacity="0" data-stage-part="typing">
+		<g opacity="0" {...stagePart('typing')}>
 			<circle {...sx(heroStage.typingDot)} cx="266" cy="318" r="2"></circle>
 			<circle {...sx(heroStage.typingDot)} cx="274" cy="318" r="2"></circle>
 			<circle {...sx(heroStage.typingDot)} cx="282" cy="318" r="2"></circle>
 		</g>
-		<g data-stage-part="agent-says">
+		<g {...stagePart('agent-says')}>
 			<text {...sx(heroStage.who, heroStage.agentWho)} x="264" y="304">YOUR AGENT</text>
 			<text {...sx(heroStage.message)} x="264" y="321">It returns 401 before the handler runs.</text>
 		</g>

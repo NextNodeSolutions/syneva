@@ -5,6 +5,7 @@ import { syncScenes } from '@syneva/motion/scenes'
 import { choreograph } from './hero-choreography'
 import { playIntro } from './hero-intro'
 import { bindPointer } from './hero-pointer'
+import { stagePartSelector } from './hero-stage-part'
 import { palette } from './hero-timeline'
 
 import type { Scope } from './hero-timeline'
@@ -18,10 +19,8 @@ const hero = document.querySelector<HTMLElement>('[data-hero]')
 const svg = hero?.querySelector('[data-hero-stage]')
 
 const scope: Scope = {
-	one: name => svg?.querySelector(`[data-stage-part="${name}"]`) ?? null,
-	all: name => [
-		...(svg?.querySelectorAll(`[data-stage-part="${name}"]`) ?? []),
-	],
+	one: name => svg?.querySelector(stagePartSelector(name)) ?? null,
+	all: name => [...(svg?.querySelectorAll(stagePartSelector(name)) ?? [])],
 }
 
 let isRunning = false
@@ -50,7 +49,7 @@ reducedMotion.addEventListener('change', () => {
 
 if (hero && svg) {
 	if (!reducedMotion.matches) start()
-	bindPointer(hero, svg)
+	bindPointer(hero, scope)
 }
 await booted()
 const intro = playIntro()

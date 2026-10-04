@@ -6,6 +6,7 @@ import type {
 	Clock,
 	Frame,
 } from '@syneva/motion/loop-timeline'
+import type { StagePart } from './hero-stage-part'
 
 // The hero instrument's clock and the moves its choreography is written in.
 // One 16s clock drives every piece, so the round can never drift out of
@@ -49,8 +50,8 @@ export function palette(): Palette {
 
 export type Part = Element | null
 export type Scope = {
-	one: (name: string) => Part
-	all: (name: string) => Element[]
+	one: (name: StagePart) => Part
+	all: (name: StagePart) => Element[]
 }
 
 export const loop = (element: Part, frames: readonly Frame[]): void =>
