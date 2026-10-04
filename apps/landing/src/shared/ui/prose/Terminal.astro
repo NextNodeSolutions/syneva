@@ -7,26 +7,30 @@ import { prose } from './prose.styles'
 import { terminal } from './terminal.styles'
 
 type Props = { lines: readonly string[]; title: string }
+// A command shows without its prompt, which the template draws apart.
+type Row = { kind: 'command' | 'comment' | 'output'; text: string }
 
 const { lines, title } = Astro.props
 const PROMPT = '$ '
-const kindOf = (line: string): 'command' | 'comment' | 'output' => {
-	if (line.startsWith(PROMPT)) return 'command'
-	return line.startsWith('#') ? 'comment' : 'output'
+// A space, not nothing: an empty span would collapse the line.
+const BLANK = ' '
+const rowOf = (line: string): Row => {
+	if (line.startsWith(PROMPT)) return { kind: 'command', text: line.slice(PROMPT.length) }
+	return { kind: line.startsWith('#') ? 'comment' : 'output', text: line || BLANK }
 }
+const rows = lines.map(rowOf)
 ---
 
 <figure {...revealItem(terminal.root, prose.block)}>
 	<div {...sx(terminal.top)}>
 		<span {...sx(terminal.dots)} aria-hidden="true"><i {...sx(terminal.dot)}></i><i {...sx(terminal.dot)}></i><i {...sx(terminal.dot)}></i></span><span>{title}</span>
 	</div><pre {...sx(terminal.body)}>{
-		lines.map(line => {
-			const kind = kindOf(line)
-			if (kind === 'command')
-				return (
-					<span {...sx(terminal.command)}><span {...sx(terminal.prompt)} aria-hidden="true">$</span>{line.slice(PROMPT.length)}</span>
-				)
-			return <span {...sx(kind === 'comment' ? terminal.comment : terminal.output)}>{line || ' '}</span>
-		})
+		rows.map(({ kind, text }) =>
+			kind === 'command' ? (
+				<span {...sx(terminal.command)}><span {...sx(terminal.prompt)} aria-hidden="true">$</span>{text}</span>
+			) : (
+				<span {...sx(terminal[kind])}>{text}</span>
+			),
+		)
 	}</pre>
 </figure>
