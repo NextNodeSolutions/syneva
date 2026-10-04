@@ -9,12 +9,13 @@ import { facts } from './facts.styles'
 
 // One review mode per workflow page.
 const REVIEW_MODES = SECTION_BY_ID.workflows.items.length
+const REVIEW_MODE_NAMES = SECTION_BY_ID.workflows.items.map(({ title }) => title.toLowerCase()).join(', ')
 // A count prints bare unless it carries a unit, set smaller after it.
 type Fact = { count: number; unit?: '%'; label: string }
 const FACTS: readonly Fact[] = [
 	{ count: 0, label: 'changes auto-approved. Every verdict is a click you made.' },
 	{ count: 1, label: 'tab for the whole loop: review, questions and the next revision.' },
-	{ count: REVIEW_MODES, label: 'review modes: working tree, staged, a branch or PR, a single file.' },
+	{ count: REVIEW_MODES, label: `review modes: ${REVIEW_MODE_NAMES}.` },
 	{ count: 100, unit: '%', label: 'local. No model inside, no telemetry, no account.' },
 ]
 ---
