@@ -25,13 +25,15 @@ const FILES = [
 	{ name: 'OTHER', y: 276, kind: 'section' },
 	{ name: 'README.md', y: 296, kind: 'yes' },
 ] as const
+// The numbered parts: where each marker pops in, and its name in the legend.
 const MARKERS = [
-	{ step: 1, x: 150, y: 72, delay: 1.9 },
-	{ step: 2, x: 474, y: 115, delay: 2 },
-	{ step: 3, x: 544, y: 262, delay: 2.1 },
-	{ step: 4, x: 372, y: 68, delay: 2.2 },
-	{ step: 5, x: 462, y: 38, delay: 2.3 },
+	{ step: 1, x: 150, y: 72, delay: 1.9, label: 'WALKTHROUGH' },
+	{ step: 2, x: 474, y: 115, delay: 2, label: 'KEEP / UNDO' },
+	{ step: 3, x: 544, y: 262, delay: 2.1, label: 'THREAD' },
+	{ step: 4, x: 372, y: 68, delay: 2.2, label: 'PROGRESS' },
+	{ step: 5, x: 462, y: 38, delay: 2.3, label: 'SEND' },
 ] as const
+const LEGEND_GAP = '   '
 ---
 
 <Drawing
@@ -87,6 +89,10 @@ const MARKERS = [
 			<text {...sx(text.tiny, text.accent)} x="222" y="318">YOUR AGENT</text><text {...sx(text.copy)} x="222" y="336">Tokens rotate, so the cache would go stale.</text>
 		</AskThread>
 	</g>
-	{MARKERS.map(marker => <AnatomyMarker {...marker} />)}
-	<g {...anim('fade', 2.4, shape.secondary)}><text {...sx(text.tiny)} x="24" y="424"><tspan {...sx(productArt.anatomyKey)}>1</tspan> WALKTHROUGH   <tspan {...sx(productArt.anatomyKey)}>2</tspan> KEEP / UNDO   <tspan {...sx(productArt.anatomyKey)}>3</tspan> THREAD   <tspan {...sx(productArt.anatomyKey)}>4</tspan> PROGRESS   <tspan {...sx(productArt.anatomyKey)}>5</tspan> SEND</text></g>
+	{MARKERS.map(({ step, x, y, delay }) => <AnatomyMarker step={step} x={x} y={y} delay={delay} />)}
+	<g {...anim('fade', 2.4, shape.secondary)}><text {...sx(text.tiny)} x="24" y="424">{
+		MARKERS.map(({ step, label }, i) => (
+			<Fragment>{i > 0 && LEGEND_GAP}<tspan {...sx(productArt.anatomyKey)}>{step}</tspan>{` ${label}`}</Fragment>
+		))
+	}</text></g>
 </Drawing>
