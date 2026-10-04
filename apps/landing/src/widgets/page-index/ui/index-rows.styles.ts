@@ -38,7 +38,10 @@ export const indexRows = stylex.create({
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: LINE,
-		backgroundColor: { default: null, ':hover': 'rgb(255 255 255 / .6)' },
+		backgroundColor: {
+			default: null,
+			':hover': `color-mix(in srgb, ${color['--white']} 60%, transparent)`,
+		},
 		transition: `background-color ${duration['--duration-medium']} ${ease['--ease-out']}, padding .3s ${ease['--ease-out']}`,
 	},
 	number: {

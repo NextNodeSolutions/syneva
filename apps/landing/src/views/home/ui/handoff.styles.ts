@@ -59,7 +59,7 @@ export const json = stylex.create({
 		borderLeftColor: 'transparent',
 	},
 	yes: {
-		backgroundColor: 'rgb(224 237 223 / .6)',
+		backgroundColor: `color-mix(in srgb, ${color['--mint']} 60%, transparent)`,
 		borderLeftColor: color['--green'],
 	},
 	no: {

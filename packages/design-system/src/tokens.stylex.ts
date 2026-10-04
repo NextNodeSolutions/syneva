@@ -22,6 +22,10 @@ export const color = stylex.defineVars({
 	'--wash-tint': '#eff7fa',
 	'--wash-ink': '#2f5566',
 	'--mint': '#e0eddf',
+	// Added lines in a diff: the drawings' + lines sit on the tint, the hero's
+	// added line sits on the pale mint until its accept turns it --mint.
+	'--mint-tint': '#eef5ec',
+	'--mint-pale': '#f2f7f0',
 	'--green': '#35633f',
 	'--line': '#dcdfd4',
 	'--line-strong': '#a8afa1',

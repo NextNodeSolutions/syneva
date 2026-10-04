@@ -71,7 +71,7 @@ export const homeArt = stylex.create({
 	planSettled: { fill: color['--mint'], stroke: color['--green'] },
 	planFlag: { fill: color['--accent'] },
 	localBoundary: {
-		fill: 'rgb(255 255 255 / .35)',
+		fill: `color-mix(in srgb, ${color['--white']} 35%, transparent)`,
 		stroke: color['--ink'],
 		strokeDasharray: drawnDash('5 4'),
 	},

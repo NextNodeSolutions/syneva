@@ -235,8 +235,7 @@ export const nav = stylex.create({
 		borderStyle: 'solid',
 		borderColor: color['--line'],
 		borderRadius: '12px',
-		boxShadow:
-			'0 8px 16px -8px rgb(25 27 24 / 0.12), 0 24px 56px -16px rgb(25 27 24 / 0.16)',
+		boxShadow: `0 8px 16px -8px color-mix(in srgb, ${color['--ink']} 12%, transparent), 0 24px 56px -16px color-mix(in srgb, ${color['--ink']} 16%, transparent)`,
 		// Geometry and reveals share the single morph animation.
 		transform:
 			'translate3d(calc(var(--x, 0) * 1px), calc(var(--y, 0) * 1px), 0)',

@@ -192,7 +192,7 @@ export const hero = stylex.create({
 	},
 	humanBand: {
 		'::before': {
-			backgroundImage: `linear-gradient(90deg, ${color['--mint']}, rgb(224 237 223 / .35))`,
+			backgroundImage: `linear-gradient(90deg, ${color['--mint']}, color-mix(in srgb, ${color['--mint']} 35%, transparent))`,
 		},
 	},
 	text: {

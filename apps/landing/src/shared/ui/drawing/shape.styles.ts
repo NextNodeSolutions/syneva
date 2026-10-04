@@ -53,7 +53,7 @@ export const shape = stylex.create({
 	},
 	bandYes: { fill: color['--mint'] },
 	bandNo: { fill: color['--wash'] },
-	bandAdd: { fill: '#eef5ec' },
+	bandAdd: { fill: color['--mint-tint'] },
 	bandFocus: { fill: color['--signal'], fillOpacity: 0.1 },
 	chipYes: { fill: color['--mint'], stroke: color['--green'] },
 	chipNo: { fill: color['--wash'], stroke: color['--accent'] },
