@@ -30,20 +30,33 @@ export function questionPayload(
 	}
 }
 
+// Collision-free thread identity: a path may contain any character, so a plain joined string
+// could collide - the JSON tuple cannot.
+const threadKey = (comment: ReviewComment): string =>
+	JSON.stringify([comment.path, comment.side, comment.lineNumber])
+
 // Questions the reviewer asked but the agent hasn't answered yet. Mirrors the UI's "answered"
 // heuristic (packages/frontend/src/widgets/diff-view/annotations.ts): an open question comment is unanswered until a later agent
 // reply lands in the same thread (same path/side/line). These ride out on the Send's ReviewResult
 // so an agent that never saw the live await still owes each an answer.
 export function computeOpenQuestions(state: ReviewState): QuestionPayload[] {
-	const isAnswered = (question: ReviewComment): boolean =>
-		state.comments.some(
-			reply =>
-				reply.role === 'agent' &&
-				reply.path === question.path &&
-				reply.side === question.side &&
-				reply.lineNumber === question.lineNumber &&
-				+new Date(reply.createdAt) > +new Date(question.createdAt),
-		)
+	// One pass indexes the latest agent-reply timestamp per thread, so each question answers
+	// in O(1) instead of rescanning every comment. Invalid timestamps never count, exactly as
+	// the strict `>` comparison behaved.
+	const latestReplies = new Map<string, number>()
+	for (const reply of state.comments) {
+		if (reply.role !== 'agent') continue
+		const repliedAt = +new Date(reply.createdAt)
+		if (Number.isNaN(repliedAt)) continue
+		const key = threadKey(reply)
+		const latest = latestReplies.get(key)
+		if (!latest || repliedAt > latest) latestReplies.set(key, repliedAt)
+	}
+	const isAnswered = (question: ReviewComment): boolean => {
+		const askedAt = +new Date(question.createdAt)
+		const latest = latestReplies.get(threadKey(question))
+		return latest ? latest > askedAt : false
+	}
 	return state.comments
 		.filter(
 			comment =>
