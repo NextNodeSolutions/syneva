@@ -12,7 +12,6 @@ export const band = stylex.create({
 		},
 		gap: { default: '64px', [media.narrow]: '40px', [media.stacked]: 0 },
 		backgroundColor: color['--wash'],
-		scrollMarginTop: '24px',
 	},
 	text: {
 		margin: '22px 0 26px',
