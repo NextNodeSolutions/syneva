@@ -43,7 +43,6 @@ export class NavigationMorph {
 	readonly #links: HTMLElement
 	readonly #panels: HTMLElement[]
 	readonly #scenes: HTMLElement[]
-	readonly #compact: MediaQueryList
 	readonly #shell: Channel<GeometryName>
 	readonly #panelChannels: Channel<ContentName>[]
 	readonly #sceneChannels: Channel<ContentName>[]
@@ -54,20 +53,16 @@ export class NavigationMorph {
 	#folded: Geometry['folded'] | undefined
 	#inputMode: InputMode = 'pointer'
 
-	constructor(
-		{
-			root,
-			links,
-			panels,
-			scenes,
-		}: Pick<NavigationParts, 'root' | 'links' | 'panels' | 'scenes'>,
-		compact: MediaQueryList,
-	) {
+	constructor({
+		root,
+		links,
+		panels,
+		scenes,
+	}: Pick<NavigationParts, 'root' | 'links' | 'panels' | 'scenes'>) {
 		this.#navigation = root
 		this.#links = links
 		this.#panels = panels
 		this.#scenes = scenes
-		this.#compact = compact
 		this.#shell = registerChannel(root, '', GEOMETRY)
 		this.#panelChannels = panels.map((panel, index) =>
 			registerChannel(panel, `panel-${index}-`, CONTENT),
@@ -170,7 +165,6 @@ export class NavigationMorph {
 			links: this.#links,
 			trigger,
 			panel,
-			compact: this.#compact,
 		})
 		if (!geometry || !panel) return
 		this.#folded = geometry.folded

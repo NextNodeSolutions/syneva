@@ -1,3 +1,5 @@
+import { compact } from './compact'
+
 import type { GeometryName } from './navigation-channels'
 
 // Measures the dropdown's destination independently of the shell's current
@@ -25,7 +27,6 @@ type MeasureInput = {
 	links: HTMLElement
 	trigger: HTMLElement | undefined
 	panel: HTMLElement | undefined
-	compact: MediaQueryList
 }
 
 // The dropdown and its panel never run past the bottom of the viewport.
@@ -45,7 +46,6 @@ export function measureNavigation({
 	links,
 	trigger,
 	panel,
-	compact,
 }: MeasureInput): Geometry | undefined {
 	const isCompact = compact.matches
 	const inset = isCompact ? MOBILE_INSET : DESKTOP_INSET

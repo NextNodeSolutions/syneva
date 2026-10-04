@@ -47,7 +47,7 @@ export class Navigation {
 		this.#phoneBar = new PhoneBar(parts.root, parts.toggle)
 		this.#triggers = parts.triggers
 		this.#panels = parts.panels
-		this.#morph = new NavigationMorph(parts, compact)
+		this.#morph = new NavigationMorph(parts)
 		this.#preview = new ProductPreview(parts, this.#morph)
 	}
 
