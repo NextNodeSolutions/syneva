@@ -10,7 +10,6 @@ import { inputMarker } from '@shared/ui/brand.stylex'
 import { press } from '@shared/ui/press.styles'
 import { currentPage } from '../model/current-page'
 import { panelId, triggerId } from '../model/section-ids'
-import { TOGGLE_LABEL } from '../model/toggle-label'
 import NavPanel from './NavPanel.astro'
 import ProductMenu from './ProductMenu.astro'
 import ResourceMenu from './ResourceMenu.astro'
@@ -64,7 +63,7 @@ const MENUS: Record<SectionId, typeof ProductMenu> = {
 		type="button"
 		aria-expanded="false"
 		aria-controls="site-navigation"
-		aria-label={TOGGLE_LABEL.closed}
+		aria-label="Menu"
 		data-nav-toggle
 	>
 		<span {...sx(headerActions.toggleLabel)}>Menu</span>

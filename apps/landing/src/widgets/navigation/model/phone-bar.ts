@@ -1,8 +1,7 @@
-import { TOGGLE_LABEL } from './toggle-label'
-
 // The link bar the toggle opens on phones. One field holds whether it is
 // open, and #render() writes it where it is read: data-mobile-open for the
-// styles, aria-expanded and the label on the toggle.
+// styles, aria-expanded on the toggle. The toggle's name stays "Menu", the
+// word it shows, so speech input can call it (WCAG 2.5.3).
 export class PhoneBar {
 	readonly #root: HTMLElement
 	readonly #toggle: HTMLElement
@@ -33,9 +32,7 @@ export class PhoneBar {
 	}
 
 	#render(): void {
-		const state = this.#isOpen ? 'open' : 'closed'
 		this.#root.dataset.mobileOpen = String(this.#isOpen)
 		this.#toggle.setAttribute('aria-expanded', String(this.#isOpen))
-		this.#toggle.setAttribute('aria-label', TOGGLE_LABEL[state])
 	}
 }
