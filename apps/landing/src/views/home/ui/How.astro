@@ -18,7 +18,7 @@ const STEPS = [
 ] as const
 ---
 
-<section {...revealRuledGroup(how.section)} id="how" aria-labelledby="how-title">
+<section {...revealRuledGroup(section.ruled, section.rhythm, how.section)} id="how" aria-labelledby="how-title">
 	<div {...sx(section.head, how.head)}>
 		<h2 {...revealItem()} id="how-title">One loop.<br />Same tab, every round.</h2>
 		<p {...revealItem(section.headText)}>Your agent’s full diff comes in. You read the critical parts closely, settle every change, and send your verdict back. The agent revises, and the next round lands in the tab you never closed.</p>

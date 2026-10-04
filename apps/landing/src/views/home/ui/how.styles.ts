@@ -3,22 +3,12 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
-const PAD = { default: '96px', [media.narrow]: '72px', [media.phone]: '56px' }
 
 // How it works: a heading row, the review circuit, then the four-step loop on
 // one ruled rail, read left to right.
 export const how = stylex.create({
-	section: {
-		borderTopWidth: '1px',
-		borderTopStyle: 'solid',
-		borderTopColor: LINE,
-		scrollMarginTop: '12px',
-	},
-	head: {
-		paddingTop: PAD,
-		paddingBottom: '56px',
-		paddingInline: layout['--gutter'],
-	},
+	section: { scrollMarginTop: '12px' },
+	head: { paddingBottom: '56px', paddingInline: layout['--gutter'] },
 	figure: {
 		borderBlockWidth: '1px',
 		borderBlockStyle: 'solid',
@@ -33,11 +23,7 @@ export const how = stylex.create({
 		color: color['--muted'],
 		fontSize: '12px',
 	},
-	loop: {
-		paddingTop: '64px',
-		paddingBottom: PAD,
-		paddingInline: layout['--gutter'],
-	},
+	loop: { paddingTop: '64px', paddingInline: layout['--gutter'] },
 	steps: {
 		display: 'grid',
 		gridTemplateColumns: {
