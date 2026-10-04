@@ -2,13 +2,24 @@ import { mapClasses } from '@shared/lib/map-classes'
 
 import { json } from './handoff.styles'
 
+import type { AwaitEvent, ReviewResult } from '@syneva/contracts/agent'
+
 // The review event the handoff figure prints, as fenced JSON. It stays an
 // HTML string because its whitespace is part of the content; plain classes
 // name its tokens and mapClasses() swaps them for the StyleX ones. A line
 // that carries a verdict is tinted by its kind.
 type LineKind = 'yes' | 'no' | 'ask'
+// Every field name it prints comes from the contract the CLI emits, so a
+// rename there fails this build.
+type ReviewEvent = Extract<AwaitEvent, { kind: 'review' }>
+type ContractKey =
+	| keyof ReviewEvent
+	| keyof ReviewResult
+	| keyof ReviewResult['accepted'][number]
+	| keyof ReviewResult['requestedChanges'][number]
 
-const key = (name: string): string => `<span class="j-key">"${name}"</span>`
+const key = (name: ContractKey): string =>
+	`<span class="j-key">"${name}"</span>`
 const text = (content: string): string =>
 	`<span class="j-str">"${content}"</span>`
 const number = (digits: string): string =>

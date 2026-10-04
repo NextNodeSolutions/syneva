@@ -51,6 +51,9 @@ importers:
       '@stylexjs/unplugin':
         specifier: 0.19.1
         version: 0.19.1(unplugin@2.3.11)
+      '@syneva/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
