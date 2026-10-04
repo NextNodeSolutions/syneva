@@ -8,7 +8,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { commandOf } from '@entities/desk/model/agent-contract'
+import { commandOf, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import { capitalize } from '@shared/lib/capitalize'
 import { countWord } from '@shared/lib/count-word'
@@ -24,6 +24,10 @@ const COMMANDS = [
 	['syneva --guide <file>', 'Attach your agent’s reading order to any of the above.'],
 	[commandOf('stop'), 'Shut the desk down. Your review state stays saved.'],
 ] as const
+// The round's subcommands besides stop, which the table above lists.
+const ROUND_COMMAND_PARTS = new Intl.ListFormat('en-GB', { type: 'conjunction' }).formatToParts(
+	SUBCOMMANDS.flatMap(({ name }) => (name === 'stop' ? [] : [name])),
+)
 ---
 
 <PageHero
@@ -39,7 +43,7 @@ const COMMANDS = [
 </Prose>
 <Prose id="commands" title="Every command,<br>at a glance.">
 	<SpecTable rows={COMMANDS} head={['Command', 'What opens']} />
-	<ProseText>Your agent drives the rest of the loop with <code>await</code>, <code>comment</code>, <code>status</code> and <code>reload</code>. <TextLink href={PAGES.connectYourAgent.href} label="See the agent contract" /></ProseText>
+	<ProseText>Your agent drives the rest of the loop with {ROUND_COMMAND_PARTS.map(({ type, value }) => (type === 'element' ? <code>{value}</code> : value))}. <TextLink href={PAGES.connectYourAgent.href} label="See the agent contract" /></ProseText>
 </Prose>
 <Prose id="remote" title="Reviewing from<br>another machine?">
 	<ProseText>The desk binds to <code>127.0.0.1</code> by default. For a remote-dev setup, <code>--host</code> binds it wider so you can review from your laptop while the agent runs on a server; its subcommands keep talking over loopback.</ProseText>
