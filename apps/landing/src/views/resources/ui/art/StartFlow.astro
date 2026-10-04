@@ -1,5 +1,6 @@
 ---
 // Get started: three commands, then the desk opens in your browser.
+import { INSTALL_COMMAND } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
 import Check from '@shared/ui/drawing/Check.astro'
@@ -10,7 +11,7 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 
 const STEPS = [
-	{ label: '01 · INSTALL', command: '$ npm install -g syneva', output: 'added 1 package', y: 70 },
+	{ label: '01 · INSTALL', command: `$ ${INSTALL_COMMAND}`, output: 'added 1 package', y: 70 },
 	{ label: '02 · OPEN A DESK', command: '$ syneva', output: 'desk ready · http://localhost:41873', y: 180 },
 	{ label: '03 · ATTACH YOUR AGENT', command: '$ syneva await', output: '{ "kind": "review", "result": … }', y: 290 },
 ] as const
