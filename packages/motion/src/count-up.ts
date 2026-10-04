@@ -1,3 +1,4 @@
+import { ATTRIBUTE } from './attributes'
 import { cancelFrame, frame } from './engine'
 
 import type { FrameData } from './engine'
@@ -10,7 +11,7 @@ const QUART = 4
 const quartOut = (progress: number): number => 1 - (1 - progress) ** QUART
 
 export function countUp(element: HTMLElement): void {
-	const target = Number(element.dataset.count)
+	const target = Number(element.getAttribute(ATTRIBUTE.count))
 	const digits = element.firstChild
 	if (!Number.isFinite(target) || !digits) return
 	const startedAt = performance.now()

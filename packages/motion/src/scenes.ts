@@ -1,3 +1,4 @@
+import { ATTRIBUTE } from './attributes'
 import { inView } from './engine'
 import { reducedMotion } from './preference'
 
@@ -7,7 +8,7 @@ import { reducedMotion } from './preference'
 // Scenes that start animating later (a reveal, a timeline) sync themselves
 // right after, so new animations are paused before their first frame if
 // their scene is out of view.
-const SCENE = '[data-motion-scene]'
+const SCENE = `[${ATTRIBUTE.scene}]`
 const SCENE_AMOUNT = 0.05
 const visible = new Set<Element>()
 

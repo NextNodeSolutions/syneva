@@ -1,3 +1,4 @@
+import { ATTRIBUTE } from './attributes'
 import { countUp } from './count-up'
 import { EASE } from './easing'
 import { animate, inView } from './engine'
@@ -27,7 +28,7 @@ const RULE_TIMING: AnimateOptions = {
 }
 
 const itemsOf = (group: Element): Element[] => [
-	...group.querySelectorAll('[data-reveal-item]'),
+	...group.querySelectorAll(`[${ATTRIBUTE.revealItem}]`),
 ]
 
 // The group's items and drawings leave their hidden poses.
@@ -53,7 +54,7 @@ function revealGroup(group: Element): void {
 		entrances.forEach(entrance => entrance.complete())
 		return
 	}
-	if (group instanceof HTMLElement && 'rule' in group.dataset)
+	if (group.hasAttribute(ATTRIBUTE.rule))
 		animate(
 			group,
 			{
@@ -62,7 +63,7 @@ function revealGroup(group: Element): void {
 			},
 			RULE_TIMING,
 		)
-	for (const fact of group.querySelectorAll('[data-count]'))
+	for (const fact of group.querySelectorAll(`[${ATTRIBUTE.count}]`))
 		if (fact instanceof HTMLElement) countUp(fact)
 	playVocabulary(group, LOOPS)
 	// The group's scenes (its figures) hold their new animations until they
@@ -77,5 +78,5 @@ let stopRevealing: (() => void) | undefined
 // instead of landing on a pose that was never seen.
 export function armReveals(): void {
 	stopRevealing?.()
-	stopRevealing = inView('[data-reveal]', revealGroup, REVEAL)
+	stopRevealing = inView(`[${ATTRIBUTE.revealGroup}]`, revealGroup, REVEAL)
 }

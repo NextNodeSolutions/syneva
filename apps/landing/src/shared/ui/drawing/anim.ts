@@ -1,3 +1,4 @@
+import { ATTRIBUTE } from '@syneva/motion/attributes'
 import { moveOffset, PATH_LENGTH, poses } from '@syneva/motion/poses'
 
 import { sx } from '../../lib/sx'
@@ -21,13 +22,16 @@ const isMeasured = (kind: Kind): kind is Kind & keyof typeof PATH_LENGTH =>
 	Object.hasOwn(PATH_LENGTH, kind)
 
 export type AnimAttributes = Attributes & {
-	'data-anim': VocabularyKind
-	'data-delay'?: string
+	[ATTRIBUTE.anim]: VocabularyKind
+	[ATTRIBUTE.delay]?: string
 	pathLength?: number
 }
 
 function optIn(kind: Kind, styles: Part[]): AnimAttributes {
-	return { ...sx(isPosed(kind) && poses[kind], ...styles), 'data-anim': kind }
+	return {
+		...sx(isPosed(kind) && poses[kind], ...styles),
+		[ATTRIBUTE.anim]: kind,
+	}
 }
 
 function lengthOf(kind: Kind): Pick<AnimAttributes, 'pathLength'> | undefined {
@@ -43,7 +47,7 @@ export function anim(
 ): AnimAttributes {
 	return {
 		...optIn(kind, styles),
-		'data-delay': String(delay),
+		[ATTRIBUTE.delay]: String(delay),
 		...lengthOf(kind),
 	}
 }
@@ -64,7 +68,7 @@ export function move(
 	return {
 		...sx(poses.move, ...styles),
 		...moveOffset(x, y),
-		'data-anim': 'move',
-		'data-delay': String(delay),
+		[ATTRIBUTE.anim]: 'move',
+		[ATTRIBUTE.delay]: String(delay),
 	}
 }

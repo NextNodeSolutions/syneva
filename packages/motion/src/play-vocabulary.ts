@@ -1,3 +1,5 @@
+import { ATTRIBUTE } from './attributes'
+
 // Places the drawing vocabulary (see vocabulary.ts) when a reveal group
 // arrives: each of the group's elements starts its kind with its delay.
 const isAnimatable = (node: Element): node is HTMLElement | SVGElement =>
@@ -16,10 +18,8 @@ type Starter<Started> = (
 // rising card) keeps time with that group, so the nearest data-delay, its own
 // or an ancestor's, applies.
 function delayOf(element: Element): number {
-	const owner = element.closest('[data-delay]')
-	return owner instanceof HTMLElement || owner instanceof SVGElement
-		? Number(owner.dataset.delay)
-		: 0
+	const owner = element.closest(`[${ATTRIBUTE.delay}]`)
+	return owner ? Number(owner.getAttribute(ATTRIBUTE.delay)) : 0
 }
 
 // Starts every vocabulary element of this reveal group (not of a nested one)
@@ -31,13 +31,13 @@ export function playVocabulary<Kind extends string, Started>(
 	starters: Readonly<Record<Kind, Starter<Started>>>,
 ): Started[] {
 	const started: Started[] = []
-	for (const element of group.querySelectorAll('[data-anim]')) {
+	for (const element of group.querySelectorAll(`[${ATTRIBUTE.anim}]`)) {
 		if (
 			!isAnimatable(element) ||
-			element.closest('[data-reveal]') !== group
+			element.closest(`[${ATTRIBUTE.revealGroup}]`) !== group
 		)
 			continue
-		const kind = element.dataset.anim ?? ''
+		const kind = element.getAttribute(ATTRIBUTE.anim) ?? ''
 		if (isKindOf(starters, kind))
 			started.push(starters[kind](element, delayOf(element)))
 	}
