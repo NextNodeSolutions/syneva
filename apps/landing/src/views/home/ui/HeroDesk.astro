@@ -21,8 +21,8 @@ const ROWS: readonly { line: string; kind: LineKind; code: string }[] = [
 // removed line is struck through.
 const ROW_KIND = {
 	context: { sign: undefined, tone: undefined, codeX: 284, isStruck: false },
-	added: { sign: '+', tone: heroStage.add, codeX: 298, isStruck: false },
-	removed: { sign: '−', tone: heroStage.del, codeX: 298, isStruck: true },
+	added: { sign: '+', tone: heroStage.added, codeX: 298, isStruck: false },
+	removed: { sign: '−', tone: heroStage.removed, codeX: 298, isStruck: true },
 } as const
 const FIRST_ROW_Y = 126
 const ROW_HEIGHT = 24
@@ -50,8 +50,8 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 		</g>
 	</g>
 	<path {...sx(shape.hair)} d="M236 104h292"></path>
-	<rect {...sx(shape.bandNo)} x="237" y="134" width="290" height="24" {...stagePart('band-del')}></rect>
-	<rect {...sx(shape.bandYes)} x="237" y="158" width="290" height="48" {...stagePart('band-add')}></rect>
+	<rect {...sx(shape.bandNo)} x="237" y="134" width="290" height="24" {...stagePart('band-removed')}></rect>
+	<rect {...sx(shape.bandYes)} x="237" y="158" width="290" height="48" {...stagePart('band-added')}></rect>
 	<rect {...sx(shape.bandFocus)} x="237" y="110" width="290" height="24" opacity="0" {...stagePart('sweep')}></rect>
 	{
 		rows.map(({ line, sign, tone, code, codeX, isStruck, y }) => (

@@ -98,8 +98,8 @@ function read({ one, all }: Scope, color: Palette): void {
 	travel(one('signal-in'), 2.75, 0.55, 8)
 	present(one('head'), 3.05, { length: 0.3 })
 	all('row').forEach((row, i) => reveal(row, 3.2 + i * 0.12, 0.45))
-	present(one('band-del'), 3.35, { length: 0.3 })
-	loop(one('band-add'), [
+	present(one('band-removed'), 3.35, { length: 0.3 })
+	loop(one('band-added'), [
 		[0, { opacity: 0, fill: color.paleMint }],
 		[3.5, { opacity: 0, fill: color.paleMint }],
 		[3.8, { opacity: 1, fill: color.paleMint }],
