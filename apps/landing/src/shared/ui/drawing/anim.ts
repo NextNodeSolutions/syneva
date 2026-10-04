@@ -2,41 +2,22 @@ import { poses } from '@syneva/motion/poses'
 
 import { sx } from '../../lib/sx'
 
-import type { Part } from '../../lib/sx'
+import type { VocabularyKind } from '@syneva/motion/vocabulary'
+import type { Attributes, Part } from '../../lib/sx'
 
 // The drawing vocabulary (see @syneva/motion/vocabulary): `kind` enters once
 // when its section arrives, `delay` (seconds) staggers it, and the element's
 // own styles come after the hidden pose so they can restate any property the
-// pose also sets. The markup position is always the finished pose.
-export type Kind =
-	| 'draw'
-	| 'fade'
-	| 'rise'
-	| 'pop'
-	| 'sweep'
-	| 'type'
-	| 'signal'
-	| 'pulse'
-	| 'blink'
-	| 'spin'
+// pose also sets. The markup position is always the finished pose. A moving
+// element takes its offset too, so it has its own builder, move().
+type Kind = Exclude<VocabularyKind, 'move'>
 
-type Pose = keyof typeof poses
-const POSED = new Set<string>([
-	'draw',
-	'fade',
-	'rise',
-	'pop',
-	'sweep',
-	'type',
-	'signal',
-	'spin',
-])
-const isPose = (kind: string): kind is Pose => POSED.has(kind)
+// A kind's hidden pose shares its name; pulse and blink have none.
+const isPosed = (kind: Kind): kind is Kind & keyof typeof poses =>
+	Object.hasOwn(poses, kind)
 
-export type AnimAttributes = {
-	class?: string
-	style?: string
-	'data-anim': string
+export type AnimAttributes = Attributes & {
+	'data-anim': VocabularyKind
 	'data-delay'?: string
 }
 
@@ -54,7 +35,7 @@ export function anim(
 	...styles: Part[]
 ): AnimAttributes {
 	return {
-		...sx(isPose(kind) && poses[kind], ...styles),
+		...sx(isPosed(kind) && poses[kind], ...styles),
 		'data-anim': kind,
 		...delayAttribute(delay),
 	}

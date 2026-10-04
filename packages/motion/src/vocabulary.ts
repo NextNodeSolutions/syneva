@@ -63,7 +63,7 @@ function moveFrom(element: HTMLElement | SVGElement): string {
 type Starter = (element: HTMLElement | SVGElement, delay: number) => void
 const lag = (delay: number): number => delay + LAG_S
 
-export const ENTRANCES: Record<string, Starter> = {
+export const ENTRANCES = {
 	draw: (element, delay) => {
 		animate(
 			element,
@@ -129,9 +129,9 @@ export const ENTRANCES: Record<string, Starter> = {
 			{ ...timing, ease: settle },
 		)
 	},
-}
+} satisfies Record<string, Starter>
 
-export const LOOPS: Record<string, Starter> = {
+export const LOOPS = {
 	signal: (element, delay) => {
 		element.style.setProperty(
 			'stroke-dasharray',
@@ -202,4 +202,7 @@ export const LOOPS: Record<string, Starter> = {
 			{ duration: TIMING.spin, repeat: Infinity, ease: 'linear' },
 		)
 	},
-}
+} satisfies Record<string, Starter>
+
+// The kinds a drawing element can name in data-anim.
+export type VocabularyKind = keyof typeof ENTRANCES | keyof typeof LOOPS

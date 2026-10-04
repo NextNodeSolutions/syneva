@@ -5,6 +5,10 @@ import { ENTRANCES, LOOPS } from './vocabulary'
 // element's delay.
 const isAnimatable = (node: Element): node is HTMLElement | SVGElement =>
 	node instanceof HTMLElement || node instanceof SVGElement
+const isKindOf = <Kind extends string>(
+	starters: Readonly<Record<Kind, unknown>>,
+	kind: string,
+): kind is Kind => Object.hasOwn(starters, kind)
 
 // A delay is inherited like the CSS custom property it replaces: a loop
 // nested in a staggered group (a pulse inside a rising card) keeps time with
@@ -28,7 +32,7 @@ export function playVocabulary(group: Element): void {
 			continue
 		const kind = element.dataset.anim ?? ''
 		const delay = delayOf(element)
-		ENTRANCES[kind]?.(element, delay)
-		LOOPS[kind]?.(element, delay)
+		if (isKindOf(ENTRANCES, kind)) ENTRANCES[kind](element, delay)
+		if (isKindOf(LOOPS, kind)) LOOPS[kind](element, delay)
 	}
 }
