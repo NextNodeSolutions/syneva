@@ -13,7 +13,10 @@ const quartOut = (progress: number): number => 1 - (1 - progress) ** QUART
 export function countUp(element: HTMLElement): void {
 	const target = Number(element.getAttribute(ATTRIBUTE.count))
 	const digits = element.firstChild
-	if (!Number.isFinite(target) || !digits) return
+	if (!Number.isFinite(target) || !digits)
+		throw new Error(
+			`A counting fact needs a numeric ${ATTRIBUTE.count} and its digits as its first child: mark it with revealCount() and print the count inside it.`,
+		)
 	const startedAt = performance.now()
 	const tick = ({ timestamp }: FrameData): void => {
 		const progress = Math.min(
