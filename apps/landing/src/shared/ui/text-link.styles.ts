@@ -3,51 +3,18 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color, duration, ease } from '@syneva/design-system/tokens.stylex'
 
 import {
-	buttonMarker,
 	chapterCopyMarker,
 	pageActionsMarker,
 	textLinkMarker,
 } from './actions.stylex'
 
-const buttonHover = (): string => stylex.when.ancestor(':hover', buttonMarker)
 const linkHover = (): string => stylex.when.ancestor(':hover', textLinkMarker)
 const inChapter = (): string =>
 	stylex.when.ancestor(':is(div)', chapterCopyMarker)
 const inPageActions = (): string =>
 	stylex.when.ancestor(':is(div)', pageActionsMarker)
 
-// The petrol primary action and the underlined text-link alternative.
-export const button = stylex.create({
-	base: {
-		display: 'inline-flex',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		gap: { default: '28px', [media.phone]: '14px' },
-		minHeight: '52px',
-		padding: { default: '12px 22px', [media.phone]: '11px 16px' },
-		fontWeight: 500,
-		fontSize: { default: '15px', [media.phone]: '14px' },
-		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, border-color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
-		transform: { default: null, ':active': 'scale(.97)' },
-	},
-	primary: {
-		color: color['--white'],
-		backgroundColor: {
-			default: color['--accent'],
-			':hover': color['--accent-deep'],
-		},
-	},
-	arrow: {
-		width: '20px',
-		height: '20px',
-		stroke: 'currentColor',
-		strokeWidth: 1.5,
-		fill: 'none',
-		transition: `transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
-		transform: { default: null, [buttonHover()]: 'translateX(3px)' },
-	},
-})
-
+// The underlined text-link alternative to the primary action.
 export const textLink = stylex.create({
 	base: {
 		fontSize: '14px',
