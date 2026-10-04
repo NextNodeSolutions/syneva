@@ -10,6 +10,7 @@ import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { EVENTS, SPEC_COMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
+import { countWord } from '@shared/lib/count-word'
 
 const VERB_STEP = 64
 const EVENT_STEP = 66
@@ -17,6 +18,8 @@ const EVENT_STEP = 66
 const PILL_WIDTH = 60
 const OUT = 'M180 180H420'
 const BACK = 'M420 240H180'
+const EVENT_KINDS = Object.keys(EVENTS)
+const LIST = new Intl.ListFormat('en-GB', { type: 'conjunction' })
 ---
 
 <Drawing
@@ -26,7 +29,7 @@ const BACK = 'M420 240H180'
 	compact="30 90 540 290"
 	density="dense"
 	title="The contract between your agent and the desk"
-	description="Your agent talks to the desk with five CLI subcommands: await, comment, status, reload and stop. The desk answers with three kinds of event: question, review and closed. Everything is plain JSON on stdout and a localhost HTTP server."
+	description={`Your agent talks to the desk with ${countWord(SUBCOMMANDS.length)} CLI subcommands: ${LIST.format(SUBCOMMANDS.map(({ name }) => name))}. The desk answers with ${countWord(EVENT_KINDS.length)} kinds of event: ${LIST.format(EVENT_KINDS)}. Everything is plain JSON on stdout and a localhost HTTP server.`}
 >
 	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="40" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="54" y="172">YOUR AGENT</text><text {...sx(text.small)} x="54" y="194">Any agent,</text><text {...sx(text.small)} x="54" y="211">Codex, Cursor,</text><text {...sx(text.small)} x="54" y="228">pi, a script</text><text {...sx(text.code, text.accent)} x="54" y="256">$ syneva …</text></g>
 	<g {...anim('rise', 0.2)}><rect {...sx(shape.panel, shape.panelWhite)} x="420" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="434" y="172">YOUR DESK</text><text {...sx(text.small)} x="434" y="198">localhost, the tab</text><text {...sx(text.small)} x="434" y="216">you review in</text><Check x={434} y={236} size={12} /><Pending x={452} y={236} size={12} /></g>

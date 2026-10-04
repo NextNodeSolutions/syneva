@@ -16,10 +16,12 @@ import { poses } from '@syneva/motion/poses'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
+import { countWord } from '@shared/lib/count-word'
 import { sx } from '@shared/lib/sx'
 import HeroAgent from './HeroAgent.astro'
 import HeroDesk from './HeroDesk.astro'
 import HeroLedger from './HeroLedger.astro'
+import { HERO_FILES } from './hero-round'
 import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
 
@@ -34,7 +36,7 @@ const BACK = 'M651 352V388q0 12-12 12H128q-12 0-12-12V352'
 	height={440}
 	compact="224 22 316 342"
 	title="One review round, from your agent's diff to your verdict"
-	description="Your agent's six changed files settle into a reading order. One change opens on your local desk: you ask why the session is checked there, your agent answers on that line, and you accept it. Every file gets your verdict, one is rejected, and Send hands the result back. The agent revises, and only the rejected file returns as pending. Illustrative, not a screenshot."
+	description={`Your agent's ${countWord(HERO_FILES.length)} changed files settle into a reading order. One change opens on your local desk: you ask why the session is checked there, your agent answers on that line, and you accept it. Every file gets your verdict, one is rejected, and Send hands the result back. The agent revises, and only the rejected file returns as pending. Illustrative, not a screenshot.`}
 	css={heroStage.root}
 	data-hero-stage
 >
