@@ -2,6 +2,7 @@
 // One dropdown panel: the section's links, then a footer linking its overview.
 import type { Section } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
+import { currentPage } from '../model/current-page'
 import MenuLink from './MenuLink.astro'
 import PreviewScenes from './PreviewScenes.astro'
 import WorkflowLink from './WorkflowLink.astro'
@@ -12,9 +13,7 @@ import { panel } from './panel.styles'
 type Props = { section: Section }
 
 const { section } = Astro.props
-const route = Astro.url.pathname
 const isProduct = section.id === 'product'
-const current = (href: string) => (href === route ? 'page' : undefined)
 ---
 
 <section
@@ -49,7 +48,7 @@ const current = (href: string) => (href === route ? 'page' : undefined)
 			</div>
 		)
 	}
-	<a {...sx(menuFooter.base, menuFooterMarker)} href={section.href} aria-current={current(section.href)}>
+	<a {...sx(menuFooter.base, menuFooterMarker)} href={section.href} aria-current={currentPage(section.href, Astro.url.pathname)}>
 		<span {...sx(menuFooter.pitch, isProduct && menuFooter.productPitch)}>{section.footer}</span>
 		<span {...sx(menuFooter.overview, isProduct && menuFooter.productOverview)}>
 			{section.overview} <span aria-hidden="true">→</span>

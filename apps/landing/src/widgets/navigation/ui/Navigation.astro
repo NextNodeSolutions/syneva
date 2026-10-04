@@ -5,6 +5,7 @@ import { OPEN_SOURCE, SECTIONS, sectionOf } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Brand from '@shared/ui/Brand.astro'
 import { inputMarker } from '@shared/ui/brand.stylex'
+import { currentPage } from '../model/current-page'
 import NavPanel from './NavPanel.astro'
 import { actionMarker, dropdownMarker, navMarker, triggerMarker } from './markers.stylex'
 import { instant } from './instant.styles'
@@ -12,7 +13,6 @@ import { nav } from './navigation.styles'
 
 const route = Astro.url.pathname
 const active = sectionOf(route)
-const current = (href: string) => (href === route ? 'page' : undefined)
 const isOpenSource = route === OPEN_SOURCE.href
 const START = '/get-started/'
 ---
@@ -37,11 +37,11 @@ const START = '/get-started/'
 		<a
 			{...sx(nav.item, nav.direct, isOpenSource && nav.current, instant.transitions)}
 			href={OPEN_SOURCE.href}
-			aria-current={current(OPEN_SOURCE.href)}>Open source</a
+			aria-current={currentPage(OPEN_SOURCE.href, route)}>Open source</a
 		>
 		<span {...sx(nav.indicator, instant.transitions)} aria-hidden="true"></span>
 	</nav>
-	<a {...sx(nav.action, instant.transitions, actionMarker)} href={START} aria-current={current(START)}>
+	<a {...sx(nav.action, instant.transitions, actionMarker)} href={START} aria-current={currentPage(START, route)}>
 		Get started <span {...sx(nav.actionArrow, instant.transitions)} aria-hidden="true">→</span>
 	</a>
 	<button

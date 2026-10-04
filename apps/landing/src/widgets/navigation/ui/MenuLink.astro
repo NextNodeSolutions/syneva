@@ -3,6 +3,7 @@
 import type { Page } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Icon from '@entities/site/ui/Icon.astro'
+import { currentPage } from '../model/current-page'
 import { menuLinkMarker } from './markers.stylex'
 import { menuLink } from './menu.styles'
 import { instant } from './instant.styles'
@@ -17,7 +18,7 @@ const { page, isPreviewing = false } = Astro.props
 	href={page.href}
 	data-preview={isPreviewing ? page.preview : undefined}
 	data-menu-row
-	aria-current={page.href === Astro.url.pathname ? 'page' : undefined}
+	aria-current={currentPage(page.href, Astro.url.pathname)}
 >
 	<Icon name={page.icon} css={[menuLink.icon, instant.transitions]} />
 	<span {...sx(menuLink.text)}>

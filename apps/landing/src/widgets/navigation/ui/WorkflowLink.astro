@@ -3,6 +3,7 @@
 import type { Page } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Icon from '@entities/site/ui/Icon.astro'
+import { currentPage } from '../model/current-page'
 import { workflowLinkMarker } from './markers.stylex'
 import { workflowLink } from './menu.styles'
 
@@ -25,7 +26,7 @@ const isRuledWhenStacked = index === 1
 	)}
 	href={page.href}
 	data-menu-row
-	aria-current={page.href === Astro.url.pathname ? 'page' : undefined}
+	aria-current={currentPage(page.href, Astro.url.pathname)}
 >
 	<strong {...sx(workflowLink.title)}>
 		<Icon name={page.icon} css={workflowLink.icon} />
