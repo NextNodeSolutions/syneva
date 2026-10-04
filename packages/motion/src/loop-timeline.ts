@@ -3,16 +3,16 @@ import { animate } from './engine'
 import type { Easing } from './easing'
 
 // A looping timeline: one clock drives every element, so a choreography can
-// never drift out of sync. Frames are [seconds, props, easing of the segment
-// that starts here]; 'hold' keeps the props until the next frame, then jumps
-// (CSS steps(1, end)).
+// never drift out of sync. A frame is the props at a time on the clock (in
+// seconds), with the easing of the segment that starts there; 'hold' keeps
+// the props until the next frame, then jumps (CSS steps(1, end)).
 export type SegmentEasing = Easing | 'hold'
 export type AnimatedProperties = Record<string, string | number>
-export type Frame = readonly [
-	seconds: number,
-	props: AnimatedProperties,
-	segment?: SegmentEasing,
-]
+export type Frame = {
+	time: number
+	props: AnimatedProperties
+	easing?: SegmentEasing
+}
 // A timeline has at least one frame, and its first frame names the
 // properties every other frame states.
 export type Frames = readonly [Frame, ...Frame[]]
@@ -22,7 +22,7 @@ type Keyframe = { offset: number; props: AnimatedProperties; easing: Easing }
 
 function expand(frames: Frames, clock: Clock): Keyframe[] {
 	const keyframes: Keyframe[] = []
-	frames.forEach(([time, props, segment], index) => {
+	frames.forEach(({ time, props, easing: segment }, index) => {
 		const offset = time / clock.cycle
 		const easing = segment ?? clock.easing
 		keyframes.push({
@@ -33,7 +33,7 @@ function expand(frames: Frames, clock: Clock): Keyframe[] {
 		const next = frames[index + 1]
 		if (easing === 'hold' && next)
 			keyframes.push({
-				offset: next[0] / clock.cycle,
+				offset: next.time / clock.cycle,
 				props,
 				easing: 'linear',
 			})
@@ -63,7 +63,7 @@ export function loopTimeline(
 	clock: Clock,
 ): void {
 	const keyframes = expand(frames, clock)
-	const [[, firstProps]] = frames
+	const [{ props: firstProps }] = frames
 	const values = Object.fromEntries(
 		Object.keys(firstProps).map(name => [
 			name,

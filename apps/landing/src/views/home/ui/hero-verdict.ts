@@ -18,32 +18,40 @@ const at = (x: number, y: number, scale = 1): { transform: string } => ({
 // 7.6 - 9.5  Your cursor accepts the change; the verdict travels on.
 export function accept({ one, all }: Scope, color: Palette): void {
 	loop(one('cursor'), [
-		[0, { opacity: 0, ...at(650, 300) }],
-		[7.55, { opacity: 0, ...at(650, 300) }],
-		[7.75, { opacity: 1, ...at(650, 300) }, EASE.inOut],
-		[8.25, { opacity: 1, ...at(504, 86) }],
-		[8.32, { opacity: 1, ...at(504, 86, 0.8) }],
-		[8.46, { opacity: 1, ...at(504, 86) }],
-		[10.35, { opacity: 1, ...at(504, 86) }, EASE.inOut],
-		[11.05, { opacity: 1, ...at(684, 334) }],
-		[11.13, { opacity: 1, ...at(684, 334, 0.8) }],
-		[11.27, { opacity: 1, ...at(684, 334) }],
-		[11.8, { opacity: 1, ...at(684, 334) }],
-		[12.2, { opacity: 0, ...at(700, 350) }],
+		{ time: 0, props: { opacity: 0, ...at(650, 300) } },
+		{ time: 7.55, props: { opacity: 0, ...at(650, 300) } },
+		{
+			time: 7.75,
+			props: { opacity: 1, ...at(650, 300) },
+			easing: EASE.inOut,
+		},
+		{ time: 8.25, props: { opacity: 1, ...at(504, 86) } },
+		{ time: 8.32, props: { opacity: 1, ...at(504, 86, 0.8) } },
+		{ time: 8.46, props: { opacity: 1, ...at(504, 86) } },
+		{
+			time: 10.35,
+			props: { opacity: 1, ...at(504, 86) },
+			easing: EASE.inOut,
+		},
+		{ time: 11.05, props: { opacity: 1, ...at(684, 334) } },
+		{ time: 11.13, props: { opacity: 1, ...at(684, 334, 0.8) } },
+		{ time: 11.27, props: { opacity: 1, ...at(684, 334) } },
+		{ time: 11.8, props: { opacity: 1, ...at(684, 334) } },
+		{ time: 12.2, props: { opacity: 0, ...at(700, 350) } },
 	])
 	loop(one('accept'), [
-		[0, { fill: color.white, stroke: color.strong }],
-		[8.32, { fill: color.white, stroke: color.strong }],
-		[8.5, { fill: color.mint, stroke: color.green }],
-		[FADE_START, { fill: color.mint, stroke: color.green }],
-		[FADE_END, { fill: color.white, stroke: color.strong }],
+		{ time: 0, props: { fill: color.white, stroke: color.strong } },
+		{ time: 8.32, props: { fill: color.white, stroke: color.strong } },
+		{ time: 8.5, props: { fill: color.mint, stroke: color.green } },
+		{ time: FADE_START, props: { fill: color.mint, stroke: color.green } },
+		{ time: FADE_END, props: { fill: color.white, stroke: color.strong } },
 	])
 	loop(one('accept-glyph'), [
-		[0, { stroke: color.muted }],
-		[8.32, { stroke: color.muted }],
-		[8.5, { stroke: color.green }],
-		[FADE_START, { stroke: color.green }],
-		[FADE_END, { stroke: color.muted }],
+		{ time: 0, props: { stroke: color.muted } },
+		{ time: 8.32, props: { stroke: color.muted } },
+		{ time: 8.5, props: { stroke: color.green } },
+		{ time: FADE_START, props: { stroke: color.green } },
+		{ time: FADE_END, props: { stroke: color.muted } },
 	])
 	all('gutter-check').forEach((check, i) => draw(check, 8.55 + i * 0.15, 0.3))
 	travel(one('signal-out'), 8.95, 0.5, 8)
@@ -61,64 +69,68 @@ export function decide({ one, all }: Scope): void {
 		}
 		// The rejected file: undone now, pending again once the agent revises.
 		loop(verdict, [
-			[0, { opacity: 0, transform: 'scale(0)' }],
-			[start, { opacity: 1, transform: 'scale(0)' }, EASE.springWide],
-			[start + 0.4, { opacity: 1, transform: 'none' }],
-			[14, { opacity: 1, transform: 'none' }],
-			[14.25, { opacity: 0, transform: 'scale(.6)' }],
+			{ time: 0, props: { opacity: 0, transform: 'scale(0)' } },
+			{
+				time: start,
+				props: { opacity: 1, transform: 'scale(0)' },
+				easing: EASE.springWide,
+			},
+			{ time: start + 0.4, props: { opacity: 1, transform: 'none' } },
+			{ time: 14, props: { opacity: 1, transform: 'none' } },
+			{ time: 14.25, props: { opacity: 0, transform: 'scale(.6)' } },
 		])
 	})
 	// The revised file is pending again: progress gives back its share.
 	const kept = verdicts.filter(verdict => !isRejected(verdict)).length
 	const settled = `scaleX(${kept / verdicts.length})`
 	loop(one('fill'), [
-		[0, { transform: 'scaleX(0)', opacity: 1 }],
-		[9.4, { transform: 'scaleX(0)', opacity: 1 }],
-		[10.75, { transform: 'scaleX(1)', opacity: 1 }],
-		[14.1, { transform: 'scaleX(1)', opacity: 1 }],
-		[14.5, { transform: settled, opacity: 1 }],
-		[FADE_START, { transform: settled, opacity: 1 }],
-		[FADE_END, { transform: settled, opacity: 0 }],
+		{ time: 0, props: { transform: 'scaleX(0)', opacity: 1 } },
+		{ time: 9.4, props: { transform: 'scaleX(0)', opacity: 1 } },
+		{ time: 10.75, props: { transform: 'scaleX(1)', opacity: 1 } },
+		{ time: 14.1, props: { transform: 'scaleX(1)', opacity: 1 } },
+		{ time: 14.5, props: { transform: settled, opacity: 1 } },
+		{ time: FADE_START, props: { transform: settled, opacity: 1 } },
+		{ time: FADE_END, props: { transform: settled, opacity: 0 } },
 	])
 	// The count reads complete only once every verdict is in.
 	loop(one('progress-1'), [
-		[0, { opacity: 0 }],
-		[10.6, { opacity: 0 }],
-		[10.8, { opacity: 1 }],
-		[14.1, { opacity: 1 }],
-		[14.25, { opacity: 0 }],
+		{ time: 0, props: { opacity: 0 } },
+		{ time: 10.6, props: { opacity: 0 } },
+		{ time: 10.8, props: { opacity: 1 } },
+		{ time: 14.1, props: { opacity: 1 } },
+		{ time: 14.25, props: { opacity: 0 } },
 	])
 	loop(one('progress-2'), [
-		[0, { opacity: 0 }],
-		[14.25, { opacity: 0 }],
-		[14.45, { opacity: 1 }],
-		[FADE_START, { opacity: 1 }],
-		[FADE_END, { opacity: 0 }],
+		{ time: 0, props: { opacity: 0 } },
+		{ time: 14.25, props: { opacity: 0 } },
+		{ time: 14.45, props: { opacity: 1 } },
+		{ time: FADE_START, props: { opacity: 1 } },
+		{ time: FADE_END, props: { opacity: 0 } },
 	])
 }
 
 // 11.1 - 13.1  Send: the verdict goes back to the agent.
 export function send({ one }: Scope, color: Palette): void {
 	loop(one('send-box'), [
-		[0, { fill: color.accent }],
-		[11.12, { fill: color.accent }],
-		[11.22, { fill: color.accentDeep }],
-		[11.6, { fill: color.accent }],
+		{ time: 0, props: { fill: color.accent } },
+		{ time: 11.12, props: { fill: color.accent } },
+		{ time: 11.22, props: { fill: color.accentDeep } },
+		{ time: 11.6, props: { fill: color.accent } },
 	])
 	// The button reads "Sent" while the agent works, then offers the next round.
 	loop(one('send-label'), [
-		[0, { opacity: 1 }],
-		[11.28, { opacity: 1 }],
-		[11.4, { opacity: 0 }],
-		[14.2, { opacity: 0 }],
-		[14.4, { opacity: 1 }],
+		{ time: 0, props: { opacity: 1 } },
+		{ time: 11.28, props: { opacity: 1 } },
+		{ time: 11.4, props: { opacity: 0 } },
+		{ time: 14.2, props: { opacity: 0 } },
+		{ time: 14.4, props: { opacity: 1 } },
 	])
 	loop(one('send-sent'), [
-		[0, { opacity: 0 }],
-		[11.4, { opacity: 0 }],
-		[11.55, { opacity: 1 }],
-		[14.05, { opacity: 1 }],
-		[14.2, { opacity: 0 }],
+		{ time: 0, props: { opacity: 0 } },
+		{ time: 11.4, props: { opacity: 0 } },
+		{ time: 11.55, props: { opacity: 1 } },
+		{ time: 14.05, props: { opacity: 1 } },
+		{ time: 14.2, props: { opacity: 0 } },
 	])
 	travel(one('signal-back'), 11.5, 1.6, 5)
 }
@@ -128,17 +140,17 @@ export function revise({ one }: Scope): void {
 	pop(one('rev'), 13.95)
 	pop(one('row-pending'), 14.1)
 	loop(one('round-1'), [
-		[0, { opacity: 1 }],
-		[14, { opacity: 1 }],
-		[14.15, { opacity: 0 }],
-		[FADE_START, { opacity: 0 }],
-		[FADE_END, { opacity: 1 }],
+		{ time: 0, props: { opacity: 1 } },
+		{ time: 14, props: { opacity: 1 } },
+		{ time: 14.15, props: { opacity: 0 } },
+		{ time: FADE_START, props: { opacity: 0 } },
+		{ time: FADE_END, props: { opacity: 1 } },
 	])
 	loop(one('round-2'), [
-		[0, { opacity: 0 }],
-		[14.15, { opacity: 0 }],
-		[14.35, { opacity: 1 }],
-		[FADE_START, { opacity: 1 }],
-		[FADE_END, { opacity: 0 }],
+		{ time: 0, props: { opacity: 0 } },
+		{ time: 14.15, props: { opacity: 0 } },
+		{ time: 14.35, props: { opacity: 1 } },
+		{ time: FADE_START, props: { opacity: 1 } },
+		{ time: FADE_END, props: { opacity: 0 } },
 	])
 }

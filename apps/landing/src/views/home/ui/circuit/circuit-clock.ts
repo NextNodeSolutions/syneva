@@ -43,15 +43,15 @@ export function loop(
 	keyframes: Keyframes,
 	{ times, ease, delay = 0 }: Timing,
 ): void {
-	const frameAt = (time: number, index: number): Frame => [
-		time * CYCLE_S,
-		Object.fromEntries(
+	const frameAt = (time: number, index: number): Frame => ({
+		time: time * CYCLE_S,
+		props: Object.fromEntries(
 			Object.entries(keyframes).map(([property, values]) => [
 				property,
 				valueAt(values, index, property),
 			]),
 		),
-	]
+	})
 	const [firstTime, ...laterTimes] = times
 	const frames: Frames = [
 		frameAt(firstTime, 0),

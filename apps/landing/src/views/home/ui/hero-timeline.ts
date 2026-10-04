@@ -38,11 +38,11 @@ export function present(
 	{ length = 0.35, from = {}, to = {} }: Entrance = {},
 ): void {
 	loop(element, [
-		[0, { opacity: 0, ...from }],
-		[start, { opacity: 0, ...from }],
-		[start + length, { opacity: 1, ...to }],
-		[FADE_START, { opacity: 1, ...to }],
-		[FADE_END, { opacity: 0, ...to }],
+		{ time: 0, props: { opacity: 0, ...from } },
+		{ time: start, props: { opacity: 0, ...from } },
+		{ time: start + length, props: { opacity: 1, ...to } },
+		{ time: FADE_START, props: { opacity: 1, ...to } },
+		{ time: FADE_END, props: { opacity: 0, ...to } },
 	])
 }
 
@@ -64,15 +64,31 @@ export function travel(
 	)
 	const end = -PATH_LENGTH.signal
 	loop(element, [
-		[0, { opacity: 0, strokeDashoffset: dash }, 'linear'],
-		[start, { opacity: 0, strokeDashoffset: dash }, 'linear'],
-		[start + FLASH, { opacity: 1, strokeDashoffset: dash }, 'linear'],
-		[start + length, { opacity: 1, strokeDashoffset: end }, 'linear'],
-		[
-			start + length + FLASH,
-			{ opacity: 0, strokeDashoffset: end },
-			'linear',
-		],
+		{
+			time: 0,
+			props: { opacity: 0, strokeDashoffset: dash },
+			easing: 'linear',
+		},
+		{
+			time: start,
+			props: { opacity: 0, strokeDashoffset: dash },
+			easing: 'linear',
+		},
+		{
+			time: start + FLASH,
+			props: { opacity: 1, strokeDashoffset: dash },
+			easing: 'linear',
+		},
+		{
+			time: start + length,
+			props: { opacity: 1, strokeDashoffset: end },
+			easing: 'linear',
+		},
+		{
+			time: start + length + FLASH,
+			props: { opacity: 0, strokeDashoffset: end },
+			easing: 'linear',
+		},
 	])
 }
 
@@ -80,11 +96,15 @@ export function reveal(element: Element, start: number, length: number): void {
 	const hidden = 'inset(-3px 100% -3px 0)'
 	const shown = 'inset(-3px -3px -3px 0)'
 	loop(element, [
-		[0, { clipPath: hidden, opacity: 1 }],
-		[start, { clipPath: hidden, opacity: 1 }, 'linear'],
-		[start + length, { clipPath: shown, opacity: 1 }],
-		[FADE_START, { clipPath: shown, opacity: 1 }],
-		[FADE_END, { clipPath: shown, opacity: 0 }],
+		{ time: 0, props: { clipPath: hidden, opacity: 1 } },
+		{
+			time: start,
+			props: { clipPath: hidden, opacity: 1 },
+			easing: 'linear',
+		},
+		{ time: start + length, props: { clipPath: shown, opacity: 1 } },
+		{ time: FADE_START, props: { clipPath: shown, opacity: 1 } },
+		{ time: FADE_END, props: { clipPath: shown, opacity: 0 } },
 	])
 }
 
@@ -93,20 +113,36 @@ export function reveal(element: Element, start: number, length: number): void {
 export function draw(element: Element, start: number, length = 0.35): void {
 	const dash = { strokeDasharray: `${PATH_LENGTH.draw} ${PATH_LENGTH.draw}` }
 	loop(element, [
-		[0, { ...dash, strokeDashoffset: PATH_LENGTH.draw, opacity: 1 }],
-		[start, { ...dash, strokeDashoffset: PATH_LENGTH.draw, opacity: 1 }],
-		[start + length, { ...dash, strokeDashoffset: 0, opacity: 1 }],
-		[FADE_START, { ...dash, strokeDashoffset: 0, opacity: 1 }],
-		[FADE_END, { ...dash, strokeDashoffset: 0, opacity: 0 }],
+		{
+			time: 0,
+			props: { ...dash, strokeDashoffset: PATH_LENGTH.draw, opacity: 1 },
+		},
+		{
+			time: start,
+			props: { ...dash, strokeDashoffset: PATH_LENGTH.draw, opacity: 1 },
+		},
+		{
+			time: start + length,
+			props: { ...dash, strokeDashoffset: 0, opacity: 1 },
+		},
+		{
+			time: FADE_START,
+			props: { ...dash, strokeDashoffset: 0, opacity: 1 },
+		},
+		{ time: FADE_END, props: { ...dash, strokeDashoffset: 0, opacity: 0 } },
 	])
 }
 
 export function pop(element: Element, start: number): void {
 	loop(element, [
-		[0, { opacity: 0, transform: 'scale(0)' }],
-		[start, { opacity: 1, transform: 'scale(0)' }, EASE.springWide],
-		[start + 0.4, { opacity: 1, transform: 'none' }],
-		[FADE_START, { opacity: 1, transform: 'none' }],
-		[FADE_END, { opacity: 0, transform: 'none' }],
+		{ time: 0, props: { opacity: 0, transform: 'scale(0)' } },
+		{
+			time: start,
+			props: { opacity: 1, transform: 'scale(0)' },
+			easing: EASE.springWide,
+		},
+		{ time: start + 0.4, props: { opacity: 1, transform: 'none' } },
+		{ time: FADE_START, props: { opacity: 1, transform: 'none' } },
+		{ time: FADE_END, props: { opacity: 0, transform: 'none' } },
 	])
 }

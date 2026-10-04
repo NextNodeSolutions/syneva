@@ -32,13 +32,23 @@ function arrive({ one, all }: Scope): void {
 		const away = scattered[position] ?? 'none'
 		const settle = 1.25 + position * 0.14
 		loop(card, [
-			[0, { opacity: 0, transform: away }],
-			[0.2 + position * 0.12, { opacity: 0, transform: away }],
-			[0.55 + position * 0.12, { opacity: 1, transform: away }],
-			[settle, { opacity: 1, transform: away }, EASE.springWide],
-			[settle + 0.75, { opacity: 1, transform: 'none' }],
-			[FADE_START, { opacity: 1, transform: 'none' }],
-			[FADE_END, { opacity: 0, transform: 'none' }],
+			{ time: 0, props: { opacity: 0, transform: away } },
+			{
+				time: 0.2 + position * 0.12,
+				props: { opacity: 0, transform: away },
+			},
+			{
+				time: 0.55 + position * 0.12,
+				props: { opacity: 1, transform: away },
+			},
+			{
+				time: settle,
+				props: { opacity: 1, transform: away },
+				easing: EASE.springWide,
+			},
+			{ time: settle + 0.75, props: { opacity: 1, transform: 'none' } },
+			{ time: FADE_START, props: { opacity: 1, transform: 'none' } },
+			{ time: FADE_END, props: { opacity: 0, transform: 'none' } },
 		])
 	})
 	writeBars({ one, all })
@@ -58,16 +68,16 @@ function writeBars({ all }: Scope): void {
 		const { card, row } = placeOfBar(bar)
 		const write = 0.45 + card * 0.16 + row * 0.13
 		const frames: [Frame, ...Frame[]] = [
-			[0, { transform: 'scaleX(0)' }],
-			[write, { transform: 'scaleX(0)' }],
-			[write + 0.4, { transform: 'none' }],
+			{ time: 0, props: { transform: 'scaleX(0)' } },
+			{ time: write, props: { transform: 'scaleX(0)' } },
+			{ time: write + 0.4, props: { transform: 'none' } },
 		]
 		if (isRejected(bar))
 			frames.push(
-				[13.15, { transform: 'none' }],
-				[13.35, { transform: 'scaleX(0)' }],
-				[13.45 + row * 0.12, { transform: 'scaleX(0)' }],
-				[13.9 + row * 0.12, { transform: 'none' }],
+				{ time: 13.15, props: { transform: 'none' } },
+				{ time: 13.35, props: { transform: 'scaleX(0)' } },
+				{ time: 13.45 + row * 0.12, props: { transform: 'scaleX(0)' } },
+				{ time: 13.9 + row * 0.12, props: { transform: 'none' } },
 			)
 		loop(bar, frames)
 	})
@@ -75,8 +85,8 @@ function writeBars({ all }: Scope): void {
 
 // The waiting caret shows at `time` and hides a quarter second later.
 const caretBlink = (time: number): readonly [Frame, Frame] => [
-	[time, { opacity: 1 }, 'hold'],
-	[time + 0.25, { opacity: 0 }, 'hold'],
+	{ time: time, props: { opacity: 1 }, easing: 'hold' },
+	{ time: time + 0.25, props: { opacity: 0 }, easing: 'hold' },
 ]
 
 // Until a change opens, the desk says what it is waiting for. The caption
@@ -84,10 +94,10 @@ const caretBlink = (time: number): readonly [Frame, Frame] => [
 // fade-in without a flash.
 function wait({ one }: Scope): void {
 	loop(one('idle'), [
-		[0, { opacity: 0 }],
-		[0.3, { opacity: 1 }],
-		[2.85, { opacity: 1 }],
-		[3.05, { opacity: 0 }],
+		{ time: 0, props: { opacity: 0 } },
+		{ time: 0.3, props: { opacity: 1 } },
+		{ time: 2.85, props: { opacity: 1 } },
+		{ time: 3.05, props: { opacity: 0 } },
 	])
 	loop(one('caret'), [
 		...caretBlink(0),
@@ -102,24 +112,28 @@ function read({ one, all }: Scope, color: Palette): void {
 	all('row').forEach((row, i) => reveal(row, 3.2 + i * 0.12, 0.45))
 	present(one('band-removed'), 3.35, { length: 0.3 })
 	loop(one('band-added'), [
-		[0, { opacity: 0, fill: color.paleMint }],
-		[3.5, { opacity: 0, fill: color.paleMint }],
-		[3.8, { opacity: 1, fill: color.paleMint }],
-		[8.45, { opacity: 1, fill: color.paleMint }],
-		[8.8, { opacity: 1, fill: color.mint }],
-		[FADE_START, { opacity: 1, fill: color.mint }],
-		[FADE_END, { opacity: 0, fill: color.mint }],
+		{ time: 0, props: { opacity: 0, fill: color.paleMint } },
+		{ time: 3.5, props: { opacity: 0, fill: color.paleMint } },
+		{ time: 3.8, props: { opacity: 1, fill: color.paleMint } },
+		{ time: 8.45, props: { opacity: 1, fill: color.paleMint } },
+		{ time: 8.8, props: { opacity: 1, fill: color.mint } },
+		{ time: FADE_START, props: { opacity: 1, fill: color.mint } },
+		{ time: FADE_END, props: { opacity: 0, fill: color.mint } },
 	])
 	present(one('strike'), 3.65, {
 		from: { transform: 'scaleX(0)' },
 		to: { transform: 'none' },
 	})
 	loop(one('sweep'), [
-		[0, { opacity: 0, transform: 'translateY(0)' }],
-		[4.05, { opacity: 0, transform: 'translateY(0)' }],
-		[4.2, { opacity: 1, transform: 'translateY(0)' }, EASE.inOut],
-		[5.05, { opacity: 1, transform: 'translateY(96px)' }],
-		[5.25, { opacity: 0, transform: 'translateY(96px)' }],
+		{ time: 0, props: { opacity: 0, transform: 'translateY(0)' } },
+		{ time: 4.05, props: { opacity: 0, transform: 'translateY(0)' } },
+		{
+			time: 4.2,
+			props: { opacity: 1, transform: 'translateY(0)' },
+			easing: EASE.inOut,
+		},
+		{ time: 5.05, props: { opacity: 1, transform: 'translateY(96px)' } },
+		{ time: 5.25, props: { opacity: 0, transform: 'translateY(96px)' } },
 	])
 }
 
@@ -133,22 +147,22 @@ function ask({ one, all }: Scope): void {
 	})
 	reveal(one('you'), 5.75, 0.6)
 	loop(one('typing'), [
-		[0, { opacity: 0 }],
-		[6.45, { opacity: 0 }],
-		[6.6, { opacity: 1 }],
-		[7.05, { opacity: 1 }],
-		[7.15, { opacity: 0 }],
+		{ time: 0, props: { opacity: 0 } },
+		{ time: 6.45, props: { opacity: 0 } },
+		{ time: 6.6, props: { opacity: 1 } },
+		{ time: 7.05, props: { opacity: 1 } },
+		{ time: 7.15, props: { opacity: 0 } },
 	])
 	all('typing')
 		.flatMap(group => Array.from(group.querySelectorAll('circle')))
 		.forEach((dot, index) => {
 			const beat = 6.55 + index * 0.1
 			loop(dot, [
-				[0, { opacity: 0.3 }],
-				[beat, { opacity: 0.3 }],
-				[beat + 0.12, { opacity: 1 }],
-				[beat + 0.24, { opacity: 0.3 }],
-				[beat + 0.36, { opacity: 1 }],
+				{ time: 0, props: { opacity: 0.3 } },
+				{ time: beat, props: { opacity: 0.3 } },
+				{ time: beat + 0.12, props: { opacity: 1 } },
+				{ time: beat + 0.24, props: { opacity: 0.3 } },
+				{ time: beat + 0.36, props: { opacity: 1 } },
 			])
 		})
 	reveal(one('agent-says'), 7.1, 0.65)
