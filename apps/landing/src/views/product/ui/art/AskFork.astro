@@ -3,6 +3,7 @@
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import AskThread from '@shared/ui/drawing/AskThread.astro'
+import CodeLine from '@shared/ui/drawing/CodeLine.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -23,10 +24,10 @@ const TO_CHANGE = 'M300 220C340 220 340 300 380 300'
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="30" y="150" width="270" height="110"></rect>
 		<text {...sx(text.file, text.strong)} x="44" y="172">api/middleware.ts</text><path {...sx(shape.hair)} d="M30 182h270"></path>
-		<text {...sx(text.lineNumber)} x="56" y="202" text-anchor="end">18</text><text {...sx(text.code)} x="66" y="202">token = readCookie(req)</text>
+		<CodeLine x={66} y={202} gap={10} number={18}>token = readCookie(req)</CodeLine>
 		<rect {...sx(shape.bandAdd)} x="31" y="210" width="268" height="20"></rect>
-		<text {...sx(text.lineNumber)} x="56" y="224" text-anchor="end">19</text><text {...sx(text.code, text.green)} x="66" y="224">+ await verifySession(req)</text>
-		<text {...sx(text.lineNumber)} x="56" y="248" text-anchor="end">20</text><text {...sx(text.code)} x="66" y="248">return next()</text>
+		<CodeLine x={66} y={224} gap={10} number={19} tone="green">+ await verifySession(req)</CodeLine>
+		<CodeLine x={66} y={248} gap={10} number={20}>return next()</CodeLine>
 	</g>
 	<circle {...sx(shape.port)} cx="300" cy="220" r="3"></circle>
 	<g fill="none">
