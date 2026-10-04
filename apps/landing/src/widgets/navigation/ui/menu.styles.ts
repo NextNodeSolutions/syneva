@@ -134,14 +134,14 @@ export const menuLink = stylex.create({
 			[linkPreviewed()]: 1,
 			[linkFocus()]: 1,
 			[media.finePointer]: { default: null, [linkHover()]: 1 },
-			[media.compact]: 1,
+			[media.navToggle]: 1,
 		},
 		transform: {
 			default: 'translate(-3px, 3px)',
 			[linkPreviewed()]: 'none',
 			[linkFocus()]: 'none',
 			[media.finePointer]: { default: null, [linkHover()]: 'none' },
-			[media.compact]: 'none',
+			[media.navToggle]: 'none',
 			[media.motionReduced]: 'none',
 		},
 		transition: `opacity ${duration['--duration-fast']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
@@ -182,12 +182,15 @@ export const workflowLink = stylex.create({
 	},
 	stackedRule: {
 		'::before': {
-			content: { default: null, [media.compact]: "''" },
-			position: { default: null, [media.compact]: 'absolute' },
-			inset: { default: null, [media.compact]: '0 0 auto' },
-			borderTopWidth: { default: null, [media.compact]: '1px' },
-			borderTopStyle: { default: null, [media.compact]: 'solid' },
-			borderTopColor: { default: null, [media.compact]: color['--line'] },
+			content: { default: null, [media.navToggle]: "''" },
+			position: { default: null, [media.navToggle]: 'absolute' },
+			inset: { default: null, [media.navToggle]: '0 0 auto' },
+			borderTopWidth: { default: null, [media.navToggle]: '1px' },
+			borderTopStyle: { default: null, [media.navToggle]: 'solid' },
+			borderTopColor: {
+				default: null,
+				[media.navToggle]: color['--line'],
+			},
 		},
 	},
 	title: {

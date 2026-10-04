@@ -16,7 +16,7 @@ export const preview = stylex.create({
 		borderWidth: '1px',
 		borderStyle: 'solid',
 		borderColor: color['--line'],
-		display: { default: null, [media.compact]: 'none' },
+		display: { default: null, [media.navToggle]: 'none' },
 	},
 	scene: {
 		position: 'absolute',

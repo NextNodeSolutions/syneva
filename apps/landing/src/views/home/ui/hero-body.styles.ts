@@ -28,7 +28,7 @@ export const heroBody = stylex.create({
 		display: {
 			default: null,
 			[media.tablet]: 'grid',
-			[media.compact]: 'block',
+			[media.navToggle]: 'block',
 		},
 		gridTemplateColumns: { default: null, [media.tablet]: '1fr 1fr' },
 		columnGap: { default: null, [media.tablet]: '40px' },
@@ -50,7 +50,7 @@ export const heroBody = stylex.create({
 		marginTop: {
 			default: '30px',
 			[media.tablet]: 0,
-			[media.compact]: '28px',
+			[media.navToggle]: '28px',
 		},
 		flexWrap: 'wrap',
 		gridColumn: { default: null, [media.tablet]: 2 },

@@ -31,24 +31,24 @@ export const panel = stylex.create({
 	product: {
 		'--panel-width': {
 			default: '640px',
-			[media.compact]: 'var(--nav-available)',
+			[media.navToggle]: 'var(--nav-available)',
 		},
 	},
 	workflows: {
 		'--panel-width': {
 			default: '540px',
-			[media.compact]: 'var(--nav-available)',
+			[media.navToggle]: 'var(--nav-available)',
 		},
 	},
 	resources: {
 		'--panel-width': {
 			default: '340px',
-			[media.compact]: 'var(--nav-available)',
+			[media.navToggle]: 'var(--nav-available)',
 		},
 	},
 	productBody: {
 		display: 'grid',
-		gridTemplateColumns: { default: '1fr 1fr', [media.compact]: '1fr' },
+		gridTemplateColumns: { default: '1fr 1fr', [media.navToggle]: '1fr' },
 		padding: INSET,
 		gap: INSET,
 	},
@@ -70,7 +70,7 @@ export const panel = stylex.create({
 	resourceLinks: { padding: INSET },
 	workflowLinks: {
 		display: 'grid',
-		gridTemplateColumns: { default: '1fr 1fr', [media.compact]: '1fr' },
+		gridTemplateColumns: { default: '1fr 1fr', [media.navToggle]: '1fr' },
 		padding: INSET,
 		columnGap: INSET,
 	},
