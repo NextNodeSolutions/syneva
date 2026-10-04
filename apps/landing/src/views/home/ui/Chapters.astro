@@ -1,0 +1,46 @@
+---
+// The three product chapters: the desk, questions on the line, the plan desk.
+import Chapter from '@widgets/chapter/ui/Chapter.astro'
+import ChapterStatus from '@widgets/chapter/ui/ChapterStatus.astro'
+import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
+import TextLink from '@shared/ui/TextLink.astro'
+import AskFigure from './art/AskFigure.astro'
+import DeskFigure from './art/DeskFigure.astro'
+import PlanFigure from './art/PlanFigure.astro'
+
+const DESK = [
+	['Follow the change, not the file list.', 'Your agent groups files into a walkthrough, general to specific. Every file stays visible.'],
+	['Keep the good, undo the rest.', 'A verdict per change, or sign off a whole file. Nothing is ever auto-approved.'],
+	['Never touch the mouse.', 'j and k between changes, ⇧Y to keep, ⇧N to undo, ⇧S to send. Press ? for the full map.'],
+] as const
+const ASK = [
+	['Two intents, one keystroke apart.', 'Ask for an explanation now, or request a change that rides along with your verdict.'],
+	['Answers in place, progress in sight.', 'Your agent reads, posts a live status beside the thread, then replies on the same line.'],
+	['No question gets lost.', 'Anything still unanswered when you Send travels with the result, flagged as open.'],
+] as const
+const PLAN = [
+	['See the shape of the work.', 'Read the plan as a map, a document, or source.'],
+	['Find the assumptions worth checking.', 'See which claims carry risk, and what would prove them wrong.'],
+	['Give your agent a clearer brief.', 'Comment on the exact line. Settle the decision before the diff.'],
+] as const
+---
+
+<Chapter id="desk" title="A big diff.<br>A smaller mental load." list={DESK} caption="Read in order → keep or undo → next change">
+	<ChapterStatus label="Review desk · available now" />
+	<ChapterText>The agent has finished. Now it’s your turn. Read its work in a local browser desk, in the order that makes it make sense, and record a verdict on every change.</ChapterText>
+	<TextLink slot="after" href="/product/review-desk/" label="Explore the review desk" />
+	<DeskFigure slot="art" />
+</Chapter>
+<Chapter id="ask" title="Ask on the line.<br>Get the answer there." isReverse list={ASK} caption="Ask → agent reads → answer on the line">
+	<ChapterStatus label="Ask your agent · available now" />
+	<ChapterText>Stop copying snippets into a chat window. Ask about the exact change, keep reviewing, and the answer lands in the thread where your question lives.</ChapterText>
+	<TextLink slot="after" href="/product/ask-your-agent/" label="See how questions work" />
+	<AskFigure slot="art" />
+</Chapter>
+<Chapter id="plan" title="A clear plan.<br>A better starting point." list={PLAN} caption="Plan → claims → decisions">
+	<ChapterStatus label="Plan desk · prototype" isPrototype />
+	<ChapterText>The cheapest bug is the one you argue out of the plan. The plan desk we’re exploring turns an agent’s proposal into a map of claims you can question before any code exists.</ChapterText>
+	<ChapterText slot="after" isNote>A direction, not a shipped feature. Today, <code>syneva file plan.md</code> already reviews a plan line by line.</ChapterText>
+	<TextLink slot="after" href="/product/plan-desk/" label="Follow the plan desk" />
+	<PlanFigure slot="art" />
+</Chapter>

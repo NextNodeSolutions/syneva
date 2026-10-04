@@ -1,0 +1,31 @@
+---
+import FaqArt from './art/FaqArt.astro'
+import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
+import PageHero from '@widgets/page-hero/ui/PageHero.astro'
+import Pager from '@widgets/page-index/ui/Pager.astro'
+import TextLink from '@shared/ui/TextLink.astro'
+import { REPO_URL } from '@entities/site/model/site-map'
+import { FAQ } from './faq-content'
+import QaBlock from './QaBlock.astro'
+import QaIndex from './QaIndex.astro'
+
+type Props = { route: string }
+
+const { route } = Astro.props
+
+---
+
+<PageHero
+	route={route}
+	crumb="Questions & answers"
+	title="Straight answers."
+	lede={'What Syneva does, what it deliberately doesn’t, and where your code goes. If your question isn’t here, ask it on GitHub.'}
+	caption="Short answers first. Details where they matter."
+>
+	<TextLink slot="actions" href={`${REPO_URL}/issues`} label="Ask on GitHub" isExternal />
+	<FaqArt slot="art" />
+</PageHero>
+<QaIndex groups={FAQ} />
+{FAQ.map((group, index) => <QaBlock group={group} index={index} />)}
+<CtaBand />
+<Pager route={route} />

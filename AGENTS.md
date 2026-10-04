@@ -10,7 +10,7 @@ Product positioning lives in `PRODUCT.md`, the UI design language in `DESIGN.md`
 
 ## Landing deploy
 
-The static landing (`site/`) deploys to Cloudflare Workers (static assets) through CI only — never from a local machine. Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). `pnpm build` assembles the bundle (`scripts/build-landing.mjs` renders every page from `site/src` into `dist/`; see `site/AGENTS.md`).
+The static landing (`apps/landing`, an Astro app) deploys to Cloudflare Workers (static assets) through CI only, never from a local machine. Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). `pnpm build` (turbo) builds every page of `apps/landing` into `apps/landing/dist`, the assets root `nextnode.toml` declares for the Worker (`assets = "apps/landing/dist"`, resolved from the repo root); `apps/landing/public/healthz` ships with it for the pipeline's smoke check (see `apps/landing/AGENTS.md`).
 
 ## Commands
 
@@ -31,8 +31,10 @@ The repo is a pnpm + Turborepo workspace. The publishable package is `apps/synev
 - `packages/contracts` (`@syneva/contracts`) — the shared wire shapes, no dependencies, compiled by `tsc` to its own `dist/` (ESM + `.d.ts`); both other packages import it through `@syneva/contracts/*` specifiers.
 - `packages/backend` (`@syneva/backend`) — the Node backend (`src/backend/**` moved here), ESM NodeNext, checked and compiled by `tsc`. The published package BUNDLES it: `apps/syneva/scripts/build-dist.mjs` runs esbuild over `bootstrap/cli.ts` and `adapters/inbound/pi/pi-bridge.ts` into `apps/syneva/dist/cli.js` / `dist/pi-bridge.js` (harness peers `@earendil-works/pi-coding-agent` and `typebox` stay external) and copies the built UI next to them. `dist/cli.js` is the published bin.
 - `packages/frontend` (`@syneva/frontend`) — the browser frontend, React 19 bundled by Vite from `src/app/main.tsx`, checked by its own bundler-world tsconfig (includes `.tsx`).
+- `apps/landing` (`@syneva/landing`): the public site at syneva.dev, a static Astro app styled with StyleX and laid out in Feature-Sliced Design layers like the frontend (see `apps/landing/AGENTS.md`). It is not part of the published package.
+- `packages/design-system` (`@syneva/design-system`) and `packages/motion` (`@syneva/motion`): the public site's StyleX design tokens and its motion runtime (on Motion), consumed as source by `apps/landing`; the `transit` task in `turbo.json` folds them into the landing's build hash. The landing never imports `motion` directly: `@syneva/motion` is its only seam onto the engine (`apps/landing/AGENTS.md`, Motion invariants).
 
-Turbo task graph (`turbo.json`): `build` (`dependsOn ^build`, outputs `dist/**`) and `check` (`dependsOn ^build`) run per package; root `package.json` scripts delegate (`build`/`check` → `turbo run …`) while `lint`/`lint:types`/`format`/`format:check` stay repo-wide oxlint/oxfmt runs from the root. `apps/syneva/scripts/dev.mjs` is the dev loop: build deps, assemble `apps/syneva/dist`, then `tsx watch` the backend source + `vite build --watch` writing straight into it (via `SYNEVA_UI_OUT_DIR`).
+Turbo task graph (`turbo.json`): `build` (`dependsOn ^build` and `transit`, outputs `dist/**`) and `check` (same dependencies) run per package, where `transit` is a no-op task that folds source-only workspace dependencies (`@syneva/design-system`, `@syneva/motion`) into the hash; root `package.json` scripts delegate (`build`/`check` → `turbo run …`) while `lint`/`lint:types`/`format`/`format:check` stay repo-wide oxlint/oxfmt runs from the root. `apps/syneva/scripts/dev.mjs` is the dev loop: build deps, assemble `apps/syneva/dist`, then `tsx watch` the backend source + `vite build --watch` writing straight into it (via `SYNEVA_UI_OUT_DIR`).
 
 ## Two compilation worlds
 

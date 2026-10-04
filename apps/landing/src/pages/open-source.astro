@@ -1,0 +1,15 @@
+---
+import Document from '@app/layouts/Document.astro'
+import OpenSourcePage from '@views/resources/ui/OpenSourcePage.astro'
+
+const route = '/open-source/'
+---
+
+<Document
+	route={route}
+	page="sub"
+	title="Open source · Syneva"
+	description="Syneva is MIT licensed and built in the open: a protocol and an interface you can read end to end. No model inside, no telemetry, no account."
+>
+	<OpenSourcePage route={route} />
+</Document>
