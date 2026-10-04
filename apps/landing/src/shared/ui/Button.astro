@@ -4,6 +4,7 @@ import type { Part } from '../lib/sx'
 import { sx } from '../lib/sx'
 import ArrowRight from './ArrowRight.astro'
 import { button } from './button.styles'
+import { press } from './press.styles'
 import { buttonMarker } from './actions.stylex'
 
 type Props = { href: string; label: string; css?: Part }
@@ -11,6 +12,6 @@ type Props = { href: string; label: string; css?: Part }
 const { href, label, css } = Astro.props
 ---
 
-<a {...sx(button.base, button.primary, css, buttonMarker)} href={href}>
+<a {...sx(press.control, button.base, button.primary, css, buttonMarker)} href={href}>
 	{label} <ArrowRight css={button.arrow} />
 </a>

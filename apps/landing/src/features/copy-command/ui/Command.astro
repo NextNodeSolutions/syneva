@@ -3,6 +3,7 @@
 // (command.client.ts wires every [data-command]).
 import type { Part } from '@shared/lib/sx'
 import { sx } from '@shared/lib/sx'
+import { press } from '@shared/ui/press.styles'
 import { command } from './command.styles'
 import { copyMarker } from './command.stylex'
 
@@ -19,7 +20,7 @@ const { text, label = 'Command', css } = Astro.props
 		readonly
 		aria-label={label}
 		spellcheck="false"
-	/><button {...sx(command.copy, copyMarker)} type="button" aria-label={`Copy: ${text}`} data-copy>
+	/><button {...sx(press.control, command.copy, copyMarker)} type="button" aria-label={`Copy: ${text}`} data-copy>
 		<svg {...sx(command.iconCopy)} viewBox="0 0 20 20" aria-hidden="true"><path d="M7 7h9v10H7ZM4 13H2V2h10v2"></path></svg>
 		<svg {...sx(command.iconCheck)} viewBox="0 0 20 20" aria-hidden="true"><path d="m4 11 5 5 8-11"></path></svg>
 	</button><span {...sx(command.status)} role="status" aria-live="polite" data-copy-status></span>

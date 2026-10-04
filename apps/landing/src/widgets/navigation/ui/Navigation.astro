@@ -7,6 +7,7 @@ import { sectionOf } from '@entities/site/model/routes'
 import { sx } from '@shared/lib/sx'
 import Brand from '@shared/ui/Brand.astro'
 import { inputMarker } from '@shared/ui/brand.stylex'
+import { press } from '@shared/ui/press.styles'
 import { currentPage } from '../model/current-page'
 import { panelId, triggerId } from '../model/section-ids'
 import { TOGGLE_LABEL } from '../model/toggle-label'
@@ -55,11 +56,11 @@ const MENUS: Record<SectionId, typeof ProductMenu> = {
 		>
 		<span {...sx(nav.indicator, instant.transitions)} aria-hidden="true"></span>
 	</nav>
-	<a {...sx(headerActions.action, instant.transitions, actionMarker)} href={PAGES.getStarted.href} aria-current={currentPage(PAGES.getStarted.href, route)}>
+	<a {...sx(press.control, headerActions.action, instant.transitions, actionMarker)} href={PAGES.getStarted.href} aria-current={currentPage(PAGES.getStarted.href, route)}>
 		{PAGES.getStarted.title} <span {...sx(headerActions.actionArrow, instant.transitions)} aria-hidden="true">→</span>
 	</a>
 	<button
-		{...sx(headerActions.toggle, instant.transitions)}
+		{...sx(press.control, headerActions.toggle, instant.transitions)}
 		type="button"
 		aria-expanded="false"
 		aria-controls="site-navigation"

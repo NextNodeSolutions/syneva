@@ -17,8 +17,6 @@ export const button = stylex.create({
 		padding: { default: '12px 22px', [media.phone]: '11px 16px' },
 		fontWeight: 500,
 		fontSize: { default: '15px', [media.phone]: '14px' },
-		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, border-color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
-		transform: { default: null, ':active': 'scale(.97)' },
 	},
 	primary: {
 		color: color['--white'],

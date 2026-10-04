@@ -34,8 +34,6 @@ export const headerActions = stylex.create({
 		paddingInline: { default: '15px', [media.navToggle]: '11px' },
 		marginLeft: { default: null, [media.navToggle]: 'auto' },
 		whiteSpace: 'nowrap',
-		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, border-color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
-		transform: { default: null, ':active': 'scale(.97)' },
 	},
 	actionArrow: {
 		transition: `transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
