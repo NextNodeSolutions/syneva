@@ -5,7 +5,7 @@ import { motionRoot } from '@syneva/motion/root.stylex'
 
 const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
 // A dashed stroke that also draws on: while armed, the drawing pose's single
-// dash wins over the pattern, exactly as the stylesheet cascade had it.
+// dash wins over the pattern.
 type Dashed = { readonly default: string } & Readonly<
 	Record<string, string | number>
 >

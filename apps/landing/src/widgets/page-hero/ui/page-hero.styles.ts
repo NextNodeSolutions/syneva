@@ -5,8 +5,8 @@ import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 const LINE = color['--line']
 
 // The page hero: words on the left, the page's own drawing on the right,
-// stacking under 1100px. The hero carries its own padding around the copy
-// column's padding, as the stylesheet it replaces layered them.
+// stacking under 1100px. The hero and its copy column each pad by the
+// gutter, so the words sit two gutters in from the frame.
 export const pageHero = stylex.create({
 	root: {
 		display: 'grid',

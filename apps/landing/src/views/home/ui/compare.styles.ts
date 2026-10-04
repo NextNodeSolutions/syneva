@@ -116,7 +116,7 @@ export const compare = stylex.create({
 			},
 			marginRight: { default: '9px', [media.phone]: 0 },
 			// Restated under the phone query so it outranks the label's font
-			// shorthand there, as the stylesheet's more specific rule did.
+			// shorthand there.
 			fontWeight: { default: 600, [media.phone]: 600 },
 		},
 	},

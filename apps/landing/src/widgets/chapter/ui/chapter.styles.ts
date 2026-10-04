@@ -97,8 +97,8 @@ export const chapter = stylex.create({
 		fontSize: '14px',
 		marginTop: '3px',
 	},
-	// An honest note keeps the paragraph's size (the chapter's `> p` rule won
-	// over the note's own size and measure); only its bottom margin applies.
+	// The honest note under a prototype is a chapter paragraph with room
+	// below it.
 	note: { marginBottom: '18px' },
 	art: {
 		borderLeftWidth: { default: '1px', [media.stacked]: 0 },
