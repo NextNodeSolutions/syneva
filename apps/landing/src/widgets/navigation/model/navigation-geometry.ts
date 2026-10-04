@@ -1,3 +1,5 @@
+import type { GeometryName } from './navigation-channels'
+
 // Measures the dropdown's destination independently of the shell's current
 // animated size: where the open panel lands, and the folded sliver under its
 // trigger it grows from and shrinks back into.
@@ -9,12 +11,16 @@ const FOLD_HEIGHT = 4
 // The inset applies on both sides of the bar.
 const SIDES = 2
 
+// Pixel values of the shell's geometry channels.
+type Measures = Record<GeometryName, number>
+type Box = Pick<Measures, 'x' | 'y' | 'width' | 'height'>
+
 export type Geometry = {
-	open: Record<string, number>
-	folded: Record<string, number>
+	open: Box & Pick<Measures, 'indicator-x' | 'indicator-width'>
+	folded: Box
 }
 
-export type MeasureInput = {
+type MeasureInput = {
 	navigation: HTMLElement
 	links: HTMLElement
 	trigger: HTMLElement | undefined

@@ -11,11 +11,19 @@ export const GEOMETRY = [
 	'indicator-width',
 	'selection-y',
 	'selection-height',
-]
-export const CONTENT = ['progress', 'offset', 'opacity']
+] as const
+export const CONTENT = ['progress', 'offset', 'opacity'] as const
 
-export type Channel = Record<string, string>
+export type GeometryName = (typeof GEOMETRY)[number]
+export type ContentName = (typeof CONTENT)[number]
 export type Values = Record<string, string>
+
+// One element's channels: the registered property behind each name, and
+// values keyed by name, renamed to those properties.
+export type Channel<Name extends string> = {
+	property: (name: Name) => string
+	values: (values: Partial<Record<Name, number>>) => Values
+}
 
 // Registered <number> channels are what let the Web Animations API
 // interpolate the morph. Without CSS.registerProperty the values still carry
@@ -23,35 +31,31 @@ export type Values = Record<string, string>
 export const canInterpolate =
 	typeof CSS !== 'undefined' && typeof CSS.registerProperty === 'function'
 
-export function registerChannel(
+export function registerChannel<Name extends string>(
 	element: HTMLElement,
 	prefix: string,
-	properties: string[],
-): Channel {
-	return Object.fromEntries(
-		properties.map(property => {
-			const name = `--nav-${prefix}${property}`
-			if (canInterpolate)
-				CSS.registerProperty({
-					name,
-					syntax: '<number>',
-					inherits: true,
-					initialValue: '0',
-				})
-			element.style.setProperty(`--${property}`, `var(${name})`)
-			return [property, name]
-		}),
-	)
-}
-
-export function channelValues(
-	channel: Channel,
-	values: Record<string, number>,
-): Values {
-	return Object.fromEntries(
-		Object.entries(values).map(([key, entry]) => [
-			channel[key] ?? key,
-			String(entry),
-		]),
-	)
+	names: readonly Name[],
+): Channel<Name> {
+	const property = (name: string): string => `--nav-${prefix}${name}`
+	for (const name of names) {
+		if (canInterpolate)
+			CSS.registerProperty({
+				name: property(name),
+				syntax: '<number>',
+				inherits: true,
+				initialValue: '0',
+			})
+		element.style.setProperty(`--${name}`, `var(${property(name)})`)
+	}
+	return {
+		property,
+		values: values =>
+			Object.fromEntries(
+				Object.entries(values).flatMap(([name, value]) =>
+					typeof value === 'number'
+						? [[property(name), String(value)]]
+						: [],
+				),
+			),
+	}
 }

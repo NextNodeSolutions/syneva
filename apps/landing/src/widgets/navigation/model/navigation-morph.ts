@@ -7,7 +7,6 @@ import { contentFrames } from './handover-frames'
 import {
 	canInterpolate,
 	CONTENT,
-	channelValues,
 	GEOMETRY,
 	registerChannel,
 } from './navigation-channels'
@@ -16,7 +15,13 @@ import { revealChannels } from './reveal-channels'
 
 import type { Frames } from './handover-frames'
 import type { InputMode } from './input-mode'
-import type { Channel, Values } from './navigation-channels'
+import type {
+	Channel,
+	ContentName,
+	GeometryName,
+	Values,
+} from './navigation-channels'
+import type { Geometry } from './navigation-geometry'
 import type { NavigationParts } from './navigation-parts'
 
 type Clock = 'menu' | 'preview'
@@ -31,14 +36,14 @@ export class NavigationMorph {
 	readonly #panels: HTMLElement[]
 	readonly #scenes: HTMLElement[]
 	readonly #compact: MediaQueryList
-	readonly #shell: Channel
-	readonly #panelChannels: Channel[]
-	readonly #sceneChannels: Channel[]
+	readonly #shell: Channel<GeometryName>
+	readonly #panelChannels: Channel<ContentName>[]
+	readonly #sceneChannels: Channel<ContentName>[]
 	readonly #motions: Record<Clock, Motion> = {
 		menu: { target: {} },
 		preview: { target: {} },
 	}
-	#folded: Record<string, number> | undefined
+	#folded: Geometry['folded'] | undefined
 	#inputMode: InputMode = 'pointer'
 
 	constructor(
@@ -91,7 +96,8 @@ export class NavigationMorph {
 				readProperty(styles, key),
 			]),
 		)
-		const timing = next[this.#shell.reveal ?? ''] === '0' ? 'close' : clock
+		const timing =
+			next[this.#shell.property('reveal')] === '0' ? 'close' : clock
 		const duration = toSeconds(
 			readProperty(styles, `--nav-${timing}-duration`),
 		)
@@ -142,10 +148,10 @@ export class NavigationMorph {
 	}
 
 	#settleScenes(): void {
-		this.#scenes.forEach((scene, index) => {
-			const progress = this.#sceneChannels[index]?.progress ?? ''
+		this.#sceneChannels.forEach((channel, index) => {
+			const progress = channel.property('progress')
 			if (this.#motions.preview.target[progress] === '0')
-				scene.classList.remove('is-illustrating')
+				this.#scenes[index]?.classList.remove('is-illustrating')
 		})
 	}
 
@@ -174,28 +180,25 @@ export class NavigationMorph {
 			styles,
 		})
 		const next = {
-			...channelValues(this.#shell, { ...geometry.open, reveal: 1 }),
+			...this.#shell.values({ ...geometry.open, reveal: 1 }),
 			...content.next,
 		}
-		const isHidden =
-			Number(readProperty(styles, this.#shell.reveal ?? '')) === 0
-		const seeds = isHidden
-			? { ...channelValues(this.#shell, this.#folded), ...content.seeds }
-			: content.seeds
+		const reveal = readProperty(styles, this.#shell.property('reveal'))
+		const seeds =
+			Number(reveal) === 0
+				? { ...this.#shell.values(this.#folded), ...content.seeds }
+				: content.seeds
 		this.#animateTo('menu', next, seeds)
 	}
 
 	close(): void {
 		if (!this.#folded) return
-		const content = Object.fromEntries(
-			this.#panelChannels.flatMap(channel => [
-				[channel.progress ?? '', '0'],
-				[channel.opacity ?? '', '0'],
-			]),
+		const content = this.#panelChannels.flatMap(channel =>
+			Object.entries(channel.values({ progress: 0, opacity: 0 })),
 		)
 		this.#animateTo('menu', {
-			...channelValues(this.#shell, { ...this.#folded, reveal: 0 }),
-			...content,
+			...this.#shell.values({ ...this.#folded, reveal: 0 }),
+			...Object.fromEntries(content),
 		})
 	}
 
@@ -213,7 +216,7 @@ export class NavigationMorph {
 			),
 			styles,
 		})
-		const selection = channelValues(this.#shell, {
+		const selection = this.#shell.values({
 			'selection-y': link.offsetTop,
 			'selection-height': link.offsetHeight,
 		})

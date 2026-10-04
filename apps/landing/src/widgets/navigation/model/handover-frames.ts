@@ -1,4 +1,4 @@
-import type { Channel, Values } from './navigation-channels'
+import type { Channel, ContentName, Values } from './navigation-channels'
 
 export type Frames = Map<string, { values: string[]; times: number[] }>
 
@@ -12,7 +12,7 @@ const ENTER_AT = 0.7
 export function contentFrames(
 	origin: Values,
 	destination: Values,
-	groups: readonly Channel[][],
+	groups: readonly Channel<ContentName>[][],
 ): Frames {
 	const frames = new Map(
 		Object.keys(destination).map(key => [
@@ -25,22 +25,22 @@ export function contentFrames(
 	)
 	for (const channels of groups) {
 		const incoming = channels.find(
-			channel => destination[channel.progress ?? ''] === '1',
+			channel => destination[channel.property('progress')] === '1',
 		)
 		const outgoing = channels.filter(
 			channel =>
 				channel !== incoming &&
-				Number(origin[channel.opacity ?? '']) > 0,
+				Number(origin[channel.property('opacity')]) > 0,
 		)
-		if (!incoming?.opacity || !outgoing.length) continue
+		if (!incoming || !outgoing.length) continue
 		outgoing.forEach(channel => {
-			const name = channel.opacity ?? ''
+			const name = channel.property('opacity')
 			frames.set(name, {
 				values: [origin[name] ?? '', '0', destination[name] ?? ''],
 				times: [0, EXIT_AT, 1],
 			})
 		})
-		const name = incoming.opacity
+		const name = incoming.property('opacity')
 		const from = origin[name] ?? ''
 		const to = destination[name] ?? ''
 		frames.set(name, {
