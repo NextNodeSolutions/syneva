@@ -45,10 +45,9 @@ const children = [
 		stdio: 'inherit',
 		env: { ...process.env, SYNEVA_NO_UPDATE_CHECK: '1' },
 	}),
-	// Frontend watch rebuilds directly into the served dist. --logLevel warn: the
-	// default reporter prints a line per emitted chunk (~70 shiki grammar/theme
-	// chunks) on every rebuild; warnings and errors stay visible.
-	spawn('pnpm', ['exec', 'vite', 'build', '--watch', '--logLevel', 'warn'], {
+	// Frontend watch rebuilds directly into the served dist. Vite's shared config
+	// keeps both the initial build and watch rebuilds quiet.
+	spawn('pnpm', ['exec', 'vite', 'build', '--watch'], {
 		cwd: FRONTEND_DIR,
 		stdio: 'inherit',
 		env: {

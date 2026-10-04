@@ -133,6 +133,8 @@ const budgetPlugin = (): Plugin => ({
 })
 
 export default defineConfig({
+	// Keep warnings and errors without listing every grammar/theme chunk.
+	logLevel: 'warn',
 	plugins: [shikiShimPlugin(), budgetPlugin(), react()],
 	resolve: {
 		alias: frontendAliases,
