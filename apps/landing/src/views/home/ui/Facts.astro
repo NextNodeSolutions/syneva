@@ -26,9 +26,9 @@ const FACTS: readonly Fact[] = [
 	</div>
 	<div {...sx(facts.stats)}>
 		{
-			FACTS.map(({ count, unit, label }, i) => (
+			FACTS.map(({ count, unit, label }, index) => (
 				<div {...revealItem(ruledItem.base, facts.stat)}>
-					<span {...sx(facts.number, i === 0 && facts.first)} {...revealCount(count)}>
+					<span {...sx(facts.number, index === 0 && facts.first)} {...revealCount(count)}>
 						{count}{unit && <span {...sx(facts.unit)}>{unit}</span>}
 					</span>
 					<span {...sx(facts.label)}>{label}</span>

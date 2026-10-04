@@ -77,7 +77,14 @@ function loop(
 // again at the last two. The piece changes between the second and third
 // times and changes back between the fourth and fifth.
 const blink = (on: number): (string | number)[] => [0, 0, on, on, 0, 0]
-const hold = (a: string, b: string): string[] => [a, a, b, b, a, a]
+const hold = (resting: string, held: string): string[] => [
+	resting,
+	resting,
+	held,
+	held,
+	resting,
+	resting,
+]
 
 const travel = (size: number, length: number): string[] => [
 	`${size}px`,

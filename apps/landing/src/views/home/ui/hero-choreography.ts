@@ -27,13 +27,13 @@ function arrive({ one, all }: Scope): void {
 		'translate(62px, -8px) rotate(6deg)',
 		'translate(18px, -100px) rotate(-3deg)',
 	]
-	all('card').forEach((card, i) => {
-		const away = scattered[i] ?? 'none'
-		const settle = 1.25 + i * 0.14
+	all('card').forEach((card, position) => {
+		const away = scattered[position] ?? 'none'
+		const settle = 1.25 + position * 0.14
 		loop(card, [
 			[0, { opacity: 0, transform: away }],
-			[0.2 + i * 0.12, { opacity: 0, transform: away }],
-			[0.55 + i * 0.12, { opacity: 1, transform: away }],
+			[0.2 + position * 0.12, { opacity: 0, transform: away }],
+			[0.55 + position * 0.12, { opacity: 1, transform: away }],
 			[settle, { opacity: 1, transform: away }, EASE.springWide],
 			[settle + 0.75, { opacity: 1, transform: 'none' }],
 			[FADE_START, { opacity: 1, transform: 'none' }],
@@ -142,8 +142,8 @@ function ask({ one, all }: Scope): void {
 	])
 	all('typing')
 		.flatMap(group => Array.from(group.querySelectorAll('circle')))
-		.forEach((dot, i) => {
-			const beat = 6.55 + i * 0.1
+		.forEach((dot, index) => {
+			const beat = 6.55 + index * 0.1
 			loop(dot, [
 				[0, { opacity: 0.3 }],
 				[beat, { opacity: 0.3 }],

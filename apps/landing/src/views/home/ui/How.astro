@@ -32,9 +32,9 @@ const STEPS = [
 	<div {...sx(how.loop)}>
 		<ol {...sx(how.steps)}>
 			{
-				STEPS.map(([title, text], i) => (
+				STEPS.map(([title, text], index) => (
 					<li {...revealItem(ruledItem.base, how.step)}>
-						<span {...sx(stepIndex.base)}>{twoDigits(i + 1)}</span>
+						<span {...sx(stepIndex.base)}>{twoDigits(index + 1)}</span>
 						<strong {...sx(how.stepTitle)}>{title}</strong>
 						<p {...sx(how.stepText)} set:html={text} />
 					</li>
