@@ -4,7 +4,7 @@ import { reducedMotion } from '@syneva/motion/preference'
 import { syncScenes } from '@syneva/motion/scenes'
 
 import { playCircuit, retimeSignals } from './circuit-loop'
-import { routeCircuit } from './circuit-routing'
+import { routeCircuit } from './circuit-wires'
 
 // The review circuit's runtime: route the wires now, again when the phone
 // frame swaps and once the fonts settled (they can shift a port by a pixel),

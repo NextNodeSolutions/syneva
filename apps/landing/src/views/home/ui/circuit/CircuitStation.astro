@@ -2,6 +2,7 @@
 // A station platform on the circuit: the source (your full diff, from which
 // one sheet is dispatched) or the verdict (the accepted sheet and its seal).
 import { sx } from '@shared/lib/sx'
+import { PLATFORM_X, portsOn, ROW } from './circuit-layout'
 import { circuit } from './circuit.styles'
 
 type Props = { kind: 'source' | 'verdict' }
@@ -9,14 +10,13 @@ type Props = { kind: 'source' | 'verdict' }
 const { kind } = Astro.props
 const isSource = kind === 'source'
 const STATION = {
-	source: { x: 212, rim: 'm-124 0 0 7L0 69 124 7V0', out: 'agent-out', back: 'agent-return', title: 'Your full diff', detail: 'Every change from your agent' },
-	verdict: { x: 948, rim: 'M-124 0v7L0 69 124 7V0', out: 'verdict-in', back: 'verdict-return', title: 'Ship with confidence', detail: "Code you've reviewed" },
+	source: { rim: 'm-124 0 0 7L0 69 124 7V0', title: 'Your full diff', detail: 'Every change from your agent' },
+	verdict: { rim: 'M-124 0v7L0 69 124 7V0', title: 'Ship with confidence', detail: "Code you've reviewed" },
 }
 const station = STATION[kind]
-const PORT_X = 124
 ---
 
-<g {...sx(isSource ? circuit.sourceStation : circuit.verdictStation)} transform={`translate(${station.x} 312)`} data-station={kind}>
+<g {...sx(isSource ? circuit.sourceStation : circuit.verdictStation)} transform={`translate(${PLATFORM_X[kind]} ${ROW})`} data-station={kind}>
 	<path {...sx(circuit.foot)} d="M0-62 124 0 0 62-124 0Z"></path><path {...sx(circuit.rim)} d={station.rim}></path>
 	{
 		isSource ? (
@@ -43,6 +43,6 @@ const PORT_X = 124
 			</Fragment>
 		)
 	}
-	<circle {...sx(circuit.port)} id={station.out} cx={isSource ? PORT_X : -PORT_X} cy="0" r="2.5"></circle><circle {...sx(circuit.port)} id={station.back} cx="0" cy="69" r="2.5"></circle>
+	{portsOn(kind).map(([id, { x, y }]) => <circle {...sx(circuit.port)} id={id} cx={x} cy={y} r="2.5" />)}
 	<text {...sx(circuit.stationTitle)} y="-128" text-anchor="middle">{station.title}</text><text {...sx(circuit.stationDetail)} y="-109" text-anchor="middle">{station.detail}</text>
 </g>

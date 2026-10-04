@@ -2,11 +2,13 @@
 // The review circuit, formerly the hero drawing: the full diff travels
 // horizontally while its review layers separate vertically. It opens the How
 // it works section, where its loop (diff, focus, verdict, next revision) is
-// the story being told. circuit.client.ts routes its wires from the ports'
-// live positions and runs its loop.
+// the story being told. Its wires and loop label are routed at build time
+// (circuit-layout.ts); circuit.client.ts re-routes them from the ports' live
+// positions and runs its loop.
 import { sx } from '@shared/lib/sx'
 import CircuitLayer from './CircuitLayer.astro'
 import CircuitStation from './CircuitStation.astro'
+import { LOOP_LABEL, PLATFORM_X, portsOn, ROW, WIRES } from './circuit-layout'
 import { circuit } from './circuit.styles'
 ---
 
@@ -15,9 +17,7 @@ import { circuit } from './circuit.styles'
 	<desc id="circuit-desc">The full diff passes from your agent into a local review. Its layers open vertically: critical, important, and tested. You make your decisions during review, then ship code you've examined with confidence. A dotted return connection carries the next revision back to the agent. An illustrative human review, not automatic approval or a product screenshot.</desc>
 	<defs>
 		<clipPath id="review-face-clip"><use href="#review-face"></use></clipPath>
-		<path id="flow-in" data-from="agent-out" data-to="review-in"></path>
-		<path id="flow-out" data-from="review-out" data-to="verdict-in"></path>
-		<path id="flow-return" data-from="verdict-return" data-to="agent-return" data-route="return"></path>
+		{WIRES.map(({ id, from, to, route, d }) => <path id={id} data-from={from} data-to={to} data-route={route} d={d} />)}
 		<g id="review-leaf">
 			<path {...sx(circuit.leafEdge)} d="M-112 0 0 56 112 0v5L0 61-112 5Z"></path>
 			<path {...sx(circuit.leafFace)} id="review-face" d="M0-56 112 0 0 56-112 0Z"></path>
@@ -42,11 +42,11 @@ import { circuit } from './circuit.styles'
 			<use {...sx(circuit.signal, circuit.signalReturn)} href="#flow-return" data-signal="return"></use>
 		</g>
 		<CircuitStation kind="source" />
-		<g transform="translate(580 312)">
+		<g transform={`translate(${PLATFORM_X.review} ${ROW})`}>
 			<path {...sx(circuit.foot)} d="M0-76 152 0 0 76-152 0Z"></path><path {...sx(circuit.rim)} d="M-152 0v8L0 84 152 8V0"></path>
 			<path {...sx(circuit.seat)} d="M0-61 122 0 0 61-122 0Z"></path>
 			<g {...sx(circuit.mark)} transform="translate(0 68) scale(1 .5)"><use href="#review-mark"></use></g>
-			<circle {...sx(circuit.port)} id="review-in" cx="-152" cy="0" r="2.5"></circle><circle {...sx(circuit.port)} id="review-out" cx="152" cy="0" r="2.5"></circle>
+			{portsOn('review').map(([id, { x, y }]) => <circle {...sx(circuit.port)} id={id} cx={x} cy={y} r="2.5" />)}
 		</g>
 		<g transform="translate(580 276)">
 			<CircuitLayer kind="tested" />
@@ -54,6 +54,6 @@ import { circuit } from './circuit.styles'
 			<CircuitLayer kind="critical" />
 		</g>
 		<CircuitStation kind="verdict" />
-		<text {...sx(circuit.loopLabel)} text-anchor="middle" data-loop-label>SAME TAB. NEXT REVISION.</text>
+		<text {...sx(circuit.loopLabel)} x={LOOP_LABEL.x} y={LOOP_LABEL.y} text-anchor="middle" data-loop-label>SAME TAB. NEXT REVISION.</text>
 	</g>
 </svg>
