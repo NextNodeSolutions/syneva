@@ -95,11 +95,11 @@ const travel = (size: number, length: number): string[] => [
 	`${-length}px`,
 ]
 
-type Part = (name: string) => Element
+type PartLookup = (name: string) => Element
 
 // The changeset is dispatched, then its review layers lift apart and their
 // notes appear.
-function unfold(svg: SVGSVGElement, part: Part): void {
+function unfold(svg: SVGSVGElement, part: PartLookup): void {
 	loop(
 		part('dispatch'),
 		{ transform: hold('translateY(0px)', 'translateY(-9px)') },
@@ -130,7 +130,7 @@ function unfold(svg: SVGSVGElement, part: Part): void {
 }
 
 // The reader's focus, the sweep across the change, the verdict and its seal.
-function review(part: Part): void {
+function review(part: PartLookup): void {
 	loop(
 		part('focus'),
 		{ opacity: blink(1), transform: hold('scale(1.07)', 'scale(1)') },
@@ -195,7 +195,7 @@ export function playCircuit(
 	svg: SVGSVGElement,
 	lengths: Map<string, number>,
 ): void {
-	const part: Part = name => {
+	const part: PartLookup = name => {
 		const found = svg.querySelector(`[data-circuit-part="${name}"]`)
 		if (!found)
 			throw new Error(
