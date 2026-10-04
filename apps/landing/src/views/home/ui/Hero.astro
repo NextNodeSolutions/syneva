@@ -3,7 +3,7 @@
 // your verdict), the pitch and its actions, and the review-round instrument,
 // then the principle strip under it. Its intro (hero-intro.ts) plays every
 // part rendered here, the strip included.
-import { PAGES } from '@entities/site/model/site-map'
+import { INSTALL_COMMAND, PAGES } from '@entities/site/model/site-map'
 import { poses } from '@syneva/motion/poses'
 
 import Button from '@shared/ui/Button.astro'
@@ -42,7 +42,7 @@ import { heroMarker, newsMarker } from './hero.stylex'
 				<Button href={PAGES.getStarted.href} label="Start a local review" />
 				<TextLink href="#how" label="See how it works" arrow="↓" />
 			</div>
-			<Command text="npm install -g syneva" label="Installation command" css={heroBody.command} />
+			<Command text={INSTALL_COMMAND} label="Installation command" css={heroBody.command} />
 			<p {...sx(heroBody.works)}><span {...sx(heroBody.worksLead)}>Works with the agent you already use</span> Codex · Cursor · pi · your own scripts</p>
 		</div>
 		<figure {...sx(poses.fade, heroBody.stage)} {...scene} {...introPart('stage')}>
