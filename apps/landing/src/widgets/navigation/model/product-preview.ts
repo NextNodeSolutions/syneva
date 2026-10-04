@@ -26,29 +26,32 @@ export class ProductPreview {
 
 	select(link: HTMLElement): void {
 		this.#selected = link
-		this.#place(link)
+		const scene = this.#sceneOf(link)
+		this.#morph.preview(scene, link)
 		this.#links.forEach(candidate =>
 			candidate.classList.toggle('is-previewed', candidate === link),
 		)
-		this.#scenes.forEach(scene =>
-			scene.classList.toggle(
-				'is-current',
-				scene.dataset.scene === link.dataset.preview,
-			),
+		this.#scenes.forEach(candidate =>
+			candidate.classList.toggle('is-current', candidate === scene),
 		)
 	}
 
 	// The rows moved with the layout: place the selection on them again.
 	reposition(): void {
-		if (this.#selected) this.#place(this.#selected)
+		if (this.#selected)
+			this.#morph.preview(this.#sceneOf(this.#selected), this.#selected)
 	}
 
-	#place(link: HTMLElement): void {
-		this.#morph.preview(
-			this.#scenes.find(
-				scene => scene.dataset.scene === link.dataset.preview,
-			),
-			link,
+	// A row previews the scene its data-preview names: a row naming none
+	// would put nothing on stage.
+	#sceneOf(link: HTMLElement): HTMLElement {
+		const scene = this.#scenes.find(
+			candidate => candidate.dataset.scene === link.dataset.preview,
 		)
+		if (!scene)
+			throw new Error(
+				`The product menu row "${link.textContent.trim()}" previews "${link.dataset.preview}", which names no [data-scene]: render a PreviewScene with that scene.`,
+			)
+		return scene
 	}
 }

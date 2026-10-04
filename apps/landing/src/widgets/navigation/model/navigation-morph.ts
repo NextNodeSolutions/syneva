@@ -204,8 +204,7 @@ export class NavigationMorph {
 		})
 	}
 
-	preview(scene: HTMLElement | undefined, link: HTMLElement): void {
-		if (!scene) return
+	preview(scene: HTMLElement, link: HTMLElement): void {
 		// Keep an outgoing illustration alive until its shared fade completes.
 		scene.classList.add('is-illustrating')
 		const styles = getComputedStyle(this.#navigation)
