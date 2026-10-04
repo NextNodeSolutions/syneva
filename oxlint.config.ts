@@ -36,7 +36,7 @@ const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
 const LANDING_MOTION_BAN = {
 	group: ['motion', 'motion/**'],
 	message:
-		'the landing animates through @syneva/motion only - import the engine from @syneva/motion/engine, or export the Motion API you need from it first.',
+		'the landing animates through @syneva/motion only. Import the engine from @syneva/motion/engine, or export the Motion API you need from it first.',
 }
 const landingLayer = (layer: string): OxlintOverride => {
 	const above = LANDING_LAYERS.slice(0, LANDING_LAYERS.indexOf(layer))
@@ -71,7 +71,7 @@ const landingLayer = (layer: string): OxlintOverride => {
 						{
 							group: relativeLayerEscapes(...others),
 							message:
-								'cross-layer imports use the layer aliases - relative paths must stay inside the slice.',
+								'cross-layer imports use the layer aliases. Relative paths must stay inside the slice.',
 						},
 					],
 				},
@@ -230,7 +230,7 @@ export default defineConfig({
 							{
 								group: ['motion', 'motion/**'],
 								message:
-									'engine.ts is the one seam of @syneva/motion onto Motion - import the engine from ./engine, or export the Motion API you need from it first.',
+									'engine.ts is the one seam of @syneva/motion onto Motion. Import the engine from ./engine, or export the Motion API you need from it first.',
 							},
 						],
 					},
