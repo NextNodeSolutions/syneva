@@ -1,11 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color } from '@syneva/design-system/tokens.stylex'
+import { color, layout } from '@syneva/design-system/tokens.stylex'
 
 // The 404: the words and the way back beside the page drawn as a diff.
 export const lost = stylex.create({
 	root: {
-		padding: '96px var(--gutter) 120px',
+		padding: `96px ${layout['--gutter']} 120px`,
 		display: 'grid',
 		gridTemplateColumns: {
 			default: '1fr 1fr',

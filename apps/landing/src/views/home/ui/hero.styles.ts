@@ -5,6 +5,7 @@ import {
 	duration,
 	ease,
 	font,
+	layout,
 } from '@syneva/design-system/tokens.stylex'
 import { motionRoot } from '@syneva/motion/root.stylex'
 
@@ -32,7 +33,7 @@ const LIGHT =
 export const hero = stylex.create({
 	root: {
 		position: 'relative',
-		padding: '28px var(--gutter) 64px',
+		padding: `28px ${layout['--gutter']} 64px`,
 		paddingBottom: { default: null, [media.phone]: '44px' },
 		isolation: 'isolate',
 		overflow: 'hidden',
@@ -48,7 +49,7 @@ export const hero = stylex.create({
 			inset: 0,
 			backgroundImage: `linear-gradient(${color['--grid']} 1px, transparent 1px), linear-gradient(90deg, ${color['--grid']} 1px, transparent 1px)`,
 			backgroundSize: '48px 48px',
-			backgroundPosition: 'calc(var(--gutter) - 1px) -1px',
+			backgroundPosition: `calc(${layout['--gutter']} - 1px) -1px`,
 			maskImage:
 				'linear-gradient(170deg, #000 0%, rgb(0 0 0 / .55) 38%, transparent 72%)',
 		},
@@ -59,7 +60,7 @@ export const hero = stylex.create({
 		inset: 0,
 		backgroundImage: LIGHT,
 		backgroundSize: '48px 48px',
-		backgroundPosition: 'calc(var(--gutter) - 25px) -25px',
+		backgroundPosition: `calc(${layout['--gutter']} - 25px) -25px`,
 		opacity: { default: 0, [lit()]: 1 },
 		maskImage:
 			'radial-gradient(circle 190px at var(--mx, 70%) var(--my, 20%), #000 0%, rgb(0 0 0 / .4) 45%, transparent 100%)',

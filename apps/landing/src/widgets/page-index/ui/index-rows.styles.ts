@@ -5,6 +5,7 @@ import {
 	duration,
 	ease,
 	font,
+	layout,
 } from '@syneva/design-system/tokens.stylex'
 
 import { indexRowMarker, pagerLinkMarker } from './page-index.stylex'
@@ -108,7 +109,7 @@ export const pager = stylex.create({
 		gridTemplateRows: 'auto auto auto',
 		columnGap: '14px',
 		rowGap: '4px',
-		padding: '34px var(--gutter)',
+		padding: `34px ${layout['--gutter']}`,
 		transition: `background-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		backgroundColor: { default: null, ':hover': color['--white'] },
 	},

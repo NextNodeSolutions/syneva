@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 const PAD = { default: '96px', [media.narrow]: '72px', [media.phone]: '56px' }
@@ -23,7 +23,7 @@ export const how = stylex.create({
 		gap: { default: '70px', [media.narrow]: '24px' },
 		paddingTop: PAD,
 		paddingBottom: '56px',
-		paddingInline: 'var(--gutter)',
+		paddingInline: layout['--gutter'],
 	},
 	headText: { alignSelf: 'end', maxWidth: '440px' },
 	figure: {
@@ -43,7 +43,7 @@ export const how = stylex.create({
 	loop: {
 		paddingTop: '64px',
 		paddingBottom: PAD,
-		paddingInline: 'var(--gutter)',
+		paddingInline: layout['--gutter'],
 	},
 	steps: {
 		display: 'grid',

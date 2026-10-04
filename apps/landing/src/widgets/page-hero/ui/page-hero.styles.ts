@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 
@@ -18,15 +18,14 @@ export const pageHero = stylex.create({
 		borderBottomStyle: 'solid',
 		borderBottomColor: LINE,
 		padding: {
-			default: '58px 48px 48px',
-			[media.narrow]: '58px 30px 48px',
-			[media.phone]: '40px 20px 36px',
+			default: `58px ${layout['--gutter']} 48px`,
+			[media.phone]: `40px ${layout['--gutter']} 36px`,
 		},
 		position: 'relative',
 	},
 	copy: {
 		paddingTop: { default: '44px', [media.phone]: '30px' },
-		paddingInline: 'var(--gutter)',
+		paddingInline: layout['--gutter'],
 		paddingBottom: { default: '64px', [media.tablet]: '52px' },
 		display: 'flex',
 		flexDirection: 'column',

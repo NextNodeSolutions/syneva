@@ -5,6 +5,7 @@ import {
 	duration,
 	ease,
 	font,
+	layout,
 } from '@syneva/design-system/tokens.stylex'
 
 const rule = {
@@ -23,7 +24,7 @@ export const footer = stylex.create({
 		gap: { default: '64px', [media.tablet]: '44px' },
 		paddingTop: { default: '64px', [media.phone]: '48px' },
 		paddingBottom: { default: '56px', [media.phone]: '40px' },
-		paddingInline: 'var(--gutter)',
+		paddingInline: layout['--gutter'],
 	},
 	pitch: { margin: '18px 0 26px', fontSize: '15px', maxWidth: '320px' },
 	map: {
@@ -59,7 +60,7 @@ export const footer = stylex.create({
 		containerType: 'inline-size',
 		overflow: 'hidden',
 		...rule,
-		paddingInline: 'calc(var(--gutter) - 8px)',
+		paddingInline: `calc(${layout['--gutter']} - 8px)`,
 	},
 	// The wordmark spans the frame: sized from the container, trimmed to its
 	// x-height.
@@ -76,7 +77,7 @@ export const footer = stylex.create({
 		userSelect: 'none',
 	},
 	bottom: {
-		padding: '20px var(--gutter)',
+		padding: `20px ${layout['--gutter']}`,
 		...rule,
 		display: 'flex',
 		flexDirection: { default: null, [media.phone]: 'column' },

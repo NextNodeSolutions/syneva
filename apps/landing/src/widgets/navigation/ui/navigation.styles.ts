@@ -1,6 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, duration, ease } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	layout,
+} from '@syneva/design-system/tokens.stylex'
 
 import {
 	actionMarker,
@@ -37,7 +42,7 @@ export const nav = stylex.create({
 		},
 		paddingBlock: 0,
 		paddingInline: {
-			default: 'var(--gutter)',
+			default: layout['--gutter'],
 			[media.compact]: '20px',
 			[media.tinyPhone]: '16px',
 		},

@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 const rule = {
@@ -33,18 +33,18 @@ export const chapter = stylex.create({
 	},
 	copy: {
 		padding: {
-			default: '64px var(--gutter)',
-			[media.narrow]: '44px var(--gutter)',
-			[media.phone]: '40px var(--gutter)',
+			default: `64px ${layout['--gutter']}`,
+			[media.narrow]: `44px ${layout['--gutter']}`,
+			[media.phone]: `40px ${layout['--gutter']}`,
 		},
 		alignSelf: 'center',
 	},
 	subCopy: {
 		minWidth: 0,
 		padding: {
-			default: '64px var(--gutter)',
-			[media.narrow]: '40px 30px',
-			[media.phone]: '32px 20px',
+			default: `64px ${layout['--gutter']}`,
+			[media.narrow]: `40px ${layout['--gutter']}`,
+			[media.phone]: `32px ${layout['--gutter']}`,
 		},
 	},
 	reverseCopy: {
