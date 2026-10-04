@@ -1,7 +1,6 @@
 ---
 // One FAQ topic: its number, title and blurb on the left, its questions as
 // native disclosures on the right.
-import { chapter } from '@widgets/chapter/ui/chapter.styles'
 import QaDisclosure from '@features/disclosure/ui/QaDisclosure.astro'
 import { heading } from '@shared/ui/heading.styles'
 import { stepIndex } from '@shared/ui/step-index.styles'
@@ -19,11 +18,11 @@ const id = qaAnchor(index)
 const count = `${group.items.length} question${group.items.length === 1 ? '' : 's'}`
 ---
 
-<section {...revealRuledGroup(chapter.section, chapter.subSection, qa.block)} id={id} aria-labelledby={`${id}-title`}>
-	<div {...sx(chapter.copy, chapter.subCopy, qa.copy)}>
+<section {...revealRuledGroup(qa.block)} id={id} aria-labelledby={`${id}-title`}>
+	<div {...sx(qa.copy)}>
 		<span {...revealItem(stepIndex.base)}>{twoDigits(index + 1)} · {count}</span>
 		<h2 {...revealItem(heading.section, heading.subpage)} id={`${id}-title`}>{group.title}</h2>
-		<p {...revealItem(chapter.text)}>{group.blurb}</p>
+		<p {...revealItem(qa.blurb)}>{group.blurb}</p>
 	</div>
 	<div {...sx(qa.list)}>
 		{group.items.map(({ question, answer }) => <QaDisclosure question={question} answer={answer} />)}
