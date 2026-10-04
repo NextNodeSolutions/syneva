@@ -24,7 +24,7 @@ import { homeArt } from '@shared/ui/drawing/home-art.styles'
 		<rect {...sx(shape.bandAdd)} x="41" y="134" width="438" height="24"></rect>
 		<text {...sx(text.ln)} x="72" y="151" text-anchor="end">19</text><text {...sx(text.code, text.green)} x="88" y="151">+ await verifySession(req)</text>
 	</g>
-	<path {...anim('draw', 0.5, homeArt.askAnchor)} pathLength="1" d="M56 158v18"></path>
+	<path {...anim('draw', 0.5, homeArt.askAnchor)} d="M56 158v18"></path>
 	<g {...anim('rise', 0.6)}>
 		<rect {...sx(homeArt.askThread)} x="56" y="176" width="408" height="142"></rect>
 		<path {...sx(homeArt.askRail)} d="M56 176v142"></path>

@@ -31,12 +31,12 @@ const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340
 		{
 			SOURCES.map(({ y }, i) => (
 				<Fragment>
-					<path {...anim('draw', 0.5 + i * 0.1, shape.route)} pathLength="1" d={routeOf(y)} />
-					<path {...anim('signal', 1.4 + i * 0.8, shape.signal)} pathLength="100" d={routeOf(y)} />
+					<path {...anim('draw', 0.5 + i * 0.1, shape.route)} d={routeOf(y)} />
+					<path {...anim('signal', 1.4 + i * 0.8, shape.signal)} d={routeOf(y)} />
 					<circle {...sx(shape.port)} cx="240" cy={y + 32} r="2.5" />
 				</Fragment>
 			))
-		}<path {...anim('draw', 1.2, shape.route, shape.routeGreen)} pathLength="1" d="M450 220h40"></path><path {...anim('signal', 2, shape.signal, shape.signalGreen)} pathLength="100" d="M450 220h40"></path>
+		}<path {...anim('draw', 1.2, shape.route, shape.routeGreen)} d="M450 220h40"></path><path {...anim('signal', 2, shape.signal, shape.signalGreen)} d="M450 220h40"></path>
 	</g>
 	{
 		SOURCES.map(({ glyph, title, command, y }, i) => (

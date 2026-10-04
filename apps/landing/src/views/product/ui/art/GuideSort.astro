@@ -43,8 +43,8 @@ const orderOf = (name: string): number => chips.findIndex(chip => chip.name === 
 			</Fragment>
 		))
 	}
-	<path {...anim('draw', 0.2, shape.route)} pathLength="1" d="M258 200h52"></path>
-	<path {...anim('signal', 2, shape.signal)} pathLength="100" d="M258 200h52"></path>
+	<path {...anim('draw', 0.2, shape.route)} d="M258 200h52"></path>
+	<path {...anim('signal', 2, shape.signal)} d="M258 200h52"></path>
 	<text {...anim('fade', 0.3, text.tiny)} x="284" y="190" text-anchor="middle">--guide</text>
 	{
 		SECTIONS.map(({ label, y, rows }, s) => (

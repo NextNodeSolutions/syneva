@@ -39,9 +39,9 @@ const rowY = (i: number): number => 96 + i * 72
 		<rect {...anim('sweep', 0.6, shape.bandYes)} x="44" y="272" width="166" height="20"></rect>
 	</g>
 	<g fill="none">
-		<path {...anim('draw', 0.8, shape.route, shape.routeAccent)} pathLength="1" d="M214 138C252 138 252 124 290 124"></path>
-		<path {...anim('draw', 0.95, shape.route)} pathLength="1" d="M194 210C242 210 242 196 290 196"></path>
-		<path {...anim('draw', 1.1, shape.route, shape.routeGreen)} pathLength="1" d="M210 282C250 282 250 268 290 268"></path>
+		<path {...anim('draw', 0.8, shape.route, shape.routeAccent)} d="M214 138C252 138 252 124 290 124"></path>
+		<path {...anim('draw', 0.95, shape.route)} d="M194 210C242 210 242 196 290 196"></path>
+		<path {...anim('draw', 1.1, shape.route, shape.routeGreen)} d="M210 282C250 282 250 268 290 268"></path>
 	</g>
 	<text {...sx(text.tiny, text.accent)} x="290" y="76">RANKED BY RISK</text>
 	<g {...anim('pop', 1.6)}><rect {...sx(productArt.protoTag)} x="476" y="34" width="96" height="20"></rect><text {...sx(text.tiny, text.accent)} x="524" y="48" text-anchor="middle">PROTOTYPE</text></g>

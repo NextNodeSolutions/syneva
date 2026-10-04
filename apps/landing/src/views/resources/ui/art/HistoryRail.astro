@@ -54,7 +54,7 @@ const cellsOf = (feat: number, fix: number, perf: number): Kind[] => [
 >
 	<text {...anim('fade', 0, text.tiny)} x="52" y="66">COMMITS PER DAY · FROM THE GIT HISTORY</text>
 	<g {...anim('fade', 0.1)}><rect {...sx(resourcesArt.feat)} x="52" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="68" y="93">FEAT</text><rect {...sx(resourcesArt.fix)} x="120" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="136" y="93">FIX</text><rect {...sx(resourcesArt.perf)} x="180" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="196" y="93">PERF</text></g>
-	<path {...anim('draw', 0, shape.route)} pathLength="1" d={`M44 ${BASE + 2}H556`}></path>
+	<path {...anim('draw', 0, shape.route)} d={`M44 ${BASE + 2}H556`}></path>
 	{
 		HISTORY.map(([day, feat, fix, perf], i) => {
 			const x = 52 + i * STEP
@@ -71,6 +71,6 @@ const cellsOf = (feat: number, fix: number, perf: number): Kind[] => [
 			)
 		})
 	}
-	<path {...anim('draw', 1.4, shape.route, shape.routeAccent)} pathLength="1" d="M281 160V130h40"></path>
+	<path {...anim('draw', 1.4, shape.route, shape.routeAccent)} d="M281 160V130h40"></path>
 	<text {...anim('fade', 1.5, text.tiny, text.accent)} x="326" y="134">REVIEW NOTES PANEL</text>
 </Drawing>

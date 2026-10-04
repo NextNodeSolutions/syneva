@@ -29,11 +29,11 @@ const TO_CHANGE = 'M300 220C340 220 340 300 380 300'
 	</g>
 	<circle {...sx(shape.port)} cx="300" cy="220" r="3"></circle>
 	<g fill="none">
-		<path {...anim('draw', 0.5, shape.route, shape.routeAccent)} pathLength="1" d={TO_ASK}></path>
-		<path {...anim('draw', 0.7, shape.route)} pathLength="1" d={TO_CHANGE}></path>
-		<path {...anim('draw', 1.6, shape.route, shape.routeDotted)} pathLength="1" d="M475 330V362"></path>
-		<path {...anim('signal', 1.4, shape.signal)} pathLength="100" d={TO_ASK}></path>
-		<path {...anim('signal', 2.2, shape.signal)} pathLength="100" d={TO_CHANGE}></path>
+		<path {...anim('draw', 0.5, shape.route, shape.routeAccent)} d={TO_ASK}></path>
+		<path {...anim('draw', 0.7, shape.route)} d={TO_CHANGE}></path>
+		<path {...anim('draw', 1.6, shape.route, shape.routeDotted)} d="M475 330V362"></path>
+		<path {...anim('signal', 1.4, shape.signal)} d={TO_ASK}></path>
+		<path {...anim('signal', 2.2, shape.signal)} d={TO_CHANGE}></path>
 	</g>
 	<text {...anim('fade', 0.8, text.tiny, text.accent)} x="380" y="34">ASK · ⌘⇧↵ · ANSWERED NOW</text>
 	<g {...anim('rise', 0.9)}>

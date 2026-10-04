@@ -29,7 +29,7 @@ const leaderAt = (title: string, i: number): string => `M${title.length * ADVANC
 	description="Four resources listed like a book's contents: get started, connect your agent, questions and answers, and the changelog."
 >
 	<text {...anim('fade', 0, text.tiny)} x="70" y="80">CONTENTS</text>
-	<path {...anim('draw', 0.1, shape.inkLine)} pathLength="1" d="M70 92h460"></path>
+	<path {...anim('draw', 0.1, shape.inkLine)} d="M70 92h460"></path>
 	{
 		ENTRIES.map(({ title, n, words }, i) => (
 			<g {...anim('rise', 0.2 + i * 0.12)}>

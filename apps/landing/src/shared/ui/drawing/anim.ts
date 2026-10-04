@@ -1,4 +1,4 @@
-import { moveOffset, poses } from '@syneva/motion/poses'
+import { moveOffset, PATH_LENGTH, poses } from '@syneva/motion/poses'
 
 import { sx } from '../../lib/sx'
 
@@ -16,13 +16,23 @@ type Kind = Exclude<VocabularyKind, 'move'>
 const isPosed = (kind: Kind): kind is Kind & keyof typeof poses =>
 	Object.hasOwn(poses, kind)
 
+// A drawn or travelling path declares the length its dashes are counted in.
+const isMeasured = (kind: Kind): kind is Kind & keyof typeof PATH_LENGTH =>
+	Object.hasOwn(PATH_LENGTH, kind)
+
 export type AnimAttributes = Attributes & {
 	'data-anim': VocabularyKind
 	'data-delay'?: string
+	pathLength?: number
 }
 
 function optIn(kind: Kind, styles: Part[]): AnimAttributes {
 	return { ...sx(isPosed(kind) && poses[kind], ...styles), 'data-anim': kind }
+}
+
+function lengthOf(kind: Kind): Pick<AnimAttributes, 'pathLength'> | undefined {
+	if (!isMeasured(kind)) return undefined
+	return { pathLength: PATH_LENGTH[kind] }
 }
 
 // A delay of 0 is written too: nested elements inherit the nearest one.
@@ -31,13 +41,17 @@ export function anim(
 	delay: number,
 	...styles: Part[]
 ): AnimAttributes {
-	return { ...optIn(kind, styles), 'data-delay': String(delay) }
+	return {
+		...optIn(kind, styles),
+		'data-delay': String(delay),
+		...lengthOf(kind),
+	}
 }
 
 // A loop without a delay of its own keeps time with the nearest delayed
 // ancestor (a pulse inside a rising card).
 export function loop(kind: LoopKind, ...styles: Part[]): AnimAttributes {
-	return optIn(kind, styles)
+	return { ...optIn(kind, styles), ...lengthOf(kind) }
 }
 
 // Travels in from (x, y) px to its markup position.

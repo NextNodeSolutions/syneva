@@ -30,10 +30,10 @@ const BACK = 'M420 240H180'
 	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="40" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="54" y="172">YOUR AGENT</text><text {...sx(text.small)} x="54" y="194">Any agent,</text><text {...sx(text.small)} x="54" y="211">Codex, Cursor,</text><text {...sx(text.small)} x="54" y="228">pi, a script</text><text {...sx(text.code, text.accent)} x="54" y="256">$ syneva …</text></g>
 	<g {...anim('rise', 0.2)}><rect {...sx(shape.panel, shape.panelWhite)} x="420" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="434" y="172">YOUR DESK</text><text {...sx(text.small)} x="434" y="198">localhost, the tab</text><text {...sx(text.small)} x="434" y="216">you review in</text><Check x={434} y={236} size={12} /><rect {...sx(shape.pending)} x="452" y="236" width="12" height="12"></rect></g>
 	<g fill="none">
-		<path {...anim('draw', 0.5, shape.route)} pathLength="1" d={OUT}></path>
-		<path {...anim('draw', 1.2, shape.route, shape.routeAccent)} pathLength="1" d={BACK}></path>
-		<path {...anim('signal', 1.8, shape.signal)} pathLength="100" d={OUT}></path>
-		<path {...anim('signal', 2.8, shape.signal)} pathLength="100" d={BACK}></path>
+		<path {...anim('draw', 0.5, shape.route)} d={OUT}></path>
+		<path {...anim('draw', 1.2, shape.route, shape.routeAccent)} d={BACK}></path>
+		<path {...anim('signal', 1.8, shape.signal)} d={OUT}></path>
+		<path {...anim('signal', 2.8, shape.signal)} d={BACK}></path>
 	</g>
 	<path {...sx(productArt.headMuted)} d="M420 180l-7-4v8Z"></path><path {...sx(productArt.headAccent)} d="M180 240l7-4v8Z"></path>
 	<text {...anim('fade', 0.7, text.tiny)} x="300" y="116" text-anchor="middle">SUBCOMMANDS · AGENT → DESK</text>

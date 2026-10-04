@@ -39,8 +39,8 @@ const TO_DESK = 'M334 228C352 228 352 200 370 200'
 			</Fragment>
 		))
 	}
-	<path {...anim('draw', 1.4, shape.route, shape.routeAccent)} pathLength="1" d={TO_DESK}></path>
-	<path {...anim('signal', 2.2, shape.signal)} pathLength="100" d={TO_DESK}></path>
+	<path {...anim('draw', 1.4, shape.route, shape.routeAccent)} d={TO_DESK}></path>
+	<path {...anim('signal', 2.2, shape.signal)} d={TO_DESK}></path>
 	<g {...anim('rise', 1.5)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="370" y="100" width="200" height="200"></rect>
 		<path {...sx(shape.hair)} d="M370 122h200"></path><rect {...sx(shape.dot)} x="378" y="109" width="5" height="5"></rect><text {...sx(text.tiny)} x="390" y="115">localhost:41873</text>

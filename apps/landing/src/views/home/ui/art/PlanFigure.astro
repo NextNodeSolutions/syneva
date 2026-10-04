@@ -38,8 +38,8 @@ const DOTS = [
 		<text {...sx(text.label)} x="64" y="82">plan.md</text>
 	</g>
 	<g fill="none">
-		{BUS.map(([delay, d]) => <path {...anim('draw', delay, homeArt.planBus)} pathLength="1" d={d} />)}
-		<path {...anim('signal', 2.6, homeArt.planBus, homeArt.planSignal)} pathLength="100" d="M220 162h30v228h36"></path>
+		{BUS.map(([delay, d]) => <path {...anim('draw', delay, homeArt.planBus)} d={d} />)}
+		<path {...anim('signal', 2.6, homeArt.planBus, homeArt.planSignal)} d="M220 162h30v228h36"></path>
 	</g>
 	<g>
 		{DOTS.map(([delay, y]) => <rect {...anim('pop', delay, homeArt.planDot)} x="247" y={y} width="6" height="6" />)}
@@ -60,7 +60,7 @@ const DOTS = [
 		<rect {...sx(homeArt.planClaim, homeArt.planSettled)} x="286" y="362" width="200" height="56"></rect>
 		<text {...sx(text.copy)} x="304" y="386">A decision</text>
 		<text {...sx(text.small)} x="304" y="405">Understood and settled</text>
-		<path {...anim('draw', 2.3, shape.check)} pathLength="1" d="m461 390 4 4 8-9"></path>
+		<path {...anim('draw', 2.3, shape.check)} d="m461 390 4 4 8-9"></path>
 	</g>
 	<text {...anim('fade', 2, text.label)} x="28" y="487">LESS READING BLIND. MORE DECIDING.</text>
 </Drawing>

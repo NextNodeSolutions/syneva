@@ -23,14 +23,14 @@ const BACK = 'M525 175V272q0 12-12 12H127q-12 0-12-12V175'
 	description="Every change starts pending. You keep it or undo it. After your agent edits and reloads, a change it rewrote returns to pending, while a change it left untouched keeps your verdict."
 >
 	<g fill="none">
-		<path {...anim('draw', 0.4, shape.route)} pathLength="1" d={TO_KEPT}></path>
-		<path {...anim('draw', 0.55, shape.route)} pathLength="1" d={TO_UNDONE}></path>
-		<path {...anim('draw', 0.9, shape.route)} pathLength="1" d={KEPT_TO_RELOAD}></path>
-		<path {...anim('draw', 1, shape.route)} pathLength="1" d={UNDONE_TO_RELOAD}></path>
-		<path {...anim('draw', 1.4, shape.route, shape.routeDotted)} pathLength="1" d={BACK}></path>
-		<path {...anim('signal', 1.8, shape.signal)} pathLength="100" d={TO_KEPT}></path>
-		<path {...anim('signal', 2.4, shape.signal, shape.signalGreen)} pathLength="100" d={KEPT_TO_RELOAD}></path>
-		<path {...anim('signal', 3, shape.signal)} pathLength="100" d={BACK}></path>
+		<path {...anim('draw', 0.4, shape.route)} d={TO_KEPT}></path>
+		<path {...anim('draw', 0.55, shape.route)} d={TO_UNDONE}></path>
+		<path {...anim('draw', 0.9, shape.route)} d={KEPT_TO_RELOAD}></path>
+		<path {...anim('draw', 1, shape.route)} d={UNDONE_TO_RELOAD}></path>
+		<path {...anim('draw', 1.4, shape.route, shape.routeDotted)} d={BACK}></path>
+		<path {...anim('signal', 1.8, shape.signal)} d={TO_KEPT}></path>
+		<path {...anim('signal', 2.4, shape.signal, shape.signalGreen)} d={KEPT_TO_RELOAD}></path>
+		<path {...anim('signal', 3, shape.signal)} d={BACK}></path>
 	</g>
 	<g {...anim('rise', 0)}><rect {...sx(shape.pending)} x="60" y="125" width="110" height="50"></rect><text {...sx(text.label)} x="115" y="148" text-anchor="middle">PENDING</text><text {...sx(text.small)} x="115" y="165" text-anchor="middle">every change</text></g>
 	<g {...anim('rise', 0.7)}><rect {...sx(shape.panel, shape.panelMint)} x="290" y="47" width="120" height="50"></rect><text {...sx(text.label, text.green)} x="350" y="70" text-anchor="middle">✓ KEPT</text><text {...sx(text.small)} x="350" y="87" text-anchor="middle">you pressed ⇧Y</text></g>

@@ -48,7 +48,7 @@ const ARROW = 4
 			const delay = 0.5 + i * 0.4
 			return (
 				<Fragment>
-					<path {...anim('draw', delay, productArt.sequenceLine, LINE[tone])} pathLength="1" d={`M${from} ${y}H${to + direction * ARROW}`} />
+					<path {...anim('draw', delay, productArt.sequenceLine, LINE[tone])} d={`M${from} ${y}H${to + direction * ARROW}`} />
 					<path {...anim('pop', delay + 0.3, HEAD[tone])} d={`M${to} ${y}l${direction * 7}-4v8Z`} />
 					<text {...anim('fade', delay + 0.2, text.small)} x={(from + to) / 2} y={y - 8} text-anchor="middle">{label}</text>
 				</Fragment>

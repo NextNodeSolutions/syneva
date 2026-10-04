@@ -63,7 +63,7 @@ const VERDICT_BARS = [70, 82, 60, 76] as const
 	{
 		LAYERS.map(({ y, label, words, tone }, i) => (
 			<Fragment>
-				<path {...anim('draw', 1 + i * 0.12, shape.route)} pathLength="1" d={`M332 ${y}h48`} />
+				<path {...anim('draw', 1 + i * 0.12, shape.route)} d={`M332 ${y}h48`} />
 				<circle {...sx(shape.port)} cx="332" cy={y} r="2.5" />
 				<g {...anim('fade', 1.15 + i * 0.12)}>
 					<text {...sx(text.tiny, tone === 'green' && text.green, tone === 'accent' && text.accent)} x="392" y={y - 4}>{label}</text>

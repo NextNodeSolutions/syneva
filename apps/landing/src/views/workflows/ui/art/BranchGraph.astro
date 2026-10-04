@@ -31,18 +31,18 @@ const FEATURE = [
 		<text {...sx(text.tiny)} x="544" y="68" text-anchor="end">OR A BRANCH, OR A GITHUB URL</text>
 		<text {...sx(text.small)} x="56" y="92">Numbers and URLs resolve through gh. The branch is checked out for you.</text>
 	</g>
-	<path {...anim('draw', 0.3, workflowsArt.main)} pathLength="1" d="M50 300H560"></path>
+	<path {...anim('draw', 0.3, workflowsArt.main)} d="M50 300H560"></path>
 	<text {...anim('fade', 0.4, text.tiny)} x="50" y="330">MAIN</text>
 	{
 		MAIN.map((x, i) => (
 			<circle {...anim('pop', 0.4 + i * 0.08, workflowsArt.commit, x === BASE && workflowsArt.commitBase)} cx={x} cy="300" r={x === BASE ? 7 : 5} />
 		))
 	}
-	<path {...anim('draw', 0.8, workflowsArt.branch)} pathLength="1" d="M160 300C200 300 220 190 280 190C320 190 330 160 360 160H520"></path>
+	<path {...anim('draw', 0.8, workflowsArt.branch)} d="M160 300C200 300 220 190 280 190C320 190 330 160 360 160H520"></path>
 	{FEATURE.map(([x, y], i) => <circle {...anim('pop', 1.1 + i * 0.12, workflowsArt.commit, workflowsArt.commitFeature)} cx={x} cy={y} r="6" />)}
 	<text {...anim('fade', 1.5, text.tiny, text.accent)} x="534" y="164">HEAD</text>
 	<text {...anim('fade', 1, text.tiny)} x="160" y="330" text-anchor="middle">MERGE-BASE</text>
-	<path {...anim('draw', 1.6, shape.bracket)} pathLength="1" d="M176 142v-12h352v12"></path>
+	<path {...anim('draw', 1.6, shape.bracket)} d="M176 142v-12h352v12"></path>
 	<text {...anim('fade', 1.8, text.tiny, text.accent)} x="352" y="122" text-anchor="middle">REVIEWED · MERGE-BASE → HEAD</text>
 	<g {...anim('fade', 2)}><text {...sx(text.tiny)} x="345" y="356" text-anchor="middle">COMMITS ON MAIN SINCE THEN STAY OUT</text><path {...sx(shape.hair)} d="M250 340h190"></path></g>
 	<g {...anim('rise', 2.2, shape.secondary)}><text {...sx(text.tiny, text.green)} x="40" y="392">APPROVE → APPROVE</text><text {...sx(text.tiny, text.accent)} x="190" y="392">REJECT → REQUEST CHANGES</text><text {...sx(text.tiny)} x="400" y="392">--base &lt;ref&gt; OVERRIDES</text></g>

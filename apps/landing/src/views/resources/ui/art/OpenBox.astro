@@ -27,12 +27,12 @@ const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW
 					<rect {...sx(shape.panel, shape.panelWhite)} x="40" y={86 + i * ROW} width="120" height="34" />
 					<text {...sx(text.file)} x="54" y={107 + i * ROW}>{name}</text>
 				</g>
-				<path {...anim('draw', 0.5 + i * 0.06, shape.route)} pathLength="1" d={wireOf(i)} />
+				<path {...anim('draw', 0.5 + i * 0.06, shape.route)} d={wireOf(i)} />
 			</Fragment>
 		))
 	}
-	<path {...anim('signal', 1.6, shape.signal)} pathLength="100" d="M160 103C200 103 200 210 240 210"></path>
-	<path {...anim('signal', 3, shape.signal)} pathLength="100" d="M160 311C200 311 200 210 240 210"></path>
+	<path {...anim('signal', 1.6, shape.signal)} d="M160 103C200 103 200 210 240 210"></path>
+	<path {...anim('signal', 3, shape.signal)} d="M160 311C200 311 200 210 240 210"></path>
 	<g {...anim('rise', 0.4)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="240" y="120" width="160" height="180"></rect>
 		<text {...sx(text.label)} x="256" y="146">syneva</text>
@@ -45,8 +45,8 @@ const wireOf = (i: number): string => `M160 ${103 + i * ROW}C200 ${103 + i * ROW
 	</g>
 	<circle {...sx(shape.port)} cx="240" cy="210" r="3"></circle>
 	<text {...anim('fade', 0.9, text.tiny)} x="200" y="70" text-anchor="middle">JSON · STDOUT</text>
-	<path {...anim('draw', 1, shape.route, shape.routeGreen)} pathLength="1" d="M400 210h60"></path>
-	<path {...anim('signal', 2.2, shape.signal, shape.signalGreen)} pathLength="100" d="M400 210h60"></path>
+	<path {...anim('draw', 1, shape.route, shape.routeGreen)} d="M400 210h60"></path>
+	<path {...anim('signal', 2.2, shape.signal, shape.signalGreen)} d="M400 210h60"></path>
 	<text {...anim('fade', 1.1, text.tiny)} x="430" y="198" text-anchor="middle">HTTP</text>
 	<g {...anim('rise', 1.2)}><rect {...sx(shape.panel, shape.panelMint)} x="460" y="170" width="100" height="80"></rect><text {...sx(text.tiny, text.green)} x="510" y="196" text-anchor="middle">YOUR DESK</text><text {...sx(text.small)} x="510" y="220" text-anchor="middle">localhost</text></g>
 	<g {...anim('pop', 1.6)}><rect {...sx(resourcesArt.stamp)} x="464" y="300" width="92" height="44"></rect><text {...sx(text.head, text.accent)} x="510" y="329" text-anchor="middle">MIT</text></g>

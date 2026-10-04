@@ -20,10 +20,10 @@ const ROW = 50
 	title="Straight answers"
 	description="A list of questions with the first one open: does Syneva review code for me? No. You do; your agent helps."
 >
-	<path {...anim('draw', 0, shape.inkLine)} pathLength="1" d="M60 70h480"></path>
+	<path {...anim('draw', 0, shape.inkLine)} d="M60 70h480"></path>
 	<g {...anim('rise', 0.2)}><text {...sx(text.head)} x="60" y="104">Does Syneva review code for me?</text><path {...sx(resourcesArt.chevron, resourcesArt.chevronOpen)} d="M520 92l8 8 8-8"></path></g>
 	<rect {...anim('sweep', 0.5, resourcesArt.answer)} x="60" y="120" width="480" height="96"></rect>
-	<path {...anim('draw', 0.6, homeArt.askRail)} pathLength="1" d="M60 120v96"></path>
+	<path {...anim('draw', 0.6, homeArt.askRail)} d="M60 120v96"></path>
 	<text {...anim('type', 0.8, text.copy, text.accent)} x="80" y="152">No. You review the code.</text>
 	<text {...anim('fade', 1.4, text.small)} x="80" y="176">Your agent sets the order and answers your questions.</text>
 	<text {...anim('fade', 1.5, text.small)} x="80" y="196">Syneva records your verdicts and hands them back.</text>
