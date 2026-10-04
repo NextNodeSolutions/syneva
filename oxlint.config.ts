@@ -112,7 +112,7 @@ export default defineConfig({
 				'apps/landing/src/views/home/ui/hero-choreography.ts',
 				'apps/landing/src/views/home/ui/hero-timeline.ts',
 				'apps/landing/src/views/home/ui/hero-verdict.ts',
-				'apps/landing/src/views/home/ui/Hero{Card,Glyph,Ledger,Stage}.astro',
+				'apps/landing/src/views/home/ui/Hero{Agent,Card,Desk,Glyph,Ledger,Stage}.astro',
 			],
 			rules: { 'eslint/no-magic-numbers': 'off' },
 		},

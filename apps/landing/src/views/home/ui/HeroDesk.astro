@@ -1,0 +1,73 @@
+---
+// The desk's column of the hero instrument: the change opened on your local
+// desk, its diff rows, the question you ask on line 14 and the agent's answer.
+import { sx } from '@shared/lib/sx'
+import { heroStage } from './hero-stage.styles'
+
+const ROWS = [
+	{ line: '12', code: 'export function handle(req) {', y: 126 },
+	{ line: '13', sign: '−', code: 'return run(req)', y: 150, isDel: true },
+	{ line: '14', sign: '+', code: 'await verifySession(req)', y: 174 },
+	{ line: '15', sign: '+', code: 'return run(req)', y: 198 },
+	{ line: '16', code: '}', y: 222 },
+]
+---
+
+<g {...sx(heroStage.layer)} data-stage-part="desk">
+	<text {...sx(heroStage.kicker)} x="236" y="40">YOUR DESK</text>
+	<text {...sx(heroStage.sub, heroStage.mono)} x="236" y="58">localhost:41873</text>
+	<rect {...sx(heroStage.panel)} x="236" y="72" width="292" height="280"></rect>
+	<g opacity="0" data-stage-part="idle">
+		<text {...sx(heroStage.tiny)} x="382" y="215" text-anchor="middle">WAITING FOR YOUR AGENT’S DIFF</text>
+		<rect {...sx(heroStage.caret)} x="379" y="225" width="6" height="11" data-stage-part="caret"></rect>
+	</g>
+	<g data-stage-part="head">
+		<text {...sx(heroStage.file, heroStage.strong)} x="250" y="93">auth/session.ts</text>
+		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+2 −1</text>
+		<g><rect {...sx(heroStage.button)} x="460" y="80" width="28" height="16"></rect><path {...sx(heroStage.buttonGlyph)} d="m471 85 6 6m0-6-6 6"></path></g>
+		<g>
+			<rect {...sx(heroStage.button, heroStage.accept)} x="492" y="80" width="28" height="16" data-stage-part="accept"></rect>
+			<path {...sx(heroStage.buttonGlyph, heroStage.acceptGlyph)} d="m502 88 2.6 2.6 5-5.6" data-stage-part="accept-glyph"></path>
+		</g>
+	</g>
+	<path {...sx(heroStage.hair)} d="M236 104h292"></path>
+	<rect {...sx(heroStage.bandDel)} x="237" y="134" width="290" height="24" data-stage-part="band-del"></rect>
+	<rect {...sx(heroStage.bandAdd)} x="237" y="158" width="290" height="48" data-stage-part="band-add"></rect>
+	<rect {...sx(heroStage.sweep)} x="237" y="110" width="290" height="24" opacity="0" data-stage-part="sweep"></rect>
+	{
+		ROWS.map(({ line, sign, code, y, isDel }) => (
+			<g data-stage-part="row">
+				<text {...sx(heroStage.lineNumber)} x="262" y={y} text-anchor="end">{line}</text>
+				{sign && <text {...sx(heroStage.sign, isDel ? heroStage.del : heroStage.add)} x="270" y={y}>{sign}</text>}
+				<text {...sx(heroStage.code, sign && (isDel ? heroStage.del : heroStage.add))} x={sign ? '298' : '284'} y={y}>{code}</text>
+				{isDel && <path {...sx(heroStage.strike)} d="M298 146h104" data-stage-part="strike" />}
+			</g>
+		))
+	}
+	<path {...sx(heroStage.gutterCheck)} pathLength="1" d="m241 171 3 3 5.5-6.5" data-stage-part="gutter-check"></path>
+	<path {...sx(heroStage.gutterCheck)} pathLength="1" d="m241 195 3 3 5.5-6.5" data-stage-part="gutter-check"></path>
+	<path {...sx(heroStage.leader)} pathLength="1" d="M510 179V244" data-stage-part="leader"></path>
+	<g {...sx(heroStage.box)} data-stage-part="chip">
+		<circle {...sx(heroStage.chipDot)} cx="510" cy="170" r="9"></circle>
+		<text {...sx(heroStage.chipText)} x="510" y="174" text-anchor="middle">?</text>
+	</g>
+	<g data-stage-part="thread">
+		<rect {...sx(heroStage.threadBox)} x="250" y="244" width="264" height="94"></rect>
+		<path {...sx(heroStage.threadRail)} d="M250 244v94"></path>
+		<g data-stage-part="you">
+			<text {...sx(heroStage.who)} x="264" y="264">YOU · ASK</text>
+			<text {...sx(heroStage.message)} x="264" y="281">What if the session already expired?</text>
+		</g>
+		<g opacity="0" data-stage-part="typing">
+			<circle {...sx(heroStage.typingDot)} cx="266" cy="318" r="2"></circle>
+			<circle {...sx(heroStage.typingDot)} cx="274" cy="318" r="2"></circle>
+			<circle {...sx(heroStage.typingDot)} cx="282" cy="318" r="2"></circle>
+		</g>
+		<g data-stage-part="agent-says">
+			<text {...sx(heroStage.who, heroStage.agentWho)} x="264" y="304">YOUR AGENT</text>
+			<text {...sx(heroStage.message)} x="264" y="321">It returns 401 before the handler runs.</text>
+		</g>
+	</g>
+	<circle {...sx(heroStage.port)} cx="236" cy="170" r="2.5"></circle>
+	<circle {...sx(heroStage.port)} cx="528" cy="88" r="2.5"></circle>
+</g>

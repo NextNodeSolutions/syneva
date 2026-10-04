@@ -1,0 +1,33 @@
+---
+// The agent's column of the hero instrument: its files settle into a reading
+// order on the rail, and the revised one is marked REV 2.
+import { sx } from '@shared/lib/sx'
+import HeroCard from './HeroCard.astro'
+import { heroStage } from './hero-stage.styles'
+
+const FILES = [
+	['01', 'contracts/review.ts'],
+	['02', 'auth/session.ts'],
+	['03', 'pages/desk.tsx'],
+] as const
+---
+
+<g {...sx(heroStage.layer, heroStage.phoneHidden)} data-stage-part="agent">
+	<text {...sx(heroStage.kicker)} x="30" y="40">YOUR AGENT</text>
+	<text {...sx(heroStage.sub)} x="30" y="58">wrote 6 files · +214 −37</text>
+	<path {...sx(heroStage.rail)} pathLength="1" d="M18 92V288" data-stage-part="rail"></path>
+	<g data-stage-part="rail-dots">
+		<rect {...sx(heroStage.railDot)} x="15" y="89" width="6" height="6"></rect>
+		<rect {...sx(heroStage.railDot)} x="15" y="187" width="6" height="6"></rect>
+		<rect {...sx(heroStage.railDot)} x="15" y="285" width="6" height="6"></rect>
+	</g>
+	{FILES.map(([index, name], i) => <HeroCard index={index} name={name} card={i} />)}
+	<g {...sx(heroStage.box)} opacity="0" data-stage-part="rev">
+		<rect {...sx(heroStage.revBox)} x="156" y="277" width="40" height="15"></rect>
+		<text {...sx(heroStage.revText)} x="176" y="287.8" text-anchor="middle">REV 2</text>
+	</g>
+	<text {...sx(heroStage.sub)} x="202" y="374" text-anchor="end" data-stage-part="more">+3 more files</text>
+	<path {...sx(heroStage.focus, heroStage.box)} d="M22 176v-14h14M196 162h14v14M22 248v14h14M196 262h14v-14" fill="none" data-stage-part="focus"></path>
+	<circle {...sx(heroStage.port)} cx="202" cy="212" r="2.5"></circle>
+	<circle {...sx(heroStage.port)} cx="116" cy="352" r="2.5"></circle>
+</g>
