@@ -43,11 +43,14 @@ const OFFSET_X = '--tx'
 const OFFSET_Y = '--ty'
 const NO_OFFSET = '0px'
 
-const hidden = <T>(pose: T): When<When<T>> => ({
+// A hidden pose holds a CSS keyword, length or colour, or a number.
+type PoseValue = string | number
+
+const hidden = (pose: PoseValue): When<When<PoseValue>> => ({
 	default: null,
 	[media.motionSafe]: { default: null, [armed()]: pose },
 })
-const whenStalled = <T>(fallback: T): When<When<T>> => ({
+const whenStalled = (fallback: string): When<When<string>> => ({
 	default: null,
 	[media.motionSafe]: { default: null, [stalled()]: fallback },
 })
