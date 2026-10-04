@@ -1,12 +1,11 @@
 ---
-// One FAQ topic: its number, title and blurb on the left, its questions as
-// native disclosures on the right.
+// One FAQ topic: its title and blurb on the left, its questions as native
+// disclosures on the right. The topic index above links to it and counts its
+// questions.
 import QaDisclosure from '@features/disclosure/ui/QaDisclosure.astro'
 import { heading } from '@shared/ui/heading.styles'
-import { stepIndex } from '@shared/ui/step-index.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import { twoDigits } from '@shared/lib/two-digits'
 import type { QaGroup } from '../model/faq'
 import { qaAnchor } from '../model/faq'
 import { qa } from './qa.styles'
@@ -15,12 +14,10 @@ type Props = { group: QaGroup }
 
 const { group } = Astro.props
 const id = qaAnchor(group)
-const count = `${group.items.length} question${group.items.length === 1 ? '' : 's'}`
 ---
 
 <section {...revealRuledGroup(qa.block)} id={id} aria-labelledby={`${id}-title`}>
 	<div {...sx(qa.copy)}>
-		<span {...revealItem(stepIndex.base)}>{twoDigits(group.position)} · {count}</span>
 		<h2 {...revealItem(heading.section, heading.subpage)} id={`${id}-title`}>{group.title}</h2>
 		<p {...revealItem(qa.blurb)}>{group.blurb}</p>
 	</div>
