@@ -52,47 +52,45 @@ const typed = steps(TYPE_STEPS, progress => {
 
 // Starters receive the element's data-delay; entrances and signals wait a
 // beat (LAG_S) after the section arrives, pulses a longer one. An entrance
-// plays once: Motion commits its finished pose and releases the animation.
-type Starter = (element: HTMLElement | SVGElement, delay: number) => void
+// plays once and hands back its playback (reveal.ts can complete it at once);
+// Motion commits its finished pose and releases the animation.
+type Target = HTMLElement | SVGElement
+type Entrance = (element: Target, delay: number) => ReturnType<typeof animate>
+type Loop = (element: Target, delay: number) => void
 const lag = (delay: number): number => delay + LAG_S
 
 export const ENTRANCES = {
-	draw: (element, delay) => {
+	draw: (element, delay) =>
 		animate(
 			element,
 			{ strokeDashoffset: [1, 0] },
 			{ duration: TIMING.draw, delay: lag(delay), ease: out },
-		)
-	},
-	fade: (element, delay) => {
+		),
+	fade: (element, delay) =>
 		animate(
 			element,
 			{ opacity: [0, 1] },
 			{ duration: TIMING.fade, delay: lag(delay), ease: out },
-		)
-	},
-	rise: (element, delay) => {
+		),
+	rise: (element, delay) =>
 		animate(
 			element,
 			{ opacity: [0, 1], transform: [POSE_VALUES.rise, 'none'] },
 			{ duration: TIMING.rise, delay: lag(delay), ease: out },
-		)
-	},
-	pop: (element, delay) => {
+		),
+	pop: (element, delay) =>
 		animate(
 			element,
 			{ transform: ['scale(0)', 'none'] },
 			{ duration: TIMING.pop, delay: lag(delay), ease: spring },
-		)
-	},
-	sweep: (element, delay) => {
+		),
+	sweep: (element, delay) =>
 		animate(
 			element,
 			{ transform: ['scaleX(0)', 'none'] },
 			{ duration: TIMING.sweep, delay: lag(delay), ease: out },
-		)
-	},
-	type: (element, delay) => {
+		),
+	type: (element, delay) =>
 		animate(
 			element,
 			{ clipPath: typed.values },
@@ -102,27 +100,25 @@ export const ENTRANCES = {
 				times: typed.times,
 				ease: 'linear',
 			},
-		)
-	},
+		),
 	// Opacity lands in the first quarter; the travel uses the whole duration.
 	move: (element, delay) => {
 		const timing = { duration: TIMING.move, delay: lag(delay) }
-		animate(
+		return animate(
 			element,
-			{ opacity: [0, 1, 1] },
+			{ opacity: [0, 1, 1], transform: [moveStart(element), 'none'] },
 			{
 				...timing,
-				times: [0, TIMING.moveFadeEnd, 1],
-				ease: [settle, settle, settle],
+				ease: settle,
+				opacity: {
+					...timing,
+					times: [0, TIMING.moveFadeEnd, 1],
+					ease: [settle, settle, settle],
+				},
 			},
 		)
-		animate(
-			element,
-			{ transform: [moveStart(element), 'none'] },
-			{ ...timing, ease: settle },
-		)
 	},
-} satisfies Record<string, Starter>
+} satisfies Record<string, Entrance>
 
 export const LOOPS = {
 	signal: (element, delay) => {
@@ -195,7 +191,7 @@ export const LOOPS = {
 			{ duration: TIMING.spin, repeat: Infinity, ease: 'linear' },
 		)
 	},
-} satisfies Record<string, Starter>
+} satisfies Record<string, Loop>
 
 // The kinds a drawing element can name in data-anim.
 export type LoopKind = keyof typeof LOOPS

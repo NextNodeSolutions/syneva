@@ -5,6 +5,7 @@ import { playVocabulary } from './play-vocabulary'
 import { POSE_VALUES } from './poses'
 import { reducedMotion } from './preference'
 import { syncScenes } from './scenes'
+import { ENTRANCES, LOOPS } from './vocabulary'
 
 import type { AnimateOptions } from './engine'
 
@@ -29,8 +30,8 @@ const itemsOf = (group: Element): Element[] => [
 	...group.querySelectorAll('[data-reveal-item]'),
 ]
 
-function revealGroup(group: Element): void {
-	if (reducedMotion.matches) return
+// The group's items and drawings leave their hidden poses.
+const enter = (group: Element): ReturnType<typeof animate>[] => [
 	animate(
 		itemsOf(group),
 		{ opacity: [0, 1], transform: [POSE_VALUES.itemRise, 'none'] },
@@ -39,7 +40,19 @@ function revealGroup(group: Element): void {
 			ease: out,
 			delay: index => Math.min(index, STAGGER_CAP) * ITEM.stagger,
 		},
-	)
+	),
+	...playVocabulary(group, ENTRANCES),
+]
+
+function revealGroup(group: Element): void {
+	const entrances = enter(group)
+	// Reduced motion lands the entrances on their finished pose at once, so a
+	// later switch to no-preference never arms a hidden pose over content
+	// already seen. The rule, the counts and the loops stay still.
+	if (reducedMotion.matches) {
+		entrances.forEach(entrance => entrance.complete())
+		return
+	}
 	if (group instanceof HTMLElement && 'rule' in group.dataset)
 		animate(
 			group,
@@ -51,7 +64,7 @@ function revealGroup(group: Element): void {
 		)
 	for (const fact of group.querySelectorAll('[data-count]'))
 		if (fact instanceof HTMLElement) countUp(fact)
-	playVocabulary(group)
+	playVocabulary(group, LOOPS)
 	// The group's scenes (its figures) hold their new animations until they
 	// are in view themselves.
 	syncScenes(group)

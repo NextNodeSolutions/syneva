@@ -1,5 +1,4 @@
 import { cancelFrame, frame } from './engine'
-import { reducedMotion } from './preference'
 
 import type { FrameData } from './engine'
 
@@ -13,7 +12,7 @@ const quartOut = (progress: number): number => 1 - (1 - progress) ** QUART
 export function countUp(element: HTMLElement): void {
 	const target = Number(element.dataset.count)
 	const digits = element.firstChild
-	if (reducedMotion.matches || !Number.isFinite(target) || !digits) return
+	if (!Number.isFinite(target) || !digits) return
 	const startedAt = performance.now()
 	const tick = ({ timestamp }: FrameData): void => {
 		const progress = Math.min(
