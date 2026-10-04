@@ -3,14 +3,18 @@
 // frame it reframes to (data-compact, swapped by frames.ts) and its
 // accessible name. The id names the title, the description and the frame's
 // grid, so it must be unique on its page. A drawing without the ruled frame
-// fills the frame slot with nothing.
+// fills the frame slot with nothing, or with a frame of its own. Any data-*
+// attribute passed on (a runtime's hook, such as data-circuit) lands on the
+// root <svg>.
 import type { Part } from '../../lib/sx'
 import { sx } from '../../lib/sx'
 import ArtFrame from './ArtFrame.astro'
 import { drawingMarker } from './drawing.stylex'
 import { drawing } from './drawing.styles'
 
-type Props = {
+type DataAttributes = { [attribute: `data-${string}`]: string | true }
+
+type Props = DataAttributes & {
 	id: string
 	width: number
 	height: number
@@ -22,7 +26,7 @@ type Props = {
 	css?: Part
 }
 
-const { id, width, height, title, description, compact, density = 'regular', css } = Astro.props
+const { id, width, height, title, description, compact, density = 'regular', css, ...data } = Astro.props
 const titleId = `${id}-title`
 const descriptionId = `${id}-desc`
 const isSubpage = Astro.locals.page === 'sub'
@@ -31,6 +35,8 @@ const fitOf = (): Part => {
 	return compact ? drawing.subpageCompact : drawing.subpage
 }
 const fit = fitOf()
+// A bare attribute arrives as true, which a spread would print as ="true".
+const hooks = Object.fromEntries(Object.entries(data).map(([name, value]) => [name, value === true ? '' : value]))
 ---
 
 <svg
@@ -39,6 +45,7 @@ const fit = fitOf()
 	data-compact={compact}
 	role="img"
 	aria-labelledby={`${titleId} ${descriptionId}`}
+	{...hooks}
 >
 	<title id={titleId}>{title}</title>
 	<desc id={descriptionId}>{description}</desc>
