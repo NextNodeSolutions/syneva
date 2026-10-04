@@ -95,7 +95,7 @@ export const hero = stylex.create({
 		transform: { default: null, [newsHover()]: 'translateX(3px)' },
 	},
 	title: {
-		'--hl-gutter': {
+		'--headline-gutter': {
 			default: '76px',
 			[media.narrow]: '58px',
 			[media.phone]: '34px',
@@ -110,7 +110,7 @@ export const hero = stylex.create({
 	},
 	line: {
 		display: 'grid',
-		gridTemplateColumns: 'var(--hl-gutter) minmax(0, auto)',
+		gridTemplateColumns: 'var(--headline-gutter) minmax(0, auto)',
 		alignItems: 'stretch',
 		justifyContent: 'start',
 	},
