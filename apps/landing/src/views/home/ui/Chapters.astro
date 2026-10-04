@@ -1,5 +1,6 @@
 ---
 // The three product chapters: the desk, questions on the line, the plan desk.
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { PAGES } from '@entities/site/model/site-map'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
 import ChapterList from '@widgets/chapter/ui/ChapterList.astro'
@@ -14,7 +15,7 @@ import PlanFigure from './art/PlanFigure.astro'
 const DESK = [
 	['Follow the change, not the file list.', 'Your agent groups files into a walkthrough, general to specific. Every file stays visible.'],
 	['Keep the good, undo the rest.', 'A verdict per change, or sign off a whole file. Nothing is ever auto-approved.'],
-	['Never touch the mouse.', 'j and k between changes, ⇧Y to keep, ⇧N to undo, ⇧S to send. Press ? for the full map.'],
+	['Never touch the mouse.', `${HOTKEYS.nextChange} and ${HOTKEYS.previousChange} between changes, ${HOTKEYS.keep} to keep, ${HOTKEYS.undo} to undo, ${HOTKEYS.send} to send. Press ${HOTKEYS.keyboardMap} for the full map.`],
 ] as const
 const ASK = [
 	['Two intents, one keystroke apart.', 'Ask for an explanation now, or request a change that rides along with your verdict.'],

@@ -1,6 +1,7 @@
 ---
 // The verdict column: every changed file and your verdict on it, the
 // progress strip, and Send.
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import Check from '@shared/ui/drawing/Check.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -49,7 +50,7 @@ const rows = HERO_FILES.map((file, index) => ({
 		<rect {...sx(heroStage.sendBox)} x="562" y="324" width="178" height="28" {...stagePart('send-box')}></rect>
 		<text {...sx(heroStage.sendLabel)} x="576" y="342.5" {...stagePart('send-label')}>Send to agent</text>
 		<text {...sx(heroStage.sendLabel)} x="576" y="342.5" opacity="0" {...stagePart('send-sent')}>Sent · agent revising</text>
-		<text {...sx(heroStage.sendKey)} x="728" y="342" text-anchor="end">⇧S</text>
+		<text {...sx(heroStage.sendKey)} x="728" y="342" text-anchor="end">{HOTKEYS.send}</text>
 	</g>
 	<circle {...sx(shape.port)} cx="562" cy="123" r="2.5"></circle>
 	<circle {...sx(shape.port)} cx="651" cy="352" r="2.5"></circle>
