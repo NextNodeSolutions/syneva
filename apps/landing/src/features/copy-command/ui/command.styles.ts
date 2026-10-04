@@ -79,6 +79,9 @@ export const command = stylex.create({
 		font: `13.5px ${font['--mono']}`,
 		caretColor: color['--accent'],
 		padding: '8px 0',
+		// A command wider than a narrow field shows it is cut; the copy button
+		// still copies all of it.
+		textOverflow: 'ellipsis',
 	},
 	copy: {
 		display: 'grid',
