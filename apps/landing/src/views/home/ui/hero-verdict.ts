@@ -1,5 +1,6 @@
 import { EASE } from '@syneva/motion/easing'
 
+import { isRejected, turnOfVerdict } from './hero-round-part'
 import { draw, FADE_END, FADE_START, loop, pop, travel } from './hero-timeline'
 
 import type { Palette } from './hero-palette'
@@ -48,15 +49,12 @@ export function accept({ one, all }: Scope, color: Palette): void {
 	travel(one('signal-out'), 8.95, 0.5, 8)
 }
 
-const isRejected = (verdict: Element): boolean =>
-	verdict.getAttribute('data-verdict') === 'no'
-
 // 9.4 - 10.8  Every file gets your verdict, one turn after another; the
 // ledger fills.
 export function decide({ one, all }: Scope): void {
 	const verdicts = all('verdict')
 	verdicts.forEach(verdict => {
-		const start = 9.4 + Number(verdict.getAttribute('data-turn')) * 0.2
+		const start = 9.4 + turnOfVerdict(verdict) * 0.2
 		if (!isRejected(verdict)) {
 			pop(verdict, start)
 			return

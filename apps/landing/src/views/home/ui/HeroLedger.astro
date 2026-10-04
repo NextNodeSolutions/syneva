@@ -8,6 +8,7 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
 import HeroUndone from './HeroUndone.astro'
 import { HERO_FILES, REJECTED_COUNT, turnOf } from './hero-round'
+import { verdictPart } from './hero-round-part'
 import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
 
@@ -37,7 +38,7 @@ const rows = HERO_FILES.map((file, index) => ({
 				{index > 0 && <path {...sx(shape.hair)} d={`M562 ${top}h178`} />}
 				<text {...sx(heroStage.file)} x="574" y={top + 21}>{file.path}</text>
 				<Pending x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} />
-				<g {...sx(heroStage.fillBox)} {...stagePart('verdict')} data-verdict={file.verdict} data-turn={turn}><Verdict x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>
+				<g {...sx(heroStage.fillBox)} {...verdictPart(file.verdict, turn)}><Verdict x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>
 				{file.verdict === 'no' && <g {...sx(heroStage.fillBox)} opacity="0" {...stagePart('row-pending')}><Pending x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>}
 			</Fragment>
 		))

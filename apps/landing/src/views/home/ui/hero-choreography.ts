@@ -1,5 +1,6 @@
 import { EASE } from '@syneva/motion/easing'
 
+import { isRejected, placeOfBar } from './hero-round-part'
 import {
 	draw,
 	FADE_END,
@@ -54,16 +55,14 @@ function arrive({ one, all }: Scope): void {
 // after the verdict comes back.
 function writeBars({ all }: Scope): void {
 	all('bar').forEach(bar => {
-		const card = Number(bar.getAttribute('data-card'))
-		const row = Number(bar.getAttribute('data-row'))
-		const isRejected = bar.closest('[data-verdict="no"]') !== null
+		const { card, row } = placeOfBar(bar)
 		const write = 0.45 + card * 0.16 + row * 0.13
 		const frames: [Frame, ...Frame[]] = [
 			[0, { transform: 'scaleX(0)' }],
 			[write, { transform: 'scaleX(0)' }],
 			[write + 0.4, { transform: 'none' }],
 		]
-		if (isRejected)
+		if (isRejected(bar))
 			frames.push(
 				[13.15, { transform: 'none' }],
 				[13.35, { transform: 'scaleX(0)' }],

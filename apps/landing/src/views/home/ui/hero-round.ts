@@ -2,7 +2,7 @@
 // reading order, with your verdict on each. The agent's column draws the
 // files that carry code bars as cards, your desk opens one of them, and the
 // ledger lists them all. The markup tells the timeline which file you
-// rejected (data-verdict) and in which turn each verdict lands (data-turn).
+// rejected and in which turn each verdict lands (hero-round-part.ts).
 export type LineKind = 'added' | 'removed' | 'context'
 export type Bar = { readonly kind: LineKind; readonly width: number }
 export type Verdict = 'yes' | 'no'
