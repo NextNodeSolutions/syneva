@@ -207,9 +207,9 @@ export default defineConfig({
 		},
 		{
 			// The landing reaches Motion only through @syneva/motion, whose engine.ts is
-			// the one module that names the animation engine, so the engine can change
-			// without touching the site. A Motion API the site needs is exported from
-			// engine.ts first.
+			// the one module that imports the animation engine: it picks the WAAPI
+			// animate() and patches its options type once. A Motion API the site needs
+			// is exported from engine.ts first.
 			files: ['apps/landing/**'],
 			rules: {
 				'eslint/no-restricted-imports': [

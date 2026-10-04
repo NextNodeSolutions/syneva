@@ -1,10 +1,12 @@
-/* eslint-disable nextnode/no-barrel-file -- package public entry: the one seam onto the animation engine */
-// The one module that names the animation engine: the site and every other
-// module of this package reach Motion through these exports, so swapping the
-// engine touches this file alone. motion/mini is the WAAPI-backed animate()
-// (no JS interpolation loop, a few kilobytes). The landing never imports
-// motion itself (oxlint enforces it); a Motion API it needs is exported from
-// here first.
+/* eslint-disable nextnode/no-barrel-file -- package public entry: the one import of the animation engine */
+// The one module that imports the animation engine: the site and every other
+// module of this package reach Motion through these exports. It picks
+// motion/mini, the WAAPI-backed animate() (no JS interpolation loop, a few
+// kilobytes), which an animate imported from 'motion' would silently replace
+// with the full engine, and patches the options type below once. Callers
+// still pass Motion's options and hold its playback controls, so an engine
+// upgrade reviews them too. The landing never imports motion itself (oxlint
+// enforces it); a Motion API it needs is exported from here first.
 import type { AnimationOptions } from 'motion'
 
 export { animate } from 'motion/mini'
