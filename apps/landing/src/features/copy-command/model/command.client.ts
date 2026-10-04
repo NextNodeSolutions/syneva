@@ -16,27 +16,38 @@ function bindCommand(box: Element): void {
 	if (!field) throw missing('command field (<input>)')
 	if (!status) throw missing('copy status ([data-copy-status])')
 	let reset: ReturnType<typeof setTimeout> | undefined
+	let isFailing = false
+	const clear = (): void => {
+		isFailing = false
+		button.classList.remove('is-copied')
+		status.classList.remove('is-error')
+		status.textContent = ''
+	}
 	const copy = async (): Promise<void> => {
 		clearTimeout(reset)
 		try {
 			await navigator.clipboard.writeText(field.value)
+			isFailing = false
 			status.textContent = 'Copied. Paste it into your terminal.'
 			status.classList.remove('is-error')
 			button.classList.add('is-copied')
+			reset = setTimeout(clear, FEEDBACK_MS)
 		} catch {
 			button.classList.remove('is-copied')
 			field.focus()
 			field.select()
+			isFailing = true
 			status.textContent = 'Copy unavailable. The command is selected.'
 			status.classList.add('is-error')
 		}
-		reset = setTimeout(() => {
-			button.classList.remove('is-copied')
-			status.textContent = ''
-		}, FEEDBACK_MS)
 	}
 	button.addEventListener('click', () => {
 		void copy()
+	})
+	// A success clears itself; a failure stays until the visitor leaves the
+	// selected command, so it can be read however long that takes.
+	field.addEventListener('blur', () => {
+		if (isFailing) clear()
 	})
 	// A click into the field selects the whole command, ready to copy.
 	field.addEventListener('focus', () => field.select())
