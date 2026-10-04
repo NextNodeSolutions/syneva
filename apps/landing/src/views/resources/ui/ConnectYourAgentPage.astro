@@ -11,6 +11,7 @@ import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { CONTRACT_SOURCE_URL } from '@entities/site/model/site-map'
+import { EVENTS, SPEC_SUBCOMMAND, SUBCOMMANDS } from '../model/agent-contract'
 
 const PI = [
 	['/review and /plan.', 'Prompt templates that start a desk, attach your session and act on each event.'],
@@ -28,19 +29,8 @@ const LOOP = [
 	'    esac',
 	'  done',
 ]
-const SUBCOMMANDS = [
-	['syneva await', 'Block until the next event and print it as one JSON envelope.'],
-	['syneva comment', 'Reply on a path, line and side. Appears live in the thread.'],
-	['syneva status', 'A one-line “doing X now” beside your spinner.'],
-	['syneva reload', 'Re-diff the working tree into the open tab, optionally with a new guide.'],
-	['syneva stop', 'Shut the desk down. Idempotent; review state stays saved.'],
-	['syneva spec', 'Print the whole contract.'],
-] as const
-const EVENTS = [
-	['question', 'You asked something. Answer it, read-only, on the same line.'],
-	['review', 'You clicked Send. The result field is your ReviewResult.'],
-	['closed', 'You ended the review from the browser. The round is over.'],
-] as const
+const SUBCOMMAND_ROWS = [...SUBCOMMANDS, SPEC_SUBCOMMAND].map(({ name, does }) => [`syneva ${name}`, does] as const)
+const EVENT_ROWS = EVENTS.map(({ kind, meaning }) => [kind, meaning] as const)
 const ACTING = [
 	['rejected → revert it.', 'You don’t want that change.'],
 	['requestedChanges → make the edit.', 'At that path and line, or across the file for a whole-file request.'],
@@ -65,10 +55,10 @@ const ACTING = [
 	<Terminal lines={LOOP} title="any agent" />
 </Prose>
 <Prose id="subcommands" title="Subcommands.">
-	<SpecTable rows={SUBCOMMANDS} head={['Command', 'What it does']} />
+	<SpecTable rows={SUBCOMMAND_ROWS} head={['Command', 'What it does']} />
 </Prose>
 <Prose id="events" title="Events.">
-	<SpecTable rows={EVENTS} head={['Kind', 'Meaning']} />
+	<SpecTable rows={EVENT_ROWS} head={['Kind', 'Meaning']} />
 	<ProseText>A <code>ReviewResult</code> carries <code>accepted</code>, <code>rejected</code>, <code>requestedChanges</code>, <code>approvedFiles</code>, <code>stagedFiles</code>, <code>openQuestions</code> and an optional <code>overallNote</code>. The arrays are the review: there is no prose summary to parse.</ProseText>
 </Prose>
 <Prose id="acting" title="How an agent<br>acts on a verdict.">
