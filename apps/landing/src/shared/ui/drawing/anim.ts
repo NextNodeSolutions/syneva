@@ -40,7 +40,7 @@ export function loop(kind: LoopKind, ...styles: Part[]): AnimAttributes {
 	return optIn(kind, styles)
 }
 
-// .a-move: travels in from (x, y) px to its markup position.
+// Travels in from (x, y) px to its markup position.
 export function move(
 	delay: number,
 	x: number,

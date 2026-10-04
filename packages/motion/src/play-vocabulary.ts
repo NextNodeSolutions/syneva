@@ -12,9 +12,9 @@ type Starter<Started> = (
 	delay: number,
 ) => Started
 
-// A delay is inherited like the CSS custom property it replaces: a loop
-// nested in a staggered group (a pulse inside a rising card) keeps time with
-// that group, so the nearest data-delay, its own or an ancestor's, applies.
+// A delay is inherited: a loop nested in a staggered group (a pulse inside a
+// rising card) keeps time with that group, so the nearest data-delay, its own
+// or an ancestor's, applies.
 function delayOf(element: Element): number {
 	const owner = element.closest('[data-delay]')
 	return owner instanceof HTMLElement || owner instanceof SVGElement
