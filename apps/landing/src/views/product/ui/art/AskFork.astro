@@ -25,10 +25,10 @@ const TO_CHANGE = 'M300 220C340 220 340 300 380 300'
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="30" y="150" width="270" height="110"></rect>
 		<text {...sx(text.file, text.strong)} x="44" y="172">api/middleware.ts</text><path {...sx(shape.hair)} d="M30 182h270"></path>
-		<CodeLine x={66} y={202} gap={10} number={18}>token = readCookie(req)</CodeLine>
+		<CodeLine x={66} y={202} gap={10} lineNumber={18}>token = readCookie(req)</CodeLine>
 		<rect {...sx(shape.bandAdd)} x="31" y="210" width="268" height="20"></rect>
-		<CodeLine x={66} y={224} gap={10} number={19} tone="green">+ await verifySession(req)</CodeLine>
-		<CodeLine x={66} y={248} gap={10} number={20}>return next()</CodeLine>
+		<CodeLine x={66} y={224} gap={10} lineNumber={19} tone="green">+ await verifySession(req)</CodeLine>
+		<CodeLine x={66} y={248} gap={10} lineNumber={20}>return next()</CodeLine>
 	</g>
 	<circle {...sx(shape.port)} cx="300" cy="220" r="3"></circle>
 	<g fill="none">

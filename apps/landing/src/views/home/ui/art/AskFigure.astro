@@ -22,9 +22,9 @@ import { homeArt } from '@shared/ui/drawing/home-art.styles'
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="58" width="440" height="404"></rect>
 		<text {...sx(text.file, text.strong)} x="56" y="84">api/middleware.ts</text>
 		<path {...sx(shape.hair)} d="M40 98h440"></path>
-		<CodeLine x={88} y={124} gap={16} number={18}>const token = readCookie(req)</CodeLine>
+		<CodeLine x={88} y={124} gap={16} lineNumber={18}>const token = readCookie(req)</CodeLine>
 		<rect {...sx(shape.bandAdd)} x="41" y="134" width="438" height="24"></rect>
-		<CodeLine x={88} y={151} gap={16} number={19} tone="green">+ await verifySession(req)</CodeLine>
+		<CodeLine x={88} y={151} gap={16} lineNumber={19} tone="green">+ await verifySession(req)</CodeLine>
 	</g>
 	<path {...anim('draw', 0.5, homeArt.askAnchor)} d="M56 158v18"></path>
 	<g {...anim('rise', 0.6)}>
@@ -47,7 +47,7 @@ import { homeArt } from '@shared/ui/drawing/home-art.styles'
 		</AskThread>
 	</g>
 	<g {...anim('rise', 0.1)}>
-		<CodeLine x={88} y={346} gap={16} number={20}>return next()</CodeLine>
+		<CodeLine x={88} y={346} gap={16} lineNumber={20}>return next()</CodeLine>
 	</g>
 	<g {...anim('rise', 3.2)}>
 		<rect {...sx(homeArt.askChange)} x="56" y="360" width="408" height="58"></rect>

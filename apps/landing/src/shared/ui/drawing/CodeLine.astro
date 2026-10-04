@@ -4,10 +4,11 @@
 import { sx } from '../../lib/sx'
 import { text } from './text.styles'
 
-type Props = { x: number; y: number; gap: number; number: number; tone?: 'green' | 'accent' }
-
 const TONE = { green: text.green, accent: text.accent } as const
-const { x, y, gap, number, tone } = Astro.props
+
+type Props = { x: number; y: number; gap: number; lineNumber: number; tone?: keyof typeof TONE }
+
+const { x, y, gap, lineNumber, tone } = Astro.props
 ---
 
-<text {...sx(text.lineNumber)} x={x - gap} y={y} text-anchor="end">{number}</text><text {...sx(text.code, tone && TONE[tone])} x={x} y={y}><slot /></text>
+<text {...sx(text.lineNumber)} x={x - gap} y={y} text-anchor="end">{lineNumber}</text><text {...sx(text.code, tone && TONE[tone])} x={x} y={y}><slot /></text>

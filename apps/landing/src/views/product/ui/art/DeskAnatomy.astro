@@ -70,15 +70,15 @@ const LEGEND_GAP = '   '
 		<rect {...sx(shape.kbd)} x="470" y="72" width="96" height="17"></rect><text {...sx(text.tiny)} x="518" y="84" text-anchor="middle">APPROVE · ⇧A</text>
 	</g>
 	<g {...anim('fade', 0.3)}>
-		<CodeLine x={222} y={120} gap={12} number={12}>export function handle(req) &#123;</CodeLine>
+		<CodeLine x={222} y={120} gap={12} lineNumber={12}>export function handle(req) &#123;</CodeLine>
 		<rect {...anim('sweep', 0.7, shape.bandYes)} x="185" y="126" width="390" height="40"></rect>
-		<CodeLine x={222} y={140} gap={12} number={13} tone="green">+  await verifySession(req)</CodeLine>
-		<CodeLine x={222} y={160} gap={12} number={14} tone="green">+  return run(req)</CodeLine>
+		<CodeLine x={222} y={140} gap={12} lineNumber={13} tone="green">+  await verifySession(req)</CodeLine>
+		<CodeLine x={222} y={160} gap={12} lineNumber={14} tone="green">+  return run(req)</CodeLine>
 		<path {...sx(shape.hair)} d="M184 180h392"></path>
 		<rect {...anim('sweep', 1.1, shape.bandNo)} x="185" y="194" width="390" height="20"></rect>
-		<CodeLine x={222} y={208} gap={12} number={41} tone="accent">+  cache.set(token, user)</CodeLine>
+		<CodeLine x={222} y={208} gap={12} lineNumber={41} tone="accent">+  cache.set(token, user)</CodeLine>
 		<path {...anim('draw', 1.3, shape.strike)} d="M238 204h148"></path>
-		<CodeLine x={222} y={230} gap={12} number={42}>   return user</CodeLine>
+		<CodeLine x={222} y={230} gap={12} lineNumber={42}>   return user</CodeLine>
 	</g>
 	<g {...anim('pop', 0.9)}><rect {...sx(shape.chipYes)} x="494" y="136" width="72" height="20"></rect><text {...sx(text.tiny, text.green)} x="530" y="149.5" text-anchor="middle">✓ KEEP ⇧Y</text></g>
 	<g {...anim('pop', 1.25)}><rect {...sx(shape.chipNo)} x="494" y="194" width="72" height="20"></rect><text {...sx(text.tiny, text.accent)} x="530" y="207.5" text-anchor="middle">✕ UNDO ⇧N</text></g>
