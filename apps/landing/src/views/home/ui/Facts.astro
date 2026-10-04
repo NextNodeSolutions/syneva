@@ -9,13 +9,14 @@ import { facts } from './facts.styles'
 
 // One review mode per workflow page.
 const REVIEW_MODES = SECTION_BY_ID.workflows.items.length
-const PERCENT = 100
-const FACTS = [
-	[0, 'changes auto-approved. Every verdict is a click you made.'],
-	[1, 'tab for the whole loop: review, questions and the next revision.'],
-	[REVIEW_MODES, 'review modes: working tree, staged, a branch or PR, a single file.'],
-	[PERCENT, 'local. No model inside, no telemetry, no account.'],
-] as const
+// A count prints bare unless it carries a unit, set smaller after it.
+type Fact = { count: number; unit?: '%'; label: string }
+const FACTS: readonly Fact[] = [
+	{ count: 0, label: 'changes auto-approved. Every verdict is a click you made.' },
+	{ count: 1, label: 'tab for the whole loop: review, questions and the next revision.' },
+	{ count: REVIEW_MODES, label: 'review modes: working tree, staged, a branch or PR, a single file.' },
+	{ count: 100, unit: '%', label: 'local. No model inside, no telemetry, no account.' },
+]
 ---
 
 <section {...revealRuledGroup(section.ruled, section.pad)} id="facts" aria-labelledby="facts-title">
@@ -25,10 +26,10 @@ const FACTS = [
 	</div>
 	<div {...sx(facts.stats)}>
 		{
-			FACTS.map(([count, label], i) => (
+			FACTS.map(({ count, unit, label }, i) => (
 				<div {...revealItem(ruledItem.base, facts.stat)}>
 					<span {...sx(facts.number, i === 0 && facts.first)} data-count={count}>
-						{count}{count === PERCENT && <span {...sx(facts.unit)}>%</span>}
+						{count}{unit && <span {...sx(facts.unit)}>{unit}</span>}
 					</span>
 					<span {...sx(facts.label)}>{label}</span>
 				</div>
