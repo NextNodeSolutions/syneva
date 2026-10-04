@@ -1,6 +1,8 @@
 ---
 // The hero: the headline set as a two-line diff (the agent's addition, then
-// your verdict), the pitch and its actions, and the review-round instrument.
+// your verdict), the pitch and its actions, and the review-round instrument,
+// then the principle strip under it. Its intro (hero-intro.ts) plays every
+// part rendered here, the strip included.
 import { poses } from '@syneva/motion/poses'
 
 import Button from '@shared/ui/Button.astro'
@@ -10,6 +12,7 @@ import TextLink from '@shared/ui/TextLink.astro'
 import { scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import HeroStage from './HeroStage.astro'
+import Principles from './Principles.astro'
 import { introPart } from './hero-intro-part'
 import { heroBody } from './hero-body.styles'
 import { hero } from './hero.styles'
@@ -47,6 +50,7 @@ import { heroMarker, newsMarker } from './hero.stylex'
 		</figure>
 	</div>
 </section>
+<Principles />
 
 <script>
 	import './hero.client'
