@@ -53,20 +53,7 @@ export const ruledList = stylex.create({
 		gap: '0 32px',
 		...afterFirst('32px'),
 	},
-	item: {
-		...rule('1px', color['--line-strong']),
-		padding: '20px 0 26px',
-		position: 'relative',
-		'::before': {
-			content: "''",
-			position: 'absolute',
-			top: '-3.5px',
-			left: 0,
-			width: '7px',
-			height: '7px',
-			backgroundColor: color['--accent'],
-		},
-	},
+	item: { padding: '20px 0 26px' },
 	index: { marginBottom: '12px' },
 	head: {
 		display: 'block',

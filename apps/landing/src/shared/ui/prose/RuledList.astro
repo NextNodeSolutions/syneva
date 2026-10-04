@@ -2,6 +2,7 @@
 // Numbered points, each under its own rule.
 import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
+import { ruledItem } from '../ruled-item.styles'
 import { stepIndex } from '../step-index.styles'
 import { ruledList } from './prose.styles'
 import { twoDigits } from '../../lib/step-number'
@@ -14,7 +15,7 @@ const { items } = Astro.props
 <ol {...sx(ruledList.root)}>
 	{
 		items.map(([head, text], index) => (
-			<li {...revealItem(ruledList.item)}>
+			<li {...revealItem(ruledItem.base, ruledList.item)}>
 				<span {...sx(stepIndex.base, ruledList.index)}>{twoDigits(index + 1)}</span>
 				<strong {...sx(ruledList.head)} set:html={head} />
 				<p {...sx(ruledList.text)} set:html={text} />

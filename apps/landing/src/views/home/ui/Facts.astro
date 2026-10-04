@@ -1,5 +1,6 @@
 ---
 // Numbers we can actually promise: product facts, never adoption metrics.
+import { ruledItem } from '@shared/ui/ruled-item.styles'
 import { section } from '@shared/ui/section.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
@@ -23,7 +24,7 @@ const FACTS = [
 	<div {...sx(facts.stats)}>
 		{
 			FACTS.map(([count, label], i) => (
-				<div {...revealItem(facts.stat)}>
+				<div {...revealItem(ruledItem.base, facts.stat)}>
 					<span {...sx(facts.number, i === 0 && facts.first)} data-count={count}>
 						{count}{count === PERCENT && <span {...sx(facts.unit)}>%</span>}
 					</span>

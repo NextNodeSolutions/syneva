@@ -62,22 +62,7 @@ export const how = stylex.create({
 		margin: 0,
 		padding: 0,
 	},
-	step: {
-		borderTopWidth: '1px',
-		borderTopStyle: 'solid',
-		borderTopColor: color['--line-strong'],
-		padding: '22px 0 0',
-		position: 'relative',
-		'::before': {
-			content: "''",
-			position: 'absolute',
-			top: '-3.5px',
-			left: 0,
-			width: '7px',
-			height: '7px',
-			backgroundColor: color['--accent'],
-		},
-	},
+	step: { padding: '22px 0 0' },
 	stepTitle: {
 		display: 'block',
 		fontSize: '17px',

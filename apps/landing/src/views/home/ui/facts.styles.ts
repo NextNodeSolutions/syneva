@@ -2,21 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-const RULE_STRONG = {
-	borderTopWidth: '1px',
-	borderTopStyle: 'solid',
-	borderTopColor: color['--line-strong'],
-}
-const MARKER = {
-	content: "''",
-	position: 'absolute',
-	top: '-3.5px',
-	left: 0,
-	width: '7px',
-	height: '7px',
-	backgroundColor: color['--accent'],
-}
-
 // Trust register: product facts, styled as a ruled register.
 export const facts = stylex.create({
 	head: {
@@ -39,12 +24,7 @@ export const facts = stylex.create({
 			[media.phone]: '28px',
 		},
 	},
-	stat: {
-		...RULE_STRONG,
-		paddingTop: '22px',
-		position: 'relative',
-		'::before': MARKER,
-	},
+	stat: { paddingTop: '22px' },
 	number: {
 		display: 'block',
 		fontSize: 'clamp(46px, 5.4vw, 78px)',
