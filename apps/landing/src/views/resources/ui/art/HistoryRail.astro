@@ -1,46 +1,69 @@
 ---
 // Changelog: shipped work as a day-by-day stacked rail.
+import type { Style } from '@shared/lib/sx'
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
+import type { ChangeKind } from '../../model/changelog'
+import { CHANGE_KINDS } from '../../model/changelog'
 
-// Real commit counts per day, Sept 15 to Oct 2 2026: [day, feat, fix, perf].
+type DayCount = { day: string } & Record<ChangeKind, number>
+
+// Real commit counts per day, Sept 15 to Oct 2 2026.
 const HISTORY = [
-	['09-15', 3, 0, 0],
-	['09-16', 1, 0, 0],
-	['09-17', 0, 1, 0],
-	['09-18', 0, 0, 0],
-	['09-19', 1, 2, 3],
-	['09-20', 1, 4, 4],
-	['09-21', 0, 4, 1],
-	['09-22', 1, 2, 5],
-	['09-23', 5, 5, 3],
-	['09-24', 0, 0, 0],
-	['09-25', 0, 0, 0],
-	['09-26', 0, 0, 0],
-	['09-27', 0, 0, 0],
-	['09-28', 0, 0, 0],
-	['09-29', 0, 0, 0],
-	['09-30', 0, 2, 0],
-	['10-01', 1, 0, 0],
-	['10-02', 2, 2, 0],
-] as const
+	{ day: '09-15', feat: 3, fix: 0, perf: 0 },
+	{ day: '09-16', feat: 1, fix: 0, perf: 0 },
+	{ day: '09-17', feat: 0, fix: 1, perf: 0 },
+	{ day: '09-18', feat: 0, fix: 0, perf: 0 },
+	{ day: '09-19', feat: 1, fix: 2, perf: 3 },
+	{ day: '09-20', feat: 1, fix: 4, perf: 4 },
+	{ day: '09-21', feat: 0, fix: 4, perf: 1 },
+	{ day: '09-22', feat: 1, fix: 2, perf: 5 },
+	{ day: '09-23', feat: 5, fix: 5, perf: 3 },
+	{ day: '09-24', feat: 0, fix: 0, perf: 0 },
+	{ day: '09-25', feat: 0, fix: 0, perf: 0 },
+	{ day: '09-26', feat: 0, fix: 0, perf: 0 },
+	{ day: '09-27', feat: 0, fix: 0, perf: 0 },
+	{ day: '09-28', feat: 0, fix: 0, perf: 0 },
+	{ day: '09-29', feat: 0, fix: 0, perf: 0 },
+	{ day: '09-30', feat: 0, fix: 2, perf: 0 },
+	{ day: '10-01', feat: 1, fix: 0, perf: 0 },
+	{ day: '10-02', feat: 2, fix: 2, perf: 0 },
+] as const satisfies readonly DayCount[]
 const BASE = 320
 const STEP = 28
 const CELL = 11
-const KIND = { feat: shape.yes, fix: shape.no, perf: shape.panelWhite } as const
-type Kind = keyof typeof KIND
+const SQUARE = 10
+const KIND: Record<ChangeKind, Style> = { feat: shape.yes, fix: shape.no, perf: shape.panelWhite }
+// Where each kind's legend swatch sits; its label follows to the right.
+const LEGEND_X: Record<ChangeKind, number> = { feat: 52, fix: 120, perf: 180 }
+const LEGEND_LABEL_GAP = 16
 const LAST = HISTORY.length - 1
-// A date under every fourth day, and under the last one.
-const TICK_EVERY = 4
-const hasTick = (i: number): boolean => (i % TICK_EVERY === 0 && i < LAST - 1) || i === LAST
-const cellsOf = (feat: number, fix: number, perf: number): Kind[] => [
-	...Array.from({ length: feat }, (): Kind => 'feat'),
-	...Array.from({ length: fix }, (): Kind => 'fix'),
-	...Array.from({ length: perf }, (): Kind => 'perf'),
-]
+// A date under every fourth day, and under the last one. Dates one column
+// apart would overlap, so a fourth day right before the last gives its date up.
+const DATE_EVERY = 4
+const isDated = (index: number): boolean => (index % DATE_EVERY === 0 && index < LAST - 1) || index === LAST
+const columnX = (index: number): number => 52 + index * STEP
+const centerOf = (index: number): number => columnX(index) + SQUARE / 2
+// A day's commits stack one square per commit, in the changelog's kind order.
+const cellsOf = (count: DayCount): ChangeKind[] =>
+	CHANGE_KINDS.flatMap(kind => Array.from({ length: count[kind] }, (): ChangeKind => kind))
+const days = HISTORY.map((count, i) => ({
+	x: columnX(i),
+	center: centerOf(i),
+	cells: cellsOf(count),
+	date: count.day.replace('-', '/'),
+	hasDate: isDated(i),
+	delay: 0.2 + i * 0.05,
+}))
+// The review notes panel shipped on 09-23. The pointer rises from above that
+// column's stack and runs right to its label.
+const NOTES_PANEL_DAY: (typeof HISTORY)[number]['day'] = '09-23'
+const NOTES_PANEL_X = centerOf(HISTORY.findIndex(({ day }) => day === NOTES_PANEL_DAY))
+const POINTER_RUN = 40
+const POINTER_LABEL_GAP = 5
 ---
 
 <Drawing
@@ -52,24 +75,28 @@ const cellsOf = (feat: number, fix: number, perf: number): Kind[] => [
 	description="Feature, fix and performance commits per day from September 15 to October 2, 2026, taken from the repository history. The busiest day, September 23, shipped the review notes panel."
 >
 	<text {...anim('fade', 0, text.tiny)} x="52" y="66">COMMITS PER DAY · FROM THE GIT HISTORY</text>
-	<g {...anim('fade', 0.1)}><rect {...sx(shape.yes)} x="52" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="68" y="93">FEAT</text><rect {...sx(shape.no)} x="120" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="136" y="93">FIX</text><rect {...sx(shape.panelWhite)} x="180" y="84" width="10" height="10"></rect><text {...sx(text.tiny)} x="196" y="93">PERF</text></g>
+	<g {...anim('fade', 0.1)}>{
+		CHANGE_KINDS.map(kind => (
+			<Fragment>
+				<rect {...sx(KIND[kind])} x={LEGEND_X[kind]} y="84" width={SQUARE} height={SQUARE} />
+				<text {...sx(text.tiny)} x={LEGEND_X[kind] + LEGEND_LABEL_GAP} y="93">{kind.toUpperCase()}</text>
+			</Fragment>
+		))
+	}</g>
 	<path {...anim('draw', 0, shape.route)} d={`M44 ${BASE + 2}H556`}></path>
 	{
-		HISTORY.map(([day, feat, fix, perf], i) => {
-			const x = 52 + i * STEP
-			return (
-				<Fragment>
-					<g {...move(0.2 + i * 0.05, 0, 30)}>
-						{cellsOf(feat, fix, perf).map((kind, k) => (
-							<rect {...sx(KIND[kind])} x={x} y={BASE - 12 - k * CELL} width="10" height="10" />
-						))}
-					</g>
-					<path {...sx(shape.hair)} d={`M${x + 5} ${BASE + 2}v5`} />
-					{hasTick(i) && <text {...sx(text.tiny)} x={x + 5} y={BASE + 22} text-anchor="middle">{day.replace('-', '/')}</text>}
-				</Fragment>
-			)
-		})
+		days.map(({ x, center, cells, date, hasDate, delay }) => (
+			<Fragment>
+				<g {...move(delay, 0, 30)}>
+					{cells.map((kind, k) => (
+						<rect {...sx(KIND[kind])} x={x} y={BASE - 12 - k * CELL} width={SQUARE} height={SQUARE} />
+					))}
+				</g>
+				<path {...sx(shape.hair)} d={`M${center} ${BASE + 2}v5`} />
+				{hasDate && <text {...sx(text.tiny)} x={center} y={BASE + 22} text-anchor="middle">{date}</text>}
+			</Fragment>
+		))
 	}
-	<path {...anim('draw', 1.4, shape.route, shape.routeAccent)} d="M281 160V130h40"></path>
-	<text {...anim('fade', 1.5, text.tiny, text.accent)} x="326" y="134">REVIEW NOTES PANEL</text>
+	<path {...anim('draw', 1.4, shape.route, shape.routeAccent)} d={`M${NOTES_PANEL_X} 160V130h${POINTER_RUN}`}></path>
+	<text {...anim('fade', 1.5, text.tiny, text.accent)} x={NOTES_PANEL_X + POINTER_RUN + POINTER_LABEL_GAP} y="134">REVIEW NOTES PANEL</text>
 </Drawing>
