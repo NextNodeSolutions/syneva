@@ -8,6 +8,7 @@
 import { sx } from '@shared/lib/sx'
 import CircuitLayer from './CircuitLayer.astro'
 import CircuitStation from './CircuitStation.astro'
+import CriticalFocus from './CriticalFocus.astro'
 import { circuitPart, signalPart } from './circuit-part'
 import { LOOP_LABEL, PLATFORM_X, portsOn, ROW, WIRES } from './circuit-layout'
 import { circuit } from './circuit.styles'
@@ -57,9 +58,12 @@ import { circuit } from './circuit.styles'
 			{portsOn('review').map(([id, { x, y }]) => <circle {...sx(circuit.port)} id={id} cx={x} cy={y} r="2.5" />)}
 		</g>
 		<g transform="translate(580 276)">
-			<CircuitLayer kind="tested" />
+			<CircuitLayer kind="tested">
+				<use slot="under" href="#review-leaf" transform="translate(0 10)"></use>
+				<g transform="translate(64 5) scale(1 .5)"><use href="#verdict-check"></use></g>
+			</CircuitLayer>
 			<CircuitLayer kind="important" />
-			<CircuitLayer kind="critical" />
+			<CircuitLayer kind="critical"><CriticalFocus /></CircuitLayer>
 		</g>
 		<CircuitStation kind="verdict">
 			<g transform="translate(0 -9) scale(.72)">
