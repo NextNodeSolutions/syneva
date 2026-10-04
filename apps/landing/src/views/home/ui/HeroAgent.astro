@@ -6,9 +6,9 @@ import HeroCard from './HeroCard.astro'
 import { heroStage } from './hero-stage.styles'
 
 const FILES = [
-	['01', 'contracts/review.ts'],
-	['02', 'auth/session.ts'],
-	['03', 'pages/desk.tsx'],
+	{ path: 'contracts/review.ts', bars: [['added', 96], ['added', 128], ['context', 70]] },
+	{ path: 'auth/session.ts', bars: [['removed', 84], ['added', 120], ['added', 92]] },
+	{ path: 'pages/desk.tsx', bars: [['context', 110], ['added', 76], ['removed', 120]] },
 ] as const
 ---
 
@@ -21,7 +21,7 @@ const FILES = [
 		<rect {...sx(heroStage.railDot)} x="15" y="187" width="6" height="6"></rect>
 		<rect {...sx(heroStage.railDot)} x="15" y="285" width="6" height="6"></rect>
 	</g>
-	{FILES.map(([index, name], i) => <HeroCard index={index} name={name} card={i} />)}
+	{FILES.map(({ path, bars }, position) => <HeroCard path={path} position={position} bars={bars} />)}
 	<g {...sx(heroStage.box)} opacity="0" data-stage-part="rev">
 		<rect {...sx(heroStage.revBox)} x="156" y="277" width="40" height="15"></rect>
 		<text {...sx(heroStage.revText)} x="176" y="287.8" text-anchor="middle">REV 2</text>

@@ -1,32 +1,28 @@
 ---
-// One of the agent's file cards: its index and path, then three code bars,
+// One of the agent's file cards: its position and path, then its code bars,
 // each marked in the gutter as added, removed or context.
+import { twoDigits } from '@shared/lib/two-digits'
 import { sx } from '@shared/lib/sx'
 import { heroStage } from './hero-stage.styles'
 
-type Props = { index: string; name: string; card: number }
+type Bar = readonly [kind: 'added' | 'removed' | 'context', width: number]
+type Props = { path: string; position: number; bars: readonly Bar[] }
 
-const { index, name, card } = Astro.props
-type Bar = readonly ['add' | 'del' | 'ctx', number]
-const BARS: readonly (readonly Bar[])[] = [
-	[['add', 96], ['add', 128], ['ctx', 70]],
-	[['del', 84], ['add', 120], ['add', 92]],
-	[['ctx', 110], ['add', 76], ['del', 120]],
-]
-const MARK = { add: heroStage.markAdd, del: heroStage.markDel, ctx: heroStage.markCtx }
-const y = 72 + card * 98
+const { path, position, bars } = Astro.props
+const MARK = { added: heroStage.markAdded, removed: heroStage.markRemoved, context: heroStage.markContext }
+const y = 72 + position * 98
 ---
 
 <g transform={`translate(30 ${y})`}>
 	<g {...sx(heroStage.box)} data-stage-part="card">
 		<rect {...sx(heroStage.sheet)} width="172" height="84"></rect>
-		<text {...sx(heroStage.index)} x="12" y="20">{index}</text><text {...sx(heroStage.file)} x="34" y="20">{name}</text>
+		<text {...sx(heroStage.index)} x="12" y="20">{twoDigits(position + 1)}</text><text {...sx(heroStage.file)} x="34" y="20">{path}</text>
 		<path {...sx(heroStage.hair)} d="M0 30h172"></path>
 		{
-			(BARS[card] ?? []).map(([kind, width], row) => (
+			bars.map(([kind, width], row) => (
 				<Fragment>
 					<rect {...sx(MARK[kind])} x="12" y={42 + row * 12} width="4" height="4" />
-					<rect {...sx(heroStage.bar, kind === 'ctx' && heroStage.faintBar)} data-bar={card} x="22" y={42 + row * 12} width={width} height="4" />
+					<rect {...sx(heroStage.bar, kind === 'context' && heroStage.faintBar)} data-bar={position} x="22" y={42 + row * 12} width={width} height="4" />
 				</Fragment>
 			))
 		}
