@@ -21,7 +21,7 @@ const SECTIONS = [
 ] as const
 const OTHER = SECTIONS.length - 1
 // Chips are numbered in reading order across sections.
-const chips = SECTIONS.flatMap((section, s) => section.rows.map(([name, y]) => ({ name, y, s })))
+const chips = SECTIONS.flatMap((section, sectionIndex) => section.rows.map(([name, y]) => ({ name, y, sectionIndex })))
 const orderOf = (name: string): number => chips.findIndex(chip => chip.name === name) + 1
 ---
 
@@ -47,16 +47,16 @@ const orderOf = (name: string): number => chips.findIndex(chip => chip.name === 
 	<path {...anim('signal', 2, shape.signal)} d="M258 200h52"></path>
 	<text {...anim('fade', 0.3, text.tiny)} x="284" y="190" text-anchor="middle">--guide</text>
 	{
-		SECTIONS.map(({ label, y, rows }, s) => (
+		SECTIONS.map(({ label, y, rows }, sectionIndex) => (
 			<Fragment>
-				<text {...anim('fade', 0.3 + s * 0.25, text.tiny, s !== OTHER && text.accent)} x="330" y={y - 4}>{label}</text>
-				{rows.map(([name, ry]) => {
+				<text {...anim('fade', 0.3 + sectionIndex * 0.25, text.tiny, sectionIndex !== OTHER && text.accent)} x="330" y={y - 4}>{label}</text>
+				{rows.map(([name, rowY]) => {
 					const order = orderOf(name)
 					return (
-						<g {...move(0.5 + order * 0.2, -300, ghostY(name) - ry)}>
-							<rect {...sx(productArt.guideChip, s === OTHER && productArt.guideChipOther)} x="330" y={ry} width="240" height="28" />
-							<text {...sx(text.file)} x="344" y={ry + 18}>{name}</text>
-							<text {...sx(text.tiny)} x="556" y={ry + 18} text-anchor="end">{twoDigits(order)}</text>
+						<g {...move(0.5 + order * 0.2, -300, ghostY(name) - rowY)}>
+							<rect {...sx(productArt.guideChip, sectionIndex === OTHER && productArt.guideChipOther)} x="330" y={rowY} width="240" height="28" />
+							<text {...sx(text.file)} x="344" y={rowY + 18}>{name}</text>
+							<text {...sx(text.tiny)} x="556" y={rowY + 18} text-anchor="end">{twoDigits(order)}</text>
 						</g>
 					)
 				})}

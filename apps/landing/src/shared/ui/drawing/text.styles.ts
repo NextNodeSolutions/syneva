@@ -59,7 +59,10 @@ export const text = stylex.create({
 	},
 	code: { font: `11.5px ${font['--mono']}`, fill: color['--ink'] },
 	file: { font: `10.5px ${font['--mono']}`, fill: color['--ink'] },
-	ln: { font: `10.5px ${font['--mono']}`, fill: color['--line-strong'] },
+	lineNumber: {
+		font: `10.5px ${font['--mono']}`,
+		fill: color['--line-strong'],
+	},
 	head: {
 		font: `500 17px ${font['--sans']}`,
 		letterSpacing: '-.02em',

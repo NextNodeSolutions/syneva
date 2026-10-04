@@ -37,7 +37,7 @@ const VERDICT_BARS = [70, 82, 60, 76] as const
 	<g {...sheetAt(0)}><g transform={at(0)}><IsoSheet>{
 		DIFF_BARS.map((width, i) => (
 			<Fragment>
-				<rect {...sx(i % 3 === 1 ? productArt.isoMarkDel : productArt.isoMarkAdd)} x="12" y={20 + i * 16} width="6" height="6" />
+				<rect {...sx(i % 3 === 1 ? productArt.isoMarkDeleted : productArt.isoMarkAdd)} x="12" y={20 + i * 16} width="6" height="6" />
 				<rect {...sx(productArt.isoBar)} x="24" y={20 + i * 16} width={width} height="6" />
 			</Fragment>
 		))
@@ -45,7 +45,7 @@ const VERDICT_BARS = [70, 82, 60, 76] as const
 	<g {...sheetAt(1)}><g transform={at(1)}><IsoSheet tone="guide">{
 		GUIDE_BARS.map(([first, second], i) => (
 			<Fragment>
-				<rect {...sx(productArt.isoNum)} x="12" y={16 + i * 38} width="12" height="12" />
+				<rect {...sx(productArt.isoNumber)} x="12" y={16 + i * 38} width="12" height="12" />
 				<rect {...sx(productArt.isoBar)} x="32" y={18 + i * 38} width={first} height="7" />
 				<rect {...sx(productArt.isoBar, productArt.isoBarFaint)} x="32" y={32 + i * 38} width={second} height="5" />
 			</Fragment>
