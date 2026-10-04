@@ -5,7 +5,7 @@ import type { CompiledStyles, StyleXArray } from '@stylexjs/stylex'
 // Whatever stylex.props() takes: compiled styles (markers included), falsy
 // entries (conditional styles) and nested arrays of them.
 export type Style = StyleXArray<CompiledStyles | boolean | null | undefined>
-// A plain string is a state class the client toggles (is-current, is-active):
+// A plain string is a state class the client toggles (is-current, is-previewed):
 // it rides along with the StyleX classes so the server-rendered state matches.
 export type Part = Style | string
 export type Attributes = { class?: string; style?: string }
