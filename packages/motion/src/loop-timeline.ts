@@ -42,6 +42,17 @@ function expand(frames: readonly Frame[], clock: Clock): Keyframe[] {
 	return keyframes
 }
 
+// Every frame states every animated property: a missing one is a bug in the
+// timeline, not a value to guess.
+function valueAt({ offset, props }: Keyframe, name: string): string | number {
+	const frameValue = props[name]
+	if (frameValue === undefined)
+		throw new Error(
+			`The loop frame at ${offset} of the cycle has no ${name}: give every frame the same properties.`,
+		)
+	return frameValue
+}
+
 // Loops the frames forever on `element`, after the clock's start delay.
 export function loopTimeline(
 	element: Element | null,
@@ -50,11 +61,12 @@ export function loopTimeline(
 ): void {
 	if (!element) return
 	const keyframes = expand(frames, clock)
-	const names = Object.keys(keyframes[0]?.props ?? {})
+	const [first] = keyframes
+	if (!first) return
 	const values = Object.fromEntries(
-		names.map(name => [
+		Object.keys(first.props).map(name => [
 			name,
-			keyframes.map(frame => frame.props[name] ?? ''),
+			keyframes.map(keyframe => valueAt(keyframe, name)),
 		]),
 	)
 	animate(element, values, {
