@@ -87,24 +87,3 @@ export const pageHero = stylex.create({
 		color: color['--muted'],
 	},
 })
-
-// The availability line under the title: a square dot and the words.
-export const pageStatus = stylex.create({
-	root: {
-		display: 'inline-flex',
-		alignItems: 'center',
-		gap: '8px',
-		marginTop: '22px',
-		font: `11px/1.4 ${font['--mono']}`,
-		fontSize: { default: null, [media.phone]: '10px' },
-		color: color['--muted'],
-		padding: '6px 11px',
-		borderWidth: '1px',
-		borderStyle: 'solid',
-		borderColor: LINE,
-		backgroundColor: color['--white'],
-		letterSpacing: '0.03em',
-	},
-	prototype: { color: color['--accent'] },
-	dot: { width: '7px', height: '7px', backgroundColor: 'currentColor' },
-})
