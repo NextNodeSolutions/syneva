@@ -2,7 +2,7 @@
 	"name": "@syneva/design-system",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Syneva's public-site design system as StyleX variables and constants: the palette, type, easing, layout and breakpoint tokens.",
+	"description": "Syneva's public-site design system as StyleX variables and constants: the palette, type, easing, duration, layout and breakpoint tokens.",
 	"license": "MIT",
 	"type": "module",
 	"exports": {
