@@ -1,42 +1,54 @@
 ---
 // The previous and next pages of the route's section; at either end, the
 // way back to the section's overview.
-import type { Page, Section } from '@entities/site/model/site-map'
+import type { IconName } from '@entities/site/model/icons'
 import { siblingsOf } from '@entities/site/model/routes'
-import { sx } from '@shared/lib/sx'
+import type { Page, Section } from '@entities/site/model/site-map'
 import Icon from '@entities/site/ui/Icon.astro'
-import { pager } from './pager.styles'
+import type { Style } from '@shared/lib/sx'
+import { sx } from '@shared/lib/sx'
 import { pagerLinkMarker } from './page-index.stylex'
+import { pager } from './pager.styles'
+
+// One side of the pager: its neighbouring page (none at that end of the
+// section) and the words pointing that way.
+type Side = { page: Page | undefined; isNext: boolean; toPage: string; toOverview: string }
+type PageLink = {
+	href: string
+	direction: string
+	icon: IconName | undefined
+	title: string
+	blurb: string
+	isNext: boolean
+	wordsCss: Style
+}
 
 const { section, previous, next } = siblingsOf(Astro.url.pathname)
-type Cell = { item?: Page; isNext: boolean }
-const cells: Cell[] = [
-	{ item: previous, isNext: false },
-	{ item: next, isNext: true },
+const sides: Side[] = [
+	{ page: previous, isNext: false, toPage: '← Previous', toOverview: '← Back to' },
+	{ page: next, isNext: true, toPage: 'Next →', toOverview: 'Back to →' },
 ]
-const label = ({ item, isNext }: Cell): string => {
-	if (item) return isNext ? 'Next →' : '← Previous'
-	return isNext ? 'Back to →' : '← Back to'
+
+function linkOf({ page, isNext, toPage, toOverview }: Side, overview: Section): PageLink {
+	const wordsCss = isNext ? pager.nextText : !page && pager.wide
+	if (page) return { href: page.href, direction: toPage, icon: page.icon, title: page.title, blurb: page.blurb, isNext, wordsCss }
+	return { href: overview.href, direction: toOverview, icon: undefined, title: overview.overview, blurb: overview.footer, isNext, wordsCss }
 }
-const words = (cell: Cell, overview: Section): [string, string] =>
-	cell.item ? [cell.item.title, cell.item.blurb] : [overview.overview, overview.footer]
+
+const pageLinks = section ? sides.map(side => linkOf(side, section)) : []
 ---
 
 {
 	section && (
 		<nav {...sx(pager.root)} aria-label={`${section.label} pages`}>
-			{cells.map(cell => {
-				const [title, blurb] = words(cell, section)
-				const text = [cell.isNext ? pager.nextText : !cell.item && pager.wide]
-				return (
-					<a {...sx(pager.link, cell.isNext && pager.next, pagerLinkMarker)} href={cell.item?.href ?? section.href}>
-						<small {...sx(pager.direction)}>{label(cell)}</small>
-						{cell.item && <Icon name={cell.item.icon} css={[pager.icon, cell.isNext && pager.nextIcon]} />}
-						<strong {...sx(pager.title, text)}>{title}</strong>
-						<span {...sx(pager.blurb, text)}>{blurb}</span>
-					</a>
-				)
-			})}
+			{pageLinks.map(({ href, direction, icon, title, blurb, isNext, wordsCss }) => (
+				<a {...sx(pager.link, isNext && pager.next, pagerLinkMarker)} href={href}>
+					<small {...sx(pager.direction)}>{direction}</small>
+					{icon && <Icon name={icon} css={[pager.icon, isNext && pager.nextIcon]} />}
+					<strong {...sx(pager.title, wordsCss)}>{title}</strong>
+					<span {...sx(pager.blurb, wordsCss)}>{blurb}</span>
+				</a>
+			))}
 		</nav>
 	)
 }
