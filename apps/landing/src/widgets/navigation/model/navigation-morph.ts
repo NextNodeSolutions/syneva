@@ -3,7 +3,7 @@ import { animate } from '@syneva/motion/engine'
 import { reducedMotion } from '@syneva/motion/preference'
 
 import { readProperty, toSeconds } from './computed-style'
-import { contentFrames } from './handover-frames'
+import { handoverFrames } from './handover-frames'
 import { readClock } from './nav-clock'
 import {
 	canInterpolate,
@@ -15,7 +15,7 @@ import { availableWidth, measureNavigation } from './navigation-geometry'
 import { revealChannels } from './reveal-channels'
 
 import type { navBounds } from '../ui/nav.stylex'
-import type { Frames } from './handover-frames'
+import type { HandoverFrames } from './handover-frames'
 import type { InputMode } from './input-mode'
 import type { ClockName } from './nav-clock'
 import type {
@@ -105,7 +105,7 @@ export class NavigationMorph {
 		const timing =
 			next[this.#shell.property('reveal')] === '0' ? 'close' : clock
 		const duration = toSeconds(readClock(styles, DURATION[timing]))
-		const frames = contentFrames({ ...origin, ...seeds }, destination, [
+		const frames = handoverFrames({ ...origin, ...seeds }, destination, [
 			this.#panelChannels,
 			this.#sceneChannels,
 		])
@@ -126,7 +126,10 @@ export class NavigationMorph {
 
 	// One animation per channel on the shared clock: the menu ease spans the
 	// whole move and the hand-over keyframes are linear in its progress.
-	#play(frames: Frames, duration: number): ReturnType<typeof animate> {
+	#play(
+		frames: HandoverFrames,
+		duration: number,
+	): ReturnType<typeof animate> {
 		const ease = toBezier(
 			readClock(getComputedStyle(this.#navigation), '--nav-ease'),
 		)

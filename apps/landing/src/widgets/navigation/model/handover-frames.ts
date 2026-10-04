@@ -1,6 +1,6 @@
 import type { Channel, ContentName, Values } from './navigation-channels'
 
-export type Frames = Map<string, { values: string[]; times: number[] }>
+export type HandoverFrames = Map<string, { values: string[]; times: number[] }>
 
 // Readable content hands over instead of superimposing two menus: within a
 // channel group, an outgoing panel fades out by EXIT_AT of the move while
@@ -20,11 +20,11 @@ function valueOf(values: Values, name: string): string {
 }
 
 // One frame list per channel on the shared clock.
-export function contentFrames(
+export function handoverFrames(
 	origin: Values,
 	destination: Values,
 	groups: readonly Channel<ContentName>[][],
-): Frames {
+): HandoverFrames {
 	const frames = new Map(
 		Object.keys(destination).map(key => [
 			key,
