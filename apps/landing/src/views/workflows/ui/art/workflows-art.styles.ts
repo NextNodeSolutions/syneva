@@ -3,10 +3,11 @@ import { color } from '@syneva/design-system/tokens.stylex'
 
 // Workflows drawings: where a review's diff comes from.
 export const workflowsArt = stylex.create({
+	// 1.4 once WorkflowHub draws the 24-unit icons at 1.25x.
 	hubGlyph: {
 		fill: 'none',
 		stroke: color['--ink'],
-		strokeWidth: 1.4,
+		strokeWidth: 1.12,
 		strokeLinejoin: 'round',
 	},
 	barMod: { fill: color['--signal'] },
