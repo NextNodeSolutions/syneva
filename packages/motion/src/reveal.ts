@@ -71,9 +71,33 @@ function playReveal(group: Element): void {
 	syncScenes(group)
 }
 
+// A group reveals once, on whichever comes first: its arrival in view, or
+// focus landing inside it. Tabbing scrolls a control only to the viewport's
+// edge, short of the arrival line, and a focused control must never stay
+// hidden.
+const GROUP = `[${ATTRIBUTE.revealGroup}]`
+const revealed = new WeakSet<Element>()
+function revealOnce(group: Element): void {
+	if (revealed.has(group)) return
+	revealed.add(group)
+	playReveal(group)
+}
+
+// Every group around the focused element, innermost first.
+function revealAround(focused: EventTarget | null): void {
+	if (!(focused instanceof Element)) return
+	for (
+		let group = focused.closest(GROUP);
+		group;
+		group = group.parentElement?.closest(GROUP) ?? null
+	)
+		revealOnce(group)
+}
+
 // Arms every group once the hidden poses are in effect, so the entrance plays
 // instead of landing on a pose that was never seen. The page's runtime arms
 // them once, at boot.
 export function armReveals(): void {
-	inView(`[${ATTRIBUTE.revealGroup}]`, playReveal, REVEAL)
+	inView(GROUP, revealOnce, REVEAL)
+	document.addEventListener('focusin', ({ target }) => revealAround(target))
 }
