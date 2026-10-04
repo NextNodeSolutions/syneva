@@ -21,7 +21,7 @@ const count = `${group.items.length} question${group.items.length === 1 ? '' : '
 <section {...revealRuledGroup(chapter.section, chapter.subSection, qa.block)} id={id} aria-labelledby={`${id}-title`}>
 	<div {...sx(chapter.copy, chapter.subCopy, qa.copy)}>
 		<span {...revealItem(stepIndex.base)}>{twoDigits(index + 1)} · {count}</span>
-		<h2 {...revealItem(chapter.title, chapter.subTitle)} id={`${id}-title`} set:html={group.title} />
+		<h2 {...revealItem(chapter.title, chapter.subTitle)} id={`${id}-title`}>{group.title}</h2>
 		<p {...revealItem(chapter.text)}>{group.blurb}</p>
 	</div>
 	<div {...sx(qa.list)}>
