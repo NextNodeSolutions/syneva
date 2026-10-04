@@ -10,6 +10,7 @@ import TextLink from '@shared/ui/TextLink.astro'
 import { ISSUES_URL, REPO_URL } from '@entities/site/model/project'
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import ResourcesIndex from './art/ResourcesIndex.astro'
+import { SPEC_COMMAND, SPEC_COMMAND_LABEL } from '../model/agent-contract'
 
 ---
 
@@ -26,7 +27,7 @@ import ResourcesIndex from './art/ResourcesIndex.astro'
 </Prose>
 <Prose id="spec" title="The contract,<br>from the source.">
 	<ProseText>The full agent contract (modes, events, flags and the <code>ReviewResult</code> shape) is versioned with the CLI and printed by one command. That is the copy your agent should read, because it always matches the binary you installed.</ProseText>
-	<ProseCommand text="syneva spec" label="Print the agent contract" />
+	<ProseCommand text={SPEC_COMMAND} label={SPEC_COMMAND_LABEL} />
 	<ProseText><TextLink href={ISSUES_URL} label="Found a gap? Open an issue" /></ProseText>
 </Prose>
 <CtaBand />

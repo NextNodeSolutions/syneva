@@ -12,6 +12,7 @@ import { INSTALL_COMMAND, ISSUES_URL, REPO_URL, START_COMMAND } from '@entities/
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import StartFlow from './art/StartFlow.astro'
+import { SPEC_COMMAND } from '../model/agent-contract'
 
 const REQUIREMENTS = [
 	['Node 22+', 'For the CLI.'],
@@ -62,7 +63,7 @@ const FIRST_KEYS = [
 </Prose>
 <Prose id="attach" title="3. Let your agent<br>hear back.">
 	<ProseText><strong>In pi,</strong> run <code>/review</code>: it starts a desk and attaches your session, so your Sends and questions reach the agent on their own.</ProseText>
-	<ProseText><strong>With any other agent,</strong> ask it to run <code>syneva spec</code> and follow the loop it describes. In short:</ProseText>
+	<ProseText><strong>With any other agent,</strong> ask it to run <code>{SPEC_COMMAND}</code> and follow the loop it describes. In short:</ProseText>
 	<Terminal lines={LOOP} title="your agent" />
 	<ProseText><TextLink href={PAGES.connectYourAgent.href} label="The full agent contract" /></ProseText>
 </Prose>

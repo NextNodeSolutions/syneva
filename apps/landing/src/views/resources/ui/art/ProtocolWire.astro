@@ -9,7 +9,7 @@ import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { EVENTS, SUBCOMMANDS } from '../../model/agent-contract'
+import { EVENTS, SPEC_COMMAND, SUBCOMMANDS } from '../../model/agent-contract'
 
 const VERB_STEP = 56
 const EVENT_STEP = 58
@@ -53,5 +53,5 @@ const BACK = 'M420 240H180'
 		))
 	}
 	<g {...anim('fade', 2)}><text {...sx(text.tiny)} x="300" y="360" text-anchor="middle">PLAIN JSON ON STDOUT · LOCALHOST HTTP · NO VENDOR LOCK-IN</text></g>
-	<g {...anim('fade', 2.1, shape.secondary)}><text {...sx(text.code)} x="300" y="66" text-anchor="middle">$ syneva spec</text><text {...sx(text.tiny)} x="300" y="86" text-anchor="middle">PRINTS THE WHOLE CONTRACT</text></g>
+	<g {...anim('fade', 2.1, shape.secondary)}><text {...sx(text.code)} x="300" y="66" text-anchor="middle">$ {SPEC_COMMAND}</text><text {...sx(text.tiny)} x="300" y="86" text-anchor="middle">PRINTS THE WHOLE CONTRACT</text></g>
 </Drawing>
