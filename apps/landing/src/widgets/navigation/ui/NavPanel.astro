@@ -27,7 +27,7 @@ const isProduct = section.id === 'product'
 		isProduct && (
 			<div {...sx(panel.productBody)}>
 				<div {...sx(panel.productLinks)}>
-					{section.items.map(page => <MenuLink page={page} isPreviewing />)}
+					{section.items.map((page, index) => <MenuLink page={page} index={index} isPreviewing />)}
 				</div>
 				<PreviewScenes />
 			</div>
@@ -43,7 +43,7 @@ const isProduct = section.id === 'product'
 	{
 		section.id === 'resources' && (
 			<div {...sx(panel.resourceLinks)}>
-				{section.items.map(page => <MenuLink page={page} />)}
+				{section.items.map((page, index) => <MenuLink page={page} index={index} />)}
 			</div>
 		)
 	}

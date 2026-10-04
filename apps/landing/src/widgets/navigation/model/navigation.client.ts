@@ -4,8 +4,7 @@ import { queryNavigationParts } from './navigation-parts'
 
 import type { NavigationParts } from './navigation-parts'
 
-// Wires the header's listeners to its controller. Rows stagger in from their
-// panel's progress (--menu-order).
+// Wires the header's listeners to its controller.
 function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
 	trigger.addEventListener('pointerenter', event =>
 		navigation.scheduleOpen(trigger, event),
@@ -56,13 +55,6 @@ async function bindNavigation(parts: NavigationParts): Promise<void> {
 	})
 	bindDocument(navigation)
 	parts.previewLinks.forEach(link => bindPreview(navigation, link))
-	panels.forEach(panel => {
-		panel
-			.querySelectorAll<HTMLElement>('[data-menu-row]')
-			.forEach((row, index) => {
-				row.style.setProperty('--menu-order', String(index))
-			})
-	})
 	compact.addEventListener('change', () => navigation.adaptToBreakpoint())
 	const reposition = (): void => navigation.positionPanel()
 	window.addEventListener('resize', reposition)

@@ -6,6 +6,7 @@ import Icon from '@entities/site/ui/Icon.astro'
 import { currentPage } from '../model/current-page'
 import { workflowLinkMarker } from './markers.stylex'
 import { workflowLink } from './menu.styles'
+import { menuOrder } from './menu-order'
 
 type Props = { page: WorkflowPage; index: number }
 
@@ -25,7 +26,7 @@ const isRuledWhenStacked = index === 1
 		workflowLinkMarker,
 	)}
 	href={page.href}
-	data-menu-row
+	{...menuOrder(index)}
 	aria-current={currentPage(page.href, Astro.url.pathname)}
 >
 	<strong {...sx(workflowLink.title)}>

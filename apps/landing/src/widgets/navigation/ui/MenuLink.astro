@@ -8,17 +8,18 @@ import { currentPage } from '../model/current-page'
 import { menuLinkMarker } from './markers.stylex'
 import { menuLink } from './menu.styles'
 import { instant } from './instant.styles'
+import { menuOrder } from './menu-order'
 
-type Props = { page: Page; isPreviewing?: boolean }
+type Props = { page: Page; index: number; isPreviewing?: boolean }
 
-const { page, isPreviewing = false } = Astro.props
+const { page, index, isPreviewing = false } = Astro.props
 ---
 
 <a
 	{...sx(menuLink.base, !isPreviewing && menuLink.resourceHover, instant.transitions, menuLinkMarker)}
 	href={page.href}
 	data-preview={isPreviewing && 'preview' in page ? page.preview : undefined}
-	data-menu-row
+	{...menuOrder(index)}
 	aria-current={currentPage(page.href, Astro.url.pathname)}
 >
 	<Icon name={page.icon} css={[menuLink.icon, instant.transitions]} />
