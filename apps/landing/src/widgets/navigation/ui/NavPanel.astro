@@ -3,6 +3,7 @@
 import type { Section } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import { currentPage } from '../model/current-page'
+import { panelId, triggerId } from '../model/section-ids'
 import MenuLink from './MenuLink.astro'
 import PreviewScenes from './PreviewScenes.astro'
 import WorkflowLink from './WorkflowLink.astro'
@@ -18,8 +19,8 @@ const isProduct = section.id === 'product'
 
 <section
 	{...sx(panel.base, panel[section.id])}
-	id={`${section.id}-menu`}
-	aria-labelledby={`${section.id}-trigger`}
+	id={panelId(section)}
+	aria-labelledby={triggerId(section)}
 	inert
 	data-nav-panel
 >

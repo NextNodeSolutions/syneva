@@ -7,6 +7,7 @@ import { sx } from '@shared/lib/sx'
 import Brand from '@shared/ui/Brand.astro'
 import { inputMarker } from '@shared/ui/brand.stylex'
 import { currentPage } from '../model/current-page'
+import { panelId, triggerId } from '../model/section-ids'
 import { TOGGLE_LABEL } from '../model/toggle-label'
 import NavPanel from './NavPanel.astro'
 import { actionMarker, dropdownMarker, navMarker, triggerMarker } from './markers.stylex'
@@ -28,10 +29,10 @@ const START = '/get-started/'
 			SECTIONS.map(section => (
 				<button
 					{...sx(nav.item, nav.trigger, active === section && nav.current, instant.transitions, triggerMarker)}
-					id={`${section.id}-trigger`}
+					id={triggerId(section)}
 					type="button"
 					aria-expanded="false"
-					aria-controls={`${section.id}-menu`}
+					aria-controls={panelId(section)}
 					data-nav-trigger
 				>
 					{section.label} <svg {...sx(nav.chevron, instant.transitions)} viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"></path></svg>
