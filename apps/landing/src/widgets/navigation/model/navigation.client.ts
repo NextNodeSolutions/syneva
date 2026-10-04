@@ -4,7 +4,8 @@ import { queryNavigationParts } from './navigation-parts'
 
 import type { NavigationParts } from './navigation-parts'
 
-// Wires the header's listeners to its controller.
+// The header's script: wires the DOM events to the navigation's intents and
+// keeps the dropdown placed as the layout changes.
 function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
 	trigger.addEventListener('pointerenter', event =>
 		navigation.scheduleOpen(trigger, event),
@@ -22,21 +23,10 @@ function bindPreview(navigation: Navigation, link: HTMLElement): void {
 	link.addEventListener('focus', () => navigation.selectPreview(link))
 }
 
-function bindDocument(navigation: Navigation): void {
-	document.addEventListener('pointerdown', event =>
-		navigation.dismissOnOutsidePress(event),
-	)
-	document.addEventListener('keydown', event => {
-		if (event.key !== 'Escape' || !navigation.isOpen) return
-		event.preventDefault()
-		navigation.escape()
-	})
-}
-
-async function bindNavigation(parts: NavigationParts): Promise<void> {
-	const { root, dropdown, toggle, panels } = parts
-	const navigation = new Navigation(parts)
-	parts.triggers.forEach(trigger => bindTrigger(navigation, trigger))
+function bindHeader(
+	navigation: Navigation,
+	{ root, dropdown, toggle }: NavigationParts,
+): void {
 	root.addEventListener('pointerenter', () => navigation.keepOpen())
 	root.addEventListener('pointerleave', event =>
 		navigation.scheduleClose(event),
@@ -53,8 +43,31 @@ async function bindNavigation(parts: NavigationParts): Promise<void> {
 		if (event.target instanceof Element && event.target.closest('a'))
 			navigation.dismiss()
 	})
-	bindDocument(navigation)
-	parts.previewLinks.forEach(link => bindPreview(navigation, link))
+}
+
+function bindDocument(navigation: Navigation): void {
+	document.addEventListener('pointerdown', event =>
+		navigation.dismissOnOutsidePress(event),
+	)
+	document.addEventListener('keydown', event => {
+		if (event.key !== 'Escape' || !navigation.isOpen) return
+		event.preventDefault()
+		navigation.escape()
+	})
+}
+
+// The webfonts resize the triggers when they swap in.
+async function repositionAfterFonts(reposition: () => void): Promise<void> {
+	await document.fonts.ready
+	reposition()
+}
+
+// The dropdown follows the layout: the breakpoint, the window, the header or
+// a panel changing size, and the webfonts.
+function bindLayout(
+	navigation: Navigation,
+	{ root, panels }: NavigationParts,
+): void {
 	compact.addEventListener('change', () => navigation.adaptToBreakpoint())
 	const reposition = (): void => navigation.positionPanel()
 	window.addEventListener('resize', reposition)
@@ -62,8 +75,13 @@ async function bindNavigation(parts: NavigationParts): Promise<void> {
 	resizeObserver.observe(root)
 	panels.forEach(panel => resizeObserver.observe(panel))
 	reposition()
-	await document.fonts.ready
-	reposition()
+	void repositionAfterFonts(reposition)
 }
 
-await bindNavigation(queryNavigationParts(document))
+const parts = queryNavigationParts(document)
+const navigation = new Navigation(parts)
+parts.triggers.forEach(trigger => bindTrigger(navigation, trigger))
+parts.previewLinks.forEach(link => bindPreview(navigation, link))
+bindHeader(navigation, parts)
+bindDocument(navigation)
+bindLayout(navigation, parts)
