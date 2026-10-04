@@ -29,6 +29,21 @@ const pixels = (element: Element, property: string): number =>
 
 type Timing = { times: readonly number[]; ease: Easing; delay?: number }
 
+// A piece states one value per time of its timing: a missing one is a bug in
+// the piece, not a value to guess.
+function valueAt(
+	values: readonly (string | number)[],
+	index: number,
+	property: string,
+): string | number {
+	const timedValue = values[index]
+	if (timedValue === undefined)
+		throw new Error(
+			`The circuit's ${property} has no value for time ${index}: give it one per time.`,
+		)
+	return timedValue
+}
+
 // A piece is written as its values at six fractions of the cycle; they
 // become the loop timeline's frames on the circuit's clock.
 function loop(
@@ -41,7 +56,7 @@ function loop(
 		Object.fromEntries(
 			Object.entries(keyframes).map(([property, values]) => [
 				property,
-				values[index] ?? '',
+				valueAt(values, index, property),
 			]),
 		),
 	])
