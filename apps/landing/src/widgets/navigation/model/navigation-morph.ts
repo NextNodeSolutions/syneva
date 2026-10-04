@@ -1,4 +1,3 @@
-import { toBezier } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 import { reducedMotion } from '@syneva/motion/preference'
 
@@ -13,12 +12,10 @@ import {
 import { availableWidth, measureNavigation } from './navigation-geometry'
 import { readProperty } from './read-property'
 import { revealChannels } from './reveal-channels'
-import { toSeconds } from './to-seconds'
 
 import type { navBounds } from '../ui/nav.stylex'
 import type { HandoverFrames } from './handover-frames'
 import type { InputMode } from './input-mode'
-import type { ClockName } from './nav-clock'
 import type {
 	Channel,
 	ChannelValues,
@@ -29,12 +26,6 @@ import type { Geometry } from './navigation-geometry'
 import type { NavigationParts, SectionMenu } from './navigation-parts'
 
 type Clock = 'menu' | 'preview'
-// A move on either clock, or the fold back on closing.
-const DURATION: Record<Clock | 'close', ClockName> = {
-	menu: '--nav-menu-duration',
-	preview: '--nav-preview-duration',
-	close: '--nav-close-duration',
-}
 type Motion = { target: ChannelValues; controls?: ReturnType<typeof animate> }
 // The bounds the morph measures and writes; nav.stylex.ts declares them.
 type BoundName = Extract<keyof typeof navBounds, `--${string}`>
@@ -109,7 +100,8 @@ export class NavigationMorph {
 		)
 		const timing =
 			next[this.#shell.property('reveal')] === '0' ? 'close' : clock
-		const duration = toSeconds(readClock(styles, DURATION[timing]))
+		// A move on either clock, or the fold back on closing.
+		const duration = readClock(this.#navigation).duration[timing]
 		const frames = handoverFrames({ ...origin, ...seeds }, destination, [
 			this.#panelChannels,
 			this.#sceneChannels,
@@ -135,9 +127,7 @@ export class NavigationMorph {
 		frames: HandoverFrames,
 		duration: number,
 	): ReturnType<typeof animate> {
-		const ease = toBezier(
-			readClock(getComputedStyle(this.#navigation), '--nav-ease'),
-		)
+		const { ease } = readClock(this.#navigation)
 		const keyframes = Object.fromEntries(
 			[...frames].map(([name, frame]) => [name, frame.values]),
 		)
@@ -180,14 +170,11 @@ export class NavigationMorph {
 		this.#setPixels('--panel-max-height', geometry.maxHeight.panel)
 		this.#folded = geometry.folded
 		const styles = getComputedStyle(this.#navigation)
-		const travel = Number.parseFloat(
-			readClock(styles, '--nav-panel-travel'),
-		)
 		const content = revealChannels({
 			channels: this.#panelChannels,
 			target: this.#motions.menu.target,
 			selected: this.#panels.indexOf(menu.panel),
-			travel,
+			travel: readClock(this.#navigation).travel.panel,
 			styles,
 		})
 		const next = {
@@ -226,9 +213,7 @@ export class NavigationMorph {
 			channels: this.#sceneChannels,
 			target: this.#motions.preview.target,
 			selected: this.#scenes.indexOf(scene),
-			travel: Number.parseFloat(
-				readClock(styles, '--nav-preview-travel'),
-			),
+			travel: readClock(this.#navigation).travel.preview,
 			styles,
 		})
 		const selection = this.#shell.values({
