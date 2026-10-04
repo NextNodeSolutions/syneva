@@ -10,7 +10,7 @@ import {
 
 import { heroMarker, newsMarker } from './hero.stylex'
 
-const lit = (): string => stylex.when.ancestor(':is(.is-lit)', heroMarker)
+const heroHover = (): string => stylex.when.ancestor(':hover', heroMarker)
 const newsHover = (): string => stylex.when.ancestor(':hover', newsMarker)
 
 const LIGHT =
@@ -40,14 +40,22 @@ export const hero = stylex.create({
 				'linear-gradient(170deg, #000 0%, rgb(0 0 0 / .55) 38%, transparent 72%)',
 		},
 	},
-	// The pointer light: accent registration crosses wake up around the cursor.
+	// The pointer light: accent registration crosses wake up around the cursor
+	// while it is over the hero (hero-pointer.ts follows it with --mx/--my),
+	// for a fine pointer and without reduced motion, as the pointer depth.
 	light: {
 		position: 'absolute',
 		inset: 0,
 		backgroundImage: LIGHT,
 		backgroundSize: '48px 48px',
 		backgroundPosition: `calc(${layout['--gutter']} - 25px) -25px`,
-		opacity: { default: 0, [lit()]: 1 },
+		opacity: {
+			default: 0,
+			[media.finePointer]: {
+				default: null,
+				[media.motionSafe]: { default: null, [heroHover()]: 1 },
+			},
+		},
 		maskImage:
 			'radial-gradient(circle 190px at var(--mx, 70%) var(--my, 20%), #000 0%, rgb(0 0 0 / .4) 45%, transparent 100%)',
 		transition: `opacity .5s ${ease['--ease-out']}`,

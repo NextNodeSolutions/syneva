@@ -4,8 +4,8 @@ import { reducedMotion } from '@syneva/motion/preference'
 import type { Scope } from './hero-timeline'
 
 // Depth on pointer: the instrument's three columns drift a few pixels apart
-// (a CSS transition on `translate` eases them), and the field's registration
-// crosses light up around the cursor. Touch devices get neither.
+// (a CSS transition on `translate` eases them), and the field's light
+// (hero.styles.ts, on hover) follows the cursor. Touch devices get neither.
 const DEPTHS = { agent: 5, desk: 9, ledger: 13 } as const
 const VERTICAL = 0.6
 const CENTER = 0.5
@@ -30,7 +30,6 @@ export function bindPointer(hero: HTMLElement, { one }: Scope): void {
 			const y = event.clientY - box.top
 			hero.style.setProperty('--mx', `${x}px`)
 			hero.style.setProperty('--my', `${y}px`)
-			hero.classList.add('is-lit')
 			const dx = x / box.width - CENTER
 			const dy = y / box.height - CENTER
 			layers.forEach(({ layer, depth }) => {
@@ -42,7 +41,6 @@ export function bindPointer(hero: HTMLElement, { one }: Scope): void {
 		})
 	})
 	hero.addEventListener('pointerleave', () => {
-		hero.classList.remove('is-lit')
 		layers.forEach(({ layer }) => {
 			layer.style.setProperty('translate', '0 0')
 		})
