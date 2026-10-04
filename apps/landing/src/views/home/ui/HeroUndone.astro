@@ -1,0 +1,15 @@
+---
+// The verdict you undid, on the ledger: a wash box with a 6-unit cross on its
+// centre. Kept and pending verdicts are the drawing kit's Check and Pending.
+import { shape } from '@shared/ui/drawing/shape.styles'
+import { sx } from '@shared/lib/sx'
+import { heroStage } from './hero-stage.styles'
+
+type Props = { x: number; y: number; size: number }
+
+const { x, y, size } = Astro.props
+const centre = { x: x + size / 2, y: y + size / 2 }
+---
+
+<rect {...sx(shape.no)} x={x} y={y} width={size} height={size}></rect>
+<path {...sx(heroStage.undone)} d={`m${centre.x - 3} ${centre.y - 3} 6 6m0-6-6 6`}></path>

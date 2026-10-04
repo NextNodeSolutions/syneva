@@ -70,24 +70,10 @@ export const heroStage = stylex.create({
 		fill: color['--ink'],
 		letterSpacing: '-.01em',
 	},
-	glyphYes: { fill: color['--mint'], stroke: color['--green'] },
-	glyphCheck: {
-		fill: 'none',
-		stroke: color['--green'],
-		strokeWidth: 1.5,
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
-	},
-	glyphNo: { fill: color['--wash'], stroke: color['--accent'] },
-	glyphX: {
+	undone: {
 		stroke: color['--accent'],
 		strokeWidth: 1.4,
 		strokeLinecap: 'round',
-	},
-	glyphPending: {
-		fill: color['--white'],
-		stroke: color['--line-strong'],
-		strokeDasharray: '2 2',
 	},
 	sendBox: { fill: color['--accent'] },
 	sendLabel: { font: `500 ${sans('12.5px')}`, fill: color['--white'] },

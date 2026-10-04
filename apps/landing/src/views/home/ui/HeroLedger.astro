@@ -1,9 +1,11 @@
 ---
 // The verdict column: every changed file and your verdict on it, the
 // progress strip, and Send.
+import Check from '@shared/ui/drawing/Check.astro'
+import Pending from '@shared/ui/drawing/Pending.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { sx } from '@shared/lib/sx'
-import HeroGlyph from './HeroGlyph.astro'
+import HeroUndone from './HeroUndone.astro'
 import { HERO_FILES, REJECTED_COUNT, turnOf } from './hero-round'
 import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
@@ -11,6 +13,16 @@ import { heroStage } from './hero-stage.styles'
 const ROW = 34
 const FIRST = 72
 const TOTAL = HERO_FILES.length
+// Every row starts pending; the verdict lands on top of it, in the glyph
+// box at the row's right end.
+const GLYPH = { x: 715, rise: 10, size: 14 }
+const VERDICT_GLYPH = { yes: Check, no: HeroUndone }
+const rows = HERO_FILES.map((file, index) => ({
+	file,
+	top: FIRST + index * ROW,
+	turn: turnOf(file),
+	Verdict: VERDICT_GLYPH[file.verdict],
+}))
 ---
 
 <g {...sx(heroStage.layer, shape.secondary)} {...stagePart('ledger')}>
@@ -19,19 +31,15 @@ const TOTAL = HERO_FILES.length
 	<text {...sx(heroStage.sub)} x="562" y="58" opacity="0" {...stagePart('round-2')}>Round 2 · one file to re-read</text>
 	<rect {...sx(shape.panel)} x="562" y="72" width="178" height="244"></rect>
 	{
-		HERO_FILES.map((file, i) => {
-			const top = FIRST + i * ROW
-			// Every row starts pending; the verdict lands on top of it.
-			return (
-				<Fragment>
-					{i > 0 && <path {...sx(shape.hair)} d={`M562 ${top}h178`} />}
-					<text {...sx(heroStage.file)} x="574" y={top + 21}>{file.path}</text>
-					<HeroGlyph kind="pending" x={722} y={top + 17} />
-					<g {...sx(heroStage.fillBox)} {...stagePart('verdict')} data-verdict={file.verdict} data-turn={turnOf(file)}><HeroGlyph kind={file.verdict} x={722} y={top + 17} /></g>
-					{file.verdict === 'no' && <g {...sx(heroStage.fillBox)} opacity="0" {...stagePart('row-pending')}><HeroGlyph kind="pending" x={722} y={top + 17} /></g>}
-				</Fragment>
-			)
-		})
+		rows.map(({ file, top, turn, Verdict }, index) => (
+			<Fragment>
+				{index > 0 && <path {...sx(shape.hair)} d={`M562 ${top}h178`} />}
+				<text {...sx(heroStage.file)} x="574" y={top + 21}>{file.path}</text>
+				<Pending x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} />
+				<g {...sx(heroStage.fillBox)} {...stagePart('verdict')} data-verdict={file.verdict} data-turn={turn}><Verdict x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>
+				{file.verdict === 'no' && <g {...sx(heroStage.fillBox)} opacity="0" {...stagePart('row-pending')}><Pending x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>}
+			</Fragment>
+		))
 	}
 	<path {...sx(shape.hair)} d="M562 276h178"></path>
 	<rect {...sx(shape.track)} x="574" y="290" width="154" height="3"></rect>
