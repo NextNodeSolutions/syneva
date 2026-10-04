@@ -33,7 +33,7 @@ const COMMANDS = [
 	<WorkflowHub slot="art" />
 </PageHero>
 <Prose id="modes" title="Pick the one<br>that fits the moment.">
-	<IndexRows items={SECTION_BY_ID.workflows.items} hasCode />
+	<IndexRows pages={SECTION_BY_ID.workflows.items} />
 </Prose>
 <Prose id="commands" title="Every command,<br>at a glance.">
 	<SpecTable rows={COMMANDS} head={['Command', 'What opens']} />

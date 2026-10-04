@@ -22,7 +22,7 @@ import { REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
 	<ResourcesIndex slot="art" />
 </PageHero>
 <Prose id="all" title="Start anywhere.">
-	<IndexRows items={SECTION_BY_ID.resources.items} />
+	<IndexRows pages={SECTION_BY_ID.resources.items} />
 </Prose>
 <Prose id="spec" title="The contract,<br>from the source.">
 	<ProseText>The full agent contract (modes, events, flags and the <code>ReviewResult</code> shape) is versioned with the CLI and printed by one command. That is the copy your agent should read, because it always matches the binary you installed.</ProseText>
