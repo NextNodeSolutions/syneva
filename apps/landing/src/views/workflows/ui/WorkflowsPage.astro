@@ -12,6 +12,7 @@ import { commandOf, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import { capitalize } from '@shared/lib/capitalize'
 import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
 import WorkflowHub from './art/WorkflowHub.astro'
 
 const COMMANDS = [
@@ -25,7 +26,7 @@ const COMMANDS = [
 	[commandOf('stop'), 'Shut the desk down. Your review state stays saved.'],
 ] as const
 // The round's subcommands besides stop, which the table above lists.
-const ROUND_COMMAND_PARTS = new Intl.ListFormat('en-GB', { type: 'conjunction' }).formatToParts(
+const ROUND_COMMAND_PARTS = listFormat.formatToParts(
 	SUBCOMMANDS.flatMap(({ name }) => (name === 'stop' ? [] : [name])),
 )
 ---

@@ -12,6 +12,7 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { capitalize } from '@shared/lib/capitalize'
 import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
 import { workflowsArt } from './workflows-art.styles'
 
 const TOP = 50
@@ -35,7 +36,7 @@ const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340
 	height={440}
 	compact="20 30 570 380"
 	title={`${capitalize(countWord(SOURCES.length))} ways in, one desk`}
-	description={`${capitalize(new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(SOURCES.map(({ title }) => title.toLowerCase())))} each feed the same local desk, which produces one structured verdict whose mode tells your agent how to read it.`}
+	description={`${capitalize(listFormat.format(SOURCES.map(({ title }) => title.toLowerCase())))} each feed the same local desk, which produces one structured verdict whose mode tells your agent how to read it.`}
 >
 	<g fill="none">
 		{

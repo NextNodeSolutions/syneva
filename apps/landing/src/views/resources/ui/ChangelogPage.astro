@@ -5,6 +5,7 @@ import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { COMMITS_URL } from '@entities/site/model/project'
+import { listFormat } from '@shared/lib/list-format'
 import HistoryRail from './art/HistoryRail.astro'
 import { recentWeeks } from '../model/changelog'
 import VersionList from './VersionList.astro'
@@ -16,7 +17,7 @@ const weeks = await recentWeeks()
 <PageHero
 	title="What shipped."
 	lede="Straight from the git history, grouped by week and written for humans. Releases are cut automatically from the commit messages; this page tells you what they mean for your review."
-	caption={`Counts of ${new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(CHANGE_KINDS)} commits. Not a growth chart.`}
+	caption={`Counts of ${listFormat.format(CHANGE_KINDS)} commits. Not a growth chart.`}
 >
 	<TextLink slot="actions" href={COMMITS_URL} label="Every commit on GitHub" />
 	<HistoryRail slot="art" />

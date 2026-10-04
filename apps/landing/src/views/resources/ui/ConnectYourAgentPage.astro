@@ -13,6 +13,7 @@ import { CONTRACT_SOURCE_URL } from '@entities/site/model/project'
 import { commandOf, EVENTS, REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE, SPEC_COMMAND, SPEC_COMMAND_LABEL, SPEC_SUBCOMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
 import { capitalize } from '@shared/lib/capitalize'
 import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
 import ProtocolWire from './art/ProtocolWire.astro'
 
 const PI = [
@@ -41,8 +42,7 @@ const ACTING = [
 ] as const
 // The result's fields as a sentence's list: names in code, the optional
 // note introduced as such.
-const FIELD_PARTS = new Intl.ListFormat('en-GB', { type: 'conjunction' })
-	.formatToParts([...REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE])
+const FIELD_PARTS = listFormat.formatToParts([...REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE])
 	.map(({ type, value }) => {
 		if (type === 'literal') return { kind: 'text', value } as const
 		return { kind: value === REVIEW_RESULT_NOTE ? 'optional' : 'field', value } as const

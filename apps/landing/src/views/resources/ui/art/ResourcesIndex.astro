@@ -10,6 +10,7 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { capitalize } from '@shared/lib/capitalize'
 import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
 import { resourcesArt } from './resources-art.styles'
 
 const ROW = 70
@@ -31,7 +32,7 @@ const entries = SECTION_BY_ID.resources.items.map(({ title, blurb }, index) => (
 	height={420}
 	compact="50 60 516 330"
 	title="Resources, as a table of contents"
-	description={`${capitalize(countWord(entries.length))} resources listed like a book's contents: ${new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(entries.map(({ title }) => title.toLowerCase()))}.`}
+	description={`${capitalize(countWord(entries.length))} resources listed like a book's contents: ${listFormat.format(entries.map(({ title }) => title.toLowerCase()))}.`}
 >
 	<text {...anim('fade', 0, text.tiny)} x="70" y="80">CONTENTS</text>
 	<path {...anim('draw', 0.1, shape.inkLine)} d="M70 92h460"></path>
