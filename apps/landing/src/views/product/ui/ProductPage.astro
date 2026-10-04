@@ -10,7 +10,6 @@ import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { sectionById } from '@entities/site/model/site-map'
 
-
 const COMMITMENTS = [
 	['No model runs inside Syneva.', 'It never calls an LLM and never orchestrates one. It renders the diff, validates what it is given, and hands a result back.'],
 	['Your agent, not ours.', 'The contract is plain JSON on stdout plus a localhost HTTP server. Whatever agent you use today can drive it, and so can tomorrow’s.'],
