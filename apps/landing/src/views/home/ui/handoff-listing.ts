@@ -1,13 +1,14 @@
-import { mapClasses } from '@shared/lib/map-classes'
+import { sx } from '@shared/lib/sx'
 
 import { json } from './handoff.styles'
 
+import type { Style } from '@shared/lib/sx'
 import type { AwaitEvent, ReviewResult } from '@syneva/contracts/agent'
 
 // The review event the handoff figure prints, as fenced JSON. It stays an
-// HTML string because its whitespace is part of the content; plain classes
-// name its tokens and mapClasses() swaps them for the StyleX ones. A line
-// that carries a verdict is tinted by its kind.
+// HTML string because its whitespace is part of the content; each token is a
+// span carrying its StyleX classes. A line that carries a verdict is tinted
+// by its kind.
 type LineKind = 'yes' | 'no' | 'ask'
 // Every field name it prints comes from the contract the CLI emits, so a
 // rename there fails this build.
@@ -18,18 +19,16 @@ type ContractKey =
 	| keyof ReviewResult['accepted'][number]
 	| keyof ReviewResult['requestedChanges'][number]
 
-const key = (name: ContractKey): string =>
-	`<span class="j-key">"${name}"</span>`
-const text = (content: string): string =>
-	`<span class="j-string">"${content}"</span>`
-const number = (digits: string): string =>
-	`<span class="j-number">${digits}</span>`
-const punctuation = (marks: string): string =>
-	`<span class="j-punctuation">${marks}</span>`
+const span = (style: Style, body: string): string =>
+	`<span class="${sx(style).class ?? ''}">${body}</span>`
+const key = (name: ContractKey): string => span(json.key, `"${name}"`)
+const text = (content: string): string => span(json.string, `"${content}"`)
+const number = (digits: string): string => span(json.number, digits)
+const punctuation = (marks: string): string => span(json.punctuation, marks)
 const line = (body: string, kind?: LineKind): string =>
-	`<span class="j-line${kind ? ` is-${kind}` : ''}">${body}</span>`
+	span([json.line, kind && json[kind]], body)
 
-const LISTING = [
+export const HANDOFF_LISTING = [
 	line(
 		`${punctuation('{')} ${key('kind')}${punctuation(':')} ${text('review')}${punctuation(',')} ${key('result')}${punctuation(': {')}`,
 	),
@@ -65,14 +64,3 @@ const LISTING = [
 	),
 	line(punctuation('} }')),
 ].join('')
-
-export const HANDOFF_LISTING = mapClasses(LISTING, {
-	'j-line': json.line,
-	'is-yes': json.yes,
-	'is-no': json.no,
-	'is-ask': json.ask,
-	'j-key': json.key,
-	'j-string': json.string,
-	'j-number': json.number,
-	'j-punctuation': json.punctuation,
-})
