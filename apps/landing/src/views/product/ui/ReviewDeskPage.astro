@@ -1,6 +1,7 @@
 ---
 import Button from '@shared/ui/Button.astro'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
+import ChapterList from '@widgets/chapter/ui/ChapterList.astro'
 import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
 import Command from '@features/copy-command/ui/Command.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
@@ -52,9 +53,10 @@ const ROUNDS = [
 	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Open your first desk" /><Command text="syneva" label="Start a review" /></Fragment>
 	<DeskAnatomy slot="art" />
 </PageHero>
-<Chapter id="verdicts" title="Verdicts, not vibes." list={VERDICTS} caption="Pending → kept or undone → pending again only if rewritten">
+<Chapter id="verdicts" title="Verdicts, not vibes." caption="Pending → kept or undone → pending again only if rewritten">
 	<ChapterText>A verdict in Syneva is a record: this change, kept or undone, by you. It is not inferred from git staging and never granted in bulk by a model.</ChapterText>
 	<ChapterText>Each change is content-hashed. When your agent rewrites something you already kept, it comes back pending on the next reload. What it left alone keeps your verdict, round after round.</ChapterText>
+	<ChapterList items={VERDICTS} />
 	<VerdictLifecycle slot="art" />
 </Chapter>
 <Prose id="keyboard" title="The keyboard<br>is the fast path.">

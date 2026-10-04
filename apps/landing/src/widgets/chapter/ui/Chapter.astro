@@ -1,7 +1,7 @@
 ---
-// A ruled chapter: an explanatory headline, its paragraphs (default slot), an
-// optional detail list, trailing actions (slot "after") and the drawing (slot
-// "art"), side by side; artSide puts the drawing left of the copy instead.
+// A ruled chapter: an explanatory headline, its copy (default slot: status,
+// paragraphs, a detail list, actions) and the drawing (slot "art"), side by
+// side; artSide puts the drawing left of the copy instead.
 import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { chapterCopyMarker } from '@shared/ui/actions.stylex'
@@ -13,11 +13,10 @@ type Props = {
 	id?: string
 	title: string
 	artSide?: 'left' | 'right'
-	list?: readonly (readonly [string, string])[]
 	caption?: string
 }
 
-const { id, title, artSide = 'right', list = [], caption } = Astro.props
+const { id, title, artSide = 'right', caption } = Astro.props
 const isArtLeft = artSide === 'left'
 const isSubpage = Astro.locals.page === 'sub'
 ---
@@ -26,19 +25,6 @@ const isSubpage = Astro.locals.page === 'sub'
 	<div {...sx(chapter.copy, isSubpage && chapter.subCopy, isArtLeft && chapter.reverseCopy, chapterCopyMarker)}>
 		<h2 {...revealItem(heading.section, isSubpage && heading.subpage)} set:html={title} />
 		<slot />
-		{
-			list.length > 0 && (
-				<ul {...sx(chapter.list, isSubpage && chapter.subList)}>
-					{list.map(([head, text]) => (
-						<li {...revealItem(chapter.item, isSubpage && chapter.subItem)}>
-							<strong {...sx(chapter.itemHead)} set:html={head} />
-							<span {...sx(chapter.itemText)} set:html={text} />
-						</li>
-					))}
-				</ul>
-			)
-		}
-		<slot name="after" />
 	</div>
 	<figure
 		{...revealItem(chapter.art, isArtLeft && chapter.reverseArt, isSubpage && chapter.subArt, isSubpage && isArtLeft && chapter.subReverseArt, chapterArtMarker)}
