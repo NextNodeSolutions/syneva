@@ -9,7 +9,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { sectionById } from '@entities/site/model/site-map'
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 
 const COMMANDS = [
 	['syneva', 'The working-tree diff, untracked files included.'],
@@ -33,7 +33,7 @@ const COMMANDS = [
 	<WorkflowHub slot="art" />
 </PageHero>
 <Prose id="modes" title="Pick the one<br>that fits the moment.">
-	<IndexRows items={sectionById('workflows').items} hasCode />
+	<IndexRows items={SECTION_BY_ID.workflows.items} hasCode />
 </Prose>
 <Prose id="commands" title="Every command,<br>at a glance.">
 	<SpecTable rows={COMMANDS} head={['Command', 'What opens']} />

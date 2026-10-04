@@ -8,7 +8,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseCommand from '@features/copy-command/ui/ProseCommand.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { REPO_URL, sectionById } from '@entities/site/model/site-map'
+import { REPO_URL, SECTION_BY_ID } from '@entities/site/model/site-map'
 
 ---
 
@@ -22,7 +22,7 @@ import { REPO_URL, sectionById } from '@entities/site/model/site-map'
 	<ResourcesIndex slot="art" />
 </PageHero>
 <Prose id="all" title="Start anywhere.">
-	<IndexRows items={sectionById('resources').items} />
+	<IndexRows items={SECTION_BY_ID.resources.items} />
 </Prose>
 <Prose id="spec" title="The contract,<br>from the source.">
 	<ProseText>The full agent contract (modes, events, flags and the <code>ReviewResult</code> shape) is versioned with the CLI and printed by one command. That is the copy your agent should read, because it always matches the binary you installed.</ProseText>

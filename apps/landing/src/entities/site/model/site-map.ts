@@ -19,7 +19,9 @@ export type Page = {
 	code?: string
 }
 
-export type SectionId = 'product' | 'workflows' | 'resources'
+// Menus and the footer list the sections in this order.
+export const SECTION_ORDER = ['product', 'workflows', 'resources'] as const
+export type SectionId = (typeof SECTION_ORDER)[number]
 
 export type Section = {
 	id: SectionId
@@ -30,8 +32,9 @@ export type Section = {
 	items: Page[]
 }
 
-export const SECTIONS: Section[] = [
-	{
+// The type keeps each key and its section's id in step.
+export const SECTION_BY_ID: { [Id in SectionId]: Section & { id: Id } } = {
+	product: {
 		id: 'product',
 		label: 'Product',
 		href: '/product/',
@@ -69,7 +72,7 @@ export const SECTIONS: Section[] = [
 			},
 		],
 	},
-	{
+	workflows: {
 		id: 'workflows',
 		label: 'Workflows',
 		href: '/workflows/',
@@ -106,7 +109,7 @@ export const SECTIONS: Section[] = [
 			},
 		],
 	},
-	{
+	resources: {
 		id: 'resources',
 		label: 'Resources',
 		href: '/resources/',
@@ -139,19 +142,17 @@ export const SECTIONS: Section[] = [
 			},
 		],
 	},
-]
+}
+
+export const SECTIONS: readonly Section[] = SECTION_ORDER.map(
+	id => SECTION_BY_ID[id],
+)
 
 export const OPEN_SOURCE: Page = {
 	href: '/open-source/',
 	title: 'Open source',
 	blurb: 'MIT licensed. A protocol you can read.',
 	icon: 'source',
-}
-
-export function sectionById(id: SectionId): Section {
-	const section = SECTIONS.find(candidate => candidate.id === id)
-	if (!section) throw new Error(`unknown section: ${id}`)
-	return section
 }
 
 // Section of a route, for breadcrumbs, the active nav state and pagers.

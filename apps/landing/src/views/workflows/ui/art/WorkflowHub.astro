@@ -1,7 +1,7 @@
 ---
 // Workflows overview: four sources, one desk, one verdict.
 import { ICONS } from '@entities/site/model/icons'
-import { sectionById } from '@entities/site/model/site-map'
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -20,7 +20,7 @@ const ICON_SCALE = 1.25
 const ICON_OFFSET = { x: 41, y: 10 } as const
 // The workflows section's pages, as the site map lists them: each card shows
 // the page's icon, title and command.
-const SOURCES = sectionById('workflows').items.map(({ title, icon, code }, i) => {
+const SOURCES = SECTION_BY_ID.workflows.items.map(({ title, icon, code }, i) => {
 	if (!code) throw new Error(`The workflow page "${title}" has no command in the site map.`)
 	const y = TOP + i * ROW
 	return { title, icon, command: code, y, iconTransform: `translate(${ICON_OFFSET.x} ${y + ICON_OFFSET.y}) scale(${ICON_SCALE})` }

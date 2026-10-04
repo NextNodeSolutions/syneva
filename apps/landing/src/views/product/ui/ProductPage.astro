@@ -8,7 +8,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { sectionById } from '@entities/site/model/site-map'
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 
 const COMMITMENTS = [
 	['No model runs inside Syneva.', 'It never calls an LLM and never orchestrates one. It renders the diff, validates what it is given, and hands a result back.'],
@@ -34,7 +34,7 @@ const DAILY = [
 </PageHero>
 <Prose id="desk" title={'What’s on the desk.'}>
 	<ProseText>Each part of the desk answers one question you have when an agent hands you a diff: what changed, in what order should I read it, why is this here, and what do I keep.</ProseText>
-	<IndexRows items={sectionById('product').items} />
+	<IndexRows items={SECTION_BY_ID.product.items} />
 </Prose>
 <Prose id="commitments" title={'Three commitments<br>we won’t trade away.'}>
 	<RuledList items={COMMITMENTS} />

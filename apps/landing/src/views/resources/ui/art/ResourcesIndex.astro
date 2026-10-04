@@ -1,6 +1,6 @@
 ---
 // Resources overview: a ruled table of contents.
-import { sectionById } from '@entities/site/model/site-map'
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { twoDigits } from '@shared/lib/step-number'
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
@@ -15,7 +15,7 @@ const ROW = 70
 const ADVANCE = 9.6
 const leaderAt = (title: string, i: number): string => `M${title.length * ADVANCE + 82} ${128 + i * ROW}H486`
 // The resources section's pages, as the site map lists them.
-const entries = sectionById('resources').items.map(({ title, blurb }, i) => ({
+const entries = SECTION_BY_ID.resources.items.map(({ title, blurb }, i) => ({
 	title,
 	blurb,
 	number: twoDigits(i + 1),
