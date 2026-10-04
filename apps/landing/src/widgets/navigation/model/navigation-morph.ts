@@ -2,7 +2,7 @@ import { animate } from '@syneva/motion/engine'
 import { reducedMotion } from '@syneva/motion/preference'
 
 import { handoverFrames } from './handover-frames'
-import { readClock } from './nav-clock'
+import { NAV_CLOCK } from './nav-clock'
 import {
 	canInterpolate,
 	CONTENT,
@@ -101,7 +101,7 @@ export class NavigationMorph {
 		const timing =
 			next[this.#shell.property('reveal')] === '0' ? 'close' : clock
 		// A move on either clock, or the fold back on closing.
-		const duration = readClock(this.#navigation).duration[timing]
+		const duration = NAV_CLOCK.duration[timing]
 		const frames = handoverFrames({ ...origin, ...seeds }, destination, [
 			this.#panelChannels,
 			this.#sceneChannels,
@@ -127,7 +127,7 @@ export class NavigationMorph {
 		frames: HandoverFrames,
 		duration: number,
 	): ReturnType<typeof animate> {
-		const { ease } = readClock(this.#navigation)
+		const { ease } = NAV_CLOCK
 		const keyframes = Object.fromEntries(
 			[...frames].map(([name, frame]) => [name, frame.values]),
 		)
@@ -174,7 +174,7 @@ export class NavigationMorph {
 			channels: this.#panelChannels,
 			target: this.#motions.menu.target,
 			selected: this.#panels.indexOf(menu.panel),
-			travel: readClock(this.#navigation).travel.panel,
+			travel: NAV_CLOCK.travel.panel,
 			styles,
 		})
 		const next = {
@@ -212,7 +212,7 @@ export class NavigationMorph {
 			channels: this.#sceneChannels,
 			target: this.#motions.preview.target,
 			selected: this.#scenes.indexOf(scene),
-			travel: readClock(this.#navigation).travel.preview,
+			travel: NAV_CLOCK.travel.preview,
 			styles,
 		})
 		const selection = this.#shell.values({

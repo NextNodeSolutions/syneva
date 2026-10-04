@@ -98,14 +98,14 @@ export const nav = stylex.create({
 			default: null,
 			[media.motionSafe]: {
 				default: null,
-				[mobileOpen()]: navClock['--nav-bar-duration'],
+				[mobileOpen()]: navClock.barDuration,
 			},
 		},
 		animationTimingFunction: {
 			default: null,
 			[media.motionSafe]: {
 				default: null,
-				[mobileOpen()]: navClock['--nav-ease'],
+				[mobileOpen()]: navClock.ease,
 			},
 		},
 		animationFillMode: {
@@ -169,7 +169,7 @@ export const nav = stylex.create({
 		fill: 'none',
 		stroke: 'currentColor',
 		strokeWidth: 1.5,
-		transition: `transform ${duration['--duration-medium']} ${navClock['--nav-ease']}`,
+		transition: `transform ${duration['--duration-medium']} ${navClock.ease}`,
 		transform: { default: null, [triggerExpanded()]: 'rotate(180deg)' },
 	},
 	indicator: {

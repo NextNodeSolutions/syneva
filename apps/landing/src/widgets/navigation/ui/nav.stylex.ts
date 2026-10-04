@@ -1,22 +1,23 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 
-// The header's clock. The navigation runtime reads the morph's timings from
-// the computed style (durations as CSS times, travel in px) so the
-// stylesheet stays the one source; the phone link bar enters on it too.
-export const navClock = stylex.defineVars({
-	'--nav-menu-duration': '240ms',
-	'--nav-preview-duration': '150ms',
-	'--nav-close-duration': '160ms',
-	'--nav-bar-duration': '280ms',
-	'--nav-ease': 'cubic-bezier(0.22, 0.61, 0.36, 1)',
-	'--nav-panel-travel': '16',
-	'--nav-preview-travel': '24',
+// The header's clock, shared by the styles and the navigation runtime
+// (nav-clock.ts parses it once): the morph's durations as CSS times, its ease
+// and its travels in px, and the phone link bar's entrance.
+export const navClock = stylex.defineConsts({
+	menuDuration: '240ms',
+	previewDuration: '150ms',
+	closeDuration: '160ms',
+	barDuration: '280ms',
+	ease: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+	panelTravel: '16',
+	previewTravel: '24',
 })
 
-// The dropdown's frame, read by the runtime's geometry like the clock: the
-// space it keeps from the header's edges (on phones the link bar's inset, so
-// the dropdown lines up under the bar) and its border.
+// The dropdown's frame, which the runtime's geometry reads from the computed
+// style because it changes with the width: the space it keeps from the
+// header's edges (on phones the link bar's inset, so the dropdown lines up
+// under the bar) and its border.
 export const navFrame = stylex.defineVars({
 	'--nav-dropdown-inset': { default: '24px', [media.navToggle]: '12px' },
 	'--nav-dropdown-border': '1px',

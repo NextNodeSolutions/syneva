@@ -37,7 +37,7 @@ export const dropdown = stylex.create({
 		transitionDuration: { default: '0s', [keyboard()]: '0s !important' },
 		transitionTimingFunction: 'ease',
 		transitionDelay: {
-			default: navClock['--nav-close-duration'],
+			default: navClock.closeDuration,
 			':is([data-open="true"])': '0s',
 			[keyboard()]: '0s !important',
 		},
