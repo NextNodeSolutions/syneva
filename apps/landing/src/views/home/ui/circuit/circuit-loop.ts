@@ -1,126 +1,22 @@
 import { EASE } from '@syneva/motion/easing'
-import { loopTimeline } from '@syneva/motion/loop-timeline'
 
-import {
-	circuitPartSelector,
-	layerSelector,
-	signalSelector,
-} from './circuit-part'
+import { blink, hold, loop, pixels } from './circuit-clock'
+import { circuitPartSelector, findPart, layerSelector } from './circuit-part'
+import { travelSignals } from './circuit-signals'
 
-import type { Easing } from '@syneva/motion/easing'
-import type { Keyframes } from '@syneva/motion/engine'
-import type { Frame, Frames } from '@syneva/motion/loop-timeline'
-import type { CircuitPart, LayerKind, SignalName } from './circuit-part'
+import type { CircuitPart, LayerKind } from './circuit-part'
 
-// One 14s clock: dispatch, open, read, decide, return. The static pose tells
-// the whole story; only the three short signal strokes repaint, sheets move
-// with transform and opacity. Times are fractions of the cycle, and every
-// segment eases on its own.
-const CYCLE_S = 14
-// Each layer rests stacked, `rest` px down, and lifts open to its --lift
-// (circuit.styles.ts, the static pose); a signal's dash is its
-// --signal-size. The minifier may rewrite a value, so it is parsed.
+// The circuit's loop on its clock (circuit-clock.ts): the changeset is
+// dispatched, its layers open, you read and decide, and the signals carry it
+// round. Each layer rests stacked, `rest` px down, and lifts open to its
+// --lift (circuit.styles.ts, the static pose).
 const LAYERS = [
 	{ kind: 'critical', rest: 0, delay: 0 },
 	{ kind: 'important', rest: 10, delay: 0.06 },
 	{ kind: 'tested', rest: 20, delay: 0.12 },
 ] as const satisfies readonly { kind: LayerKind; rest: number; delay: number }[]
-const SIGNALS = [
-	{ name: 'in', times: [0, 0.14, 0.15, 0.25, 0.26, 1], ease: EASE.review },
-	{ name: 'out', times: [0, 0.47, 0.48, 0.63, 0.64, 1], ease: 'linear' },
-	{ name: 'return', times: [0, 0.73, 0.74, 0.97, 0.98, 1], ease: 'linear' },
-] as const satisfies readonly {
-	name: SignalName
-	times: number[]
-	ease: Easing
-}[]
-
-const pixels = (element: Element, property: string): number =>
-	Number.parseFloat(getComputedStyle(element).getPropertyValue(property))
-
-type Timing = {
-	times: readonly [number, ...number[]]
-	ease: Easing
-	delay?: number
-}
-
-// A piece states one value per time of its timing: a missing one is a bug in
-// the piece, not a value to guess.
-function valueAt(
-	values: readonly (string | number)[],
-	index: number,
-	property: string,
-): string | number {
-	const timedValue = values[index]
-	if (timedValue === undefined)
-		throw new Error(
-			`The circuit's ${property} has no value for time ${index}: give it one per time.`,
-		)
-	return timedValue
-}
-
-// A piece is written as its values at six fractions of the cycle; they
-// become the loop timeline's frames on the circuit's clock.
-function loop(
-	element: Element,
-	keyframes: Keyframes,
-	{ times, ease, delay = 0 }: Timing,
-): void {
-	const frameAt = (time: number, index: number): Frame => [
-		time * CYCLE_S,
-		Object.fromEntries(
-			Object.entries(keyframes).map(([property, values]) => [
-				property,
-				valueAt(values, index, property),
-			]),
-		),
-	]
-	const [firstTime, ...laterTimes] = times
-	const frames: Frames = [
-		frameAt(firstTime, 0),
-		...laterTimes.map((time, index) => frameAt(time, index + 1)),
-	]
-	loopTimeline(element, frames, { cycle: CYCLE_S, delay, easing: ease })
-}
-
-// Six values, one per time of a piece's timing: its resting value at the
-// first two times, its other value at the middle two, its resting value
-// again at the last two. The piece changes between the second and third
-// times and changes back between the fourth and fifth.
-const blink = (on: number): (string | number)[] => [0, 0, on, on, 0, 0]
-const hold = (resting: string, held: string): string[] => [
-	resting,
-	resting,
-	held,
-	held,
-	resting,
-	resting,
-]
-
-const travel = (size: number, length: number): string[] => [
-	`${size}px`,
-	`${size}px`,
-	`${size}px`,
-	`${-length}px`,
-	`${-length}px`,
-	`${-length}px`,
-]
 
 type PartLookup = (name: CircuitPart) => Element
-
-// Every piece the loop drives is in the markup: a missing one is a bug in
-// Circuit.astro, not a piece to leave still.
-function find(svg: SVGSVGElement, selector: string, mark: string): Element {
-	const found = svg.querySelector(selector)
-	if (!found)
-		throw new Error(
-			`The review circuit has no ${selector}: mark it with ${mark}.`,
-		)
-	return found
-}
-
-const signalOf = (svg: SVGSVGElement, name: SignalName): Element =>
-	find(svg, signalSelector(name), `signalPart('${name}')`)
 
 // The changeset is dispatched, then its review layers lift apart and their
 // notes appear.
@@ -131,7 +27,7 @@ function unfold(svg: SVGSVGElement, part: PartLookup): void {
 		{ times: [0, 0.06, 0.12, 0.19, 0.25, 1], ease: EASE.review },
 	)
 	LAYERS.forEach(({ kind, rest, delay }) => {
-		const layer = find(svg, layerSelector(kind), `layerPart('${kind}')`)
+		const layer = findPart(svg, layerSelector(kind), `layerPart('${kind}')`)
 		const lift = pixels(layer, '--lift')
 		loop(
 			layer,
@@ -195,78 +91,13 @@ function review(part: PartLookup): void {
 	)
 }
 
-// A signal's dash offsets over its timing: it travels the whole wire it
-// references, as long as the live layout measured it. A signal without a
-// wire, or on a wire nothing routed, would sit still at 0px.
-function signalTravel(
-	signal: Element,
-	name: SignalName,
-	lengths: Map<string, number>,
-): string[] {
-	const wire = signal.getAttribute('href')?.slice(1)
-	if (!wire)
-		throw new Error(
-			`The circuit's ${name} signal references no wire: give it href="#<wire id>".`,
-		)
-	const length = lengths.get(wire)
-	if (!length)
-		throw new Error(
-			`The circuit's ${name} signal travels #${wire}, which routeCircuit() measured no length for: route it from WIRES in circuit-layout.ts.`,
-		)
-	return travel(pixels(signal, '--signal-size'), length)
-}
-
-// The three signals travel their routes, measured from the live layout.
-function travelSignals(svg: SVGSVGElement, lengths: Map<string, number>): void {
-	SIGNALS.forEach(({ name, times, ease }) => {
-		const signal = signalOf(svg, name)
-		loop(
-			signal,
-			{
-				opacity: blink(1),
-				strokeDashoffset: signalTravel(signal, name, lengths),
-			},
-			{ times, ease },
-		)
-	})
-}
-
 export function playCircuit(
 	svg: SVGSVGElement,
 	lengths: Map<string, number>,
 ): void {
 	const part: PartLookup = name =>
-		find(svg, circuitPartSelector(name), `circuitPart('${name}')`)
+		findPart(svg, circuitPartSelector(name), `circuitPart('${name}')`)
 	unfold(svg, part)
 	review(part)
 	travelSignals(svg, lengths)
-}
-
-// A new layout re-measures the routes: the running signals keep their place
-// on the clock and only their travel changes.
-export function retimeSignals(
-	svg: SVGSVGElement,
-	lengths: Map<string, number>,
-): void {
-	SIGNALS.forEach(({ name }) => {
-		const signal = signalOf(svg, name)
-		const offsets = signalTravel(signal, name, lengths)
-		signal.getAnimations().forEach(animation => {
-			const { effect } = animation
-			if (!(effect instanceof KeyframeEffect)) return
-			const frames = effect.getKeyframes()
-			if (!frames.some(frame => 'strokeDashoffset' in frame)) return
-			effect.setKeyframes(
-				frames.map((frame, index) =>
-					Object.assign({}, frame, {
-						strokeDashoffset: valueAt(
-							offsets,
-							index,
-							'strokeDashoffset',
-						),
-					}),
-				),
-			)
-		})
-	})
 }

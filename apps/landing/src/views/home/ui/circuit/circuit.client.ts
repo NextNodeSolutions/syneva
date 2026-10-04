@@ -3,7 +3,8 @@ import { booted } from '@syneva/motion/boot'
 import { reducedMotion } from '@syneva/motion/preference'
 import { syncScenes } from '@syneva/motion/scenes'
 
-import { playCircuit, retimeSignals } from './circuit-loop'
+import { playCircuit } from './circuit-loop'
+import { retimeSignals } from './circuit-signals'
 import { placeLoopLabel, routeCircuit } from './circuit-wires'
 
 // The review circuit's runtime: route the wires now, again when the phone

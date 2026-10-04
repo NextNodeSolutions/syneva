@@ -2,8 +2,8 @@ import { partAttribute } from '@shared/lib/part-attribute'
 
 // Every piece of the review circuit its runtime drives, named once: the
 // markup marks a piece with circuitPart(), layerPart() or signalPart() and
-// circuit-loop.ts selects it by the same name, so a name only one side knows
-// fails astro check.
+// the loop and its signals select it by the same name, so a name only one
+// side knows fails astro check.
 export type CircuitPart =
 	| 'dispatch'
 	| 'note'
@@ -30,3 +30,18 @@ export const { mark: signalPart, selector: signalSelector } =
 // routes wires, not signals).
 export const signalOnWire = (wireId: string): string =>
 	`[href="#${wireId}"][${SIGNAL}]`
+
+// Every piece the runtime drives is in the markup: a missing one is a bug in
+// Circuit.astro, not a piece to leave still.
+export function findPart(
+	svg: SVGSVGElement,
+	selector: string,
+	mark: string,
+): Element {
+	const found = svg.querySelector(selector)
+	if (!found)
+		throw new Error(
+			`The review circuit has no ${selector}: mark it with ${mark}.`,
+		)
+	return found
+}
