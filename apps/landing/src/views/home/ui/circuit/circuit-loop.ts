@@ -72,7 +72,10 @@ function loop(
 	loopTimeline(element, frames, { cycle: CYCLE_S, delay, easing: ease })
 }
 
-// Hidden, shown, shown, hidden: a piece appears between t1 and t2.
+// Six values, one per time of a piece's timing: its resting value at the
+// first two times, its other value at the middle two, its resting value
+// again at the last two. The piece changes between the second and third
+// times and changes back between the fourth and fifth.
 const blink = (on: number): (string | number)[] => [0, 0, on, on, 0, 0]
 const hold = (a: string, b: string): string[] => [a, a, b, b, a, a]
 
