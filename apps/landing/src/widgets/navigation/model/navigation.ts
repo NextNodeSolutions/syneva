@@ -1,5 +1,6 @@
 import { compact } from './compact'
 import { NavigationMorph } from './navigation-morph'
+import { TOGGLE_LABEL } from './toggle-label'
 
 // The header's behavior: hover and click open a section's panel in the
 // morphing dropdown, arrow keys move between triggers, Escape and outside
@@ -26,6 +27,8 @@ export class Navigation {
 	#currentTrigger: HTMLElement | undefined
 	#clickedTrigger: HTMLElement | undefined
 	#currentPanel: HTMLElement | undefined
+	// Whether the phone bar is open; #renderBar() writes it to the page.
+	#isBarOpen = false
 	#openTimer: ReturnType<typeof setTimeout> | undefined
 	#closeTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -60,10 +63,7 @@ export class Navigation {
 	}
 
 	get isOpen(): boolean {
-		return (
-			Boolean(this.#currentPanel) ||
-			this.#root.dataset.mobileOpen === 'true'
-		)
+		return Boolean(this.#currentPanel) || this.#isBarOpen
 	}
 
 	keepOpen(): void {
@@ -108,10 +108,18 @@ export class Navigation {
 				container.contains(focused),
 			)
 		this.#closePanel()
-		this.#root.dataset.mobileOpen = 'false'
-		this.#toggle.setAttribute('aria-expanded', 'false')
-		this.#toggle.setAttribute('aria-label', 'Open navigation')
+		this.#isBarOpen = false
+		this.#renderBar()
 		if (shouldRestore) this.#toggle.focus()
+	}
+
+	// The styles read data-mobile-open; the toggle reports the state and
+	// names the action it offers.
+	#renderBar(): void {
+		const state = this.#isBarOpen ? 'open' : 'closed'
+		this.#root.dataset.mobileOpen = String(this.#isBarOpen)
+		this.#toggle.setAttribute('aria-expanded', String(this.#isBarOpen))
+		this.#toggle.setAttribute('aria-label', TOGGLE_LABEL[state])
 	}
 
 	showPanel(trigger: HTMLElement, mode: InputMode = 'pointer'): void {
@@ -181,15 +189,14 @@ export class Navigation {
 	}
 
 	toggleBar(event: MouseEvent): void {
-		if (this.#toggle.getAttribute('aria-expanded') === 'true') {
+		if (this.#isBarOpen) {
 			this.dismiss()
 			return
 		}
 		const [first] = this.#triggers
 		if (!first) return
-		this.#root.dataset.mobileOpen = 'true'
-		this.#toggle.setAttribute('aria-expanded', 'true')
-		this.#toggle.setAttribute('aria-label', 'Close navigation')
+		this.#isBarOpen = true
+		this.#renderBar()
 		const isKeyboard = isKeyboardActivation(event)
 		this.showPanel(first, isKeyboard ? 'keyboard' : 'pointer')
 		if (isKeyboard) first.focus()

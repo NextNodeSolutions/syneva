@@ -7,6 +7,7 @@ import { sx } from '@shared/lib/sx'
 import Brand from '@shared/ui/Brand.astro'
 import { inputMarker } from '@shared/ui/brand.stylex'
 import { currentPage } from '../model/current-page'
+import { TOGGLE_LABEL } from '../model/toggle-label'
 import NavPanel from './NavPanel.astro'
 import { actionMarker, dropdownMarker, navMarker, triggerMarker } from './markers.stylex'
 import { dropdown } from './dropdown.styles'
@@ -52,7 +53,7 @@ const START = '/get-started/'
 		type="button"
 		aria-expanded="false"
 		aria-controls="site-navigation"
-		aria-label="Open navigation"
+		aria-label={TOGGLE_LABEL.closed}
 		data-nav-toggle
 	>
 		<span {...sx(headerActions.toggleLabel)}>Menu</span>
