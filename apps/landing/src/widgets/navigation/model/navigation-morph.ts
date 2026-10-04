@@ -21,9 +21,9 @@ import type { InputMode } from './input-mode'
 import type { ClockName } from './nav-clock'
 import type {
 	Channel,
+	ChannelValues,
 	ContentName,
 	GeometryName,
-	Values,
 } from './navigation-channels'
 import type { Geometry } from './navigation-geometry'
 import type { NavigationParts, SectionMenu } from './navigation-parts'
@@ -35,7 +35,7 @@ const DURATION: Record<Clock | 'close', ClockName> = {
 	preview: '--nav-preview-duration',
 	close: '--nav-close-duration',
 }
-type Motion = { target: Values; controls?: ReturnType<typeof animate> }
+type Motion = { target: ChannelValues; controls?: ReturnType<typeof animate> }
 // The bounds the morph measures and writes; nav.stylex.ts declares them.
 type BoundName = Extract<keyof typeof navBounds, `--${string}`>
 
@@ -87,7 +87,11 @@ export class NavigationMorph {
 		)
 	}
 
-	#animateTo(clock: Clock, next: Values, seeds: Values = {}): void {
+	#animateTo(
+		clock: Clock,
+		next: ChannelValues,
+		seeds: ChannelValues = {},
+	): void {
 		const motion = this.#motions[clock]
 		if (
 			Object.entries(next).every(

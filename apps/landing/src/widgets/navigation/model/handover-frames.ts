@@ -1,4 +1,4 @@
-import type { Channel, ContentName, Values } from './navigation-channels'
+import type { Channel, ChannelValues, ContentName } from './navigation-channels'
 
 export type HandoverFrames = Map<string, { values: string[]; times: number[] }>
 
@@ -10,7 +10,7 @@ const ENTER_AT = 0.7
 
 // Both snapshots carry every channel: a missing one is a bug in the
 // registry, not a value to guess.
-function valueOf(values: Values, name: string): string {
+function valueOf(values: ChannelValues, name: string): string {
 	const channelValue = values[name]
 	if (channelValue === undefined)
 		throw new Error(
@@ -21,8 +21,8 @@ function valueOf(values: Values, name: string): string {
 
 // One frame list per channel on the shared clock.
 export function handoverFrames(
-	origin: Values,
-	destination: Values,
+	origin: ChannelValues,
+	destination: ChannelValues,
 	groups: readonly Channel<ContentName>[][],
 ): HandoverFrames {
 	const frames = new Map(

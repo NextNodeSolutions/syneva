@@ -1,11 +1,11 @@
 import { readProperty } from './read-property'
 
-import type { Channel, ContentName, Values } from './navigation-channels'
+import type { Channel, ChannelValues, ContentName } from './navigation-channels'
 
 type Reveal = {
 	channels: readonly Channel<ContentName>[]
 	// The clock's current target, which says what is shown now.
-	target: Values
+	target: ChannelValues
 	selected: number
 	travel: number
 	styles: CSSStyleDeclaration
@@ -20,13 +20,13 @@ export function revealChannels({
 	selected,
 	travel,
 	styles,
-}: Reveal): { next: Values; seeds: Values } {
+}: Reveal): { next: ChannelValues; seeds: ChannelValues } {
 	const previous = channels.findIndex(
 		channel => target[channel.property('progress')] === '1',
 	)
 	const direction = selected < previous ? -1 : 1
-	const next: Values = {}
-	const seeds: Values = {}
+	const next: ChannelValues = {}
+	const seeds: ChannelValues = {}
 	channels.forEach((channel, index) => {
 		const isSelected = index === selected
 		Object.assign(

@@ -16,13 +16,13 @@ export const CONTENT = ['progress', 'offset', 'opacity'] as const
 
 export type GeometryName = (typeof GEOMETRY)[number]
 export type ContentName = (typeof CONTENT)[number]
-export type Values = Record<string, string>
+export type ChannelValues = Record<string, string>
 
 // One element's channels: the registered property behind each name, and
 // values keyed by name, renamed to those properties.
 export type Channel<Name extends string> = {
 	property: (name: Name) => string
-	values: (values: Partial<Record<Name, number>>) => Values
+	values: (values: Partial<Record<Name, number>>) => ChannelValues
 }
 
 // Registered <number> channels are what let the Web Animations API
