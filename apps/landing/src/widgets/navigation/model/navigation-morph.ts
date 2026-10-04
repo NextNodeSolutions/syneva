@@ -2,20 +2,20 @@ import { toBezier } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 import { reducedMotion } from '@syneva/motion/preference'
 
+import { readProperty, toSeconds } from './computed-style'
+import { contentFrames } from './handover-frames'
 import {
 	canInterpolate,
 	CONTENT,
 	channelValues,
-	contentFrames,
 	GEOMETRY,
-	read,
 	registerChannel,
-	seconds,
 } from './navigation-channels'
 import { measureNavigation } from './navigation-geometry'
 
+import type { Frames } from './handover-frames'
 import type { InputMode } from './input-mode'
-import type { Channel, Frames, Values } from './navigation-channels'
+import type { Channel, Values } from './navigation-channels'
 import type { NavigationParts } from './navigation-parts'
 
 type Clock = 'menu' | 'preview'
@@ -85,10 +85,15 @@ export class NavigationMorph {
 		const styles = getComputedStyle(this.#navigation)
 		const destination = { ...motion.target, ...next }
 		const origin = Object.fromEntries(
-			Object.keys(destination).map(key => [key, read(styles, key)]),
+			Object.keys(destination).map(key => [
+				key,
+				readProperty(styles, key),
+			]),
 		)
 		const timing = next[this.#shell.reveal ?? ''] === '0' ? 'close' : clock
-		const duration = seconds(read(styles, `--nav-${timing}-duration`))
+		const duration = toSeconds(
+			readProperty(styles, `--nav-${timing}-duration`),
+		)
 		const frames = contentFrames({ ...origin, ...seeds }, destination, [
 			this.#panelChannels,
 			this.#sceneChannels,
@@ -112,7 +117,7 @@ export class NavigationMorph {
 	// whole move and the hand-over keyframes are linear in its progress.
 	#play(frames: Frames, duration: number): ReturnType<typeof animate> {
 		const ease = toBezier(
-			read(getComputedStyle(this.#navigation), '--nav-ease'),
+			readProperty(getComputedStyle(this.#navigation), '--nav-ease'),
 		)
 		const keyframes = Object.fromEntries(
 			[...frames].map(([name, frame]) => [name, frame.values]),
@@ -170,7 +175,7 @@ export class NavigationMorph {
 			)
 			if (
 				isSelected &&
-				Number(read(styles, channel.progress ?? '')) === 0
+				Number(readProperty(styles, channel.progress ?? '')) === 0
 			)
 				seeds[channel.offset ?? ''] = String(direction * travel)
 		})
@@ -191,7 +196,9 @@ export class NavigationMorph {
 		if (!geometry || !panel) return
 		this.#folded = geometry.folded
 		const styles = getComputedStyle(this.#navigation)
-		const travel = Number.parseFloat(read(styles, '--nav-panel-travel'))
+		const travel = Number.parseFloat(
+			readProperty(styles, '--nav-panel-travel'),
+		)
 		const content = this.#revealChannels(
 			'menu',
 			this.#panels.indexOf(panel),
@@ -201,7 +208,8 @@ export class NavigationMorph {
 			...channelValues(this.#shell, { ...geometry.open, reveal: 1 }),
 			...content.next,
 		}
-		const isHidden = Number(read(styles, this.#shell.reveal ?? '')) === 0
+		const isHidden =
+			Number(readProperty(styles, this.#shell.reveal ?? '')) === 0
 		const seeds = isHidden
 			? { ...channelValues(this.#shell, this.#folded), ...content.seeds }
 			: content.seeds
@@ -227,7 +235,10 @@ export class NavigationMorph {
 		// Keep an outgoing illustration alive until its shared fade completes.
 		scene.classList.add('is-illustrating')
 		const travel = Number.parseFloat(
-			read(getComputedStyle(this.#navigation), '--nav-preview-travel'),
+			readProperty(
+				getComputedStyle(this.#navigation),
+				'--nav-preview-travel',
+			),
 		)
 		const content = this.#revealChannels(
 			'preview',
