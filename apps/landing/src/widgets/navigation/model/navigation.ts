@@ -1,15 +1,10 @@
 import { compact } from './compact'
+import { HoverIntent } from './hover-intent'
 import { NavigationMorph } from './navigation-morph'
-import { TOGGLE_LABEL } from './toggle-label'
+import { PhoneBar } from './phone-bar'
 
 import type { InputMode } from './input-mode'
 import type { NavigationParts } from './navigation-parts'
-
-// The header's behavior: hover and click open a section's panel in the
-// morphing dropdown, arrow keys move between triggers, Escape and outside
-// clicks dismiss, and on phones a toggle opens the link bar first.
-const OPEN_DELAY_MS = 60
-const CLOSE_DELAY_MS = 180
 
 // Hover intent follows a mouse only: a touch or pen lift fires pointerleave
 // too, which would close the panel the tap just opened.
@@ -25,31 +20,34 @@ const ARROWS: Record<string, (index: number, count: number) => number> = {
 	End: (_index, count) => count - 1,
 }
 
+type Focusable = { focus: () => void }
+
+// The header's panel state and focus: hover and click open a section's panel
+// in the morphing dropdown, arrow keys move between triggers, Escape and
+// outside presses dismiss, and on phones the toggle opens the link bar first.
+// Hover timing and the phone bar live in their own classes.
 export class Navigation {
 	readonly #root: HTMLElement
 	readonly #links: HTMLElement
 	readonly #triggers: HTMLElement[]
 	readonly #dropdown: HTMLElement
-	readonly #toggle: HTMLElement
 	readonly #panels: HTMLElement[]
 	readonly #previewLinks: HTMLElement[]
 	readonly #scenes: HTMLElement[]
 	readonly #morph: NavigationMorph
+	readonly #hoverIntent = new HoverIntent()
+	readonly #phoneBar: PhoneBar
 	#currentTrigger: HTMLElement | undefined
 	#clickedTrigger: HTMLElement | undefined
 	#currentPanel: HTMLElement | undefined
 	#previewedLink: HTMLElement | undefined
 	#inputMode: InputMode = 'pointer'
-	// Whether the phone bar is open; #renderBar() writes it to the page.
-	#isBarOpen = false
-	#openTimer: ReturnType<typeof setTimeout> | undefined
-	#closeTimer: ReturnType<typeof setTimeout> | undefined
 
 	constructor(parts: NavigationParts) {
 		this.#root = parts.root
 		this.#links = parts.links
 		this.#dropdown = parts.dropdown
-		this.#toggle = parts.toggle
+		this.#phoneBar = new PhoneBar(parts.root, parts.toggle)
 		this.#triggers = parts.triggers
 		this.#panels = parts.panels
 		this.#previewLinks = parts.previewLinks
@@ -61,16 +59,16 @@ export class Navigation {
 	}
 
 	get isOpen(): boolean {
-		return Boolean(this.#currentPanel) || this.#isBarOpen
+		return Boolean(this.#currentPanel) || this.#phoneBar.isOpen
 	}
 
 	keepOpen(): void {
-		clearTimeout(this.#closeTimer)
+		this.#hoverIntent.keepOpen()
 	}
 
-	cancelTimers(): void {
-		clearTimeout(this.#openTimer)
-		clearTimeout(this.#closeTimer)
+	// The pointer reached the dropdown: a pending switch or close is void.
+	holdCurrentPanel(): void {
+		this.#hoverIntent.cancel()
 	}
 
 	positionPanel(): void {
@@ -86,7 +84,7 @@ export class Navigation {
 	}
 
 	#closePanel(): void {
-		this.cancelTimers()
+		this.#hoverIntent.cancel()
 		if (this.#dropdown.contains(document.activeElement))
 			this.#currentTrigger?.focus()
 		this.#hidePanel()
@@ -105,22 +103,12 @@ export class Navigation {
 				container.contains(focused),
 			)
 		this.#closePanel()
-		this.#isBarOpen = false
-		this.#renderBar()
-		if (shouldRestore) this.#toggle.focus()
-	}
-
-	// The styles read data-mobile-open; the toggle reports the state and
-	// names the action it offers.
-	#renderBar(): void {
-		const state = this.#isBarOpen ? 'open' : 'closed'
-		this.#root.dataset.mobileOpen = String(this.#isBarOpen)
-		this.#toggle.setAttribute('aria-expanded', String(this.#isBarOpen))
-		this.#toggle.setAttribute('aria-label', TOGGLE_LABEL[state])
+		this.#phoneBar.close()
+		if (shouldRestore) this.#phoneBar.focus()
 	}
 
 	#showPanel(trigger: HTMLElement, mode: InputMode = 'pointer'): void {
-		this.cancelTimers()
+		this.#hoverIntent.cancel()
 		this.#setInputMode(mode)
 		if (trigger === this.#currentTrigger) return
 		this.#clickedTrigger = undefined
@@ -161,10 +149,9 @@ export class Navigation {
 
 	scheduleOpen(trigger: HTMLElement, event: PointerEvent): void {
 		if (compact.matches || !isMouse(event)) return
-		this.cancelTimers()
-		this.#openTimer = setTimeout(
+		this.#hoverIntent.scheduleOpen(
 			() => this.#showPanel(trigger),
-			this.#currentPanel ? 0 : OPEN_DELAY_MS,
+			this.#currentPanel ? 'open' : 'closed',
 		)
 	}
 
@@ -192,8 +179,7 @@ export class Navigation {
 			this.#inputMode === 'keyboard'
 		)
 			return
-		clearTimeout(this.#openTimer)
-		this.#closeTimer = setTimeout(() => this.#closePanel(), CLOSE_DELAY_MS)
+		this.#hoverIntent.scheduleClose(() => this.#closePanel())
 	}
 
 	enterKeyboardMode(): void {
@@ -209,14 +195,13 @@ export class Navigation {
 	}
 
 	toggleBar(event: MouseEvent): void {
-		if (this.#isBarOpen) {
+		if (this.#phoneBar.isOpen) {
 			this.dismiss()
 			return
 		}
 		const [first] = this.#triggers
 		if (!first) return
-		this.#isBarOpen = true
-		this.#renderBar()
+		this.#phoneBar.open()
 		const isKeyboard = isKeyboardActivation(event)
 		this.#showPanel(first, isKeyboard ? 'keyboard' : 'pointer')
 		if (isKeyboard) first.focus()
@@ -226,7 +211,7 @@ export class Navigation {
 	// header: a menu opened by hover leaves focus where it was on the page.
 	escape(): void {
 		const hadFocus = this.#root.contains(document.activeElement)
-		const target = compact.matches ? this.#toggle : this.#currentTrigger
+		const target = this.#returnTarget(this.#currentTrigger)
 		this.dismiss()
 		if (hadFocus) target?.focus()
 	}
@@ -258,9 +243,9 @@ export class Navigation {
 
 	adaptToBreakpoint(): void {
 		const hasFocus = this.#root.contains(document.activeElement)
-		const target = compact.matches
-			? this.#toggle
-			: (this.#currentTrigger ?? this.#triggers[0])
+		const target = this.#returnTarget(
+			this.#currentTrigger ?? this.#triggers[0],
+		)
 		this.dismiss()
 		this.positionPanel()
 		if (hasFocus) target?.focus()
@@ -281,7 +266,12 @@ export class Navigation {
 			event.target instanceof Element &&
 			!event.target.checkVisibility()
 		this.dismiss()
-		const target = compact.matches ? this.#toggle : this.#triggers[0]
-		if (hasHiddenFocus) target?.focus()
+		if (hasHiddenFocus) this.#returnTarget(this.#triggers[0])?.focus()
+	}
+
+	// Where focus returns as the menu closes: on phones the toggle, since the
+	// dismissal folds the bar and hides the triggers, else the given trigger.
+	#returnTarget(trigger: HTMLElement | undefined): Focusable | undefined {
+		return compact.matches ? this.#phoneBar : trigger
 	}
 }

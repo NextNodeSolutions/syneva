@@ -42,7 +42,9 @@ async function bindNavigation(parts: NavigationParts): Promise<void> {
 	root.addEventListener('pointerleave', event =>
 		navigation.scheduleClose(event),
 	)
-	dropdown.addEventListener('pointerenter', () => navigation.cancelTimers())
+	dropdown.addEventListener('pointerenter', () =>
+		navigation.holdCurrentPanel(),
+	)
 	root.addEventListener('keydown', () => navigation.enterKeyboardMode())
 	root.addEventListener('focusout', event =>
 		navigation.dismissOnFocusExit(event),
