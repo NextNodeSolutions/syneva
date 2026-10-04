@@ -10,19 +10,22 @@ import type { Easing } from '@syneva/motion/easing'
 const CYCLE_S = 14
 const REVIEW = EASE.review
 const UNFOLD = EASE.unfold
+// Each layer rests stacked, `rest` px down, and lifts open to its --lift
+// (circuit.styles.ts, the static pose); a signal's dash is its
+// --signal-size. The minifier may rewrite a value, so it is parsed.
 const LAYERS = {
-	critical: { rest: 0, lift: -156, delay: 0 },
-	important: { rest: 10, lift: -66, delay: 0.06 },
-	tested: { rest: 20, lift: 24, delay: 0.12 },
+	critical: { rest: 0, delay: 0 },
+	important: { rest: 10, delay: 0.06 },
+	tested: { rest: 20, delay: 0.12 },
 } as const
 const SIGNALS = {
-	in: { size: 16, times: [0, 0.14, 0.15, 0.25, 0.26, 1], ease: REVIEW },
-	out: { size: 16, times: [0, 0.47, 0.48, 0.63, 0.64, 1], ease: 'linear' },
-	return: { size: 28, times: [0, 0.73, 0.74, 0.97, 0.98, 1], ease: 'linear' },
-} as const satisfies Record<
-	string,
-	{ size: number; times: number[]; ease: Easing }
->
+	in: { times: [0, 0.14, 0.15, 0.25, 0.26, 1], ease: REVIEW },
+	out: { times: [0, 0.47, 0.48, 0.63, 0.64, 1], ease: 'linear' },
+	return: { times: [0, 0.73, 0.74, 0.97, 0.98, 1], ease: 'linear' },
+} as const satisfies Record<string, { times: number[]; ease: Easing }>
+
+const pixels = (element: Element, property: string): number =>
+	Number.parseFloat(getComputedStyle(element).getPropertyValue(property))
 
 type Values = Record<string, (string | number)[]>
 type Timing = { times: readonly number[]; ease: Easing; delay?: number }
@@ -65,8 +68,10 @@ function unfold(svg: SVGSVGElement, part: Part): void {
 		{ transform: hold('translateY(0px)', 'translateY(-9px)') },
 		{ times: [0, 0.06, 0.12, 0.19, 0.25, 1], ease: REVIEW },
 	)
-	Object.entries(LAYERS).forEach(([kind, { rest, lift, delay }]) => {
+	Object.entries(LAYERS).forEach(([kind, { rest, delay }]) => {
 		const layer = svg.querySelector(`[data-circuit-layer="${kind}"]`)
+		if (!layer) return
+		const lift = pixels(layer, '--lift')
 		loop(
 			layer,
 			{
@@ -131,14 +136,18 @@ function review(part: Part): void {
 
 // The three signals travel their routes, measured from the live layout.
 function travelSignals(svg: SVGSVGElement, lengths: Map<string, number>): void {
-	Object.entries(SIGNALS).forEach(([name, { size, times, ease }]) => {
+	Object.entries(SIGNALS).forEach(([name, { times, ease }]) => {
 		const signal = svg.querySelector(`[data-signal="${name}"]`)
-		const route = signal?.getAttribute('href')?.slice(1) ?? ''
+		if (!signal) return
+		const route = signal.getAttribute('href')?.slice(1) ?? ''
 		loop(
 			signal,
 			{
 				opacity: blink(1),
-				strokeDashoffset: travel(size, lengths.get(route) ?? 0),
+				strokeDashoffset: travel(
+					pixels(signal, '--signal-size'),
+					lengths.get(route) ?? 0,
+				),
 			},
 			{ times, ease },
 		)
@@ -162,10 +171,12 @@ export function retimeSignals(
 	svg: SVGSVGElement,
 	lengths: Map<string, number>,
 ): void {
-	Object.entries(SIGNALS).forEach(([name, { size }]) => {
+	Object.keys(SIGNALS).forEach(name => {
 		const signal = svg.querySelector(`[data-signal="${name}"]`)
-		const route = signal?.getAttribute('href')?.slice(1) ?? ''
-		signal?.getAnimations().forEach(animation => {
+		if (!signal) return
+		const route = signal.getAttribute('href')?.slice(1) ?? ''
+		const size = pixels(signal, '--signal-size')
+		signal.getAnimations().forEach(animation => {
 			const { effect } = animation
 			if (!(effect instanceof KeyframeEffect)) return
 			const frames = effect.getKeyframes()

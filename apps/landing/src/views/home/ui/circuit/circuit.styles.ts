@@ -69,25 +69,22 @@ export const circuit = stylex.create({
 		fillOpacity: 0.4,
 		stroke: color['--accent'],
 	},
-	// Each review layer rests stacked and lifts open to its own height; the
-	// static pose is the open one.
+	// Each review layer lifts open to its own height, the static pose; the
+	// loop (circuit-loop.ts) reads --lift and stacks the layers in between.
 	layer: { transform: 'translateY(var(--lift))' },
 	critical: {
 		'--lift': '-156px',
-		'--rest': '0px',
 		'--leaf-border': color['--accent'],
 		'--leaf-side': color['--iso-wash-side'],
 		color: color['--accent'],
 	},
 	important: {
 		'--lift': '-66px',
-		'--rest': '10px',
 		'--code-accent': color['--line-strong'],
 		color: color['--line-strong'],
 	},
 	tested: {
 		'--lift': '24px',
-		'--rest': '20px',
 		'--leaf-fill': color['--mint'],
 		'--leaf-side': color['--iso-mint-side'],
 		'--code-accent': color['--green'],
