@@ -13,8 +13,7 @@ const line = {
 
 // A terminal: "$" lines are commands (the prompt is drawn, not selectable),
 // "#" lines comments, anything else output. Lines wrap rather than scroll,
-// since a scrolled terminal hides its own prompt. The terminal keeps its
-// distance from what precedes it in a prose body.
+// since a scrolled terminal hides its own prompt.
 export const terminal = stylex.create({
 	root: {
 		borderWidth: '1px',
@@ -22,7 +21,6 @@ export const terminal = stylex.create({
 		borderColor: color['--ink'],
 		backgroundColor: color['--white'],
 		minWidth: 0,
-		marginTop: { default: null, ':not(:first-child)': '32px' },
 	},
 	top: {
 		display: 'flex',

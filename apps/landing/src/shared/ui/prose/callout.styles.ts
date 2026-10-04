@@ -1,8 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// A boxed aside with a coloured square: a lead line and its explanation;
-// the aside keeps its distance from what precedes it in a prose body.
+// A boxed aside with a coloured square: a lead line and its explanation.
 export const callout = stylex.create({
 	root: {
 		borderWidth: '1px',
@@ -14,7 +13,6 @@ export const callout = stylex.create({
 		gridTemplateColumns: 'auto 1fr',
 		gap: '14px',
 		fontSize: '14.5px',
-		marginTop: { default: null, ':not(:first-child)': '32px' },
 		'::before': {
 			content: "''",
 			width: '8px',

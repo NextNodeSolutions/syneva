@@ -3,6 +3,7 @@
 // the copy is written.
 import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
+import { prose } from './prose.styles'
 import { specTable } from './spec-table.styles'
 
 type Props = { rows: readonly (readonly [string, string])[]; head: readonly [string, string] }
@@ -10,7 +11,7 @@ type Props = { rows: readonly (readonly [string, string])[]; head: readonly [str
 const { rows, head } = Astro.props
 ---
 
-<div {...revealItem(specTable.root)} role="table">
+<div {...revealItem(specTable.root, prose.block)} role="table">
 	<div {...sx(specTable.row, specTable.head)} role="row"><span {...sx(specTable.value)} role="columnheader">{head[0]}</span><span {...sx(specTable.value)} role="columnheader">{head[1]}</span></div>
 	{
 		rows.map(([key, value]) => (

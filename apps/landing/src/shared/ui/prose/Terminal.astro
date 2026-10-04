@@ -3,6 +3,7 @@
 // anything else output; an empty line keeps its height.
 import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
+import { prose } from './prose.styles'
 import { terminal } from './terminal.styles'
 
 type Props = { lines: readonly string[]; title: string }
@@ -15,7 +16,7 @@ const kindOf = (line: string): 'command' | 'comment' | 'output' => {
 }
 ---
 
-<figure {...revealItem(terminal.root)}>
+<figure {...revealItem(terminal.root, prose.block)}>
 	<div {...sx(terminal.top)}>
 		<span {...sx(terminal.dots)} aria-hidden="true"><i {...sx(terminal.dot)}></i><i {...sx(terminal.dot)}></i><i {...sx(terminal.dot)}></i></span><span>{title}</span>
 	</div><pre {...sx(terminal.body)}>{

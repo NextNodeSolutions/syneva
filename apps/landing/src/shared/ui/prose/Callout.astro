@@ -5,12 +5,13 @@
 import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
 import { callout } from './callout.styles'
+import { prose } from './prose.styles'
 
 type Props = { lead: string; tone?: 'open' | 'settled' }
 
 const { lead, tone = 'open' } = Astro.props
 ---
 
-<div {...revealItem(callout.root, callout[tone])}>
+<div {...revealItem(callout.root, prose.block, callout[tone])}>
 	<div><p {...sx(callout.lead)} set:html={lead} /><p {...sx(callout.rest)}><slot /></p></div>
 </div>

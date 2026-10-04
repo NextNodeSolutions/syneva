@@ -4,6 +4,7 @@ import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
 import { ruledItem } from '../ruled-item.styles'
 import { stepIndex } from '../step-index.styles'
+import { prose } from './prose.styles'
 import { ruledList } from './ruled-list.styles'
 import { twoDigits } from '../../lib/two-digits'
 
@@ -12,7 +13,7 @@ type Props = { items: readonly (readonly [string, string])[] }
 const { items } = Astro.props
 ---
 
-<ol {...sx(ruledList.root)}>
+<ol {...sx(ruledList.root, prose.block)}>
 	{
 		items.map(([head, text], index) => (
 			<li {...revealItem(ruledItem.base, ruledList.item)}>
