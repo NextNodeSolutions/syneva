@@ -28,7 +28,7 @@ const CHANGES = [
 	height={420}
 	compact="30 30 560 370"
 	title="Reviewing the index, not the working tree"
-	description={`Behind, the working tree holds ${countWord(CHANGES.length)} changes. In front, the index holds the two you staged. syneva --diff staged reviews only the index: exactly what your next commit will contain.`}
+	description={`Behind, the working tree holds ${countWord(CHANGES.length)} changes. In front, the index holds the two you staged. ${PAGES.stagedChanges.code} reviews only the index: exactly what your next commit will contain.`}
 >
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel)} x="50" y="60" width="300" height="230"></rect>
