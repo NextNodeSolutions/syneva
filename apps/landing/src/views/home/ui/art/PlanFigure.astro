@@ -3,7 +3,7 @@
 import { sx } from '@shared/lib/sx'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
-import { anim } from '@shared/ui/drawing/anim'
+import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
@@ -45,7 +45,7 @@ const DOTS = [
 		<rect {...sx(homeArt.planClaim, homeArt.planRisk)} x="286" y="122" width="200" height="56"></rect>
 		<text {...sx(text.copy)} x="304" y="146">An assumption</text>
 		<text {...sx(text.small)} x="304" y="165">Needs proof before code</text>
-		<rect {...anim('pulse', undefined, homeArt.planFlag)} x="462" y="144" width="10" height="10"></rect>
+		<rect {...loop('pulse', homeArt.planFlag)} x="462" y="144" width="10" height="10"></rect>
 	</g>
 	<g {...anim('rise', 1.6)}>
 		<rect {...sx(homeArt.planClaim)} x="286" y="242" width="200" height="56"></rect>

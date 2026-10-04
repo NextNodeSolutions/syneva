@@ -2,7 +2,7 @@
 // Local section: everything runs inside your machine's boundary.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
-import { anim } from '@shared/ui/drawing/anim'
+import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
@@ -21,7 +21,7 @@ const AGENT_TO_REPO = 'M110 150v36q0 10 10 10h14q10 0 10 10v16'
 		<rect {...sx(shape.panel, shape.panelWhite)} x="44" y="74" width="132" height="76"></rect>
 		<text {...sx(text.tiny)} x="56" y="94">YOUR AGENT</text>
 		<text {...sx(text.code)} x="56" y="122">$ syneva await</text>
-		<rect {...anim('blink', undefined, homeArt.localCaret)} x="162" y="112" width="6" height="12"></rect>
+		<rect {...loop('blink', homeArt.localCaret)} x="162" y="112" width="6" height="12"></rect>
 	</g>
 	<g {...anim('rise', 0.45)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="244" y="74" width="140" height="76"></rect>

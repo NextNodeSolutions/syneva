@@ -2,7 +2,7 @@ import { poses } from '@syneva/motion/poses'
 
 import { sx } from '../../lib/sx'
 
-import type { VocabularyKind } from '@syneva/motion/vocabulary'
+import type { LoopKind, VocabularyKind } from '@syneva/motion/vocabulary'
 import type { Attributes, Part } from '../../lib/sx'
 
 // The drawing vocabulary (see @syneva/motion/vocabulary): `kind` enters once
@@ -21,24 +21,23 @@ export type AnimAttributes = Attributes & {
 	'data-delay'?: string
 }
 
-// A delay of 0 is written too: nested elements inherit the nearest one.
-function delayAttribute(
-	delay: number | undefined,
-): { 'data-delay': string } | undefined {
-	if (typeof delay !== 'number') return undefined
-	return { 'data-delay': String(delay) }
+function optIn(kind: Kind, styles: Part[]): AnimAttributes {
+	return { ...sx(isPosed(kind) && poses[kind], ...styles), 'data-anim': kind }
 }
 
+// A delay of 0 is written too: nested elements inherit the nearest one.
 export function anim(
 	kind: Kind,
-	delay?: number,
+	delay: number,
 	...styles: Part[]
 ): AnimAttributes {
-	return {
-		...sx(isPosed(kind) && poses[kind], ...styles),
-		'data-anim': kind,
-		...delayAttribute(delay),
-	}
+	return { ...optIn(kind, styles), 'data-delay': String(delay) }
+}
+
+// A loop without a delay of its own keeps time with the nearest delayed
+// ancestor (a pulse inside a rising card).
+export function loop(kind: LoopKind, ...styles: Part[]): AnimAttributes {
+	return optIn(kind, styles)
 }
 
 // .a-move: travels in from (x, y) px to its markup position.

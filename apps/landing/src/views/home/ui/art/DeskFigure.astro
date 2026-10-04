@@ -4,7 +4,7 @@ import { sx } from '@shared/lib/sx'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
-import { anim } from '@shared/ui/drawing/anim'
+import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
@@ -78,7 +78,7 @@ const ROWS = [
 		</g>
 		<path {...sx(shape.hair)} d="M214 300h272"></path>
 		<text {...sx(text.tiny)} x="228" y="322">@@ 60 · LOG THE SESSION</text>
-		<rect {...anim('pulse', undefined, homeArt.deskNext)} x="220" y="330" width="260" height="26"></rect>
+		<rect {...loop('pulse', homeArt.deskNext)} x="220" y="330" width="260" height="26"></rect>
 		<text {...sx(text.code, text.green)} x="228" y="348">+  log.debug(session.id)</text>
 		<g {...anim('fade', 2.5)}>
 			<rect {...sx(shape.kbd)} x="228" y="378" width="16" height="16"></rect>

@@ -6,7 +6,7 @@ import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
-import { anim } from '@shared/ui/drawing/anim'
+import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import AnatomyMarker from './AnatomyMarker.astro'
@@ -57,7 +57,7 @@ const MARKERS = [
 				),
 			)
 		}
-		<rect {...anim('pulse', undefined, homeArt.deskCursor)} x="28" y="166" width="152" height="18"></rect>
+		<rect {...loop('pulse', homeArt.deskCursor)} x="28" y="166" width="152" height="18"></rect>
 		<text {...sx(text.tiny)} x="38" y="378">3 OF 5 FILES SETTLED</text>
 		<text {...sx(text.file, text.strong)} x="198" y="84">auth/session.ts</text><text {...sx(text.tiny)} x="312" y="84">+12 −3</text>
 		<rect {...sx(shape.kbd)} x="470" y="72" width="96" height="17"></rect><text {...sx(text.tiny)} x="518" y="84" text-anchor="middle">APPROVE · ⇧A</text>

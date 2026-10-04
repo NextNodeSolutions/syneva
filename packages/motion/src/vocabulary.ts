@@ -205,4 +205,5 @@ export const LOOPS = {
 } satisfies Record<string, Starter>
 
 // The kinds a drawing element can name in data-anim.
-export type VocabularyKind = keyof typeof ENTRANCES | keyof typeof LOOPS
+export type LoopKind = keyof typeof LOOPS
+export type VocabularyKind = keyof typeof ENTRANCES | LoopKind

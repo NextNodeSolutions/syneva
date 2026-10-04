@@ -3,7 +3,7 @@
 import { sx } from '@shared/lib/sx'
 import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
-import { anim } from '@shared/ui/drawing/anim'
+import { anim, loop } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
@@ -35,7 +35,7 @@ import { homeArt } from '@shared/ui/drawing/home-art.styles'
 		<text {...sx(text.tiny)} x="72" y="230">YOU</text>
 		<text {...anim('type', 0.9, text.copy)} x="72" y="248">Why verify the session here and not in the router?</text>
 		<g {...anim('fade', 1.7)}>
-			<circle {...anim('spin', undefined, homeArt.askSpin)} cx="76" cy="270" r="4"></circle>
+			<circle {...loop('spin', homeArt.askSpin)} cx="76" cy="270" r="4"></circle>
 			<text {...sx(text.small)} x="88" y="274">Agent · reading auth/session.ts…</text>
 		</g>
 		<text {...anim('fade', 2.4, text.tiny, text.accent)} x="72" y="290">YOUR AGENT</text>
