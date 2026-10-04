@@ -8,13 +8,14 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { PAGES } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import SingleFile from './art/SingleFile.astro'
 
 const STATES = [
 	['Unchanged', 'The full file, ready for comments.'],
 	['Changed', 'A diff of what changed, stageable like any change.'],
 	['Untracked', 'The full file, for a verdict and comments.'],
-	['Markdown', 'Rendered with a Source toggle (m). Comment on any rendered block; the file’s own images are served from your repository.'],
+	['Markdown', `Rendered with a Source toggle (${HOTKEYS.toggleSource}). Comment on any rendered block; the file’s own images are served from your repository.`],
 ] as const
 ---
 

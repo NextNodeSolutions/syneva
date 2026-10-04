@@ -11,6 +11,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { PAGES } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import AskFork from './art/AskFork.astro'
 import AskSequence from './art/AskSequence.astro'
 
@@ -19,10 +20,10 @@ const READ_ONLY = [
 	['Nothing gets lost.', 'Questions still open when you Send travel with the result as openQuestions.'],
 ] as const
 const INTENTS = [
-	['Ask · ⌘⇧↵', 'You want to understand. The agent explains on the line, right away.'],
-	['Request change · ⌘↵', 'You want something different. The request rides to the handoff as requestedChanges and the agent applies it after Send.'],
-	['Whole-file comments · ⇧C', 'Some feedback belongs to a file, not a line. Same two intents, addressed to the file itself.'],
-	['Resolve when settled · r', 'Close a thread when it’s answered, reopen it if it isn’t. The review notes panel (n) lists every thread across files.'],
+	[`Ask · ${HOTKEYS.ask}`, 'You want to understand. The agent explains on the line, right away.'],
+	[`Request change · ${HOTKEYS.requestChange}`, 'You want something different. The request rides to the handoff as requestedChanges and the agent applies it after Send.'],
+	[`Whole-file comments · ${HOTKEYS.commentOnFile}`, 'Some feedback belongs to a file, not a line. Same two intents, addressed to the file itself.'],
+	[`Resolve when settled · ${HOTKEYS.resolveThread}`, `Close a thread when it’s answered, reopen it if it isn’t. The review notes panel (${HOTKEYS.reviewNotes}) lists every thread across files.`],
 ] as const
 ---
 

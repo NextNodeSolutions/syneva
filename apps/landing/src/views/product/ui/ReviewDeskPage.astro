@@ -34,12 +34,12 @@ const KEYS = [
 ] as const
 const VERDICTS = [
 	['Nothing is auto-approved.', 'Every change starts pending. Only your keypress settles it.'],
-	['Approve a whole file.', '⇧A signs off a file. Turn on “Approve stages file” and a clean approval stages it in git too.'],
+	['Approve a whole file.', `${HOTKEYS.approveFile} signs off a file. Turn on “Approve stages file” and a clean approval stages it in git too.`],
 	['Stale trust can’t hide.', 'Approvals and comment anchors follow the same hashing rule as verdicts.'],
 ] as const
 const ROUNDS = [
-	['Hide what you already approved.', '⇧H distills a multi-round review down to what still needs your eyes.'],
-	['Every note in one panel.', 'n opens the review notes: every comment and question across files, filterable, one key from its line.'],
+	['Hide what you already approved.', `${HOTKEYS.hideApproved} distills a multi-round review down to what still needs your eyes.`],
+	['Every note in one panel.', `${HOTKEYS.reviewNotes} opens the review notes: every comment and question across files, filterable, one key from its line.`],
 	['Reset with a scalpel.', 'Clear decisions and sign-offs but keep your notes, or reset only the approved files.'],
 	['Make it yours.', 'Split or stacked diffs, intra-line highlights, wrapping, fourteen code themes, your fonts, light or dark.'],
 ] as const

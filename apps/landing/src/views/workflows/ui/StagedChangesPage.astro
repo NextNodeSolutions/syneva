@@ -6,6 +6,7 @@ import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import { PAGES } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import StagedPlanes from './art/StagedPlanes.astro'
 
 const WHEN = [
@@ -14,7 +15,7 @@ const WHEN = [
 	['Hand-picked hunks.', 'Staged with git add -p? The desk shows the index precisely, hunk by hunk.'],
 ] as const
 const GOOD_TO_KNOW = [
-	['Approving can stage for you.', 'With “Approve stages file” on, a clean ⇧A approval in a working-tree review stages that file. Off by default: approvals are verdicts unless you ask for more.'],
+	['Approving can stage for you.', `With “Approve stages file” on, a clean ${HOTKEYS.approveFile} approval in a working-tree review stages that file. Off by default: approvals are verdicts unless you ask for more.`],
 	['Switching lenses is a restart.', 'syneva reload re-diffs the same source. To move between working and staged, stop the desk and start it again: your saved session comes back with it.'],
 ] as const
 ---

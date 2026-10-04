@@ -8,6 +8,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import DeskLayers from './art/DeskLayers.astro'
 
 const COMMITMENTS = [
@@ -18,8 +19,8 @@ const COMMITMENTS = [
 const DAILY = [
 	['One tab across rounds.', 'Each repo and session binds a stable port, so a restarted desk reattaches and the open tab heals itself.'],
 	['Decisions survive everything.', 'Every save is persisted under ~/.syneva. Reloads, restarts and crashes keep your verdicts.'],
-	['Keyboard first.', 'Move, keep, undo, comment, approve and send without touching the mouse. Press ? for the full map.'],
-	['Your editor, one key away.', 'Configure a repo-scoped editor command and jump to the current file and line with ⇧E.'],
+	['Keyboard first.', `Move, keep, undo, comment, approve and send without touching the mouse. Press ${HOTKEYS.keyboardMap} for the full map.`],
+	['Your editor, one key away.', `Configure a repo-scoped editor command and jump to the current file and line with ${HOTKEYS.openEditor}.`],
 ] as const
 ---
 
