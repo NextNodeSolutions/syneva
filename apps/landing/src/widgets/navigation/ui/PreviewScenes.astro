@@ -3,6 +3,7 @@
 // tiny, honest scene of what its page is about. The runtime marks the scene
 // of the selected row current, starting on the first.
 import { sx } from '@shared/lib/sx'
+import { twoDigits } from '@shared/lib/two-digits'
 import PreviewScene from './PreviewScene.astro'
 import { motions } from './preview-motion.styles'
 import { preview } from './preview.styles'
@@ -13,8 +14,6 @@ const GUIDE_STEPS = [
 	{ title: 'Follow the behavior', file: 'auth/session.ts' },
 	{ title: 'Check the interface', file: 'pages/desk.tsx' },
 ]
-const STEP_DIGITS = 2
-const stepNumber = (index: number): string => String(index + 1).padStart(STEP_DIGITS, '0')
 ---
 
 <div {...sx(preview.frame)} aria-hidden="true">
@@ -34,7 +33,7 @@ const stepNumber = (index: number): string => String(index + 1).padStart(STEP_DI
 			{
 				GUIDE_STEPS.map((step, index) => (
 					<div {...sx(preview.treeRow)}>
-						<span {...sx(preview.treeIndex)}>{stepNumber(index)}</span>
+						<span {...sx(preview.treeIndex)}>{twoDigits(index + 1)}</span>
 						<strong {...sx(preview.treeTitle)}>{step.title}</strong>
 						<small {...sx(preview.treeFile)}>{step.file}</small>
 					</div>
