@@ -3,20 +3,12 @@
 // through it; the build fails on any internal link without a built target
 // (integrations/linked-pages.ts).
 
+import { START_COMMAND } from './project'
+
 import type { IconName } from './icons'
 
 export const SITE_NAME = 'Syneva'
 export const SITE_URL = 'https://syneva.dev'
-export const REPO_URL = 'https://github.com/walid-mos/syneva'
-export const INSTALL_COMMAND = 'npm install -g syneva'
-
-// A file of the repository, as its main branch has it.
-export const repoFile = (path: string): string =>
-	`${REPO_URL}/blob/main/${path}`
-// The agent contract's source, the one `syneva spec` prints.
-export const CONTRACT_SOURCE_URL = repoFile('packages/contracts/src/spec.ts')
-// Where questions, gaps and bugs go.
-export const ISSUES_URL = `${REPO_URL}/issues`
 
 // A route's document title.
 export const pageTitle = (name: string): string => `${name} · ${SITE_NAME}`
@@ -107,7 +99,7 @@ export const PAGES = {
 		blurb: 'Everything your agent just changed.',
 		icon: 'tree',
 		availability: 'available',
-		code: 'syneva',
+		code: START_COMMAND,
 	},
 	stagedChanges: {
 		href: '/workflows/staged-changes/',

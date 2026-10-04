@@ -4,7 +4,7 @@ import PageHero from '@widgets/page-hero/ui/PageHero.astro'
 import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { REPO_URL } from '@entities/site/model/site-map'
+import { COMMITS_URL } from '@entities/site/model/project'
 import HistoryRail from './art/HistoryRail.astro'
 import { recentWeeks } from '../model/changelog'
 import VersionList from './VersionList.astro'
@@ -17,7 +17,7 @@ const weeks = await recentWeeks()
 	lede="Straight from the git history, grouped by week and written for humans. Releases are cut automatically from the commit messages; this page tells you what they mean for your review."
 	caption="Counts of feat, fix and perf commits. Not a growth chart."
 >
-	<TextLink slot="actions" href={`${REPO_URL}/commits/main`} label="Every commit on GitHub" />
+	<TextLink slot="actions" href={COMMITS_URL} label="Every commit on GitHub" />
 	<HistoryRail slot="art" />
 </PageHero>
 <Prose id="log" title="Recent changes.">

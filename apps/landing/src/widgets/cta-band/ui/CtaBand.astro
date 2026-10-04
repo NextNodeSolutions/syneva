@@ -1,6 +1,7 @@
 ---
 // The start band: two commands to a first desk, and where to read more.
-import { INSTALL_COMMAND, PAGES, REPO_URL } from '@entities/site/model/site-map'
+import { INSTALL_COMMAND, REPO_URL, START_COMMAND } from '@entities/site/model/project'
+import { PAGES } from '@entities/site/model/site-map'
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import Command from '@features/copy-command/ui/Command.astro'
@@ -23,6 +24,6 @@ import { band } from './cta-band.styles'
 		<p {...sx(band.label)}>Install · Node 22+ and git</p>
 		<Command text={INSTALL_COMMAND} label="Installation command" css={band.command} />
 		<p {...sx(band.label, band.next)}>Then, inside your repository</p>
-		<Command text="syneva" label="Start a review" css={band.command} />
+		<Command text={START_COMMAND} label="Start a review" css={band.command} />
 	</div>
 </section>
