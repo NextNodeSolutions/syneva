@@ -7,18 +7,22 @@ import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { compare } from './compare.styles'
 
-// Each row answers its aspect once per column, in this order; ours comes
-// last and carries the accent.
-const COLUMNS = ['Your editor’s diff', 'Hosted AI review', SITE_NAME] as const
-const isOurs = (column: string): boolean => column === SITE_NAME
-const ROWS = [
-	['Who judges the change', 'You, file by file', 'A model, on its servers', 'You, with your agent on call'],
-	['Order you read in', 'The file tree', 'The PR’s file list', 'A walkthrough your agent sets'],
-	['Questions', 'Switch to a chat window', 'Comments on a PR', 'On the exact line, answered there'],
-	['What a verdict is', 'Git staging', 'A bot’s approval', 'Your decision, recorded per change'],
-	['After the agent revises', 'Start over', 'A new review pass', 'Same tab. Only rewritten changes reset'],
-	['Where your code goes', 'Stays local', 'Uploaded for analysis', 'Stays on localhost'],
+// The columns in their order; ours comes last and carries the accent.
+const COLUMNS = [
+	{ key: 'editor', label: 'Your editor’s diff' },
+	{ key: 'hosted', label: 'Hosted AI review' },
+	{ key: 'ours', label: SITE_NAME },
 ] as const
+type Row = { aspect: string } & Record<(typeof COLUMNS)[number]['key'], string>
+// Each row answers its aspect once per column.
+const ROWS: readonly Row[] = [
+	{ aspect: 'Who judges the change', editor: 'You, file by file', hosted: 'A model, on its servers', ours: 'You, with your agent on call' },
+	{ aspect: 'Order you read in', editor: 'The file tree', hosted: 'The PR’s file list', ours: 'A walkthrough your agent sets' },
+	{ aspect: 'Questions', editor: 'Switch to a chat window', hosted: 'Comments on a PR', ours: 'On the exact line, answered there' },
+	{ aspect: 'What a verdict is', editor: 'Git staging', hosted: 'A bot’s approval', ours: 'Your decision, recorded per change' },
+	{ aspect: 'After the agent revises', editor: 'Start over', hosted: 'A new review pass', ours: 'Same tab. Only rewritten changes reset' },
+	{ aspect: 'Where your code goes', editor: 'Stays local', hosted: 'Uploaded for analysis', ours: 'Stays on localhost' },
+]
 ---
 
 <section {...revealRuledGroup(section.ruled, section.pad)} id="compare" aria-labelledby="compare-title">
@@ -31,15 +35,15 @@ const ROWS = [
 			<thead {...sx(compare.thead)}>
 				<tr {...sx(compare.row)}>
 					<th {...sx(compare.cell, compare.column, compare.stacked)} scope="col"><span {...sx(compare.hidden)}>Aspect</span></th>
-					{COLUMNS.map(column => <th {...sx(compare.cell, compare.column, isOurs(column) && compare.columnUs, compare.stacked)} scope="col">{column}</th>)}
+					{COLUMNS.map(({ key, label }) => <th {...sx(compare.cell, compare.column, key === 'ours' && compare.columnUs, compare.stacked)} scope="col">{label}</th>)}
 				</tr>
 			</thead>
 			<tbody {...sx(compare.stacked)}>
 				{
-					ROWS.map(([aspect, ...answers]) => (
+					ROWS.map(row => (
 						<tr {...sx(compare.row)}>
-							<th {...sx(compare.cell, compare.aspect)} scope="row">{aspect}</th>
-							{COLUMNS.map((column, index) => <td {...sx(compare.cell, compare.value, isOurs(column) && compare.valueUs)} data-label={column}>{answers[index]}</td>)}
+							<th {...sx(compare.cell, compare.aspect)} scope="row">{row.aspect}</th>
+							{COLUMNS.map(({ key, label }) => <td {...sx(compare.cell, compare.value, key === 'ours' && compare.valueUs)} data-label={label}>{row[key]}</td>)}
 						</tr>
 					))
 				}
