@@ -1,4 +1,5 @@
 import { compact } from './compact'
+import { readFrame } from './nav-frame'
 
 import type { GeometryName } from './navigation-channels'
 
@@ -6,12 +7,9 @@ import type { GeometryName } from './navigation-channels'
 // the width a panel may take, where the open panel lands independently of
 // the shell's current animated size, the folded sliver under its trigger it
 // grows from and shrinks back into, and the heights the viewport leaves.
-const BORDER_WIDTH = 2
 const PANEL_GAP = 10
-const MOBILE_INSET = 12
-const DESKTOP_INSET = 24
 const FOLD_HEIGHT = 4
-// The inset applies on both sides of the bar.
+// The inset and the border apply on both sides.
 const SIDES = 2
 
 // Pixel values of the shell's geometry channels.
@@ -32,11 +30,11 @@ type MeasureInput = {
 	panel: HTMLElement
 }
 
-const inset = (): number => (compact.matches ? MOBILE_INSET : DESKTOP_INSET)
-
-// The width a panel may take between the bar's insets.
-export const availableWidth = (navigation: HTMLElement): number =>
-	navigation.clientWidth - inset() * SIDES - BORDER_WIDTH
+// The width a panel may take inside the dropdown's inset and border.
+export function availableWidth(navigation: HTMLElement): number {
+	const { inset, border } = readFrame(navigation)
+	return navigation.clientWidth - (inset + border) * SIDES
+}
 
 export function measureNavigation({
 	navigation,
@@ -45,29 +43,30 @@ export function measureNavigation({
 	panel,
 }: MeasureInput): Geometry {
 	const isCompact = compact.matches
-	const margin = inset()
+	const { inset, border } = readFrame(navigation)
+	const borders = border * SIDES
 	const headerRect = navigation.getBoundingClientRect()
 	const triggerRect = trigger.getBoundingClientRect()
 	const panelRect = panel.getBoundingClientRect()
-	const width = Math.ceil(panelRect.width) + BORDER_WIDTH
-	const left = isCompact ? margin : triggerRect.left - headerRect.left
+	const width = Math.ceil(panelRect.width) + borders
+	const left = isCompact ? inset : triggerRect.left - headerRect.left
 	const x = Math.max(
-		margin,
-		Math.min(left, navigation.clientWidth - width - margin),
+		inset,
+		Math.min(left, navigation.clientWidth - width - inset),
 	)
 	// Mobile links have an entrance transform; measure their settled layout.
 	const anchorBottom = isCompact
 		? links.offsetTop + links.offsetHeight
 		: triggerRect.bottom - headerRect.top
 	const y = anchorBottom + PANEL_GAP
-	const availableHeight = window.innerHeight - headerRect.top - y - margin
+	const availableHeight = window.innerHeight - headerRect.top - y - inset
 	return {
 		open: {
 			x,
 			y,
 			width,
 			height: Math.min(
-				Math.ceil(panelRect.height) + BORDER_WIDTH,
+				Math.ceil(panelRect.height) + borders,
 				availableHeight,
 			),
 			'indicator-x': trigger.offsetLeft,
@@ -81,7 +80,7 @@ export function measureNavigation({
 		},
 		maxHeight: {
 			dropdown: availableHeight,
-			panel: availableHeight - BORDER_WIDTH,
+			panel: availableHeight - borders,
 		},
 	}
 }

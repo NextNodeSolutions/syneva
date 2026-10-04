@@ -8,7 +8,7 @@ import {
 } from '@syneva/design-system/tokens.stylex'
 
 import { navMarker, triggerMarker } from './markers.stylex'
-import { navClock } from './nav.stylex'
+import { navClock, navFrame } from './nav.stylex'
 
 // Without scripts the noscript links are parsed into the header and stand in
 // for the triggers, which would open nothing. With scripts they stay text, so
@@ -74,8 +74,14 @@ export const nav = stylex.create({
 		alignItems: 'center',
 		gap: { default: '6px', [media.narrow]: 0 },
 		top: { default: null, [media.navToggle]: 'calc(100% + 8px)' },
-		left: { default: null, [media.navToggle]: '12px' },
-		right: { default: null, [media.navToggle]: '12px' },
+		left: {
+			default: null,
+			[media.navToggle]: navFrame['--nav-dropdown-inset'],
+		},
+		right: {
+			default: null,
+			[media.navToggle]: navFrame['--nav-dropdown-inset'],
+		},
 		padding: { default: null, [media.navToggle]: '4px' },
 		backgroundColor: { default: null, [media.navToggle]: color['--white'] },
 		borderWidth: { default: null, [media.navToggle]: '1px' },
