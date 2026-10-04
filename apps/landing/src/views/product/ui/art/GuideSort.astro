@@ -7,6 +7,7 @@ import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
+import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 
 // The guide's sections, then the trailing Other section for the files the
@@ -58,8 +59,10 @@ const sections = SECTIONS.map(({ label, kind, y, rows }, sectionIndex) => ({
 			</Fragment>
 		))
 	}
-	<Wire d="M258 200h52" drawDelay={0.2} signalDelay={2} />
-	<text {...anim('fade', 0.3, text.tiny)} x="284" y="190" text-anchor="middle">--guide</text>
+	<g {...sx(shape.secondary)}>
+		<Wire d="M258 200h52" drawDelay={0.2} signalDelay={2} />
+		<text {...anim('fade', 0.3, text.tiny)} x="284" y="190" text-anchor="middle">--guide</text>
+	</g>
 	{
 		sections.map(({ label, kind, labelY, delay, chips }) => (
 			<Fragment>

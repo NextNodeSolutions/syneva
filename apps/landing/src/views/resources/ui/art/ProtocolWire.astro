@@ -11,9 +11,10 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { EVENTS, SPEC_COMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
 
-const VERB_STEP = 56
-const EVENT_STEP = 58
-const PILL_WIDTH = 52
+const VERB_STEP = 64
+const EVENT_STEP = 66
+// Wide enough for the longest label in the dense phone type.
+const PILL_WIDTH = 60
 const OUT = 'M180 180H420'
 const BACK = 'M420 240H180'
 ---
@@ -38,8 +39,8 @@ const BACK = 'M420 240H180'
 	{
 		SUBCOMMANDS.map(({ name: verb }, index) => (
 			<g {...anim('pop', 0.8 + index * 0.1)}>
-				<rect {...sx(shape.kbd)} x={162 + index * VERB_STEP} y="128" width={PILL_WIDTH} height="18" />
-				<text {...sx(text.tiny)} x={162 + PILL_WIDTH / 2 + index * VERB_STEP} y="140.5" text-anchor="middle">{verb}</text>
+				<rect {...sx(shape.kbd)} x={142 + index * VERB_STEP} y="128" width={PILL_WIDTH} height="18" />
+				<text {...sx(text.tiny)} x={142 + PILL_WIDTH / 2 + index * VERB_STEP} y="140.5" text-anchor="middle">{verb}</text>
 			</g>
 		))
 	}
@@ -47,8 +48,8 @@ const BACK = 'M420 240H180'
 	{
 		Object.keys(EVENTS).map((event, index) => (
 			<g {...anim('pop', 1.4 + index * 0.12)}>
-				<rect {...sx(shape.kbd, shape.no)} x={222 + index * EVENT_STEP} y="272" width={PILL_WIDTH} height="18" />
-				<text {...sx(text.tiny, text.accent)} x={222 + PILL_WIDTH / 2 + index * EVENT_STEP} y="284.5" text-anchor="middle">{event}</text>
+				<rect {...sx(shape.kbd, shape.no)} x={210 + index * EVENT_STEP} y="272" width={PILL_WIDTH} height="18" />
+				<text {...sx(text.tiny, text.accent)} x={210 + PILL_WIDTH / 2 + index * EVENT_STEP} y="284.5" text-anchor="middle">{event}</text>
 			</g>
 		))
 	}
