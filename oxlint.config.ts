@@ -122,7 +122,7 @@ export default defineConfig({
 			// the code compares.
 			files: [
 				'apps/landing/src/**/*.astro',
-				'apps/landing/src/views/resources/model/*.ts',
+				'apps/landing/src/entities/desk/model/agent-contract.ts',
 			],
 			rules: { 'nextnode/no-confusable-chars': 'off' },
 		},

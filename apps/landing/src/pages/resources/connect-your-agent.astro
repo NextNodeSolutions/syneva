@@ -1,5 +1,6 @@
 ---
 import Document from '@app/layouts/Document.astro'
+import { SPEC_COMMAND } from '@entities/desk/model/agent-contract'
 import ConnectYourAgentPage from '@views/resources/ui/ConnectYourAgentPage.astro'
 import { pageTitle } from '@entities/site/model/routes'
 import { PAGES } from '@entities/site/model/site-map'
@@ -7,7 +8,7 @@ import { PAGES } from '@entities/site/model/site-map'
 
 <Document
 	title={pageTitle(PAGES.connectYourAgent.title)}
-	description="Any agent can drive the Syneva desk: plain JSON on stdout and a localhost HTTP server, documented in full by syneva spec. The pi package wires it up for you."
+	description={`Any agent can drive the Syneva desk: plain JSON on stdout and a localhost HTTP server, documented in full by ${SPEC_COMMAND}. The pi package wires it up for you.`}
 >
 	<ConnectYourAgentPage />
 </Document>
