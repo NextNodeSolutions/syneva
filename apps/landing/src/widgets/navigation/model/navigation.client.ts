@@ -5,8 +5,7 @@ import { queryNavigationParts } from './navigation-parts'
 import type { NavigationParts } from './navigation-parts'
 
 // Wires the header's listeners to its controller. Rows stagger in from their
-// panel's progress (--menu-order), and the product menu starts on its first
-// preview scene.
+// panel's progress (--menu-order).
 const ARROWS: Record<string, (index: number, count: number) => number> = {
 	ArrowRight: (index, count) => (index + 1) % count,
 	ArrowLeft: (index, count) => (index + count - 1) % count,
@@ -37,28 +36,9 @@ function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
 	})
 }
 
-function bindPreviews(
-	navigation: Navigation,
-	{ previewLinks: links, scenes }: NavigationParts,
-): void {
-	const show = (link: HTMLElement): void => {
-		navigation.positionPreview(link)
-		links.forEach(candidate =>
-			candidate.classList.toggle('is-previewed', candidate === link),
-		)
-		scenes.forEach(scene =>
-			scene.classList.toggle(
-				'is-current',
-				scene.dataset.scene === link.dataset.preview,
-			),
-		)
-	}
-	links.forEach(link => {
-		link.addEventListener('pointerenter', () => show(link))
-		link.addEventListener('focus', () => show(link))
-	})
-	const [first] = links
-	if (first) show(first)
+function bindPreview(navigation: Navigation, link: HTMLElement): void {
+	link.addEventListener('pointerenter', () => navigation.selectPreview(link))
+	link.addEventListener('focus', () => navigation.selectPreview(link))
 }
 
 function bindDocument(navigation: Navigation): void {
@@ -97,7 +77,7 @@ async function bindNavigation(parts: NavigationParts): Promise<void> {
 			navigation.dismiss()
 	})
 	bindDocument(navigation)
-	bindPreviews(navigation, parts)
+	parts.previewLinks.forEach(link => bindPreview(navigation, link))
 	panels.forEach(panel => {
 		panel
 			.querySelectorAll<HTMLElement>('[data-menu-row]')

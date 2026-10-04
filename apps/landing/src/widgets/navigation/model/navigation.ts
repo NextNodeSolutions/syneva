@@ -25,11 +25,13 @@ export class Navigation {
 	readonly #dropdown: HTMLElement
 	readonly #toggle: HTMLElement
 	readonly #panels: HTMLElement[]
+	readonly #previewLinks: HTMLElement[]
 	readonly #scenes: HTMLElement[]
 	readonly #morph: NavigationMorph
 	#currentTrigger: HTMLElement | undefined
 	#clickedTrigger: HTMLElement | undefined
 	#currentPanel: HTMLElement | undefined
+	#previewedLink: HTMLElement | undefined
 	// Whether the phone bar is open; #renderBar() writes it to the page.
 	#isBarOpen = false
 	#openTimer: ReturnType<typeof setTimeout> | undefined
@@ -42,8 +44,12 @@ export class Navigation {
 		this.#toggle = parts.toggle
 		this.#triggers = parts.triggers
 		this.#panels = parts.panels
+		this.#previewLinks = parts.previewLinks
 		this.#scenes = parts.scenes
 		this.#morph = new NavigationMorph(parts, compact)
+		// The product menu starts on its first row's preview.
+		const [first] = this.#previewLinks
+		if (first) this.selectPreview(first)
 	}
 
 	get root(): HTMLElement {
@@ -69,8 +75,7 @@ export class Navigation {
 
 	positionPanel(): void {
 		this.#morph.position(this.#currentTrigger, this.#currentPanel)
-		const selected = this.#root.querySelector<HTMLElement>('.is-previewed')
-		if (selected) this.positionPreview(selected)
+		if (this.#previewedLink) this.#positionPreview(this.#previewedLink)
 	}
 
 	// inert alone holds a panel's state: it takes the closed panels out of
@@ -202,7 +207,23 @@ export class Navigation {
 		if (hadFocus) target?.focus()
 	}
 
-	positionPreview(link: HTMLElement): void {
+	// A product row previews its scene: the shared selection background moves
+	// to the row, and the row and its scene are marked for the styles.
+	selectPreview(link: HTMLElement): void {
+		this.#previewedLink = link
+		this.#positionPreview(link)
+		this.#previewLinks.forEach(candidate =>
+			candidate.classList.toggle('is-previewed', candidate === link),
+		)
+		this.#scenes.forEach(scene =>
+			scene.classList.toggle(
+				'is-current',
+				scene.dataset.scene === link.dataset.preview,
+			),
+		)
+	}
+
+	#positionPreview(link: HTMLElement): void {
 		this.#morph.preview(
 			this.#scenes.find(
 				scene => scene.dataset.scene === link.dataset.preview,
