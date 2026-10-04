@@ -10,13 +10,6 @@ import {
 } from './markers.stylex'
 import { navClock } from './nav.stylex'
 
-// `border: 0` resets the style and colour too, not just the width.
-const noBorder = {
-	borderWidth: 0,
-	borderStyle: 'none',
-	borderColor: 'currentcolor',
-} as const
-
 const keyboard = (): string =>
 	stylex.when.ancestor('[data-input="keyboard"]', navMarker)
 const mobileOpen = (): string =>
@@ -115,7 +108,10 @@ export const nav = stylex.create({
 			[media.narrow]: '8px',
 			[media.smallPhone]: '6px',
 		},
-		...noBorder,
+		// `border: 0` resets the style and colour too, not just the width.
+		borderWidth: 0,
+		borderStyle: 'none',
+		borderColor: 'currentcolor',
 		backgroundColor: 'transparent',
 		fontSize: {
 			default: '14px',
