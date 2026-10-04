@@ -14,6 +14,13 @@ type HeroFile = {
 }
 export type Card = HeroFile & { readonly bars: readonly Bar[] }
 
+// The question you ask on the opened change and the answer your agent posts on
+// that line: the stage draws them and its description reads them out.
+export const DESK_THREAD = {
+	question: 'What if the session already expired?',
+	answer: 'It returns 401 before the handler runs.',
+} as const
+
 // The change your desk opens: you ask about it and accept it first.
 export const DESK_FILE = {
 	path: 'auth/session.ts',

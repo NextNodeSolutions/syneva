@@ -7,7 +7,7 @@ import AskThread from '@shared/ui/drawing/AskThread.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { sx } from '@shared/lib/sx'
-import { DESK_FILE } from './hero-round'
+import { DESK_FILE, DESK_THREAD } from './hero-round'
 import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
 
@@ -78,7 +78,7 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 		<AskThread x={250} y={244} width={264} height={94}>
 			<g {...stagePart('you')}>
 				<text {...sx(heroStage.who)} x="264" y="264">YOU · ASK</text>
-				<text {...sx(heroStage.message)} x="264" y="281">What if the session already expired?</text>
+				<text {...sx(heroStage.message)} x="264" y="281">{DESK_THREAD.question}</text>
 			</g>
 			<g opacity="0" {...stagePart('typing')}>
 				<circle {...sx(shape.dotAccent)} cx="266" cy="318" r="2"></circle>
@@ -87,7 +87,7 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 			</g>
 			<g {...stagePart('agent-says')}>
 				<text {...sx(heroStage.who, heroStage.agentWho)} x="264" y="304">YOUR AGENT</text>
-				<text {...sx(heroStage.message)} x="264" y="321">It returns 401 before the handler runs.</text>
+				<text {...sx(heroStage.message)} x="264" y="321">{DESK_THREAD.answer}</text>
 			</g>
 		</AskThread>
 	</g>
