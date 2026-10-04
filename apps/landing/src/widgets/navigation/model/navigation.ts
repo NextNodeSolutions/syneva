@@ -81,10 +81,10 @@ export class Navigation {
 		if (selected) this.positionPreview(selected)
 	}
 
+	// inert alone holds a panel's state: it takes the closed panels out of
+	// the accessibility tree and the tab order, and the styles key on it.
 	#hidePanel(): void {
 		this.#currentTrigger?.setAttribute('aria-expanded', 'false')
-		this.#currentPanel?.classList.remove('is-active')
-		this.#currentPanel?.setAttribute('aria-hidden', 'true')
 		if (this.#currentPanel) this.#currentPanel.inert = true
 	}
 
@@ -128,8 +128,6 @@ export class Navigation {
 		this.#currentTrigger = trigger
 		this.#currentPanel = panel
 		this.positionPanel()
-		panel?.classList.add('is-active')
-		panel?.setAttribute('aria-hidden', 'false')
 		if (panel) panel.inert = false
 		trigger.setAttribute('aria-expanded', 'true')
 		this.#dropdown.dataset.open = 'true'

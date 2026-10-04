@@ -18,15 +18,15 @@ export const panel = stylex.create({
 			[media.motionReduced]: 'none',
 		},
 		'--menu-title-line': 'calc(20 / 14)',
-		pointerEvents: { default: 'none', ':is(.is-active)': 'auto' },
+		pointerEvents: { default: 'none', ':not([inert])': 'auto' },
 		// The open panel scrolls inside the shell when the viewport is short.
 		maxHeight: {
 			default: null,
-			':is(.is-active)': 'var(--panel-max-height)',
+			':not([inert])': 'var(--panel-max-height)',
 		},
-		overflowY: { default: null, ':is(.is-active)': 'auto' },
-		overscrollBehavior: { default: null, ':is(.is-active)': 'contain' },
-		zIndex: { default: null, ':is(.is-active)': 1 },
+		overflowY: { default: null, ':not([inert])': 'auto' },
+		overscrollBehavior: { default: null, ':not([inert])': 'contain' },
+		zIndex: { default: null, ':not([inert])': 1 },
 	},
 	product: {
 		'--panel-width': {
