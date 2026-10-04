@@ -153,18 +153,16 @@ function ask({ one, all }: Scope): void {
 		{ time: 7.05, props: { opacity: 1 } },
 		{ time: 7.15, props: { opacity: 0 } },
 	])
-	all('typing')
-		.flatMap(group => Array.from(group.querySelectorAll('circle')))
-		.forEach((dot, index) => {
-			const beat = 6.55 + index * 0.1
-			loop(dot, [
-				{ time: 0, props: { opacity: 0.3 } },
-				{ time: beat, props: { opacity: 0.3 } },
-				{ time: beat + 0.12, props: { opacity: 1 } },
-				{ time: beat + 0.24, props: { opacity: 0.3 } },
-				{ time: beat + 0.36, props: { opacity: 1 } },
-			])
-		})
+	all('typing-dot').forEach((dot, index) => {
+		const beat = 6.55 + index * 0.1
+		loop(dot, [
+			{ time: 0, props: { opacity: 0.3 } },
+			{ time: beat, props: { opacity: 0.3 } },
+			{ time: beat + 0.12, props: { opacity: 1 } },
+			{ time: beat + 0.24, props: { opacity: 0.3 } },
+			{ time: beat + 0.36, props: { opacity: 1 } },
+		])
+	})
 	reveal(one('agent-says'), 7.1, 0.65)
 }
 

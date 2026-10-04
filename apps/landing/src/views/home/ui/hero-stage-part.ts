@@ -30,6 +30,7 @@ export type StagePart =
 	| 'thread'
 	| 'you'
 	| 'typing'
+	| 'typing-dot'
 	| 'agent-says'
 	| 'cursor'
 	| 'signal-in'

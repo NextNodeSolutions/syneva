@@ -81,9 +81,9 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 				<text {...sx(heroStage.message)} x="264" y="281">{DESK_THREAD.question}</text>
 			</g>
 			<g opacity="0" {...stagePart('typing')}>
-				<circle {...sx(shape.dotAccent)} cx="266" cy="318" r="2"></circle>
-				<circle {...sx(shape.dotAccent)} cx="274" cy="318" r="2"></circle>
-				<circle {...sx(shape.dotAccent)} cx="282" cy="318" r="2"></circle>
+				<circle {...sx(shape.dotAccent)} cx="266" cy="318" r="2" {...stagePart('typing-dot')}></circle>
+				<circle {...sx(shape.dotAccent)} cx="274" cy="318" r="2" {...stagePart('typing-dot')}></circle>
+				<circle {...sx(shape.dotAccent)} cx="282" cy="318" r="2" {...stagePart('typing-dot')}></circle>
 			</g>
 			<g {...stagePart('agent-says')}>
 				<text {...sx(heroStage.who, heroStage.agentWho)} x="264" y="304">YOUR AGENT</text>
