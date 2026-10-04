@@ -1,10 +1,14 @@
-import { PAGES, SECTIONS } from './site-map'
+import { PAGES, SECTIONS, SITE_NAME } from './site-map'
 
 import type { Availability, Page, Section } from './site-map'
 
-// What the site map says about one route: its section and neighbours (the
-// active menu, breadcrumbs, pagers), the name its breadcrumb gives it and
-// the availability its hero states.
+// What the site map says about one route: its document title, its section
+// and neighbours (the active menu, breadcrumbs, pagers), the name its
+// breadcrumb gives it, the availability its hero states and the badge its
+// page carries in the menu and the overview rows.
+
+// A route's document title.
+export const pageTitle = (name: string): string => `${name} · ${SITE_NAME}`
 
 const pageAt = (route: string): Page | undefined =>
 	Object.values(PAGES).find(page => page.href === route)
@@ -14,6 +18,16 @@ export function availabilityOf(route: string): Availability | undefined {
 	const page = pageAt(route)
 	if (!page || !('availability' in page)) return undefined
 	return page.availability
+}
+
+const PROTOTYPE_BADGE = 'Prototype'
+
+// The badge beside a page's title in the menu and the overview rows: only a
+// prototype carries one.
+export function badgeOf(page: Page): string | undefined {
+	if (!('availability' in page) || page.availability !== 'prototype')
+		return undefined
+	return PROTOTYPE_BADGE
 }
 
 // The page's title, or the section's label on the section's overview.

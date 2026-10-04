@@ -10,9 +10,6 @@ import type { IconName } from './icons'
 export const SITE_NAME = 'Syneva'
 export const SITE_URL = 'https://syneva.dev'
 
-// A route's document title.
-export const pageTitle = (name: string): string => `${name} · ${SITE_NAME}`
-
 // What a page describes: the CLI today, or a prototype direction. Product
 // and workflow pages state it in their hero; the menu and the overview rows
 // flag a prototype.
@@ -202,13 +199,3 @@ export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 export const SECTIONS: readonly Section[] = SECTION_ORDER.map(
 	id => SECTION_BY_ID[id],
 )
-
-const PROTOTYPE_BADGE = 'Prototype'
-
-// The badge beside a page's title in the menu and the overview rows: only a
-// prototype carries one.
-export function badgeOf(page: Page): string | undefined {
-	if (!('availability' in page) || page.availability !== 'prototype')
-		return undefined
-	return PROTOTYPE_BADGE
-}
