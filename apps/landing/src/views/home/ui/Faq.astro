@@ -22,6 +22,6 @@ const QUESTIONS = [
 		<p {...revealItem(faq.link)}><TextLink href="/resources/faq/" label="All questions & answers" /></p>
 	</div>
 	<div>
-		{QUESTIONS.map(([question, answer], i) => <Disclosure question={question} answer={answer} isFirst={i === 0} />)}
+		{QUESTIONS.map(([question, answer]) => <Disclosure question={question} answer={answer} />)}
 	</div>
 </section>
