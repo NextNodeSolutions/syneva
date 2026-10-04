@@ -63,7 +63,7 @@
 			},
 			{
 				"question": "Does Syneva send anything anywhere?",
-				"answer": "No telemetry, no account, no model calls. The desk binds to loopback by default. One honest footnote: the desk loads its web fonts from Google Fonts, so your browser fetches them when a desk opens."
+				"answer": "No telemetry, no account, no model calls. The desk binds to loopback by default. Two honest footnotes: the desk loads its web fonts from Google Fonts, so your browser fetches them when a desk opens, and at most once a day, when a desk starts, the CLI asks the npm registry whether a newer version exists (set <code>SYNEVA_NO_UPDATE_CHECK=1</code> to skip it)."
 			},
 			{
 				"question": "Can I review from another machine?",
