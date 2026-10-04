@@ -10,20 +10,19 @@ import PageStatus from './PageStatus.astro'
 import { pageHero } from './page-hero.styles'
 
 type Props = {
-	crumb: string
 	title: string
 	lede: string
 	caption?: string
 }
 
-const { crumb, title, lede, caption } = Astro.props
+const { title, lede, caption } = Astro.props
 const availability = availabilityOf(Astro.url.pathname)
 const hasActions = Astro.slots.has('actions')
 ---
 
 <section {...revealGroup(pageHero.root)} aria-labelledby="page-title">
 	<div {...sx(pageHero.copy)}>
-		<Crumbs title={crumb} />
+		<Crumbs />
 		<h1 {...revealItem(pageHero.title)} id="page-title" set:html={title} />
 		{
 			availability && (

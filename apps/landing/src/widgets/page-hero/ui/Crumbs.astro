@@ -1,15 +1,13 @@
 ---
 // Where the page sits: the site, its section (unless it is the section's
-// overview), the page itself.
-import { HOME_HREF, siblingsOf } from '@entities/site/model/site-map'
+// overview), the page itself, each named by the site map.
+import { crumbOf, HOME_HREF, sectionOf } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import { pageHero } from './page-hero.styles'
 
-type Props = { title: string }
-
-const { title } = Astro.props
 const route = Astro.url.pathname
-const { section } = siblingsOf(route)
+const current = crumbOf(route)
+const section = sectionOf(route)
 const parent = section && section.href !== route ? section : undefined
 ---
 
@@ -20,5 +18,5 @@ const parent = section && section.href !== route ? section : undefined
 				<a {...sx(pageHero.crumbLink)} href={parent.href}>{parent.label}</a><span aria-hidden="true">/</span>
 			</Fragment>
 		)
-	}<span {...sx(pageHero.crumbCurrent)} aria-current="page">{title}</span>
+	}<span {...sx(pageHero.crumbCurrent)} aria-current="page">{current}</span>
 </nav>

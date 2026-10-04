@@ -218,6 +218,21 @@ export function availabilityOf(route: string): Availability | undefined {
 	return page.availability
 }
 
+// The name a route goes by in its breadcrumb: its page's title, or its
+// section's label on the section's overview.
+export function crumbOf(route: string): string {
+	const section = SECTIONS.find(candidate => candidate.href === route)
+	if (section) return section.label
+	const page = Object.values(PAGES).find(
+		candidate => candidate.href === route,
+	)
+	if (!page)
+		throw new Error(
+			`${route} has a page hero but no entry in the site map: add its page to PAGES in src/entities/site/model/site-map.ts.`,
+		)
+	return page.title
+}
+
 // Section of a route, for breadcrumbs, the active nav state and pagers.
 export function sectionOf(route: string): Section | undefined {
 	return SECTIONS.find(
