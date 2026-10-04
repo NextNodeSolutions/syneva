@@ -59,7 +59,7 @@ export const panel = stylex.create({
 			content: "''",
 			position: 'absolute',
 			inset: '0 0 auto',
-			height: 'calc(var(--selection-height, 66) * 1px)',
+			height: 'calc(var(--selection-height) * 1px)',
 			backgroundColor: color['--paper'],
 			borderRadius: '5px',
 			transform: 'translateY(calc(var(--selection-y, 0) * 1px))',
