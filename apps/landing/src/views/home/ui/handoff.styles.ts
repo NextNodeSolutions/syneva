@@ -71,7 +71,7 @@ export const json = stylex.create({
 		borderLeftColor: color['--signal'],
 	},
 	key: { color: color['--ink'] },
-	str: { color: color['--green'] },
-	num: { color: color['--accent'] },
-	punc: { color: color['--muted'] },
+	string: { color: color['--green'] },
+	number: { color: color['--accent'] },
+	punctuation: { color: color['--muted'] },
 })

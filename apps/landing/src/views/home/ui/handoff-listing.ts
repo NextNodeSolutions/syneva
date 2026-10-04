@@ -21,11 +21,11 @@ type ContractKey =
 const key = (name: ContractKey): string =>
 	`<span class="j-key">"${name}"</span>`
 const text = (content: string): string =>
-	`<span class="j-str">"${content}"</span>`
+	`<span class="j-string">"${content}"</span>`
 const number = (digits: string): string =>
-	`<span class="j-num">${digits}</span>`
+	`<span class="j-number">${digits}</span>`
 const punctuation = (marks: string): string =>
-	`<span class="j-punc">${marks}</span>`
+	`<span class="j-punctuation">${marks}</span>`
 const line = (body: string, kind?: LineKind): string =>
 	`<span class="j-line${kind ? ` is-${kind}` : ''}">${body}</span>`
 
@@ -72,7 +72,7 @@ export const HANDOFF_LISTING = mapClasses(LISTING, {
 	'is-no': json.no,
 	'is-ask': json.ask,
 	'j-key': json.key,
-	'j-str': json.str,
-	'j-num': json.num,
-	'j-punc': json.punc,
+	'j-string': json.string,
+	'j-number': json.number,
+	'j-punctuation': json.punctuation,
 })
