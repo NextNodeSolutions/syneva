@@ -1,5 +1,5 @@
 ---
-// Workflows overview: four sources, one desk, one verdict.
+// Workflows overview: one source per workflow page, one desk, one verdict.
 import { ICONS } from '@entities/site/model/icons'
 import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
@@ -10,6 +10,8 @@ import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
 import { workflowsArt } from './workflows-art.styles'
 
 const TOP = 50
@@ -32,8 +34,8 @@ const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340
 	width={600}
 	height={440}
 	compact="20 30 570 380"
-	title="Four ways in, one desk"
-	description="The working tree, staged changes, a branch or pull request, and a single file each feed the same local desk, which produces one structured verdict whose mode tells your agent how to read it."
+	title={`${capitalize(countWord(SOURCES.length))} ways in, one desk`}
+	description={`${capitalize(new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(SOURCES.map(({ title }) => title.toLowerCase())))} each feed the same local desk, which produces one structured verdict whose mode tells your agent how to read it.`}
 >
 	<g fill="none">
 		{
