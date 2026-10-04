@@ -1,6 +1,7 @@
 ---
 // Chapter: the review desk - a reading order on the left, verdicts on the right.
 import { sx } from '@shared/lib/sx'
+import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
 import { anim, loop } from '@shared/ui/drawing/anim'
@@ -40,14 +41,7 @@ const ROWS = [
 			ROWS.map(([name, y, state]) => (
 				<Fragment>
 					<text {...sx(text.file, state === 'current' && text.strong)} x="48" y={y}>{name}</text>
-					{state === 'yes' ? (
-						<g {...anim('pop', 0.5)}>
-							<rect {...sx(shape.yes)} x="180" y={y - 9} width="11" height="11" />
-							<path {...sx(shape.check)} d={`m182.8 ${y - 3.6} 2 2 3.6-4`} />
-						</g>
-					) : (
-						<Pending x={180} y={y - 9} />
-					)}
+					{state === 'yes' ? <Check x={180} y={y - 9} delay={0.5} /> : <Pending x={180} y={y - 9} />}
 				</Fragment>
 			))
 		}
