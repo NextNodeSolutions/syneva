@@ -29,9 +29,9 @@ const relativeLayerEscapes = (...targets: string[]): string[] =>
 // -> shared, strictly downward; src/pages holds the Astro routes, which
 // compose app and views. A sliced layer also bans its own
 // alias: slices never import each other, intra-slice imports stay relative.
-// oxlint parses the .ts modules only; the .astro components follow the same
-// rules by convention. Each rule set repeats the Motion ban of the
-// apps/landing/** override, which it replaces for its files.
+// The rules hold for the .astro components as for the .ts modules: oxlint
+// lints their frontmatter and scripts. Each rule set repeats the Motion ban
+// of the apps/landing/** override, which it replaces for its files.
 const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
 const LANDING_MOTION_BAN = {
 	group: ['motion', 'motion/**'],
@@ -42,7 +42,7 @@ const landingLayer = (layer: string): OxlintOverride => {
 	const above = LANDING_LAYERS.slice(0, LANDING_LAYERS.indexOf(layer))
 	const others = LANDING_LAYERS.filter(other => other !== layer)
 	return {
-		files: [`apps/landing/src/${layer}/**/*.ts`],
+		files: [`apps/landing/src/${layer}/**/*.{ts,astro}`],
 		rules: {
 			'eslint/no-restricted-imports': [
 				'error',
