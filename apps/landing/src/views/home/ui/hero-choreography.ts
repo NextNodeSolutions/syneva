@@ -79,15 +79,15 @@ const caretBlink = (time: number): readonly [Frame, Frame] => [
 	[time + 0.25, { opacity: 0 }, 'hold'],
 ]
 
-// Until a change opens, the desk says what it is waiting for.
+// Until a change opens, the desk says what it is waiting for. The caption
+// stays hidden from then to the end of the round, so the loop wraps onto its
+// fade-in without a flash.
 function wait({ one }: Scope): void {
 	loop(one('idle'), [
 		[0, { opacity: 0 }],
 		[0.3, { opacity: 1 }],
 		[2.85, { opacity: 1 }],
 		[3.05, { opacity: 0 }],
-		[FADE_END, { opacity: 0 }],
-		[FADE_END + 0.25, { opacity: 1 }],
 	])
 	loop(one('caret'), [
 		...caretBlink(0),
