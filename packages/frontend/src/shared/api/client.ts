@@ -21,38 +21,34 @@ export class ApiError extends Error {
 	}
 }
 
-export const api = async (
-	path: string,
-	opts: RequestInit = {},
+// The one JSON request pipeline; `endpoint` is the caller-facing path ApiError reports,
+// which can differ from the resolved request URL (desk routes are prefixed with the desk base).
+const request = async (
+	url: string,
+	endpoint: string,
+	opts: RequestInit,
 ): Promise<unknown> => {
-	const response = await fetch(deskUrl(path), {
+	const response = await fetch(url, {
 		headers: { 'content-type': 'application/json' },
 		...opts,
 	})
 	if (!response.ok)
 		throw new ApiError(
 			`${response.status} ${response.statusText}`,
-			path,
+			endpoint,
 			response.status,
 		)
 	return response.json()
 }
+
+export const api = async (
+	path: string,
+	opts: RequestInit = {},
+): Promise<unknown> => request(deskUrl(path), path, opts)
 
 // Hub-level routes are absolute (they carry no desk); the dashboard fetches them through
 // this variant so the desk prefix never applies.
 export const hubApi = async (
 	path: string,
 	opts: RequestInit = {},
-): Promise<unknown> => {
-	const response = await fetch(path, {
-		headers: { 'content-type': 'application/json' },
-		...opts,
-	})
-	if (!response.ok)
-		throw new ApiError(
-			`${response.status} ${response.statusText}`,
-			path,
-			response.status,
-		)
-	return response.json()
-}
+): Promise<unknown> => request(path, path, opts)
