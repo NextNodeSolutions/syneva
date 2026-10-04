@@ -66,19 +66,17 @@ export function syncScenes(root: Element | Document = document): void {
 		else resumeScene(scene)
 }
 
-// Kept in module scope: the observer must outlive the call that created it.
-let stopWatching: (() => void) | undefined
-// A preference switch or a tab change resyncs every scene. One function, so
-// watching again never registers it twice.
+// A preference switch or a tab change resyncs every scene; syncScenes itself
+// would take the listener's event for its root.
 const resyncScenes = (): void => {
 	syncScenes()
 }
 
+// The page's runtime watches the scenes once, at boot.
 export function watchScenes(): void {
 	reducedMotion.addEventListener('change', resyncScenes)
 	document.addEventListener('visibilitychange', resyncScenes)
-	stopWatching?.()
-	stopWatching = inView(
+	inView(
 		SCENE,
 		scene => {
 			visibleScenes.add(scene)

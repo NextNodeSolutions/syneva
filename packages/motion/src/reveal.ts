@@ -71,12 +71,9 @@ function playReveal(group: Element): void {
 	syncScenes(group)
 }
 
-// Kept in module scope: the observer must outlive the call that created it.
-let stopRevealing: (() => void) | undefined
-
 // Arms every group once the hidden poses are in effect, so the entrance plays
-// instead of landing on a pose that was never seen.
+// instead of landing on a pose that was never seen. The page's runtime arms
+// them once, at boot.
 export function armReveals(): void {
-	stopRevealing?.()
-	stopRevealing = inView(`[${ATTRIBUTE.revealGroup}]`, playReveal, REVEAL)
+	inView(`[${ATTRIBUTE.revealGroup}]`, playReveal, REVEAL)
 }
