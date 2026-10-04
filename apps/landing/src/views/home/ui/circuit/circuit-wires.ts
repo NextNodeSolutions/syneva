@@ -17,7 +17,10 @@ function portPosition(svg: SVGSVGElement, id: string): DOMPoint {
 	const point = new DOMPoint(port.cx.baseVal.value, port.cy.baseVal.value)
 	const local = port.getCTM()
 	const root = svg.getCTM()
-	if (!local || !root) return point
+	if (!local || !root)
+		throw new Error(
+			`The review circuit's port #${id} has no rendered transform: the drawing and its stations must stay rendered (never display: none).`,
+		)
 	return point.matrixTransform(local).matrixTransform(root.inverse())
 }
 
