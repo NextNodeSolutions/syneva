@@ -9,7 +9,10 @@ const OPEN_DELAY_MS = 60
 const CLOSE_DELAY_MS = 180
 
 const compact = matchMedia(queries.navToggle)
-const hoverPointer = matchMedia(queries.finePointer)
+
+// Hover intent follows a mouse only: a touch or pen lift fires pointerleave
+// too, which would close the panel the tap just opened.
+const isMouse = (event: PointerEvent): boolean => event.pointerType === 'mouse'
 
 type Input = 'pointer' | 'keyboard'
 
@@ -142,8 +145,8 @@ class Navigation {
 		this.#currentPanel?.querySelector('a')?.focus()
 	}
 
-	hover(trigger: HTMLElement): void {
-		if (compact.matches || !hoverPointer.matches) return
+	hover(trigger: HTMLElement, event: PointerEvent): void {
+		if (compact.matches || !isMouse(event)) return
 		this.cancelTimers()
 		this.#openTimer = setTimeout(
 			() => this.showPanel(trigger),
@@ -168,8 +171,13 @@ class Navigation {
 		this.#clickedTrigger = trigger
 	}
 
-	leave(): void {
-		if (compact.matches || this.#root.dataset.input === 'keyboard') return
+	leave(event: PointerEvent): void {
+		if (
+			compact.matches ||
+			!isMouse(event) ||
+			this.#root.dataset.input === 'keyboard'
+		)
+			return
 		clearTimeout(this.#openTimer)
 		this.#closeTimer = setTimeout(() => this.closePanel(), CLOSE_DELAY_MS)
 	}

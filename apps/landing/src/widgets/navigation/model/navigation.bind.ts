@@ -11,7 +11,9 @@ const ARROWS: Record<string, (index: number, count: number) => number> = {
 }
 
 function bindTrigger(navigation: Navigation, trigger: HTMLElement): void {
-	trigger.addEventListener('pointerenter', () => navigation.hover(trigger))
+	trigger.addEventListener('pointerenter', event =>
+		navigation.hover(trigger, event),
+	)
 	trigger.addEventListener('click', event => navigation.click(trigger, event))
 	trigger.addEventListener('keydown', event => {
 		if (event.key === 'ArrowDown') {
@@ -83,7 +85,7 @@ async function bindNavigation(root: HTMLElement): Promise<void> {
 	const navigation = new Navigation(root, { links, dropdown, toggle })
 	navigation.triggers.forEach(trigger => bindTrigger(navigation, trigger))
 	root.addEventListener('pointerenter', () => navigation.keepOpen())
-	root.addEventListener('pointerleave', () => navigation.leave())
+	root.addEventListener('pointerleave', event => navigation.leave(event))
 	dropdown.addEventListener('pointerenter', () => navigation.cancelTimers())
 	root.addEventListener('keydown', () => navigation.keyboard())
 	root.addEventListener('focusout', event => navigation.focusLeft(event))
