@@ -1,28 +1,43 @@
 ---
 // Walkthrough: the git order on the left becomes the guide's order on the
 // right; each file travels from its place in git's list to its section.
+import { twoDigits } from '@shared/lib/step-number'
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
-import { text } from '@shared/ui/drawing/text.styles'
 import { productArt } from '@shared/ui/drawing/product-art.styles'
-import { twoDigits } from '@shared/lib/step-number'
+import { text } from '@shared/ui/drawing/text.styles'
 
-const GIT_ORDER = ['README.md', 'api/middleware.ts', 'auth/session.ts', 'contracts/review.ts', 'lib/hash.ts', 'pages/desk.tsx']
+// The guide's sections, then the trailing Other section for the files the
+// guide never mentions; each file sits on its row's y.
+const SECTIONS = [
+	{ label: '01 · CONTRACTS', kind: 'guided', y: 84, rows: [['contracts/review.ts', 92]] },
+	{ label: '02 · BEHAVIOR', kind: 'guided', y: 146, rows: [['auth/session.ts', 154], ['api/middleware.ts', 190]] },
+	{ label: '03 · INTERFACE', kind: 'guided', y: 246, rows: [['pages/desk.tsx', 254]] },
+	{ label: 'OTHER · LISTED ANYWAY', kind: 'other', y: 308, rows: [['README.md', 316], ['lib/hash.ts', 352]] },
+] as const
+const LABEL_TONE = { guided: text.accent, other: null } as const
+const CHIP = { guided: null, other: productArt.guideChipOther } as const
+// Chips are numbered in reading order across sections; git lists the same
+// files sorted by path.
+const READING_ORDER: readonly string[] = SECTIONS.flatMap(section => section.rows.map(([name]) => name))
+const GIT_ORDER = READING_ORDER.toSorted()
 const ROW = 44
 const TOP = 92
 const ghostY = (name: string): number => TOP + GIT_ORDER.indexOf(name) * ROW
-const SECTIONS = [
-	{ label: '01 · CONTRACTS', y: 84, rows: [['contracts/review.ts', 92]] },
-	{ label: '02 · BEHAVIOR', y: 146, rows: [['auth/session.ts', 154], ['api/middleware.ts', 190]] },
-	{ label: '03 · INTERFACE', y: 246, rows: [['pages/desk.tsx', 254]] },
-	{ label: 'OTHER · LISTED ANYWAY', y: 308, rows: [['README.md', 316], ['lib/hash.ts', 352]] },
-] as const
-const OTHER = SECTIONS.length - 1
-// Chips are numbered in reading order across sections.
-const chips = SECTIONS.flatMap((section, sectionIndex) => section.rows.map(([name, y]) => ({ name, y, sectionIndex })))
-const orderOf = (name: string): number => chips.findIndex(chip => chip.name === name) + 1
+const orderOf = (name: string): number => READING_ORDER.indexOf(name) + 1
+// Each chip travels in from its place in git's list, in reading order.
+const sections = SECTIONS.map(({ label, kind, y, rows }, sectionIndex) => ({
+	label,
+	kind,
+	labelY: y - 4,
+	delay: 0.3 + sectionIndex * 0.25,
+	chips: rows.map(([name, rowY]) => {
+		const order = orderOf(name)
+		return { name, y: rowY, number: twoDigits(order), delay: 0.5 + order * 0.2, fromY: ghostY(name) - rowY }
+	}),
+}))
 ---
 
 <Drawing
@@ -46,19 +61,16 @@ const orderOf = (name: string): number => chips.findIndex(chip => chip.name === 
 	<Wire d="M258 200h52" drawDelay={0.2} signalDelay={2} />
 	<text {...anim('fade', 0.3, text.tiny)} x="284" y="190" text-anchor="middle">--guide</text>
 	{
-		SECTIONS.map(({ label, y, rows }, sectionIndex) => (
+		sections.map(({ label, kind, labelY, delay, chips }) => (
 			<Fragment>
-				<text {...anim('fade', 0.3 + sectionIndex * 0.25, text.tiny, sectionIndex !== OTHER && text.accent)} x="330" y={y - 4}>{label}</text>
-				{rows.map(([name, rowY]) => {
-					const order = orderOf(name)
-					return (
-						<g {...move(0.5 + order * 0.2, -300, ghostY(name) - rowY)}>
-							<rect {...sx(productArt.guideChip, sectionIndex === OTHER && productArt.guideChipOther)} x="330" y={rowY} width="240" height="28" />
-							<text {...sx(text.file)} x="344" y={rowY + 18}>{name}</text>
-							<text {...sx(text.tiny)} x="556" y={rowY + 18} text-anchor="end">{twoDigits(order)}</text>
-						</g>
-					)
-				})}
+				<text {...anim('fade', delay, text.tiny, LABEL_TONE[kind])} x="330" y={labelY}>{label}</text>
+				{chips.map(chip => (
+					<g {...move(chip.delay, -300, chip.fromY)}>
+						<rect {...sx(productArt.guideChip, CHIP[kind])} x="330" y={chip.y} width="240" height="28" />
+						<text {...sx(text.file)} x="344" y={chip.y + 18}>{chip.name}</text>
+						<text {...sx(text.tiny)} x="556" y={chip.y + 18} text-anchor="end">{chip.number}</text>
+					</g>
+				))}
 			</Fragment>
 		))
 	}
