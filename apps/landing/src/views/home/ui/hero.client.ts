@@ -4,9 +4,9 @@ import { syncScenes } from '@syneva/motion/scenes'
 
 import { choreograph } from './hero-choreography'
 import { playIntro } from './hero-intro'
+import { palette } from './hero-palette'
 import { bindPointer } from './hero-pointer'
 import { stagePartSelector } from './hero-stage-part'
-import { palette } from './hero-timeline'
 
 import type { Scope } from './hero-timeline'
 

@@ -9,7 +9,8 @@ import {
 	travel,
 } from './hero-timeline'
 
-import type { Palette, Scope } from './hero-timeline'
+import type { Palette } from './hero-palette'
+import type { Scope } from './hero-timeline'
 
 // The second half of the hero round (see hero-choreography.ts): the verdict
 // is made, recorded, sent, and the next revision comes back.

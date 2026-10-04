@@ -19,35 +19,6 @@ const CLOCK: Clock = { cycle: 16, delay: 0.9, easing: EASE_OUT }
 export const FADE_START = 15.1
 export const FADE_END = 15.7
 
-export type Palette = Record<
-	| 'white'
-	| 'mint'
-	| 'paleMint'
-	| 'green'
-	| 'strong'
-	| 'muted'
-	| 'accent'
-	| 'accentDeep',
-	string
->
-
-// Keyframe values are resolved without custom properties, so the palette is
-// read once from the tokens; the only colour without a token is a literal.
-export function palette(): Palette {
-	const tokens = getComputedStyle(document.documentElement)
-	const token = (name: string): string => tokens.getPropertyValue(name).trim()
-	return {
-		white: token('--white'),
-		mint: token('--mint'),
-		paleMint: '#f2f7f0',
-		green: token('--green'),
-		strong: token('--line-strong'),
-		muted: token('--muted'),
-		accent: token('--accent'),
-		accentDeep: token('--accent-deep'),
-	}
-}
-
 export type Part = Element | null
 export type Scope = {
 	one: (name: StagePart) => Part
