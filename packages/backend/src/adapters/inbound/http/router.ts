@@ -28,20 +28,12 @@ import {
 	shutdownHub,
 } from './hub-routes.js'
 import { notFoundPage } from './pages.js'
-import {
-	serveDashboardBundle,
-	serveDashboardPage,
-	serveDeskPage,
-	serveFavicon,
-	serveUiBundle,
-	serveUiChunk,
-} from './routes/static.js'
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AccessGuard } from './auth.js'
 import type { DeskContext } from './context.js'
 import type { HubRouteDeps } from './hub-routes.js'
-import type { StaticRequest } from './routes/static.js'
+import type { StaticRequest, UiServer } from './routes/static.js'
 
 // A desk route's whole world: the desk it belongs to, the request it answers, and the response
 // it writes. Handlers end the response themselves - some stream (the await-send long-poll), some
@@ -65,6 +57,7 @@ export type HubRouterDeps = HubRouteDeps & {
 	// the server listens.
 	authorities: () => readonly string[]
 	deskRoutes: RouteTable
+	ui: UiServer
 }
 
 // A desk id is the hex digest domain/identity derives; anything else never names a desk.
@@ -78,7 +71,7 @@ const NOT_FOUND_JSON = {
 }
 
 // The hub's request entry point: the origin guard for every route (current and future), the
-// access guard, then the dispatch - static assets, desk pages, the hub API, the per-desk API -
+// access guard, then the dispatch - the pages, the hub API, the per-desk API, the UI's assets -
 // and the one place an unexpected throw becomes a 500.
 export function createHubRequestHandler(
 	deps: HubRouterDeps,
@@ -92,10 +85,11 @@ export function createHubRequestHandler(
 			const url = new URL(req.url ?? '/', 'http://127.0.0.1')
 			if (await handleAccess(deps, req, res, url)) return
 			const request: StaticRequest = { req, res, url }
-			if (await handleStatic(request)) return
+			if (await handleDashboardPage(deps, request)) return
 			if (await handleDeskPage(deps, request)) return
 			if (await handleHubApi(deps, request)) return
 			if (await handleDeskApi(deps, request)) return
+			if (await handleUiAsset(deps, request)) return
 			fail(res, NOT_FOUND_JSON)
 		} catch (error) {
 			reportFailure(res, error)
@@ -134,19 +128,27 @@ function isRead(req: IncomingMessage): boolean {
 	return req.method === 'GET' || req.method === 'HEAD'
 }
 
-async function handleStatic(request: StaticRequest): Promise<boolean> {
-	const { req, url } = request
-	if (!isRead(req)) return false
-	const { pathname } = url
-	if (pathname === STATIC_PATHS.index) await serveDashboardPage(request)
-	else if (pathname === STATIC_PATHS.bundle) await serveUiBundle(request)
-	else if (pathname === STATIC_PATHS.dashboardBundle)
-		await serveDashboardBundle(request)
-	else if (pathname === STATIC_PATHS.favicon) await serveFavicon(request)
-	else if (pathname.startsWith(STATIC_PATHS.chunksPrefix))
-		await serveUiChunk(request)
-	else return false
+// The dashboard is the hub root.
+async function handleDashboardPage(
+	deps: HubRouterDeps,
+	request: StaticRequest,
+): Promise<boolean> {
+	if (!isRead(request.req)) return false
+	if (request.url.pathname !== STATIC_PATHS.index) return false
+	await deps.ui.dashboardPage(request)
 	return true
+}
+
+// The UI's assets come last. Every route above names its paths exactly; what is left is the
+// UI server's to recognize: the bundle's fixed URLs in an install, any module of the source
+// graph under the dev loop's Vite server - which must never be handed an API request (it
+// would try to transform it).
+async function handleUiAsset(
+	deps: HubRouterDeps,
+	request: StaticRequest,
+): Promise<boolean> {
+	if (!isRead(request.req)) return false
+	return deps.ui.asset(request)
 }
 
 // /d/<id>/ serves the desk page for a live desk; /d/<id> (no slash) redirects onto it so the
@@ -169,7 +171,7 @@ async function handleDeskPage(
 		return true
 	}
 	if (rest.length > 1 || rest[0] !== '') return false
-	if (deps.hub.getDesk(id)) await serveDeskPage(request)
+	if (deps.hub.getDesk(id)) await deps.ui.deskPage(request)
 	else
 		html(
 			res,

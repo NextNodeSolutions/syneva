@@ -15,6 +15,7 @@ import {
 } from '../adapters/inbound/http/options.js'
 import { createHubRequestHandler } from '../adapters/inbound/http/router.js'
 import { routes } from '../adapters/inbound/http/routes.js'
+import { builtUi } from '../adapters/inbound/http/routes/static.js'
 import { hubLog } from '../adapters/outbound/console.js'
 import { editorPort } from '../adapters/outbound/editor/open-editor.js'
 import { nodeSettings } from '../adapters/outbound/filesystem/desk.js'
@@ -46,18 +47,7 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		options.key,
 		publicUrl?.protocol === 'https:',
 	)
-	const hub = createHub(
-		{
-			git: nodeGit,
-			store: nodeReviewStore,
-			settings: nodeSettings,
-			editor: editorPort(options.runEditorCommand),
-			registry: nodeHubRegistry,
-			statusTtlMs: options.statusTtlMs ?? DEFAULT_STATUS_TTL_MS,
-			log: options.log ?? hubLog,
-		},
-		randomUUID(),
-	)
+	const hub = wireHub(options)
 	const server = http.createServer()
 	server.on(
 		'request',
@@ -68,6 +58,7 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 			// only once the socket is bound.
 			authorities: () => authoritiesFor(binding, portOf(server)),
 			deskRoutes: routes,
+			ui: options.ui ?? builtUi,
 			version: options.version,
 			keyRequired: guard.keyRequired,
 			onShutdown: () => options.onShutdown?.(),
@@ -84,6 +75,22 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		localUrl: `http://${binding.lockHost}:${port}/`,
 		close: () => closeHub(server, hub),
 	}
+}
+
+// The hub over its node collaborators (git, the filesystem stores, the editor launcher).
+function wireHub(options: HubOptions): Hub {
+	return createHub(
+		{
+			git: nodeGit,
+			store: nodeReviewStore,
+			settings: nodeSettings,
+			editor: editorPort(options.runEditorCommand),
+			registry: nodeHubRegistry,
+			statusTtlMs: options.statusTtlMs ?? DEFAULT_STATUS_TTL_MS,
+			log: options.log ?? hubLog,
+		},
+		randomUUID(),
+	)
 }
 
 // Stop serving: parked long-polls are cut (an agent's `await` exits non-zero and re-checks the

@@ -1,5 +1,6 @@
 import type { Server } from 'node:http'
 import type { Hub } from './hub.js'
+import type { UiServer } from './routes/static.js'
 
 export type HubOptions = {
 	port?: number | undefined
@@ -25,6 +26,9 @@ export type HubOptions = {
 	log?: ((line: string) => void) | undefined
 	// Called when POST /api/hub/shutdown asks the hub to stop: the composition root closes.
 	onShutdown?: (() => void) | undefined
+	// What serves the browser UI: the built bundle next to the server unless the dev loop
+	// passes its Vite dev server (see UiServer).
+	ui?: UiServer | undefined
 }
 
 export type HubHandle = {

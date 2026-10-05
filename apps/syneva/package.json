@@ -57,7 +57,7 @@
 		"access": "public"
 	},
 	"scripts": {
-		"dev": "node scripts/dev.mjs",
+		"dev": "node --watch --import tsx --conditions=@syneva/source scripts/dev.ts",
 		"build": "node scripts/build-dist.mjs",
 		"start": "node dist/cli.js",
 		"check": "tsc --noEmit",
@@ -71,6 +71,7 @@
 		"semantic-release": "^25.0.9",
 		"semantic-release-monorepo": "^8.0.2",
 		"tsdown": "^0.23.0",
-		"tsx": "latest"
+		"tsx": "latest",
+		"vite": "^7.3.6"
 	}
 }
