@@ -36,12 +36,19 @@ export function queryOf(record: HubDeskRecord): DeskQuery {
 	}
 }
 
-// Same id, same source? The session already encodes the file (file mode) and the head (pr
-// mode), so only a repo desk can be asked for a different source under its own id.
-export function sameSource(record: HubDeskRecord, query: DeskQuery): boolean {
+// Same id, same source? Only the default session encodes the file (file mode) or the head (pr
+// mode): under a session the reviewer named, another file or branch reaches the same id, so
+// the target is compared too - as resolved (the absolute file, the PR's head branch), which is
+// what the record holds. A different source replaces the desk; the same one reloads it.
+export function sameSource(
+	record: HubDeskRecord,
+	query: DeskQuery,
+	identity: Pick<DeskIdentity, 'target'>,
+): boolean {
 	return (
 		record.mode === query.mode &&
 		record.staged === query.staged &&
-		(record.pathFilter ?? '') === (query.pathFilter ?? '')
+		(record.pathFilter ?? '') === (query.pathFilter ?? '') &&
+		(record.target ?? '') === (identity.target ?? '')
 	)
 }

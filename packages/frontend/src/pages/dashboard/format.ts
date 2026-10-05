@@ -1,18 +1,17 @@
 import type { HubDesk } from '@entities/hub/model'
 
-const MS_PER_SECOND = 1000
+export const MS_PER_SECOND = 1000
 const SECONDS_PER_MINUTE = 60
 const MINUTES_PER_HOUR = 60
 const HOURS_PER_DAY = 24
 const JUST_NOW_SECONDS = 10
 
 // "just now" / "42s ago" / "5m ago" / "3h ago" / "2d ago" - coarse on purpose: the dashboard
-// re-renders every poll, and a second-precise clock would flicker without informing.
-export function relativeTime(iso: string, now: number): string {
-	const elapsedSeconds = Math.max(
-		0,
-		Math.round((now - Date.parse(iso)) / MS_PER_SECOND),
-	)
+// re-renders every poll, and a second-precise clock would flicker without informing. `at` is
+// an ISO timestamp (the hub's fields) or ms since the epoch (the page's own clock).
+export function relativeTime(at: string | number, now: number): string {
+	const then = typeof at === 'number' ? at : Date.parse(at)
+	const elapsedSeconds = Math.max(0, Math.round((now - then) / MS_PER_SECOND))
 	if (Number.isNaN(elapsedSeconds)) return ''
 	if (elapsedSeconds < JUST_NOW_SECONDS) return 'just now'
 	if (elapsedSeconds < SECONDS_PER_MINUTE) return `${elapsedSeconds}s ago`
@@ -23,35 +22,68 @@ export function relativeTime(iso: string, now: number): string {
 	return `${Math.floor(hours / HOURS_PER_DAY)}d ago`
 }
 
-function lastSegment(path: string | undefined): string {
+export function plural(count: number, noun: string): string {
+	return `${count} ${noun}${count === 1 ? '' : 's'}`
+}
+
+// A count that opens a sentence is spelled out while it is a word a reader takes in at a
+// glance ("Two desks wait on you."); from ten on, digits read faster.
+const NUMBER_WORDS = [
+	'Zero',
+	'One',
+	'Two',
+	'Three',
+	'Four',
+	'Five',
+	'Six',
+	'Seven',
+	'Eight',
+	'Nine',
+] as const
+
+export function numberWord(count: number): string {
+	return NUMBER_WORDS[count] ?? String(count)
+}
+
+export function lastSegment(path: string | undefined): string {
 	return path?.replace(/\/+$/, '').split('/').pop() ?? ''
 }
 
-// The desk's source, as the chip in its row: what the reviewer is looking at.
+// A pull request named by its number, bare or inside a GitHub URL.
+const PR_NUMBER = /^(?<bare>\d+)$|\/pull\/(?<linked>\d+)/
+
+// What a desk reviews, in the words of the command that opened it: the working tree, the
+// staged changes, one file, or a branch or pull request (by number when it has one) - as
+// the parts a meta line joins.
+export function modeParts(desk: HubDesk): string[] {
+	if (desk.mode === 'file') return ['file', lastSegment(desk.target)]
+	if (desk.mode === 'pr') return ['pr', pullRequestName(desk)]
+	return [desk.staged ? 'staged' : 'working tree']
+}
+
+const SEPARATOR = ' · '
+const NO_BREAK_SPACE = '\u00a0'
+
 export function modeLabel(desk: HubDesk): string {
-	if (desk.mode === 'file') return `File · ${lastSegment(desk.target)}`
-	if (desk.mode === 'pr') return `PR · ${desk.target ?? desk.session}`
-	return desk.staged ? 'Staged' : 'Working tree'
+	return modeParts(desk).join(SEPARATOR)
 }
 
-export type AgentState = {
-	tone: 'live' | 'queued' | 'idle'
-	label: string
+// Words a narrow line never parts ("every 2 s", "active 2m ago"): their spaces do not break.
+export function unbroken(words: string): string {
+	return words.replaceAll(' ', NO_BREAK_SPACE)
 }
 
-// One line about the agent: attached and listening, something waiting for it, or nobody there.
-export function agentState(desk: HubDesk): AgentState {
-	if (desk.agentListening) return { tone: 'live', label: 'agent listening' }
-	if (desk.queuedReviews > 0)
-		return { tone: 'queued', label: 'review sent, no agent yet' }
-	if (desk.queuedQuestions > 0)
-		return {
-			tone: 'queued',
-			label: `${desk.queuedQuestions} question${desk.queuedQuestions === 1 ? '' : 's'} waiting`,
-		}
-	return { tone: 'idle', label: 'no agent attached' }
+function pullRequestName(desk: HubDesk): string {
+	const found = desk.target?.match(PR_NUMBER)?.groups
+	const number = found?.bare ?? found?.linked
+	if (number) return `#${number}`
+	return desk.target ?? desk.session
 }
 
-export function plural(count: number, noun: string): string {
-	return `${count} ${noun}${count === 1 ? '' : 's'}`
+// A repository root as its owner reads it: the home directory folds to ~ (macOS /Users/<name>,
+// Linux /home/<name>). The full path stays in the element's title.
+const HOME_DIRECTORY = /^\/(?:Users|home)\/[^/]+(?=\/|$)/
+
+export function displayRoot(root: string): string {
+	return root.replace(HOME_DIRECTORY, '~')
 }

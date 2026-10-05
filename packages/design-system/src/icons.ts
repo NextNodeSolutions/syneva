@@ -1,4 +1,8 @@
-// 24px line icons, drawn on the same 1.4 stroke as the rest of the menu.
+// The line icons every front draws (the site's menus and index rows, the
+// hub's desk rows): one path each on a 24-unit grid, stroked in currentColor
+// and never filled. Each front sets the stroke width for its own scale.
+export const ICON_VIEW_BOX = '0 0 24 24'
+
 export const ICONS = {
 	desk: 'M3 5h18v14H3zM10 5v14M13 11.5l2 2 4-4.5',
 	guide: 'M3 5h3v3H3zM3 10.5h3v3H3zM3 16h3v3H3zM9 6.5h12M9 12h12M9 17.5h7',
@@ -16,3 +20,8 @@ export const ICONS = {
 } as const
 
 export type IconName = keyof typeof ICONS
+
+// The arrow that closes a primary action and leads an index row: a 20-unit
+// grid, stroked like the icons.
+export const ARROW_VIEW_BOX = '0 0 20 20'
+export const ARROW_PATH = 'M4 10h12m-5-5 5 5-5 5'

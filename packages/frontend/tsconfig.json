@@ -3,14 +3,15 @@
 	"compilerOptions": {
 		// The preset's ESNext/bundler resolution already fits the browser world.
 		// Overrides: DOM libs next to the preset's ES2024, JSX runtime, the
-		// node types vite.config.ts needs, and the frontend-only layer aliases
+		// node types vite.config.ts needs, Vite's client types (the CSS the
+		// dashboard entry imports for side effects), and the frontend-only layer aliases
 		// (FSD): app -> pages -> widgets -> features -> entities -> shared.
 		// Enforced here by moduleResolution=bundler and by oxlint's layer rules.
 		// The shared wire shapes come from the @syneva/contracts workspace
 		// package, not an alias.
 		"lib": ["ES2024", "DOM", "DOM.Iterable"],
 		"jsx": "react-jsx",
-		"types": ["node"],
+		"types": ["node", "vite/client"],
 		"paths": {
 			"@app/*": ["./src/app/*"],
 			"@pages/*": ["./src/pages/*"],

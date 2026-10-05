@@ -11,6 +11,10 @@ export const STATIC_PATHS = {
 	bundle: '/ui.js',
 	dashboardBundle: '/dashboard.js',
 	chunksPrefix: '/chunks/',
+	// The one stylesheet the page shells link (StyleX's rules for every page, the font faces).
+	styles: '/styles.css',
+	// The design system's font files the stylesheet's faces point at.
+	fontsPrefix: '/fonts/',
 	favicon: '/favicon.ico',
 } as const
 

@@ -5,7 +5,7 @@
 
 import { START_COMMAND } from './project'
 
-import type { IconName } from './icons'
+import type { IconName } from '@syneva/design-system/icons'
 
 export const SITE_NAME = 'Syneva'
 export const SITE_URL = 'https://syneva.dev'
