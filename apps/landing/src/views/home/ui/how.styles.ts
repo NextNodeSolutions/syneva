@@ -1,29 +1,20 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, font, layout } from '@syneva/design-system/tokens.stylex'
+import { color, layout } from '@syneva/design-system/tokens.stylex'
 
-const LINE = color['--line']
-
-// How it works: a heading row, the review circuit, then the four-step loop on
+// How it works: the heading, the review circuit, then the four-step loop on
 // one ruled rail, read left to right.
 export const how = stylex.create({
 	section: { scrollMarginTop: '12px' },
-	head: { paddingBottom: '56px', paddingInline: layout['--gutter'] },
+	head: {
+		paddingBottom: { default: '56px', [media.phone]: '32px' },
+		paddingInline: layout['--gutter'],
+	},
 	figure: {
 		borderBlockWidth: '1px',
 		borderBlockStyle: 'solid',
-		borderBlockColor: LINE,
+		borderBlockColor: color['--line'],
 	},
-	caption: {
-		display: 'flex',
-		padding: '12px 22px',
-		borderTopWidth: '1px',
-		borderTopStyle: 'solid',
-		borderTopColor: LINE,
-		color: color['--muted'],
-		fontSize: '12px',
-	},
-	loop: { paddingTop: '64px', paddingInline: layout['--gutter'] },
 	steps: {
 		display: 'grid',
 		gridTemplateColumns: {
@@ -39,7 +30,10 @@ export const how = stylex.create({
 		},
 		listStyle: 'none',
 		margin: 0,
-		padding: 0,
+		padding: {
+			default: `64px ${layout['--gutter']} 0`,
+			[media.phone]: `40px ${layout['--gutter']} 0`,
+		},
 	},
 	step: { padding: '22px 0 0' },
 	stepTitle: {
@@ -49,10 +43,5 @@ export const how = stylex.create({
 		marginBottom: '8px',
 	},
 	stepText: { fontSize: '14px', maxWidth: '30ch' },
-	note: {
-		marginTop: '46px',
-		font: `12px ${font['--mono']}`,
-		color: color['--muted'],
-		'::before': { content: "'✓ '", color: color['--green'] },
-	},
+	stepLink: { marginTop: '14px' },
 })
