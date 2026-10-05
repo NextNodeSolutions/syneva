@@ -63,6 +63,17 @@ export function commentSide(
 	return isFileLevelLine(lineNumber) ? 'additions' : side
 }
 
+// The one requested-change classification, shared by file approval (computeApprovedFiles in
+// domain/decisions.ts) and the agent handoff (requestedChanges in application/review-result.ts):
+// a comment blocks and rides out exactly when it is open, reviewer-authored, and not a question.
+export function isRequestedChange(comment: ReviewComment): boolean {
+	return (
+		comment.status === 'open' &&
+		comment.role !== 'agent' &&
+		comment.intent !== 'question'
+	)
+}
+
 // The one constructor for a freshly posted comment: the live route and the offline CLI reply both
 // land here, so the defaults (status/intent), the side normalization and the anchor stamps can only
 // be born one way. id and `now` are values per the ports.ts convention (the application owns id/time

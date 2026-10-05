@@ -11,7 +11,7 @@
  * - registers syneva_agent: a session-owned listener that wakes this Pi session
  *   for questions and completed reviews without a one-shot waiting child.
  *
- * Desks still start via the CLI. Listener resources start only on explicit
+ * Desks open on the hub via the CLI. Listener resources start only on explicit
  * attachment or restoration and close on session_shutdown, never agent_end.
  */
 import { execFileSync } from 'node:child_process'

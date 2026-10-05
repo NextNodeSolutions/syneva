@@ -57,7 +57,7 @@ const FIRST_KEYS = [
 	<Terminal lines={INSTALL} title="install" />
 </Prose>
 <Prose id="open" title="2. Open a desk.">
-	<ProseText>Run it next to the repository your agent just changed. The desk opens in your browser and stays open across rounds.</ProseText>
+	<ProseText>Run it next to the repository your agent just changed. The first open starts the hub, one process per machine; the desk opens in your browser at its own URL and stays open across rounds. The dashboard at <code>http://127.0.0.1:4747/</code> lists every project and desk.</ProseText>
 	<Terminal lines={OPEN} title="your repository" />
 	<ProseText><TextLink href={SECTION_BY_ID.workflows.href} label="Staged changes, pull requests and single files" /></ProseText>
 </Prose>

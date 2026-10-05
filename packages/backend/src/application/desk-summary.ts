@@ -1,0 +1,54 @@
+import path from 'node:path'
+
+import { deskPagePath } from '@syneva/contracts/routes'
+
+import { isRequestedChange } from '../domain/comments.js'
+import { computeApprovedFiles } from '../domain/decisions.js'
+
+import { computeOpenQuestions } from './review-result.js'
+
+import type { DeskStatus } from '@syneva/contracts/browser'
+import type { DeskSummary } from '@syneva/contracts/hub'
+import type { ReviewState } from '../domain/review.js'
+
+// When a desk was opened and when it last served a request - the dashboard's "last activity".
+export type DeskClock = { openedAt: string; lastActivityAt: string }
+
+// The dashboard projection of one desk: identity and counts derived from the live review
+// state, plus the transient liveness the desk already reports to its own tab. Mapped field by
+// field like browserState - the review's diff bodies and records never ride the hub listing.
+export function deskSummary(
+	id: string,
+	state: ReviewState,
+	status: DeskStatus,
+	clock: DeskClock,
+): DeskSummary {
+	return {
+		id,
+		root: state.root,
+		project: path.basename(state.root) || state.root,
+		session: state.session,
+		mode: state.mode,
+		target: state.target,
+		staged: state.staged,
+		baseDiffHash: state.baseDiffHash,
+		empty: !state.files.length,
+		files: state.files.length,
+		approvedFiles: computeApprovedFiles(state).length,
+		totalChanges: state.changes.length,
+		decidedChanges: state.changes.filter(
+			change => change.status !== 'pending',
+		).length,
+		openQuestions: computeOpenQuestions(state).length,
+		// The requested-change classification (domain/comments.ts): open, reviewer-authored,
+		// non-question - the same rule the agent handoff rides out on.
+		openRequests: state.comments.filter(isRequestedChange).length,
+		agentListening: status.agentListening,
+		agentActivity: status.agentActivity,
+		queuedQuestions: status.queuedQuestions,
+		queuedReviews: status.queuedReviews,
+		openedAt: clock.openedAt,
+		lastActivityAt: clock.lastActivityAt,
+		path: deskPagePath(id),
+	}
+}

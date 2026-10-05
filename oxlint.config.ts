@@ -693,10 +693,12 @@ export default defineConfig({
 			// path, not a render-phase mutation. The rule cannot see that boundary; disable it
 			// for the chrome views only. Actions with logic still live in the facade modules.
 			// The effects sync EXTERNAL systems the store does not own: the browser tab
-			// title, the body layout classes, the rAF count-up animation - none of them
-			// are render-time derivations.
+			// title, the body layout classes, the rAF count-up animation, the hub dashboard's
+			// poll timer over HTTP - none of them are render-time derivations.
 			files: [
 				'packages/frontend/src/widgets/chrome/react/**',
+				'packages/frontend/src/pages/dashboard/react/**',
+				'packages/frontend/src/pages/dashboard/use-hub.ts',
 				'packages/frontend/src/app/react/app.tsx',
 			],
 			rules: {

@@ -13,7 +13,7 @@ const QUESTIONS = [
 	['What if the agent rewrites code I already accepted?', 'Syneva hashes each change. On reload, a rewritten change resets to pending while untouched work keeps your verdict. Approvals and comment anchors follow the same rule, so stale trust can’t survive silently.'],
 	['Which coding agents work with it?', 'Any of them. The contract is plain JSON on stdout plus a localhost HTTP server. Syneva ships as a pi package, and Codex, Cursor or a shell script can drive the standalone CLI.'],
 	['Can I use the plan desk today?', `The dedicated plan desk is a prototype. You can already open a plan with <code>${PAGES.singleFile.code}</code> and comment line by line; the claim map shown here is not shipped yet.`],
-	['Where does my review live?', 'On your machine, under <code>~/.syneva</code>. The desk binds to localhost by default and saves every decision between rounds. There is no hosted account and no telemetry.'],
+	['Where does my review live?', 'On your machine, under <code>~/.syneva</code>. The hub binds to localhost by default and saves every decision between rounds; a hub you host yourself answers only to its access key. There is no hosted account and no telemetry.'],
 ] as const
 ---
 

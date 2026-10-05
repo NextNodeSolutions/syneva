@@ -19,9 +19,21 @@ export const SUBCOMMANDS = [
 		name: 'reload',
 		does: 'Re-diff the working tree into the open tab, optionally with a new guide.',
 	},
+] as const satisfies readonly Subcommand[]
+
+// The desk's lifecycle on the hub: bring one up, list them, close one.
+export const DESK_SUBCOMMANDS = [
 	{
-		name: 'stop',
-		does: 'Shut the desk down. Idempotent; review state stays saved.',
+		name: 'open',
+		does: 'Open a desk on the hub, or reload the live one for this repo and session. Prints its URL as JSON.',
+	},
+	{
+		name: 'desks',
+		does: 'List the live desks of this repo, with their URLs.',
+	},
+	{
+		name: 'close',
+		does: 'Close the desk. Idempotent; the hub keeps running and review state stays saved.',
 	},
 ] as const satisfies readonly Subcommand[]
 
@@ -33,6 +45,7 @@ export const SPEC_SUBCOMMAND = {
 
 type SubcommandName =
 	| (typeof SUBCOMMANDS)[number]['name']
+	| (typeof DESK_SUBCOMMANDS)[number]['name']
 	| (typeof SPEC_SUBCOMMAND)['name']
 
 // A subcommand the way the agent runs it.

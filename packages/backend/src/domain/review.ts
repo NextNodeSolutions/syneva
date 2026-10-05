@@ -130,7 +130,7 @@ export type ReviewFile = DiffFile & {
 	// ChangeState.contentHash stays a content-slice hash (a diff block is not a git object).
 	readonly contentHash: string
 	// Lean metadata stamped by the builder (issue 04) so file contents never ride the state - the
-	// tab fetches them per file via GET /api/file-contents. Derived from the diff structure + the
+	// tab fetches them per file via GET /file-contents. Derived from the diff structure + the
 	// bytes read to hash a working side; never require re-reading a committed blob.
 	//
 	// Change class, from the diff's paths (no contents): added (--- /dev/null), deleted (+++

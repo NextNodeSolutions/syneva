@@ -14,3 +14,9 @@ export function printJson(payload: unknown): void {
 export function warn(text: string): void {
 	process.stderr.write(`${text}\n`)
 }
+
+// The hub's own log line: a long-running process is read back later (a detached hub writes to
+// ~/.syneva/hub/hub.log), so every entry says when it happened.
+export function hubLog(text: string): void {
+	warn(`${new Date().toISOString()} ${text}`)
+}

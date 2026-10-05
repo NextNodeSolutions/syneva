@@ -60,7 +60,7 @@ export async function stageOneChange({
 				status: HTTP_CONFLICT,
 				code: 'PATCH_CONFLICT',
 				error: outcome.message,
-				fix: 'The working tree changed since the desk loaded. Reload it (GET /api/state) and retry.',
+				fix: 'The working tree changed since the desk loaded. Reload it (GET /state) and retry.',
 			})
 		if (outcome.decision === 'staged') {
 			const saved = await ctx.persist(outcome.state)

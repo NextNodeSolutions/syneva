@@ -1,4 +1,4 @@
-// The review boundary's wire→model mappers: the only place /api/state and /api/poll
+// The review boundary's wire→model mappers: the only place /state and /poll
 // payloads are decoded onto the frontend-owned models (model.ts). Required fields fail
 // loudly with a named boundary error; unknown response properties are ignored by
 // construction (only what's read below is copied), so newer desks stay usable.
@@ -225,7 +225,7 @@ export function decodeDeskStatus(
 	}
 }
 
-// GET /api/state: the review state plus the desk's liveness fields. Liveness is kept
+// GET /state: the review state plus the desk's liveness fields. Liveness is kept
 // OUT of the adopted review (the caller strips it - see poll.ts adoptDeskStatus); here
 // it is validated only.
 export function decodeDeskStateSnapshot(
@@ -242,7 +242,7 @@ export function decodeDeskStateSnapshot(
 	}
 }
 
-// GET /api/poll: the hash/guide/comments tick plus desk liveness, or a refresh event
+// GET /poll: the hash/guide/comments tick plus desk liveness, or a refresh event
 // after a restart. DeskStatus rides both (see packages/contracts/src/browser.ts).
 export function decodePollPayload(
 	raw: unknown,

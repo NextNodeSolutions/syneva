@@ -10,7 +10,7 @@ import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { CONTRACT_SOURCE_URL } from '@entities/site/model/project'
-import { commandOf, EVENTS, REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE, SPEC_COMMAND, SPEC_COMMAND_LABEL, SPEC_SUBCOMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
+import { commandOf, DESK_SUBCOMMANDS, EVENTS, REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE, SPEC_COMMAND, SPEC_COMMAND_LABEL, SPEC_SUBCOMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
 import { capitalize } from '@shared/lib/capitalize'
 import { countWord } from '@shared/lib/count-word'
 import { listFormat } from '@shared/lib/list-format'
@@ -22,7 +22,7 @@ const PI = [
 	['/syneva.', 'A status command inside pi: which CLI, shim and package paths your setup is using.'],
 ] as const
 const LOOP = [
-	'$ syneva --session auth &',
+	'$ syneva open --session auth',
 	'$ while ev=$(syneva await); do',
 	'    case "$(jq -r .kind <<<"$ev")" in',
 	'      question) syneva comment --path … --line … --body "…" ;;',
@@ -32,7 +32,7 @@ const LOOP = [
 	'    esac',
 	'  done',
 ]
-const SUBCOMMAND_ROWS = [...SUBCOMMANDS, SPEC_SUBCOMMAND].map(subcommand => [commandOf(subcommand.name), subcommand.does] as const)
+const SUBCOMMAND_ROWS = [...DESK_SUBCOMMANDS, ...SUBCOMMANDS, SPEC_SUBCOMMAND].map(subcommand => [commandOf(subcommand.name), subcommand.does] as const)
 const EVENT_ROWS = Object.entries(EVENTS)
 const ACTING = [
 	['rejected → revert it.', 'You don’t want that change.'],
@@ -52,7 +52,7 @@ const FIELD_PARTS = listFormat.formatToParts([...REVIEW_RESULT_FIELDS, REVIEW_RE
 <PageHero
 	title="Any agent can drive the desk."
 	lede={`The contract is plain JSON on stdout and a localhost HTTP server, documented in full by <code>${SPEC_COMMAND}</code>. If your agent can run a shell command, it can receive your review.`}
-	caption={`${capitalize(countWord(SUBCOMMANDS.length))} subcommands out, ${countWord(Object.keys(EVENTS).length)} events back.`}
+	caption={`${capitalize(countWord(DESK_SUBCOMMANDS.length + SUBCOMMANDS.length))} subcommands out, ${countWord(Object.keys(EVENTS).length)} events back.`}
 >
 	<Fragment slot="actions"><Command text={SPEC_COMMAND} label={SPEC_COMMAND_LABEL} /><TextLink href={CONTRACT_SOURCE_URL} label="Read the source" /></Fragment>
 	<ProtocolWire slot="art" />
@@ -61,7 +61,7 @@ const FIELD_PARTS = listFormat.formatToParts([...REVIEW_RESULT_FIELDS, REVIEW_RE
 	<RuledList items={PI} />
 </Prose>
 <Prose id="loop" title="Everywhere else,<br>a short loop.">
-	<ProseText>Start the desk in the background, then wait for events and branch on their kind. This is the shape; <code>{SPEC_COMMAND}</code> has every detail.</ProseText>
+	<ProseText>Open the desk on the hub (the command returns at once, and starts the hub when none runs), then wait for events and branch on their kind. This is the shape; <code>{SPEC_COMMAND}</code> has every detail.</ProseText>
 	<Terminal lines={LOOP} title="any agent" />
 </Prose>
 <Prose id="subcommands" title="Subcommands.">

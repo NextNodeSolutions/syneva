@@ -156,6 +156,9 @@ function renderReplacementView(
 // gate that decides what #diff shows for the current file. The diff itself is rendered by the
 // @pierre island (diff-instance.ts); the header builders live in file-header.ts.
 async function renderCenter(sequence: number): Promise<void> {
+	// A closed desk shows its cover and nothing else: the work surface (and #diff with it) is
+	// unmounted, so a late render request - a poll merge, a store change - has nowhere to paint.
+	if (diffCtx().S.deskClosed) return
 	if (renderGuideOverview()) return
 	const file = currentFile()
 	// Nothing to show: the pre-init window (main.ts hasn't adopted the first fetch yet), or a reload

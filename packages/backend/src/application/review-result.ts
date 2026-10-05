@@ -1,4 +1,4 @@
-import { commentAnchor } from '../domain/comments.js'
+import { commentAnchor, isRequestedChange } from '../domain/comments.js'
 import {
 	computeApprovedFiles,
 	effectiveDecisions,
@@ -7,7 +7,7 @@ import {
 import type { QuestionPayload, ReviewResult } from '@syneva/contracts/agent'
 import type { Decision, ReviewComment, ReviewState } from '../domain/review.js'
 
-// The single QuestionPayload constructor - shared by /api/ask (live question event) and
+// The single QuestionPayload constructor - shared by /ask (live question event) and
 // computeOpenQuestions (questions folded into a Send) so the two payload shapes can't drift.
 // lineNumber 0 (whole-file) stamps anchor - the agent reads "file" instead of inferring it.
 export function questionPayload(
@@ -30,20 +30,33 @@ export function questionPayload(
 	}
 }
 
+// Collision-free thread identity: a path may contain any character, so a plain joined string
+// could collide - the JSON tuple cannot.
+const threadKey = (comment: ReviewComment): string =>
+	JSON.stringify([comment.path, comment.side, comment.lineNumber])
+
 // Questions the reviewer asked but the agent hasn't answered yet. Mirrors the UI's "answered"
 // heuristic (packages/frontend/src/widgets/diff-view/annotations.ts): an open question comment is unanswered until a later agent
 // reply lands in the same thread (same path/side/line). These ride out on the Send's ReviewResult
 // so an agent that never saw the live await still owes each an answer.
 export function computeOpenQuestions(state: ReviewState): QuestionPayload[] {
-	const isAnswered = (question: ReviewComment): boolean =>
-		state.comments.some(
-			reply =>
-				reply.role === 'agent' &&
-				reply.path === question.path &&
-				reply.side === question.side &&
-				reply.lineNumber === question.lineNumber &&
-				+new Date(reply.createdAt) > +new Date(question.createdAt),
-		)
+	// One pass indexes the latest agent-reply timestamp per thread, so each question answers
+	// in O(1) instead of rescanning every comment. Invalid timestamps never count, exactly as
+	// the strict `>` comparison behaved.
+	const latestReplies = new Map<string, number>()
+	for (const reply of state.comments) {
+		if (reply.role !== 'agent') continue
+		const repliedAt = +new Date(reply.createdAt)
+		if (Number.isNaN(repliedAt)) continue
+		const key = threadKey(reply)
+		const latest = latestReplies.get(key)
+		if (!latest || repliedAt > latest) latestReplies.set(key, repliedAt)
+	}
+	const isAnswered = (question: ReviewComment): boolean => {
+		const askedAt = +new Date(question.createdAt)
+		const latest = latestReplies.get(threadKey(question))
+		return latest ? latest > askedAt : false
+	}
 	return state.comments
 		.filter(
 			comment =>
@@ -102,20 +115,13 @@ function decisionSummaries(
 function requestedChanges(
 	state: ReviewState,
 ): ReviewResult['requestedChanges'] {
-	return state.comments
-		.filter(
-			comment =>
-				comment.status === 'open' &&
-				comment.role !== 'agent' &&
-				comment.intent !== 'question',
-		)
-		.map(comment => ({
-			path: comment.path,
-			lineNumber: comment.lineNumber,
-			side: comment.side,
-			body: comment.body,
-			anchor: commentAnchor(comment.lineNumber),
-		}))
+	return state.comments.filter(isRequestedChange).map(comment => ({
+		path: comment.path,
+		lineNumber: comment.lineNumber,
+		side: comment.side,
+		body: comment.body,
+		anchor: commentAnchor(comment.lineNumber),
+	}))
 }
 
 // A blank overall note is left off the wire entirely - the agent contract prints `overallNote` only

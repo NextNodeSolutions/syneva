@@ -6,11 +6,11 @@ import type { PreviewFile, ReviewFile } from '../model'
 
 type ReviewFileT = ReviewFile
 
-// Per-file old/new contents fetched from GET /api/file-contents, so the render path no
+// Per-file old/new contents fetched from GET /file-contents, so the render path no
 // longer reads them off the polled ReviewState (issue 04 removes the embedded copies entirely). A small
 // client-side LRU keeps recently opened files warm (matching the render instance cache's size), so
 // re-opening a visited file re-renders without a round-trip. Preview files (opened from the tree
-// via /api/file) carry their contents inline and never hit this cache - see loadCurrentContents.
+// via /file) carry their contents inline and never hit this cache - see loadCurrentContents.
 
 type Contents = { oldContents: string; newContents: string }
 
@@ -131,7 +131,7 @@ export async function loadCurrentContents(
 		return 'ok'
 	}
 	const f = file
-	// A preview carries its contents inline (fetched from /api/file); nothing to fetch.
+	// A preview carries its contents inline (fetched from /file); nothing to fetch.
 	if (preview && f === preview) {
 		cur.path = f.path
 		cur.oldContents = preview.previewContents

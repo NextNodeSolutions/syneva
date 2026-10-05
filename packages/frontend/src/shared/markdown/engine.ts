@@ -202,7 +202,7 @@ export function renderMarkdown(text: string): string {
 }
 
 // The rendered FILE view: raw HTML (GitHub README wrappers, badges) comes through and passes
-// the same DOMPurify gate, and the file's own relative image srcs rewrite to /api/blob so its
+// the same DOMPurify gate, and the file's own relative image srcs rewrite to /blob so its
 // assets render. Absolute/external sources pass untouched.
 export function renderFileMarkdown(text: string): string {
 	if (!mdFile) return `<p>${esc(text)}</p>`

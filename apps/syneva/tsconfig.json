@@ -2,14 +2,15 @@
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
 		// The published package's own checked sources: the harness extension
-		// module and the tsdown bundle config (NodeNext; they import nothing
-		// from dist by design). The backend and the frontend are checked in
-		// their own packages; the assemble script is .mjs.
+		// module, the tsdown bundle config and the dev loop's composition root
+		// (NodeNext; they import nothing from dist by design). The backend and
+		// the frontend are checked in their own packages; the assemble script
+		// is .mjs.
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 		"types": ["node"],
 		"declaration": false,
 		"rootDir": "."
 	},
-	"include": ["extension/**/*.ts", "tsdown.config.ts"]
+	"include": ["extension/**/*.ts", "scripts/**/*.ts", "tsdown.config.ts"]
 }

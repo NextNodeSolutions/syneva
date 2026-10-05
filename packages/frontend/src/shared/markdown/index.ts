@@ -54,7 +54,7 @@ export function renderMarkdown(text: string): string {
 }
 
 // The rendered FILE view: like renderMarkdown but raw HTML passes (sanitized) and the file's
-// relative image srcs rewrite to /api/blob - see engine.ts.
+// relative image srcs rewrite to /blob - see engine.ts.
 export function renderFileMarkdown(text: string): string {
 	if (engine) return engine.renderFileMarkdown(text)
 	loadMarkdown()

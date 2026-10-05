@@ -59,19 +59,19 @@
 		"items": [
 			{
 				"question": "Where does my review live?",
-				"answer": "On your machine, under <code>~/.syneva</code>. Every save is persisted, and a restart restores the session on the same port, so your open tab heals itself."
+				"answer": "On your machine, under <code>~/.syneva</code>. Every save is persisted, and a hub restart restores every desk at the same URL, so your open tab heals itself."
 			},
 			{
 				"question": "Does Syneva send anything anywhere?",
-				"answer": "No telemetry, no account, no model calls. The desk binds to loopback by default. Two honest footnotes: the desk loads its web fonts from Google Fonts, so your browser fetches them when a desk opens, and at most once a day, when a desk starts, the CLI asks the npm registry whether a newer version exists (set <code>SYNEVA_NO_UPDATE_CHECK=1</code> to skip it)."
+				"answer": "No telemetry, no account, no model calls. The hub binds to loopback by default. Two honest footnotes: the desk loads its web fonts from Google Fonts, so your browser fetches them when a desk opens, and at most once a day, when a desk starts, the CLI asks the npm registry whether a newer version exists (set <code>SYNEVA_NO_UPDATE_CHECK=1</code> to skip it)."
 			},
 			{
 				"question": "Can I review from another machine?",
-				"answer": "Yes, with <code>--host</code>, for remote-dev setups. The desk API is unauthenticated, so only bind wider on a network you fully trust, like a personal tailnet."
+				"answer": "Yes, for remote-dev setups. Start the hub with <code>--host</code> and an access key (<code>--key</code>): you sign in once in the browser, your agents send the key. Without a key the hub refuses to bind beyond loopback unless you pass <code>--insecure</code>, which belongs only on a network you fully trust, like a personal tailnet."
 			},
 			{
 				"question": "What happens if I close the tab?",
-				"answer": "Nothing is lost. A desk with no open tab and no attached agent exits after about two hours, and starting it again restores everything."
+				"answer": "Nothing is lost. The hub keeps the desk serving — it never closes a desk on its own — and a hub restart restores every desk with its review state at the same URL."
 			}
 		]
 	},

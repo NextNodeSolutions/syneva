@@ -7,7 +7,7 @@ import { featureCtx } from '@features/context'
 // send review") while the slice-only auto-saves kept succeeding; the server merges this
 // slice and builds the result from its own authoritative state. overallNote is a one-time
 // instruction for the whole review; the server reads it off the body and never persists it
-// (see /api/send in the HTTP adapter).
+// (see /send in the HTTP adapter).
 export async function sendReviewToAgent(overallNote = ''): Promise<void> {
 	const { sent } = await sendReview({
 		...reviewerSlice(featureCtx().requireState()),

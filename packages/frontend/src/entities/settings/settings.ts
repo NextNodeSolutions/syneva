@@ -96,9 +96,9 @@ const SANS_FONTS_TABLE = {
 export const SANS_FONTS: Record<string, FontDef> = SANS_FONTS_TABLE
 const DEFAULT_SANS: FontDef = SANS_FONTS_TABLE['geist']
 
-// Settings persist in ~/.syneva/settings.json (via /api/settings), NOT localStorage -
-// localStorage is keyed by origin and each desk binds a random port, so anything stored
-// there evaporates between sessions. The store initializes with these defaults and the
+// Settings persist in ~/.syneva/settings.json (via /settings), NOT localStorage -
+// localStorage is keyed by origin, so it would not follow the reviewer to another browser or
+// a hosted hub. The store initializes with these defaults and the
 // init sequence in main.ts folds the server file in before first paint.
 export function loadSettings(): Settings {
 	return { ...DEFAULT_SETTINGS }

@@ -63,6 +63,8 @@ function isTyping(e: KeyboardEvent): boolean {
 
 export function installKeys(): void {
 	document.addEventListener('keydown', e => {
+		// A closed desk shows its cover and nothing else: no action has a surface to act on.
+		if (S.deskClosed) return
 		const typing = isTyping(e)
 		for (const h of HOTKEYS) {
 			if (!h.test(e)) continue
