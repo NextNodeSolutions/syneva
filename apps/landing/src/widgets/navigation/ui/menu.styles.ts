@@ -8,7 +8,7 @@ import {
 } from '@syneva/design-system/tokens.stylex'
 
 import { menuLinkMarker, workflowLinkMarker } from './markers.stylex'
-import { menuSpacing } from './menu.stylex'
+import { menuElevation, menuSpacing } from './menu.stylex'
 
 const LINK_PADDING = menuSpacing.linkPadding
 const ICON = menuSpacing.icon
@@ -16,6 +16,10 @@ const ICON_GAP = menuSpacing.iconGap
 const TITLE_LINE = menuSpacing.titleLine
 
 const linkHover = (): string => stylex.when.ancestor(':hover', menuLinkMarker)
+const linkCurrent = (): string =>
+	stylex.when.ancestor('[aria-current="page"]', menuLinkMarker)
+const workflowCurrent = (): string =>
+	stylex.when.ancestor('[aria-current="page"]', workflowLinkMarker)
 const linkFocus = (): string =>
 	stylex.when.ancestor(':focus-visible', menuLinkMarker)
 const linkPreviewed = (): string =>
@@ -42,22 +46,29 @@ const rowStagger = {
 	opacity: { default: null, [media.motionReduced]: 1 },
 }
 
+// The page you are on sits flat in the petrol wash inside a petrol hairline:
+// a place on the map, not a control lifting toward the pointer.
+const CURRENT_RING = `inset 0 0 0 1px ${color['--accent-line']}`
 const currentPage = {
 	backgroundColor: {
 		default: null,
-		':is([aria-current="page"])': color['--paper'],
+		':is([aria-current="page"])': color['--wash-tint'],
 	},
-	boxShadow: {
-		default: null,
-		':is([aria-current="page"])': `inset 2px 0 0 ${color['--accent']}`,
-	},
+	boxShadow: { default: null, ':is([aria-current="page"])': CURRENT_RING },
 }
 
-// A row without a preview takes the paper wash on hover too.
-const hoverWash = {
-	default: null,
-	':is([aria-current="page"])': color['--paper'],
-	[media.finePointer]: { default: null, ':hover': color['--paper'] },
+const RAISED_ROW = menuElevation.raised
+const raisedOnHover = {
+	backgroundColor: currentPage.backgroundColor,
+	boxShadow: {
+		default: null,
+		':is([aria-current="page"])': CURRENT_RING,
+		[media.finePointer]: {
+			default: null,
+			':is(:hover:not([aria-current="page"]))': RAISED_ROW,
+			':is([aria-current="page"]:hover)': `${CURRENT_RING}, ${RAISED_ROW}`,
+		},
+	},
 }
 
 export const menuLink = stylex.create({
@@ -68,12 +79,12 @@ export const menuLink = stylex.create({
 		padding: LINK_PADDING,
 		minHeight: '66px',
 		borderRadius: '5px',
-		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, color ${duration['--duration-fast']} ${ease['--ease-out']}`,
+		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, box-shadow ${duration['--duration-fast']} ${ease['--ease-out']}, color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		outlineOffset: { default: null, ':focus-visible': '-3px' },
 		...currentPage,
 		...rowStagger,
 	},
-	resourceHover: { backgroundColor: hoverWash },
+	resourceHover: raisedOnHover,
 	icon: {
 		width: ICON,
 		height: ICON,
@@ -84,6 +95,7 @@ export const menuLink = stylex.create({
 		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-spring-fast']} ${ease['--ease-spring']}`,
 		color: {
 			default: null,
+			[linkCurrent()]: color['--accent'],
 			[linkPreviewed()]: color['--accent'],
 			[media.finePointer]: {
 				default: null,
@@ -157,8 +169,8 @@ export const workflowLink = stylex.create({
 		gap: '4px',
 		borderRadius: '5px',
 		outlineOffset: { default: null, ':focus-visible': '-3px' },
-		backgroundColor: hoverWash,
-		boxShadow: currentPage.boxShadow,
+		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, box-shadow ${duration['--duration-fast']} ${ease['--ease-out']}`,
+		...raisedOnHover,
 		...rowStagger,
 	},
 	// The row rule is its own unrounded line: a border-top on the rounded link
@@ -204,6 +216,7 @@ export const workflowLink = stylex.create({
 		strokeWidth: 1.4,
 		color: {
 			default: null,
+			[workflowCurrent()]: color['--accent'],
 			[media.finePointer]: {
 				default: null,
 				[workflowHover()]: color['--accent'],

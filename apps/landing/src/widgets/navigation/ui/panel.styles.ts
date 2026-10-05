@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-import { menuSpacing } from './menu.stylex'
+import { menuElevation, menuSpacing } from './menu.stylex'
 import { navBounds } from './nav.stylex'
 
 const INSET = menuSpacing.inset
@@ -61,7 +61,10 @@ export const panel = stylex.create({
 			position: 'absolute',
 			inset: '0 0 auto',
 			height: 'calc(var(--selection-height) * 1px)',
-			backgroundColor: color['--paper'],
+			// The previewed row's lifted card (menu.styles.ts lifts the rows
+			// without a preview the same way).
+			backgroundColor: color['--white'],
+			boxShadow: menuElevation.raised,
 			borderRadius: '5px',
 			transform: 'translateY(calc(var(--selection-y, 0) * 1px))',
 			zIndex: -1,
