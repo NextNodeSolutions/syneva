@@ -7,18 +7,41 @@ import { deskUrl } from './base'
 // wire shape is decoded onto a frontend-owned model at its entity API boundary (see
 // decode.ts and the per-entity mappers), never asserted at the call site.
 
-// A boundary error: the hub answered, but not with something the tab can use (non-OK
-// status, or a body that fails the endpoint's decoder). Named so the UI can show a cause
-// instead of failing silently.
+// A boundary error: the hub answered with a non-OK status. Named so the UI can show a cause
+// instead of failing silently: the message is the hub's own sentence when it sent one, and
+// `code` its stable name for the cause (INVALID_OPEN, UNAUTHORIZED...) for a caller to branch on.
 export class ApiError extends Error {
 	constructor(
 		message: string,
 		readonly endpoint: string,
 		readonly status: number,
+		readonly code: string | undefined,
 	) {
 		super(message)
 		this.name = 'ApiError'
 	}
+}
+
+// The hub answers a refusal with { error, code, fix }: `error` is the sentence for a person,
+// `code` the cause's name. `fix` is written for agents and never shown. A body that is not
+// JSON (a proxy's error page) leaves the status line as the message.
+async function refusalOf(
+	response: Response,
+): Promise<{ message: string; code: string | undefined }> {
+	const body: unknown = await response.json().catch(() => null)
+	return {
+		message:
+			stringField(body, 'error') ??
+			`${response.status} ${response.statusText}`,
+		code: stringField(body, 'code'),
+	}
+}
+
+function stringField(body: unknown, key: string): string | undefined {
+	if (typeof body !== 'object' || body === null) return undefined
+	const field: unknown = Reflect.get(body, key)
+	if (typeof field !== 'string') return undefined
+	return field
 }
 
 // The one JSON request pipeline; `endpoint` is the caller-facing path ApiError reports,
@@ -32,12 +55,15 @@ const request = async (
 		headers: { 'content-type': 'application/json' },
 		...opts,
 	})
-	if (!response.ok)
+	if (!response.ok) {
+		const refusal = await refusalOf(response)
 		throw new ApiError(
-			`${response.status} ${response.statusText}`,
+			refusal.message,
 			endpoint,
 			response.status,
+			refusal.code,
 		)
+	}
 	return response.json()
 }
 

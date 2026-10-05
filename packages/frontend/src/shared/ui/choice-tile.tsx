@@ -1,0 +1,56 @@
+import * as stylex from '@stylexjs/stylex'
+import { focus } from '@syneva/design-system/controls.styles'
+
+import { choiceField } from './choice-field.styles'
+
+import type { ReactElement } from 'react'
+
+export type Choice<T extends string> = {
+	value: T
+	title: string
+	detail: string
+}
+
+type ChoiceTileProps<T extends string> = {
+	choice: Choice<T>
+	name: string
+	isChosen: boolean
+	onChoose: (choice: T) => void
+}
+
+// One radio tile: the native radio (drawn as a diamond) beside the choice's
+// title and its mono detail, the whole tile its label.
+export function ChoiceTile<T extends string>({
+	choice,
+	name,
+	isChosen,
+	onChoose,
+}: ChoiceTileProps<T>): ReactElement {
+	return (
+		<label
+			{...stylex.props(choiceField.tile, isChosen && choiceField.tileOn)}
+		>
+			<input
+				{...stylex.props(focus.ring, choiceField.radio)}
+				type="radio"
+				name={name}
+				value={choice.value}
+				checked={isChosen}
+				onChange={() => onChoose(choice.value)}
+			/>
+			<span>
+				<span
+					{...stylex.props(
+						choiceField.title,
+						isChosen && choiceField.titleOn,
+					)}
+				>
+					{choice.title}
+				</span>
+				<span {...stylex.props(choiceField.detail)}>
+					{choice.detail}
+				</span>
+			</span>
+		</label>
+	)
+}
