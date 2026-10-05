@@ -10,6 +10,21 @@ export type Email = {
 	text: string
 }
 
+const UNKNOWN_ERROR = 'unknown_error'
+
+// Resend's error code (`validation_error`, `missing_api_key`...), never its
+// message: a message can quote the recipient, and the error ends up in the
+// logs, which never hold an address.
+async function errorCodeOf(response: Response): Promise<string> {
+	const body: unknown = await response.json().catch(() => undefined)
+	return typeof body === 'object' &&
+		body !== null &&
+		'name' in body &&
+		typeof body.name === 'string'
+		? body.name
+		: UNKNOWN_ERROR
+}
+
 export async function sendEmail(apiKey: string, email: Email): Promise<void> {
 	const response = await fetch(RESEND_EMAILS_URL, {
 		method: 'POST',
@@ -27,6 +42,6 @@ export async function sendEmail(apiKey: string, email: Email): Promise<void> {
 	})
 	if (!response.ok)
 		throw new Error(
-			`Resend refused the email (${response.status}): ${await response.text()}`,
+			`Resend refused the email (${response.status} ${await errorCodeOf(response)})`,
 		)
 }
