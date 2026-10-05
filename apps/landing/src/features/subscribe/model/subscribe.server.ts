@@ -23,14 +23,32 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const INSERT_SUBSCRIBER =
 	'INSERT INTO subscribers (email) VALUES (?1) ON CONFLICT (email) DO NOTHING'
 
-function hasFormSizedBody(request: Request): boolean {
-	const length = Number(request.headers.get('content-length'))
-	return length > 0 && length <= MAX_BODY_BYTES
+// The body as it streams in, failing once it outgrows the cap. Measured on
+// the bytes themselves: a Content-Length header is optional, and a client can
+// leave it out.
+function capped(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+	let received = 0
+	return body.pipeThrough(
+		new TransformStream<Uint8Array, Uint8Array>({
+			transform(chunk, controller) {
+				received += chunk.byteLength
+				if (received > MAX_BODY_BYTES)
+					controller.error(new RangeError('signup body over the cap'))
+				else controller.enqueue(chunk)
+			},
+		}),
+	)
 }
 
+// The posted form, or nothing for a body that is missing, too long, or not a
+// form (urlencoded or multipart, as the content type says).
 async function readForm(request: Request): Promise<FormData | undefined> {
+	if (!request.body) return undefined
+	const contentType = request.headers.get('content-type') ?? ''
 	try {
-		return await request.formData()
+		return await new Response(capped(request.body), {
+			headers: { 'content-type': contentType },
+		}).formData()
 	} catch {
 		return undefined
 	}
@@ -65,7 +83,6 @@ export async function subscribe(
 	client: string,
 	bindings: SignupBindings,
 ): Promise<Outcome> {
-	if (!hasFormSizedBody(request)) return 'invalid'
 	const { success } = await bindings.limiter.limit({ key: client })
 	if (!success) return 'limited'
 	const form = await readForm(request)
