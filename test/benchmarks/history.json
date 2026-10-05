@@ -111,6 +111,16 @@
 			"id": "pierre-reuse",
 			"label": "Keep one Pierre FileDiff per file",
 			"note": "Hypothesis: following @pierre/diffs' instance model (one FileDiff kept per file, render() called again with inputs that keep their identity: memoized metadata, stable annotation objects and array, stable option callbacks, setOptions/setThemeType) removes the re-tokenize every render pass paid, without moving the cold open. Verdict on medium (pi-frontend-check driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; three fresh desks per build, interleaved; diff:render span per interaction): opening the composer 1428-1494 -> 248-276 ms, a Split/Stacked toggle 1298-1353 -> 138-148 ms, both now served from cached tokens. A decision (1283-1349 ms) and a file switch (1252-1326 ms) are unchanged: both hand Pierre a new diff, which it re-tokenizes on the main thread - the worker pool is the next lever. First colour 1603-1695 ms against the control's 1560-1606 ms: a 43-89 ms rise in every pair, not explained yet and to watch when the worker pool replaces this path."
+		},
+		{
+			"id": "pierre-pool",
+			"label": "Highlight in Pierre's worker pool",
+			"note": "Hypothesis: Pierre's own worker pool (getOrCreateWorkerPoolSingleton, 2 workers, booted with the settings) moves every tokenize off the main thread: Pierre paints plain rows at once and colours land from a worker, and highlighted results cached by the metadata's content cacheKey make a revisited file colour from cache. Verdict on medium (pi-frontend-check driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; three fresh desks per build, interleaved pool+wasm / pool+js / main-thread control): rows on screen at a cold open 315-401 ms (control: nothing until 1538-1578), first colour 1386-1449 ms (control 1538-1578); a decision's rows update in 1134-1160 ms without blocking (control 1307-1329 blocking); a switch shows rows in 118-127 ms and colour in 1080-1091 (control 1341-1355 blocking); returning to a seen file colours in 176-204 ms from the cache (control 1309-1328). The shiki-js engine variant paints plain rows earlier (251-276 ms: its workers boot without the wasm) but every colour lands 270-380 ms later (first colour 1695-1716, switch 1452-1462, decision 1475-1494): rejected, the pool keeps shiki-wasm."
+		},
+		{
+			"id": "pierre-prime",
+			"label": "Prime the next file in Pierre's pool",
+			"note": "Hypothesis: priming the next file's raw diff into the pool cache (primeDiffHighlightCache, after each selection and after the first render) makes the common next-file step open coloured, and preloading the first file's grammar at pool boot (highlighterOptions.langs) brings the first colour forward. Verdict on medium (pi-frontend-check driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; three fresh desks per build, interleaved against the pierre-pool build): the next file opens coloured in 196-214 ms (control 1083-1131), rows and colour together; first colour 1288-1338 ms (control 1368-1546); a never-warmed file still colours 1090-1158 ms after the click and a decision updates its rows in 1152-1200 ms, as before."
 		}
 	],
 	"rejected": [
@@ -1920,6 +1930,408 @@
 				"diff:render:switch": 1323
 			},
 			"note": "One FileDiff kept per file, render() again with stable inputs. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; interactions (in order: composer on a gutter click, Split->Stacked, Keep on the first change, switch to module-core-102.ts) timed by the diff:render span of the pass they trigger; interleaved with the other build."
+		},
+		{
+			"id": "pierre-pool-medium-1",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 165,
+				"plainPaint": 401,
+				"firstColor": 1449
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 243,
+				"diff:render:layout": 139,
+				"outcome:accept-rows": 1160,
+				"outcome:switch-rows": 118,
+				"outcome:switch-colour": 1080,
+				"outcome:back-colour": 176
+			},
+			"note": "Pierre worker pool, 2 workers, shiki-wasm engine, cacheKey-keyed results. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-pool-js-medium-1",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 92,
+				"plainPaint": 276,
+				"firstColor": 1716
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 232,
+				"diff:render:layout": 147,
+				"outcome:accept-rows": 1494,
+				"outcome:switch-rows": 129,
+				"outcome:switch-colour": 1462,
+				"outcome:back-colour": 182
+			},
+			"note": "Rejected variant: the same pool on the shiki-js engine - earlier plain paint (workers boot without the wasm) but every colour lands 270-380 ms later. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-pool-control-medium-1",
+			"fixture": "medium",
+			"milestone": "pierre-reuse",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 48,
+				"plainPaint": 1538,
+				"firstColor": 1538
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 241,
+				"diff:render:layout": 150,
+				"outcome:accept-rows": 1315,
+				"outcome:switch-rows": 1354,
+				"outcome:switch-colour": 1354,
+				"outcome:back-colour": 1328
+			},
+			"note": "Control for pierre-pool: the pierre-reuse build (main-thread highlighting). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-pool-medium-2",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 92,
+				"plainPaint": 321,
+				"firstColor": 1447
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 238,
+				"diff:render:layout": 141,
+				"outcome:accept-rows": 1134,
+				"outcome:switch-rows": 123,
+				"outcome:switch-colour": 1084,
+				"outcome:back-colour": 181
+			},
+			"note": "Pierre worker pool, 2 workers, shiki-wasm engine, cacheKey-keyed results. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-pool-js-medium-2",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 87,
+				"plainPaint": 251,
+				"firstColor": 1712
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 234,
+				"diff:render:layout": 149,
+				"outcome:accept-rows": 1475,
+				"outcome:switch-rows": 130,
+				"outcome:switch-colour": 1457,
+				"outcome:back-colour": 181
+			},
+			"note": "Rejected variant: the same pool on the shiki-js engine - earlier plain paint (workers boot without the wasm) but every colour lands 270-380 ms later. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-pool-control-medium-2",
+			"fixture": "medium",
+			"milestone": "pierre-reuse",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 91,
+				"plainPaint": 1578,
+				"firstColor": 1578
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 239,
+				"diff:render:layout": 142,
+				"outcome:accept-rows": 1329,
+				"outcome:switch-rows": 1341,
+				"outcome:switch-colour": 1341,
+				"outcome:back-colour": 1315
+			},
+			"note": "Control for pierre-pool: the pierre-reuse build (main-thread highlighting). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-pool-medium-3",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 91,
+				"plainPaint": 315,
+				"firstColor": 1386
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 244,
+				"diff:render:layout": 144,
+				"outcome:accept-rows": 1140,
+				"outcome:switch-rows": 127,
+				"outcome:switch-colour": 1091,
+				"outcome:back-colour": 204
+			},
+			"note": "Pierre worker pool, 2 workers, shiki-wasm engine, cacheKey-keyed results. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-pool-js-medium-3",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 100,
+				"plainPaint": 269,
+				"firstColor": 1695
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 237,
+				"diff:render:layout": 146,
+				"outcome:accept-rows": 1484,
+				"outcome:switch-rows": 128,
+				"outcome:switch-colour": 1452,
+				"outcome:back-colour": 185
+			},
+			"note": "Rejected variant: the same pool on the shiki-js engine - earlier plain paint (workers boot without the wasm) but every colour lands 270-380 ms later. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-pool-control-medium-3",
+			"fixture": "medium",
+			"milestone": "pierre-reuse",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 97,
+				"plainPaint": 1559,
+				"firstColor": 1559
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 261,
+				"diff:render:layout": 143,
+				"outcome:accept-rows": 1307,
+				"outcome:switch-rows": 1355,
+				"outcome:switch-colour": 1355,
+				"outcome:back-colour": 1309
+			},
+			"note": "Control for pierre-pool: the pierre-reuse build (main-thread highlighting). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe (rows/colours observed in the DOM): composer on a gutter click and Split->Stacked timed by their diff:render span, then Keep on the first change until its deletion rows leave the grid, a switch to module-core-102.ts until rows and until colour, and back to module-core-0.ts until colour; interleaved pw/pj/p1."
+		},
+		{
+			"id": "pierre-prime-medium-1",
+			"fixture": "medium",
+			"milestone": "pierre-prime",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 80,
+				"plainPaint": 329,
+				"firstColor": 1314
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 237,
+				"diff:render:layout": 135,
+				"outcome:accept-rows": 1152,
+				"outcome:next-rows": 197,
+				"outcome:next-colour": 197,
+				"outcome:far-rows": 122,
+				"outcome:far-colour": 1090,
+				"outcome:back-colour": 189
+			},
+			"note": "Next file primed into the pool cache, first file grammar preloaded at boot. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe: composer and Split->Stacked by their diff:render span, Keep on the first change until its deletion rows leave the grid, then module-core-102.ts (the tree's next file) until rows and until colour, module-core-60.ts (never warmed) likewise, and back to module-core-0.ts until colour; interleaved with the other build."
+		},
+		{
+			"id": "pierre-prime-control-medium-1",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 103,
+				"plainPaint": 309,
+				"firstColor": 1368
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 231,
+				"diff:render:layout": 135,
+				"outcome:accept-rows": 1120,
+				"outcome:next-rows": 127,
+				"outcome:next-colour": 1083,
+				"outcome:far-rows": 123,
+				"outcome:far-colour": 1070,
+				"outcome:back-colour": 182
+			},
+			"note": "Control for pierre-prime: the pierre-pool build (no priming, no grammar preload). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe: composer and Split->Stacked by their diff:render span, Keep on the first change until its deletion rows leave the grid, then module-core-102.ts (the tree's next file) until rows and until colour, module-core-60.ts (never warmed) likewise, and back to module-core-0.ts until colour; interleaved with the other build."
+		},
+		{
+			"id": "pierre-prime-medium-2",
+			"fixture": "medium",
+			"milestone": "pierre-prime",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 96,
+				"plainPaint": 328,
+				"firstColor": 1288
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 246,
+				"diff:render:layout": 151,
+				"outcome:accept-rows": 1154,
+				"outcome:next-rows": 196,
+				"outcome:next-colour": 196,
+				"outcome:far-rows": 125,
+				"outcome:far-colour": 1109,
+				"outcome:back-colour": 194
+			},
+			"note": "Next file primed into the pool cache, first file grammar preloaded at boot. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe: composer and Split->Stacked by their diff:render span, Keep on the first change until its deletion rows leave the grid, then module-core-102.ts (the tree's next file) until rows and until colour, module-core-60.ts (never warmed) likewise, and back to module-core-0.ts until colour; interleaved with the other build."
+		},
+		{
+			"id": "pierre-prime-control-medium-2",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 101,
+				"plainPaint": 333,
+				"firstColor": 1450
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 261,
+				"diff:render:layout": 149,
+				"outcome:accept-rows": 1180,
+				"outcome:next-rows": 131,
+				"outcome:next-colour": 1131,
+				"outcome:far-rows": 135,
+				"outcome:far-colour": 1199,
+				"outcome:back-colour": 222
+			},
+			"note": "Control for pierre-prime: the pierre-pool build (no priming, no grammar preload). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe: composer and Split->Stacked by their diff:render span, Keep on the first change until its deletion rows leave the grid, then module-core-102.ts (the tree's next file) until rows and until colour, module-core-60.ts (never warmed) likewise, and back to module-core-0.ts until colour; interleaved with the other build."
+		},
+		{
+			"id": "pierre-prime-medium-3",
+			"fixture": "medium",
+			"milestone": "pierre-prime",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 108,
+				"plainPaint": 343,
+				"firstColor": 1338
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 256,
+				"diff:render:layout": 157,
+				"outcome:accept-rows": 1200,
+				"outcome:next-rows": 214,
+				"outcome:next-colour": 214,
+				"outcome:far-rows": 131,
+				"outcome:far-colour": 1158,
+				"outcome:back-colour": 193
+			},
+			"note": "Next file primed into the pool cache, first file grammar preloaded at boot. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe: composer and Split->Stacked by their diff:render span, Keep on the first change until its deletion rows leave the grid, then module-core-102.ts (the tree's next file) until rows and until colour, module-core-60.ts (never warmed) likewise, and back to module-core-0.ts until colour; interleaved with the other build."
+		},
+		{
+			"id": "pierre-prime-control-medium-3",
+			"fixture": "medium",
+			"milestone": "pierre-pool",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 106,
+				"plainPaint": 432,
+				"firstColor": 1546
+			},
+			"pool": {
+				"boots": 1,
+				"workers": 2,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 244,
+				"diff:render:layout": 157,
+				"outcome:accept-rows": 1157,
+				"outcome:next-rows": 126,
+				"outcome:next-colour": 1116,
+				"outcome:far-rows": 110,
+				"outcome:far-colour": 1117,
+				"outcome:back-colour": 203
+			},
+			"note": "Control for pierre-prime: the pierre-pool build (no priming, no grammar preload). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; outcome probe: composer and Split->Stacked by their diff:render span, Keep on the first change until its deletion rows leave the grid, then module-core-102.ts (the tree's next file) until rows and until colour, module-core-60.ts (never warmed) likewise, and back to module-core-0.ts until colour; interleaved with the other build."
 		}
 	]
 }
