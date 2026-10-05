@@ -4,8 +4,8 @@
 import { ISSUES_URL, REPO_URL, repoFile } from '@entities/site/model/project'
 import { PAGES, SECTIONS } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
+import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
 import Brand from '@shared/ui/Brand.astro'
-import Button from '@shared/ui/Button.astro'
 import { footer } from './footer.styles'
 
 // Links to another site (absolute URLs) point up-right.
@@ -22,7 +22,7 @@ const PROJECT = [
 		<div>
 			<Brand />
 			<p {...sx(footer.pitch)}>The review desk for code your agent wrote. Local, open source, and built for the human in the loop.</p>
-			<Button href={PAGES.getStarted.href} label="Start a local review" css={footer.action} />
+			<PrimaryButton label="Start a local review" css={footer.action} />
 		</div>
 		<nav {...sx(footer.map)} aria-label="Site map">
 			{

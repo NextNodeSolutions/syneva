@@ -3,6 +3,7 @@
 // holds every section's menu, the primary action and the phone toggle.
 import type { SectionId } from '@entities/site/model/site-map'
 import { PAGES, SECTIONS } from '@entities/site/model/site-map'
+import { primaryAction } from '@entities/site/model/primary-action'
 import { sectionOf } from '@entities/site/model/routes'
 import { sx } from '@shared/lib/sx'
 import Brand from '@shared/ui/Brand.astro'
@@ -23,6 +24,7 @@ import { nav } from './navigation.styles'
 const route = Astro.url.pathname
 const active = sectionOf(route)
 const isOpenSource = route === PAGES.openSource.href
+const action = primaryAction(PAGES.getStarted.title, Astro.locals.page)
 // Each section's menu (it reads its own section), rendered inside its panel.
 const MENUS: Record<SectionId, typeof ProductMenu> = {
 	product: ProductMenu,
@@ -55,8 +57,8 @@ const MENUS: Record<SectionId, typeof ProductMenu> = {
 		>
 		<span {...sx(nav.indicator, instant.transitions)} aria-hidden="true"></span>
 	</nav>
-	<a {...sx(press.control, headerActions.action, instant.transitions, actionMarker)} href={PAGES.getStarted.href} aria-current={currentPage(PAGES.getStarted.href, route)}>
-		{PAGES.getStarted.title} <span {...sx(headerActions.actionArrow, instant.transitions)} aria-hidden="true">→</span>
+	<a {...sx(press.control, headerActions.action, instant.transitions, actionMarker)} href={action.href} aria-current={currentPage(action.href, route)}>
+		{action.label} <span {...sx(headerActions.actionArrow, instant.transitions)} aria-hidden="true">→</span>
 	</a>
 	<button
 		{...sx(press.control, headerActions.toggle, instant.transitions)}

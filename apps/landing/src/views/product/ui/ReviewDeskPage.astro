@@ -1,5 +1,5 @@
 ---
-import Button from '@shared/ui/Button.astro'
+import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
 import ChapterList from '@widgets/chapter/ui/ChapterList.astro'
 import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
@@ -10,8 +10,7 @@ import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
-import { START_COMMAND } from '@entities/site/model/project'
-import { PAGES } from '@entities/site/model/site-map'
+import { LAUNCH_STAGE, START_COMMAND } from '@entities/site/model/project'
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import DeskAnatomy from './art/DeskAnatomy.astro'
 import VerdictLifecycle from './art/VerdictLifecycle.astro'
@@ -51,7 +50,7 @@ const ROUNDS = [
 	lede={'Your agent’s diff opens in a local browser tab, rendered in full and ready to judge. Keep what’s right, undo what isn’t, sign off whole files, and send the result back without leaving the keyboard.'}
 	caption="Illustrative wireframe. Your diff, your agent, your verdicts."
 >
-	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Open your first desk" /><Command text={START_COMMAND} label="Start a review" /></Fragment>
+	<Fragment slot="actions"><PrimaryButton label="Open your first desk" />{LAUNCH_STAGE === 'live' && <Command text={START_COMMAND} label="Start a review" />}</Fragment>
 	<DeskAnatomy slot="art" />
 </PageHero>
 <Chapter id="verdicts" title="Verdicts, not vibes." caption="Pending → kept or undone → pending again only if rewritten">

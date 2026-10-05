@@ -1,8 +1,16 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import GetStartedPage from '@views/resources/ui/GetStartedPage.astro'
+import { primaryAction } from '@entities/site/model/primary-action'
+import { LAUNCH_STAGE } from '@entities/site/model/project'
 import { pageTitle } from '@entities/site/model/routes'
 import { PAGES } from '@entities/site/model/site-map'
+
+// The setup guide is built once Syneva is live. Until then its address
+// prerenders a redirect to the signup, so a link to it still lands somewhere.
+if (LAUNCH_STAGE !== 'live') {
+	return Astro.redirect(primaryAction(PAGES.getStarted.title, 'lost').href)
+}
 ---
 
 <Document

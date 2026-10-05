@@ -1,7 +1,7 @@
 ---
 import type { Guide, GuideFile } from '@syneva/contracts/review'
 
-import Button from '@shared/ui/Button.astro'
+import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
 import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
@@ -47,7 +47,7 @@ const FIELDS = [
 	lede={'Git lists changed files alphabetically. Understanding doesn’t work that way. Your agent knows what it changed and why, so let it hand you the order: contracts first, behavior next, the interface last.'}
 	caption={`Same ${countWord(GUIDE_FILE_COUNT)} files. One order makes sense of them.`}
 >
-	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Try it on your diff" /><TextLink href={PAGES.connectYourAgent.href} label="How agents attach a guide" /></Fragment>
+	<Fragment slot="actions"><PrimaryButton label="Try it on your diff" /><TextLink href={PAGES.connectYourAgent.href} label="How agents attach a guide" /></Fragment>
 	<GuideSort slot="art" />
 </PageHero>
 <Prose id="guide" title="One small JSON file.">

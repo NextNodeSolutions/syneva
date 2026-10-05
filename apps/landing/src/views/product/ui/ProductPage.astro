@@ -1,5 +1,5 @@
 ---
-import Button from '@shared/ui/Button.astro'
+import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
 import IndexRows from '@widgets/page-index/ui/IndexRows.astro'
 import PageHero from '@widgets/page-hero/ui/PageHero.astro'
@@ -7,7 +7,7 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { countWord } from '@shared/lib/count-word'
 import { capitalize } from '@shared/lib/capitalize'
@@ -33,7 +33,7 @@ const DAILY = [
 	lede={'Syneva is an integrated review environment: a browser desk on localhost where you read your agent’s diff in order, question it on the line and record a verdict on every change. It runs no model of its own. The judgment is yours, the agent is yours, and the code stays on your machine.'}
 	caption={`${capitalize(countWord(LAYERS.length))} layers, one desk. The verdicts on top are yours alone.`}
 >
-	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Start a local review" /><TextLink href={SECTION_BY_ID.workflows.href} label={`See the ${countWord(SECTION_BY_ID.workflows.items.length)} workflows`} /></Fragment>
+	<Fragment slot="actions"><PrimaryButton label="Start a local review" /><TextLink href={SECTION_BY_ID.workflows.href} label={`See the ${countWord(SECTION_BY_ID.workflows.items.length)} workflows`} /></Fragment>
 	<DeskLayers slot="art" />
 </PageHero>
 <Prose id="desk" title={'What’s on the desk.'}>
