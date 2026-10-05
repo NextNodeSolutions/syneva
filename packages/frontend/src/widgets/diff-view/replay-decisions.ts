@@ -1,14 +1,14 @@
 import { currentChanges, currentFileOrNull } from '@entities/review/changes'
 import { diffAcceptRejectHunk } from '@pierre/diffs'
+import { distillAccepted } from '@shared/diff-renderer/distill'
 import { buildLineMap } from '@shared/diff-renderer/linemap'
 import { planReplayCalls } from '@shared/diff-renderer/replay-plan'
 
 import { diffCtx } from './context'
-import { D } from './runtime'
 
 import type { ChangeState } from '@entities/review/model'
 import type { FileDiffMetadata } from '@pierre/diffs'
-import type { DecidedPosition } from '@shared/diff-renderer/linemap'
+import type { DecidedPosition, LineMap } from '@shared/diff-renderer/linemap'
 
 export type ChangePosition = { hunkIndex: number; changeIndex: number }
 
@@ -57,17 +57,18 @@ export function decidedPositions(diff: FileDiffMetadata): DecidedPosition[] {
 
 export type ReplayOutcome = {
 	diff: FileDiffMetadata
-	// The decided list the replay applied, cuts included - the distiller walks the same list.
-	decided: DecidedPosition[]
+	// The raw↔display line map the rest of the render (annotations, cursor, selections)
+	// converts through; null = identity (nothing decided).
+	lineMap: LineMap | null
 }
 
-// Replay every decided block onto the raw diff, and rebuild the raw↔display line map
-// the rest of the render (annotations, cursor, selections) converts through. Cut
-// blocks replay like any accepted block (they become the context entries the
-// distiller then drops), but their line-map breaks compress the display streams.
-export function replayDecisions(diff: FileDiffMetadata): ReplayOutcome {
-	const decided = decidedPositions(diff)
-	D.lineMap = decided.length ? buildLineMap(diff, decided) : null
+// Replay every decided block onto the raw diff and rebuild its line map. Cut blocks replay
+// like any accepted block (they become the context entries the distiller then drops), but
+// their line-map breaks compress the display streams.
+export function replayDecisions(
+	diff: FileDiffMetadata,
+	decided: DecidedPosition[],
+): ReplayOutcome {
 	let resolved = diff
 	for (const call of planReplayCalls(diff, decided)) {
 		// Cut entries replay too: their context entries are what the distiller drops.
@@ -81,5 +82,10 @@ export function replayDecisions(diff: FileDiffMetadata): ReplayOutcome {
 			// leave this block unresolved rather than aborting the replay
 		}
 	}
-	return { diff: resolved, decided }
+	return {
+		diff: decided.some(decision => decision.status === 'cut')
+			? distillAccepted(resolved, decided)
+			: resolved,
+		lineMap: decided.length ? buildLineMap(diff, decided) : null,
+	}
 }

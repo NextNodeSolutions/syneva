@@ -1,5 +1,6 @@
 import { diffCtx } from './context'
-import { landAt } from './cursor'
+import { cursorJumpTo, landAt } from './cursor'
+import { D } from './runtime'
 
 // ── Go to line ───────────────────────────────────────────────────────────────
 // Typing digits in the diff accumulates a line number (shown as the goline pill); ↵ or a short
@@ -31,8 +32,13 @@ export function golineCommit(): void {
 	const n = parseInt(diffCtx().S.golineBuffer, 10)
 	golineCancel()
 	if (!Number.isFinite(n)) return
-	// Prefer the additions/new side - the number a reviewer reads off the gutter. No retry:
-	// goline never triggers an expansion, so a miss means the line isn't rendered.
-	if (!landAt('additions', n))
-		diffCtx().toast(`Line ${n} isn't visible in this diff`)
+	// Prefer the additions/new side - the number a reviewer reads off the gutter. goline never
+	// triggers an expansion, so a miss means the line isn't rendered - unless a virtualized diff
+	// just hasn't mounted it (its VirtualNav scrolls there, see runtime.ts).
+	if (landAt('additions', n)) return
+	if (D.virtual?.scrollToLine({ side: 'additions', line: n })) {
+		cursorJumpTo('additions', n)
+		return
+	}
+	diffCtx().toast(`Line ${n} isn't visible in this diff`)
 }

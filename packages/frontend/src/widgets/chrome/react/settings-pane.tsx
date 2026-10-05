@@ -10,7 +10,7 @@ import {
 } from './settings-descriptors'
 
 import type { ReactElement } from 'react'
-import type { Option, OptionGroup } from './code-themes'
+import type { Option, OptionGroup } from './select-options'
 import type { NumberSpec, SelectSpec, TextSpec } from './settings-descriptors'
 
 // A table-driven settings pane: each control is a descriptor (label + options +

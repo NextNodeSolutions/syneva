@@ -164,13 +164,22 @@ export function landAt(side: Side, line: number): boolean {
 	return true
 }
 
-// Jump used by the blockers list. Retries once across two frames so a just-triggered
-// collapsed-region expansion (which rerenders) has laid out its rows.
+// Jump used by the blockers list and comment jumps. Retries across a few frames so a
+// just-triggered collapsed-region expansion (which rerenders) - or, on a virtualized diff, the
+// scroll that mounts a far line (virtual-nav.ts) - has laid out its rows.
+const JUMP_RETRY_FRAMES = 8
+
+function landWithin(side: Side, line: number, framesLeft: number): void {
+	if (!framesLeft) return
+	requestAnimationFrame(() => {
+		if (!landAt(side, line)) landWithin(side, line, framesLeft - 1)
+	})
+}
+
 export function cursorJumpTo(side: Side, line: number): void {
-	if (!landAt(side, line))
-		requestAnimationFrame(() =>
-			requestAnimationFrame(() => landAt(side, line)),
-		)
+	if (landAt(side, line)) return
+	D.virtual?.scrollToLine({ side, line })
+	landWithin(side, line, JUMP_RETRY_FRAMES)
 }
 
 export function cursorMoveLine(dir: 1 | -1): void {
@@ -207,6 +216,12 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 			landOn(list[j])
 			return
 		}
+	}
+	// A virtualized diff may hold the next block outside its mounted rows.
+	const far = D.virtual?.farChangeStart(cur, dir)
+	if (far) {
+		cursorJumpTo(far.side, far.line)
+		return
 	}
 	diffCtx().toast(dir === 1 ? 'No more changes' : 'No previous changes')
 }

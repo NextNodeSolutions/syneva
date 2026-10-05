@@ -16,6 +16,7 @@ import { changeAnnotations } from './change-annotations'
 import { buildCommentThread } from './comment-thread/comment-thread'
 import { diffCtx } from './context'
 import { D } from './runtime'
+import { stableAnnotations } from './stable-annotations'
 
 import type {
 	AnnotationMeta,
@@ -140,7 +141,7 @@ function composerAnnotations(
 
 // When a thread and a change land on the same display line, the decision bar must sit immediately
 // under the hunk with the thread below it - annotations render in array order, so changes go
-// first, the composer last.
+// first, the composer last. Reused across passes while unchanged (stable-annotations.ts).
 export function annotations(): AnnotationInput[] {
 	const file = currentFile(
 		diffCtx().S.state?.files,
@@ -149,11 +150,11 @@ export function annotations(): AnnotationInput[] {
 	)
 	const groups = commentGroups()
 	const threads = threadAnnotations(groups, file)
-	return [
+	return stableAnnotations([
 		...changeAnnotations(threads.coveredChangeIds),
 		...threads.annotations,
 		...composerAnnotations(file, groups),
-	]
+	])
 }
 
 // The change a thread hangs off, for the verdict bar under it: its own change for a change

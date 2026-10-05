@@ -10,7 +10,7 @@ import {
 import { esc } from '@shared/lib/esc'
 import { notifyStateMutation } from '@shared/lib/reactive'
 import { render } from '@shared/lib/render-scheduler'
-import { renderCommentBody } from '@shared/markdown'
+import { markdownRevision, renderCommentBody } from '@shared/markdown'
 
 import { awaitingHtml } from '../awaiting'
 import { diffCtx } from '../context'
@@ -200,6 +200,38 @@ function reopenThread(thread: ThreadMeta): void {
 	void render()
 	diffCtx().toast('Reopened')
 	diffCtx().persist()
+}
+
+// Everything buildCommentThread renders from, as one string - the messages, the thread's open
+// composer or editor, the relative times as displayed, and the markdown output revision (the
+// awaiting indicator patches itself in place, see awaiting.ts). Pierre keeps a rendered
+// annotation while its metadata is the same object, so the diff reuses a thread's metadata until
+// this changes: an unrelated render leaves the thread's DOM (and a focused composer) alone.
+export function threadSignature(thread: ThreadMeta): string {
+	const editingId = diffCtx().S.editingCommentId
+	return JSON.stringify([
+		thread.path,
+		thread.side,
+		thread.lineNumber,
+		thread.status,
+		thread.changeId ?? '',
+		Boolean(thread.fileLevel),
+		thread.comments.map(message => [
+			message.id,
+			message.body,
+			message.status,
+			message.role,
+			message.intent ?? '',
+			message.createdAt,
+			message.updatedAt,
+			relTime(message.createdAt),
+		]),
+		thread.comments.some(message => message.id === editingId)
+			? editingId
+			: '',
+		isReplyComposerOpen(thread),
+		markdownRevision(),
+	])
 }
 
 // The comment-box element for one thread (messages + reply/resolve/reopen + per-message

@@ -29,39 +29,6 @@ const frontendAliases = {
 	'@shared': fileURLToPath(new URL('./src/shared', import.meta.url)),
 }
 
-// @pierre/diffs imports shiki v3's full barrel (`from "shiki"`), which statically
-// pulls ~180 grammars + a 607 KB inlined oniguruma wasm. Reroute ONLY @pierre's bare
-// `shiki` specifier to a local shim backed by the curated set; Syneva's own deep
-// imports keep resolving to the real v4 package. `shiki/wasm` (referenced by
-// @pierre's never-taken oniguruma path) resolves to an empty stub.
-const shimPath = fileURLToPath(
-	new URL('./src/shared/highlighting/shiki-shim.ts', import.meta.url),
-)
-const fromPierre = (importer: string): boolean =>
-	importer.includes('@pierre/diffs')
-
-const shikiShimPlugin = (): Plugin => ({
-	name: 'shiki-shim',
-	enforce: 'pre',
-	resolveId: {
-		order: 'pre',
-		handler(source: string, importer?: string): string | null {
-			if (importer && fromPierre(importer)) {
-				if (source === 'shiki') return shimPath
-				if (source === 'shiki/wasm') return '\0shiki-wasm-stub'
-			}
-			return null
-		},
-	},
-	load: {
-		order: 'pre',
-		handler(id: string): string | undefined {
-			if (id === '\0shiki-wasm-stub') return 'export default {};'
-			return undefined
-		},
-	},
-})
-
 // Common build options: esbuild parity - no sourcemaps, one minified bundle set.
 // NonNullable: UserConfig['build'] is optional on Vite's config, but this helper
 // always returns the options object it builds.
@@ -89,8 +56,18 @@ const budgetPlugin = (): Plugin => ({
 		const chunks: { fileName: string; code: string; imports: string[] }[] =
 			[]
 		for (const [fileName, chunk] of Object.entries(bundle)) {
-			if (chunk.type !== 'chunk') continue
-			chunks.push({ fileName, code: chunk.code, imports: chunk.imports })
+			if (chunk.type === 'chunk') {
+				chunks.push({
+					fileName,
+					code: chunk.code,
+					imports: chunk.imports,
+				})
+				continue
+			}
+			// A worker is built apart and lands here as a JS asset: it ships with the UI, so it
+			// counts toward the total (never toward the initial closure - nothing imports it).
+			if (fileName.endsWith('.js') && typeof chunk.source === 'string')
+				chunks.push({ fileName, code: chunk.source, imports: [] })
 		}
 		// esbuild metafile keys are cwd-relative ('dist/ui.js', 'dist/chunks/…');
 		// Vite's are outDir-relative, and an import path can be recorded relative to
@@ -129,9 +106,21 @@ const budgetPlugin = (): Plugin => ({
 })
 
 export default defineConfig({
-	plugins: [shikiShimPlugin(), budgetPlugin(), react()],
+	plugins: [budgetPlugin(), react()],
 	resolve: {
 		alias: frontendAliases,
+	},
+	// @pierre/diffs' highlight worker: an ES module (it lazy-loads the oniguruma wasm), emitted
+	// next to the UI chunks under the same name contract the desk's chunk route serves.
+	worker: {
+		format: 'es',
+		rollupOptions: {
+			output: {
+				entryFileNames: 'chunks/[name]-[hash].js',
+				chunkFileNames: 'chunks/[name]-[hash].js',
+				hashCharacters: CHUNK_HASH_CHARS,
+			},
+		},
 	},
 	build: buildOptions({
 		rollupOptions: {

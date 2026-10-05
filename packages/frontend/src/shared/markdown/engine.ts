@@ -1,8 +1,7 @@
-// The curated Shiki theme + language set is shared with the diff view (@pierre/diffs, via
-// shiki-shim.ts) so one language set styles both surfaces - see shiki-langs.ts / shiki-themes.ts. The JS regex
-// engine (below) avoids an oniguruma wasm, and the theme names match the settings picker.
-import { loadCuratedGrammars } from '@shared/highlighting/shiki-langs'
-import { CURATED_THEMES as THEMES } from '@shared/highlighting/shiki-themes'
+// Fenced code highlights through @pierre/diffs' shared Shiki highlighter: the diff view's own
+// instance, so a code block and the diff always render the same theme (pierre-* included), and
+// grammars + themes load lazily through Pierre's resolvers instead of a second curated set.
+import { areLanguagesAttached, getSharedHighlighter } from '@pierre/diffs'
 import { esc } from '@shared/lib/esc'
 import { fromHighlighter } from '@shikijs/markdown-it/core'
 import DOMPurify from 'dompurify'
@@ -11,12 +10,10 @@ import footnote from 'markdown-it-footnote'
 // markdown-it-task-lists ships no types and has no @types package.
 // @ts-expect-error: could not find a declaration file for module 'markdown-it-task-lists'
 import taskLists from 'markdown-it-task-lists'
-import { createHighlighterCore } from 'shiki/core'
-import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 
 import { markdownRuntime } from './runtime-config'
 
-import type { HighlighterCore } from 'shiki/core'
+import type { DiffsHighlighter } from '@pierre/diffs'
 
 // A comment body only needs its identity (cache key) and its markdown text - the shared
 // markdown engine stays independent of the review model.
@@ -38,7 +35,8 @@ let mdFile: MarkdownIt | null = null
 // renders as a line break (people write comments as chat, not markdown source). File/guide
 // markdown keeps the standard soft-break behavior via `md`, so hard-wrapped prose isn't shredded.
 let mdComment: MarkdownIt | null = null
-let hl: HighlighterCore | null = null
+// The latest code theme asked for: a slower load of an earlier pick must not overwrite a newer one.
+let requestedTheme = ''
 // Comment bodies re-render on every poll tick, and each edit mints a fresh id:updatedAt key -
 // so the cache would grow without bound (an orphaned entry per edit) if left uncapped. An LRU
 // keeps it bounded like the other UI caches (contents.ts, render.ts both cap at 30).
@@ -57,7 +55,7 @@ function sourceLine(mdi: MarkdownIt): void {
 	})
 }
 
-// Shiki's highlighter loads async (wasm + grammars); markdown-it render is sync once
+// The shared highlighter loads async (theme + grammars); markdown-it render is sync once
 // ready. Until then renderMarkdown returns an escaped-text fallback; on ready we
 // repaint once so any fallbacks upgrade to rendered markdown.
 // An options object over the two orthogonal renderer flavors (the linter caps boolean params):
@@ -69,7 +67,7 @@ type MarkdownFlavor = {
 }
 
 function buildMd(
-	highlighter: HighlighterCore,
+	highlighter: DiffsHighlighter,
 	theme: string,
 	flavor: MarkdownFlavor = {},
 ): MarkdownIt {
@@ -83,65 +81,118 @@ function buildMd(
 		.use(fromHighlighter(highlighter, { theme }))
 		.use(sourceLine)
 	const { highlight } = renderer.options
-	if (highlight) {
-		renderer.options.highlight = withPlainTextFallback(
-			highlight,
-			highlighter.getLoadedLanguages(),
-		)
-	}
+	if (highlight)
+		renderer.options.highlight = withLazyLanguages(highlight, highlighter)
 	return renderer
 }
 
 // shiki's special `text` language is the one value that renders an unknown fence as plain text, and
 // markdown-it-shiki's `fallbackLanguage` option is typed as a bundled language name - a union that
-// omits it (shiki's own default for that option is 'text'). Substitute it at the integration's
-// highlight seam instead, so no fence can reach the highlighter's throw-on-unknown path. Same
-// substitution, same `language-text` class, and the fence's meta attributes pass through untouched.
+// omits it - and snapshots the loaded languages once at setup, while the shared highlighter only
+// holds the grammars something already asked for. So the substitution happens at the integration's
+// highlight seam: a fence whose grammar isn't loaded renders as `text` (same `language-text` class,
+// meta attributes untouched) and requests its grammar; the repaint then upgrades the block.
 const PLAIN_TEXT_LANGUAGE = 'text'
-function withPlainTextFallback(
+function withLazyLanguages(
 	highlight: NonNullable<MarkdownIt['options']['highlight']>,
-	loadedLanguages: string[],
+	highlighter: DiffsHighlighter,
 ): MarkdownIt['options']['highlight'] {
-	return (code, lang, attrs) =>
-		highlight(
-			code,
-			loadedLanguages.includes(lang) ? lang : PLAIN_TEXT_LANGUAGE,
-			attrs,
-		)
+	return (code, lang, attrs) => {
+		if (isLanguageLoaded(highlighter, lang))
+			return highlight(code, lang, attrs)
+		requestLanguage(lang)
+		return highlight(code, PLAIN_TEXT_LANGUAGE, attrs)
+	}
 }
 
-// Diff-only themes (e.g. pierre-dark) aren't Shiki bundles → render comment code in the
-// GitHub theme matching the chrome appearance (applyAppearance sets <html data-theme>).
-function resolveTheme(want: string): string {
-	if (want in THEMES) return want
-	return document.documentElement.dataset.theme === 'light'
-		? 'github-light'
-		: 'github-dark'
+// A bare fence and Pierre's plain names (text/ansi) need no grammar; a grammar attached under another
+// name still answers to its aliases (a .ts diff loads `typescript`, which a `ts` fence reuses).
+function isLanguageLoaded(
+	highlighter: DiffsHighlighter,
+	lang: string,
+): boolean {
+	return (
+		!lang ||
+		areLanguagesAttached(lang) ||
+		highlighter.getLoadedLanguages().includes(lang)
+	)
 }
 
-// All curated themes preload into one highlighter, so switching is instant.
-export async function initializeMarkdown(themeName: string): Promise<void> {
-	const highlighter = await createHighlighterCore({
-		themes: Object.values(THEMES),
-		langs: await loadCuratedGrammars(),
-		engine: createJavaScriptRegexEngine(),
+// Fence languages already requested (loaded, loading, or unknown to shiki): each loads at most once.
+const requestedLanguages = new Set<string>()
+// Requested during the current task: loaded together so one repaint covers every new fence.
+const pendingLanguages = new Set<string>()
+
+function requestLanguage(lang: string): void {
+	if (requestedLanguages.has(lang)) return
+	requestedLanguages.add(lang)
+	if (pendingLanguages.size === 0)
+		queueMicrotask(() => void loadPendingLanguages())
+	pendingLanguages.add(lang)
+}
+
+async function loadPendingLanguages(): Promise<void> {
+	const languages = [...pendingLanguages]
+	pendingLanguages.clear()
+	// One load per name: shiki rejects a name it has no grammar for (that fence stays plain text),
+	// and the rejection must not keep the other grammars from attaching.
+	const loads = await Promise.allSettled(
+		languages.map(lang =>
+			getSharedHighlighter({ themes: [], langs: [lang] }),
+		),
+	)
+	if (loads.some(load => load.status === 'fulfilled')) repaint()
+}
+
+// Bumped whenever rendered output changes under the same input (a theme swap, a grammar landing),
+// so a consumer that keeps rendered HTML knows it went stale.
+let revision = 0
+
+export function outputRevision(): number {
+	return revision
+}
+
+// Cached comment HTML still carries the previous theme or plain fences.
+function repaint(): void {
+	revision++
+	cache.clear()
+	markdownRuntime().onLoaded()
+}
+
+// Load `theme` into the shared highlighter, then rebuild the renderers around it - unless a newer
+// pick superseded it while it loaded.
+async function applyTheme(theme: string): Promise<boolean> {
+	requestedTheme = theme
+	const highlighter = await getSharedHighlighter({
+		themes: [theme],
+		langs: [],
 	})
-	hl = highlighter
-	const theme = resolveTheme(themeName)
+	if (theme !== requestedTheme) return false
 	md = buildMd(highlighter, theme)
 	mdFile = buildMd(highlighter, theme, { canCarryRawHtml: true })
 	mdComment = buildMd(highlighter, theme, { isBreakOnNewline: true })
+	return true
 }
 
-// Switch the comment-code theme (settings) - rebuild the renderer + drop the cache;
-// the caller re-renders. @pierre/diffs handles the diff side with the same theme name.
+// The settings decoder only admits themes Pierre resolves, so a failure here is a theme chunk that
+// failed to load - the loader's error path (toast, retry on the next render) owns it.
+export async function initializeMarkdown(themeName: string): Promise<void> {
+	await applyTheme(themeName)
+}
+
+// Switch the code-block theme (settings). The diff resolves the same name through the same
+// highlighter; the prose repaints once its renderers carry the new theme.
 export function setMarkdownTheme(name: string): void {
-	if (!hl) return
-	const theme = resolveTheme(name)
-	md = buildMd(hl, theme)
-	mdFile = buildMd(hl, theme, { canCarryRawHtml: true })
-	mdComment = buildMd(hl, theme, { isBreakOnNewline: true })
-	cache.clear()
+	if (name === requestedTheme) return
+	void switchTheme(name)
+}
+
+async function switchTheme(name: string): Promise<void> {
+	try {
+		if (await applyTheme(name)) repaint()
+	} catch {
+		// The theme chunk failed to load: code blocks keep the theme they already carry.
+	}
 }
 
 // Synchronous once the highlighter is ready.
