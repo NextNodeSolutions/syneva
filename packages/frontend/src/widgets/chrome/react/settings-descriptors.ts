@@ -3,6 +3,7 @@
 // pane re-renders from the store-version subscription like every other chrome view.
 
 import { CODE_THEMES } from '@entities/settings/code-themes'
+import { pairedCodeTheme } from '@entities/settings/settings'
 
 import { chromeCtx } from '../context'
 
@@ -115,9 +116,14 @@ export const DIFF_SELECTS: SelectSpec[] = [
 export const APPEARANCE_SELECTS: SelectSpec[] = [
 	{
 		label: 'Theme',
-		options: opts(['dark', 'Dark'], ['light', 'Light']),
+		options: opts(['light', 'Light'], ['dark', 'Dark']),
 		get: () => chromeCtx().S.settings.appearance,
 		set: next => {
+			// A code theme still at the previous appearance's default follows the switch;
+			// one the reviewer picked stays theirs (the two settings mix freely).
+			const { settings } = chromeCtx().S
+			if (settings.theme === pairedCodeTheme(settings.appearance))
+				settings.theme = pairedCodeTheme(next)
 			applySetting('appearance', next)
 		},
 	},
@@ -132,8 +138,8 @@ export const APPEARANCE_SELECTS: SelectSpec[] = [
 	{
 		label: 'Code font',
 		options: opts(
-			['jetbrains-mono', 'JetBrains Mono'],
 			['geist-mono', 'Geist Mono'],
+			['jetbrains-mono', 'JetBrains Mono'],
 			['fira-code', 'Fira Code'],
 			['ibm-plex-mono', 'IBM Plex Mono'],
 			['source-code-pro', 'Source Code Pro'],
@@ -147,8 +153,8 @@ export const APPEARANCE_SELECTS: SelectSpec[] = [
 	{
 		label: 'UI font',
 		options: opts(
-			['inter', 'Inter'],
 			['geist', 'Geist'],
+			['inter', 'Inter'],
 			['ibm-plex-sans', 'IBM Plex Sans'],
 			['system', 'System'],
 		),
