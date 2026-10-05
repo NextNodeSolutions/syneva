@@ -27,7 +27,7 @@ export const menuFooter = stylex.create({
 		outlineOffset: { default: null, ':focus-visible': '-5px' },
 	},
 	pitch: { color: color['--muted'] },
-	productPitch: { display: { default: null, [media.compact]: 'none' } },
+	productPitch: { display: { default: null, [media.navToggle]: 'none' } },
 	overview: {
 		whiteSpace: 'nowrap',
 		color: {
@@ -40,5 +40,7 @@ export const menuFooter = stylex.create({
 		},
 	},
 	// Keep the overview link on the right, as in the other menus.
-	productOverview: { marginLeft: { default: null, [media.compact]: 'auto' } },
+	productOverview: {
+		marginLeft: { default: null, [media.navToggle]: 'auto' },
+	},
 })

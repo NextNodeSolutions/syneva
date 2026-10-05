@@ -14,7 +14,7 @@ export type Settings = {
 	// <html> (which swaps the CSS custom-property palette) and the @pierre diff themeType.
 	// Independent of `theme` below - any code theme can pair with either appearance.
 	appearance: 'dark' | 'light'
-	theme: string // Shiki bundled theme (dark or light) - applies to the diff AND comment code
+	theme: string // code theme name @pierre/diffs resolves (Shiki or pierre-*) - the diff AND comment code
 	font: string // key into the FONTS map - code font (diff + comment/markdown code)
 	uiFont: string // key into the SANS_FONTS map - UI chrome font (non-code)
 	fontSize: number // px - code font size (diff + comment code)

@@ -1,5 +1,4 @@
 ---
-import DeskLayers from './art/DeskLayers.astro'
 import Button from '@shared/ui/Button.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
 import IndexRows from '@widgets/page-index/ui/IndexRows.astro'
@@ -8,11 +7,12 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { sectionById } from '@entities/site/model/site-map'
-
-type Props = { route: string }
-
-const { route } = Astro.props
+import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import { countWord } from '@shared/lib/count-word'
+import { capitalize } from '@shared/lib/capitalize'
+import DeskLayers from './art/DeskLayers.astro'
+import { LAYERS } from './art/desk-layers'
 
 const COMMITMENTS = [
 	['No model runs inside Syneva.', 'It never calls an LLM and never orchestrates one. It renders the diff, validates what it is given, and hands a result back.'],
@@ -22,24 +22,22 @@ const COMMITMENTS = [
 const DAILY = [
 	['One tab across rounds.', 'Each repo and session binds a stable port, so a restarted desk reattaches and the open tab heals itself.'],
 	['Decisions survive everything.', 'Every save is persisted under ~/.syneva. Reloads, restarts and crashes keep your verdicts.'],
-	['Keyboard first.', 'Move, keep, undo, comment, approve and send without touching the mouse. Press ? for the full map.'],
-	['Your editor, one key away.', 'Configure a repo-scoped editor command and jump to the current file and line with ⇧E.'],
+	['Keyboard first.', `Move, keep, undo, comment, approve and send without touching the mouse. Press ${HOTKEYS.keyboardMap} for the full map.`],
+	['Your editor, one key away.', `Set an editor command once and jump to the current file and line with ${HOTKEYS.openEditor}.`],
 ] as const
 ---
 
 <PageHero
-	route={route}
-	crumb="Product"
 	title="The review desk for code your agent wrote."
 	lede={'Syneva is an integrated review environment: a browser desk on localhost where you read your agent’s diff in order, question it on the line and record a verdict on every change. It runs no model of its own. The judgment is yours, the agent is yours, and the code stays on your machine.'}
-	caption="Four layers, one desk. The verdicts on top are yours alone."
+	caption={`${capitalize(countWord(LAYERS.length))} layers, one desk. The verdicts on top are yours alone.`}
 >
-	<Fragment slot="actions"><Button href="/get-started/" label="Start a local review" /><TextLink href="/workflows/" label="See the four workflows" /></Fragment>
+	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Start a local review" /><TextLink href={SECTION_BY_ID.workflows.href} label={`See the ${countWord(SECTION_BY_ID.workflows.items.length)} workflows`} /></Fragment>
 	<DeskLayers slot="art" />
 </PageHero>
 <Prose id="desk" title={'What’s on the desk.'}>
 	<ProseText>Each part of the desk answers one question you have when an agent hands you a diff: what changed, in what order should I read it, why is this here, and what do I keep.</ProseText>
-	<IndexRows items={sectionById('product').items} />
+	<IndexRows pages={SECTION_BY_ID.product.items} />
 </Prose>
 <Prose id="commitments" title={'Three commitments<br>we won’t trade away.'}>
 	<RuledList items={COMMITMENTS} />

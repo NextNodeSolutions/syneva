@@ -1,0 +1,21 @@
+---
+// The product menu: the product pages with their illustrated preview beside
+// them. On phones its footer shows the overview link alone.
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import MenuFooter from './MenuFooter.astro'
+import MenuLink from './MenuLink.astro'
+import PreviewScenes from './PreviewScenes.astro'
+import { menuFooter } from './menu-footer.styles'
+import { panel } from './panel.styles'
+
+const section = SECTION_BY_ID.product
+---
+
+<div {...sx(panel.productBody)}>
+	<div {...sx(panel.productLinks)}>
+		{section.items.map((page, index) => <MenuLink page={page} index={index} />)}
+	</div>
+	<PreviewScenes />
+</div>
+<MenuFooter section={section} css={{ pitch: menuFooter.productPitch, overview: menuFooter.productOverview }} />

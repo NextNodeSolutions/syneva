@@ -1,34 +1,30 @@
 ---
 // The start band: two commands to a first desk, and where to read more.
-import { REPO_URL } from '@entities/site/model/site-map'
+import { INSTALL_COMMAND, NODE_REQUIREMENT, REPO_URL, START_COMMAND } from '@entities/site/model/project'
+import { PAGES } from '@entities/site/model/site-map'
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import Command from '@features/copy-command/ui/Command.astro'
+import { command } from '@features/copy-command/ui/command.styles'
 import TextLink from '@shared/ui/TextLink.astro'
-import { band } from './cta-band.styles'
+import { heading } from '@shared/ui/heading.styles'
 import { section } from '@shared/ui/section.styles'
-
-type Props = { title?: string; text?: string }
-
-const {
-	title = 'Keep the speed.<br>Keep the understanding.',
-	text = 'Two commands to your first desk. Bring the agent you already use.',
-} = Astro.props
+import { band } from './cta-band.styles'
 ---
 
-<section {...revealGroup(false, section.ruled, section.pad, band.root)}>
+<section {...revealGroup(section.ruled, section.pad, band.root)}>
 	<div>
-		<h2 {...revealItem(band.title)} set:html={title} />
-		<p {...revealItem(band.text)} set:html={text} />
+		<h2 {...revealItem(heading.section)}>Keep the speed.<br />Keep the understanding.</h2>
+		<p {...revealItem(band.text)}>Two commands to your first desk. Bring the agent you already use.</p>
 		<div {...revealItem(band.links)}>
-			<TextLink href="/get-started/" label="Read the setup guide" />
-			<TextLink href={REPO_URL} label="Star it on GitHub" isExternal />
+			<TextLink href={PAGES.getStarted.href} label="Read the setup guide" />
+			<TextLink href={REPO_URL} label="Star it on GitHub" />
 		</div>
 	</div>
 	<div {...revealItem(band.install)}>
-		<p {...sx(band.label)}>Install · Node 22+ and git</p>
-		<Command text="npm install -g syneva" label="Installation command" isInstall />
+		<p {...sx(band.label)}>Install · {NODE_REQUIREMENT} and git</p>
+		<Command text={INSTALL_COMMAND} label="Installation command" css={command.onWash} />
 		<p {...sx(band.label, band.next)}>Then, inside your repository</p>
-		<Command text="syneva" label="Start a review" isInstall />
+		<Command text={START_COMMAND} label="Start a review" css={command.onWash} />
 	</div>
 </section>

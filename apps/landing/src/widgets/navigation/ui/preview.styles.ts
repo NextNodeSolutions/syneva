@@ -16,7 +16,7 @@ export const preview = stylex.create({
 		borderWidth: '1px',
 		borderStyle: 'solid',
 		borderColor: color['--line'],
-		display: { default: null, [media.compact]: 'none' },
+		display: { default: null, [media.navToggle]: 'none' },
 	},
 	scene: {
 		position: 'absolute',
@@ -157,11 +157,7 @@ export const preview = stylex.create({
 		borderLeftStyle: 'solid',
 		borderLeftColor: color['--line-strong'],
 	},
-	// border-color, as the stylesheet set it: every side, the visible left one too.
-	reply: {
-		borderColor: color['--accent'],
-		borderLeftColor: color['--accent'],
-	},
+	reply: { borderLeftColor: color['--accent'] },
 	who: {
 		display: 'block',
 		font: `8px/1.5 ${font['--mono']}`,

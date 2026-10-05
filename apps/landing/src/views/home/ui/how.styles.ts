@@ -1,31 +1,14 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
-const PAD = { default: '96px', [media.narrow]: '72px', [media.phone]: '56px' }
 
 // How it works: a heading row, the review circuit, then the four-step loop on
 // one ruled rail, read left to right.
 export const how = stylex.create({
-	section: {
-		borderTopWidth: '1px',
-		borderTopStyle: 'solid',
-		borderTopColor: LINE,
-		scrollMarginTop: '12px',
-	},
-	head: {
-		display: 'grid',
-		gridTemplateColumns: {
-			default: '1.25fr 1fr',
-			[media.narrow]: 'minmax(0, 1fr)',
-		},
-		gap: { default: '70px', [media.narrow]: '24px' },
-		paddingTop: PAD,
-		paddingBottom: '56px',
-		paddingInline: 'var(--gutter)',
-	},
-	headText: { alignSelf: 'end', maxWidth: '440px' },
+	section: { scrollMarginTop: '12px' },
+	head: { paddingBottom: '56px', paddingInline: layout['--gutter'] },
 	figure: {
 		borderBlockWidth: '1px',
 		borderBlockStyle: 'solid',
@@ -40,11 +23,7 @@ export const how = stylex.create({
 		color: color['--muted'],
 		fontSize: '12px',
 	},
-	loop: {
-		paddingTop: '64px',
-		paddingBottom: PAD,
-		paddingInline: 'var(--gutter)',
-	},
+	loop: { paddingTop: '64px', paddingInline: layout['--gutter'] },
 	steps: {
 		display: 'grid',
 		gridTemplateColumns: {
@@ -62,22 +41,7 @@ export const how = stylex.create({
 		margin: 0,
 		padding: 0,
 	},
-	step: {
-		borderTopWidth: '1px',
-		borderTopStyle: 'solid',
-		borderTopColor: color['--line-strong'],
-		padding: '22px 0 0',
-		position: 'relative',
-		'::before': {
-			content: "''",
-			position: 'absolute',
-			top: '-3.5px',
-			left: 0,
-			width: '7px',
-			height: '7px',
-			backgroundColor: color['--accent'],
-		},
-	},
+	step: { padding: '22px 0 0' },
 	stepTitle: {
 		display: 'block',
 		fontSize: '17px',

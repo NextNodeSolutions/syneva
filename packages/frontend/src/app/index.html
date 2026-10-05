@@ -2234,7 +2234,8 @@
 				line-height: 1.6;
 			}
 
-			.annotation .md code {
+			/* Inline code only: fenced blocks keep the `.md pre code` reset (this selector outranks it). */
+			.annotation .md :not(pre) > code {
 				font-size: var(--text-sm);
 				background: var(--panel3);
 				border: 1px solid var(--line);

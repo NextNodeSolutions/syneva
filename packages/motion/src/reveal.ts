@@ -1,23 +1,24 @@
-import { inView } from 'motion'
-
-import { animate } from './animate'
+import { ATTRIBUTE } from './attributes'
 import { countUp } from './count-up'
-import { EASE, toBezier } from './easing'
-import { playVocabulary } from './placement'
-import { prefersStatic } from './preference'
+import { EASE } from './easing'
+import { animate, inView } from './engine'
+import { playVocabulary } from './play-vocabulary'
+import { POSE_VALUES } from './poses'
+import { reducedMotion } from './preference'
 import { syncScenes } from './scenes'
+import { ENTRANCES, LOOPS } from './vocabulary'
 
-import type { AnimateOptions } from './options'
+import type { AnimateOptions } from './engine'
 
 // Reveal groups arrive once: a [data-reveal] section's [data-reveal-item]
 // children rise in with a stagger, a [data-rule] section draws an accent rule
 // that settles into its border, its facts count up and its drawings play.
 const REVEAL = { amount: 0.12, margin: '0px 0px -8% 0px' } as const
-const ITEM = { duration: 0.7, stagger: 0.07, rise: 'translateY(18px)' } as const
+const ITEM = { duration: 0.7, stagger: 0.07 } as const
 const STAGGER_CAP = 9
-const RULE = { duration: 1.4, delay: 0.05, drawn: 0.7, opacity: 0.9 } as const
+const RULE = { duration: 1.4, delay: 0.05, drawn: 0.7 } as const
 
-const out = toBezier(EASE.out)
+const { out } = EASE
 const RULE_TIMING: AnimateOptions = {
 	duration: RULE.duration,
 	delay: RULE.delay,
@@ -27,43 +28,76 @@ const RULE_TIMING: AnimateOptions = {
 }
 
 const itemsOf = (group: Element): Element[] => [
-	...group.querySelectorAll('[data-reveal-item]'),
+	...group.querySelectorAll(`[${ATTRIBUTE.revealItem}]`),
 ]
 
-function revealGroup(group: Element): void {
-	if (prefersStatic()) return
+// The group's items and drawings leave their hidden poses.
+const enter = (group: Element): ReturnType<typeof animate>[] => [
 	animate(
 		itemsOf(group),
-		{ opacity: [0, 1], transform: [ITEM.rise, 'none'] },
+		{ opacity: [0, 1], transform: [POSE_VALUES.itemRise, 'none'] },
 		{
 			duration: ITEM.duration,
 			ease: out,
 			delay: index => Math.min(index, STAGGER_CAP) * ITEM.stagger,
 		},
-	)
-	if (group instanceof HTMLElement && 'rule' in group.dataset)
+	),
+	...playVocabulary(group, ENTRANCES),
+]
+
+function playReveal(group: Element): void {
+	const entrances = enter(group)
+	// Reduced motion lands the entrances on their finished pose at once, so a
+	// later switch to no-preference never arms a hidden pose over content
+	// already seen. The rule, the counts and the loops stay still.
+	if (reducedMotion.matches) {
+		entrances.forEach(entrance => entrance.complete())
+		return
+	}
+	if (group.hasAttribute(ATTRIBUTE.rule))
 		animate(
 			group,
 			{
 				transform: ['scaleX(0)', 'scaleX(1)', 'scaleX(1)'],
-				opacity: [RULE.opacity, RULE.opacity, 0],
+				opacity: [POSE_VALUES.ruleOpacity, POSE_VALUES.ruleOpacity, 0],
 			},
 			RULE_TIMING,
 		)
-	for (const fact of group.querySelectorAll('[data-count]'))
+	for (const fact of group.querySelectorAll(`[${ATTRIBUTE.count}]`))
 		if (fact instanceof HTMLElement) countUp(fact)
-	playVocabulary(group)
+	playVocabulary(group, LOOPS)
 	// The group's scenes (its figures) hold their new animations until they
 	// are in view themselves.
 	syncScenes(group)
 }
 
-// Kept in module scope: the observer must outlive the call that created it.
-let stopRevealing: (() => void) | undefined
+// A group reveals once, on whichever comes first: its arrival in view, or
+// focus landing inside it. Tabbing scrolls a control only to the viewport's
+// edge, short of the arrival line, and a focused control must never stay
+// hidden.
+const GROUP = `[${ATTRIBUTE.revealGroup}]`
+const revealed = new WeakSet<Element>()
+function revealOnce(group: Element): void {
+	if (revealed.has(group)) return
+	revealed.add(group)
+	playReveal(group)
+}
+
+// Every group around the focused element, innermost first.
+function revealAround(focused: EventTarget | null): void {
+	if (!(focused instanceof Element)) return
+	for (
+		let group = focused.closest(GROUP);
+		group;
+		group = group.parentElement?.closest(GROUP) ?? null
+	)
+		revealOnce(group)
+}
 
 // Arms every group once the hidden poses are in effect, so the entrance plays
-// instead of landing on a pose that was never seen.
+// instead of landing on a pose that was never seen. The page's runtime arms
+// them once, at boot.
 export function armReveals(): void {
-	stopRevealing?.()
-	stopRevealing = inView('[data-reveal]', revealGroup, REVEAL)
+	inView(GROUP, revealOnce, REVEAL)
+	document.addEventListener('focusin', ({ target }) => revealAround(target))
 }

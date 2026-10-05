@@ -17,6 +17,7 @@ import {
 	renderOversizedCard,
 } from '@widgets/diff-view/oversized'
 import { clearOverviewRuler } from '@widgets/diff-view/overview-ruler'
+import { releaseDiffInstance } from '@widgets/diff-view/runtime'
 
 import { renderOverview } from './overview'
 
@@ -60,8 +61,7 @@ export function deferRender(): void {
 function detachDiffInstance(): void {
 	clearOverviewRuler()
 	const { D } = diffCtx()
-	D.instance?.cleanUp()
-	D.instance = null
+	releaseDiffInstance()
 	D.fileDiff = null
 	D.lineMap = null
 }

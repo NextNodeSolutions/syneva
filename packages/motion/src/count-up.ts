@@ -1,8 +1,7 @@
-import { cancelFrame, frame } from 'motion'
+import { ATTRIBUTE } from './attributes'
+import { cancelFrame, frame } from './engine'
 
-import { prefersStatic } from './preference'
-
-import type { FrameData } from 'motion'
+import type { FrameData } from './engine'
 
 // A product fact counts up from zero the first time its section arrives. It
 // only rewrites text, so it rides Motion's frame loop (batched with every
@@ -12,9 +11,12 @@ const QUART = 4
 const quartOut = (progress: number): number => 1 - (1 - progress) ** QUART
 
 export function countUp(element: HTMLElement): void {
-	const target = Number(element.dataset.count)
+	const target = Number(element.getAttribute(ATTRIBUTE.count))
 	const digits = element.firstChild
-	if (prefersStatic() || !Number.isFinite(target) || !digits) return
+	if (!Number.isFinite(target) || !digits)
+		throw new Error(
+			`A counting fact needs a numeric ${ATTRIBUTE.count} and its digits as its first child: mark it with revealCount() and print the count inside it.`,
+		)
 	const startedAt = performance.now()
 	const tick = ({ timestamp }: FrameData): void => {
 		const progress = Math.min(

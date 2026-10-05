@@ -1,0 +1,20 @@
+---
+// A menu's footer: what the section is for, and the link to its overview.
+import type { Section } from '@entities/site/model/site-map'
+import type { Part } from '@shared/lib/sx'
+import { sx } from '@shared/lib/sx'
+import { currentPage } from '../model/current-page'
+import { menuFooterMarker } from './markers.stylex'
+import { menuFooter } from './menu-footer.styles'
+
+type Props = { section: Section; css?: { pitch?: Part; overview?: Part } }
+
+const { section, css = {} } = Astro.props
+---
+
+<a {...sx(menuFooter.base, menuFooterMarker)} href={section.href} aria-current={currentPage(section.href, Astro.url.pathname)}>
+	<span {...sx(menuFooter.pitch, css.pitch)}>{section.footer}</span>
+	<span {...sx(menuFooter.overview, css.overview)}>
+		{section.overview} <span aria-hidden="true">→</span>
+	</span>
+</a>

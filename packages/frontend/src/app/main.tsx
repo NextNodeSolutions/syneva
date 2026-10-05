@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { installCommentBindings } from '@app/facade/comment-thread'
 import { installDialogBindings } from '@app/facade/dialogs'
 import { installGuideBindings } from '@app/facade/guide-bar'
-import { installNavigationBindings } from '@app/facade/navigate'
+import { installNavigationBindings, warmNextFile } from '@app/facade/navigate'
 import { installNotesBindings } from '@app/facade/notes'
 import { installProjectTreeBindings } from '@app/facade/project-tree'
 import { installFileActionBindings } from '@app/facade/review-header'
@@ -82,6 +82,21 @@ configureMarkdownRuntime({
 	// receives the resolver injected here (repo-relative images rewrite to /blob).
 	repoImageSrc: repoBlobUrl,
 })
+// Boot Pierre's highlight workers as soon as the review is known, so their boot (with the first
+// file's grammar) overlaps the first contents fetch and the diff island's own load; the island
+// adopts the same pool singleton.
+async function bootDiffWorkers(firstPaths: string[]): Promise<void> {
+	try {
+		const workers = await import('@widgets/diff-view/diff-workers')
+		workers.diffWorkerPool(
+			workers.poolRenderOptions(S.settings),
+			firstPaths,
+		)
+	} catch {
+		// A failed chunk is reported by the diff island's own load path (pages/desk/render.ts).
+	}
+}
+
 // Display preferences live in ~/.syneva/settings.json (localStorage is per-origin and the port is
 // random, so it can't hold them). Fold the file over the defaults before first paint.
 const [prefs, state, tree] = await Promise.all([
@@ -96,6 +111,9 @@ if (prefs.diffStyle === 'split' || prefs.diffStyle === 'unified')
 applyAppearance(S.settings) // font + size before first paint
 setMarkdownTheme(S.settings.theme)
 S.state = adoptDeskStatus(state)
+void bootDiffWorkers(
+	S.state.files.slice(S.fileIndex, S.fileIndex + 1).map(file => file.path),
+)
 S.projectFiles = tree.files ?? []
 S.lastBaseDiffHash = S.state.baseDiffHash
 // Tab title: name the desk so multiple desks are distinguishable in the browser.
@@ -116,7 +134,12 @@ if (hasGuide(guideInputs(S))) {
 	S.sidebarTab =
 		S.settings.sidebarDefault === 'walkthrough' ? 'walkthrough' : 'tree'
 }
-void render()
+// The first file renders, then the next one warms (contents + highlight) while it is read.
+async function renderFirstFile(): Promise<void> {
+	await render()
+	warmNextFile()
+}
+void renderFirstFile()
 // Reveal the floating Approve button once the diff scrolls past its (non-sticky) header. #diff is
 // the persistent scroll container (x-ignore), so this listener is attached once and survives every
 // re-render/file switch.

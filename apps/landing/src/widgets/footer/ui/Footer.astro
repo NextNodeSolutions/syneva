@@ -1,49 +1,51 @@
 ---
 // The site footer: the pitch, a sitemap generated from the site map, the
 // frame-wide wordmark and the product's three promises.
-import { OPEN_SOURCE, REPO_URL, SECTIONS } from '@entities/site/model/site-map'
+import { ISSUES_URL, REPO_URL, repoFile } from '@entities/site/model/project'
+import { PAGES, SECTIONS } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Brand from '@shared/ui/Brand.astro'
 import Button from '@shared/ui/Button.astro'
-import { footer as f } from './footer.styles'
+import { footer } from './footer.styles'
 
+// Links to another site (absolute URLs) point up-right.
 const PROJECT = [
-	{ href: OPEN_SOURCE.href, label: 'Open source', isExternal: false },
-	{ href: REPO_URL, label: 'GitHub', isExternal: true },
-	{ href: `${REPO_URL}/blob/main/LICENSE`, label: 'MIT license', isExternal: true },
-	{ href: `${REPO_URL}/issues`, label: 'Report an issue', isExternal: true },
+	{ href: PAGES.openSource.href, label: PAGES.openSource.title },
+	{ href: REPO_URL, label: 'GitHub' },
+	{ href: repoFile('LICENSE'), label: 'MIT license' },
+	{ href: ISSUES_URL, label: 'Report an issue' },
 ]
 ---
 
-<footer {...sx(f.root)}>
-	<div {...sx(f.top)}>
+<footer {...sx(footer.root)}>
+	<div {...sx(footer.top)}>
 		<div>
 			<Brand />
-			<p {...sx(f.pitch)}>The review desk for code your agent wrote. Local, open source, and built for the human in the loop.</p>
-			<Button href="/get-started/" label="Start a local review" isSmall />
+			<p {...sx(footer.pitch)}>The review desk for code your agent wrote. Local, open source, and built for the human in the loop.</p>
+			<Button href={PAGES.getStarted.href} label="Start a local review" css={footer.action} />
 		</div>
-		<nav {...sx(f.map)} aria-label="Site map">
+		<nav {...sx(footer.map)} aria-label="Site map">
 			{
 				SECTIONS.map(section => (
 					<div>
-						<a {...sx(f.head)} href={section.href}>{section.label}</a>
-						<ul {...sx(f.list)}>
+						<a {...sx(footer.head)} href={section.href}>{section.label}</a>
+						<ul {...sx(footer.list)}>
 							{section.items.map(page => (
-								<li><a {...sx(f.link)} href={page.href}>{page.title}</a></li>
+								<li><a {...sx(footer.link)} href={page.href}>{page.title}</a></li>
 							))}
 						</ul>
 					</div>
 				))
 			}
 			<div>
-				<a {...sx(f.head)} href={OPEN_SOURCE.href}>Project</a>
-				<ul {...sx(f.list)}>
+				<a {...sx(footer.head)} href={PAGES.openSource.href}>Project</a>
+				<ul {...sx(footer.list)}>
 					{
-						PROJECT.map(({ href, label, isExternal }) => (
+						PROJECT.map(({ href, label }) => (
 							<li>
-								<a {...sx(f.link)} href={href}>
+								<a {...sx(footer.link)} href={href}>
 									{label}
-									{isExternal && <Fragment> <span aria-hidden="true">↗</span></Fragment>}
+									{URL.canParse(href) && <Fragment> <span aria-hidden="true">↗</span></Fragment>}
 								</a>
 							</li>
 						))
@@ -52,6 +54,6 @@ const PROJECT = [
 			</div>
 		</nav>
 	</div>
-	<div {...sx(f.word)} aria-hidden="true"><span {...sx(f.wordmark)}>syneva</span></div>
-	<div {...sx(f.bottom)}><span>Your agent writes. You decide.</span><span>No model inside · No telemetry · MIT</span></div>
+	<div {...sx(footer.word)} aria-hidden="true"><span {...sx(footer.wordmark)}>syneva</span></div>
+	<div {...sx(footer.bottom)}><span>Your agent writes. You decide.</span><span>No model inside · No telemetry · MIT</span></div>
 </footer>

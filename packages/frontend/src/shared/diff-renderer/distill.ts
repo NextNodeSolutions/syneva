@@ -34,6 +34,16 @@ function contextRows(entry: ContextContent, from: FileDiffMetadata): Line[] {
 	return rows
 }
 
+// A distilled diff is another render target than the replay it came from: derive its cacheKey (as
+// @pierre's resolveRegion does per resolution) so a keyed highlight cache never serves one for the
+// other. An unkeyed diff stays unkeyed.
+function distilledCacheKey(
+	diff: FileDiffMetadata,
+): { cacheKey: string } | undefined {
+	if (!diff.cacheKey) return undefined
+	return { cacheKey: `${diff.cacheKey}:distilled` }
+}
+
 export function distillAccepted(
 	diff: FileDiffMetadata,
 	cuts: DecidedPosition[],
@@ -185,6 +195,7 @@ export function distillAccepted(
 	}
 	return {
 		...diff,
+		...distilledCacheKey(diff),
 		hunks,
 		deletionLines: deletionRows,
 		additionLines: additionRows,

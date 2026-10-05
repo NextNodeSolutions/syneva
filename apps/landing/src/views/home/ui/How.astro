@@ -1,47 +1,46 @@
 ---
 // How it works: one loop, drawn as the review circuit and told in four steps.
+import { START_COMMAND } from '@entities/site/model/project'
 import FigureTop from '@shared/ui/FigureTop.astro'
+import { ruledItem } from '@shared/ui/ruled-item.styles'
+import { section } from '@shared/ui/section.styles'
 import { stepIndex } from '@shared/ui/step-index.styles'
-import Circuit from './circuit/Circuit.astro'
-import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
+import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import { how as w } from './how.styles'
-import { twoDigits } from '@shared/lib/step-number'
+import { twoDigits } from '@shared/lib/two-digits'
+import Circuit from './circuit/Circuit.astro'
+import { how } from './how.styles'
 
 const STEPS = [
-	['Open the desk', 'Run <code>syneva</code> next to your repository. The diff opens in your browser, on localhost. Nothing leaves your machine.'],
+	['Open the desk', `Run <code>${START_COMMAND}</code> next to your repository. The diff opens in your browser, on localhost. Nothing leaves your machine.`],
 	['Read in order', 'Your agent can attach a reading order that groups files into sections. Files it doesn’t list still appear, under Other.'],
 	['Ask on the line', 'Questions anchor to the exact change. Your agent answers in the same thread while you keep reviewing.'],
 	['Send the verdict', 'Keep or undo each change, then Send. Your agent receives a structured result and re-diffs its edits into the same tab.'],
 ] as const
 ---
 
-<section {...revealGroup(true, w.section)} id="how" aria-labelledby="how-title">
-	<div {...sx(w.head)}>
+<section {...revealRuledGroup(section.ruled, section.rhythm, how.section)} id="how" aria-labelledby="how-title">
+	<div {...sx(section.head, how.head)}>
 		<h2 {...revealItem()} id="how-title">One loop.<br />Same tab, every round.</h2>
-		<p {...revealItem(w.headText)}>Your agent’s full diff comes in. You read the critical parts closely, settle every change, and send your verdict back. The agent revises, and the next round lands in the tab you never closed.</p>
+		<p {...revealItem(section.headText)}>Your agent’s full diff comes in. You read the critical parts closely, settle every change, and send your verdict back. The agent revises, and the next round lands in the tab you never closed.</p>
 	</div>
-	<figure {...revealItem(w.figure)} {...scene} aria-labelledby="circuit-caption">
-		<FigureTop subject="YOUR AGENT’S DIFF. YOUR ATTENTION." aside="THE REVIEW CIRCUIT" />
+	<figure {...revealItem(how.figure)} {...scene} aria-labelledby="circuit-caption">
+		<FigureTop aside="THE REVIEW CIRCUIT">YOUR AGENT’S DIFF. YOUR ATTENTION.</FigureTop>
 		<Circuit />
-		<figcaption {...sx(w.caption)} id="circuit-caption">Your full diff. Room to understand it. Confidence in what ships.</figcaption>
+		<figcaption {...sx(how.caption)} id="circuit-caption">Your full diff. Room to understand it. Confidence in what ships.</figcaption>
 	</figure>
-	<div {...sx(w.loop)}>
-		<ol {...sx(w.steps)}>
+	<div {...sx(how.loop)}>
+		<ol {...sx(how.steps)}>
 			{
-				STEPS.map(([title, text], i) => (
-					<li {...revealItem(w.step)}>
-						<span {...sx(stepIndex.base)}>{twoDigits(i + 1)}</span>
-						<strong {...sx(w.stepTitle)}>{title}</strong>
-						<p {...sx(w.stepText)} set:html={text} />
+				STEPS.map(([title, text], index) => (
+					<li {...revealItem(ruledItem.base, how.step)}>
+						<span {...sx(stepIndex.base)}>{twoDigits(index + 1)}</span>
+						<strong {...sx(how.stepTitle)}>{title}</strong>
+						<p {...sx(how.stepText)} set:html={text} />
 					</li>
 				))
 			}
 		</ol>
-		<p {...revealItem(w.note)}>Anything your agent rewrites resets to pending. Anything you settled stays settled.</p>
+		<p {...revealItem(how.note)}>Anything your agent rewrites resets to pending. Anything you settled stays settled.</p>
 	</div>
 </section>
-
-<script>
-	import './circuit/circuit.client'
-</script>

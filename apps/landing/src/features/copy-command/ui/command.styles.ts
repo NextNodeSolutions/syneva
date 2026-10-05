@@ -1,6 +1,11 @@
 import { pageActionsMarker } from '@shared/ui/actions.stylex'
 import * as stylex from '@stylexjs/stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 
 import { copyMarker } from './command.stylex'
 
@@ -45,19 +50,24 @@ export const command = stylex.create({
 		},
 		backgroundColor: color['--white'],
 		minWidth: 0,
-		transition: `border-color .2s ${ease['--ease-out']}`,
+		transition: `border-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		// Among a page's actions it shares the row instead of filling it.
 		flex: { default: null, [inPageActions()]: '1 1 260px' },
 		maxWidth: { default: null, [inPageActions()]: '340px' },
 	},
-	// In the install band the field sits on the wash: paper ground, petrol rule.
-	install: {
+	// A command on a wash: paper ground, petrol rule. Merged over the box, its
+	// border colour replaces the box's whole value, so it restates the focus
+	// and copied states (the field drops its outline).
+	onWash: {
 		borderColor: {
 			default: color['--accent-line'],
+			':focus-within': color['--ink'],
 			':has(.is-copied)': color['--green'],
 		},
 		backgroundColor: color['--paper'],
 	},
+	// The command a prose body (or a chapter) offers to copy, at reading width.
+	prose: { margin: '8px 0 28px', maxWidth: '360px' },
 	prompt: { color: color['--accent'], font: `14px ${font['--mono']}` },
 	field: {
 		...noBorder,
@@ -69,6 +79,9 @@ export const command = stylex.create({
 		font: `13.5px ${font['--mono']}`,
 		caretColor: color['--accent'],
 		padding: '8px 0',
+		// A command wider than a narrow field shows it is cut; the copy button
+		// still copies all of it.
+		textOverflow: 'ellipsis',
 	},
 	copy: {
 		display: 'grid',
@@ -91,10 +104,13 @@ export const command = stylex.create({
 			[copied()]: ease['--ease-spring'],
 		},
 	},
+	// Under the box, out of flow: the gap before whatever follows holds one
+	// line, so the status never wraps into a second one that would cover it.
 	status: {
 		position: 'absolute',
 		top: 'calc(100% + 6px)',
 		left: 0,
+		whiteSpace: 'nowrap',
 		font: `11px ${font['--mono']}`,
 		color: {
 			default: color['--green'],

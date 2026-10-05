@@ -1,5 +1,4 @@
 ---
-import SingleFile from './art/SingleFile.astro'
 import Command from '@features/copy-command/ui/Command.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
 import PageHero from '@widgets/page-hero/ui/PageHero.astro'
@@ -8,28 +7,24 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-
-type Props = { route: string }
-
-const { route } = Astro.props
+import { PAGES } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import SingleFile from './art/SingleFile.astro'
 
 const STATES = [
 	['Unchanged', 'The full file, ready for comments.'],
 	['Changed', 'A diff of what changed, stageable like any change.'],
 	['Untracked', 'The full file, for a verdict and comments.'],
-	['Markdown', 'Rendered with a Source toggle (m). Comment on any rendered block; the file’s own images are served from your repository.'],
+	['Markdown', `Rendered with a Source toggle (${HOTKEYS.toggleSource}). Comment on any rendered block; the file’s own images are served from your repository.`],
 ] as const
 ---
 
 <PageHero
-	route={route}
-	crumb="A single file"
 	title="One file. A plan, a spec, a piece of code."
-	state="available"
 	lede="<code>syneva file</code> opens a single file, tracked or not. Use it to review what your agent wrote before it writes code: a plan, a PRD, an issue draft, or one file you want to read in full."
 	caption="Rendered markdown, commentable block by block."
 >
-	<Command slot="actions" text="syneva file plan.md" label="Review a single file" />
+	<Command slot="actions" text={PAGES.singleFile.code} label="Review a single file" />
 	<SingleFile slot="art" />
 </PageHero>
 <Prose id="states" title="What you see<br>depends on the file.">
@@ -38,7 +33,7 @@ const STATES = [
 <Prose id="plans" title="Review the plan<br>before the code.">
 	<ProseText>The most expensive review is the one that happens after the code exists. Ask your agent for a plan, open it as a file, and settle the approach with comments on the exact paragraph.</ProseText>
 	<ProseText>With the pi package, the <code>/plan</code> prompt template wires that loop for you.</ProseText>
-	<ProseText><TextLink href="/product/plan-desk/" label="Where the plan desk is heading" /></ProseText>
+	<ProseText><TextLink href={PAGES.planDesk.href} label="Where the plan desk is heading" /></ProseText>
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

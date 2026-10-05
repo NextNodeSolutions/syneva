@@ -5,7 +5,10 @@
 		// The FSD layer aliases (Astro applies tsconfig paths to its Vite build):
 		// app -> views -> widgets -> features -> entities -> shared, strictly
 		// downward; src/pages holds the routes, which compose app and views.
-		// Enforced by oxlint's layer rules.
+		// Enforced by oxlint's layer rules. layers.json lists the layers for
+		// the configs that can import it (astro.config.ts, the root
+		// oxlint.config.ts); JSON cannot, so this is their one literal copy:
+		// keep the two in step.
 		"paths": {
 			"@app/*": ["./src/app/*"],
 			"@views/*": ["./src/views/*"],

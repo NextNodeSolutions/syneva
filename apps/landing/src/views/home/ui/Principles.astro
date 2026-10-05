@@ -2,24 +2,23 @@
 // The principle strip under the hero: what Syneva will not trade away.
 import { poses } from '@syneva/motion/poses'
 
+import { twoDigits } from '@shared/lib/two-digits'
 import { sx } from '@shared/lib/sx'
-import { principles as p } from './principles.styles'
-import { twoDigits } from '@shared/lib/step-number'
+import { introPart } from './hero-intro-part'
+import { principles } from './principles.styles'
 
 const PRINCIPLES = ['Local by default', 'Your agent, not ours', 'No model inside Syneva', 'Open source · MIT']
-const THIRD = 2
+// On narrow screens the strip folds two by two: the second row starts at this index.
+const SECOND_ROW_START = 2
 ---
 
-<div {...sx(p.strip, poses.stalledShow)} role="list" data-hero-intro="principles">
+<ul {...sx(poses.fade, principles.strip)} {...introPart('principles')}>
 	{
-		PRINCIPLES.map((principle, i) => (
-			<span
-				{...sx(p.item, i > 0 && p.notFirst, i === THIRD && p.rowStart, i >= THIRD && p.secondRow)}
-				role="listitem"
-			>
-				<b {...sx(p.index)} aria-hidden="true">{twoDigits(i + 1)}</b>
+		PRINCIPLES.map((principle, index) => (
+			<li {...sx(principles.item, index > 0 && principles.notFirst, index === SECOND_ROW_START && principles.rowStart, index >= SECOND_ROW_START && principles.secondRow)}>
+				<b {...sx(principles.index)} aria-hidden="true">{twoDigits(index + 1)}</b>
 				{principle}
-			</span>
+			</li>
 		))
 	}
-</div>
+</ul>

@@ -2,6 +2,8 @@
 // Each reads/writes the live store through chromeCtx() at call time, so the
 // pane re-renders from the store-version subscription like every other chrome view.
 
+import { CODE_THEMES } from '@entities/settings/code-themes'
+
 import { chromeCtx } from '../context'
 
 import type { Settings } from '@entities/settings/model'
@@ -16,9 +18,9 @@ function applySetting<K extends keyof Settings>(
 	chromeCtx().S.applySettings?.()
 }
 
-import { opts, CODE_THEMES } from './code-themes'
+import { opts } from './select-options'
 
-import type { Option, OptionGroup } from './code-themes'
+import type { Option, OptionGroup } from './select-options'
 
 export type SelectSpec = {
 	label: string

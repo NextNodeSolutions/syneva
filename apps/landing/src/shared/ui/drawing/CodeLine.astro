@@ -1,0 +1,14 @@
+---
+// A numbered line of code: the line number right-aligned `gap` units before
+// the code (the slot), which takes the tone of its change.
+import { sx } from '../../lib/sx'
+import { text } from './text.styles'
+
+const TONE = { green: text.green, accent: text.accent } as const
+
+type Props = { x: number; y: number; gap: number; lineNumber: number; tone?: keyof typeof TONE }
+
+const { x, y, gap, lineNumber, tone } = Astro.props
+---
+
+<text {...sx(text.lineNumber)} x={x - gap} y={y} text-anchor="end">{lineNumber}</text><text {...sx(text.code, tone && TONE[tone])} x={x} y={y}><slot /></text>

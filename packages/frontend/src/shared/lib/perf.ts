@@ -56,6 +56,7 @@ const HEADLINE_STAGES = [
 	'module',
 	'contents:loaded',
 	'render:painted',
+	'render:colored',
 	'pool:boot:start',
 	'pool:boot:done',
 	'pool:job:open',

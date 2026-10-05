@@ -2,31 +2,27 @@
 // The changelog's weeks: a date, a headline and the tagged changes.
 import { revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import { versionList as v } from './version-list.styles'
+import type { ChangeKind } from '../model/change-kinds'
+import type { Week } from '../model/changelog'
+import { versionList } from './version-list.styles'
 
-export type Week = {
-	iso: string
-	label: string
-	title: string
-	changes: readonly (readonly ['feat' | 'fix' | 'perf', string])[]
-}
 type Props = { weeks: readonly Week[] }
 
 const { weeks } = Astro.props
-const TAG = { feat: v.feat, fix: v.fix, perf: v.perf } as const
+const TAG = { feat: versionList.feat, fix: versionList.fix, perf: versionList.perf } as const satisfies Record<ChangeKind, unknown>
 ---
 
-<ol {...sx(v.root)}>
+<ol {...sx(versionList.root)}>
 	{
-		weeks.map(({ iso, label, title, changes }) => (
-			<li {...revealItem(v.week)}>
-				<time {...sx(v.date)} datetime={iso}>{label}</time>
-				<h3 {...sx(v.title)}>{title}</h3>
-				<ul {...sx(v.changes)}>
-					{changes.map(([kind, change]) => (
-						<li {...sx(v.change)}>
-							<b {...sx(v.tag, TAG[kind])}>{kind}</b>
-							{change}
+		weeks.map(({ firstDay, label, title, changes }) => (
+			<li {...revealItem(versionList.week)}>
+				<time {...sx(versionList.date)} datetime={firstDay}>{label}</time>
+				<h3 {...sx(versionList.title)}>{title}</h3>
+				<ul {...sx(versionList.changes)}>
+					{changes.map(({ kind, text }) => (
+						<li {...sx(versionList.change)}>
+							<b {...sx(versionList.tag, TAG[kind])}>{kind}</b>
+							{text}
 						</li>
 					))}
 				</ul>

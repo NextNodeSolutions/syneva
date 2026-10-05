@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-import { drawingMarker } from './art.stylex'
+import { drawingMarker } from './drawing.stylex'
 
 // Text sizes are SVG user units: figures render between roughly 0.75x
 // (phones) and 1.25x (desktop chapters). On phones, reframed drawings and
@@ -59,7 +59,10 @@ export const text = stylex.create({
 	},
 	code: { font: `11.5px ${font['--mono']}`, fill: color['--ink'] },
 	file: { font: `10.5px ${font['--mono']}`, fill: color['--ink'] },
-	ln: { font: `10.5px ${font['--mono']}`, fill: color['--line-strong'] },
+	lineNumber: {
+		font: `10.5px ${font['--mono']}`,
+		fill: color['--line-strong'],
+	},
 	head: {
 		font: `500 17px ${font['--sans']}`,
 		letterSpacing: '-.02em',

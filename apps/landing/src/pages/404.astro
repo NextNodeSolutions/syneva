@@ -1,12 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
-import LostPage from '@views/resources/ui/LostPage.astro'
+import LostPage from '@views/lost/ui/LostPage.astro'
+import { pageTitle } from '@entities/site/model/routes'
 ---
 
 <Document
-	route="/404"
-	page="lost"
-	title="Page not found · Syneva"
+	title={pageTitle('Page not found')}
 	description="This page does not exist. Every page that does is linked from the navigation and the footer."
 >
 	<LostPage />

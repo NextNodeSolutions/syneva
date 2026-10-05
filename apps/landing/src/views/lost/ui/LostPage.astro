@@ -1,0 +1,19 @@
+---
+// The 404: this page, as a change that was undone.
+import Button from '@shared/ui/Button.astro'
+import { pageActionsMarker } from '@shared/ui/actions.stylex'
+import TextLink from '@shared/ui/TextLink.astro'
+import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
+import { HOME_HREF, PAGES } from '@entities/site/model/site-map'
+import LostDiff from './art/LostDiff.astro'
+import { lost } from './lost.styles'
+---
+
+<section {...revealGroup(lost.root)} aria-labelledby="page-title">
+	<div>
+		<h1 {...revealItem(lost.title)} id="page-title">This change<br />was undone.</h1>
+		<p {...revealItem(lost.text)}>The page you asked for doesn&rsquo;t exist, or moved. Everything that does is one click away.</p>
+		<div {...revealItem(lost.actions, pageActionsMarker)}><Button href={HOME_HREF} label="Back to the home page" /><TextLink href={PAGES.getStarted.href} label="Get started" /></div>
+	</div>
+	<figure {...revealItem(lost.art)} {...scene}><LostDiff /></figure>
+</section>

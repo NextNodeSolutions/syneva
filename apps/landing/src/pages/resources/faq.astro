@@ -1,15 +1,13 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import FaqPage from '@views/resources/ui/FaqPage.astro'
-
-const route = '/resources/faq/'
+import { pageTitle } from '@entities/site/model/routes'
+import { PAGES } from '@entities/site/model/site-map'
 ---
 
 <Document
-	route={route}
-	page="sub"
-	title="Questions & answers · Syneva"
+	title={pageTitle(PAGES.faq.title)}
 	description={'Straight answers about Syneva: what it does and doesn’t do, how agents attach, where your review lives, and what’s next.'}
 >
-	<FaqPage route={route} />
+	<FaqPage />
 </Document>

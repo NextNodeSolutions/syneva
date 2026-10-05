@@ -1,14 +1,15 @@
 ---
-// The secondary action: an underlined link; external ones point up-right.
+// The secondary action: an underlined link; one to another site (an
+// absolute URL) points up-right, unless `arrow` names its own glyph.
 import type { Part } from '../lib/sx'
 import { sx } from '../lib/sx'
-import { textLink } from './actions.styles'
+import { textLink } from './text-link.styles'
 import { textLinkMarker } from './actions.stylex'
 
-type Props = { href: string; label: string; isExternal?: boolean; arrow?: string; css?: Part }
+type Props = { href: string; label: string; arrow?: string; css?: Part }
 
-const { href, label, isExternal = false, arrow, css } = Astro.props
-const glyph = arrow ?? (isExternal ? '↗' : '→')
+const { href, label, arrow, css } = Astro.props
+const glyph = arrow ?? (URL.canParse(href) ? '↗' : '→')
 // Subpages (and the 404) set chapter links a step lower.
 const isSubpageSheet = Astro.locals.page !== 'home'
 ---

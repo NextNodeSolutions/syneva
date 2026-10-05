@@ -1,33 +1,56 @@
+import { queries } from '@syneva/design-system/media.stylex'
 import { booted } from '@syneva/motion/boot'
+import { retimeLoop } from '@syneva/motion/loop-timeline'
 import { reducedMotion } from '@syneva/motion/preference'
 import { syncScenes } from '@syneva/motion/scenes'
 
-import { playCircuit, retimeSignals } from './circuit-loop'
-import { routeCircuit } from './circuit-routing'
+import { playCircuit } from './circuit-loop'
+import { travelSignals } from './circuit-signals'
+import { placeLoopLabel, routeCircuit } from './circuit-wires'
+
+import type { SignalName } from './circuit-part'
 
 // The review circuit's runtime: route the wires now, again when the phone
-// frame swaps and once the fonts settled (they can shift a port by a pixel),
-// then run the loop unless the visitor prefers reduced motion.
-const compact = matchMedia('(max-width: 600px)')
+// layout moves the stations (frames.ts swaps the viewBox) and once the fonts
+// settled (they can shift a port by a pixel), then run the loop unless the
+// visitor prefers reduced motion. The loop runs once: a preference switch
+// during the boot wait starts it early, and the boot then leaves it running.
+const phone = matchMedia(queries.phone)
 const svg = document.querySelector<SVGSVGElement>('svg[data-circuit]')
 
+let lengths = new Map<SignalName, number>()
+let isRunning = false
+
+// A running loop keeps its place on the clock; only its signals' travel
+// follows the new routes.
+function route(circuit: SVGSVGElement): void {
+	lengths = routeCircuit(circuit)
+	placeLoopLabel(circuit)
+	if (isRunning) travelSignals(circuit, lengths, retimeLoop)
+}
+
 function start(circuit: SVGSVGElement): void {
-	playCircuit(circuit, routeCircuit(circuit, compact.matches))
+	if (isRunning) return
+	isRunning = true
+	playCircuit(circuit, lengths)
 	syncScenes()
 }
 
+function stop(circuit: SVGSVGElement): void {
+	isRunning = false
+	circuit
+		.getAnimations({ subtree: true })
+		.forEach(animation => animation.cancel())
+}
+
 if (svg) {
-	routeCircuit(svg, compact.matches)
-	compact.addEventListener('change', () =>
-		retimeSignals(svg, routeCircuit(svg, compact.matches)),
-	)
+	route(svg)
+	phone.addEventListener('change', () => route(svg))
 	reducedMotion.addEventListener('change', () => {
-		svg.getAnimations({ subtree: true }).forEach(animation =>
-			animation.cancel(),
-		)
-		if (!reducedMotion.matches) start(svg)
+		if (reducedMotion.matches) stop(svg)
+		else start(svg)
 	})
 	await booted()
-	if (reducedMotion.matches) routeCircuit(svg, compact.matches)
-	else start(svg)
+	route(svg)
+	if (!reducedMotion.matches) start(svg)
 }

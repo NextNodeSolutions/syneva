@@ -19,12 +19,4 @@ export const figureTop = stylex.create({
 		color: color['--ink'],
 	},
 	aside: { color: color['--muted'], textAlign: 'right' },
-	liveDot: {
-		display: 'inline-block',
-		width: '6px',
-		height: '6px',
-		marginRight: '9px',
-		backgroundColor: color['--signal'],
-		verticalAlign: '1px',
-	},
 })

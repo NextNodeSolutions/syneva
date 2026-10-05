@@ -1,11 +1,7 @@
 ---
-// A paragraph of a prose body: inline markup in the slot, or an HTML string.
+// A paragraph of a prose body, its inline markup in the slot.
 import { revealItem } from '../../lib/reveal'
 import { prose } from './prose.styles'
-
-type Props = { html?: string }
-
-const { html } = Astro.props
 ---
 
-{html ? <p {...revealItem(prose.text)} set:html={html} /> : <p {...revealItem(prose.text)}><slot /></p>}
+<p {...revealItem(prose.text)}><slot /></p>

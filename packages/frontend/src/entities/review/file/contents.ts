@@ -95,16 +95,17 @@ async function prefetch(f: ReviewFileT): Promise<void> {
 }
 
 // `loadedOversized` is the session's "Load diff anyway" set (the store owns it): a placeholder
-// file outside it never fetches contents.
-export function prefetchContents(
+// file outside it never fetches contents. Settles once the warm-up did (at once when skipped), so
+// a caller can chain more warming onto the contents.
+export async function prefetchContents(
 	f: ReviewFileT | null | undefined,
 	loadedOversized: Set<string>,
-): void {
+): Promise<void> {
 	if (!f || isPrefetching) return
 	if (f.oversized && !loadedOversized.has(f.path)) return // placeholder - never fetch
 	if (cache.has(cacheKey(f))) return // already warm
 	isPrefetching = true
-	void prefetch(f)
+	await prefetch(f)
 }
 
 // Load `file`'s contents into `cur` before it renders. Returns:

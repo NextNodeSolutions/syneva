@@ -1,0 +1,96 @@
+---
+// The desk's column of the hero instrument: the change opened on your local
+// desk, its diff rows, the question you ask on line 14 and the agent's answer.
+import { DESK_ORIGIN } from '@entities/desk/model/desk-origin'
+import { PATH_LENGTH } from '@syneva/motion/poses'
+import AskThread from '@shared/ui/drawing/AskThread.astro'
+import { shape } from '@shared/ui/drawing/shape.styles'
+import { text } from '@shared/ui/drawing/text.styles'
+import { sx } from '@shared/lib/sx'
+import { DESK_FILE, DESK_THREAD } from './hero-round'
+import { stagePart } from './hero-stage-part'
+import { heroStage } from './hero-stage.styles'
+
+import type { LineKind } from './hero-round'
+
+// The opened change: line 13 is replaced by lines 14 and 15.
+const ROWS: readonly { line: string; kind: LineKind; code: string }[] = [
+	{ line: '12', kind: 'context', code: 'export function handle(req) {' },
+	{ line: '13', kind: 'removed', code: 'return run(req)' },
+	{ line: '14', kind: 'added', code: 'await verifySession(req)' },
+	{ line: '15', kind: 'added', code: 'return run(req)' },
+	{ line: '16', kind: 'context', code: '}' },
+]
+// A changed line shows its sign in the gutter and sets its code past it; the
+// removed line is struck through.
+const ROW_KIND = {
+	context: { sign: undefined, tone: undefined, codeX: 284, isStruck: false },
+	added: { sign: '+', tone: text.green, codeX: 298, isStruck: false },
+	removed: { sign: '−', tone: text.accent, codeX: 298, isStruck: true },
+} as const
+const FIRST_ROW_Y = 126
+const ROW_HEIGHT = 24
+// The strike spans the removed line's code, just above its baseline.
+const STRIKE = { width: 104, rise: 4 }
+const rows = ROWS.map((row, index) => ({ ...row, ...ROW_KIND[row.kind], y: FIRST_ROW_Y + index * ROW_HEIGHT }))
+const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind).length
+---
+
+<g {...sx(heroStage.layer)} {...stagePart('desk')}>
+	<text {...sx(heroStage.kicker)} x="236" y="40">YOUR DESK</text>
+	<text {...sx(heroStage.sub, heroStage.mono)} x="236" y="58">{DESK_ORIGIN}</text>
+	<rect {...sx(shape.panelWhite)} x="236" y="72" width="292" height="280"></rect>
+	<g opacity="0" {...stagePart('idle')}>
+		<text {...sx(text.tiny)} x="382" y="215" text-anchor="middle">WAITING FOR YOUR AGENT’S DIFF</text>
+		<rect {...sx(heroStage.caret)} x="379" y="225" width="6" height="11" {...stagePart('caret')}></rect>
+	</g>
+	<g {...stagePart('head')}>
+		<text {...sx(text.file, text.strong)} x="250" y="93">{DESK_FILE.path}</text>
+		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+{countOf('added')} −{countOf('removed')}</text>
+		<g><rect {...sx(shape.kbd)} x="460" y="80" width="28" height="16"></rect><path {...sx(heroStage.buttonGlyph)} d="m471 85 6 6m0-6-6 6"></path></g>
+		<g>
+			<rect {...sx(shape.kbd, shape.chipYes)} x="492" y="80" width="28" height="16" {...stagePart('accept')}></rect>
+			<path {...sx(heroStage.buttonGlyph, heroStage.acceptGlyph)} d="m502 88 2.6 2.6 5-5.6" {...stagePart('accept-glyph')}></path>
+		</g>
+	</g>
+	<path {...sx(shape.hair)} d="M236 104h292"></path>
+	<rect {...sx(shape.bandNo)} x="237" y="134" width="290" height="24" {...stagePart('band-removed')}></rect>
+	<rect {...sx(shape.bandYes)} x="237" y="158" width="290" height="48" {...stagePart('band-added')}></rect>
+	<rect {...sx(shape.bandFocus)} x="237" y="110" width="290" height="24" opacity="0" {...stagePart('sweep')}></rect>
+	{
+		rows.map(({ line, sign, tone, code, codeX, isStruck, y }) => (
+			<g {...stagePart('row')}>
+				<text {...sx(text.lineNumber)} x="262" y={y} text-anchor="end">{line}</text>
+				{sign && <text {...sx(heroStage.sign, tone)} x="270" y={y}>{sign}</text>}
+				<text {...sx(text.code, tone)} x={codeX} y={y}>{code}</text>
+				{isStruck && <path {...sx(heroStage.strike, heroStage.fillBoxLeft)} d={`M${codeX} ${y - STRIKE.rise}h${STRIKE.width}`} {...stagePart('strike')} />}
+			</g>
+		))
+	}
+	<path {...sx(shape.check)} pathLength={PATH_LENGTH.draw} d="m241 171 3 3 5.5-6.5" {...stagePart('gutter-check')}></path>
+	<path {...sx(shape.check)} pathLength={PATH_LENGTH.draw} d="m241 195 3 3 5.5-6.5" {...stagePart('gutter-check')}></path>
+	<path {...sx(heroStage.leader)} pathLength={PATH_LENGTH.draw} d="M510 179V244" {...stagePart('leader')}></path>
+	<g {...sx(heroStage.fillBox)} {...stagePart('chip')}>
+		<circle {...sx(shape.chipNo)} cx="510" cy="170" r="9"></circle>
+		<text {...sx(heroStage.chipText)} x="510" y="174" text-anchor="middle">?</text>
+	</g>
+	<g {...stagePart('thread')}>
+		<AskThread x={250} y={244} width={264} height={94}>
+			<g {...stagePart('you')}>
+				<text {...sx(heroStage.who)} x="264" y="264">YOU · ASK</text>
+				<text {...sx(heroStage.message)} x="264" y="281">{DESK_THREAD.question}</text>
+			</g>
+			<g opacity="0" {...stagePart('typing')}>
+				<circle {...sx(shape.dotAccent)} cx="266" cy="318" r="2" {...stagePart('typing-dot')}></circle>
+				<circle {...sx(shape.dotAccent)} cx="274" cy="318" r="2" {...stagePart('typing-dot')}></circle>
+				<circle {...sx(shape.dotAccent)} cx="282" cy="318" r="2" {...stagePart('typing-dot')}></circle>
+			</g>
+			<g {...stagePart('agent-says')}>
+				<text {...sx(heroStage.who, heroStage.agentWho)} x="264" y="304">YOUR AGENT</text>
+				<text {...sx(heroStage.message)} x="264" y="321">{DESK_THREAD.answer}</text>
+			</g>
+		</AskThread>
+	</g>
+	<circle {...sx(shape.port)} cx="236" cy="170" r="2.5"></circle>
+	<circle {...sx(shape.port)} cx="528" cy="88" r="2.5"></circle>
+</g>

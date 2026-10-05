@@ -1,23 +1,29 @@
 ---
 // Plan desk: what already works today, with syneva file.
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import { PAGES } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
+import AskThread from '@shared/ui/drawing/AskThread.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 ---
 
-<Drawing viewBox="0 0 600 330" compact="20 20 566 300" labelledby="today-title today-desc">
-	<title id="today-title">Reviewing a plan today, with syneva file</title>
-	<desc id="today-desc">Today the CLI opens a plan as a single file. Markdown renders with a Rendered and Source toggle, and you can comment on any rendered block; your agent answers in the thread.</desc>
-	<ArtFrame id="today" width={600} height={330} />
+<Drawing
+	id="today"
+	width={600}
+	height={330}
+	compact="20 20 566 310"
+	title="Reviewing a plan today, with syneva file"
+	description="Today the CLI opens a plan as a single file. Markdown renders with a Rendered and Source toggle, and you can comment on any rendered block; your agent answers in the thread."
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="40" y="40" width="520" height="260"></rect>
 		<text {...sx(text.file, text.strong)} x="56" y="64">plan.md</text>
 		<rect {...sx(shape.kbd)} x="400" y="50" width="70" height="20"></rect><text {...sx(text.tiny)} x="435" y="64" text-anchor="middle">RENDERED</text>
-		<rect {...sx(shape.panel)} x="470" y="50" width="76" height="20"></rect><text {...sx(text.tiny)} x="508" y="64" text-anchor="middle">SOURCE · m</text>
+		<rect {...sx(shape.panel)} x="470" y="50" width="76" height="20"></rect><text {...sx(text.tiny)} x="508" y="64" text-anchor="middle">SOURCE · {HOTKEYS.toggleSource}</text>
 		<path {...sx(shape.hair)} d="M40 80h520"></path>
 		<text {...sx(text.head)} x="56" y="112">Move session checks into middleware</text>
 		<path {...sx(shape.lines)} d="M56 136h380M56 152h320"></path>
@@ -25,11 +31,12 @@ import { text } from '@shared/ui/drawing/text.styles'
 		<path {...sx(shape.lines)} d="M56 182h280M56 198h240"></path>
 		<path {...sx(shape.lines)} d="M56 236h360M56 252h300M56 268h200"></path>
 	</g>
-	<path {...anim('draw', 0.6, h.askAnchor)} pathLength="1" d="M348 190h34"></path>
+	<path {...anim('draw', 0.6, homeArt.askAnchor)} d="M348 190h34"></path>
 	<g {...anim('rise', 0.8)}>
-		<rect {...sx(h.askThread)} x="382" y="150" width="166" height="88"></rect><path {...sx(h.askRail)} d="M382 150v88"></path>
-		<text {...sx(text.tiny)} x="394" y="170">YOU · ASK</text><text {...sx(text.small)} x="394" y="188">What happens when</text><text {...sx(text.small)} x="394" y="204">the session expires?</text>
-		<text {...sx(text.tiny, text.accent)} x="394" y="226">AGENT IS ANSWERING…</text>
+		<AskThread x={382} y={150} width={166} height={88}>
+			<text {...sx(text.tiny)} x="394" y="170">YOU · ASK</text><text {...sx(text.small)} x="394" y="188">What happens when</text><text {...sx(text.small)} x="394" y="204">the session expires?</text>
+			<text {...sx(text.tiny, text.accent)} x="394" y="226">AGENT IS ANSWERING…</text>
+		</AskThread>
 	</g>
-	<text {...anim('fade', 1.2, text.code)} x="56" y="322">$ syneva file plan.md</text>
+	<text {...anim('fade', 1.2, text.code)} x="56" y="322">$ {PAGES.singleFile.code}</text>
 </Drawing>

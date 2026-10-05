@@ -1,78 +1,67 @@
 ---
 // The product menu's illustrative side preview: each product link swaps in a
-// tiny, honest scene of what its page is about. The first scene is current
-// until the client selects the hovered or focused link's scene.
+// tiny, honest scene of what its page is about. The runtime marks the scene
+// of the selected row current, starting on the first.
 import { sx } from '@shared/lib/sx'
-import { sceneMarker } from './markers.stylex'
-import { motions as m } from './preview-motion.styles'
-import { preview as p } from './preview.styles'
+import { twoDigits } from '@shared/lib/two-digits'
+import PreviewScene from './PreviewScene.astro'
+import { motions } from './preview-motion.styles'
+import { preview } from './preview.styles'
 
-const scene = (name: string) => ({
-	...sx(p.scene, sceneMarker, name === 'review' && 'is-current'),
-	'data-scene': name,
-})
+// The reading order the guide scene shows, numbered 01, 02, ...
+const GUIDE_STEPS = [
+	{ title: 'Start with the contract', file: 'contracts/review.ts' },
+	{ title: 'Follow the behavior', file: 'auth/session.ts' },
+	{ title: 'Check the interface', file: 'pages/desk.tsx' },
+]
 ---
 
-<div {...sx(p.frame)} aria-hidden="true">
-	<div {...scene('review')}>
-		<div {...sx(p.caption)}><span>YOUR LOCAL DESK</span><span {...sx(p.dot)}></span></div>
-		<div {...sx(p.diff)}>
-			<div {...sx(p.filename)}>auth/session.ts <span {...sx(p.filenameStat)}>+2 −1</span></div>
-			<div {...sx(p.code)}>
-				<span {...sx(p.codeLine, p.minus, m.codeLine)}>− return run(req)</span>
-				<span {...sx(p.codeLine, p.plus, m.codeLine)}>+ await verifySession(req)</span>
-				<span {...sx(p.codeLine, p.plus, m.lastAddedLine)}>+ return run(req)</span>
+<div {...sx(preview.frame)} aria-hidden="true">
+	<PreviewScene name="review" caption="YOUR LOCAL DESK" pitch={['Your agent writes.', 'You decide what stays.']}>
+		<div {...sx(preview.diff)}>
+			<div {...sx(preview.filename)}>auth/session.ts <span {...sx(preview.filenameStat)}>+2 −1</span></div>
+			<div {...sx(preview.code)}>
+				<span {...sx(preview.codeLine, preview.minus, motions.codeLine)}>− return run(req)</span>
+				<span {...sx(preview.codeLine, preview.plus, motions.codeLine)}>+ await verifySession(req)</span>
+				<span {...sx(preview.codeLine, preview.plus, motions.lastAddedLine)}>+ return run(req)</span>
 			</div>
-			<div {...sx(p.verdict, m.verdict)}><span {...sx(p.check)}>✓</span> Accepted by you</div>
+			<div {...sx(preview.verdict, motions.verdict)}><span {...sx(preview.check)}>✓</span> Accepted by you</div>
 		</div>
-		<p {...sx(p.pitch)}>Your agent writes.<br /><strong {...sx(p.pitchStrong)}>You decide what stays.</strong></p>
-	</div>
-	<div {...scene('guide')}>
-		<div {...sx(p.caption)}><span>A READING ORDER</span><span {...sx(p.dot)}></span></div>
-		<div {...sx(p.tree)}>
-			<div {...sx(p.treeRow)}>
-				<span {...sx(p.treeIndex)}>01</span>
-				<strong {...sx(p.treeTitle)}>Start with the contract</strong>
-				<small {...sx(p.treeFile)}>contracts/review.ts</small>
-			</div>
-			<div {...sx(p.treeRow)}>
-				<span {...sx(p.treeIndex)}>02</span>
-				<strong {...sx(p.treeTitle)}>Follow the behavior</strong>
-				<small {...sx(p.treeFile)}>auth/session.ts</small>
-			</div>
-			<div {...sx(p.treeRow)}>
-				<span {...sx(p.treeIndex)}>03</span>
-				<strong {...sx(p.treeTitle)}>Check the interface</strong>
-				<small {...sx(p.treeFile)}>pages/desk.tsx</small>
-			</div>
+	</PreviewScene>
+	<PreviewScene name="guide" caption="A READING ORDER" pitch={['Your agent sets the order.', 'Every file stays visible.']}>
+		<div {...sx(preview.tree)}>
+			{
+				GUIDE_STEPS.map((step, index) => (
+					<div {...sx(preview.treeRow)}>
+						<span {...sx(preview.treeIndex)}>{twoDigits(index + 1)}</span>
+						<strong {...sx(preview.treeTitle)}>{step.title}</strong>
+						<small {...sx(preview.treeFile)}>{step.file}</small>
+					</div>
+				))
+			}
 		</div>
-		<p {...sx(p.pitch)}>Your agent sets the order.<br /><strong {...sx(p.pitchStrong)}>Every file stays visible.</strong></p>
-	</div>
-	<div {...scene('ask')}>
-		<div {...sx(p.caption)}><span>ON THE EXACT LINE</span><span {...sx(p.dot)}></span></div>
-		<div {...sx(p.conversation)}>
-			<code {...sx(p.conversationCode)}>+ await verifySession(req)</code>
-			<div {...sx(p.message, m.message)}>
-				<span {...sx(p.who)}>YOU</span>
-				<p {...sx(p.said)}>What if the session already expired?</p>
+	</PreviewScene>
+	<PreviewScene name="ask" caption="ON THE EXACT LINE" pitch={['Ask where it matters.', 'The answer stays there.']}>
+		<div {...sx(preview.conversation)}>
+			<code {...sx(preview.conversationCode)}>+ await verifySession(req)</code>
+			<div {...sx(preview.message, motions.message)}>
+				<span {...sx(preview.who)}>YOU</span>
+				<p {...sx(preview.said)}>What if the session already expired?</p>
 			</div>
-			<div {...sx(p.message, p.reply, m.reply)}>
-				<span {...sx(p.who)}>YOUR AGENT</span>
-				<p {...sx(p.said)}>It returns 401 before the handler runs.</p>
+			<div {...sx(preview.message, preview.reply, motions.reply)}>
+				<span {...sx(preview.who)}>YOUR AGENT</span>
+				<p {...sx(preview.said)}>It returns 401 before the handler runs.</p>
 			</div>
 		</div>
-		<p {...sx(p.pitch)}>Ask where it matters.<br /><strong {...sx(p.pitchStrong)}>The answer stays there.</strong></p>
-	</div>
-	<div {...scene('plan')}>
-		<div {...sx(p.caption)}><span>PLAN DESK · PROTOTYPE</span></div>
-		<div {...sx(p.plan)}>
-			<span {...sx(p.planFile)}>plan.md</span>
-			<strong {...sx(p.planTitle)}>Move session checks<br />into middleware.</strong>
-			<div {...sx(p.planQuestion, m.planQuestion)}>
-				What happens when<br />the session expires? <span {...sx(p.planMark)}>?</span>
+	</PreviewScene>
+	<PreviewScene name="plan" caption="PLAN DESK" pitch={['Find the assumption.', 'Settle it before the diff.']}>
+		<div {...sx(preview.plan)}>
+			<span {...sx(preview.planFile)}>plan.md</span>
+			<strong {...sx(preview.planTitle)}>Move session checks<br />into middleware.</strong>
+			<div {...sx(preview.planQuestion, motions.planQuestion)}>
+				What happens when<br />the session expires? <span {...sx(preview.planMark)}>?</span>
 			</div>
 		</div>
-		<p {...sx(p.pitch)}>Find the assumption.<br /><strong {...sx(p.pitchStrong)}>Settle it before the diff.</strong></p>
-	</div>
-	<span {...sx(p.example)}>Illustrative example</span>
+	</PreviewScene>
+	<span {...sx(preview.example)}>Illustrative example</span>
 </div>

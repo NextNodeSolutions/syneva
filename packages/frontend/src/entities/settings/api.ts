@@ -10,6 +10,8 @@ import {
 } from '@shared/api/decode'
 import { API_PATHS } from '@syneva/contracts/routes'
 
+import { isCodeTheme } from './code-themes'
+
 import type { DiffStyle } from '@shared/diff-renderer/types'
 import type { Settings } from './model'
 
@@ -60,13 +62,12 @@ function decodeScalarSettings(
 	for (const key of bools) put(key, optBoolean(wire, key, endpoint))
 	const numbers: (keyof Settings)[] = ['fontSize', 'tabSize']
 	for (const key of numbers) put(key, optNumber(wire, key, endpoint))
-	const strings: (keyof Settings)[] = [
-		'theme',
-		'font',
-		'uiFont',
-		'editorCommand',
-	]
+	const strings: (keyof Settings)[] = ['font', 'uiFont', 'editorCommand']
 	for (const key of strings) put(key, optString(wire, key, endpoint))
+	// A theme the picker doesn't offer (a hand-edited file, a theme a later Syneva dropped) may be
+	// one @pierre/diffs can't resolve, which blanks the diff: keep the default instead.
+	const theme = optString(wire, 'theme', endpoint)
+	put('theme', theme && isCodeTheme(theme) ? theme : undefined)
 }
 
 // Map only the known Settings keys: each is validated (enum membership, boolean,
@@ -78,13 +79,16 @@ export function decodeSettings(
 ): Partial<Settings> {
 	const wire = assertObject(raw, endpoint, 'settings')
 	const out: Partial<Settings> = {}
-	// A nullish decoded value is an absent/invalid setting: keep what's already there
-	// (a no-op write) so legitimate false/0/'' settings still land.
+	// A nullish decoded value is an absent/invalid setting: write nothing, so the key stays
+	// absent and the caller's `{ ...DEFAULT_SETTINGS, ...settings }` keeps the default (an
+	// own `undefined` would overwrite it). `?? null` lets legitimate false/0/'' settings land.
 	const put: SettingsPut = <K extends keyof Settings>(
 		key: K,
 		decoded: Settings[K] | undefined,
 	): void => {
-		out[key] = decoded ?? out[key]
+		const setting = decoded ?? null
+		if (setting === null) return
+		out[key] = setting
 	}
 	decodeEnumSettings(wire, endpoint, put)
 	decodeScalarSettings(wire, endpoint, put)

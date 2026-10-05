@@ -1,15 +1,13 @@
 ---
-import StagedPlanes from './art/StagedPlanes.astro'
 import Command from '@features/copy-command/ui/Command.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
 import PageHero from '@widgets/page-hero/ui/PageHero.astro'
 import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
-
-type Props = { route: string }
-
-const { route } = Astro.props
+import { PAGES } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import StagedPlanes from './art/StagedPlanes.astro'
 
 const WHEN = [
 	['Committing in slices.', 'Your agent made a dozen changes; you want to ship three of them now. Stage them, review them, commit them.'],
@@ -17,20 +15,17 @@ const WHEN = [
 	['Hand-picked hunks.', 'Staged with git add -p? The desk shows the index precisely, hunk by hunk.'],
 ] as const
 const GOOD_TO_KNOW = [
-	['Approving can stage for you.', 'With “Approve stages file” on, a clean ⇧A approval in a working-tree review stages that file. Off by default: approvals are verdicts unless you ask for more.'],
+	['Approving can stage for you.', `With “Approve stages file” on, a clean ${HOTKEYS.approveFile} approval in a working-tree review stages that file. Off by default: approvals are verdicts unless you ask for more.`],
 	['Switching lenses is a restart.', 'syneva reload re-diffs the same source. To move between working and staged, stop the desk and start it again: your saved session comes back with it.'],
 ] as const
 ---
 
 <PageHero
-	route={route}
-	crumb="Staged changes"
 	title="A last, careful look before the commit."
-	state="available"
-	lede="Stage what you think is ready, then review exactly that. <code>syneva --diff staged</code> opens the index, so the desk shows what your next commit will contain and nothing else."
+	lede={`Stage what you think is ready, then review exactly that. <code>${PAGES.stagedChanges.code}</code> opens the index, so the desk shows what your next commit will contain and nothing else.`}
 	caption={'The working tree can stay messy. The commit shouldn’t.'}
 >
-	<Command slot="actions" text="syneva --diff staged" label="Review staged changes" />
+	<Command slot="actions" text={PAGES.stagedChanges.code} label="Review staged changes" />
 	<StagedPlanes slot="art" />
 </PageHero>
 <Prose id="when" title={'When it’s the<br>right lens.'}>
@@ -40,4 +35,4 @@ const GOOD_TO_KNOW = [
 	<RuledList items={GOOD_TO_KNOW} />
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

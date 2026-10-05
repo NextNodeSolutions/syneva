@@ -1,44 +1,53 @@
 ---
 // Resources overview: a ruled table of contents.
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { twoDigits } from '@shared/lib/two-digits'
 import { sx } from '@shared/lib/sx'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim, move } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { resourcesArt as r } from './resources-art.styles'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
+import { resourcesArt } from './resources-art.styles'
 
-const ENTRIES = [
-	{ title: 'Get started', n: '01', words: 'From install to your first verdict' },
-	{ title: 'Connect your agent', n: '02', words: 'The pi package and the CLI contract' },
-	{ title: 'Questions & answers', n: '03', words: 'Local state, agents, limits' },
-	{ title: 'Changelog', n: '04', words: 'What shipped, from the history' },
-] as const
 const ROW = 70
 // The leader starts after the title, at the head font's average advance.
 const ADVANCE = 9.6
-const leaderAt = (title: string, i: number): string => `M${title.length * ADVANCE + 82} ${128 + i * ROW}H486`
+const leaderAt = (title: string, index: number): string => `M${title.length * ADVANCE + 82} ${128 + index * ROW}H486`
+// The resources section's pages, as the site map lists them.
+const entries = SECTION_BY_ID.resources.items.map(({ title, blurb }, index) => ({
+	title,
+	blurb,
+	number: twoDigits(index + 1),
+	leader: leaderAt(title, index),
+}))
 ---
 
-<Drawing viewBox="0 0 600 420" compact="50 60 500 330" labelledby="toc-title toc-desc">
-	<title id="toc-title">Resources, as a table of contents</title>
-	<desc id="toc-desc">Four resources listed like a book's contents: get started, connect your agent, questions and answers, and the changelog.</desc>
-	<ArtFrame id="toc" width={600} height={420} />
+<Drawing
+	id="toc"
+	width={600}
+	height={420}
+	compact="50 60 516 330"
+	title="Resources, as a table of contents"
+	description={`${capitalize(countWord(entries.length))} resources listed like a book's contents: ${listFormat.format(entries.map(({ title }) => title.toLowerCase()))}.`}
+>
 	<text {...anim('fade', 0, text.tiny)} x="70" y="80">CONTENTS</text>
-	<path {...anim('draw', 0.1, shape.inkLine)} pathLength="1" d="M70 92h460"></path>
+	<path {...anim('draw', 0.1, shape.inkLine)} d="M70 92h460"></path>
 	{
-		ENTRIES.map(({ title, n, words }, i) => (
-			<g {...anim('rise', 0.2 + i * 0.12)}>
-				<text {...sx(text.head)} x="70" y={132 + i * ROW}>{title}</text>
-				<text {...sx(text.small)} x="70" y={152 + i * ROW}>{words}</text>
-				<path {...sx(r.tocLeader)} d={leaderAt(title, i)} />
-				<text {...sx(text.label, text.accent)} x="530" y={132 + i * ROW} text-anchor="end">{n}</text>
-				<path {...sx(shape.hair)} d={`M70 ${170 + i * ROW}h460`} />
+		entries.map(({ title, blurb, number, leader }, index) => (
+			<g {...anim('rise', 0.2 + index * 0.12)}>
+				<text {...sx(text.head)} x="70" y={132 + index * ROW}>{title}</text>
+				<text {...sx(text.small)} x="70" y={152 + index * ROW}>{blurb}</text>
+				<path {...sx(resourcesArt.tocLeader)} d={leader} />
+				<text {...sx(text.label, text.accent)} x="530" y={132 + index * ROW} text-anchor="end">{number}</text>
+				<path {...sx(shape.hair)} d={`M70 ${170 + index * ROW}h460`} />
 			</g>
 		))
 	}
-	<rect {...move(0.9, 0, -60, r.tocRibbon)} x="548" y="92" width="14" height="80"></rect>
-	<path {...sx(r.tocRibbonCut)} d="M548 172l7-8 7 8"></path>
-	<rect {...anim('sweep', 1.2, h.deskCursor)} x="60" y="108" width="480" height="56"></rect>
+	<rect {...move(0.9, 0, -60, resourcesArt.tocRibbon)} x="548" y="92" width="14" height="80"></rect>
+	<path {...sx(resourcesArt.tocRibbonCut)} d="M548 172l7-8 7 8"></path>
+	<rect {...anim('sweep', 1.2, homeArt.deskCursor)} x="60" y="108" width="480" height="56"></rect>
 </Drawing>

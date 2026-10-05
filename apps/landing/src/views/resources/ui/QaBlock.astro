@@ -1,29 +1,27 @@
 ---
-// One FAQ topic: its number, title and blurb on the left, its questions as
-// native disclosures on the right.
-import { chapter as c } from '@widgets/chapter/ui/chapter.styles'
-import Disclosure from '@features/disclosure/ui/Disclosure.astro'
-import { stepIndex } from '@shared/ui/step-index.styles'
-import { revealGroup, revealItem } from '@shared/lib/reveal'
+// One FAQ topic: its title and blurb on the left, its questions as native
+// disclosures on the right. The topic index above links to it and counts its
+// questions.
+import QaDisclosure from '@features/disclosure/ui/QaDisclosure.astro'
+import { heading } from '@shared/ui/heading.styles'
+import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import type { QaGroup } from './faq-content'
+import type { QaGroup } from '../model/faq'
+import { qaAnchor } from '../model/faq'
 import { qa } from './qa.styles'
-import { twoDigits } from '@shared/lib/step-number'
 
-type Props = { group: QaGroup; index: number }
+type Props = { group: QaGroup }
 
-const { group, index } = Astro.props
-const id = `qa-${index + 1}`
-const count = `${group.items.length} question${group.items.length === 1 ? '' : 's'}`
+const { group } = Astro.props
+const id = qaAnchor(group)
 ---
 
-<section {...revealGroup(true, c.section, c.subSection, qa.block)} id={id} aria-labelledby={`${id}-title`}>
-	<div {...sx(c.copy, c.subCopy, qa.copy)}>
-		<span {...revealItem(stepIndex.base)}>{twoDigits(index + 1)} · {count}</span>
-		<h2 {...revealItem(c.title, c.subTitle)} id={`${id}-title`} set:html={group.title} />
-		<p {...revealItem(c.text)}>{group.blurb}</p>
+<section {...revealRuledGroup(qa.block)} id={id} aria-labelledby={`${id}-title`}>
+	<div {...sx(qa.copy)}>
+		<h2 {...revealItem(heading.section, heading.subpage)} id={`${id}-title`}>{group.title}</h2>
+		<p {...revealItem(qa.blurb)}>{group.blurb}</p>
 	</div>
 	<div {...sx(qa.list)}>
-		{group.items.map(([question, answer]) => <Disclosure question={question} answer={answer} isQa />)}
+		{group.items.map(({ question, answer }) => <QaDisclosure question={question} answer={answer} />)}
 	</div>
 </section>

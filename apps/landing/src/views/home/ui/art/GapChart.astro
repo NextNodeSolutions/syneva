@@ -1,48 +1,51 @@
 ---
 // The problem, as a conceptual chart: output climbs, attention does not.
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { homeArt as h } from '@shared/ui/drawing/home-art.styles'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
 
 const WRITTEN = 'M56 312C190 306 300 232 512 64'
 const ROUNDS = [
-	[171, 289, 2.2],
-	[252, 250, 2.45],
-	[342, 192, 2.7],
-	[420, 134, 2.95],
-	[503, 69, 3.2],
+	{ x: 171, y: 289, delay: 2.2 },
+	{ x: 252, y: 250, delay: 2.45 },
+	{ x: 342, y: 192, delay: 2.7 },
+	{ x: 420, y: 134, delay: 2.95 },
+	{ x: 503, y: 69, delay: 3.2 },
 ] as const
 ---
 
-<Drawing viewBox="0 0 560 380" compact="36 22 500 330" labelledby="gap-art-title gap-art-desc">
-	<title id="gap-art-title">The review gap</title>
-	<desc id="gap-art-desc">A conceptual drawing with no data. The code your agent writes climbs steeply through a session while the code you can read with real attention rises slowly; the space between them is the review gap. A stepped green line shows review rounds settling the work as it arrives.</desc>
-	<ArtFrame id="gap" width={560} height={380} />
-	<defs><pattern id="gap-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0v7" stroke="var(--signal)" stroke-width="1.2" opacity=".42"></path></pattern></defs>
-	<path {...anim('draw', 0, shape.route)} pathLength="1" d="M56 44V316H520"></path>
+<Drawing
+	id="gap-art"
+	width={560}
+	height={380}
+	compact="36 22 500 330"
+	title="The review gap"
+	description="A conceptual drawing with no data. The code your agent writes climbs steeply through a session while the code you can read with real attention rises slowly; the space between them is the review gap. A stepped green line shows review rounds settling the work as it arrives."
+>
+	<defs><pattern id="gap-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path {...sx(homeArt.gapHatch)} d="M0 0v7"></path></pattern></defs>
+	<path {...anim('draw', 0, shape.route)} d="M56 44V316H520"></path>
 	<text {...anim('fade', 0.2, text.label)} x="64" y="40">LINES IN THE DIFF</text>
 	<text {...anim('fade', 0.2, text.label)} x="520" y="340" text-anchor="end">ONE AGENT SESSION →</text>
 	<path {...anim('fade', 1.1)} d="M56 312C190 306 300 232 512 64L512 270C330 286 200 304 56 312Z" fill="url(#gap-hatch)"></path>
-	<path {...anim('draw', 0.3, h.gapWritten)} pathLength="1" d={WRITTEN}></path>
-	<path {...anim('signal', 2.6, h.gapWrittenSignal)} pathLength="100" d={WRITTEN}></path>
-	<path {...anim('draw', 0.6, h.gapRead)} pathLength="1" d="M56 312C200 304 330 286 512 270"></path>
+	<path {...anim('draw', 0.3, homeArt.gapWritten)} d={WRITTEN}></path>
+	<path {...anim('signal', 2.6, homeArt.gapWrittenSignal)} d={WRITTEN}></path>
+	<path {...anim('draw', 0.6, homeArt.gapRead)} d="M56 312C200 304 330 286 512 270"></path>
 	<g {...anim('pop', 1.5)}>
-		<rect {...sx(h.gapTag)} x="372" y="204" width="118" height="22"></rect>
+		<rect {...sx(homeArt.gapTag)} x="372" y="204" width="118" height="22"></rect>
 		<text {...sx(text.label, text.accent)} x="431" y="219" text-anchor="middle">THE REVIEW GAP</text>
 	</g>
 	<text {...anim('fade', 1, text.copy, text.accent)} x="504" y="52" text-anchor="end">Written by your agent</text>
 	<text {...anim('fade', 1.2, text.small)} x="512" y="292" text-anchor="end">Read with real attention</text>
-	<path {...anim('draw', 1.9, h.gapSteps)} pathLength="1" d="M56 312H174V292H255V253H345V195H423V137H506V72"></path>
+	<path {...anim('draw', 1.9, homeArt.gapSteps)} d="M56 312H174V292H255V253H345V195H423V137H506V72"></path>
 	<g>
-		{ROUNDS.map(([x, y, delay]) => <rect {...anim('pop', delay, h.gapRound)} x={x} y={y} width="6" height="6" />)}
+		{ROUNDS.map(({ x, y, delay }) => <rect {...anim('pop', delay, homeArt.gapRound)} x={x} y={y} width="6" height="6" />)}
 	</g>
 	<g {...anim('rise', 2.4)}>
 		<text {...sx(text.copy, text.green)} x="76" y="232">Settled on a desk,</text>
 		<text {...sx(text.copy, text.green)} x="76" y="250">round by round</text>
-		<path {...sx(h.gapPointer)} d="M148 258l22 26"></path>
+		<path {...sx(homeArt.gapPointer)} d="M148 258l22 26"></path>
 	</g>
 </Drawing>

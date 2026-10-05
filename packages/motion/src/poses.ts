@@ -14,14 +14,43 @@ const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
 // Armed but never booted: the safety net shows everything after three seconds.
 const stalled = (): string =>
 	stylex.when.ancestor('[data-motion="pending"]', motionRoot)
-// The accent rule rests just short of opaque while it draws (see reveal.ts).
-const RULE_OPACITY = 0.9
 
-const hidden = <T>(pose: T): When<When<T>> => ({
+// The values the hidden poses hold, which the runtime's entrances (reveal.ts,
+// vocabulary.ts) start from. StyleX evaluates only values local to this file,
+// so they live here and the runtime imports them.
+const TYPE_OUTSET_PX = 4
+export const POSE_VALUES = {
+	itemRise: 'translateY(18px)',
+	// The accent rule rests just short of opaque while it draws.
+	ruleOpacity: 0.9,
+	rise: 'translateY(10px)',
+	lineRise: 'translateY(108%)',
+	// A typed line's clip reaches this far past its box, left edge aside.
+	typeOutset: TYPE_OUTSET_PX,
+	typeClipped: `inset(-${TYPE_OUTSET_PX}px 100% -${TYPE_OUTSET_PX}px 0)`,
+	typeUncovered: `inset(-${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px 0)`,
+} as const
+
+// The pathLength a drawing's animated paths declare, so the dash values below
+// and in vocabulary.ts hold whatever a path really measures. A drawn line
+// hides behind one dash of its whole length; a signal travels in hundredths.
+export const PATH_LENGTH = { draw: 1, signal: 100 } as const
+
+// A moving element starts offset by (x, y) px from its markup position:
+// moveOffset() writes the offset on the element, the move pose and the
+// runtime's first keyframe (moveStart()) read it.
+const OFFSET_X = '--tx'
+const OFFSET_Y = '--ty'
+const NO_OFFSET = '0px'
+
+// A hidden pose holds a CSS keyword, length or colour, or a number.
+type PoseValue = string | number
+
+const hidden = (pose: PoseValue): When<When<PoseValue>> => ({
 	default: null,
 	[media.motionSafe]: { default: null, [armed()]: pose },
 })
-const whenStalled = <T>(fallback: T): When<When<T>> => ({
+const whenStalled = (fallback: string): When<When<string>> => ({
 	default: null,
 	[media.motionSafe]: { default: null, [stalled()]: fallback },
 })
@@ -29,7 +58,7 @@ const whenStalled = <T>(fallback: T): When<When<T>> => ({
 const showAnyway = stylex.keyframes({ to: { opacity: 1, transform: 'none' } })
 const drawAnyway = stylex.keyframes({ to: { strokeDashoffset: 0 } })
 const typeAnyway = stylex.keyframes({
-	to: { clipPath: 'inset(-4px -4px -4px 0)' },
+	to: { clipPath: POSE_VALUES.typeUncovered },
 })
 const bandAnyway = stylex.keyframes({ to: { transform: 'none' } })
 
@@ -55,7 +84,7 @@ export const poses = stylex.create({
 	// index in the group (see reveal.ts).
 	revealItem: {
 		opacity: hidden(0),
-		transform: hidden('translateY(18px)'),
+		transform: hidden(POSE_VALUES.itemRise),
 		...safetyNet(showAnyway),
 	},
 	// [data-rule]: an accent rule draws over the section's top border, then
@@ -72,18 +101,18 @@ export const poses = stylex.create({
 			backgroundColor: hidden(color['--accent']),
 			transform: hidden('scaleX(0)'),
 			transformOrigin: hidden('left'),
-			opacity: hidden(RULE_OPACITY),
+			opacity: hidden(POSE_VALUES.ruleOpacity),
 		},
 	},
 	draw: {
-		strokeDasharray: hidden(1),
-		strokeDashoffset: hidden(1),
+		strokeDasharray: hidden(PATH_LENGTH.draw),
+		strokeDashoffset: hidden(PATH_LENGTH.draw),
 		...safetyNet(drawAnyway),
 	},
 	fade: { opacity: hidden(0), ...safetyNet(showAnyway) },
 	rise: {
 		opacity: hidden(0),
-		transform: hidden('translateY(10px)'),
+		transform: hidden(POSE_VALUES.rise),
 		...safetyNet(showAnyway),
 	},
 	pop: {
@@ -99,13 +128,15 @@ export const poses = stylex.create({
 		...safetyNet(showAnyway),
 	},
 	type: {
-		clipPath: hidden('inset(-4px 100% -4px 0)'),
+		clipPath: hidden(POSE_VALUES.typeClipped),
 		...safetyNet(typeAnyway),
 	},
-	// The markup position is the resting one; --tx/--ty give the start offset.
+	// The markup position is the resting one; moveOffset() gives the start.
 	move: {
 		opacity: hidden(0),
-		transform: hidden('translate(var(--tx, 0px), var(--ty, 0px))'),
+		transform: hidden(
+			`translate(var(${OFFSET_X}, ${NO_OFFSET}), var(${OFFSET_Y}, ${NO_OFFSET}))`,
+		),
 		...safetyNet(showAnyway),
 	},
 	// A travelling signal is only ever seen in flight.
@@ -114,7 +145,26 @@ export const poses = stylex.create({
 		transformBox: hidden('fill-box'),
 		transformOrigin: hidden('center'),
 	},
-	// Pieces the page's own intro animates: they keep only the safety net.
-	stalledShow: safetyNet(showAnyway),
-	stalledBand: { '::before': safetyNet(bandAnyway) },
+	// The home headline's intro: a line rises out of its clip (an overflow:
+	// hidden parent) and a highlight band (its ::before) sweeps in behind it.
+	lineRise: {
+		transform: hidden(POSE_VALUES.lineRise),
+		...safetyNet(showAnyway),
+	},
+	band: {
+		'::before': {
+			transform: hidden('scaleX(0)'),
+			...safetyNet(bandAnyway),
+		},
+	},
 })
+
+export const moveOffset = (x: number, y: number): { style: string } => ({
+	style: `${OFFSET_X}:${x}px;${OFFSET_Y}:${y}px`,
+})
+
+export function moveStart(element: HTMLElement | SVGElement): string {
+	const offset = (name: string): string =>
+		element.style.getPropertyValue(name) || NO_OFFSET
+	return `translate(${offset(OFFSET_X)}, ${offset(OFFSET_Y)})`
+}

@@ -39,39 +39,6 @@ const frontendAliases = {
 	'@shared': fileURLToPath(new URL('./src/shared', import.meta.url)),
 }
 
-// @pierre/diffs imports shiki v3's full barrel (`from "shiki"`), which statically
-// pulls ~180 grammars + a 607 KB inlined oniguruma wasm. Reroute ONLY @pierre's bare
-// `shiki` specifier to a local shim backed by the curated set; Syneva's own deep
-// imports keep resolving to the real v4 package. `shiki/wasm` (referenced by
-// @pierre's never-taken oniguruma path) resolves to an empty stub.
-const shimPath = fileURLToPath(
-	new URL('./src/shared/highlighting/shiki-shim.ts', import.meta.url),
-)
-const fromPierre = (importer: string): boolean =>
-	importer.includes('@pierre/diffs')
-
-const shikiShimPlugin = (): Plugin => ({
-	name: 'shiki-shim',
-	enforce: 'pre',
-	resolveId: {
-		order: 'pre',
-		handler(source: string, importer?: string): string | null {
-			if (importer && fromPierre(importer)) {
-				if (source === 'shiki') return shimPath
-				if (source === 'shiki/wasm') return '\0shiki-wasm-stub'
-			}
-			return null
-		},
-	},
-	load: {
-		order: 'pre',
-		handler(id: string): string | undefined {
-			if (id === '\0shiki-wasm-stub') return 'export default {};'
-			return undefined
-		},
-	},
-})
-
 // Dev only (`pnpm dev`, where the hub serves the UI through this config's dev server): the
 // page shells name the built bundles, which a dev server never emits. Point each shell at
 // the source entry its bundle is built from, so Vite serves the module graph with HMR.
@@ -118,8 +85,18 @@ const budgetPlugin = (): Plugin => ({
 		const chunks: { fileName: string; code: string; imports: string[] }[] =
 			[]
 		for (const [fileName, chunk] of Object.entries(bundle)) {
-			if (chunk.type !== 'chunk') continue
-			chunks.push({ fileName, code: chunk.code, imports: chunk.imports })
+			if (chunk.type === 'chunk') {
+				chunks.push({
+					fileName,
+					code: chunk.code,
+					imports: chunk.imports,
+				})
+				continue
+			}
+			// A worker is built apart and lands here as a JS asset: it ships with the UI, so it
+			// counts toward the total (never toward the initial closure - nothing imports it).
+			if (fileName.endsWith('.js') && typeof chunk.source === 'string')
+				chunks.push({ fileName, code: chunk.source, imports: [] })
 		}
 		// esbuild metafile keys are cwd-relative ('dist/ui.js', 'dist/chunks/…');
 		// Vite's are outDir-relative, and an import path can be recorded relative to
@@ -160,12 +137,7 @@ const budgetPlugin = (): Plugin => ({
 export default defineConfig(({ command }) => ({
 	// Keep warnings and errors without listing every grammar/theme chunk.
 	logLevel: 'warn',
-	plugins: [
-		shikiShimPlugin(),
-		budgetPlugin(),
-		sourceEntriesPlugin(),
-		react(),
-	],
+	plugins: [budgetPlugin(), sourceEntriesPlugin(), react()],
 	resolve: {
 		alias: frontendAliases,
 		conditions: [
@@ -173,13 +145,21 @@ export default defineConfig(({ command }) => ({
 			...defaultClientConditions,
 		],
 	},
-	// The dev server pre-bundles dependencies with esbuild, which resolves a
-	// dependency's own imports without this config's plugins: pre-bundled,
-	// @pierre/diffs would get the full shiki barrel instead of the shim an install
-	// ships. Left out, it is served file by file through shikiShimPlugin. lru_map is
-	// its one CommonJS dependency, which the browser can only load pre-bundled.
+	// @pierre/diffs' highlight worker: an ES module (it lazy-loads the oniguruma wasm), emitted
+	// next to the UI chunks under the same name contract the desk's chunk route serves.
+	worker: {
+		format: 'es',
+		rollupOptions: {
+			output: {
+				entryFileNames: 'chunks/[name]-[hash].js',
+				chunkFileNames: 'chunks/[name]-[hash].js',
+				hashCharacters: CHUNK_HASH_CHARS,
+			},
+		},
+	},
+	// The dev server pre-bundles dependencies with esbuild; lru_map is @pierre/diffs' one
+	// CommonJS dependency, which the browser can only load pre-bundled.
 	optimizeDeps: {
-		exclude: ['@pierre/diffs'],
 		include: ['@pierre/diffs > lru_map'],
 	},
 	build: buildOptions({

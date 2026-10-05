@@ -1,11 +1,12 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 
-// The FAQ: an index of its topics, then one block per topic whose heading
-// stays on the left (alternating would make answers harder to find).
+// The FAQ: an index of its topics, then one ruled block per topic whose
+// heading stays on the left (alternating would make answers harder to
+// find), stacking over its questions under 900px.
 export const qa = stylex.create({
 	index: {
 		display: 'grid',
@@ -81,14 +82,26 @@ export const qa = stylex.create({
 		color: color['--muted'],
 	},
 	block: {
+		display: 'grid',
 		gridTemplateColumns: { default: '0.8fr 1.2fr', [media.narrow]: '1fr' },
+		borderTopWidth: '1px',
+		borderTopStyle: 'solid',
+		borderTopColor: LINE,
+		scrollMarginTop: '24px',
 	},
 	copy: {
 		gridColumn: 1,
 		gridRow: 1,
 		alignSelf: 'start',
+		minWidth: 0,
+		padding: {
+			default: `64px ${layout['--gutter']}`,
+			[media.narrow]: `40px ${layout['--gutter']}`,
+			[media.phone]: `32px ${layout['--gutter']}`,
+		},
 		paddingBottom: { default: '64px', [media.narrow]: '8px' },
 	},
+	blurb: { marginTop: '22px', fontSize: '16px', maxWidth: '520px' },
 	list: {
 		minWidth: 0,
 		padding: {
