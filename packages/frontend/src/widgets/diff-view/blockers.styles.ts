@@ -1,0 +1,89 @@
+import { deskText } from '@shared/ui/desk.stylex'
+import * as stylex from '@stylexjs/stylex'
+import { color, font } from '@syneva/design-system/tokens.stylex'
+
+// The "N blockers" trigger in the diff header and its jump list. The trigger
+// belongs to the Mark reviewed action it precedes but is secondary - amber
+// text, no fill - and its asymmetric margins pull it toward that button (and
+// away from the churn counts) so the grouping reads at a glance. The list is
+// a floating layer: ruled, lifted, hung under the trigger's right edge.
+export const blockers = stylex.create({
+	wrap: {
+		position: 'relative',
+		display: 'inline-flex',
+		marginLeft: '8px',
+		marginRight: '-2px',
+	},
+	trigger: {
+		paddingBlock: '3px',
+		paddingInline: '4px',
+		borderWidth: 0,
+		borderStyle: 'none',
+		backgroundColor: 'transparent',
+		fontFamily: font['--sans'],
+		fontSize: deskText.body,
+		lineHeight: '16px',
+		color: color['--amber'],
+		cursor: 'pointer',
+		textDecorationLine: { default: 'none', ':hover': 'underline' },
+		textUnderlineOffset: '3px',
+	},
+	// While the list is open the trigger stays underlined, and its tooltip
+	// stays down: it would land on the list.
+	triggerOpen: {
+		textDecorationLine: 'underline',
+		'::after': { display: 'none' },
+	},
+	pop: {
+		display: 'none',
+		position: 'absolute',
+		top: 'calc(100% + 6px)',
+		right: 0,
+		zIndex: 40,
+		minWidth: '280px',
+		maxWidth: '420px',
+		flexDirection: 'column',
+		gap: '2px',
+		padding: '4px',
+		backgroundColor: color['--white'],
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: color['--line-strong'],
+		boxShadow: '0 12px 32px rgb(25 27 24 / 14%)',
+	},
+	popOpen: { display: 'flex' },
+	item: {
+		display: 'flex',
+		alignItems: 'baseline',
+		gap: '7px',
+		width: '100%',
+		paddingBlock: '6px',
+		paddingInline: '8px',
+		borderWidth: 0,
+		borderStyle: 'none',
+		textAlign: 'left',
+		fontFamily: font['--sans'],
+		fontSize: deskText.body,
+		lineHeight: 1.35,
+		color: color['--ink'],
+		backgroundColor: {
+			default: 'transparent',
+			':hover': color['--field'],
+		},
+		cursor: 'pointer',
+	},
+	kind: { flexShrink: 0 },
+	where: {
+		flexShrink: 0,
+		fontFamily: font['--mono'],
+		fontSize: deskText.small,
+		color: color['--muted'],
+	},
+	text: {
+		minWidth: 0,
+		overflow: 'hidden',
+		textOverflow: 'ellipsis',
+		whiteSpace: 'nowrap',
+		color: color['--muted'],
+	},
+})

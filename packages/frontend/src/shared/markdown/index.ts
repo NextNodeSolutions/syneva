@@ -9,6 +9,8 @@ import type { MarkdownComment } from './engine'
 // (shiki + markdown-it), but it reads the live theme, repaints through the render funnel,
 // and toasts on failure - runtime behaviour composed in app/main.ts via
 // configureMarkdownRuntime() (runtime-config.ts, also the engine's read seam).
+// The rendered HTML is styled by prose.css (the desk entry loads it into the shared stylesheet):
+// the consumer marks the element it mounts the HTML into with data-prose="thread" or "document".
 
 // Loading a diff without prose must not initialize a second highlighter on the main thread.
 // The synchronous rendering seam keeps escaped text usable while the optional island loads.

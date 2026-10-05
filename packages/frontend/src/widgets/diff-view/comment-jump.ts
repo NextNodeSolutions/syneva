@@ -1,7 +1,9 @@
 import { isFileComment, toDisplayLine } from '@entities/review/changes'
 import { revealLine } from '@features/expand-context/expand'
+import { cx } from '@shared/lib/cx'
 import { $ } from '@shared/lib/dom'
 
+import { jump } from './comment-jump.styles'
 import { cursorJumpTo } from './cursor'
 import { D } from './runtime'
 
@@ -25,10 +27,14 @@ export type JumpTarget = {
 	unanchored: boolean
 }
 
+// The flash's atomic classes, added onto the thread box's own: they set only the animation, which
+// nothing else on the box does.
+const FLASH = cx(jump.flash).split(' ')
+
 function flash(el: HTMLElement): void {
-	el.classList.remove('flash')
+	el.classList.remove(...FLASH)
 	void el.offsetWidth // restart the animation
-	el.classList.add('flash')
+	el.classList.add(...FLASH)
 }
 
 function scrollAndFlash(selector: string, fallbackSelector?: string): void {
@@ -48,13 +54,13 @@ function scrollAndFlash(selector: string, fallbackSelector?: string): void {
 export function jumpToThread(file: ReviewFile | null, t: JumpTarget): void {
 	if (!file || file.path !== t.path) return
 	if (t.fileLevel) {
-		scrollAndFlash('.fc-section [data-file-thread]')
+		scrollAndFlash('[data-file-comments] [data-file-thread]')
 		return
 	}
 	if (t.unanchored) {
 		scrollAndFlash(
-			`.unanchored-strip [data-thread="${t.side}:${t.lineNumber}"]`,
-			'.unanchored-strip',
+			`[data-unanchored] [data-thread="${t.side}:${t.lineNumber}"]`,
+			'[data-unanchored]',
 		)
 		return
 	}

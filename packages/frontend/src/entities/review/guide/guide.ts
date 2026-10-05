@@ -224,10 +224,8 @@ export function walkGroups(g: GuideInputs): WalkGroup[] {
 	)
 }
 
-// Flat rows for the Walkthrough tab's x-for. The "active" highlight is deliberately NOT derived
-// here (activePath = null): reading g.fileIndex/S.preview/S.overviewOpen made every file switch
-// re-run this whole x-for. applyActiveRow (tree.ts) patches the class imperatively for both
-// sidebars. The trailing "Renamed"/"Reviewed" groups' file rows appear only while expanded.
+// Flat rows for the Walkthrough tab. The trailing "Renamed"/"Reviewed" groups' file rows
+// appear only while expanded.
 export function walkthroughRows(g: GuideInputs): WalkRow[] {
 	// The row being viewed carries the active highlight: the walkthrough is one of the two
 	// sortings, so "where am I" reads off it the same way the tree's active row does.

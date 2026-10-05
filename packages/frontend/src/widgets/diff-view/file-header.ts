@@ -11,9 +11,17 @@ import {
 	approveCurrentFile,
 	resetReview,
 } from '@features/decide-change/decisions'
-import { getIconForType, SVGSpriteSheet } from '@pierre/diffs'
+import { cx } from '@shared/lib/cx'
+import { deskControl, segmented } from '@shared/ui/desk-control.styles'
+import { iconHtml } from '@shared/ui/icon-html'
+import { kbdHtml } from '@shared/ui/kbd-html'
+import { tip } from '@shared/ui/tip.styles'
+import { caption, control } from '@syneva/design-system/controls.styles'
+import { kbd } from '@syneva/design-system/inline.styles'
+import { press } from '@syneva/design-system/press.styles'
 
 import { blockersChip } from './blockers'
+import { changeIcon, churnCounts } from './change-kind'
 import {
 	fileCommentIconButton,
 	fileCommentSection,
@@ -21,74 +29,30 @@ import {
 } from './comment-thread/file-comments'
 import { unanchoredStrip } from './comment-thread/strip'
 import { diffCtx } from './context'
+import { diffHeader } from './file-header.styles'
 
-import type { ChangeTypes, FileDiffMetadata } from '@pierre/diffs'
+import type { FileDiffMetadata } from '@pierre/diffs'
 
-// The custom diff header (all changed-file modes). Row 1 preserves @pierre's look - change-type
-// icon + filename + a subtle Split/Stacked toggle + counts + actions. With a guide, row 2
-// (left-aligned) adds the category + AI guidance. A preview (an unchanged file the reviewer
-// opened to read) gets a minimal read-only header instead.
+// The custom diff header (all changed-file modes). Row 1 keeps @pierre's change-type icon beside
+// the filename, then the Split/Stacked register, the file actions, the counts and the sign-off.
+// With a guide, a ruled label under it (left-aligned) names the file's section. A preview (an
+// unchanged file the reviewer opened to read) gets a minimal read-only header instead.
 
-const SVG_NS = 'http://www.w3.org/2000/svg'
-// Header icon size, matching @pierre's own inline icons.
-const HEADER_ICON_SIZE = 16
-
-// @pierre mounts its icon sprite into each diff's shadow root, so a light-DOM `<use>` can't reach
-// it. Inject the same sprite into the document once so our custom header can reuse @pierre's exact
-// change-type icons.
-let isSpriteInjected = false
-
-function ensureSprite(): void {
-	if (isSpriteInjected) return
-	const holder = document.createElement('div')
-	holder.innerHTML = SVGSpriteSheet
-	const svg = holder.firstElementChild
-	if (svg) document.body.appendChild(svg)
-	isSpriteInjected = true
-}
-
-// Change-type accent color, shared by the header icon and the guidance blockquote line. Keyed by
-// the full union so a new change type has to name its color.
-const CHANGE_COLORS: Record<ChangeTypes | 'file', string> = {
-	new: 'var(--green)',
-	change: 'var(--cyan)',
-	deleted: 'var(--red)',
-	'rename-pure': 'var(--amber)',
-	'rename-changed': 'var(--amber)',
-	file: 'var(--muted)',
-}
-
-function ctColor(type: ChangeTypes | 'file' | undefined): string {
-	return type ? CHANGE_COLORS[type] : CHANGE_COLORS.file
-}
-
-// @pierre's change-type icon as light-DOM SVG (the lib's createIconElement returns HAST).
-function changeIcon(type: ChangeTypes | 'file' | undefined): SVGElement {
-	ensureSprite()
-	const t: ChangeTypes | 'file' = type ?? 'file'
-	const svg = document.createElementNS(SVG_NS, 'svg')
-	svg.setAttribute('width', String(HEADER_ICON_SIZE))
-	svg.setAttribute('height', String(HEADER_ICON_SIZE))
-	svg.setAttribute('viewBox', `0 0 ${HEADER_ICON_SIZE} ${HEADER_ICON_SIZE}`)
-	svg.setAttribute('class', 'ghdr-icon')
-	svg.setAttribute('data-change-icon', t)
-	const use = document.createElementNS(SVG_NS, 'use')
-	use.setAttribute('href', `#${getIconForType(t)}`)
-	svg.appendChild(use)
-	return svg
-}
-
-// Subtle Split/Stacked segmented control that lives in the diff header (right of the filename).
-// Kept low-contrast so it doesn't compete with the filename; clicking re-renders the diff,
-// which rebuilds this control with the new active state.
+// The Split / Stacked register in the diff header (right of the filename), a step smaller than
+// the chrome's so it doesn't compete with the filename; clicking re-renders the diff, which
+// rebuilds this control with the new current choice.
 function layoutToggle(): HTMLElement {
 	const wrap = document.createElement('span')
-	wrap.className = 'ghdr-layout'
+	wrap.className = cx(segmented.group, tip.host)
 	wrap.setAttribute('data-tip', 'Split / Stacked (v)')
 	const mk = (label: string, style: 'split' | 'unified'): void => {
 		const b = document.createElement('button')
 		b.textContent = label
-		if (diffCtx().S.diffStyle === style) b.className = 'active'
+		b.className = cx(
+			segmented.item,
+			segmented.itemSmall,
+			diffCtx().S.diffStyle === style && segmented.on,
+		)
 		b.addEventListener('click', () => diffCtx().S.setStyle?.(style))
 		wrap.appendChild(b)
 	}
@@ -101,9 +65,16 @@ function layoutToggle(): HTMLElement {
 // the file header rather than the app chrome (the top bar is for review-final actions).
 function openEditorButton(): HTMLElement {
 	const b = document.createElement('button')
-	b.className = 'ghdr-open'
+	b.className = cx(
+		press.control,
+		control.base,
+		control.quiet,
+		deskControl.mini,
+		deskControl.iconMini,
+		tip.host,
+	)
 	b.setAttribute('data-tip', 'Open in editor (⇧E)')
-	b.innerHTML = `<svg class="ic"><use href="#gly-open-editor"></use></svg>`
+	b.innerHTML = iconHtml('gly-open-editor', diffHeader.editorIcon)
 	b.addEventListener('click', () => void diffCtx().S.openInEditor?.())
 	return b
 }
@@ -114,12 +85,12 @@ function openEditorButton(): HTMLElement {
 export function fileCommentButton(): HTMLElement | null {
 	if (hasGuide(guideInputs(diffCtx().S)) || !fileCommentsEnabled())
 		return null
-	return fileCommentIconButton()
+	return fileCommentIconButton('header')
 }
 
 // The per-file sign-off action in the diff header. Unfinished -> one context button:
 // "Approve" (clean) or "Mark reviewed" (has a rejected hunk / open requested-change), which
-// accepts pending hunks, signs off, and advances. Finished -> a state pill + Reset to undo.
+// accepts pending hunks, signs off, and advances. Finished -> Reset to undo the sign-off.
 export function headerActions(): HTMLElement {
 	const wrap = document.createElement('span')
 	const filePath = currentFile(
@@ -129,7 +100,12 @@ export function headerActions(): HTMLElement {
 	).path
 	const reset = (): HTMLElement => {
 		const b = document.createElement('button')
-		b.className = 'diff-header-action undo'
+		b.className = cx(
+			press.control,
+			control.base,
+			deskControl.mini,
+			diffHeader.undo,
+		)
 		b.textContent = 'Reset'
 		b.addEventListener('click', () => void resetReview(filePath))
 		return b
@@ -149,8 +125,15 @@ export function headerActions(): HTMLElement {
 			wrap.appendChild(reset())
 		if (chip) wrap.appendChild(chip)
 		const button = document.createElement('button')
-		button.className = `diff-header-action${objections ? ' warn' : ''}`
-		button.innerHTML = `${objections ? 'Mark Reviewed' : 'Approve'} <kbd>⇧A</kbd>`
+		button.className = cx(
+			press.control,
+			control.base,
+			deskControl.mini,
+			objections ? deskControl.caution : deskControl.keep,
+		)
+		button.innerHTML = objections
+			? `Mark reviewed${kbdHtml('⇧A', kbd.onTint)}`
+			: `Approve${kbdHtml('⇧A', kbd.onFill)}`
 		button.addEventListener('click', () => void approveCurrentFile())
 		wrap.appendChild(button)
 	}
@@ -165,17 +148,14 @@ function diffCounts(file: FileDiffMetadata): HTMLElement {
 		added += hunk.additionLines
 		deleted += hunk.deletionLines
 	}
-	const counts = document.createElement('span')
-	counts.className = 'ghdr-counts'
-	counts.innerHTML = `<span class="a">+${added}</span><span class="d">-${deleted}</span>`
-	return counts
+	return churnCounts(added, deleted, diffHeader.counts)
 }
 
 // Row 1 of a changed file's header: icon, path, rename note, layout toggle, editor button, the
 // +/- counts and the file's actions.
 function headerRow(file: FileDiffMetadata): HTMLElement {
 	const row = document.createElement('div')
-	row.className = 'ghdr-row1'
+	row.className = cx(diffHeader.row)
 	row.appendChild(changeIcon(file.type))
 	const filePath = currentFile(
 		diffCtx().S.state?.files,
@@ -183,14 +163,14 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 		diffCtx().S.fileIndex,
 	).path
 	const name = document.createElement('span')
-	name.className = 'ghdr-file'
+	name.className = cx(diffHeader.path)
 	name.textContent = filePath
 	row.appendChild(name)
 	// Rename+edit files (git -M): note where the file moved from, right of the new path.
 	const from = movedFrom(diffCtx().S.state?.files ?? [], filePath)
 	if (from) {
 		const moved = document.createElement('span')
-		moved.className = 'ghdr-moved'
+		moved.className = cx(diffHeader.moved)
 		moved.title = `moved from ${from}`
 		moved.textContent = `moved from ${from}`
 		row.appendChild(moved)
@@ -207,11 +187,11 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 	if (fc) row.appendChild(fc)
 	row.appendChild(openEditorButton())
 	const grow = document.createElement('span')
-	grow.className = 'ghdr-grow'
+	grow.className = cx(diffHeader.grow)
 	row.appendChild(grow)
 	row.appendChild(diffCounts(file))
 	const actions = headerActions()
-	actions.className = 'ghdr-actions'
+	actions.className = cx(diffHeader.actions)
 	row.appendChild(actions)
 	return row
 }
@@ -223,9 +203,9 @@ function guideRow(): HTMLElement | null {
 	const entry = currentGuideEntry(guideInputs(diffCtx().S))
 	if (!entry) return null
 	const guide = document.createElement('div')
-	guide.className = 'ghdr-guide'
+	guide.className = cx(diffHeader.guide)
 	const chip = document.createElement('span')
-	chip.className = 'ghdr-cat'
+	chip.className = cx(caption.base, caption.upper, diffHeader.category)
 	chip.textContent = entry.category
 	guide.appendChild(chip)
 	return guide
@@ -233,8 +213,7 @@ function guideRow(): HTMLElement | null {
 
 function fileHeader(file: FileDiffMetadata): HTMLElement {
 	const wrap = document.createElement('div')
-	wrap.className = 'ghdr'
-	wrap.style.setProperty('--ct-color', ctColor(file.type))
+	wrap.className = cx(diffHeader.header)
 	wrap.appendChild(headerRow(file))
 	const guide = guideRow()
 	if (guide) wrap.appendChild(guide)
@@ -253,12 +232,12 @@ function fileHeader(file: FileDiffMetadata): HTMLElement {
 // comment does (the same rule the unguided changed-file header follows).
 function previewHeader(): HTMLElement {
 	const wrap = document.createElement('div')
-	wrap.className = 'ghdr'
+	wrap.className = cx(diffHeader.header)
 	const row = document.createElement('div')
-	row.className = 'ghdr-row1'
+	row.className = cx(diffHeader.row)
 	row.appendChild(changeIcon('file'))
 	const name = document.createElement('span')
-	name.className = 'ghdr-file'
+	name.className = cx(diffHeader.path)
 	name.textContent = currentFile(
 		diffCtx().S.state?.files,
 		diffCtx().S.preview,
@@ -269,10 +248,10 @@ function previewHeader(): HTMLElement {
 	if (fc) row.appendChild(fc)
 	row.appendChild(openEditorButton())
 	const grow = document.createElement('span')
-	grow.className = 'ghdr-grow'
+	grow.className = cx(diffHeader.grow)
 	row.appendChild(grow)
 	const tag = document.createElement('span')
-	tag.className = 'ghdr-readonly'
+	tag.className = cx(caption.base, diffHeader.readonly)
 	tag.textContent = 'Unchanged'
 	row.appendChild(tag)
 	wrap.appendChild(row)

@@ -11,9 +11,17 @@ import {
 import { isUnanchored } from '@entities/review/changes'
 import { acceptChange } from '@features/decide-change/decisions'
 import { buildComposer } from '@features/manage-comment/composer'
+import { cx } from '@shared/lib/cx'
+import { deskControl } from '@shared/ui/desk-control.styles'
+import { kbdHtml } from '@shared/ui/kbd-html'
+import { control } from '@syneva/design-system/controls.styles'
+import { kbd } from '@syneva/design-system/inline.styles'
+import { press } from '@syneva/design-system/press.styles'
 
+import { verdict } from './annotations.styles'
 import { changeAnnotations } from './change-annotations'
 import { buildCommentThread } from './comment-thread/comment-thread'
+import { annotation } from './comment-thread/comment-thread.styles'
 import { diffCtx } from './context'
 import { D } from './runtime'
 import { stableAnnotations } from './stable-annotations'
@@ -28,6 +36,7 @@ import type {
 	ReviewComment,
 	ReviewState,
 } from '@entities/review/model'
+import type { StaticStyle } from '@shared/lib/cx'
 import type { AnnotationInput } from './types'
 
 type ReviewFile = ReviewState['files'][number]
@@ -166,12 +175,15 @@ function changeFor(c: ThreadMeta | ChangeMeta): ChangeState | null {
 	return changes.find(x => x.id === c.changeId) ?? null
 }
 
-const VERDICT_BUTTONS = `<button class="reject">Undo <kbd>⇧N</kbd></button><button class="accept">Keep <kbd>⇧Y</kbd></button>`
+// The verdict pair: Undo a plain tile, Keep the solid green. Each button names the decision it
+// records in data-verdict, the hook wireVerdict binds (class names are hashed).
+const VERDICT = [press.control, control.base, deskControl.mini]
+const VERDICT_BUTTONS = `<button class="${cx(VERDICT, deskControl.undo)}" data-verdict="rejected">Undo${kbdHtml('⇧N')}</button><button class="${cx(VERDICT, deskControl.keep)}" data-verdict="accepted">Keep${kbdHtml('⇧Y', kbd.onFill)}</button>`
 
 // The verdict bar under a change or a thread: the two decision buttons, wired by wireVerdict below.
-function verdictBar(): HTMLElement {
+function verdictBar(placement: StaticStyle): HTMLElement {
 	const bar = document.createElement('div')
-	bar.className = 'change-actions'
+	bar.className = cx(verdict.bar, placement)
 	bar.innerHTML = VERDICT_BUTTONS
 	return bar
 }
@@ -184,18 +196,22 @@ export function renderAnnotation(a: { metadata: AnnotationMeta }): HTMLElement {
 	// thread instead - see buildCommentThread).
 	if (c.type === 'composer') {
 		const el = document.createElement('div')
-		el.className = 'annotation composer-annotation'
+		el.className = cx(annotation.slot, annotation.composer)
 		el.appendChild(buildComposer())
 		return el
 	}
 	const change = changeFor(c)
 	const el = document.createElement('div')
-	el.className = `annotation ${c.type === 'thread' && c.status === 'resolved' ? 'resolved' : ''}`
-	if (c.type === 'change') {
-		el.appendChild(verdictBar())
-	} else {
+	el.className = cx(
+		annotation.slot,
+		c.type === 'thread' && c.status === 'resolved' && annotation.resolved,
+	)
+	// A bare change pins its bar over the line it decides; a thread that covers one takes the
+	// bar in flow above its first message, so the two never overlap.
+	if (c.type === 'change') el.appendChild(verdictBar(verdict.pinned))
+	else {
+		if (change) el.appendChild(verdictBar(verdict.aboveThread))
 		el.appendChild(buildCommentThread(c))
-		if (change) el.appendChild(verdictBar())
 	}
 	wireVerdict(el, change)
 	return el
@@ -203,8 +219,12 @@ export function renderAnnotation(a: { metadata: AnnotationMeta }): HTMLElement {
 
 // The verdict bar's two buttons act on the change the annotation sits on, when there is one.
 function wireVerdict(el: HTMLElement, change: ChangeState | null): void {
-	const accept = el.querySelector<HTMLButtonElement>('.accept')
-	const reject = el.querySelector<HTMLButtonElement>('.reject')
+	const accept = el.querySelector<HTMLButtonElement>(
+		'[data-verdict="accepted"]',
+	)
+	const reject = el.querySelector<HTMLButtonElement>(
+		'[data-verdict="rejected"]',
+	)
 	if (!change || !accept || !reject) return
 	accept.addEventListener(
 		'click',

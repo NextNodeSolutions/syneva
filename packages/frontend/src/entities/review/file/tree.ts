@@ -93,12 +93,6 @@ export function touchedDirPaths(state: ReviewState): string[] {
 // (issue 04) instead of the embedded contents; a rename shows as "modified" (its icon), like before.
 // Row-signal derivation lives beside the structure helpers in tree-structure.ts.
 
-// Indentation is computed (--depth feeds calc() in .node), not a class set - fixed
-// indent-N classes capped at 3 levels and flattened anything deeper.
-function indentStyle(depth: number): string {
-	return depth ? `--depth:${depth}` : ''
-}
-
 function fileRow(
 	build: TreeBuild,
 	file: TreeFile,
@@ -109,16 +103,13 @@ function fileRow(
 	// NOTE: the "active" highlight is deliberately NOT part of the row model. Deriving it here
 	// read S.fileIndex/S.preview/S.overviewOpen, which made EVERY file switch a dependency-
 	// triggered rebuild of the whole x-for (1,600+ rows re-bound to move one highlight - the
-	// dominant per-switch cost on big desks). applyActiveRow() patches the class imperatively.
+	// dominant per-switch cost on big desks). The sidebar derives it at render time.
 	build.rows.push({
 		key: (isTest ? 'test:' : 'file:') + file.path,
 		kind: isTest ? 'test' : 'file',
 		depth,
 		name: file.name,
-		cls: [signals.isChangedish ? 'changed' : '', isTest ? 'test' : '']
-			.filter(Boolean)
-			.join(' '),
-		style: indentStyle(depth),
+		changed: signals.isChangedish,
 		path: file.path,
 		fileIndex: file.index,
 		testToggle: signals.showsTestToggle,
@@ -151,8 +142,6 @@ function walk(build: TreeBuild, node: TreeNode, depth: number): void {
 			kind: 'dir',
 			depth,
 			name: dir.name,
-			cls: dir.changed ? 'changed' : '',
-			style: indentStyle(depth),
 			full: dir.full,
 			dirCaret: isOpen ? CARET_OPEN : CARET_CLOSED,
 			open: isOpen,
@@ -174,8 +163,7 @@ function renamedFileRow(build: TreeBuild, path: string): FileRow {
 		kind: 'file',
 		depth: 1,
 		name: path.split('/').pop() ?? path,
-		cls: '', // "active" is patched imperatively - see applyActiveRow
-		style: indentStyle(1),
+		changed: false,
 		path,
 		fileIndex: build.changedIndex.get(path),
 		testToggle: false,

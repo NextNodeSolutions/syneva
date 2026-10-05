@@ -1,24 +1,50 @@
 import { useStoreFields } from '@shared/lib/use-store-version'
+import { count, deskControl } from '@shared/ui/desk-control.styles'
 import { Icon } from '@shared/ui/icon'
+import { tip } from '@shared/ui/tip.styles'
+import * as stylex from '@stylexjs/stylex'
+import { control } from '@syneva/design-system/controls.styles'
+import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'
+
+import { guideBar } from './guide-bar.styles'
 
 import type { ReactElement } from 'react'
 
 // The guide bar under the top bar (guide-attached desks): overview home, the
 // whole-file comment toggle, guide prev/next, and the stale-guide notice.
 
+// The bar's 26px tiles: outlined squares, like every stepper on the desk.
+const square = [
+	press.control,
+	control.base,
+	control.outlined,
+	deskControl.mini,
+	deskControl.iconMini,
+	tip.host,
+]
+
 function FileCommentButton(): ReactElement {
 	const { S } = chromeCtx()
-	const count = S.openFileCommentCount?.() ?? 0
+	const open = S.openFileCommentCount?.() ?? 0
 	return (
 		<button
-			className={`gb-fc${S.fileComposerOpen ? ' open' : ''}`}
+			{...stylex.props(
+				square,
+				S.fileComposerOpen && deskControl.ask,
+				guideBar.trigger,
+			)}
+			data-file-comment-trigger=""
 			data-tip="Comment on file (⇧C)"
+			aria-label="Comment on file"
+			aria-pressed={S.fileComposerOpen}
 			onClick={() => S.toggleFileComposer?.()}
 		>
 			<Icon id="gly-comment" />
-			{count > 0 && <span className="gb-fc-count">{count}</span>}
+			{open > 0 && (
+				<span {...stylex.props(count.base, count.corner)}>{open}</span>
+			)}
 		</button>
 	)
 }
@@ -38,7 +64,7 @@ function NavButton({
 	const icons = { prev: 'gly-arrow-left', next: 'gly-arrow-right' }
 	return (
 		<button
-			className="gb-nav"
+			{...stylex.props(square)}
 			onClick={onClick}
 			disabled={disabled}
 			data-tip={tips[direction]}
@@ -49,25 +75,44 @@ function NavButton({
 	)
 }
 
+function HomeButton(): ReactElement {
+	const { S } = chromeCtx()
+	return (
+		<button
+			{...stylex.props(square, S.overviewOpen && deskControl.ask)}
+			onClick={() => S.openOverview?.()}
+			data-tip="Overview (o)"
+			aria-label="Open overview"
+			aria-pressed={S.overviewOpen}
+		>
+			<Icon id="gly-home" />
+		</button>
+	)
+}
+
+function StaleNotice(): ReactElement {
+	return (
+		<span
+			{...stylex.props(guideBar.stale)}
+			title="Guide generated for an earlier diff - regenerate and restart with --guide to refresh"
+		>
+			<Icon id="gly-warn" />
+			Guide stale
+		</span>
+	)
+}
+
 export function GuideBar(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields('state', 'settings', 'overviewOpen', 'fileComposerOpen')
 	if (!(S.showGuideBar?.() ?? false)) return <></>
-	const stale = S.guideStale?.() ?? false
+	const canCommentOnFile =
+		!S.overviewOpen && (S.fileCommentAvailable?.() ?? false)
 	return (
-		<div className="guidebar">
-			<div className="gb-acts">
-				<button
-					className="gb-home"
-					onClick={() => S.openOverview?.()}
-					data-tip="Overview (o)"
-					aria-label="Open overview"
-				>
-					<Icon id="gly-home" />
-				</button>
-				{!S.overviewOpen && (S.fileCommentAvailable?.() ?? false) && (
-					<FileCommentButton />
-				)}
+		<div {...stylex.props(guideBar.bar)}>
+			<div {...stylex.props(guideBar.acts)}>
+				<HomeButton />
+				{canCommentOnFile && <FileCommentButton />}
 				<NavButton
 					direction="prev"
 					disabled={S.guideAtStart?.() ?? false}
@@ -81,16 +126,7 @@ export function GuideBar(): ReactElement {
 					ariaLabel="Next file"
 				/>
 			</div>
-			{stale && (
-				<span
-					className="gb-stale"
-					title="Guide generated for an earlier diff - regenerate and restart with --guide to refresh"
-				>
-					<Icon id="gly-warn" />
-					Guide Stale
-				</span>
-			)}
-			<span className="gb-fill" />
+			{(S.guideStale?.() ?? false) && <StaleNotice />}
 		</div>
 	)
 }

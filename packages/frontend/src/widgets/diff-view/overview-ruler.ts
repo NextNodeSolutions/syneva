@@ -1,11 +1,14 @@
+import { cx } from '@shared/lib/cx'
 import { diffShadowRoot } from '@shared/lib/diff-dom'
 import { $ } from '@shared/lib/dom'
 
+import { rulerTick } from './overview-ruler.styles'
 import { D } from './runtime'
 
 // VSCode-style change overview: map every change row's position in the scrolled content to a
 // tick in a fixed right-edge ruler, so changes are visible in one skim of the whole file.
-// Only meaningful in "expand unchanged" mode (otherwise the diff is already compact).
+// Only meaningful in "expand unchanged" mode (otherwise the diff is already compact). The diff
+// area renders the ruler (#ovr) hidden; it shows only while it holds ticks.
 
 // A tick shorter than this fraction of the scrolled content stays visible: a one-line change is
 // still a mark.
@@ -22,7 +25,7 @@ export function clearOverviewRuler(): void {
 	cancelAnimationFrame(rulerFrame)
 	rulerFrame = 0
 	const ruler = $('ovr')
-	ruler.classList.remove('show')
+	ruler.hidden = true
 	ruler.replaceChildren()
 }
 
@@ -78,14 +81,17 @@ function paintRuler(marks: RulerMark[], contentHeight: number): void {
 	const ruler = $('ovr')
 	for (const mark of marks) {
 		const tick = document.createElement('i')
-		tick.className = mark.side
+		tick.className = cx(
+			rulerTick.base,
+			mark.side === 'add' ? rulerTick.add : rulerTick.del,
+		)
 		tick.style.top = `${(mark.top / contentHeight) * FULL_PERCENT}%`
 		const heightPercent =
 			((mark.bottom - mark.top) / contentHeight) * FULL_PERCENT
 		tick.style.height = `${Math.max(heightPercent, MIN_MARK_HEIGHT_PERCENT)}%`
 		ruler.appendChild(tick)
 	}
-	ruler.classList.add('show')
+	ruler.hidden = false
 }
 
 let rulerFrame = 0

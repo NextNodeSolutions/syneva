@@ -1,317 +1,212 @@
 ---
 name: Syneva
 description: An integrated review environment (IRE) — a local browser desk where a human judges an agent's diff and hands back a verdict.
+source: packages/design-system (StyleX tokens, shared with the public site); this file describes their use on the desk.
 colors:
-  bg: "#070909"
-  surface: "#0b0e0f"
-  panel: "#101415"
-  surface-raised: "#151a1c"
-  panel-3: "#1d2426"
-  line: "#222a2d"
-  line-strong: "#354146"
-  ink: "#d9d9d4"
-  ink-bright: "#fafafa"
-  muted: "#8a9396"
-  ghost: "#4b5558"
-  on-accent: "#050608"
-  circuit-cyan: "#00a8ff"
-  circuit-cyan-bg: "#081923"
-  circuit-cyan-bg-strong: "#0c2533"
-  circuit-cyan-line: "#17394a"
-  circuit-cyan-line-strong: "#25617a"
-  circuit-cyan-fg: "#8fc4d4"
-  signal-green: "#00d084"
-  signal-green-bg: "#071811"
-  signal-green-line: "#163b2b"
-  signal-green-fg: "#9af0b2"
-  accept: "rgba(34, 197, 94, 0.72)"
-  accept-hover: "rgba(34, 197, 94, 0.9)"
-  reject: "rgba(63, 63, 70, 0.82)"
-  reject-hover: "rgba(82, 82, 91, 0.92)"
-  caution-amber: "#e0af68"
-  caution-amber-fg: "#f0c783"
-  alarm-red: "#ff4d6d"
-  alarm-red-fg: "#ff8095"
-  guide-rail: "#1b2226"
+  paper: "#f6f6f0"
+  white: "#ffffff"
+  field: "#eef0e7"
+  grid: "#e4e7dc"
+  line: "#dcdfd4"
+  line-strong: "#a8afa1"
+  ink: "#191b18"
+  muted: "#60635c"
+  accent: "#0e6582"
+  accent-deep: "#0b506a"
+  accent-line: "#8eb5bf"
+  wash: "#dcedf4"
+  wash-tint: "#eff7fa"
+  green: "#35633f"
+  green-line: "#a9c6a5"
+  mint: "#e0eddf"
+  amber: "#875a0e"
+  amber-line: "#d8bd86"
+  amber-tint: "#f6ecd6"
+  red: "#a8322d"
+  red-line: "#e2aea6"
+  red-tint: "#f8e7e3"
+night:
+  paper: "#101210"
+  white: "#171a17"
+  field: "#1d211d"
+  line: "#272b27"
+  line-strong: "#3c423c"
+  ink: "#e4e6de"
+  muted: "#9ca196"
+  accent: "#62b2cd"
+  wash: "#132830"
+  green: "#80c48c"
+  amber: "#d9a650"
+  red: "#e9827a"
 typography:
   display:
-    fontFamily: "Geist, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "17px"
-    fontWeight: 700
-    lineHeight: 1.3
-  headline:
-    fontFamily: "Geist, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "14px"
-    fontWeight: 700
-    lineHeight: 1.4
-  title:
-    fontFamily: "Geist, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "13px"
+    fontFamily: "Geist, system-ui, sans-serif"
+    fontSize: "17px (22–26px for a page-like headline: the overview, a cover)"
     fontWeight: 500
-    lineHeight: 1.5
+    letterSpacing: "-0.03em"
+  headline:
+    fontFamily: "Geist, system-ui, sans-serif"
+    fontSize: "14px"
+    fontWeight: 600
+  title:
+    fontFamily: "Geist, system-ui, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.6
   body:
-    fontFamily: "Geist, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "Geist, system-ui, sans-serif"
     fontSize: "12px"
     fontWeight: 400
     lineHeight: 1.5
   label:
-    fontFamily: "Geist, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "10px"
-    fontWeight: 700
+    fontFamily: "'Geist Mono', ui-monospace, monospace"
+    fontSize: "10–11px"
     letterSpacing: "0.08em"
-    lineHeight: 1.5
+    textTransform: uppercase
   mono:
-    fontFamily: "'JetBrains Mono', ui-monospace, monospace"
-    fontSize: "12px"
-    fontWeight: 400
-    lineHeight: 1.6
+    fontFamily: "'Geist Mono', ui-monospace, monospace"
+    fontSize: "11.5–13px"
 rounded:
-  xs: "3px"
-  sm: "4px"
-  md: "6px"
-  lg: "8px"
-  xl: "12px"
-  pill: "999px"
-spacing:
-  xs: "4px"
-  sm: "6px"
-  md: "8px"
-  lg: "16px"
+  all: "0"
 components:
-  button:
-    backgroundColor: "{colors.panel}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-    padding: "5px 8px"
-  button-hover:
-    backgroundColor: "{colors.surface-raised}"
   button-primary:
-    backgroundColor: "{colors.circuit-cyan-bg}"
-    textColor: "{colors.circuit-cyan-fg}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-    padding: "5px 8px"
-  button-primary-hover:
-    backgroundColor: "{colors.circuit-cyan-bg-strong}"
-  button-accept:
-    backgroundColor: "{colors.accept}"
-    textColor: "{colors.on-accent}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-  button-accept-hover:
-    backgroundColor: "{colors.accept-hover}"
-  input:
-    backgroundColor: "{colors.bg}"
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.white}"
+    height: "28px"
+  button-outlined:
+    backgroundColor: "{colors.white}"
+    borderColor: "{colors.line-strong}"
     textColor: "{colors.ink}"
-    typography: "{typography.title}"
-    rounded: "{rounded.md}"
-    padding: "8px"
+  button-keep:
+    backgroundColor: "{colors.green}"
+    textColor: "{colors.white}"
+  field:
+    backgroundColor: "{colors.white}"
+    borderColor: "{colors.line-strong}"
+    focus: "{colors.accent} rule + 3px {colors.wash} halo"
 ---
 
-# Design System: Syneva
+# Design System: Syneva (the desk)
 
 ## Overview
 
-**Creative North Star: "The Verdict Ledger"**
+**Creative North Star: "The review circuit, at the desk"**
 
-Syneva's interface is a desk for recording verdicts. It reads like a dark, ruled ledger: five near-black surfaces stacked one tonal step apart, every boundary drawn with a 1px hairline, and nothing floating unless it truly floats. The voice is quiet, exact, and confident — the record outlives the session, so nothing on the desk is allowed to shout. Color is ink for decisions, not decoration: cyan marks questions and interaction, green marks acceptance and additions, amber marks a requested change, red marks removal and error. Everything else stays gray.
+The desk is the public site's light, ruled field put to work. Chrome sits on paper, the code and every card sit on white, and everything is separated by 1px rules, never by shadows or rounding. Large plain typography stays on the site; the desk speaks the same two voices at an application's density: Geist for the chrome, Geist Mono for anything that is code, a path, a count or a label. The record outlives the session, so nothing on the desk shouts: color marks a verdict, a question or a state, and everything else stays ink on paper.
 
-The chrome is machinery-precise. Controls are small, bordered, and look pressable: a hover brightens the border one rung and steps the fill one tone, exactly the way a key presses. Ten-pixel uppercase micro-labels with wide letter-spacing are the chrome's own script, while anything that is code, a path, or an identifier is typeset in a drafting mono — the ledger's record vs. the clerk's hand.
+The palette, the type families, the easing and the breakpoints belong to `@syneva/design-system` (`packages/design-system`), the package the public site (`apps/landing`, see its `DESIGN.md`) and the hub dashboard use too. The StyleX tokens there are the source of truth; this document describes how the desk uses them and never defines a second palette. The desk's own measures (bar heights, the type scale, the runtime-written widths) live in `packages/frontend/src/shared/ui/desk.stylex.ts`, its control sizes and review tones in `shared/ui/desk-control.styles.ts`.
 
-Because the desk is the whole product (see PRODUCT.md: "the review surface is the whole product"), the system must read equally well in its dark default and its light mirror, and with any of the fourteen curated code themes the user can pair with either mode. All values below are the dark defaults; the light mode is a wholesale flip of the semantic tokens with hues kept and darkened for contrast on white.
+Because the desk is the whole product (PRODUCT.md: "the review surface is the whole product"), it must read equally well in its light default and its night mirror (Settings → Appearance), and with any of the curated code themes the reviewer pairs with either.
 
 **Key Characteristics:**
 
-- Five-step near-black surface ladder (canvas → recessed → panel → raised → selected), separated by 1px hairlines, never by shadows
-- Two voices: Geist for the chrome, JetBrains Mono for anything that is code, a path, or an identifier
-- Color as signal only — circuit cyan (interaction/questions), signal green (accept/added), caution amber (change requested), alarm red (removed/error); the chrome itself stays gray
-- 10px uppercase micro-labels are the chrome's voice; type never exceeds a 17px display step
-- Only floating layers cast shadows: tooltip, dropdown menu, modal, off-canvas drawer, floating verdict buttons
-- Both display modes and both code themes are user settings; every surface must survive all four combinations
+- The landing's light field: `--paper` chrome, `--white` reading surfaces, `--field` hover, the petrol `--wash` for what is selected
+- Square everything: no radius, no pills; tags, counts, dots and controls are rectangles
+- 1px rules as the universal separator; shadows only on layers that float
+- Two voices: Geist for the chrome, Geist Mono for code, paths, counts, timestamps and the uppercase labels
+- Color as signal only: petrol follows the work and the questions, green marks a verdict, amber a requested change, red what goes
+- Both appearances and both code-theme families are user settings that mix freely
 
 ## Colors
 
-An ink-drawn neutral world with four signal hues held strictly in reserve: cyan for the reviewer's questions and interactions, green for what survives, amber for what must change, red for what must go.
+Petrol blue follows the work; green marks a human verdict. The desk keeps the site's rule and adds the two signals a review needs.
 
-### Primary
+### Signals
 
-- **Circuit Cyan** (#00a8ff; light: #0067c0): the interactive hue — focus, links, comment anchors, question threads, the primary button. It never appears as a bare wash: it carries a tinted triad (fill `--cyan-bg` #081923, hover fill `--cyan-bg-strong` #0c2533, line `--cyan-line` #17394a, hover line `--cyan-line-strong` #25617a, text `--cyan-fg` #8fc4d4) so it can tint a surface without dyeing the desk.
+Each signal is a triad — text tone, tint fill, rule — and a surface that carries it uses all three, so a state reads without its hue (tags carry words, not just colors).
 
-### Secondary
-
-- **Signal Green** (#00d084; light: #16a34a): acceptance and additions — accepted hunks, review progress, the Send action. Its own triad: fill `--green-bg` #071811, line `--green-line` #163b2b, text `--green-fg` #9af0b2.
-- **Verdict fills** — Accept `rgba(34, 197, 94, 0.72)` (hover `0.9`) and Reject `rgba(63, 63, 70, 0.82)` (hover `0.92`; light: `rgba(0,0,0,0.055)` / `0.1`): alpha washes with near-black `--on-accent` text. These are the only solid accent fills in the system, reserved for the Keep/Undo verdict buttons.
-
-### Tertiary
-
-- **Caution Amber** (#e0af68; light: #b46f18; text #f0c783 / #8f5711): change-requested intents, critical guide categories, stale notices.
-- **Alarm Red** (#ff4d6d; light: #d81f43; text #ff8095 / #b3163a): removed lines, destructive-action hints, blockers.
+- **Petrol** (`--accent` #0e6582 / `--wash` #dcedf4 / `--accent-line` #8eb5bf): interaction and the agent's side of the conversation — focus, the primary action (Send to agent), the active file, questions, the agent's replies, every toggle that is on. `--wash-tint` (#eff7fa) is its palest step, the agent's message card.
+- **Green** (`--green` #35633f / `--mint` #e0eddf / `--green-line` #a9c6a5): a verdict — Keep, Approve, the review's progress, added lines, resolved threads.
+- **Amber** (`--amber` #875a0e / `--amber-tint` #f6ecd6 / `--amber-line` #d8bd86): a change the reviewer asked for, a stale guide or diff, a file signed off with objections.
+- **Red** (`--red` #a8322d / `--red-tint` #f8e7e3 / `--red-line` #e2aea6): removed lines, destructive actions (shown on hover), errors.
 
 ### Neutral
 
-- **Canvas** (#070909): the page and diff backdrop — the darkest ink in the ledger.
-- **Recessed** (#0b0e0f): fields sink into this: inputs, sub-headers, scroll-track gutters.
-- **Panel** (#101415): the standing surfaces — sidebar, guide bar, modals, default buttons.
-- **Raised** (#151a1c): hover and active rows; one tonal step up from Panel.
-- **Selected** (#1d2426): the strongest raised tone — selected rows, chips, tooltip fill.
-- **Hairline** (#222a2d): the default 1px rule between everything.
-- **Hairline Strong** (#354146): emphasized borders, hover borders, the drawer edge.
-- **Ink** (#d9d9d4): primary text on any surface.
-- **Ink Bright** (#fafafa): highest-contrast text — counters, values, the thing being read.
-- **Muted** (#8a9396): secondary text, the default button label tone.
-- **Ghost** (#4b5558): faint text and idle icons — present but unpressed.
-- **On-Accent** (#050608): near-black text that sits on the solid verdict fills.
-- **Guide Rail** (#1b2226): the dotted nesting rails in the file tree.
+- **Paper** (#f6f6f0): the chrome's ground — top bar, sidebar, guide bar, notes panel, file headers.
+- **White** (#ffffff): reading surfaces and tiles — the diff canvas, thread and composer cards, fields, dialogs, menus, outlined controls.
+- **Field** (#eef0e7): hover rows and quiet controls under the pointer.
+- **Grid** (#e4e7dc): the ruled grid field behind the desk's page-like states (the overview, the closed-desk cover).
+- **Line** (#dcdfd4) / **Line Strong** (#a8afa1): the default rule and the emphasised one (tiles, dialogs, section heads, idle decorative icons).
+- **Ink** (#191b18) / **Muted** (#60635c): text and secondary text. There is no fainter text tone: timestamps and hints are muted, not ghosted.
 
 **Named Rules:**
 
-**The Signal-Only Rule.** Color never decorates. Every saturated pixel on the desk marks a verdict, a state, a question, or focus; chrome text, borders, and fills stay neutral unless they carry signal.
+**The Signal-Only Rule.** Color never decorates. Every saturated pixel marks a verdict, a state, a question or focus.
 
-**The Tint-Not-Fill Rule.** Accents appear as tinted fills under 1px tinted borders with tinted text (the bg/line/fg triad). The solid accent wash is reserved for verdict buttons — if a control isn't recording a verdict, it gets the tint, not the fill.
+**The Tint Rule.** A signal on the chrome is a tint: its text on its fill under its rule. Solid fills are reserved for the two actions that settle something — the petrol Send to agent (and a dialog's confirm) and the green Keep / Approve.
 
-**The Two-Masters Rule.** Chrome light/dark and the code highlight theme are independent settings that may mix freely; never couple them or derive one from the other.
+**The Two-Masters Rule.** Chrome appearance and the code highlight theme are independent settings that may mix freely. The one link is a courtesy: a code theme still at its appearance's default (Pierre Light / Pierre Dark) follows an appearance switch; a theme the reviewer picked is never touched.
 
-### Light mode
+### Night theme
 
-`data-theme="light"` (Settings → Appearance) flips only the semantic color tokens, wholesale — radius, type scale, and fonts never change. Structural surfaces invert to a white ladder: Canvas #ffffff, Recessed #f2f4f5, Panel #f7f8f9, Raised #eceff1, Selected #dfe4e7; hairlines to #d6dcdf / #b6c0c4; text to Ink #1b1f21, Ink Bright #05080a, Muted #5a6469, Ghost #9aa4a8. Accents keep their hue and darken so rails and text read on white: Circuit Cyan #0067c0 (fill #e8f2fb, hover #d7e9f8, line #bcdaf0, hover line #7fb4de, text #1d5f86), Signal Green #16a34a (fill #e7f6ee), Caution Amber #b46f18, Alarm Red #d81f43. The alpha verdict fills keep their values so they blend into light tints under the still-near-black On-Accent text.
+`dark` in `packages/design-system/src/themes.stylex.ts` is a StyleX theme over the same variables, toggled on `<html>` by Settings → Appearance (`applyAppearance`). It overrides every color token and keeps each role, not each name: `--paper` stays the chrome's ground (#101210), `--white` becomes the raised surface one step above it (#171a17), the neutrals keep the landing's warm green cast, and the signals lift for a dark ground (petrol #62b2cd, green #80c48c, amber #d9a650, red #e9827a) with every text tone at WCAG AA on paper, white, field and its own tint. Text on a solid signal fill is written `--white`, so it flips to dark ink on the lifted fills.
 
 ## Typography
 
-**Display Font:** Geist (Google Fonts, weights 400–700) with `system-ui, -apple-system, 'Segoe UI', Roboto` fallback
-**Code Font:** JetBrains Mono (weights 400–700) with `ui-monospace, monospace` fallback
-**Label/Mono Font:** no third voice — the two fonts cover everything
+**Chrome:** Geist (self-hosted by the design system, weights 100–900) with a `system-ui` fallback.
+**Code and labels:** Geist Mono (self-hosted).
 
-Both stacks are user-overridable in Settings → Appearance (UI font / Code font), which re-applies them live; the diff canvas takes its family from the Code font via `--diffs-font-family`.
+Both stacks are user-overridable in Settings → Appearance (UI font / Code font, a few curated families load from Google Fonts on selection); the diff takes its family from the Code font via `--diffs-font-family`.
 
-**Character:** a ledger's two scripts. Geist is the clerk's hand — humanist, quiet, slightly warm. JetBrains Mono is the record — drafting-table precise. Mono is the tell for anything written down: code, paths, sizes, line numbers.
+### Hierarchy (`deskText`)
 
-### Hierarchy
-
-- **Display** (700, 17px, 1.3): the guide-overview headline and the oversized-file size readout — the largest ink on the desk, and it is still small.
-- **Headline** (700, 14px, 1.4): modal titles, section headers.
-- **Title** (500, 13px, 1.5): composer input text, emphasized inline values; file names in the guide header are mono at 600.
-- **Body** (400, 12px, 1.5–1.6): the chrome's working text — topbar, tree, modal paragraphs, descriptions.
-- **Label** (700, 10px, +0.06–0.12em, UPPERCASE): categories, section labels, badges, kbd-adjacent hints — the system's voice. `0.08em` is the standard step; `0.12em` for the faintest standalone labels.
-- **Mono** (400, 12px, 1.6): code, paths, counters; 600 when a path is the subject (guide header file names).
+- **Display** (17px; 22–26px Geist 500 at -0.03em for a page-like headline — the overview, the closed cover): the largest ink on the desk.
+- **Headline** (14px, 600): dialog titles, prose headings in threads.
+- **Title** (13px, 1.6): thread and composer text, dialog messages.
+- **Body** (12px, 1.5): the chrome's working text — top bar, rows, settings.
+- **Small** (11px): captions, hints, the agent's live line.
+- **Label** (10–11px Geist Mono, uppercase, +0.08em, muted): section labels (FILES, REVIEW NOTES, a guide category), the chrome's own voice — the site's "ONE REVIEW ROUND".
+- **Mono** (11.5–13px): file names in the tree and headers (600 when the path is the subject), counts, timestamps, line numbers.
 
 **Named Rules:**
 
-**The Two-Voice Rule.** Geist typesets the chrome; JetBrains Mono typesets anything that is code, a path, or an identifier. No third font, ever — even kbd chips use the sans so system glyph symbols render at cap height.
+**The Two-Voice Rule.** Geist typesets the chrome; Geist Mono typesets anything that is code, a path, a count, a timestamp or a label. No third font. Key hints (kbd) stay in the sans so system key symbols render at cap height.
 
-**The Uppercase Whisper Rule.** The label voice whispers at 10px, uppercase, with 0.06–0.12em tracking. Never scale it up, never lowercase it into a heading — if text needs emphasis, it earns a color or a weight, not a size.
+**The Sentence-Case Rule.** Labels read as sentences, like the site's: "Send to agent", "Mark reviewed", "Load diff anyway".
 
 ## Layout
 
-A fixed application frame, not a scrolling page. The `.app` grid reserves a 48px topbar (tall enough to keep clear air above the progress strip riding its bottom edge) above the workspace. The workspace splits into a 280px sidebar (user-resizable, persisted) | 1px rail | 1fr diff column; the diff column scrolls, the desk does not.
+A fixed application frame, not a scrolling page: a 48px top bar above the workspace (`--left-width` tree | 1px resizable rule | diff column | optional notes column at `--notes-width`). Every column scrolls on its own; the desk does not.
 
-Panels share one continuity device: the sidebar's tab strip and the guide bar both occupy `--subbar-h: 40px`, so their bottom borders draw a single continuous line across the column seam. Between indicators, `--churn-gap: 5px` spaces the +added / −removed churn markers identically on every surface that shows them (walkthrough, overview rows, diff header).
+Bars that touch share a height: the sidebar's tab strip, the guide bar and the notes head are 40px (`deskSize.subbar`), so their bottom rules read as one line across the seams. The churn counts (+added / −removed) keep a 5px gap on every surface that prints them.
 
-Density is deliberate: 5–8px control paddings, 10px panel insets, 16px modal padding. Scrollbars are drawn by the system — 8px thin, pill thumbs in Hairline gray, strong on hover — so the desk keeps its own edge everywhere.
-
-Below 1100px the sidebar leaves the grid and returns as an off-canvas drawer: fixed under the topbar, `min(86vw, 300px)` wide, sliding in over 0.18s, casting the system's only sideways shadow along its right edge.
-
-**Named Rules:**
-
-**The Continuous Seam Rule.** Bars that touch must share a height (`--subbar-h: 40px`) so their 1px bottom borders read as one ruled line across the whole desk.
+Below 1100px (`media.tablet`) the tree and the notes panel leave the grid and return as drawers under the top bar, over a paper scrim.
 
 ## Elevation & Depth
 
-Depth is drawn, not cast. In-page hierarchy comes from the tonal ladder and 1px hairlines; `box-shadow` is evidence that a layer has detached from the desk. The scale is small and strictly sorted by altitude: the verdict button floats 10px, the drawer 24px, the menu 24px, the tooltip 20px, the modal 100px.
-
-### Shadow Vocabulary
-
-- **Floating verdict button** (`box-shadow: 0 2px 10px rgba(0,0,0,0.35)`): the Keep/Undo pills — they sit above the diff they act on.
-- **Off-canvas drawer** (`box-shadow: 8px 0 24px rgba(0,0,0,0.35)`): the narrow-mode sidebar; the system's only sideways shadow, and it points right.
-- **Dropdown menu** (`box-shadow: 0 8px 24px rgba(0,0,0,0.45)`): popovers and context menus.
-- **Tooltip** (`box-shadow: 0 6px 20px rgba(0,0,0,0.5)`): the custom `data-tip` pseudo-element.
-- **Modal** (`box-shadow: 0 24px 100px rgba(0,0,0,0.65)`): the deepest point in the system — it is the only full interruption.
-- **Focus halo** (`box-shadow: 0 0 0 4px rgba(0,168,255,0.09)`): a soft Circuit Cyan ring around anchored text on hover — attention, not altitude.
-- **Accept pulse** (`box-shadow: 0 0 10px 0 var(--green)`, keyframed): the review-progress strip breathing while the review is underway.
-
-**Named Rules:**
-
-**The Floating-Layer Rule.** A shadow is evidence of z, not a style: if it doesn't float above the desk, it doesn't get a shadow.
+Depth is drawn with rules, not cast. A shadow is evidence that a layer has left the desk, and there is one soft shadow for all of them (`0 12px 32px rgb(25 27 24 / 14%)`, dialogs a step deeper): menus and popovers, the floating Approve, the toast. Dialogs sit over a paper veil (`--paper` at 74%), never a dark scrim: the light field stays visible behind.
 
 ## Shapes
 
-Compact, controlled radii, each step with a job: **3px** for kbd chips, **4px** for tooltips, menus, and text anchors, **6px** as the workhorse on every button and input, **8px** for modals and cards, **12px** for the largest standalone cards (the desk-closed card), and **999px** reserved for pills and badges. Nothing is notched, clipped, or organically curved.
-
-Edges are hairlines. The default 1px border is `--line`; hover and emphasis brighten it to `--line-strong` — the border never grows thicker, only brighter. The file tree's nesting rails are 1px dotted lines in `--guide`, drawn one every 14px by a clipped repeating gradient, with indent depth at 14px per level.
-
-**Named Rules:**
-
-**The Ruled-Edge Rule.** Edges are drawn with 1px lines and separated by tone; a glow or a thicker border never substitutes for the hairline.
+Square controls, thin rules, ruled cards. The tree's nesting rails are 1px `--line` rules every 14px drawn in the indent; the active file and the agent's messages carry a 2px petrol rail on their left edge; a thread message carries a 2px rule (`--line-strong`, `--accent` for the agent, `--amber` while editing). Icons are Lucide at a 1.5 stroke, matching the site's drawings; the pending-review marker is a square dot like every live marker of the system.
 
 ## Components
 
-### Buttons
+Controls compose the design system's recipes (`@syneva/design-system/controls.styles`: `control.base` + a tone, `field`, `caption`, `tag`, `dot`) with the desk's sizes and review tones (`deskControl`).
 
-Machinery-precise: small, bordered, unmistakably pressable, often carrying a kbd chip that shows the shortcut.
-
-- **Shape:** 6px radius, 5px 8px padding, 12px text, 1px border.
-- **Default:** Panel fill (#101415), Ink text, hairline border. **Hover:** Raised fill (#151a1c) + Hairline Strong border.
-- **Primary (Circuit tint):** `--cyan-bg` fill (#081923), `--cyan-fg` text (#8fc4d4), `--cyan-line` border. Hover steps to `--cyan-bg-strong` / `--cyan-line-strong`. Tint, never solid cyan (Tint-Not-Fill Rule).
-- **Green (Signal):** `--green-bg` / `--green-fg` / `--green-line` triad for accept-flavored actions (Send to Agent).
-- **Danger:** default until hover, then Alarm Red text, a 55% red border, and a 12% red fill — destructive intent appears only under the cursor.
-- **Icon-only:** borderless and transparent at rest (reads apart from bordered actions); hover steps to Raised fill.
-- **Focus:** bare controls keep the UA outline; containers that own focus raise their border to Hairline Strong on `:focus-within` (see composer card).
-
-### Segmented toggle
-
-A bordered strip (hairline border, Canvas fill, 8px radius) of borderless segments; the active segment fills Selected (#1d2426) and brightens to Ink. Disabled segments dim to 0.4 opacity.
-
-### Chips and badges
-
-The pill is the only 999px shape, used in three registers:
-
-- **Category labels:** 10px/700 uppercase at +0.08em, tinted text (Circuit Cyan; Caution Amber for critical), no fill.
-- **Intent badges:** 10px/600 uppercase at +0.05em, `1px 7px` padding, tinted triad — question: `--cyan-bg` fill + `--cyan-line-strong` border + `--cyan-fg` text; change-requested: amber family.
-- **Status pills:** alpha fills (e.g. `rgba(0,208,132,0.12)`) with Signal Green text for "ok".
-
-### Inputs / fields
-
-Fields sink below their surroundings: Canvas fill (#070909, darker than the Panel around them), hairline border, 6px radius, 8px padding, 13px sans text. Placeholder and idle text sit in Ghost.
-
-### Composer card (signature)
-
-The comment composer is a thread card, not a bare input: 2px Circuit Cyan rail on the left (`--cyan-line`, lifted to `--cyan-line-strong`), Recessed fill, `0 6px 6px 0` radius (flat where it meets its rail), transparent borderless textarea inside at 13px/1.6. On `:focus-within` the whole border lifts to Hairline Strong — the card, not the field, announces focus.
-
-### Modal
-
-420px wide (help overlay: 640px / 92vw max), Surface fill, hairline border, 8px radius, 16px padding, the 100px-elevation shadow. Headline at 14px, body in Muted at 12px/1.5; actions right-aligned in a 6px-gap row of small (4px 7px) buttons, confirm actions carrying kbd hints.
-
-### Tooltip
-
-Custom `[data-tip]` pseudo-element, not a native title: Selected fill (#1d2426), Hairline Strong border, 4px radius, 10px text, 6px below the anchor, 0.18s delay, 0.1s fade.
-
-### Dropdown menu
-
-Panel fill, Hairline Strong border, 4px radius, 4px inner padding, 280–420px, the 24px-elevation shadow.
-
-### File tree (signature)
-
-14px-per-depth indent with 1px dotted nesting rails in `--guide`, drawn by a background gradient clipped to the indent width — so any depth renders correctly without fixed classes. Rows: 12px mono-friendly text at 1.6, `3px 6px` padding, hover/active through Raised/Selected.
-
-### Diff canvas
-
-The diff is rendered by `@pierre/diffs` with its own theme system — `pierre-dark` / `pierre-light` CSS-variable themes plus the Shiki themes of the settings picker, all resolved by Pierre (comments and fenced code highlight through Pierre's shared highlighter, so they always carry the diff's theme). Its colors are not part of this token layer; it takes only the Code font (`--diffs-font-family`) and the scrollbar gutter override from the desk. Treat the diff as a mounted instrument: Syneva provides the ledger around it, the instrument themes itself.
+- **Buttons.** Compact (28px) in the top bar and dialogs, mini (22px) inside rows. Tones: `primary` (solid petrol: Send to agent, confirm), `outlined` (white tile, strong rule, petrol on hover), `quiet` (no tile until hovered), `ask` / `request` / `resolve` / `caution` (the review's tints), `keep` (solid green verdict) and `undo` (a plain tile — removing a change is a decision, not a warning), `dangerHint` (destructive intent shows only under the pointer). Every action that has a key carries its kbd chip.
+- **Segmented register.** A ruled white tile of exclusive choices (Split / Stacked, Rendered / Source, a notes lens); the chosen one sits on the petrol wash.
+- **Tabs.** Underlined, the chosen one ruled in petrol on the strip's bottom rule (Tree / Walkthrough, Settings / Shortcuts).
+- **Tags and counts.** Square mono text on its tint (`tag`): a thread's intent, a note's status, an open count.
+- **Fields.** White wells under a strong rule; focus turns the rule petrol with a 3px wash halo. Selects draw their own chevron.
+- **Tooltip.** Fast (0.18s), inverted ink on paper, square, under the control (`tip`).
+- **File tree (signature).** Geist Mono rows, 14px per level with 1px rails, the change kind as the file icon's tint (green added, petrol modified, red deleted), the review state as a square dot / check / flag.
+- **Threads (signature).** A ruled ledger: square message cards with a 2px left rule, the agent's on the palest petrol; the composer is the next card in the thread, not a dialog.
+- **Diff canvas.** Rendered by `@pierre/diffs` with its own theme system (Pierre and Shiki themes chosen in Settings). Its colors are not part of this token layer; it takes the Code font, the size, the selection wash (the petrol rule tone) and the scrollbar gutter from the desk. Syneva draws the ledger around it; the instrument themes itself.
 
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** carry every accent state as a tinted triad (bg fill + 1px line + tinted text), stepping one rung up on hover (`--cyan-bg` → `--cyan-bg-strong`, `--line` → `--line-strong`).
-- **Do** keep chrome text at 12–13px and labels at 10px/700/uppercase/0.06–0.12em.
-- **Do** record state through tinted fills **and** text — a verdict must survive without color (badges carry words, not just hues).
-- **Do** use the 1px hairline as the universal separator, and align touching bars on `--subbar-h` (40px) so the seam stays continuous.
-- **Do** keep controls compact: 5px 8px buttons, 8px inputs, 4–6px gaps.
+- **Do** read every color from the tokens (`color['--x']`) so both appearances follow; never a literal hex in a style.
+- **Do** carry a signal as its triad (text, tint, rule) and name the state in words as well.
+- **Do** keep controls compact and square, labels in the mono caption voice, labels in sentence case.
+- **Do** align touching bars on the 40px subbar so the seam stays one rule.
 
 ### Don't:
 
-- **Don't** decorate with gradients, glows, or illustration — the only gradient in the system draws the file tree's guide rails.
-- **Don't** cast shadows on in-page surfaces; hierarchy is tonal plus hairline (The Floating-Layer Rule).
-- **Don't** introduce a third font, and never let the code font typeset chrome text (The Two-Voice Rule).
-- **Don't** exceed 8px radius on containers or 12px on the largest cards; 999px is for pills and badges only.
-- **Don't** apply a solid accent fill outside the verdict buttons (The Tint-Not-Fill Rule).
-- **Don't** scale type past the 17px display step in the chrome (The Uppercase Whisper Rule applies to labels; the ceiling applies to everything).
+- **Don't** round anything, or bring back pills.
+- **Don't** cast shadows on in-page surfaces, or darken the page behind a dialog.
+- **Don't** introduce a third font, or let the mono face set chrome sentences.
+- **Don't** apply a solid fill outside Send to agent, a dialog's confirm and the green verdicts.
+- **Don't** style the desk outside StyleX: the only global CSS is `app/desk.css` (element defaults under `[data-desk]`) and the markdown prose under `[data-prose]`, both zero-specificity and scoped.

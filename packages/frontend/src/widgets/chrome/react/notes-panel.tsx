@@ -7,11 +7,18 @@ import {
 	unresolvedNoteCount,
 } from '@entities/review/notes'
 import { useStoreFields } from '@shared/lib/use-store-version'
+import { deskControl, segmented } from '@shared/ui/desk-control.styles'
 import { Icon } from '@shared/ui/icon'
+import { Kbd } from '@shared/ui/kbd'
+import { tip } from '@shared/ui/tip.styles'
+import * as stylex from '@stylexjs/stylex'
+import { caption, control, tag } from '@syneva/design-system/controls.styles'
+import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'
 
 import { NoteSection, NotesEmpty, NotesNoMatch } from './notes-panel-rows'
+import { notes as styles } from './notes-panel.styles'
 
 import type { NotesLens, ReviewNote } from '@entities/review/notes'
 import type { KeyboardEvent, ReactElement, RefObject } from 'react'
@@ -69,20 +76,33 @@ function searchKeys(
 function NotesHead({ unresolved }: { unresolved: number }): ReactElement {
 	const { S } = chromeCtx()
 	return (
-		<header className="notes-head">
-			<span className="notes-title">Review notes</span>
+		<header {...stylex.props(styles.head)}>
+			<span {...stylex.props(caption.base, caption.upper)}>
+				Review notes
+			</span>
 			{unresolved > 0 && (
-				<span className="notes-open-pill">{unresolved} open</span>
+				<span {...stylex.props(tag.base, tag.accent)}>
+					{unresolved} open
+				</span>
 			)}
 			<button
-				className="btn icon notes-close"
+				{...stylex.props(
+					press.control,
+					control.base,
+					control.quiet,
+					deskControl.mini,
+					deskControl.iconMini,
+					styles.close,
+					tip.host,
+					tip.end,
+				)}
 				data-tip="Close (Esc)"
 				aria-label="Close review notes"
 				onClick={() => {
 					S.notesOpen = false
 				}}
 			>
-				<Icon id="gly-collapse-all" />
+				<Icon id="gly-close" />
 			</button>
 		</header>
 	)
@@ -95,9 +115,10 @@ function NotesTools({
 }): ReactElement {
 	const { S } = chromeCtx()
 	return (
-		<div className="notes-tools">
-			<div className="notes-search">
+		<div {...stylex.props(styles.tools)}>
+			<div {...stylex.props(styles.search)}>
 				<input
+					{...stylex.props(styles.input)}
 					ref={inputRef}
 					value={S.notesQuery}
 					placeholder="Filter notes"
@@ -106,13 +127,20 @@ function NotesTools({
 					onChange={event => S.setNotesQuery?.(event.target.value)}
 					onKeyDown={searchKeys(S)}
 				/>
-				<kbd>/</kbd>
+				<Kbd keys="/" />
 			</div>
-			<div className="notes-lens" role="group" aria-label="Note status">
+			<div
+				{...stylex.props(segmented.group)}
+				role="group"
+				aria-label="Note status"
+			>
 				{LENSES.map(lens => (
 					<button
 						key={lens.value}
-						className={S.notesLens === lens.value ? 'active' : ''}
+						{...stylex.props(
+							segmented.item,
+							S.notesLens === lens.value && segmented.on,
+						)}
 						aria-pressed={S.notesLens === lens.value}
 						onClick={() => S.setNotesLens?.(lens.value)}
 					>
@@ -194,18 +222,19 @@ export function NotesPanel(): ReactElement {
 
 	// Keyboard cursor: keep the row it lands on in view (block:'nearest' scrolls the
 	// least; a cursor already visible is a no-op).
+	const bodyRef = useRef<HTMLDivElement | null>(null)
 	useEffect(() => {
 		if (cursor > 0)
-			document
-				.querySelector('.note.cursor')
+			bodyRef.current
+				?.querySelector('[data-cursor]')
 				?.scrollIntoView({ block: 'nearest' })
 	}, [cursor])
 
 	return (
-		<aside className="notes">
+		<aside {...stylex.props(styles.aside)}>
 			<NotesHead unresolved={unresolvedNoteCount(notes)} />
 			<NotesTools inputRef={inputRef} />
-			<div className="notes-body">
+			<div {...stylex.props(styles.body)} ref={bodyRef}>
 				<NotesBody
 					questions={questions}
 					comments={comments}

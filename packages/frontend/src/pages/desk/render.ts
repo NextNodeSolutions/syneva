@@ -3,13 +3,16 @@ import { cur, loadCurrentContents } from '@entities/review/file/contents'
 import { isMarkdownPath } from '@entities/review/file/file-summary'
 import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 import { restoreComposerFocus } from '@features/manage-comment/composer'
+import { cx } from '@shared/lib/cx'
 import { $ } from '@shared/lib/dom'
 import { esc } from '@shared/lib/esc'
 import { perfMark } from '@shared/lib/perf'
 import { registerRenderFunnel } from '@shared/lib/render-scheduler'
+import { iconHtml } from '@shared/ui/icon-html'
 import { consumePendingJump } from '@widgets/diff-view/comment-jump'
 import { diffCtx } from '@widgets/diff-view/context'
 import { cursorReset } from '@widgets/diff-view/cursor'
+import { fileNote } from '@widgets/diff-view/file-note.styles'
 import { renderMarkdownFile } from '@widgets/diff-view/mdfile'
 import { renderMovedPure } from '@widgets/diff-view/moved-note'
 import {
@@ -92,10 +95,10 @@ function renderContentsError(path: string): void {
 	cursorReset()
 	detachDiffInstance()
 	$('diff').innerHTML =
-		`<div class="file-note"><div class="file-note-strip moved">
-    <svg class="ic"><use href="#gly-flag"></use></svg>
-    <span>couldn't load <span class="file-note-name">${esc(path)}</span></span>
-    <span class="file-note-meta">reload the desk to retry</span>
+		`<div class="${cx(fileNote.wrap)}"><div class="${cx(fileNote.strip)}">
+    ${iconHtml('gly-flag', fileNote.icon)}
+    <span>couldn't load <span class="${cx(fileNote.name)}">${esc(path)}</span></span>
+    <span class="${cx(fileNote.meta)}">reload the desk to retry</span>
   </div></div>`
 }
 
@@ -115,10 +118,10 @@ function renderStaleDiff(file: ReviewFile): void {
 	cursorReset()
 	detachDiffInstance()
 	$('diff').innerHTML =
-		`<div class="file-note"><div class="file-note-strip stale">
-    <svg class="ic"><use href="#gly-warn"></use></svg>
-    <span>no diff left for <span class="file-note-name">${esc(file.path)}</span> - the review is out of date</span>
-    <span class="file-note-meta">reload the desk to re-diff</span>
+		`<div class="${cx(fileNote.wrap)}"><div class="${cx(fileNote.strip, fileNote.stale)}">
+    ${iconHtml('gly-warn')}
+    <span>no diff left for <span class="${cx(fileNote.name)}">${esc(file.path)}</span> - the review is out of date</span>
+    <span class="${cx(fileNote.meta)}">reload the desk to re-diff</span>
   </div></div>`
 }
 
@@ -213,7 +216,7 @@ async function renderDiffIsland(
 		if (!isCurrent()) return
 		detachDiffInstance()
 		const message = document.createElement('div')
-		message.className = 'file-note'
+		message.className = cx(fileNote.wrap)
 		message.textContent =
 			'The diff renderer could not load. Refresh this tab to retry.'
 		$('diff').replaceChildren(message)
