@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import cloudflare from '@astrojs/cloudflare'
 import stylexVite from '@stylexjs/unplugin/vite'
 
+import { devCache } from './integrations/dev-cache'
 import { linkedPages } from './integrations/linked-pages'
 import LAYERS from './layers.json' with { type: 'json' }
 import { SITE_URL } from './src/entities/site/model/site-map'
@@ -44,7 +45,7 @@ export default defineConfig({
 		configPath: 'wrangler.dev.jsonc',
 	}),
 	build: { format: 'directory', inlineStylesheets: 'never' },
-	integrations: [linkedPages()],
+	integrations: [linkedPages(), devCache()],
 	vite: {
 		build: {
 			cssTarget: Object.entries(BROWSERS).map(
