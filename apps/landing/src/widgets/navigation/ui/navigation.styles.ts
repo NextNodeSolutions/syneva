@@ -8,7 +8,7 @@ import {
 } from '@syneva/design-system/tokens.stylex'
 
 import { navMarker, triggerMarker } from './markers.stylex'
-import { dockClock, navClock, navFrame } from './nav.stylex'
+import { navClock, navFrame, phoneBar } from './nav.stylex'
 
 // Without scripts the noscript links are parsed into the header and stand in
 // for the triggers, which would open nothing. With scripts they stay text, so
@@ -24,22 +24,6 @@ const expanded = (): string =>
 	stylex.when.siblingBefore('[aria-expanded="true"]', triggerMarker)
 const triggerExpanded = (): string =>
 	stylex.when.ancestor('[aria-expanded="true"]', triggerMarker)
-
-// The phone bar opens out of the toggle above its right end and folds back
-// into it: a clip from that corner, so its words never scale.
-const BAR_RADIUS = '8px'
-const CLOSED_CLIP = `inset(0 0 100% 86% round ${BAR_RADIUS})`
-const OPEN_CLIP = `inset(0 0 0 0 round ${BAR_RADIUS})`
-const unfold = stylex.keyframes({
-	'0%': { clipPath: CLOSED_CLIP, opacity: 0 },
-	'30%': { opacity: 1 },
-	'100%': { clipPath: OPEN_CLIP, opacity: 1 },
-})
-const fold = stylex.keyframes({
-	'0%': { clipPath: OPEN_CLIP, opacity: 1 },
-	'70%': { opacity: 1 },
-	'100%': { clipPath: CLOSED_CLIP, opacity: 0 },
-})
 
 // The header bar: the wordmark row, the section triggers with their
 // indicator, and the link bar the toggle opens on phones.
@@ -117,41 +101,9 @@ export const nav = stylex.create({
 		borderWidth: { default: null, [media.navToggle]: '1px' },
 		borderStyle: { default: null, [media.navToggle]: 'solid' },
 		borderColor: { default: null, [media.navToggle]: color['--line'] },
-		borderRadius: { default: null, [media.navToggle]: BAR_RADIUS },
+		borderRadius: { default: null, [media.navToggle]: phoneBar.radius },
 		overflowX: { default: null, [media.smallPhone]: 'auto' },
 		scrollbarWidth: { default: null, [media.smallPhone]: 'none' },
-		animationName: {
-			default: null,
-			[media.motionSafe]: {
-				default: null,
-				[mobileOpen()]: unfold,
-				[mobileFolding()]: fold,
-			},
-		},
-		animationDuration: {
-			default: null,
-			[media.motionSafe]: {
-				default: null,
-				[mobileOpen()]: navClock.barDuration,
-				[mobileFolding()]: dockClock.foldDuration,
-			},
-		},
-		animationTimingFunction: {
-			default: null,
-			[media.motionSafe]: {
-				default: null,
-				[mobileOpen()]: dockClock.ease,
-				[mobileFolding()]: navClock.ease,
-			},
-		},
-		animationFillMode: {
-			default: null,
-			[media.motionSafe]: {
-				default: null,
-				[mobileOpen()]: 'both',
-				[mobileFolding()]: 'both',
-			},
-		},
 	},
 	item: {
 		display: 'inline-flex',

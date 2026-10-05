@@ -16,8 +16,9 @@ export const navClock = stylex.defineConsts({
 
 // The dock's clock (dock.styles.ts): the header locks onto its floating sheet
 // on a slow, settling move with a springy lock-on for the corners, and lets go
-// of it faster than it took it. The phone bar folds back into its toggle on
-// the close time (phone-bar.ts waits it out before hiding the bar).
+// of it faster than it took it. The phone bar unfolds out of its toggle on
+// the bar's time with the dock's ease and folds back into it on the fold
+// time (phone-bar.ts animates both).
 export const dockClock = stylex.defineConsts({
 	dockDuration: '520ms',
 	undockDuration: '240ms',
@@ -26,6 +27,10 @@ export const dockClock = stylex.defineConsts({
 	lockEase: 'cubic-bezier(0.34, 1.45, 0.5, 1)',
 	foldDuration: '160ms',
 })
+
+// The phone link bar's corner radius: its border's (navigation.styles.ts)
+// and its reveal clip's (phone-bar.ts).
+export const phoneBar = stylex.defineConsts({ radius: '8px' })
 
 // The docked sheet, centred on the header's own centre line so nothing inside
 // the header moves when it docks: its gap from the viewport's top (the same
