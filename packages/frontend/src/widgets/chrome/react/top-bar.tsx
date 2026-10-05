@@ -49,6 +49,8 @@ function Lens({
 // rendered/source pair - each only when it applies to the current file.
 function TopLenses(): ReactElement {
 	const { S } = chromeCtx()
+	// Its own subscription: a lens flips without anything else on the bar changing.
+	useStoreFields('state', 'fileIndex', 'fileView', 'settings')
 	return (
 		<div {...stylex.props(topBar.lenses)}>
 			{S.hasReviewed?.() && (
