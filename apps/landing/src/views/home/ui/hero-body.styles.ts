@@ -50,6 +50,18 @@ export const heroBody = stylex.create({
 		maxWidth: '380px',
 		gridColumn: { default: null, [media.tablet]: 2 },
 	},
+	// Before launch the signup takes the actions' place, and the actions row
+	// (the way down to #how) follows it, closer than the command would.
+	signup: {
+		marginTop: {
+			default: '30px',
+			[media.tablet]: 0,
+			[media.navToggle]: '28px',
+		},
+		maxWidth: '380px',
+		gridColumn: { default: null, [media.tablet]: 2 },
+	},
+	afterSignup: { marginTop: { default: '12px', [media.tablet]: '8px' } },
 	works: {
 		marginTop: { default: '34px', [media.tablet]: '24px' },
 		font: `11.5px/1.75 ${font['--mono']}`,
