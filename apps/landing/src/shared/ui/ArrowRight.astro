@@ -1,5 +1,6 @@
 ---
 // The 20px arrow that closes every primary action.
+import { ARROW_PATH, ARROW_VIEW_BOX } from '@syneva/design-system/icons'
 import type { Part } from '../lib/sx'
 import { sx } from '../lib/sx'
 
@@ -8,4 +9,4 @@ type Props = { css?: Part }
 const { css } = Astro.props
 ---
 
-<svg {...sx(css)} viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"></path></svg>
+<svg {...sx(css)} viewBox={ARROW_VIEW_BOX} aria-hidden="true"><path d={ARROW_PATH}></path></svg>

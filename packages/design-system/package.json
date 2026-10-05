@@ -2,14 +2,28 @@
 	"name": "@syneva/design-system",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Syneva's public-site design system as StyleX variables and constants: the palette, type, easing, duration, layout and breakpoint tokens.",
+	"description": "Syneva's design system, shared by every front (the public site and the hub/desk UI): StyleX tokens (palette, type, easing, duration, layout, breakpoints), the self-hosted fonts, the mark and the control recipes.",
 	"license": "MIT",
 	"type": "module",
 	"exports": {
 		"./tokens.stylex": "./src/tokens.stylex.ts",
+		"./themes.stylex": "./src/themes.stylex.ts",
 		"./curves.stylex": "./src/curves.stylex.ts",
+		"./transitions.stylex": "./src/transitions.stylex.ts",
 		"./media.stylex": "./src/media.stylex.ts",
-		"./when": "./src/when.ts"
+		"./when": "./src/when.ts",
+		"./brand": "./src/brand.ts",
+		"./brand.styles": "./src/brand.styles.ts",
+		"./brand.stylex": "./src/brand.stylex.ts",
+		"./press.styles": "./src/press.styles.ts",
+		"./controls.stylex": "./src/controls.stylex.ts",
+		"./controls.styles": "./src/controls.styles.ts",
+		"./inline.styles": "./src/inline.styles.ts",
+		"./meter.styles": "./src/meter.styles.ts",
+		"./ruled.styles": "./src/ruled.styles.ts",
+		"./icons": "./src/icons.ts",
+		"./fonts.css": "./src/fonts.css",
+		"./fonts/*": "./fonts/*"
 	},
 	"scripts": {
 		"check": "tsc --noEmit"

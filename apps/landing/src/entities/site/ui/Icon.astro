@@ -2,12 +2,12 @@
 // A 24px line icon from the site's set.
 import type { Part } from '@shared/lib/sx'
 import { sx } from '@shared/lib/sx'
-import type { IconName } from '../model/icons'
-import { ICONS } from '../model/icons'
+import type { IconName } from '@syneva/design-system/icons'
+import { ICON_VIEW_BOX, ICONS } from '@syneva/design-system/icons'
 
 type Props = { name: IconName; css?: Part }
 
 const { name, css } = Astro.props
 ---
 
-<svg {...sx(css)} viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[name]}></path></svg>
+<svg {...sx(css)} viewBox={ICON_VIEW_BOX} aria-hidden="true"><path d={ICONS[name]}></path></svg>

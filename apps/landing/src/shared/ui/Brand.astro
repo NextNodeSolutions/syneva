@@ -1,17 +1,22 @@
 ---
-// The wordmark: the Syneva mark (it turns on hover) and the name.
+// The wordmark: the Syneva mark (it turns on hover) and the name, in the
+// design system's recipe shared with the hub.
+import {
+	MARK_DIAMOND,
+	MARK_RAYS,
+	MARK_VIEW_BOX,
+	WORDMARK,
+} from '@syneva/design-system/brand'
+import { brand } from '@syneva/design-system/brand.styles'
+import { brandMarker } from '@syneva/design-system/brand.stylex'
 import { sx } from '../lib/sx'
-import { brand } from './brand.styles'
-import { brandMarker } from './brand.stylex'
-
-const MARK = 'M12 2v5m0 10v5M2 12h5m10 0h5M5 5l4 4m6 6 4 4M5 19l4-4m6-6 4-4'
-const DIAMOND = 'M8 12l4-4 4 4-4 4Z'
+import { brandInput } from './brand.styles'
 ---
 
 <a {...sx(brand.link, brandMarker)} href="/" aria-label="Syneva home">
-	<svg {...sx(brand.mark)} viewBox="0 0 24 24" aria-hidden="true">
-		<path d={MARK}></path>
-		<path d={DIAMOND}></path>
+	<svg {...sx(brand.mark, brandInput.mark)} viewBox={MARK_VIEW_BOX} aria-hidden="true">
+		<path d={MARK_RAYS}></path>
+		<path d={MARK_DIAMOND}></path>
 	</svg>
-	syneva
+	{WORDMARK}
 </a>
