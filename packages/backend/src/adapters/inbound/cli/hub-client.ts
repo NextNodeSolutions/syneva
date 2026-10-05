@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { closeSync, openSync, realpathSync } from 'node:fs'
+import { closeSync, realpathSync } from 'node:fs'
 import http from 'node:http'
 
 import { deskApiBase, HUB_PATHS } from '@syneva/contracts/routes'
@@ -7,8 +7,8 @@ import { deskApiBase, HUB_PATHS } from '@syneva/contracts/routes'
 import { sanitizeSession } from '../../../domain/identity.js'
 import { warn } from '../../outbound/console.js'
 import {
-	hubLogPath,
 	isProcessAlive,
+	openHubLog,
 	readHubLock,
 } from '../../outbound/filesystem/hub.js'
 import { DEFAULT_HUB_PORT } from '../http/options.js'
@@ -157,7 +157,7 @@ function canAutostart(args: CliArgs, url: string): boolean {
 export function startDetachedHub(args: CliArgs): void {
 	const entry = realpathSync(process.argv[1] ?? '')
 	const port = flagText(args, 'port') ?? process.env.SYNEVA_PORT
-	const log = openSync(hubLogPath(), 'a')
+	const log = openHubLog()
 	const child = spawn(
 		process.execPath,
 		[entry, 'start', '--no-open', ...(port ? ['--port', port] : [])],

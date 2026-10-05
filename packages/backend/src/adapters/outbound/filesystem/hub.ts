@@ -1,4 +1,4 @@
-import { promises as fs } from 'node:fs'
+import { promises as fs, mkdirSync, openSync } from 'node:fs'
 import path from 'node:path'
 
 import {
@@ -31,6 +31,15 @@ export function hubLockPath(): string {
 
 export function hubLogPath(): string {
 	return path.join(hubDir(), LOG_FILE)
+}
+
+// The append descriptor a detached hub's stdio is pointed at. The CLI opens it BEFORE any hub
+// has run, so on a fresh machine nothing has created ~/.syneva/hub/ yet (the lock and registry
+// writers only run inside a hub that is already up): the directory is made here. Synchronous
+// like the spawn it feeds; the caller closes the descriptor once the child has inherited it.
+export function openHubLog(): number {
+	mkdirSync(hubDir(), { recursive: true })
+	return openSync(hubLogPath(), 'a')
 }
 
 async function ensureHubDir(): Promise<string> {
