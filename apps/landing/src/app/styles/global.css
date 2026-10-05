@@ -52,13 +52,6 @@ input {
 }
 button {
 	cursor: pointer;
-	transition:
-		background-color 150ms var(--ease-out),
-		border-color 150ms var(--ease-out),
-		transform 150ms var(--ease-out);
-}
-button:active {
-	transform: scale(0.97);
 }
 svg {
 	display: block;
@@ -79,7 +72,7 @@ h3 {
 	text-wrap: balance;
 }
 h2 {
-	font-size: clamp(32px, 4.2vw, 52px);
+	font-size: var(--h2-size);
 }
 h3 {
 	font-size: 22px;
@@ -95,6 +88,8 @@ code {
 	background: var(--wash);
 	color: var(--ink);
 	padding: 1px 5px;
+	/* A chip split across lines looks broken; the commands it holds are short. */
+	white-space: nowrap;
 }
 /* Without scripts the header lists its sections as plain links; markup inside
    <noscript> is raw text to a scripted page, so it carries no classes. */
@@ -102,11 +97,6 @@ code {
 	margin-inline: 8px;
 }
 
-@media (max-width: 600px) {
-	h2 {
-		font-size: 33px;
-	}
-}
 /* Reduced motion is the complete static page: no smooth scrolling, no
    transition, no keyframe animation (the runtime cancels its own). */
 @media (prefers-reduced-motion: reduce) {

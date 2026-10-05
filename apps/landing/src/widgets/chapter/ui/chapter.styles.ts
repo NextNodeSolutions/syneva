@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 const rule = {
@@ -33,35 +33,29 @@ export const chapter = stylex.create({
 	},
 	copy: {
 		padding: {
-			default: '64px var(--gutter)',
-			[media.narrow]: '44px var(--gutter)',
-			[media.phone]: '40px var(--gutter)',
+			default: `64px ${layout['--gutter']}`,
+			[media.narrow]: `44px ${layout['--gutter']}`,
+			[media.phone]: `40px ${layout['--gutter']}`,
 		},
 		alignSelf: 'center',
 	},
 	subCopy: {
 		minWidth: 0,
 		padding: {
-			default: '64px var(--gutter)',
-			[media.narrow]: '40px 30px',
-			[media.phone]: '32px 20px',
+			default: `64px ${layout['--gutter']}`,
+			[media.narrow]: `40px ${layout['--gutter']}`,
+			[media.phone]: `32px ${layout['--gutter']}`,
 		},
 	},
 	reverseCopy: {
 		gridColumn: { default: 2, [media.stacked]: 'auto' },
 		gridRow: { default: 1, [media.stacked]: 'auto' },
 	},
-	title: {
-		fontSize: {
-			default: 'clamp(32px, 3.7vw, 46px)',
-			[media.phone]: '34px',
-		},
-	},
-	subTitle: {
-		fontSize: {
-			default: 'clamp(32px, 3.7vw, 46px)',
-			[media.phone]: '32px',
-		},
+	// A subpage chapter goes to one column from tablets down (subSection), so
+	// its swapped placement resets there too, not only once stacked.
+	subReverseCopy: {
+		gridColumn: { default: 2, [media.narrow]: 'auto' },
+		gridRow: { default: 1, [media.narrow]: 'auto' },
 	},
 	text: { marginTop: '22px', fontSize: '16px', maxWidth: '520px' },
 	status: {
@@ -109,8 +103,8 @@ export const chapter = stylex.create({
 		fontSize: '14px',
 		marginTop: '3px',
 	},
-	// An honest note keeps the paragraph's size (the chapter's `> p` rule won
-	// over the note's own size and measure); only its bottom margin applies.
+	// The honest note under a prototype is a chapter paragraph with room
+	// below it.
 	note: { marginBottom: '18px' },
 	art: {
 		borderLeftWidth: { default: '1px', [media.stacked]: 0 },
@@ -146,6 +140,8 @@ export const chapter = stylex.create({
 		borderTopColor: { default: null, [media.narrow]: LINE },
 	},
 	subReverseArt: {
+		gridColumn: { default: 1, [media.narrow]: 'auto' },
+		gridRow: { default: 1, [media.narrow]: 'auto' },
 		borderLeftWidth: 0,
 		borderLeftStyle: 'none',
 		borderLeftColor: 'currentcolor',

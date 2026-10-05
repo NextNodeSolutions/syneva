@@ -2,24 +2,25 @@
 // The FAQ's topics, each linked to its block, with its question count.
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import type { QaGroup } from './faq-content'
+import { twoDigits } from '@shared/lib/two-digits'
+import type { QaGroup } from '../model/faq'
+import { qaAnchor } from '../model/faq'
 import { qa } from './qa.styles'
-import { twoDigits } from '@shared/lib/step-number'
 
 type Props = { groups: readonly QaGroup[] }
 
 const { groups } = Astro.props
 ---
 
-<nav {...revealGroup(false, qa.index)} aria-label="Questions by topic">
+<nav {...revealGroup(qa.index)} aria-label="Questions by topic">
 	{
-		groups.map(({ title, blurb, items }, index) => (
-			<a {...revealItem(qa.topic)} href={`#qa-${index + 1}`}>
+		groups.map(group => (
+			<a {...revealItem(qa.topic)} href={`#${qaAnchor(group)}`}>
 				<strong {...sx(qa.topicTitle)}>
-					{title}
-					<small {...sx(qa.topicCount)}>{twoDigits(items.length)}</small>
+					{group.title}
+					<small {...sx(qa.topicCount)}>{twoDigits(group.items.length)}</small>
 				</strong>
-				<span {...sx(qa.topicBlurb)}>{blurb}</span>
+				<span {...sx(qa.topicBlurb)}>{group.blurb}</span>
 			</a>
 		))
 	}

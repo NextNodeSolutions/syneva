@@ -1,8 +1,13 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 
-import { menuLinkMarker, navMarker, workflowLinkMarker } from './markers.stylex'
+import { menuLinkMarker, workflowLinkMarker } from './markers.stylex'
 import { menuSpacing } from './menu.stylex'
 
 const LINK_PADDING = menuSpacing.linkPadding
@@ -10,8 +15,6 @@ const ICON = menuSpacing.icon
 const ICON_GAP = menuSpacing.iconGap
 const TITLE_LINE = menuSpacing.titleLine
 
-const keyboard = (): string =>
-	stylex.when.ancestor('[data-input="keyboard"]', navMarker)
 const linkHover = (): string => stylex.when.ancestor(':hover', menuLinkMarker)
 const linkFocus = (): string =>
 	stylex.when.ancestor(':focus-visible', menuLinkMarker)
@@ -50,6 +53,13 @@ const currentPage = {
 	},
 }
 
+// A row without a preview takes the paper wash on hover too.
+const hoverWash = {
+	default: null,
+	':is([aria-current="page"])': color['--paper'],
+	[media.finePointer]: { default: null, ':hover': color['--paper'] },
+}
+
 export const menuLink = stylex.create({
 	base: {
 		display: 'flex',
@@ -58,18 +68,12 @@ export const menuLink = stylex.create({
 		padding: LINK_PADDING,
 		minHeight: '66px',
 		borderRadius: '5px',
-		transition: `background-color 150ms ${ease['--ease-out']}, color 150ms ${ease['--ease-out']}`,
+		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, color ${duration['--duration-fast']} ${ease['--ease-out']}`,
 		outlineOffset: { default: null, ':focus-visible': '-3px' },
 		...currentPage,
 		...rowStagger,
 	},
-	resourceHover: {
-		backgroundColor: {
-			default: null,
-			':is([aria-current="page"])': color['--paper'],
-			[media.finePointer]: { default: null, ':hover': color['--paper'] },
-		},
-	},
+	resourceHover: { backgroundColor: hoverWash },
 	icon: {
 		width: ICON,
 		height: ICON,
@@ -77,7 +81,7 @@ export const menuLink = stylex.create({
 		fill: 'none',
 		stroke: 'currentColor',
 		strokeWidth: 1.4,
-		transition: `color 150ms ${ease['--ease-out']}, transform 300ms ${ease['--ease-spring']}`,
+		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-spring-fast']} ${ease['--ease-spring']}`,
 		color: {
 			default: null,
 			[linkPreviewed()]: color['--accent'],
@@ -129,19 +133,17 @@ export const menuLink = stylex.create({
 			[linkPreviewed()]: 1,
 			[linkFocus()]: 1,
 			[media.finePointer]: { default: null, [linkHover()]: 1 },
-			[media.compact]: 1,
+			[media.navToggle]: 1,
 		},
 		transform: {
 			default: 'translate(-3px, 3px)',
 			[linkPreviewed()]: 'none',
 			[linkFocus()]: 'none',
 			[media.finePointer]: { default: null, [linkHover()]: 'none' },
-			[media.compact]: 'none',
+			[media.navToggle]: 'none',
 			[media.motionReduced]: 'none',
 		},
-		transition: `opacity 150ms, transform 150ms ${ease['--ease-out']}`,
-		transitionDuration: { default: null, [keyboard()]: '0s !important' },
-		transitionDelay: { default: null, [keyboard()]: '0s !important' },
+		transition: `opacity ${duration['--duration-fast']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
 	},
 })
 
@@ -155,11 +157,7 @@ export const workflowLink = stylex.create({
 		gap: '4px',
 		borderRadius: '5px',
 		outlineOffset: { default: null, ':focus-visible': '-3px' },
-		backgroundColor: {
-			default: null,
-			':is([aria-current="page"])': color['--paper'],
-			[media.finePointer]: { default: null, ':hover': color['--paper'] },
-		},
+		backgroundColor: hoverWash,
 		boxShadow: currentPage.boxShadow,
 		...rowStagger,
 	},
@@ -177,12 +175,15 @@ export const workflowLink = stylex.create({
 	},
 	stackedRule: {
 		'::before': {
-			content: { default: null, [media.compact]: "''" },
-			position: { default: null, [media.compact]: 'absolute' },
-			inset: { default: null, [media.compact]: '0 0 auto' },
-			borderTopWidth: { default: null, [media.compact]: '1px' },
-			borderTopStyle: { default: null, [media.compact]: 'solid' },
-			borderTopColor: { default: null, [media.compact]: color['--line'] },
+			content: { default: null, [media.navToggle]: "''" },
+			position: { default: null, [media.navToggle]: 'absolute' },
+			inset: { default: null, [media.navToggle]: '0 0 auto' },
+			borderTopWidth: { default: null, [media.navToggle]: '1px' },
+			borderTopStyle: { default: null, [media.navToggle]: 'solid' },
+			borderTopColor: {
+				default: null,
+				[media.navToggle]: color['--line'],
+			},
 		},
 	},
 	title: {

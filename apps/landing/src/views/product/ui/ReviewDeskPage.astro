@@ -1,8 +1,7 @@
 ---
-import DeskAnatomy from './art/DeskAnatomy.astro'
-import VerdictLifecycle from './art/VerdictLifecycle.astro'
 import Button from '@shared/ui/Button.astro'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
+import ChapterList from '@widgets/chapter/ui/ChapterList.astro'
 import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
 import Command from '@features/copy-command/ui/Command.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
@@ -11,56 +10,54 @@ import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
+import { START_COMMAND } from '@entities/site/model/project'
+import { PAGES } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import DeskAnatomy from './art/DeskAnatomy.astro'
+import VerdictLifecycle from './art/VerdictLifecycle.astro'
 import KbdGrid from './KbdGrid.astro'
 
-type Props = { route: string }
-
-const { route } = Astro.props
-
-// The real desk bindings (packages/frontend/src/app/hotkeys-*.ts).
 const KEYS = [
-	['j', 'Next change'],
-	['k', 'Previous change'],
-	['⇧Y', 'Keep the change'],
-	['⇧N', 'Undo the change'],
-	['⇧A', 'Approve the whole file'],
-	['c', 'Comment on the line'],
-	['⇧C', 'Comment on the file'],
-	['⇧→', 'Next file, in reading order'],
-	['w', 'Tree or walkthrough'],
-	['n', 'Review notes'],
-	['⇧H', 'Hide approved changes'],
-	['⇧E', 'Open in your editor'],
-	['⇧S', 'Send to agent'],
-	['?', 'The full keyboard map'],
+	[HOTKEYS.nextChange, 'Next change'],
+	[HOTKEYS.previousChange, 'Previous change'],
+	[HOTKEYS.keep, 'Keep the change'],
+	[HOTKEYS.undo, 'Undo the change'],
+	[HOTKEYS.approveFile, 'Approve the whole file'],
+	[HOTKEYS.commentOnLine, 'Comment on the line'],
+	[HOTKEYS.commentOnFile, 'Comment on the file'],
+	[HOTKEYS.nextFile, 'Next file, in reading order'],
+	[HOTKEYS.switchView, 'Tree or walkthrough'],
+	[HOTKEYS.reviewNotes, 'Review notes'],
+	[HOTKEYS.hideApproved, 'Hide approved changes'],
+	[HOTKEYS.openEditor, 'Open in your editor'],
+	[HOTKEYS.send, 'Send to agent'],
+	[HOTKEYS.keyboardMap, 'The full keyboard map'],
 ] as const
 const VERDICTS = [
 	['Nothing is auto-approved.', 'Every change starts pending. Only your keypress settles it.'],
-	['Approve a whole file.', '⇧A signs off a file. Turn on “Approve stages file” and a clean approval stages it in git too.'],
+	['Approve a whole file.', `${HOTKEYS.approveFile} signs off a file. Turn on “Approve stages file” and a clean approval stages it in git too.`],
 	['Stale trust can’t hide.', 'Approvals and comment anchors follow the same hashing rule as verdicts.'],
 ] as const
 const ROUNDS = [
-	['Hide what you already approved.', '⇧H distills a multi-round review down to what still needs your eyes.'],
-	['Every note in one panel.', 'n opens the review notes: every comment and question across files, filterable, one key from its line.'],
+	['Hide what you already approved.', `${HOTKEYS.hideApproved} distills a multi-round review down to what still needs your eyes.`],
+	['Every note in one panel.', `${HOTKEYS.reviewNotes} opens the review notes: every comment and question across files, filterable, one key from its line.`],
 	['Reset with a scalpel.', 'Clear decisions and sign-offs but keep your notes, or reset only the approved files.'],
-	['Make it yours.', 'Split or stacked diffs, intra-line highlights, wrapping, fourteen code themes, your fonts, light or dark.'],
+	['Make it yours.', 'Split or stacked diffs, intra-line highlights, wrapping, code themes, your fonts, light or dark.'],
 ] as const
 ---
 
 <PageHero
-	route={route}
-	crumb="Review desk"
 	title="A verdict on every change."
-	state="available"
 	lede={'Your agent’s diff opens in a local browser tab, rendered in full and ready to judge. Keep what’s right, undo what isn’t, sign off whole files, and send the result back without leaving the keyboard.'}
 	caption="Illustrative wireframe. Your diff, your agent, your verdicts."
 >
-	<Fragment slot="actions"><Button href="/get-started/" label="Open your first desk" /><Command text="syneva" label="Start a review" /></Fragment>
+	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Open your first desk" /><Command text={START_COMMAND} label="Start a review" /></Fragment>
 	<DeskAnatomy slot="art" />
 </PageHero>
-<Chapter id="verdicts" title="Verdicts, not vibes." list={VERDICTS} caption="Pending → kept or undone → pending again only if rewritten">
+<Chapter id="verdicts" title="Verdicts, not vibes." caption="Pending → kept or undone → pending again only if rewritten">
 	<ChapterText>A verdict in Syneva is a record: this change, kept or undone, by you. It is not inferred from git staging and never granted in bulk by a model.</ChapterText>
 	<ChapterText>Each change is content-hashed. When your agent rewrites something you already kept, it comes back pending on the next reload. What it left alone keeps your verdict, round after round.</ChapterText>
+	<ChapterList items={VERDICTS} />
 	<VerdictLifecycle slot="art" />
 </Chapter>
 <Prose id="keyboard" title="The keyboard<br>is the fast path.">
@@ -71,4 +68,4 @@ const ROUNDS = [
 	<RuledList items={ROUNDS} />
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

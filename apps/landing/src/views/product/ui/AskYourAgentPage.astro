@@ -1,8 +1,7 @@
 ---
-import AskFork from './art/AskFork.astro'
-import AskSequence from './art/AskSequence.astro'
 import Button from '@shared/ui/Button.astro'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
+import ChapterList from '@widgets/chapter/ui/ChapterList.astro'
 import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
 import PageHero from '@widgets/page-hero/ui/PageHero.astro'
@@ -11,37 +10,35 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-
-type Props = { route: string }
-
-const { route } = Astro.props
+import { PAGES } from '@entities/site/model/site-map'
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import AskFork from './art/AskFork.astro'
+import AskSequence from './art/AskSequence.astro'
 
 const READ_ONLY = [
 	['Live progress.', 'A one-line status, like “reading auth/session.ts…”, sits beside your thread while the agent works.'],
 	['Nothing gets lost.', 'Questions still open when you Send travel with the result as openQuestions.'],
 ] as const
 const INTENTS = [
-	['Ask · ⌘⇧↵', 'You want to understand. The agent explains on the line, right away.'],
-	['Request change · ⌘↵', 'You want something different. The request rides to the handoff as requestedChanges and the agent applies it after Send.'],
-	['Whole-file comments · ⇧C', 'Some feedback belongs to a file, not a line. Same two intents, addressed to the file itself.'],
-	['Resolve when settled · r', 'Close a thread when it’s answered, reopen it if it isn’t. The review notes panel (n) lists every thread across files.'],
+	[`Ask · ${HOTKEYS.ask}`, 'You want to understand. The agent explains on the line, right away.'],
+	[`Request change · ${HOTKEYS.requestChange}`, 'You want something different. The request rides to the handoff as requestedChanges and the agent applies it after Send.'],
+	[`Whole-file comments · ${HOTKEYS.commentOnFile}`, 'Some feedback belongs to a file, not a line. Same two intents, addressed to the file itself.'],
+	[`Resolve when settled · ${HOTKEYS.resolveThread}`, `Close a thread when it’s answered, reopen it if it isn’t. The review notes panel (${HOTKEYS.reviewNotes}) lists every thread across files.`],
 ] as const
 ---
 
 <PageHero
-	route={route}
-	crumb="Ask your agent"
 	title="Ask on the line.<br>The answer lands there."
-	state="available"
 	lede={'When a change doesn’t make sense, ask about it where it is. Your agent reads the code, posts a live status while it works, and answers in the thread on that exact line. You keep reviewing the whole time.'}
 	caption="Ask for an answer now. Request a change for the next round."
 >
-	<Fragment slot="actions"><Button href="/get-started/" label="Start a local review" /><TextLink href="/resources/connect-your-agent/" label="How your agent answers" /></Fragment>
+	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Start a local review" /><TextLink href={PAGES.connectYourAgent.href} label="How your agent answers" /></Fragment>
 	<AskFork slot="art" />
 </PageHero>
-<Chapter id="read-only" title="A question is<br>not a code change." list={READ_ONLY} caption="You → desk → agent → your thread">
+<Chapter id="read-only" title="A question is<br>not a code change." caption="You → desk → agent → your thread">
 	<ChapterText>Answering is read-only. Your agent reads for context and replies on the line; it never edits tracked files to answer you, unless your question asks it to.</ChapterText>
 	<ChapterText>Questions don&rsquo;t block you either. Ask as many as you like without waiting, keep moving through the diff, and read the answers when they land.</ChapterText>
+	<ChapterList items={READ_ONLY} />
 	<AskSequence slot="art" />
 </Chapter>
 <Prose id="intents" title="Two intents,<br>one keystroke apart.">
@@ -52,4 +49,4 @@ const INTENTS = [
 	<ProseText>Outside pi, any agent can answer with <code>syneva await</code> and <code>syneva comment</code>.</ProseText>
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

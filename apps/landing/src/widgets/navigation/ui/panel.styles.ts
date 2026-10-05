@@ -3,6 +3,7 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
 import { menuSpacing } from './menu.stylex'
+import { navBounds } from './nav.stylex'
 
 const INSET = menuSpacing.inset
 
@@ -11,44 +12,44 @@ export const panel = stylex.create({
 		position: 'absolute',
 		top: 0,
 		left: 0,
-		width: 'min(var(--panel-width), var(--nav-available))',
+		width: `min(var(--panel-width), ${navBounds['--nav-available']})`,
 		opacity: 'var(--opacity, 0)',
 		transform: {
 			default: 'translateX(calc(var(--offset, 0) * 1px))',
 			[media.motionReduced]: 'none',
 		},
 		'--menu-title-line': 'calc(20 / 14)',
-		pointerEvents: { default: 'none', ':is(.is-active)': 'auto' },
+		pointerEvents: { default: 'none', ':not([inert])': 'auto' },
 		// The open panel scrolls inside the shell when the viewport is short.
 		maxHeight: {
 			default: null,
-			':is(.is-active)': 'var(--panel-max-height)',
+			':not([inert])': navBounds['--panel-max-height'],
 		},
-		overflowY: { default: null, ':is(.is-active)': 'auto' },
-		overscrollBehavior: { default: null, ':is(.is-active)': 'contain' },
-		zIndex: { default: null, ':is(.is-active)': 1 },
+		overflowY: { default: null, ':not([inert])': 'auto' },
+		overscrollBehavior: { default: null, ':not([inert])': 'contain' },
+		zIndex: { default: null, ':not([inert])': 1 },
 	},
 	product: {
 		'--panel-width': {
 			default: '640px',
-			[media.compact]: 'var(--nav-available)',
+			[media.navToggle]: navBounds['--nav-available'],
 		},
 	},
 	workflows: {
 		'--panel-width': {
 			default: '540px',
-			[media.compact]: 'var(--nav-available)',
+			[media.navToggle]: navBounds['--nav-available'],
 		},
 	},
 	resources: {
 		'--panel-width': {
 			default: '340px',
-			[media.compact]: 'var(--nav-available)',
+			[media.navToggle]: navBounds['--nav-available'],
 		},
 	},
 	productBody: {
 		display: 'grid',
-		gridTemplateColumns: { default: '1fr 1fr', [media.compact]: '1fr' },
+		gridTemplateColumns: { default: '1fr 1fr', [media.navToggle]: '1fr' },
 		padding: INSET,
 		gap: INSET,
 	},
@@ -59,7 +60,7 @@ export const panel = stylex.create({
 			content: "''",
 			position: 'absolute',
 			inset: '0 0 auto',
-			height: 'calc(var(--selection-height, 66) * 1px)',
+			height: 'calc(var(--selection-height) * 1px)',
 			backgroundColor: color['--paper'],
 			borderRadius: '5px',
 			transform: 'translateY(calc(var(--selection-y, 0) * 1px))',
@@ -68,9 +69,10 @@ export const panel = stylex.create({
 		},
 	},
 	resourceLinks: { padding: INSET },
+	// WorkflowLink.astro rules its cells by this column count (COLUMNS).
 	workflowLinks: {
 		display: 'grid',
-		gridTemplateColumns: { default: '1fr 1fr', [media.compact]: '1fr' },
+		gridTemplateColumns: { default: '1fr 1fr', [media.navToggle]: '1fr' },
 		padding: INSET,
 		columnGap: INSET,
 	},

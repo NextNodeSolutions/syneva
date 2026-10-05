@@ -1,42 +1,48 @@
 ---
 // Staged: review the index, the exact content of your next commit.
+import { PAGES } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { workflowsArt as w } from './workflows-art.styles'
+import { countWord } from '@shared/lib/count-word'
+import { STATUS_BAR } from './status-bar'
 
-// The working tree's five changes: their row and the length of their line.
+// The working tree's changed files: their row, the length of their
+// line and their status as git prints it (modified or added).
 const CHANGES = [
-	[86, 150],
-	[116, 120],
-	[146, 170],
-	[176, 90],
-	[206, 140],
+	{ y: 86, length: 150, status: 'M' },
+	{ y: 116, length: 120, status: 'A' },
+	{ y: 146, length: 170, status: 'M' },
+	{ y: 176, length: 90, status: 'M' },
+	{ y: 206, length: 140, status: 'M' },
 ] as const
 ---
 
-<Drawing viewBox="0 0 600 420" compact="30 30 560 370" labelledby="st-title st-desc">
-	<title id="st-title">Reviewing the index, not the working tree</title>
-	<desc id="st-desc">Behind, the working tree holds five changes. In front, the index holds the two you staged. syneva --diff staged reviews only the index: exactly what your next commit will contain.</desc>
-	<ArtFrame id="st" width={600} height={420} />
+<Drawing
+	id="staged-art"
+	width={600}
+	height={420}
+	compact="30 30 560 370"
+	title="Reviewing the index, not the working tree"
+	description={`Behind, the working tree holds ${countWord(CHANGES.length)} changes. In front, the index holds the two you staged. ${PAGES.stagedChanges.code} reviews only the index: exactly what your next commit will contain.`}
+>
 	<g {...anim('rise', 0)}>
 		<rect {...sx(shape.panel)} x="50" y="60" width="300" height="230"></rect>
-		<text {...sx(text.tiny)} x="50" y="50">WORKING TREE · 5 CHANGES</text>
+		<text {...sx(text.tiny)} x="50" y="50">WORKING TREE · {CHANGES.length} CHANGES</text>
 		{
-			CHANGES.map(([y, length], i) => (
+			CHANGES.map(({ y, length, status }) => (
 				<Fragment>
-					<rect {...sx(i === 1 ? w.barAdd : w.barMod)} x="66" y={y} width="4" height="12" />
+					<rect {...sx(STATUS_BAR[status])} x="66" y={y} width="4" height="12" />
 					<path {...sx(shape.lines)} d={`M78 ${y + 6}h${length}`} />
 				</Fragment>
 			))
 		}
 	</g>
-	<path {...anim('draw', 0.6, shape.route, shape.routeDotted)} pathLength="1" d="M240 122C290 122 300 136 300 160"></path>
+	<path {...anim('draw', 0.6, shape.route, shape.routeDotted)} d="M240 122C290 122 300 136 300 160"></path>
 	<text {...anim('fade', 0.8, text.tiny, shape.secondary)} x="262" y="110">git add</text>
 	<g {...anim('rise', 0.4)}>
 		<rect {...sx(shape.panel, shape.panelWhite)} x="220" y="160" width="330" height="200"></rect>
@@ -49,8 +55,8 @@ const CHANGES = [
 		<text {...sx(text.code, text.green)} x="236" y="283">+ export const LIMIT = 120</text>
 		<Check x={524} y={214} size={12} delay={1.2} /><Pending x={524} y={272} size={12} />
 		<path {...sx(shape.hair)} d="M220 304h330"></path>
-		<text {...sx(text.code)} x="236" y="336">$ syneva --diff staged</text>
+		<text {...sx(text.code)} x="236" y="336">$ {PAGES.stagedChanges.code}</text>
 	</g>
-	<path {...anim('draw', 1, shape.bracket)} pathLength="1" d="M206 176v-24h24M564 176v-24h-24M206 344v24h24M564 344v24h-24"></path>
+	<path {...anim('draw', 1, shape.bracket)} d="M206 176v-24h24M564 176v-24h-24M206 344v24h24M564 344v24h-24"></path>
 	<text {...anim('fade', 1.3, text.tiny, text.accent)} x="385" y="390" text-anchor="middle">REVIEWED: THE INDEX, NOTHING ELSE</text>
 </Drawing>

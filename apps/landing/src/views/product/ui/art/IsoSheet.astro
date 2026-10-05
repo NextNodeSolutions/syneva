@@ -1,20 +1,17 @@
 ---
-// One sheet of the exploded desk: an isometric face with its edge, and the
-// sheet's own marks (the slot) drawn in a flat 128-unit square on the face.
+// One sheet of the exploded desk: an isometric face with its edge, tinted by
+// the layer it carries, and the sheet's own marks (the slot) drawn in a flat
+// 128-unit square on the face.
 import { sx } from '@shared/lib/sx'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
+import type { Layer } from './desk-layers'
 
-type Props = { tone?: 'guide' | 'thread' | 'verdict' }
+type Props = { kind: Layer['kind'] }
 
-const { tone } = Astro.props
+const { kind } = Astro.props
 const ISO = 'matrix(.859 .43 -.859 .43 0 -55)'
-const edge = [p.isoEdge, tone === 'guide' && p.edgeGuide, tone === 'verdict' && p.edgeVerdict]
-const face = [
-	p.isoFace,
-	tone === 'guide' && p.faceGuide,
-	tone === 'thread' && p.faceThread,
-	tone === 'verdict' && p.faceVerdict,
-]
+const EDGE = { diff: null, guide: productArt.edgeGuide, thread: null, verdict: productArt.edgeVerdict } as const
+const FACE = { diff: null, guide: productArt.faceGuide, thread: productArt.faceThread, verdict: productArt.faceVerdict } as const
 ---
 
-<path {...sx(edge)} d="M-110 0 0 55 110 0v6L0 61-110 6Z"></path><path {...sx(face)} d="M0-55 110 0 0 55-110 0Z"></path><g transform={ISO}><slot /></g>
+<path {...sx(productArt.isoEdge, EDGE[kind])} d="M-110 0 0 55 110 0v6L0 61-110 6Z"></path><path {...sx(productArt.isoFace, FACE[kind])} d="M0-55 110 0 0 55-110 0Z"></path><g transform={ISO}><slot /></g>

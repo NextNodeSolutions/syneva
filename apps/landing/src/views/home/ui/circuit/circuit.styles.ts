@@ -6,9 +6,11 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 // leaves inside <defs> are drawn through <use>, so their paints read custom
 // properties each layer sets (leaf fill, border, side and code accent).
 export const circuit = stylex.create({
+	// Drawing sizes the root. The phone frame is a wide 900 units, so the
+	// circuit keeps the column's full width instead of the 460px cap a
+	// reframed drawing takes.
 	root: {
-		width: '100%',
-		height: 'auto',
+		maxWidth: { default: null, [media.phone]: 'none' },
 		minHeight: { default: null, [media.phone]: 0 },
 		aspectRatio: { default: null, [media.phone]: '45 / 26' },
 		backgroundColor: color['--paper'],
@@ -18,7 +20,11 @@ export const circuit = stylex.create({
 		'--code-ink': color['--muted'],
 		'--code-accent': color['--signal'],
 	},
-	register: { display: { default: null, [media.phone]: 'none' } },
+	register: {
+		display: { default: null, [media.phone]: 'none' },
+		fill: 'none',
+		stroke: color['--line'],
+	},
 	routes: {
 		stroke: color['--line-strong'],
 		strokeWidth: { default: 1, [media.phone]: 1.3 },
@@ -69,25 +75,22 @@ export const circuit = stylex.create({
 		fillOpacity: 0.4,
 		stroke: color['--accent'],
 	},
-	// Each review layer rests stacked and lifts open to its own height; the
-	// static pose is the open one.
+	// Each review layer lifts open to its own height, the static pose; the
+	// loop (circuit-loop.ts) reads --lift and stacks the layers in between.
 	layer: { transform: 'translateY(var(--lift))' },
 	critical: {
 		'--lift': '-156px',
-		'--rest': '0px',
 		'--leaf-border': color['--accent'],
 		'--leaf-side': color['--iso-wash-side'],
 		color: color['--accent'],
 	},
 	important: {
 		'--lift': '-66px',
-		'--rest': '10px',
 		'--code-accent': color['--line-strong'],
 		color: color['--line-strong'],
 	},
 	tested: {
 		'--lift': '24px',
-		'--rest': '20px',
 		'--leaf-fill': color['--mint'],
 		'--leaf-side': color['--iso-mint-side'],
 		'--code-accent': color['--green'],
@@ -159,6 +162,13 @@ export const circuit = stylex.create({
 		'--code-accent': color['--green'],
 	},
 	sealEllipse: { fill: color['--mint'], stroke: color['--green'] },
+	verdictCheck: {
+		fill: 'none',
+		stroke: color['--green'],
+		strokeWidth: 2,
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round',
+	},
 	signal: {
 		'--signal-size': '16px',
 		stroke: color['--signal'],

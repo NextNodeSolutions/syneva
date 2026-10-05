@@ -1,66 +1,64 @@
-import { poses } from '@syneva/motion/poses'
+import { ATTRIBUTE } from '@syneva/motion/attributes'
+import { moveOffset, PATH_LENGTH, poses } from '@syneva/motion/poses'
 
 import { sx } from '../../lib/sx'
 
-import type { Part } from '../../lib/sx'
+import type { LoopKind, VocabularyKind } from '@syneva/motion/vocabulary'
+import type { Attributes, Part } from '../../lib/sx'
 
 // The drawing vocabulary (see @syneva/motion/vocabulary): `kind` enters once
 // when its section arrives, `delay` (seconds) staggers it, and the element's
 // own styles come after the hidden pose so they can restate any property the
-// pose also sets. The markup position is always the finished pose.
-export type Kind =
-	| 'draw'
-	| 'fade'
-	| 'rise'
-	| 'pop'
-	| 'sweep'
-	| 'type'
-	| 'signal'
-	| 'pulse'
-	| 'blink'
-	| 'spin'
+// pose also sets. The markup position is always the finished pose. A moving
+// element takes its offset too, so it has its own builder, move().
+type Kind = Exclude<VocabularyKind, 'move'>
 
-type Pose = keyof typeof poses
-const POSED = new Set<string>([
-	'draw',
-	'fade',
-	'rise',
-	'pop',
-	'sweep',
-	'type',
-	'signal',
-	'spin',
-])
-const isPose = (kind: string): kind is Pose => POSED.has(kind)
+// A kind's hidden pose shares its name; pulse and blink have none.
+const isPosed = (kind: Kind): kind is Kind & keyof typeof poses =>
+	Object.hasOwn(poses, kind)
 
-export type AnimAttributes = {
-	class?: string
-	style?: string
-	'data-anim': string
-	'data-delay'?: string
+// A drawn or travelling path declares the length its dashes are counted in.
+const isMeasured = (kind: Kind): kind is Kind & keyof typeof PATH_LENGTH =>
+	Object.hasOwn(PATH_LENGTH, kind)
+
+type AnimAttributes = Attributes & {
+	[ATTRIBUTE.anim]: VocabularyKind
+	[ATTRIBUTE.delay]?: string
+	pathLength?: number
 }
 
-// A delay of 0 is written too: nested elements inherit the nearest one.
-function delayAttribute(
-	delay: number | undefined,
-): { 'data-delay': string } | undefined {
-	if (typeof delay !== 'number') return undefined
-	return { 'data-delay': String(delay) }
-}
-
-export function anim(
-	kind: Kind,
-	delay?: number,
-	...styles: Part[]
-): AnimAttributes {
+function optIn(kind: Kind, styles: Part[]): AnimAttributes {
 	return {
-		...sx(isPose(kind) && poses[kind], ...styles),
-		'data-anim': kind,
-		...delayAttribute(delay),
+		...sx(isPosed(kind) && poses[kind], ...styles),
+		[ATTRIBUTE.anim]: kind,
 	}
 }
 
-// .a-move: travels in from (x, y) px to its markup position.
+function lengthOf(kind: Kind): Pick<AnimAttributes, 'pathLength'> | undefined {
+	if (!isMeasured(kind)) return undefined
+	return { pathLength: PATH_LENGTH[kind] }
+}
+
+// A delay of 0 is written too: nested elements inherit the nearest one.
+export function anim(
+	kind: Kind,
+	delay: number,
+	...styles: Part[]
+): AnimAttributes {
+	return {
+		...optIn(kind, styles),
+		[ATTRIBUTE.delay]: String(delay),
+		...lengthOf(kind),
+	}
+}
+
+// A loop without a delay of its own keeps time with the nearest delayed
+// ancestor (a pulse inside a rising card).
+export function loop(kind: LoopKind, ...styles: Part[]): AnimAttributes {
+	return { ...optIn(kind, styles), ...lengthOf(kind) }
+}
+
+// Travels in from (x, y) px to its markup position.
 export function move(
 	delay: number,
 	x: number,
@@ -69,8 +67,8 @@ export function move(
 ): AnimAttributes {
 	return {
 		...sx(poses.move, ...styles),
-		style: `--tx:${x}px;--ty:${y}px`,
-		'data-anim': 'move',
-		'data-delay': String(delay),
+		...moveOffset(x, y),
+		[ATTRIBUTE.anim]: 'move',
+		[ATTRIBUTE.delay]: String(delay),
 	}
 }

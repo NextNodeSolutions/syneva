@@ -1,15 +1,13 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import ResourcesPage from '@views/resources/ui/ResourcesPage.astro'
-
-const route = '/resources/'
+import { pageTitle } from '@entities/site/model/routes'
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 ---
 
 <Document
-	route={route}
-	page="sub"
-	title="Resources · Syneva"
+	title={pageTitle(SECTION_BY_ID.resources.label)}
 	description="Everything you need to run your first review with Syneva: setup, the agent contract, straight answers, and the changelog."
 >
-	<ResourcesPage route={route} />
+	<ResourcesPage />
 </Document>

@@ -2,23 +2,32 @@ import { booted } from '@syneva/motion/boot'
 import { reducedMotion } from '@syneva/motion/preference'
 import { syncScenes } from '@syneva/motion/scenes'
 
+import { choreograph } from './hero-choreography'
 import { playIntro } from './hero-intro'
+import { palette } from './hero-palette'
 import { bindPointer } from './hero-pointer'
-import { choreograph } from './hero.choreography'
-import { palette } from './hero.timeline'
+import { stagePartSelector } from './hero-stage-part'
 
-import type { Scope } from './hero.timeline'
+import type { Scope } from './hero-timeline'
 
 // The hero's runtime: the review round loops on the instrument from the
 // moment the module runs, the headline enters once the runtime boots, and
 // the pointer adds depth. The markup is the static pose, so cancelling the
-// round lands every piece there; reduced motion never starts it.
+// round lands every piece there; reduced motion never starts it, and lands
+// the headline's entrance on its finished pose at once.
 const hero = document.querySelector<HTMLElement>('[data-hero]')
 const svg = hero?.querySelector('[data-hero-stage]')
 
 const scope: Scope = {
-	one: name => svg?.querySelector(`[data-hs="${name}"]`) ?? null,
-	all: name => [...(svg?.querySelectorAll(`[data-hs="${name}"]`) ?? [])],
+	one: name => {
+		const part = svg?.querySelector(stagePartSelector(name))
+		if (!(part instanceof SVGElement))
+			throw new Error(
+				`The hero stage has no ${name} part: mark an element of its <svg> with stagePart('${name}').`,
+			)
+		return part
+	},
+	all: name => [...(svg?.querySelectorAll(stagePartSelector(name)) ?? [])],
 }
 
 let isRunning = false
@@ -47,8 +56,12 @@ reducedMotion.addEventListener('change', () => {
 
 if (hero && svg) {
 	if (!reducedMotion.matches) start()
-	bindPointer(hero, svg)
+	bindPointer(hero, scope)
 }
 await booted()
-if (!reducedMotion.matches) playIntro()
+const intro = playIntro()
+// Completed under reduced motion, the entrance commits its finished pose, so
+// a later switch to no-preference never arms a hidden pose over a headline
+// nothing would play in again.
+if (reducedMotion.matches) intro.forEach(entrance => entrance.complete())
 syncScenes()

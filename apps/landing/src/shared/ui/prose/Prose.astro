@@ -1,17 +1,16 @@
 ---
 // A prose section: its heading on the left, the body (default slot) on the
 // right, ruled from the section above.
-import { revealGroup, revealItem } from '../../lib/reveal'
-import { sx } from '../../lib/sx'
+import { revealItem, revealRuledGroup } from '../../lib/reveal'
 import { section } from '../section.styles'
-import { prose as p } from './prose.styles'
+import { prose } from './prose.styles'
 
 type Props = { id?: string; title: string }
 
 const { id, title } = Astro.props
 ---
 
-<section {...revealGroup(true, p.root, section.pad)} id={id}>
-	<h2 {...revealItem(p.title)} set:html={title} />
+<section {...revealRuledGroup(prose.root, section.pad)} id={id}>
+	<h2 {...revealItem(prose.title)} set:html={title} />
 	<div><slot /></div>
 </section>

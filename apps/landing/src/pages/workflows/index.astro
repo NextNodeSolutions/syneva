@@ -1,15 +1,13 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import WorkflowsPage from '@views/workflows/ui/WorkflowsPage.astro'
-
-const route = '/workflows/'
+import { pageTitle } from '@entities/site/model/routes'
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 ---
 
 <Document
-	route={route}
-	page="sub"
-	title="Workflows · Syneva"
+	title={pageTitle(SECTION_BY_ID.workflows.label)}
 	description="Review your working tree, your staged changes, a branch or pull request, or a single file like a plan. Four ways in, one local desk, one structured verdict."
 >
-	<WorkflowsPage route={route} />
+	<WorkflowsPage />
 </Document>

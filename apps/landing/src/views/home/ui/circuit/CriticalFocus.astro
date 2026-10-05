@@ -1,0 +1,16 @@
+---
+// What the critical layer adds over its sheet: the margin marks, the sweep
+// across the change (clipped to the sheet's face), the focus frame and the
+// YOUR FOCUS owner the loop shows while you read.
+import { sx } from '@shared/lib/sx'
+import { circuitPart } from './circuit-part'
+import { circuit } from './circuit.styles'
+---
+
+<path {...sx(circuit.criticalMargin)} d="m-97-3 13-6m-4 15 13-6m-4 15 13-6"></path>
+<g clip-path="url(#review-face-clip)"><path {...sx(circuit.sweep)} d="m-160-80 112 56v18l-112-56Z" {...circuitPart('sweep')}></path></g>
+<g {...sx(circuit.focusFrame)} fill="none" {...circuitPart('focus')}><path d="m-128-10 0-10 22-11m212 0 22 11v10M-128 13v10l22 11m212 0 22-11V13"></path></g>
+<g {...sx(circuit.focusOwner)} {...circuitPart('owner')}>
+	<path {...sx(circuit.focusOwnerPath)} d="M0-58v-12"></path>
+	<text {...sx(circuit.focusOwnerText)} y="-80" text-anchor="middle">YOUR FOCUS</text>
+</g>

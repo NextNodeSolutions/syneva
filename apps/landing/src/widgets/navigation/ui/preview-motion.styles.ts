@@ -52,7 +52,7 @@ const play = (name: string, duration: string, delay: string): Play => ({
 		default: null,
 		[media.motionSafe]: {
 			default: null,
-			[illustrating()]: navClock['--nav-ease'],
+			[illustrating()]: navClock.ease,
 		},
 	},
 	animationDelay: {

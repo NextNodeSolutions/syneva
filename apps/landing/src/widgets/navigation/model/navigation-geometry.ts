@@ -1,54 +1,54 @@
-// Measures the dropdown's destination independently of the shell's current
-// animated size: where the open panel lands, and the folded sliver under its
-// trigger it grows from and shrinks back into.
-const BORDER_WIDTH = 2
+import { compact } from './compact'
+import { readFrame } from './nav-frame'
+
+import type { GeometryName } from './navigation-channels'
+
+// The dropdown's geometry, read from the layout and never written to it:
+// the width a panel may take, where the open panel lands independently of
+// the shell's current animated size, the folded sliver under its trigger it
+// grows from and shrinks back into, and the heights the viewport leaves.
 const PANEL_GAP = 10
-const MOBILE_INSET = 12
-const DESKTOP_INSET = 24
 const FOLD_HEIGHT = 4
-// The inset applies on both sides of the bar.
+// The inset and the border apply on both sides.
 const SIDES = 2
 
+// Pixel values of the shell's geometry channels.
+type Measures = Record<GeometryName, number>
+type Box = Pick<Measures, 'x' | 'y' | 'width' | 'height'>
+
 export type Geometry = {
-	open: Record<string, number>
-	folded: Record<string, number>
+	open: Box & Pick<Measures, 'indicator-x' | 'indicator-width'>
+	folded: Box
+	// The dropdown and its panel never run past the bottom of the viewport.
+	maxHeight: { dropdown: number; panel: number }
 }
 
-export type MeasureInput = {
+type MeasureInput = {
 	navigation: HTMLElement
-	trigger: HTMLElement | undefined
-	panel: HTMLElement | undefined
-	compact: MediaQueryList
+	links: HTMLElement
+	trigger: HTMLElement
+	panel: HTMLElement
 }
 
-// The dropdown and its panel never run past the bottom of the viewport.
-function capHeight(navigation: HTMLElement, availableHeight: number): void {
-	navigation.style.setProperty(
-		'--dropdown-max-height',
-		`${availableHeight}px`,
-	)
-	navigation.style.setProperty(
-		'--panel-max-height',
-		`${availableHeight - BORDER_WIDTH}px`,
-	)
+// The width a panel may take inside the dropdown's inset and border.
+export function availableWidth(navigation: HTMLElement): number {
+	const { inset, border } = readFrame(navigation)
+	return navigation.clientWidth - (inset + border) * SIDES
 }
 
 export function measureNavigation({
 	navigation,
+	links,
 	trigger,
 	panel,
-	compact,
-}: MeasureInput): Geometry | undefined {
+}: MeasureInput): Geometry {
 	const isCompact = compact.matches
-	const inset = isCompact ? MOBILE_INSET : DESKTOP_INSET
-	const available = navigation.clientWidth - inset * SIDES - BORDER_WIDTH
-	navigation.style.setProperty('--nav-available', `${available}px`)
-	const links = navigation.querySelector<HTMLElement>('[data-nav-links]')
-	if (!panel || !trigger || !links) return undefined
+	const { inset, border } = readFrame(navigation)
+	const borders = border * SIDES
 	const headerRect = navigation.getBoundingClientRect()
 	const triggerRect = trigger.getBoundingClientRect()
 	const panelRect = panel.getBoundingClientRect()
-	const width = Math.ceil(panelRect.width) + BORDER_WIDTH
+	const width = Math.ceil(panelRect.width) + borders
 	const left = isCompact ? inset : triggerRect.left - headerRect.left
 	const x = Math.max(
 		inset,
@@ -60,14 +60,13 @@ export function measureNavigation({
 		: triggerRect.bottom - headerRect.top
 	const y = anchorBottom + PANEL_GAP
 	const availableHeight = window.innerHeight - headerRect.top - y - inset
-	capHeight(navigation, availableHeight)
 	return {
 		open: {
 			x,
 			y,
 			width,
 			height: Math.min(
-				Math.ceil(panelRect.height) + BORDER_WIDTH,
+				Math.ceil(panelRect.height) + borders,
 				availableHeight,
 			),
 			'indicator-x': trigger.offsetLeft,
@@ -78,6 +77,10 @@ export function measureNavigation({
 			y: y - PANEL_GAP - FOLD_HEIGHT,
 			width: triggerRect.width,
 			height: FOLD_HEIGHT,
+		},
+		maxHeight: {
+			dropdown: availableHeight,
+			panel: availableHeight - borders,
 		},
 	}
 }

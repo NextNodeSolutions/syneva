@@ -1,14 +1,15 @@
 ---
 // Whether the page describes the CLI today or a prototype direction.
+import type { Availability } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
-import { pageStatus as s } from './page-hero.styles'
+import { pageStatus } from './page-status.styles'
 
-type Props = { state: 'available' | 'prototype' }
+type Props = { availability: Availability }
 
-const { state } = Astro.props
-const isPrototype = state === 'prototype'
+const { availability } = Astro.props
+const isPrototype = availability === 'prototype'
 ---
 
-<p {...sx(s.root, isPrototype && s.prototype)}>
-	<span {...sx(s.dot)} aria-hidden="true"></span>{isPrototype ? 'Prototype · not in the CLI today' : 'Available now · in the CLI'}
+<p {...sx(pageStatus.root, isPrototype && pageStatus.prototype)}>
+	<span {...sx(pageStatus.dot)} aria-hidden="true"></span>{isPrototype ? 'Prototype · not in the CLI today' : 'Available now · in the CLI'}
 </p>

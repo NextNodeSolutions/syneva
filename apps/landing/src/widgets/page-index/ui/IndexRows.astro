@@ -1,42 +1,16 @@
 ---
-// Linked rows for an overview page, from the section's pages; workflows
-// show the command each one runs.
+// Linked rows for an overview page, from the section's pages; a page with a
+// command (every workflow) shows the command it runs.
 import type { Page } from '@entities/site/model/site-map'
-import { revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import Icon from '@entities/site/ui/Icon.astro'
-import { indexRows as r } from './index-rows.styles'
-import { indexRowMarker } from './page-index.stylex'
-import { twoDigits } from '@shared/lib/step-number'
+import IndexRow from './IndexRow.astro'
+import { indexRows } from './index-rows.styles'
 
-type Props = { items: readonly Page[]; hasCode?: boolean }
+type Props = { pages: readonly Page[] }
 
-const { items, hasCode = false } = Astro.props
+const { pages } = Astro.props
 ---
 
-<div {...sx(r.root)}>
-	{
-		items.map((item, index) => (
-			<a {...revealItem(r.row, indexRowMarker)} href={item.href}>
-				<span {...sx(r.number)}>{twoDigits(index + 1)}</span>
-				<Icon name={item.icon} css={r.icon} />
-				<span>
-					<strong {...sx(r.title)}>
-						{item.title}
-						{item.badge && (
-							<Fragment>
-								{' '}
-								<em {...sx(r.badge)}>{item.badge}</em>
-							</Fragment>
-						)}
-					</strong>
-					<span {...sx(r.blurb)}>{item.blurb}</span>
-				</span>
-				{hasCode && <code {...sx(r.code)}>{item.code}</code>}
-				<span {...sx(r.arrow)} aria-hidden="true">
-					→
-				</span>
-			</a>
-		))
-	}
+<div {...sx(indexRows.root)}>
+	{pages.map((page, index) => <IndexRow page={page} index={index} />)}
 </div>

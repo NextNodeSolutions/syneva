@@ -1,11 +1,12 @@
 ---
 // A change still waiting for a verdict: a dashed empty box.
 import { sx } from '../../lib/sx'
+import { MARK_SIZE } from './mark-size'
 import { shape } from './shape.styles'
 
 type Props = { x: number; y: number; size?: number }
 
-const { x, y, size = 11 } = Astro.props
+const { x, y, size = MARK_SIZE } = Astro.props
 ---
 
 <rect {...sx(shape.pending)} x={x} y={y} width={size} height={size}></rect>

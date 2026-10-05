@@ -1,12 +1,10 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
-import { motionRoot } from '@syneva/motion/root.stylex'
 
-const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
 const LINE = color['--line']
 
-// Four product principles on one ruled strip, two by two on tablets.
+// Four product principles on one ruled strip, two by two on narrow screens.
 export const principles = stylex.create({
 	strip: {
 		display: 'grid',
@@ -20,10 +18,9 @@ export const principles = stylex.create({
 		font: `12px ${font['--mono']}`,
 		fontSize: { default: null, [media.phone]: '11px' },
 		backgroundColor: color['--paper'],
-		opacity: {
-			default: null,
-			[media.motionSafe]: { default: null, [armed()]: 0 },
-		},
+		listStyle: 'none',
+		margin: 0,
+		padding: 0,
 	},
 	item: {
 		display: 'flex',
@@ -33,7 +30,7 @@ export const principles = stylex.create({
 		padding: { default: '22px 12px', [media.phone]: '16px 8px' },
 		textAlign: 'center',
 	},
-	// Every item after the first is ruled on its left; on tablets the second
+	// Every item after the first is ruled on its left; on narrow screens the second
 	// row loses that rule at its start and gains one on top.
 	notFirst: {
 		borderLeftWidth: '1px',

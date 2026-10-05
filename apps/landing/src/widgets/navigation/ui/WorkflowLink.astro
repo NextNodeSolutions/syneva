@@ -1,19 +1,23 @@
 ---
 // A workflows menu cell: icon and title, blurb, and the command that opens it.
-import type { Page } from '@entities/site/model/site-map'
+import type { WorkflowPage } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Icon from '@entities/site/ui/Icon.astro'
+import { currentPage } from '../model/current-page'
 import { workflowLinkMarker } from './markers.stylex'
 import { workflowLink } from './menu.styles'
+import { menuOrder } from './menu-order'
 
-type Props = { page: Page; route: string; index: number }
+type Props = { page: WorkflowPage; index: number }
 
-const { page, route, index } = Astro.props
-// Rows after the first carry a rule; the second cell of the first row only
-// once the grid stacks into one column.
-const SECOND_ROW = 2
-const isRuled = index >= SECOND_ROW
-const isRuledWhenStacked = index === 1
+// The menu's columns on wide screens (panel.styles.ts, workflowLinks).
+const COLUMNS = 2
+
+const { page, index } = Astro.props
+// Rows after the first carry a rule; the first row's later cells only once
+// the grid stacks into one column.
+const isRuled = index >= COLUMNS
+const isRuledWhenStacked = index > 0 && !isRuled
 ---
 
 <a
@@ -24,8 +28,8 @@ const isRuledWhenStacked = index === 1
 		workflowLinkMarker,
 	)}
 	href={page.href}
-	data-menu-row
-	aria-current={page.href === route ? 'page' : undefined}
+	{...menuOrder(index)}
+	aria-current={currentPage(page.href, Astro.url.pathname)}
 >
 	<strong {...sx(workflowLink.title)}>
 		<Icon name={page.icon} css={workflowLink.icon} />

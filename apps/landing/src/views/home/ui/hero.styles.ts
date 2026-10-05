@@ -1,33 +1,27 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, ease, font } from '@syneva/design-system/tokens.stylex'
-import { motionRoot } from '@syneva/motion/root.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+	layout,
+} from '@syneva/design-system/tokens.stylex'
 
 import { heroMarker, newsMarker } from './hero.stylex'
 
-import type { When } from '@syneva/design-system/when'
-
-const lit = (): string => stylex.when.ancestor(':is(.is-lit)', heroMarker)
+const heroHover = (): string => stylex.when.ancestor(':hover', heroMarker)
 const newsHover = (): string => stylex.when.ancestor(':hover', newsMarker)
-const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
 
-// The intro's hidden poses: the headline sweeps in once the runtime boots
-// (see hero.client.ts). Reduced motion and no-JS render the finished pose.
-const hidden = <T>(pose: T): When<When<T>> => ({
-	default: null,
-	[media.motionSafe]: { default: null, [armed()]: pose },
-})
-// The dash lengths the check and the underline draw over (hero-intro.ts).
-const CHECK_LENGTH = 24
-const UNDERLINE_LENGTH = 100
-
-const LIGHT =
-	"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 19v10M19 24h10' stroke='%231888b0' stroke-width='1.2'/%3E%3C/svg%3E\")"
+// One registration cross per 48px tile, as a mask: its stroke only shapes
+// the light, and the light's own background paints it.
+const CROSS =
+	"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 19v10M19 24h10' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E\")"
 
 export const hero = stylex.create({
 	root: {
 		position: 'relative',
-		padding: '28px var(--gutter) 64px',
+		padding: `28px ${layout['--gutter']} 64px`,
 		paddingBottom: { default: null, [media.phone]: '44px' },
 		isolation: 'isolate',
 		overflow: 'hidden',
@@ -43,22 +37,38 @@ export const hero = stylex.create({
 			inset: 0,
 			backgroundImage: `linear-gradient(${color['--grid']} 1px, transparent 1px), linear-gradient(90deg, ${color['--grid']} 1px, transparent 1px)`,
 			backgroundSize: '48px 48px',
-			backgroundPosition: 'calc(var(--gutter) - 1px) -1px',
+			backgroundPosition: `calc(${layout['--gutter']} - 1px) -1px`,
 			maskImage:
 				'linear-gradient(170deg, #000 0%, rgb(0 0 0 / .55) 38%, transparent 72%)',
 		},
 	},
-	// The pointer light: accent registration crosses wake up around the cursor.
+	// The pointer light: accent registration crosses wake up around the cursor
+	// while it is over the hero (hero-pointer.ts follows it with --mx/--my),
+	// for a fine pointer and without reduced motion, as the pointer depth.
+	// The crosses are the tile mask of a --signal layer (::before); the light
+	// itself fades the layer out around the cursor.
 	light: {
 		position: 'absolute',
 		inset: 0,
-		backgroundImage: LIGHT,
-		backgroundSize: '48px 48px',
-		backgroundPosition: 'calc(var(--gutter) - 25px) -25px',
-		opacity: { default: 0, [lit()]: 1 },
+		opacity: {
+			default: 0,
+			[media.finePointer]: {
+				default: null,
+				[media.motionSafe]: { default: null, [heroHover()]: 1 },
+			},
+		},
 		maskImage:
 			'radial-gradient(circle 190px at var(--mx, 70%) var(--my, 20%), #000 0%, rgb(0 0 0 / .4) 45%, transparent 100%)',
 		transition: `opacity .5s ${ease['--ease-out']}`,
+		'::before': {
+			content: "''",
+			position: 'absolute',
+			inset: 0,
+			backgroundColor: color['--signal'],
+			maskImage: CROSS,
+			maskSize: '48px 48px',
+			maskPosition: `calc(${layout['--gutter']} - 25px) -25px`,
+		},
 	},
 	news: {
 		display: 'inline-flex',
@@ -71,9 +81,8 @@ export const hero = stylex.create({
 		backgroundColor: color['--white'],
 		fontSize: { default: '13px', [media.phone]: '12px' },
 		color: { default: color['--muted'], ':hover': color['--ink'] },
-		transition: `border-color .2s ${ease['--ease-out']}, color .2s ${ease['--ease-out']}`,
+		transition: `border-color ${duration['--duration-medium']} ${ease['--ease-out']}, color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		maxWidth: '100%',
-		opacity: hidden(0),
 	},
 	newsText: {
 		overflow: 'hidden',
@@ -91,12 +100,12 @@ export const hero = stylex.create({
 	},
 	newsArrow: {
 		color: color['--ink'],
-		transition: `transform .2s ${ease['--ease-out']}`,
+		transition: `transform ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		flexShrink: 0,
 		transform: { default: null, [newsHover()]: 'translateX(3px)' },
 	},
 	title: {
-		'--hl-gutter': {
+		'--headline-gutter': {
 			default: '76px',
 			[media.narrow]: '58px',
 			[media.phone]: '34px',
@@ -111,7 +120,7 @@ export const hero = stylex.create({
 	},
 	line: {
 		display: 'grid',
-		gridTemplateColumns: 'var(--hl-gutter) minmax(0, auto)',
+		gridTemplateColumns: 'var(--headline-gutter) minmax(0, auto)',
 		alignItems: 'stretch',
 		justifyContent: 'start',
 	},
@@ -133,7 +142,6 @@ export const hero = stylex.create({
 		fontSize: { default: null, [media.narrow]: '11px' },
 		letterSpacing: 0,
 		color: color['--line-strong'],
-		opacity: hidden(0),
 	},
 	number: {
 		fontStyle: 'normal',
@@ -148,7 +156,6 @@ export const hero = stylex.create({
 		height: { default: '22px', [media.phone]: '18px' },
 		font: `500 18px/1 ${font['--mono']}`,
 		fontSize: { default: null, [media.phone]: '15px' },
-		transform: hidden('scale(0)'),
 	},
 	agentMark: { color: color['--accent'] },
 	check: {
@@ -159,10 +166,6 @@ export const hero = stylex.create({
 		strokeWidth: 2.4,
 		strokeLinecap: 'round',
 		strokeLinejoin: 'round',
-	},
-	checkPath: {
-		strokeDasharray: hidden(CHECK_LENGTH),
-		strokeDashoffset: hidden(CHECK_LENGTH),
 	},
 	clip: {
 		position: 'relative',
@@ -176,7 +179,6 @@ export const hero = stylex.create({
 			inset: 0,
 			zIndex: -1,
 			transformOrigin: 'left',
-			transform: hidden('scaleX(0)'),
 		},
 	},
 	agentBand: {
@@ -186,13 +188,12 @@ export const hero = stylex.create({
 	},
 	humanBand: {
 		'::before': {
-			backgroundImage: `linear-gradient(90deg, ${color['--mint']}, rgb(224 237 223 / .35))`,
+			backgroundImage: `linear-gradient(90deg, ${color['--mint']}, color-mix(in srgb, ${color['--mint']} 35%, transparent))`,
 		},
 	},
 	text: {
 		display: 'block',
 		whiteSpace: { default: 'nowrap', [media.phone]: 'normal' },
-		transform: hidden('translateY(108%)'),
 	},
 	decide: {
 		position: 'relative',
@@ -213,7 +214,5 @@ export const hero = stylex.create({
 		stroke: color['--green'],
 		strokeWidth: 6,
 		strokeLinecap: 'round',
-		strokeDasharray: UNDERLINE_LENGTH,
-		strokeDashoffset: hidden(UNDERLINE_LENGTH),
 	},
 })

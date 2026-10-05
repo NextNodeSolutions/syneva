@@ -1,12 +1,11 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import HomePage from '@views/home/ui/HomePage.astro'
+import { SITE_NAME } from '@entities/site/model/site-map'
 ---
 
 <Document
-	route="/"
-	page="home"
-	title="Syneva: the review desk for code your agent wrote"
+	title={`${SITE_NAME}: the review desk for code your agent wrote`}
 	description="Your agent writes. You decide what ships. Syneva is a local, open-source review desk: read the diff in order, ask on the exact line, record a verdict on every change, and hand it back to your agent."
 >
 	<HomePage />

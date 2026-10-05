@@ -3,8 +3,7 @@ declare namespace App {
 	// a page hero, "lost" the 404.
 	type PageKind = 'home' | 'sub' | 'lost'
 	interface Locals {
-		page?: PageKind
-		// Per-page counter behind the copyable commands' field ids.
-		commandCount?: number
+		// Set by src/middleware.ts for every route.
+		page: PageKind
 	}
 }

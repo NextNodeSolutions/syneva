@@ -1,0 +1,7 @@
+---
+// The honest note under a prototype chapter: what exists today.
+import { revealItem } from '@shared/lib/reveal'
+import { chapter } from './chapter.styles'
+---
+
+<p {...revealItem(chapter.text, chapter.note)}><slot /></p>

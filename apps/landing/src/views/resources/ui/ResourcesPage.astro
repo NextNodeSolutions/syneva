@@ -1,5 +1,4 @@
 ---
-import ResourcesIndex from './art/ResourcesIndex.astro'
 import Button from '@shared/ui/Button.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
 import IndexRows from '@widgets/page-index/ui/IndexRows.astro'
@@ -8,30 +7,29 @@ import Prose from '@shared/ui/prose/Prose.astro'
 import ProseCommand from '@features/copy-command/ui/ProseCommand.astro'
 import ProseText from '@shared/ui/prose/ProseText.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { REPO_URL, sectionById } from '@entities/site/model/site-map'
-
-type Props = { route: string }
-
-const { route } = Astro.props
+import { ISSUES_URL, REPO_URL } from '@entities/site/model/project'
+import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
+import ResourcesIndex from './art/ResourcesIndex.astro'
+import { SPEC_COMMAND, SPEC_COMMAND_LABEL } from '@entities/desk/model/agent-contract'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
 
 ---
 
 <PageHero
-	route={route}
-	crumb="Resources"
 	title="Everything for your first review."
 	lede={'Set up the desk, connect the agent you already use, get straight answers about what Syneva does and doesn’t do, and follow what ships.'}
-	caption="Four pages, from setup to what shipped."
+	caption={`${capitalize(countWord(SECTION_BY_ID.resources.items.length))} pages, from setup to what shipped.`}
 >
-	<Fragment slot="actions"><Button href="/get-started/" label="Get started" /><TextLink href={`${REPO_URL}#readme`} label="Read the README" isExternal /></Fragment>
+	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Get started" /><TextLink href={`${REPO_URL}#readme`} label="Read the README" /></Fragment>
 	<ResourcesIndex slot="art" />
 </PageHero>
 <Prose id="all" title="Start anywhere.">
-	<IndexRows items={sectionById('resources').items} />
+	<IndexRows pages={SECTION_BY_ID.resources.items} />
 </Prose>
 <Prose id="spec" title="The contract,<br>from the source.">
 	<ProseText>The full agent contract (modes, events, flags and the <code>ReviewResult</code> shape) is versioned with the CLI and printed by one command. That is the copy your agent should read, because it always matches the binary you installed.</ProseText>
-	<ProseCommand text="syneva spec" label="Print the agent contract" />
-	<ProseText><TextLink href={`${REPO_URL}/issues`} label="Found a gap? Open an issue" isExternal /></ProseText>
+	<ProseCommand text={SPEC_COMMAND} label={SPEC_COMMAND_LABEL} />
+	<ProseText><TextLink href={ISSUES_URL} label="Found a gap? Open an issue" /></ProseText>
 </Prose>
 <CtaBand />

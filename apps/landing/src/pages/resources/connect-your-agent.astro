@@ -1,15 +1,14 @@
 ---
 import Document from '@app/layouts/Document.astro'
+import { SPEC_COMMAND } from '@entities/desk/model/agent-contract'
 import ConnectYourAgentPage from '@views/resources/ui/ConnectYourAgentPage.astro'
-
-const route = '/resources/connect-your-agent/'
+import { pageTitle } from '@entities/site/model/routes'
+import { PAGES } from '@entities/site/model/site-map'
 ---
 
 <Document
-	route={route}
-	page="sub"
-	title="Connect your agent · Syneva"
-	description="Any agent can drive the Syneva desk: plain JSON on stdout and a localhost HTTP server, documented in full by syneva spec. The pi package wires it up for you."
+	title={pageTitle(PAGES.connectYourAgent.title)}
+	description={`Any agent can drive the Syneva desk: plain JSON on stdout and a localhost HTTP server, documented in full by ${SPEC_COMMAND}. The pi package wires it up for you.`}
 >
-	<ConnectYourAgentPage route={route} />
+	<ConnectYourAgentPage />
 </Document>

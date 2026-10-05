@@ -1,55 +1,61 @@
 ---
 // Connect your agent: the wire between the agent and the desk.
 import { sx } from '@shared/lib/sx'
-import { productArt as p } from '@shared/ui/drawing/product-art.styles'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
+import Pending from '@shared/ui/drawing/Pending.astro'
+import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { resourcesArt as r } from './resources-art.styles'
+import { EVENTS, SPEC_COMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
+import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
 
-const VERBS = ['await', 'comment', 'status', 'reload', 'stop'] as const
-const EVENTS = ['question', 'review', 'closed'] as const
-const VERB_STEP = 56
-const EVENT_STEP = 58
-const PILL_HALF = 26
+const VERB_STEP = 64
+const EVENT_STEP = 66
+// Wide enough for the longest label in the dense phone type.
+const PILL_WIDTH = 60
 const OUT = 'M180 180H420'
 const BACK = 'M420 240H180'
+const EVENT_KINDS = Object.keys(EVENTS)
 ---
 
-<Drawing viewBox="0 0 600 420" compact="30 90 540 290" labelledby="wire-title wire-desc" isDense>
-	<title id="wire-title">The contract between your agent and the desk</title>
-	<desc id="wire-desc">Your agent talks to the desk with five CLI subcommands: await, comment, status, reload and stop. The desk answers with three kinds of event: question, review and closed. Everything is plain JSON on stdout and a localhost HTTP server.</desc>
-	<ArtFrame id="wire" width={600} height={420} />
+<Drawing
+	id="wire"
+	width={600}
+	height={420}
+	compact="30 90 540 290"
+	density="dense"
+	title="The contract between your agent and the desk"
+	description={`Your agent talks to the desk with ${countWord(SUBCOMMANDS.length)} CLI subcommands: ${listFormat.format(SUBCOMMANDS.map(({ name }) => name))}. The desk answers with ${countWord(EVENT_KINDS.length)} kinds of event: ${listFormat.format(EVENT_KINDS)}. Everything is plain JSON on stdout and a localhost HTTP server.`}
+>
 	<g {...anim('rise', 0)}><rect {...sx(shape.panel, shape.panelWhite)} x="40" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="54" y="172">YOUR AGENT</text><text {...sx(text.small)} x="54" y="194">Any agent,</text><text {...sx(text.small)} x="54" y="211">Codex, Cursor,</text><text {...sx(text.small)} x="54" y="228">pi, a script</text><text {...sx(text.code, text.accent)} x="54" y="256">$ syneva …</text></g>
-	<g {...anim('rise', 0.2)}><rect {...sx(shape.panel, shape.panelWhite)} x="420" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="434" y="172">YOUR DESK</text><text {...sx(text.small)} x="434" y="198">localhost, the tab</text><text {...sx(text.small)} x="434" y="216">you review in</text><Check x={434} y={236} size={12} /><rect {...sx(shape.pending)} x="452" y="236" width="12" height="12"></rect></g>
+	<g {...anim('rise', 0.2)}><rect {...sx(shape.panel, shape.panelWhite)} x="420" y="150" width="140" height="120"></rect><text {...sx(text.tiny)} x="434" y="172">YOUR DESK</text><text {...sx(text.small)} x="434" y="198">localhost, the tab</text><text {...sx(text.small)} x="434" y="216">you review in</text><Check x={434} y={236} size={12} /><Pending x={452} y={236} size={12} /></g>
 	<g fill="none">
-		<path {...anim('draw', 0.5, shape.route)} pathLength="1" d={OUT}></path>
-		<path {...anim('draw', 1.2, shape.route, shape.routeAccent)} pathLength="1" d={BACK}></path>
-		<path {...anim('signal', 1.8, shape.signal)} pathLength="100" d={OUT}></path>
-		<path {...anim('signal', 2.8, shape.signal)} pathLength="100" d={BACK}></path>
+		<Wire d={OUT} drawDelay={0.5} signalDelay={1.8} />
+		<Wire d={BACK} drawDelay={1.2} signalDelay={2.8} routeCss={shape.routeAccent} />
 	</g>
-	<path {...sx(p.headMuted)} d="M420 180l-7-4v8Z"></path><path {...sx(p.headAccent)} d="M180 240l7-4v8Z"></path>
+	<path {...sx(productArt.headMuted)} d="M420 180l-7-4v8Z"></path><path {...sx(productArt.headAccent)} d="M180 240l7-4v8Z"></path>
 	<text {...anim('fade', 0.7, text.tiny)} x="300" y="116" text-anchor="middle">SUBCOMMANDS · AGENT → DESK</text>
 	{
-		VERBS.map((verb, i) => (
-			<g {...anim('pop', 0.8 + i * 0.1)}>
-				<rect {...sx(r.wirePill)} x={162 + i * VERB_STEP} y="128" width="52" height="18" />
-				<text {...sx(text.tiny)} x={162 + PILL_HALF + i * VERB_STEP} y="140.5" text-anchor="middle">{verb}</text>
+		SUBCOMMANDS.map(({ name: verb }, index) => (
+			<g {...anim('pop', 0.8 + index * 0.1)}>
+				<rect {...sx(shape.kbd)} x={142 + index * VERB_STEP} y="128" width={PILL_WIDTH} height="18" />
+				<text {...sx(text.tiny)} x={142 + PILL_WIDTH / 2 + index * VERB_STEP} y="140.5" text-anchor="middle">{verb}</text>
 			</g>
 		))
 	}
 	<text {...anim('fade', 1.3, text.tiny, text.accent)} x="300" y="310" text-anchor="middle">EVENTS · DESK → AGENT</text>
 	{
-		EVENTS.map((event, i) => (
-			<g {...anim('pop', 1.4 + i * 0.12)}>
-				<rect {...sx(r.wirePill, r.wireEvent)} x={222 + i * EVENT_STEP} y="272" width="52" height="18" />
-				<text {...sx(text.tiny, text.accent)} x={222 + PILL_HALF + i * EVENT_STEP} y="284.5" text-anchor="middle">{event}</text>
+		Object.keys(EVENTS).map((event, index) => (
+			<g {...anim('pop', 1.4 + index * 0.12)}>
+				<rect {...sx(shape.kbd, shape.no)} x={210 + index * EVENT_STEP} y="272" width={PILL_WIDTH} height="18" />
+				<text {...sx(text.tiny, text.accent)} x={210 + PILL_WIDTH / 2 + index * EVENT_STEP} y="284.5" text-anchor="middle">{event}</text>
 			</g>
 		))
 	}
 	<g {...anim('fade', 2)}><text {...sx(text.tiny)} x="300" y="360" text-anchor="middle">PLAIN JSON ON STDOUT · LOCALHOST HTTP · NO VENDOR LOCK-IN</text></g>
-	<g {...anim('fade', 2.1, shape.secondary)}><text {...sx(text.code)} x="300" y="66" text-anchor="middle">$ syneva spec</text><text {...sx(text.tiny)} x="300" y="86" text-anchor="middle">PRINTS THE WHOLE CONTRACT</text></g>
+	<g {...anim('fade', 2.1, shape.secondary)}><text {...sx(text.code)} x="300" y="66" text-anchor="middle">$ {SPEC_COMMAND}</text><text {...sx(text.tiny)} x="300" y="86" text-anchor="middle">PRINTS THE WHOLE CONTRACT</text></g>
 </Drawing>

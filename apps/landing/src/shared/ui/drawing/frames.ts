@@ -1,21 +1,30 @@
-// Drawings that reframe on phones declare data-compact="x y w h": below
-// 600px the viewBox swaps onto their subject instead of shrinking labels into
-// microtext. Listeners (the review circuit) re-route after every swap.
-export const compact = matchMedia('(max-width: 600px)')
+import { queries } from '@syneva/design-system/media.stylex'
 
-const reframed = [...document.querySelectorAll('svg[data-compact]')]
-reframed.forEach(svg => {
-	svg.setAttribute('data-wide', svg.getAttribute('viewBox') ?? '')
-})
+// Drawings that reframe on phones declare data-compact="x y w h": on a phone
+// the viewBox swaps onto their subject instead of shrinking labels into
+// microtext, and back to the drawing's own viewBox on wider screens.
+type Frames = { svg: Element; wide: string; compact: string }
 
-export function updateFrames(): void {
-	reframed.forEach(svg => {
-		const frame = compact.matches
-			? svg.getAttribute('data-compact')
-			: svg.getAttribute('data-wide')
-		if (frame) svg.setAttribute('viewBox', frame)
-	})
+// Drawing.astro writes both frames on every drawing it reframes.
+function framesOf(svg: Element): Frames {
+	const wide = svg.getAttribute('viewBox')
+	const compact = svg.getAttribute('data-compact')
+	if (!wide || !compact)
+		throw new Error(
+			`The drawing #${svg.id} reframes on phones without both a viewBox and a data-compact frame: render it with Drawing.astro.`,
+		)
+	return { svg, wide, compact }
 }
 
-compact.addEventListener('change', updateFrames)
-updateFrames()
+export function watchFrames(): void {
+	const phone = matchMedia(queries.phone)
+	const drawings = [...document.querySelectorAll('svg[data-compact]')].map(
+		framesOf,
+	)
+	const reframe = (): void => {
+		for (const { svg, wide, compact } of drawings)
+			svg.setAttribute('viewBox', phone.matches ? compact : wide)
+	}
+	phone.addEventListener('change', reframe)
+	reframe()
+}

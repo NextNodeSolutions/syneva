@@ -1,15 +1,12 @@
 ---
 import Document from '@app/layouts/Document.astro'
 import PlanDeskPage from '@views/product/ui/PlanDeskPage.astro'
-
-const route = '/product/plan-desk/'
+import { pageTitle } from '@entities/site/model/routes'
 ---
 
 <Document
-	route={route}
-	page="sub"
-	title="Plan desk (prototype) · Syneva"
+	title={pageTitle('Plan desk (prototype)')}
 	description={'A prototype direction for Syneva: turn an agent’s plan into claims you can rank, question and settle before any code exists. Today, syneva file already reviews a plan line by line.'}
 >
-	<PlanDeskPage route={route} />
+	<PlanDeskPage />
 </Document>

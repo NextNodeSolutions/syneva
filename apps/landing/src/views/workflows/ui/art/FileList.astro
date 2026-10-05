@@ -5,10 +5,12 @@ import { sx } from '@shared/lib/sx'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { workflowsArt as w } from './workflows-art.styles'
+import type { FileStatus } from './status-bar'
+import { STATUS_BAR } from './status-bar'
 
 type Props = {
-	files: readonly (readonly [string, 'mod' | 'add'])[]
+	// Each changed file and its status as git prints it.
+	files: readonly { name: string; status: FileStatus }[]
 	x: number
 	y: number
 	label: string
@@ -23,10 +25,10 @@ const ROW = 24
 
 <g {...anim('rise', delay)}>
 	<rect {...sx(shape.panel, shape.panelWhite)} x={x} y={y} width={WIDTH} height={HEAD + files.length * ROW}></rect><text {...sx(text.code, text.accent)} x={x + 14} y={y + 22}>{label}</text><path {...sx(shape.hair)} d={`M${x} ${y + 32}h${WIDTH}`}></path>{
-		files.map(([name, kind], i) => (
+		files.map(({ name, status }, index) => (
 			<Fragment>
-				<rect {...sx(kind === 'add' ? w.barAdd : w.barMod)} x={x + 14} y={y + 44 + i * ROW} width="4" height="10" />
-				<text {...sx(text.file)} x={x + 26} y={y + 53 + i * ROW}>{name}</text>
+				<rect {...sx(STATUS_BAR[status])} x={x + 14} y={y + 44 + index * ROW} width="4" height="10" />
+				<text {...sx(text.file)} x={x + 26} y={y + 53 + index * ROW}>{name}</text>
 			</Fragment>
 		))
 	}

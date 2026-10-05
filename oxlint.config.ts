@@ -1,6 +1,8 @@
 import standards from '@nextnode-solutions/standards/oxlint'
 import { defineConfig } from 'oxlint'
 
+import LANDING_LAYERS from './apps/landing/layers.json' with { type: 'json' }
+
 import type { OxlintOverride } from 'oxlint'
 
 // Cross-layer imports are aliased (each sliced layer below declares its upward
@@ -22,32 +24,25 @@ const relativeLayerEscapes = (...targets: string[]): string[] =>
 		`../../../../${target}/**`,
 	])
 
-// The landing's FSD layers (apps/landing/src): app -> views -> widgets ->
-// features -> entities -> shared, strictly downward; src/pages holds the
-// Astro routes, which compose app and views. A sliced layer also bans its own
+// The landing's FSD layers (apps/landing/src, listed top to bottom in
+// apps/landing/layers.json): app -> views -> widgets -> features -> entities
+// -> shared, strictly downward; src/pages holds the Astro routes, which
+// compose app and views. A sliced layer also bans its own
 // alias: slices never import each other, intra-slice imports stay relative.
-// oxlint parses the .ts modules only; the .astro components follow the same
-// rules by convention. Each rule set repeats the Motion ban of the
-// apps/landing/** override, which it replaces for its files.
-const LANDING_LAYERS = [
-	'app',
-	'views',
-	'widgets',
-	'features',
-	'entities',
-	'shared',
-]
+// The rules hold for the .astro components as for the .ts modules: oxlint
+// lints their frontmatter and scripts. Each rule set repeats the Motion ban
+// of the apps/landing/** override, which it replaces for its files.
 const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
 const LANDING_MOTION_BAN = {
 	group: ['motion', 'motion/**'],
 	message:
-		'the landing animates through @syneva/motion only - import animate from @syneva/motion/animate, or export the Motion API you need from the package first.',
+		'the landing animates through @syneva/motion only. Import the engine from @syneva/motion/engine, or export the Motion API you need from it first.',
 }
 const landingLayer = (layer: string): OxlintOverride => {
 	const above = LANDING_LAYERS.slice(0, LANDING_LAYERS.indexOf(layer))
 	const others = LANDING_LAYERS.filter(other => other !== layer)
 	return {
-		files: [`apps/landing/src/${layer}/**/*.ts`],
+		files: [`apps/landing/src/${layer}/**/*.{ts,astro}`],
 		rules: {
 			'eslint/no-restricted-imports': [
 				'error',
@@ -76,7 +71,7 @@ const landingLayer = (layer: string): OxlintOverride => {
 						{
 							group: relativeLayerEscapes(...others),
 							message:
-								'cross-layer imports use the layer aliases - relative paths must stay inside the slice.',
+								'cross-layer imports use the layer aliases. Relative paths must stay inside the slice.',
 						},
 					],
 				},
@@ -114,22 +109,29 @@ export default defineConfig({
 				'apps/landing/src/views/*/ui/art/**',
 				'apps/landing/src/views/home/ui/circuit/**',
 				'apps/landing/src/shared/ui/drawing/**',
-				'apps/landing/src/views/home/ui/hero.choreography.ts',
-				'apps/landing/src/views/home/ui/hero.timeline.ts',
-				'apps/landing/src/views/home/ui/hero.verdict.ts',
-				'apps/landing/src/views/home/ui/Hero{Card,Glyph,Ledger,Stage}.astro',
+				'apps/landing/src/views/home/ui/hero-choreography.ts',
+				'apps/landing/src/views/home/ui/hero-timeline.ts',
+				'apps/landing/src/views/home/ui/hero-verdict.ts',
+				'apps/landing/src/views/home/ui/Hero{Agent,Card,Desk,Ledger,Stage}.astro',
 			],
 			rules: { 'eslint/no-magic-numbers': 'off' },
 		},
 		{
 			// The landing's copy is typeset: curly quotes, en dashes and the minus
 			// sign are the intended glyphs of text a visitor reads, never strings
-			// the code compares.
+			// the code compares. The drawings' data modules carry their labels.
 			files: [
 				'apps/landing/src/**/*.astro',
-				'apps/landing/src/views/resources/ui/faq-content.ts',
+				'apps/landing/src/entities/desk/model/agent-contract.ts',
+				'apps/landing/src/views/*/ui/art/*.ts',
 			],
 			rules: { 'nextnode/no-confusable-chars': 'off' },
+		},
+		{
+			// Astro hands middleware the request's locals to fill before any page
+			// renders: assigning to context.locals is the framework's contract.
+			files: ['apps/landing/src/middleware.ts'],
+			rules: { 'eslint/no-param-reassign': 'off' },
 		},
 		{
 			// The public site and its packages use no Tailwind: CSS keyword strings
@@ -204,12 +206,23 @@ export default defineConfig({
 			rules: { 'eslint/no-await-in-loop': 'off' },
 		},
 		{
-			// The landing reaches Motion only through @syneva/motion: the package is the
-			// one place that names the animation engine (animate.ts re-exports the
-			// motion/mini animate; inView and frame live in reveal/scenes/count-up), so
-			// the engine can change without touching the site. A Motion API the site
-			// needs is exported from the package first.
+			// The landing reaches Motion only through @syneva/motion, whose engine.ts is
+			// the one module that imports the animation engine: it picks the WAAPI
+			// animate() and patches its options type once. A Motion API the site needs
+			// is exported from engine.ts first.
 			files: ['apps/landing/**'],
+			rules: {
+				'eslint/no-restricted-imports': [
+					'error',
+					{ patterns: [LANDING_MOTION_BAN] },
+				],
+			},
+		},
+		{
+			// Inside @syneva/motion too, engine.ts alone names Motion: the other modules
+			// import the engine from it.
+			files: ['packages/motion/src/**/*.ts'],
+			excludeFiles: ['packages/motion/src/engine.ts'],
 			rules: {
 				'eslint/no-restricted-imports': [
 					'error',
@@ -218,7 +231,7 @@ export default defineConfig({
 							{
 								group: ['motion', 'motion/**'],
 								message:
-									'the landing animates through @syneva/motion only - import animate from @syneva/motion/animate, or export the Motion API you need from the package first.',
+									'engine.ts is the one seam of @syneva/motion onto Motion. Import the engine from ./engine, or export the Motion API you need from it first.',
 							},
 						],
 					},

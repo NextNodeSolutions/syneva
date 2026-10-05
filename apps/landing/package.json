@@ -19,6 +19,7 @@
 	},
 	"devDependencies": {
 		"@astrojs/check": "0.9.10",
+		"@syneva/contracts": "workspace:*",
 		"@stylexjs/unplugin": "0.19.1",
 		"typescript": "^6.0.3"
 	}

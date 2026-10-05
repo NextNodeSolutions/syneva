@@ -1,5 +1,4 @@
 ---
-import BranchGraph from './art/BranchGraph.astro'
 import Command from '@features/copy-command/ui/Command.astro'
 import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
 import PageHero from '@widgets/page-hero/ui/PageHero.astro'
@@ -7,14 +6,12 @@ import Pager from '@widgets/page-index/ui/Pager.astro'
 import Prose from '@shared/ui/prose/Prose.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import Terminal from '@shared/ui/prose/Terminal.astro'
-
-type Props = { route: string }
-
-const { route } = Astro.props
+import { PAGES } from '@entities/site/model/site-map'
+import BranchGraph from './art/BranchGraph.astro'
 
 const REFS = [
 	'# a pull request number, resolved through gh',
-	'$ syneva pr 128',
+	`$ ${PAGES.pullRequests.code}`,
 	'',
 	'# a GitHub URL',
 	'$ syneva pr https://github.com/acme/app/pull/128',
@@ -31,14 +28,11 @@ const RULES = [
 ---
 
 <PageHero
-	route={route}
-	crumb="Pull requests"
 	title="A whole branch, against its merge-base."
-	state="available"
 	lede={'Review a branch’s commits the way they will land. <code>syneva pr</code> takes a branch name, a pull request number or a GitHub URL, checks the branch out and diffs it against its merge-base.'}
 	caption={'Only the branch’s own commits. Main’s new work stays out.'}
 >
-	<Command slot="actions" text="syneva pr 128" label="Review a pull request" />
+	<Command slot="actions" text={PAGES.pullRequests.code} label="Review a pull request" />
 	<BranchGraph slot="art" />
 </PageHero>
 <Prose id="refs" title="Any way you<br>name the branch.">
@@ -48,4 +42,4 @@ const RULES = [
 	<RuledList items={RULES} />
 </Prose>
 <CtaBand />
-<Pager route={route} />
+<Pager />

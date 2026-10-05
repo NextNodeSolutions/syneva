@@ -2,19 +2,19 @@
 // The desk's keyboard map: the real bindings, two to a row.
 import { revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
-import { kbdGrid as k } from './kbd-grid.styles'
+import { kbdGrid } from './kbd-grid.styles'
 
 type Props = { keys: readonly (readonly [string, string])[] }
 
 const { keys } = Astro.props
 ---
 
-<div {...revealItem(k.root)}>
+<div {...revealItem(kbdGrid.root)}>
 	{
 		keys.map(([key, label]) => (
-			<div {...sx(k.row)}>
-				<kbd {...sx(k.key)}>{key}</kbd>
-				<span {...sx(k.label)}>{label}</span>
+			<div {...sx(kbdGrid.row)}>
+				<kbd {...sx(kbdGrid.key)}>{key}</kbd>
+				<span {...sx(kbdGrid.label)}>{label}</span>
 			</div>
 		))
 	}

@@ -1,0 +1,12 @@
+---
+// A question thread under a line: a tinted box with the accent rail down its
+// left edge, and the conversation (the slot) written inside it.
+import { sx } from '../../lib/sx'
+import { homeArt } from './home-art.styles'
+
+type Props = { x: number; y: number; width: number; height: number }
+
+const { x, y, width, height } = Astro.props
+---
+
+<rect {...sx(homeArt.askThread)} x={x} y={y} width={width} height={height}></rect><path {...sx(homeArt.askRail)} d={`M${x} ${y}v${height}`}></path><slot />

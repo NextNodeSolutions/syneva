@@ -9,13 +9,9 @@ const stroke = (paint: string): { stroke: string; fill: string } => ({
 })
 
 export const shape = stylex.create({
-	// A reframed drawing never scales past ~1.5x its subject.
-	compactFrame: {
-		maxWidth: { default: null, [media.phone]: '460px' },
-		marginInline: { default: null, [media.phone]: 'auto' },
-	},
 	secondary: { display: { default: null, [media.phone]: 'none' } },
 	register: { stroke: color['--line-strong'] },
+	grid: stroke(color['--grid']),
 	panel: { fill: color['--paper'], stroke: color['--line-strong'] },
 	panelWhite: { fill: color['--white'], stroke: color['--ink'] },
 	panelMint: { fill: color['--mint'], stroke: color['--green'] },
@@ -53,7 +49,7 @@ export const shape = stylex.create({
 	},
 	bandYes: { fill: color['--mint'] },
 	bandNo: { fill: color['--wash'] },
-	bandAdd: { fill: '#eef5ec' },
+	bandAdd: { fill: color['--mint-tint'] },
 	bandFocus: { fill: color['--signal'], fillOpacity: 0.1 },
 	chipYes: { fill: color['--mint'], stroke: color['--green'] },
 	chipNo: { fill: color['--wash'], stroke: color['--accent'] },

@@ -3,20 +3,21 @@
 // the copy is written.
 import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
-import { specTable as t } from './prose.styles'
+import { prose } from './prose.styles'
+import { specTable } from './spec-table.styles'
 
 type Props = { rows: readonly (readonly [string, string])[]; head: readonly [string, string] }
 
 const { rows, head } = Astro.props
 ---
 
-<div {...revealItem(t.root)} role="table">
-	<div {...sx(t.row, t.head)} role="row"><span {...sx(t.value)} role="columnheader">{head[0]}</span><span {...sx(t.value)} role="columnheader">{head[1]}</span></div>
+<div {...revealItem(specTable.root, prose.block)} role="table">
+	<div {...sx(specTable.row, specTable.head)} role="row"><span {...sx(specTable.value)} role="columnheader">{head[0]}</span><span {...sx(specTable.value)} role="columnheader">{head[1]}</span></div>
 	{
 		rows.map(([key, value]) => (
-			<div {...sx(t.row)} role="row">
-				<code {...sx(t.key)} role="cell" set:html={key} />
-				<span {...sx(t.value)} role="cell" set:html={value} />
+			<div {...sx(specTable.row)} role="row">
+				<code {...sx(specTable.key)} role="cell" set:html={key} />
+				<span {...sx(specTable.value)} role="cell" set:html={value} />
 			</div>
 		))
 	}

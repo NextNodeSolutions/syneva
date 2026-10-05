@@ -1,46 +1,59 @@
 ---
-// Workflows overview: four sources, one desk, one verdict.
+// Workflows overview: one source per workflow page, one desk, one verdict.
+import { ICONS } from '@entities/site/model/icons'
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
-import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
+import Wire from '@shared/ui/drawing/Wire.astro'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
-import { GLYPHS } from './glyphs'
-import { workflowsArt as w } from './workflows-art.styles'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
+import { workflowsArt } from './workflows-art.styles'
 
-const SOURCES = [
-	{ glyph: 'tree', title: 'Working tree', command: 'syneva', y: 50 },
-	{ glyph: 'staged', title: 'Staged changes', command: 'syneva --diff staged', y: 145 },
-	{ glyph: 'branch', title: 'Branch or PR', command: 'syneva pr 128', y: 240 },
-	{ glyph: 'file', title: 'A single file', command: 'syneva file plan.md', y: 335 },
-] as const
+const TOP = 50
+const ROW = 95
+// The menu's 24-unit icons, centred in each card's left margin at 1.25x;
+// workflowsArt.hubGlyph scales their stroke back to 1.4.
+const ICON_SCALE = 1.25
+const ICON_OFFSET = { x: 41, y: 10 } as const
+// The workflows section's pages, as the site map lists them: each card shows
+// the page's icon, title and command.
+const SOURCES = SECTION_BY_ID.workflows.items.map(({ title, icon, code }, index) => {
+	const y = TOP + index * ROW
+	return { title, icon, command: code, y, iconTransform: `translate(${ICON_OFFSET.x} ${y + ICON_OFFSET.y}) scale(${ICON_SCALE})` }
+})
 const routeOf = (y: number): string => `M240 ${y + 32}C290 ${y + 32} 290 220 340 220`
 ---
 
-<Drawing viewBox="0 0 600 440" compact="20 30 570 380" labelledby="hub-title hub-desc">
-	<title id="hub-title">Four ways in, one desk</title>
-	<desc id="hub-desc">The working tree, staged changes, a branch or pull request, and a single file each feed the same local desk, which produces one structured verdict whose mode tells your agent how to read it.</desc>
-	<ArtFrame id="hub" width={600} height={440} />
+<Drawing
+	id="hub"
+	width={600}
+	height={440}
+	compact="20 30 570 380"
+	title={`${capitalize(countWord(SOURCES.length))} ways in, one desk`}
+	description={`${capitalize(listFormat.format(SOURCES.map(({ title }) => title.toLowerCase())))} each feed the same local desk, which produces one structured verdict whose mode tells your agent how to read it.`}
+>
 	<g fill="none">
 		{
-			SOURCES.map(({ y }, i) => (
+			SOURCES.map(({ y }, index) => (
 				<Fragment>
-					<path {...anim('draw', 0.5 + i * 0.1, shape.route)} pathLength="1" d={routeOf(y)} />
-					<path {...anim('signal', 1.4 + i * 0.8, shape.signal)} pathLength="100" d={routeOf(y)} />
+					<Wire d={routeOf(y)} drawDelay={0.5 + index * 0.1} signalDelay={1.4 + index * 0.8} />
 					<circle {...sx(shape.port)} cx="240" cy={y + 32} r="2.5" />
 				</Fragment>
 			))
-		}<path {...anim('draw', 1.2, shape.route, shape.routeGreen)} pathLength="1" d="M450 220h40"></path><path {...anim('signal', 2, shape.signal, shape.signalGreen)} pathLength="100" d="M450 220h40"></path>
+		}<Wire d="M450 220h40" drawDelay={1.2} signalDelay={2} routeCss={shape.routeGreen} signalCss={shape.signalGreen} />
 	</g>
 	{
-		SOURCES.map(({ glyph, title, command, y }, i) => (
-			<g {...anim('rise', i * 0.12)}>
+		SOURCES.map(({ title, icon, command, y, iconTransform }, index) => (
+			<g {...anim('rise', index * 0.12)}>
 				<rect {...sx(shape.panel, shape.panelWhite)} x="30" y={y} width="210" height="64" />
-				<g transform={`translate(46 ${y + 14})`}>
-					<path {...sx(w.hubGlyph)} d={GLYPHS[glyph]} />
+				<g transform={iconTransform}>
+					<path {...sx(workflowsArt.hubGlyph)} d={ICONS[icon]} />
 				</g>
 				<text {...sx(text.copy)} x="80" y={y + 28}>{title}</text>
 				<text {...sx(text.code, text.accent)} x="80" y={y + 48}>{command}</text>

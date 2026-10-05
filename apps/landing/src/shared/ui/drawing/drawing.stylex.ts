@@ -1,4 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
 
-// A chapter's figure: drawings inside it fit a narrower column on subpages.
-export const chapterArtMarker = stylex.defineMarker()
+// Every drawing's root <svg>: phones restyle its words by the frame it
+// declares (data-compact reframes, .is-dense diagrams grow their labels).
+export const drawingMarker = stylex.defineMarker()
