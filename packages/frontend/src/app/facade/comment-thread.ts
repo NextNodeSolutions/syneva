@@ -50,7 +50,7 @@ function installComposerDismissal(): void {
 			if (!S.composerOpen && !S.fileComposerOpen) return
 			const { target } = event
 			if (
-				target instanceof HTMLElement &&
+				target instanceof Element &&
 				target.closest('[data-composer], [data-file-comment-trigger]')
 			)
 				return
