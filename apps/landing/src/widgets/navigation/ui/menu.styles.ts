@@ -66,7 +66,6 @@ const raisedOnHover = {
 		[media.finePointer]: {
 			default: null,
 			':is(:hover:not([aria-current="page"]))': RAISED_ROW,
-			':is([aria-current="page"]:hover)': `${CURRENT_RING}, ${RAISED_ROW}`,
 		},
 	},
 }
