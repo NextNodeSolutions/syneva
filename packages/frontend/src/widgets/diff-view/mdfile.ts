@@ -65,12 +65,18 @@ function markAnchors(container: HTMLElement): HTMLElement[] {
 }
 
 // Click anywhere on a block to comment on it (ignore text selection, links, and clicks
-// inside an existing thread). Delegated so it survives the per-render rebuild.
+// inside an existing thread or the whole-file comment strip - their rendered bodies carry
+// data-line too). Delegated so it survives the per-render rebuild.
 function attachBlockCommentHandler(container: HTMLElement): void {
 	container.addEventListener('click', event => {
 		const { target } = event
 		if (!(target instanceof Element)) return
-		if (target.closest('a, button, input, [data-md-thread]')) return
+		if (
+			target.closest(
+				'a, button, input, [data-md-thread], [data-file-comments]',
+			)
+		)
+			return
 		if (!window.getSelection()?.isCollapsed) return // user is selecting text
 		const el = target.closest<HTMLElement>('[data-line]')
 		if (!el || !isAnchor(el)) return // clicked the list container gutter, not an item
