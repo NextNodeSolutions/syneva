@@ -26,7 +26,8 @@ async function initializeMarkdown(): Promise<void> {
 		const module = await import('@shared/markdown/engine')
 		const theme = themeName || markdownRuntime().getTheme()
 		await module.initializeMarkdown(theme)
-		module.setMarkdownTheme(theme)
+		// A theme picked while the engine loaded only reached `themeName`.
+		module.setMarkdownTheme(themeName || theme)
 		engine = module
 		markdownRevision++
 		markdownRuntime().onLoaded()

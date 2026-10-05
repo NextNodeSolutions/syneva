@@ -295,7 +295,7 @@ Panel fill, Hairline Strong border, 4px radius, 4px inner padding, 280–420px, 
 
 ### Diff canvas
 
-The diff is rendered by `@pierre/diffs` with its own theme system — `pierre-dark` / `pierre-light` CSS-variable themes plus the fourteen curated Shiki themes (comments and fenced code share the same set). Its colors are not part of this token layer; it takes only the Code font (`--diffs-font-family`) and the scrollbar gutter override from the desk. Treat the diff as a mounted instrument: Syneva provides the ledger around it, the instrument themes itself.
+The diff is rendered by `@pierre/diffs` with its own theme system — `pierre-dark` / `pierre-light` CSS-variable themes plus the Shiki themes of the settings picker, all resolved by Pierre (comments and fenced code highlight through Pierre's shared highlighter, so they always carry the diff's theme). Its colors are not part of this token layer; it takes only the Code font (`--diffs-font-family`) and the scrollbar gutter override from the desk. Treat the diff as a mounted instrument: Syneva provides the ledger around it, the instrument themes itself.
 
 ## Do's and Don'ts
 

@@ -39,7 +39,6 @@ function installLayoutBindings(): void {
 	S.applySettings = () => {
 		void persistSettings({ settings: S.settings, diffStyle: S.diffStyle })
 		applyAppearance(S.settings)
-		// applyAppearance first: setMarkdownTheme's diff-only fallback reads <html data-theme>.
 		setMarkdownTheme(S.settings.theme)
 		void render()
 	}

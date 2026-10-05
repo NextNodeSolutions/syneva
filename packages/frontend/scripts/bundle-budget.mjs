@@ -28,10 +28,11 @@ export const INITIAL_UI_BYTES_LIMIT = 350_000
 // React 19's runtime (react + react-dom) rides in the initial closure now that the
 // chrome is React - ~134 KB minified of the 333 KB measured; the limit sits just
 // above so the next real regression (a leaked grammar, a fat dep) still trips it.
-// Provisional: raised for the @pierre/diffs 1.4.3 bump. Its theming/shiki-barrel graph
-// drags the full grammar set into the total until the shiki-shim is re-scoped (size cleanup
-// deferred; the cold-open path that this gate exists to protect is the INITIAL limit above).
-const TOTAL_UI_BYTES_LIMIT = 5_000_000
+// The total is mostly shiki's full grammar set: @pierre/diffs resolves languages through shiki's
+// bundled loaders, so every grammar ships as its own lazy chunk (plus the oniguruma wasm of a path
+// Syneva never takes) and loads only when a file or a fence asks for it. The cold open is guarded
+// by the INITIAL limit above; this one only catches a new dependency landing wholesale.
+const TOTAL_UI_BYTES_LIMIT = 11_000_000
 
 export function checkBundleBudget(outputs, entry) {
 	const initialLimit = INITIAL_UI_BYTES_LIMIT

@@ -36,7 +36,7 @@ export const CODE_THEMES: CodeThemeGroup[] = [
 		['light-plus', 'Light+ (VS Code)'],
 	),
 	themeGroup(
-		'Diff only',
+		'Pierre',
 		['pierre-dark', 'Pierre Dark'],
 		['pierre-dark-soft', 'Pierre Dark Soft'],
 		['pierre-light', 'Pierre Light'],
