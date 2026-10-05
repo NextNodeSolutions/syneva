@@ -6,14 +6,18 @@ import {
 } from '@entities/review/changes'
 import { cur } from '@entities/review/file/contents'
 import { buildComposer, openComposer } from '@features/manage-comment/composer'
+import { cx } from '@shared/lib/cx'
 import { $ } from '@shared/lib/dom'
 import { renderFileMarkdown } from '@shared/markdown'
 
 import { buildCommentThread } from './comment-thread/comment-thread'
+import { annotation } from './comment-thread/comment-thread.styles'
 import { markdownFileCommentStrip } from './comment-thread/file-comments'
 import { diffCtx } from './context'
+import { mdFile } from './mdfile.styles'
 
 import type { ReviewComment } from '@entities/review/model'
+import type { StaticStyle } from '@shared/lib/cx'
 
 // A markdown-block line has no display/raw split (D.lineMap is null here), so the source
 // line is the anchor directly. The composer renders inline via renderMarkdownFile below.
@@ -33,13 +37,19 @@ function isAnchor(el: Element): boolean {
 }
 
 // The formatted markdown gets its own child of #diff, so the overlays below have a
-// container that survives them (they append/insert siblings around the blocks).
+// container that survives them (they append/insert siblings around the blocks). The rendered
+// HTML is not ours to class: data-prose="document" carries its typography (prose.css).
 function createMarkdownContainer(): HTMLElement {
 	const container = document.createElement('div')
-	container.className = 'md-file md'
+	container.className = cx(mdFile.document)
+	container.dataset.prose = 'document'
 	$('diff').replaceChildren(container)
 	return container
 }
+
+// The anchor's atomic classes, added onto whatever the markdown output already put on the block
+// (task-list and shiki classes): they set only the click affordance.
+const ANCHOR = cx(mdFile.anchor).split(' ')
 
 // Mark every commentable block, and return them in document order - the overlay below
 // resolves a comment's line to the last block starting at or before it.
@@ -48,7 +58,7 @@ function markAnchors(container: HTMLElement): HTMLElement[] {
 		...container.querySelectorAll<HTMLElement>('[data-line]'),
 	].filter(isAnchor)
 	for (const el of anchors) {
-		el.classList.add('md-anchor')
+		el.classList.add(...ANCHOR)
 		el.title = 'Click to comment'
 	}
 	return anchors
@@ -60,7 +70,7 @@ function attachBlockCommentHandler(container: HTMLElement): void {
 	container.addEventListener('click', event => {
 		const { target } = event
 		if (!(target instanceof Element)) return
-		if (target.closest('a, button, input, .md-thread')) return
+		if (target.closest('a, button, input, [data-md-thread]')) return
 		if (!window.getSelection()?.isCollapsed) return // user is selecting text
 		const el = target.closest<HTMLElement>('[data-line]')
 		if (!el || !isAnchor(el)) return // clicked the list container gutter, not an item
@@ -71,16 +81,36 @@ function attachBlockCommentHandler(container: HTMLElement): void {
 // A comment's own block: inside the <li> for list items (indented under the item), after
 // the block otherwise - and appended to the end when its line has no block (a stale
 // anchor, e.g. the block was edited away while the comment stayed).
-function placeAtLine(
+function placeAt(
 	container: HTMLElement,
-	anchors: HTMLElement[],
-	lineNumber: number,
+	anchor: HTMLElement | null,
 	node: HTMLElement,
 ): void {
-	const el = anchorForLine(anchors, lineNumber)
-	if (!el) container.appendChild(node)
-	else if (el.tagName === 'LI') el.appendChild(node)
-	else el.after(node)
+	if (!anchor) container.appendChild(node)
+	else if (isListItem(anchor)) anchor.appendChild(node)
+	else anchor.after(node)
+}
+
+function isListItem(anchor: HTMLElement | null): boolean {
+	return anchor?.tagName === 'LI'
+}
+
+// The inline box a thread or a new comment's composer hangs in. Its placement is known before
+// it is built (placeAt), so a box tucked into a list item takes that style up front.
+// data-md-thread keeps a click inside it from opening another composer.
+function threadSlot(
+	anchor: HTMLElement | null,
+	...styles: StaticStyle[]
+): HTMLElement {
+	const slot = document.createElement('div')
+	slot.className = cx(
+		annotation.slot,
+		mdFile.thread,
+		isListItem(anchor) && mdFile.threadInItem,
+		...styles,
+	)
+	slot.dataset.mdThread = ''
+	return slot
 }
 
 // Comments grouped by the source line they anchor to, each thread oldest-first. Whole-file
@@ -109,21 +139,26 @@ function overlayThreads(
 	path: string,
 ): void {
 	for (const [lineNumber, comments] of threadsByLine) {
-		const thread = document.createElement('div')
-		thread.className = 'annotation md-thread'
+		const anchor = anchorForLine(anchors, lineNumber)
+		const status = comments.some(c => c.status === 'open')
+			? 'open'
+			: 'resolved'
+		// A resolved thread dims and folds to its summary here as it does in the diff.
+		const thread = threadSlot(
+			anchor,
+			status === 'resolved' && annotation.resolved,
+		)
 		thread.appendChild(
 			buildCommentThread({
 				type: 'thread',
 				path,
 				side: 'additions',
 				lineNumber,
-				status: comments.some(c => c.status === 'open')
-					? 'open'
-					: 'resolved',
+				status,
 				comments,
 			}),
 		)
-		placeAtLine(container, anchors, lineNumber, thread)
+		placeAt(container, anchor, thread)
 	}
 }
 
@@ -141,10 +176,10 @@ function overlayComposer(
 		threadsByLine.has(selected.lineNumber)
 	)
 		return
-	const card = document.createElement('div')
-	card.className = 'annotation md-thread composer-annotation'
+	const anchor = anchorForLine(anchors, selected.lineNumber)
+	const card = threadSlot(anchor, annotation.composer)
 	card.appendChild(buildComposer())
-	placeAtLine(container, anchors, selected.lineNumber, card)
+	placeAt(container, anchor, card)
 }
 
 // Render the current markdown file as formatted HTML in #diff, with click-to-comment on

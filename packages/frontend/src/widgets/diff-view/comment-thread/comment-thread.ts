@@ -7,14 +7,21 @@ import {
 	openComposer,
 	openFileComposer,
 } from '@features/manage-comment/composer'
+import { cx } from '@shared/lib/cx'
 import { esc } from '@shared/lib/esc'
 import { notifyStateMutation } from '@shared/lib/reactive'
 import { render } from '@shared/lib/render-scheduler'
 import { markdownRevision, renderCommentBody } from '@shared/markdown'
+import { deskControl } from '@shared/ui/desk-control.styles'
+import { control, tag } from '@syneva/design-system/controls.styles'
+import { press } from '@syneva/design-system/press.styles'
 
 import { awaitingHtml } from '../awaiting'
 import { diffCtx } from '../context'
 import { D } from '../runtime'
+
+import { thread as s } from './comment-thread.styles'
+import { messageMarker } from './comment-thread.stylex'
 
 import type { ThreadMeta } from '@entities/review/annotations'
 import type { ReviewComment } from '@entities/review/model'
@@ -44,13 +51,22 @@ function relTime(iso?: string): string {
 	return new Date(iso).toLocaleDateString()
 }
 
-// Only the reviewer's own messages carry intent badges and edit/delete actions.
+// The thread's mini controls, by tone. Their hooks are data-thread-action
+// attributes (wireThreadActions), never the hashed class names.
+const MINI = [press.control, control.base, deskControl.mini]
+const REPLY = cx(MINI, control.outlined)
+const RESOLVE = cx(MINI, deskControl.resolve)
+const REOPEN = cx(MINI, deskControl.request)
+const EDIT = cx(MINI, control.quiet, s.messageAction)
+const DELETE = cx(MINI, deskControl.dangerHint, s.messageAction)
+
+// Only the reviewer's own messages carry intent tags and edit/delete actions.
 function intentBadge(message: ReviewComment, isOwn: boolean): string {
 	if (!isOwn) return ''
 	if (message.intent === 'question')
-		return '<span class="intent-badge q">Question</span>'
+		return `<span class="${cx(tag.base, tag.accent)}">Question</span>`
 	if (message.intent === 'action')
-		return '<span class="intent-badge a">Change requested</span>'
+		return `<span class="${cx(tag.base, tag.amber)}">Change requested</span>`
 	return ''
 }
 
@@ -78,13 +94,21 @@ function messageHtml(message: ReviewComment, thread: ThreadMeta): string {
 		)
 	const actions =
 		isOwn && !isEditing
-			? `<span class="msg-actions"><button class="edit-comment" data-id="${message.id}">Edit</button><button class="delete-comment" data-id="${message.id}">Delete</button></span>`
+			? `<span class="${cx(s.messageActions)}"><button class="${EDIT}" data-thread-action="edit" data-id="${message.id}">Edit</button><button class="${DELETE}" data-thread-action="delete" data-id="${message.id}">Delete</button></span>`
 			: ''
+	// The body is rendered markdown: data-prose="thread" carries its typography
+	// (shared/markdown/prose.css), since the HTML is not ours to class.
 	const body = isEditing
 		? ''
-		: `<div class="md">${renderCommentBody(message)}</div>`
-	const classes = `msg ${isOwn ? '' : 'agent'}${isEditing ? ' editing' : ''}`
-	return `<div class="${classes}" data-id="${message.id}"><div class="meta"><span class="author ${isOwn ? '' : 'agent'}">${isOwn ? 'You' : 'Agent'}</span>${badge}<time>${esc(relTime(message.createdAt))}${edited}</time>${actions}</div>${body}${isAwaiting ? awaitingHtml() : ''}</div>`
+		: `<div class="${cx(s.body)}" data-prose="thread">${renderCommentBody(message)}</div>`
+	const card = cx(
+		s.message,
+		messageMarker,
+		!isOwn && s.messageAgent,
+		isEditing && s.messageEditing,
+	)
+	const author = cx(s.author, !isOwn && s.authorAgent)
+	return `<div class="${card}" data-message-id="${message.id}"><div class="${cx(s.meta)}"><span class="${author}">${isOwn ? 'You' : 'Agent'}</span>${badge}<time class="${cx(s.time)}">${esc(relTime(message.createdAt))}${edited}</time>${actions}</div>${body}${isAwaiting ? awaitingHtml() : ''}</div>`
 }
 
 // A resolved thread collapses to its summary line; an open one renders its messages oldest-first.
@@ -93,17 +117,21 @@ function messagesHtml(thread: ThreadMeta): string {
 		return thread.comments.map(m => messageHtml(m, thread)).join('')
 	const count = thread.comments.length
 	const plural = count === 1 ? '' : 's'
-	return `<div class="thread-summary"><b>${count}</b> comment${plural} <span>(Resolved)</span><button class="reopen-inline">Reopen</button></div>`
+	return `<div class="${cx(s.summary)}"><b class="${cx(s.summaryCount)}">${count}</b> comment${plural} <span>(Resolved)</span><button class="${cx(MINI, deskControl.request, s.summaryReopen)}" data-thread-action="reopen">Reopen</button></div>`
 }
 
 // Reply hides while its own composer is open (only Resolve stays); the composer card sits between
-// the last message and the action bar.
+// the last message and the action bar. A resolved thread's bar stays hidden: its summary line
+// carries the Reopen.
 function threadFoot(thread: ThreadMeta, isReplyOpen: boolean): string {
+	const reopen = `<button class="${REOPEN}" data-thread-action="reopen">Reopen</button>`
+	const resolve = `<button class="${RESOLVE}" data-thread-action="resolve">Resolve</button>`
+	const reply = `<button class="${REPLY}" data-thread-action="reply">Reply</button>`
 	if (thread.status === 'resolved')
-		return '<div class="thread-actions"><button class="reopen-thread">Reopen</button></div>'
+		return `<div class="${cx(s.foot, s.footHidden)}" data-thread-foot>${reopen}</div>`
 	if (isReplyOpen)
-		return '<div class="thread-actions"><button class="resolve-thread">Resolve</button></div>'
-	return '<div class="thread-actions"><button class="reply-thread">Reply</button><button class="resolve-thread">Resolve</button></div>'
+		return `<div class="${cx(s.foot)}" data-thread-foot>${resolve}</div>`
+	return `<div class="${cx(s.foot)}" data-thread-foot>${reply}${resolve}</div>`
 }
 
 // Flip every comment of the thread's anchor (the whole thread moves together) and repaint.
@@ -136,7 +164,9 @@ function isReplyComposerOpen(thread: ThreadMeta): boolean {
 }
 
 function wireThreadActions(box: HTMLElement, thread: ThreadMeta): void {
-	const reply = box.querySelector<HTMLButtonElement>('.reply-thread')
+	const reply = box.querySelector<HTMLButtonElement>(
+		'[data-thread-action="reply"]',
+	)
 	reply?.addEventListener('click', () => {
 		if (thread.fileLevel) {
 			openFileComposer()
@@ -154,23 +184,22 @@ function wireThreadActions(box: HTMLElement, thread: ThreadMeta): void {
 		openComposer()
 	})
 	for (const button of box.querySelectorAll<HTMLButtonElement>(
-		'.edit-comment',
+		'[data-thread-action="edit"]',
 	)) {
 		const { id } = button.dataset
 		if (id) button.addEventListener('click', () => editComment(id))
 	}
 	for (const button of box.querySelectorAll<HTMLButtonElement>(
-		'.delete-comment',
+		'[data-thread-action="delete"]',
 	)) {
 		const { id } = button.dataset
 		if (id) button.addEventListener('click', () => deleteComment(id))
 	}
-	box.querySelector<HTMLButtonElement>('.resolve-thread')?.addEventListener(
-		'click',
-		() => resolveThread(thread),
-	)
+	box.querySelector<HTMLButtonElement>(
+		'[data-thread-action="resolve"]',
+	)?.addEventListener('click', () => resolveThread(thread))
 	for (const button of box.querySelectorAll<HTMLButtonElement>(
-		'.reopen-thread,.reopen-inline',
+		'[data-thread-action="reopen"]',
 	)) {
 		// A resolved thread renders the summary's inline Reopen AND the actions-bar Reopen -
 		// give both a listener (querySelector would bind only the first).
@@ -238,19 +267,19 @@ export function threadSignature(thread: ThreadMeta): string {
 // edit/delete). Shared by the diff annotations, the file header and the markdown-file view.
 export function buildCommentThread(thread: ThreadMeta): HTMLElement {
 	const box = document.createElement('div')
-	box.className = 'comment-box'
+	box.className = cx(s.box, thread.status === 'resolved' && s.boxResolved)
 	const isReplyOpen = isReplyComposerOpen(thread)
 	box.innerHTML = `${messagesHtml(thread)}${threadFoot(thread, isReplyOpen)}`
 	// Mount the in-place editor into the message being edited.
 	if (diffCtx().S.editingCommentId && thread.status !== 'resolved') {
 		const message = box.querySelector(
-			`.msg[data-id="${diffCtx().S.editingCommentId}"]`,
+			`[data-message-id="${diffCtx().S.editingCommentId}"]`,
 		)
 		message?.appendChild(buildEditor())
 	}
 	// Mount the reply composer above the action bar.
 	if (isReplyOpen && thread.status !== 'resolved')
-		box.querySelector('.thread-actions')?.before(buildComposer())
+		box.querySelector('[data-thread-foot]')?.before(buildComposer())
 	wireThreadActions(box, thread)
 	return box
 }

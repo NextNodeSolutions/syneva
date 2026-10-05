@@ -1,9 +1,18 @@
 import { fromDisplayLine } from '@entities/review/changes'
 import { featureCtx } from '@features/context'
+import { cx } from '@shared/lib/cx'
 import { $ } from '@shared/lib/dom'
 import { render } from '@shared/lib/render-scheduler'
+import { deskControl } from '@shared/ui/desk-control.styles'
+import { kbdHtml } from '@shared/ui/kbd-html'
+import { kbd } from '@shared/ui/kbd.styles'
+import { control } from '@syneva/design-system/controls.styles'
+import { press } from '@syneva/design-system/press.styles'
+
+import { composer } from './composer.styles'
 
 import type { Side } from '@shared/diff-renderer/types'
+import type { StaticStyle } from '@shared/lib/cx'
 
 // ── Inline composers ─────────────────────────────────────────────────────────
 // The composer is imperative DOM built into the diff (like the thread): a new comment is a
@@ -11,7 +20,9 @@ import type { Side } from '@shared/diff-renderer/types'
 // a reply is a card at the bottom of its thread, an edit swaps a message body in place.
 // Exactly one is open at a time. Its text lives in featureCtx().S.composerBody (synced on input) so it
 // survives render()'s rebuild of the diff DOM; caret + focus are restored after each render
-// (restoreComposerFocus). The active textarea always carries `.js-composer-focus`.
+// (restoreComposerFocus). The active textarea always carries `data-composer-focus`, and every
+// composer card `data-composer` (the outside-click dismissal's carve-out, app/facade) - the hooks
+// are attributes, the class names are hashed.
 
 const SETTLE_TIMEOUT_MS = 200
 
@@ -36,27 +47,47 @@ function trackInput(ta: HTMLTextAreaElement): void {
 }
 
 function composerCard(
-	cardCls: string,
-	inputCls: string,
+	cardStyle: StaticStyle,
+	inputStyle: StaticStyle,
 ): { card: HTMLElement; ta: HTMLTextAreaElement } {
 	const card = document.createElement('div')
-	card.className = cardCls
+	card.className = cx(cardStyle)
+	card.dataset.composer = ''
 	const ta = document.createElement('textarea')
-	ta.className = inputCls
+	ta.className = cx(inputStyle)
+	ta.dataset.composerFocus = ''
 	ta.value = featureCtx().S.composerBody
 	trackInput(ta)
 	card.appendChild(ta)
 	return { card, ta }
 }
 
-// Wire the class-named buttons in a composer row to their handlers. The row markup is static,
-// so a missing button is a bug in this module's own HTML, not a runtime condition.
+// The row's mini controls: Cancel quiet, the intents in their tones (Ask petrol, Request change
+// and Save amber), each intent's key chip sitting on its tint.
+const MINI = [press.control, control.base, deskControl.mini]
+const SPACER = `<span class="${cx(composer.spacer)}"></span>`
+
+function actionButton(
+	action: string,
+	label: string,
+	tone: StaticStyle,
+	keys?: string,
+): string {
+	const chip = keys ? kbdHtml(keys, kbd.onTint) : ''
+	return `<button class="${cx(MINI, tone)}" data-composer-action="${action}">${label}${chip}</button>`
+}
+
+// Wire the composer row's buttons, named by data-composer-action, to their handlers. The row
+// markup is static, so a missing button is a bug in this module's own HTML, not a runtime
+// condition.
 function wireButtons(
 	row: HTMLElement,
 	handlers: Record<string, () => void>,
 ): void {
-	for (const [cls, handler] of Object.entries(handlers)) {
-		const btn = row.querySelector<HTMLButtonElement>(`.${cls}`)
+	for (const [action, handler] of Object.entries(handlers)) {
+		const btn = row.querySelector<HTMLButtonElement>(
+			`[data-composer-action="${action}"]`,
+		)
 		if (btn) btn.addEventListener('click', handler)
 	}
 }
@@ -65,16 +96,13 @@ function wireButtons(
 // change), in the same card family as a message. Used both as its own annotation (new
 // comment) and appended to a thread (reply).
 export function buildComposer(): HTMLElement {
-	const { card } = composerCard(
-		'composer-card',
-		'composer-input js-composer-focus',
-	)
+	const { card } = composerCard(composer.card, composer.input)
 	const row = document.createElement('div')
-	row.className = 'crow'
-	row.innerHTML = `<span class="spacer"></span><button class="cbtn ask">Ask <kbd>⌘⇧↵</kbd></button><button class="cbtn req">Request change <kbd>⌘↵</kbd></button>`
+	row.className = cx(composer.row)
+	row.innerHTML = `${SPACER}${actionButton('ask', 'Ask', deskControl.ask, '⌘⇧↵')}${actionButton('request', 'Request change', deskControl.request, '⌘↵')}`
 	wireButtons(row, {
 		ask: () => featureCtx().S.ask?.(),
-		req: () => featureCtx().S.requestChange?.(),
+		request: () => featureCtx().S.requestChange?.(),
 	})
 	card.appendChild(row)
 	return card
@@ -83,10 +111,10 @@ export function buildComposer(): HTMLElement {
 // The in-place edit state for a message: the body swaps for a textarea (amber accent) with
 // Save / Cancel, keeping the existing featureCtx().S.editingCommentId + submitComment edit path.
 export function buildEditor(): HTMLElement {
-	const { card } = composerCard('msg-edit', 'composer-edit js-composer-focus')
+	const { card } = composerCard(null, composer.edit)
 	const row = document.createElement('div')
-	row.className = 'crow editrow'
-	row.innerHTML = `<span class="spacer"></span><button class="cbtn cancel">Cancel</button><button class="cbtn req save">Save <kbd>⌘↵</kbd></button>`
+	row.className = cx(composer.row, composer.editRow)
+	row.innerHTML = `${SPACER}${actionButton('cancel', 'Cancel', control.quiet)}${actionButton('save', 'Save', deskControl.request, '⌘↵')}`
 	wireButtons(row, {
 		cancel: () => closeComposer(),
 		save: () => featureCtx().S.saveComment?.(),
@@ -198,7 +226,9 @@ export function restorePendingComposerFocus(): void {
 
 export function restoreComposerFocus(): void {
 	if (!featureCtx().S.composerOpen && !featureCtx().S.fileComposerOpen) return
-	const ta = document.querySelector<HTMLTextAreaElement>('.js-composer-focus')
+	const ta = document.querySelector<HTMLTextAreaElement>(
+		'[data-composer-focus]',
+	)
 	if (!ta?.getClientRects().length) {
 		needsWindowFocus = true
 		return

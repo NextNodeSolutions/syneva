@@ -1,5 +1,7 @@
 import '@syneva/design-system/fonts.css'
 import './desk.css'
+// The markdown renderers' prose styles (shared/markdown), scoped under [data-prose].
+import '@shared/markdown/prose.css'
 import { createRoot } from 'react-dom/client'
 
 import { installCommentBindings } from '@app/facade/comment-thread'
