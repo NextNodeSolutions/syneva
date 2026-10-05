@@ -1,23 +1,29 @@
-// Build the desk UI and its chunks. The manifest feeds the bundle budget.
+// Build the desk UI and its chunks (the manifest feeds the bundle budget), and serve the
+// same entries from source to the dev loop (apps/syneva/scripts/dev.ts).
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defaultClientConditions, defineConfig } from 'vite'
 
 import { checkBundleBudget } from './scripts/bundle-budget.mjs'
 
 import type { Plugin, UserConfig } from 'vite'
 
+const ROOT = fileURLToPath(new URL('.', import.meta.url))
 const UI_ENTRY = fileURLToPath(new URL('./src/app/main.tsx', import.meta.url))
 // The hub dashboard: a second, much smaller entry over the same layers (dashboard.js).
 const DASHBOARD_ENTRY = fileURLToPath(
 	new URL('./src/app/dashboard.tsx', import.meta.url),
 )
-// `pnpm dev` overrides this so the watch rebuild lands straight in the served
-// apps/syneva/dist instead of this package's own dist.
-const OUT_DIR = process.env.SYNEVA_UI_OUT_DIR ?? 'dist'
+// Keyed by bundle name: the build emits <name>.js, the page shells load /<name>.js.
+const ENTRIES = { ui: UI_ENTRY, dashboard: DASHBOARD_ENTRY }
+const OUT_DIR = 'dist'
+// Dev only: resolve @syneva/contracts to its TypeScript source (its package exports
+// declare this condition), so the dev server needs no built dist and a contract edit
+// hot-reloads like any other module.
+const SOURCE_CONDITION = '@syneva/source'
 const MANIFEST = path.join(OUT_DIR, 'ui-manifest.json')
 // The desk's chunk route serves [\w-]+-[A-Za-z0-9]{8}\.js; rollup's base36
 // charset (digits + lowercase letters, 8 chars) stays inside that contract.
@@ -66,14 +72,33 @@ const shikiShimPlugin = (): Plugin => ({
 	},
 })
 
+// Dev only (`pnpm dev`, where the hub serves the UI through this config's dev server): the
+// page shells name the built bundles, which a dev server never emits. Point each shell at
+// the source entry its bundle is built from, so Vite serves the module graph with HMR.
+const sourceEntriesPlugin = (): Plugin => ({
+	name: 'source-entries',
+	apply: 'serve',
+	transformIndexHtml: {
+		order: 'pre',
+		handler: (html: string): string =>
+			Object.entries(ENTRIES).reduce(
+				(page, [name, entry]) =>
+					page.replace(
+						`src="/${name}.js"`,
+						`src="/${path.relative(ROOT, entry)}"`,
+					),
+				html,
+			),
+	},
+})
+
 // Common build options: esbuild parity - no sourcemaps, one minified bundle set.
 // NonNullable: UserConfig['build'] is optional on Vite's config, but this helper
 // always returns the options object it builds.
 const buildOptions = (
 	overrides: NonNullable<UserConfig['build']>,
 ): NonNullable<UserConfig['build']> => ({
-	// The build script cleans dist first; the dev watch must never empty the
-	// assembled apps/syneva/dist it writes into (outDir outside root forbids it).
+	// The build script cleans dist first.
 	emptyOutDir: false,
 	target: 'es2022',
 	outDir: OUT_DIR,
@@ -132,16 +157,34 @@ const budgetPlugin = (): Plugin => ({
 	},
 })
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
 	// Keep warnings and errors without listing every grammar/theme chunk.
 	logLevel: 'warn',
-	plugins: [shikiShimPlugin(), budgetPlugin(), react()],
+	plugins: [
+		shikiShimPlugin(),
+		budgetPlugin(),
+		sourceEntriesPlugin(),
+		react(),
+	],
 	resolve: {
 		alias: frontendAliases,
+		conditions: [
+			...(command === 'serve' ? [SOURCE_CONDITION] : []),
+			...defaultClientConditions,
+		],
+	},
+	// The dev server pre-bundles dependencies with esbuild, which resolves a
+	// dependency's own imports without this config's plugins: pre-bundled,
+	// @pierre/diffs would get the full shiki barrel instead of the shim an install
+	// ships. Left out, it is served file by file through shikiShimPlugin. lru_map is
+	// its one CommonJS dependency, which the browser can only load pre-bundled.
+	optimizeDeps: {
+		exclude: ['@pierre/diffs'],
+		include: ['@pierre/diffs > lru_map'],
 	},
 	build: buildOptions({
 		rollupOptions: {
-			input: { ui: UI_ENTRY, dashboard: DASHBOARD_ENTRY },
+			input: ENTRIES,
 			output: {
 				format: 'es',
 				entryFileNames: '[name].js',
@@ -162,4 +205,4 @@ export default defineConfig({
 			},
 		},
 	}),
-})
+}))

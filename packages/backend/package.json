@@ -5,6 +5,9 @@
 	"description": "Syneva's Node backend: domain rules, application use cases and CLI/HTTP/pi adapters. Bundled into the published apps/syneva package.",
 	"license": "MIT",
 	"type": "module",
+	"exports": {
+		"./*": "./src/*.ts"
+	},
 	"scripts": {
 		"build": "rm -rf dist && tsc",
 		"check": "tsc --noEmit"
