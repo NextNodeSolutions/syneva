@@ -10,7 +10,7 @@ Product positioning lives in `PRODUCT.md`, the review app's UI design language i
 
 ## Landing deploy
 
-The static landing (`apps/landing`, an Astro app) deploys to Cloudflare Workers (static assets) through CI only, never from a local machine. Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). Its build output and the pipeline's smoke check: `apps/landing/AGENTS.md`.
+The landing (`apps/landing`, an Astro app) deploys to Cloudflare Workers through CI only, never from a local machine: its pages as static assets, and one on-demand route (the newsletter signup) in the Worker, bound to a D1 database, a rate limiter and the `RESEND_API_KEY` secret (a GitHub env-secret in both environments). Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`, which also applies the D1 migrations before each deploy: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). Its build output, the Worker's types and local bindings, and the pipeline's smoke check: `apps/landing/AGENTS.md`.
 
 ## Commands
 

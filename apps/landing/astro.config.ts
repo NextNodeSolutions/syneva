@@ -1,8 +1,10 @@
 import { defineConfig } from 'astro/config'
 import { fileURLToPath } from 'node:url'
 
+import cloudflare from '@astrojs/cloudflare'
 import stylexVite from '@stylexjs/unplugin/vite'
 
+import { devCache } from './integrations/dev-cache'
 import { linkedPages } from './integrations/linked-pages'
 import LAYERS from './layers.json' with { type: 'json' }
 import { SITE_URL } from './src/entities/site/model/site-map'
@@ -26,15 +28,24 @@ const BROWSERS = { chrome: 100, firefox: 100, safari: 15 }
 // lightningcss reads a version as major << 16 | minor << 8 | patch.
 const MAJOR_SHIFT = 16
 
-// The public site is fully static: every route prerenders to
-// dist/<route>/index.html (directory URLs, as the assets host serves them)
-// and 404.html. StyleX compiles at build time and appends its atomic CSS to
-// the site stylesheet; Motion drives the animations on the client.
+// The public site is static but for one route: every page prerenders to
+// dist/client/<route>/index.html (directory URLs, as the assets host serves
+// them) and 404.html, and the newsletter signup (src/pages/api/subscribe.ts)
+// runs on demand in the Worker the adapter builds at dist/server/entry.mjs.
+// StyleX compiles at build time and appends its atomic CSS to the site
+// stylesheet; Motion drives the animations on the client.
 export default defineConfig({
 	site: SITE_URL,
 	output: 'static',
+	// The Worker the site deploys as. Images are optimised at build (no Images
+	// binding to provision); `astro dev` reads its local bindings from
+	// wrangler.dev.jsonc.
+	adapter: cloudflare({
+		imageService: 'compile',
+		configPath: 'wrangler.dev.jsonc',
+	}),
 	build: { format: 'directory', inlineStylesheets: 'never' },
-	integrations: [linkedPages()],
+	integrations: [linkedPages(), devCache()],
 	vite: {
 		build: {
 			cssTarget: Object.entries(BROWSERS).map(

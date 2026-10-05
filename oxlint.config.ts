@@ -757,6 +757,15 @@ export default defineConfig({
 			},
 		},
 		{
+			// Workers Logs ingests a Worker's console output: the landing Worker's one
+			// log boundary writes it, as structured JSON, the way the backend's
+			// adapters/outbound/console.ts owns the CLI's process output.
+			files: [
+				'apps/landing/src/features/subscribe/model/log-failure.server.ts',
+			],
+			rules: { 'eslint/no-console': 'off' },
+		},
+		{
 			// The harness extension entry point default-exports its register function by
 			// design: pi's loader contract, the same class of exception as framework
 			// pages in the shared preset.

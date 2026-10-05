@@ -88,7 +88,7 @@
 		},
 		{
 			"id": "install",
-			"requirement": "A real installation command and setup-guide link are visible.",
+			"requirement": "Once Syneva is live (LAUNCH_STAGE), a real installation command and setup-guide link are visible; until then, an email signup takes their place and no install call to action or setup guide is published.",
 			"source": "Surface brief"
 		},
 		{
@@ -113,7 +113,7 @@
 		},
 		{
 			"id": "hero-actions",
-			"requirement": "The hero offers the primary action, a copyable install command and the agents Syneva works with, above the fold on desktop.",
+			"requirement": "The hero offers the primary action (the email signup before launch; the setup guide and a copyable install command once live) and the agents Syneva works with, above the fold on desktop.",
 			"source": "Human brief: sell the product"
 		},
 		{

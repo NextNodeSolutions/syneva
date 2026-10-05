@@ -1,0 +1,36 @@
+---
+// The newsletter signup: an email field and its button. It posts natively to
+// the endpoint; signup.client.ts (booted by the site runtime) keeps the
+// visitor on the page and tells the outcome in the form's own status line.
+import type { Part } from '@shared/lib/sx'
+import { sx } from '@shared/lib/sx'
+import { press } from '@syneva/design-system/press.styles'
+import { EMAIL_FIELD, EMAIL_MAX_LENGTH, SUBSCRIBE_PATH, TRAP_FIELD } from '../model/endpoint'
+import { signup } from './signup.styles'
+
+// The ground the form sits on: a wash band gets a paper box with a petrol rule.
+type Props = { surface?: 'paper' | 'wash'; css?: Part }
+
+const { surface = 'paper', css } = Astro.props
+---
+
+<form {...sx(signup.form, css)} method="post" action={SUBSCRIBE_PATH} data-signup>
+	<div {...sx(signup.box, surface === 'wash' && signup.onWash)}>
+		<label {...sx(signup.field)}>
+			<span {...sx(signup.hidden)}>Email address</span>
+			<input
+				{...sx(signup.input)}
+				type="email"
+				name={EMAIL_FIELD}
+				required
+				maxlength={EMAIL_MAX_LENGTH}
+				autocomplete="email"
+				spellcheck="false"
+				placeholder="you@example.com"
+			/>
+		</label>
+		<button {...sx(press.control, signup.submit)} type="submit">Notify me</button>
+	</div>
+	<div {...sx(signup.trap)} aria-hidden="true"><input name={TRAP_FIELD} tabindex="-1" autocomplete="off" /></div>
+	<p {...sx(signup.status)} role="status" aria-live="polite" data-signup-status></p>
+</form>

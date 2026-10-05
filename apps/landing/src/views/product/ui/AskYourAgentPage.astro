@@ -1,5 +1,5 @@
 ---
-import Button from '@shared/ui/Button.astro'
+import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
 import ChapterList from '@widgets/chapter/ui/ChapterList.astro'
 import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
@@ -32,7 +32,7 @@ const INTENTS = [
 	lede={'When a change doesn’t make sense, ask about it where it is. Your agent reads the code, posts a live status while it works, and answers in the thread on that exact line. You keep reviewing the whole time.'}
 	caption="Ask for an answer now. Request a change for the next round."
 >
-	<Fragment slot="actions"><Button href={PAGES.getStarted.href} label="Start a local review" /><TextLink href={PAGES.connectYourAgent.href} label="How your agent answers" /></Fragment>
+	<Fragment slot="actions"><PrimaryButton label="Start a local review" /><TextLink href={PAGES.connectYourAgent.href} label="How your agent answers" /></Fragment>
 	<AskFork slot="art" />
 </PageHero>
 <Chapter id="read-only" title="A question is<br>not a code change." caption="You → desk → agent → your thread">

@@ -3,7 +3,7 @@
 // through it; the build fails on any internal link without a built target
 // (integrations/linked-pages.ts).
 
-import { START_COMMAND } from './project'
+import { LAUNCH_STAGE, START_COMMAND } from './project'
 
 import type { IconName } from '@syneva/design-system/icons'
 
@@ -187,8 +187,10 @@ export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 		href: '/resources/',
 		overview: 'All resources',
 		footer: 'Open source. MIT licensed.',
+		// The setup guide joins the menus, the footer and the pagers at launch;
+		// until then its address leads to the signup (src/pages/get-started.astro).
 		items: [
-			PAGES.getStarted,
+			...(LAUNCH_STAGE === 'live' ? [PAGES.getStarted] : []),
 			PAGES.connectYourAgent,
 			PAGES.faq,
 			PAGES.changelog,
