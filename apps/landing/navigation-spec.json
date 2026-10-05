@@ -90,6 +90,31 @@
 			"id": "mobile",
 			"requirement": "At narrow widths the navbar collapses into a Menu toggle; opening it shows the same dropdown content and it is fully operable.",
 			"source": "apps/landing/AGENTS.md responsive declaration (600/900/1280)"
+		},
+		{
+			"id": "dock",
+			"requirement": "Scrolled past the top, the header stays reachable as a floating sheet centred on its own row: its rule contracts and lifts into the sheet's edge and registration corners lock onto it, without moving the header's controls or the page content. Back at the top it lets go faster than it locked on.",
+			"source": "User request: a navbar motion on scroll that is not the standard SaaS one and works on desktop and phones"
+		},
+		{
+			"id": "dock-ruler",
+			"requirement": "The docked sheet's bottom edge shows the reading position and a tick per page section, passed ticks in petrol.",
+			"source": "Header dock; the desk's overview ruler"
+		},
+		{
+			"id": "dock-pass-through",
+			"requirement": "The docked header's box takes the pointer only on its sheet and controls; the strips above and below the sheet reach the page.",
+			"source": "Header dock"
+		},
+		{
+			"id": "phone-origin",
+			"requirement": "On phones the menu opens out of the toggle at the top right and folds back into it; the toggle crosses into a close mark while open.",
+			"source": "User request: the hamburger menu should open from the top right, where the toggle is"
+		},
+		{
+			"id": "row-states",
+			"requirement": "A menu row under the pointer lifts with a soft shadow; the current page is marked by a petrol wash and hairline, never a coloured side stripe.",
+			"source": "User request: remove the side-stripe highlight and highlight links cleanly"
 		}
 	]
 }

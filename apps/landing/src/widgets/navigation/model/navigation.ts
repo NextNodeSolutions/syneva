@@ -34,7 +34,7 @@ export class Navigation {
 		this.#root = parts.root
 		this.#links = parts.links
 		this.#dropdown = parts.dropdown
-		this.#phoneBar = new PhoneBar(parts.root, parts.toggle)
+		this.#phoneBar = new PhoneBar(parts)
 		this.#menus = parts.menus
 		this.#morph = new NavigationMorph(parts)
 		this.#preview = new ProductPreview(parts, this.#morph)
@@ -86,7 +86,7 @@ export class Navigation {
 				container.contains(focused),
 			)
 		this.#closePanel()
-		this.#phoneBar.close()
+		this.#phoneBar.close(this.#inputMode)
 		if (shouldRestore) this.#phoneBar.focus()
 	}
 
@@ -200,10 +200,10 @@ export class Navigation {
 			return
 		}
 		const [first] = this.#menus
-		this.#phoneBar.open()
-		const isKeyboard = isKeyboardActivation(event)
-		this.#showPanel(first, isKeyboard ? 'keyboard' : 'pointer')
-		if (isKeyboard) first.trigger.focus()
+		const mode = isKeyboardActivation(event) ? 'keyboard' : 'pointer'
+		this.#phoneBar.open(mode)
+		this.#showPanel(first, mode)
+		if (mode === 'keyboard') first.trigger.focus()
 	}
 
 	escape(): void {

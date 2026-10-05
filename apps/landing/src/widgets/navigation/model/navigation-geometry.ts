@@ -5,9 +5,11 @@ import type { GeometryName } from './navigation-channels'
 
 // The dropdown's geometry, read from the layout and never written to it:
 // the width a panel may take, where the open panel lands independently of
-// the shell's current animated size, the folded sliver under its trigger it
-// grows from and shrinks back into, and the heights the viewport leaves.
-const PANEL_GAP = 10
+// the shell's current animated size, the folded sliver it grows from and
+// shrinks back into (under its trigger, or on phones under the toggle that
+// opened it), and the heights the viewport leaves.
+// The gap clears the docked sheet's edge as well as the trigger.
+const PANEL_GAP = 14
 const FOLD_HEIGHT = 4
 // The inset and the border apply on both sides.
 const SIDES = 2
@@ -26,6 +28,7 @@ export type Geometry = {
 type MeasureInput = {
 	navigation: HTMLElement
 	links: HTMLElement
+	toggle: HTMLElement
 	trigger: HTMLElement
 	panel: HTMLElement
 }
@@ -36,9 +39,33 @@ export function availableWidth(navigation: HTMLElement): number {
 	return navigation.clientWidth - (inset + border) * SIDES
 }
 
+// The sliver the shell folds into: under the trigger on wide screens. On
+// phones it starts under the toggle's left edge and runs to the open shell's
+// right edge, which the panels hold to (panel.styles.ts): the toggle, inset
+// further than the shell, stays above the sliver, and that edge never moves.
+function foldedBox(
+	open: Box,
+	trigger: DOMRect,
+	toggle: DOMRect,
+	headerLeft: number,
+): Box {
+	if (compact.matches) {
+		const right = open.x + open.width
+		const left = Math.min(Math.max(toggle.left - headerLeft, open.x), right)
+		return { x: left, y: open.y, width: right - left, height: FOLD_HEIGHT }
+	}
+	return {
+		x: trigger.left - headerLeft,
+		y: open.y - PANEL_GAP - FOLD_HEIGHT,
+		width: trigger.width,
+		height: FOLD_HEIGHT,
+	}
+}
+
 export function measureNavigation({
 	navigation,
 	links,
+	toggle,
 	trigger,
 	panel,
 }: MeasureInput): Geometry {
@@ -60,24 +87,23 @@ export function measureNavigation({
 		: triggerRect.bottom - headerRect.top
 	const y = anchorBottom + PANEL_GAP
 	const availableHeight = window.innerHeight - headerRect.top - y - inset
+	const height = Math.min(
+		Math.ceil(panelRect.height) + borders,
+		availableHeight,
+	)
+	const open = { x, y, width, height }
 	return {
 		open: {
-			x,
-			y,
-			width,
-			height: Math.min(
-				Math.ceil(panelRect.height) + borders,
-				availableHeight,
-			),
+			...open,
 			'indicator-x': trigger.offsetLeft,
 			'indicator-width': trigger.offsetWidth,
 		},
-		folded: {
-			x: triggerRect.left - headerRect.left,
-			y: y - PANEL_GAP - FOLD_HEIGHT,
-			width: triggerRect.width,
-			height: FOLD_HEIGHT,
-		},
+		folded: foldedBox(
+			open,
+			triggerRect,
+			toggle.getBoundingClientRect(),
+			headerRect.left,
+		),
 		maxHeight: {
 			dropdown: availableHeight,
 			panel: availableHeight - borders,

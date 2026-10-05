@@ -6,9 +6,15 @@
 * {
 	box-sizing: border-box;
 }
+/* An anchored section lands clear of the docked header's sheet. */
 html {
 	scroll-behavior: smooth;
-	scroll-padding-top: 24px;
+	scroll-padding-top: 96px;
+}
+@media (max-width: 600px) {
+	html {
+		scroll-padding-top: 80px;
+	}
 }
 body {
 	margin: 0;

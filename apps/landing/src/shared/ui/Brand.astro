@@ -1,5 +1,6 @@
 ---
-// The wordmark: the Syneva mark (it turns on hover) and the name, in the
+// The wordmark: the Syneva mark (it turns on hover, and in the header it
+// dials with the scroll: mark-dial.ts turns its group) and the name, in the
 // design system's recipe shared with the hub.
 import {
 	MARK_DIAMOND,
@@ -9,14 +10,21 @@ import {
 } from '@syneva/design-system/brand'
 import { brand } from '@syneva/design-system/brand.styles'
 import { brandMarker } from '@syneva/design-system/brand.stylex'
+import type { Part } from '../lib/sx'
 import { sx } from '../lib/sx'
 import { brandInput } from './brand.styles'
+
+type Props = { css?: Part }
+
+const { css } = Astro.props
 ---
 
-<a {...sx(brand.link, brandMarker)} href="/" aria-label="Syneva home">
+<a {...sx(brand.link, brandMarker, css)} href="/" aria-label="Syneva home">
 	<svg {...sx(brand.mark, brandInput.mark)} viewBox={MARK_VIEW_BOX} aria-hidden="true">
-		<path d={MARK_RAYS}></path>
-		<path d={MARK_DIAMOND}></path>
+		<g {...sx(brandInput.dial)} data-brand-dial>
+			<path d={MARK_RAYS}></path>
+			<path d={MARK_DIAMOND}></path>
+		</g>
 	</svg>
 	{WORDMARK}
 </a>

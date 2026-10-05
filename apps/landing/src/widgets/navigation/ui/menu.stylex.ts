@@ -15,3 +15,17 @@ export const menuSpacing = stylex.defineConsts({
 	iconGap: '13px',
 	titleLine: 'var(--menu-title-line)',
 })
+
+// The row under the pointer lifts off the panel: a hairline edge and a soft
+// two-step shadow, the dropdown's own elevation at the scale of a row. The
+// product rows share one lifted card that slides between them
+// (panel.styles.ts); the other rows lift on their own (menu.styles.ts).
+// Its three layers are the edge, the contact shadow under the row and the
+// soft cast below it. defineConsts takes literals only: the palette's
+// variables keep their literal names, so the shadow names --ink itself.
+const EDGE = 'color-mix(in srgb, var(--ink) 8%, transparent)'
+const CONTACT = 'color-mix(in srgb, var(--ink) 6%, transparent)'
+const CAST = 'color-mix(in srgb, var(--ink) 20%, transparent)'
+export const menuElevation = stylex.defineConsts({
+	raised: `0 0 0 1px ${EDGE}, 0 1px 2px ${CONTACT}, 0 8px 18px -8px ${CAST}`,
+})

@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-import { menuSpacing } from './menu.stylex'
+import { menuElevation, menuSpacing } from './menu.stylex'
 import { navBounds } from './nav.stylex'
 
 const INSET = menuSpacing.inset
@@ -11,7 +11,11 @@ export const panel = stylex.create({
 	base: {
 		position: 'absolute',
 		top: 0,
-		left: 0,
+		// On phones the dropdown unfolds from its top-right corner, under the
+		// toggle: the panel holds to that corner, so the shell uncovers it in
+		// place instead of dragging it along.
+		left: { default: 0, [media.navToggle]: 'auto' },
+		right: { default: null, [media.navToggle]: 0 },
 		width: `min(var(--panel-width), ${navBounds['--nav-available']})`,
 		opacity: 'var(--opacity, 0)',
 		transform: {
@@ -61,7 +65,10 @@ export const panel = stylex.create({
 			position: 'absolute',
 			inset: '0 0 auto',
 			height: 'calc(var(--selection-height) * 1px)',
-			backgroundColor: color['--paper'],
+			// The previewed row's lifted card (menu.styles.ts lifts the rows
+			// without a preview the same way).
+			backgroundColor: color['--white'],
+			boxShadow: menuElevation.raised,
 			borderRadius: '5px',
 			transform: 'translateY(calc(var(--selection-y, 0) * 1px))',
 			zIndex: -1,

@@ -8,7 +8,7 @@ import {
 } from '@syneva/design-system/tokens.stylex'
 
 import { navMarker, triggerMarker } from './markers.stylex'
-import { navClock, navFrame } from './nav.stylex'
+import { navClock, navFrame, phoneBar } from './nav.stylex'
 
 // Without scripts the noscript links are parsed into the header and stand in
 // for the triggers, which would open nothing. With scripts they stay text, so
@@ -17,15 +17,13 @@ const scriptless = (): string =>
 	stylex.when.ancestor(':has(noscript a)', navMarker)
 const mobileOpen = (): string =>
 	stylex.when.ancestor('[data-mobile-open="true"]', navMarker)
+// The bar folding back into the toggle before it hides (phone-bar.ts).
+const mobileFolding = (): string =>
+	stylex.when.ancestor('[data-mobile-open="folding"]', navMarker)
 const expanded = (): string =>
 	stylex.when.siblingBefore('[aria-expanded="true"]', triggerMarker)
 const triggerExpanded = (): string =>
 	stylex.when.ancestor('[aria-expanded="true"]', triggerMarker)
-
-const arrive = stylex.keyframes({
-	from: { opacity: 0, transform: 'translateY(-6px)' },
-	to: { opacity: 1, transform: 'translateY(0)' },
-})
 
 // The header bar: the wordmark row, the section triggers with their
 // indicator, and the link bar the toggle opens on phones.
@@ -45,31 +43,47 @@ export const nav = stylex.create({
 			[media.navToggle]: '20px',
 			[media.tinyPhone]: '16px',
 		},
-		borderBottomWidth: '1px',
-		borderBottomStyle: 'solid',
-		borderBottomColor: color['--line'],
 		gap: {
 			default: '24px',
 			[media.narrow]: '12px',
 			[media.tinyPhone]: '8px',
 		},
-		position: 'relative',
+		// Once the dock runtime runs (it writes data-docked) the header stays
+		// at the top of the viewport; without it the header scrolls away with
+		// the page, as a plain row.
+		position: { default: 'relative', ':is([data-docked])': 'sticky' },
+		top: { default: null, ':is([data-docked])': 0 },
 		zIndex: 10,
+		// Docked, the header's box keeps its full height around the smaller
+		// sheet: the strips above and below the sheet let the pointer through
+		// to the page, and only the sheet and the controls take it.
+		pointerEvents: { default: null, ':is([data-docked="true"])': 'none' },
 		// Closed menus can retain desktop coordinates after a resize.
 		overflowX: 'clip',
 	},
+	// A control keeps the pointer inside the docked header's pass-through box.
+	control: { pointerEvents: 'auto' },
 	links: {
 		position: { default: 'relative', [media.navToggle]: 'absolute' },
 		display: {
 			default: 'flex',
-			[media.navToggle]: { default: 'none', [mobileOpen()]: 'flex' },
+			[media.navToggle]: {
+				default: 'none',
+				[mobileOpen()]: 'flex',
+				[mobileFolding()]: 'flex',
+			},
 		},
 		justifyContent: {
 			default: null,
 			[media.navToggle]: {
 				default: null,
 				[mobileOpen()]: 'space-between',
+				[mobileFolding()]: 'space-between',
 			},
+		},
+		pointerEvents: {
+			default: 'auto',
+			[media.navToggle]: { default: 'auto', [mobileFolding()]: 'none' },
 		},
 		alignItems: 'center',
 		gap: { default: '6px', [media.narrow]: 0 },
@@ -87,31 +101,9 @@ export const nav = stylex.create({
 		borderWidth: { default: null, [media.navToggle]: '1px' },
 		borderStyle: { default: null, [media.navToggle]: 'solid' },
 		borderColor: { default: null, [media.navToggle]: color['--line'] },
-		borderRadius: { default: null, [media.navToggle]: '8px' },
+		borderRadius: { default: null, [media.navToggle]: phoneBar.radius },
 		overflowX: { default: null, [media.smallPhone]: 'auto' },
 		scrollbarWidth: { default: null, [media.smallPhone]: 'none' },
-		animationName: {
-			default: null,
-			[media.motionSafe]: { default: null, [mobileOpen()]: arrive },
-		},
-		animationDuration: {
-			default: null,
-			[media.motionSafe]: {
-				default: null,
-				[mobileOpen()]: navClock.barDuration,
-			},
-		},
-		animationTimingFunction: {
-			default: null,
-			[media.motionSafe]: {
-				default: null,
-				[mobileOpen()]: navClock.ease,
-			},
-		},
-		animationFillMode: {
-			default: null,
-			[media.motionSafe]: { default: null, [mobileOpen()]: 'both' },
-		},
 	},
 	item: {
 		display: 'inline-flex',
