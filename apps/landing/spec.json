@@ -13,8 +13,13 @@
 		},
 		{
 			"id": "before",
-			"requirement": "A Before section describes reading plans, questioning assumptions and giving the agent clearer decisions, visibly labeled prototype.",
-			"source": "Human brief and plan-desk README"
+			"requirement": "The plan desk page describes reading plans, questioning assumptions and giving the agent clearer decisions, visibly labeled prototype. The home leaves the prototype to that page and the FAQ.",
+			"source": "Human brief and plan-desk README; human follow-up: a home that breathes"
+		},
+		{
+			"id": "home-density",
+			"requirement": "The home tells each idea once: after the hero come the problem, how it works, two chapters for available features (the desk, questions on the line) whose points are headlines, locality with its product facts, the start band and the FAQ. The comparison lives on the product overview, the handoff contract on Connect your agent, the plan desk on its own page.",
+			"source": "Human follow-up: the home was too heavy to read for a product that simplifies review"
 		},
 		{
 			"id": "after",
@@ -67,11 +72,6 @@
 			"source": "Human precision follow-up: inconsistent relationships"
 		},
 		{
-			"id": "plan-drawing",
-			"requirement": "The plan illustration shows a layered plan.md document linked to an assumption, a question for the agent, and a human decision, with a return path before code is written.",
-			"source": "Current human request: improve supporting SVG design and product explanation"
-		},
-		{
 			"id": "review-drawing",
 			"requirement": "The review illustration connects a changed code line to a human question, an agent answer, and a verdict explicitly labeled Accepted by you.",
 			"source": "Current human request: improve supporting SVG design and product explanation"
@@ -83,7 +83,7 @@
 		},
 		{
 			"id": "supporting-motion",
-			"requirement": "Plan, review, and local-machine drawings have coordinated explanatory motion beyond the hero; offscreen or hidden-tab motion pauses, and reduced motion preserves a complete readable illustration.",
+			"requirement": "Review and local-machine drawings have coordinated explanatory motion beyond the hero; offscreen or hidden-tab motion pauses, and reduced motion preserves a complete readable illustration.",
 			"source": "Current human request; temporal criteria require agent browser checks"
 		},
 		{

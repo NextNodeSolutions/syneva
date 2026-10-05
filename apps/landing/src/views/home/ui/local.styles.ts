@@ -2,8 +2,10 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
+// Locality: the copy paired with the machine drawing, then the trust register
+// (product facts) on one ruled row under both.
 export const local = stylex.create({
-	section: {
+	lead: {
 		display: 'grid',
 		gridTemplateColumns: {
 			default: 'minmax(0, 1fr) minmax(0, 1fr)',
@@ -13,30 +15,37 @@ export const local = stylex.create({
 		alignItems: 'center',
 	},
 	text: { maxWidth: '500px', marginTop: '24px' },
-	points: {
-		listStyle: 'none',
-		padding: 0,
-		margin: '28px 0 0',
+	stats: {
 		display: 'grid',
-		gap: '10px',
-		fontSize: '14px',
-	},
-	point: {
-		paddingLeft: '24px',
-		position: 'relative',
-		'::before': {
-			content: "''",
-			position: 'absolute',
-			left: 0,
-			top: '6px',
-			width: '11px',
-			height: '11px',
-			borderWidth: '1px',
-			borderStyle: 'solid',
-			borderColor: color['--green'],
-			backgroundColor: color['--mint'],
+		gridTemplateColumns: {
+			default: 'repeat(4, 1fr)',
+			[media.narrow]: 'repeat(2, 1fr)',
 		},
+		columnGap: { default: '32px', [media.phone]: '18px' },
+		rowGap: {
+			default: '32px',
+			[media.narrow]: '40px',
+			[media.phone]: '28px',
+		},
+		marginTop: { default: '72px', [media.narrow]: '56px' },
 	},
-	code: { fontSize: '12.5px' },
-	note: { fontSize: '12px' },
+	stat: { paddingTop: '22px' },
+	number: {
+		display: 'block',
+		fontSize: 'clamp(46px, 5.4vw, 78px)',
+		fontWeight: 500,
+		letterSpacing: '-.045em',
+		lineHeight: 1,
+		fontVariantNumeric: 'tabular-nums',
+	},
+	first: { color: color['--accent'] },
+	unit: { fontSize: '.55em', letterSpacing: 0 },
+	label: {
+		display: 'block',
+		marginTop: '13px',
+		color: color['--muted'],
+		fontSize: { default: '14px', [media.phone]: '13px' },
+		lineHeight: 1.55,
+		maxWidth: '26ch',
+	},
 })

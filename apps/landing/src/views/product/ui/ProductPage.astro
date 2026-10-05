@@ -11,6 +11,7 @@ import { PAGES, SECTION_BY_ID } from '@entities/site/model/site-map'
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { countWord } from '@shared/lib/count-word'
 import { capitalize } from '@shared/lib/capitalize'
+import Compare from './Compare.astro'
 import DeskLayers from './art/DeskLayers.astro'
 import { LAYERS } from './art/desk-layers'
 
@@ -42,6 +43,7 @@ const DAILY = [
 <Prose id="commitments" title={'Three commitments<br>we won’t trade away.'}>
 	<RuledList items={COMMITMENTS} />
 </Prose>
+<Compare />
 <Prose id="daily" title="Built for the daily loop.">
 	<ProseText>Syneva is built by someone who reviews agent-written code every day. Anything that costs a round-trip or a re-orientation is treated as a defect.</ProseText>
 	<RuledList items={DAILY} />

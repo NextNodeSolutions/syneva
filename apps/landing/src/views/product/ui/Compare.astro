@@ -1,7 +1,10 @@
 ---
-// The comparison: your editor's diff, hosted AI review, Syneva. Every cell
-// stays true for the category as a whole.
+// The comparison on the product overview: your editor's diff, hosted AI
+// review, Syneva. Every cell stays true for the category as a whole. The
+// table needs the frame's full width, so it keeps its own heading row rather
+// than a prose section's columns, with a prose heading's size.
 import { SITE_NAME } from '@entities/site/model/site-map'
+import { prose } from '@shared/ui/prose/prose.styles'
 import { section } from '@shared/ui/section.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
@@ -27,7 +30,7 @@ const ROWS: readonly Row[] = [
 
 <section {...revealRuledGroup(section.ruled, section.pad)} id="compare" aria-labelledby="compare-title">
 	<div {...sx(section.head, compare.head)}>
-		<h2 {...revealItem()} id="compare-title">Built for the loop<br />your editor wasn’t.</h2>
+		<h2 {...revealItem(prose.title)} id="compare-title">Built for the loop<br />your editor wasn’t.</h2>
 		<p {...revealItem(section.headText)}>Editors were designed for writing code. AI reviewers put a model between you and the diff. Syneva is a review surface for the human, with the agent that wrote the code one keystroke away.</p>
 	</div>
 	<div {...revealItem(compare.scroll)}>

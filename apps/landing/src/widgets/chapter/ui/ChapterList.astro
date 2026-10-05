@@ -1,10 +1,11 @@
 ---
-// A chapter's detail list: one ruled point per item, its head and its text.
+// A chapter's detail list: one ruled point per item, its head and, when the
+// drawing beside it doesn't already show it, its text.
 import { revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { chapter } from './chapter.styles'
 
-type Props = { items: readonly (readonly [head: string, text: string])[] }
+type Props = { items: readonly (readonly [head: string, text?: string])[] }
 
 const { items } = Astro.props
 const isSubpage = Astro.locals.page === 'sub'
@@ -15,7 +16,7 @@ const isSubpage = Astro.locals.page === 'sub'
 		items.map(([head, text]) => (
 			<li {...revealItem(chapter.item, isSubpage && chapter.subItem)}>
 				<strong {...sx(chapter.itemHead)} set:html={head} />
-				<span {...sx(chapter.itemText)} set:html={text} />
+				{text && <span {...sx(chapter.itemText)} set:html={text} />}
 			</li>
 		))
 	}
