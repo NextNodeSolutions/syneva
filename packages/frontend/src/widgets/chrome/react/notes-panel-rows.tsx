@@ -1,4 +1,9 @@
+import * as stylex from '@stylexjs/stylex'
+import { caption, tag } from '@syneva/design-system/controls.styles'
+
 import { chromeCtx } from '../context'
+
+import { note as row, notes as panel } from './notes-panel.styles'
 
 import type { ReviewNote } from '@entities/review/notes'
 import type { ReactElement } from 'react'
@@ -14,10 +19,39 @@ function statusLabel(note: ReviewNote): string {
 	return note.kind === 'question' ? 'waiting' : 'open'
 }
 
+// The status tag's tone: petrol while the thread waits on someone, green once the
+// agent answered, neutral when settled.
+const STATUS_TONES = {
+	open: tag.accent,
+	answered: tag.green,
+	resolved: tag.neutral,
+}
+
 function whereLabel(note: ReviewNote): string {
 	if (note.fileLevel) return 'file'
 	const end = note.endLine && note.endLine !== note.lineNumber
 	return `line ${note.lineNumber}${end ? `\u2013${note.endLine}` : ''}`
+}
+
+// The row's first line: where the thread sits, a lost anchor, its status.
+function NoteTop({ note }: { note: ReviewNote }): ReactElement {
+	return (
+		<span {...stylex.props(row.top)}>
+			<span {...stylex.props(row.where)}>{whereLabel(note)}</span>
+			{note.unanchored && (
+				<span {...stylex.props(row.flag)}>lost place</span>
+			)}
+			<span
+				{...stylex.props(
+					tag.base,
+					STATUS_TONES[note.status],
+					row.status,
+				)}
+			>
+				{statusLabel(note)}
+			</span>
+		</span>
+	)
 }
 
 export function NoteRow({
@@ -33,9 +67,12 @@ export function NoteRow({
 	const cursor = index === S.notesCursor
 	return (
 		<button
-			className={`note${note.status === 'resolved' ? ' resolved' : ''}${
-				cursor ? ' cursor' : ''
-			}`}
+			{...stylex.props(
+				row.row,
+				note.status === 'resolved' && row.resolved,
+				cursor && row.cursor,
+				current && row.current,
+			)}
 			data-status={note.status}
 			data-cursor={cursor || undefined}
 			data-current={current || undefined}
@@ -45,20 +82,14 @@ export function NoteRow({
 				S.jumpToNote?.(note)
 			}}
 		>
-			<span className="note-top">
-				<span className="note-where">{whereLabel(note)}</span>
-				{note.unanchored && (
-					<span className="note-flag">lost place</span>
-				)}
-				<span className={`note-status ${note.status}`}>
-					{statusLabel(note)}
-				</span>
-			</span>
-			<span className="note-body">{note.preview}</span>
+			<NoteTop note={note} />
+			<span {...stylex.props(row.clamp, row.body)}>{note.preview}</span>
 			{note.kind === 'question' &&
 				note.status === 'answered' &&
 				note.latest && (
-					<span className="note-reply">{note.latest}</span>
+					<span {...stylex.props(row.clamp, row.reply)}>
+						{note.latest}
+					</span>
 				)}
 		</button>
 	)
@@ -86,6 +117,36 @@ function groupByFile(
 	return groups
 }
 
+// One file's rows under its sticky name.
+function FileGroup({
+	group,
+	currentPath,
+}: {
+	group: ReturnType<typeof groupByFile>[number]
+	currentPath: string | null
+}): ReactElement {
+	return (
+		<div {...stylex.props(panel.file)}>
+			<div {...stylex.props(panel.fileName)} title={group.path}>
+				{group.path.split('/').pop()}
+			</div>
+			{group.rows.map(entry => (
+				<NoteRow
+					// A thread always carries its anchor comment; the composite
+					// fallback keeps the key a string even if that invariant breaks.
+					key={
+						entry.note.comments[0]?.id ??
+						`${entry.note.path}:${entry.index}`
+					}
+					note={entry.note}
+					index={entry.index}
+					current={entry.note.path === currentPath}
+				/>
+			))}
+		</div>
+	)
+}
+
 export function NoteSection({
 	label,
 	notes,
@@ -99,40 +160,24 @@ export function NoteSection({
 	currentPath: string | null
 	empty: string
 }): ReactElement {
-	if (!notes.length)
-		return (
-			<div className="notes-section">
-				<div className="notes-label">{label}</div>
-				<div className="notes-none">{empty}</div>
-			</div>
-		)
-	// Group by file, preserving the notes' review order (files arrive ordered).
-	const groups = groupByFile(notes, startIndex)
 	return (
-		<div className="notes-section">
-			<div className="notes-label">
+		<div {...stylex.props(panel.section)}>
+			<div {...stylex.props(caption.base, caption.upper, panel.label)}>
 				{label}
-				<span className="notes-label-count">{notes.length}</span>
+				{notes.length > 0 && (
+					<span {...stylex.props(panel.labelCount)}>
+						{notes.length}
+					</span>
+				)}
 			</div>
-			{groups.map(group => (
-				<div className="notes-file" key={group.path}>
-					<div className="notes-file-name" title={group.path}>
-						{group.path.split('/').pop()}
-					</div>
-					{group.rows.map(entry => (
-						<NoteRow
-							// A thread always carries its anchor comment; the composite
-							// fallback keeps the key a string even if that invariant breaks.
-							key={
-								entry.note.comments[0]?.id ??
-								`${entry.note.path}:${entry.index}`
-							}
-							note={entry.note}
-							index={entry.index}
-							current={entry.note.path === currentPath}
-						/>
-					))}
-				</div>
+			{!notes.length && <div {...stylex.props(panel.none)}>{empty}</div>}
+			{/* Grouped by file, in the notes' review order (files arrive ordered). */}
+			{groupByFile(notes, startIndex).map(group => (
+				<FileGroup
+					key={group.path}
+					group={group}
+					currentPath={currentPath}
+				/>
 			))}
 		</div>
 	)
@@ -140,7 +185,7 @@ export function NoteSection({
 
 export function NotesEmpty(): ReactElement {
 	return (
-		<div className="notes-empty">
+		<div {...stylex.props(panel.empty)}>
 			No comments or questions yet. Comment on a line or a file, or ask
 			the agent a question.
 		</div>
@@ -150,10 +195,10 @@ export function NotesEmpty(): ReactElement {
 export function NotesNoMatch(): ReactElement {
 	const { S } = chromeCtx()
 	return (
-		<div className="notes-empty">
+		<div {...stylex.props(panel.empty)}>
 			No notes match the filter.
 			<button
-				className="notes-clear"
+				{...stylex.props(panel.clear)}
 				onClick={() => {
 					S.setNotesQuery?.('')
 					S.setNotesLens?.('all')
