@@ -9,7 +9,6 @@ import { faq } from './faq.styles'
 
 const QUESTIONS = [
 	['Does Syneva review code for me?', 'No. You review the code. Your own agent can set the reading order and answer your questions. Syneva records your decisions and hands them back to that agent.'],
-	['Does Syneva ever auto-approve anything?', 'Never. Every change starts pending, and only your click records a verdict. A verdict is stored on that exact change, not inferred from git staging or a blanket approval.'],
 	['What if the agent rewrites code I already accepted?', 'Syneva hashes each change. On reload, a rewritten change resets to pending while untouched work keeps your verdict. Approvals and comment anchors follow the same rule, so stale trust can’t survive silently.'],
 	['Which coding agents work with it?', 'Any of them. The contract is plain JSON on stdout plus a localhost HTTP server. Syneva ships as a pi package, and Codex, Cursor or a shell script can drive the standalone CLI.'],
 	['Can I use the plan desk today?', `The dedicated plan desk is a prototype. You can already open a plan with <code>${PAGES.singleFile.code}</code> and comment block by block.`],

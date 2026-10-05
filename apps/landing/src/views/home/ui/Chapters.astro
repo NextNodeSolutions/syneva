@@ -15,16 +15,16 @@ const DESK = [['Follow the change, not the file list.'], ['Keep the good, undo t
 const ASK = [['Ask a question, or request a change.'], ['Answers in place, progress in sight.'], ['No question gets lost.']] as const
 ---
 
-<Chapter id="desk" title="A big diff.<br>A smaller mental load." caption="Read in order → keep or undo → next change">
+<Chapter id="desk" title="A big diff.<br>A smaller mental load.">
 	<ChapterStatus page={PAGES.reviewDesk} />
-	<ChapterText>The agent has finished. Now it’s your turn. Read its work in a local browser desk, in the order that makes it make sense, and record a verdict on every change.</ChapterText>
+	<ChapterText>Read your agent’s work in the order that explains it, and record a verdict on every change.</ChapterText>
 	<ChapterList items={DESK} />
 	<TextLink href={PAGES.reviewDesk.href} label="Explore the review desk" />
 	<DeskFigure slot="art" />
 </Chapter>
-<Chapter id="ask" title="Ask on the line.<br>Get the answer there." artSide="left" caption="Ask → agent reads → answer on the line">
+<Chapter id="ask" title="Ask on the line.<br>Get the answer there." artSide="left">
 	<ChapterStatus page={PAGES.askYourAgent} />
-	<ChapterText>Stop copying snippets into a chat window. Ask about the exact change, keep reviewing, and the answer lands in the thread where your question lives.</ChapterText>
+	<ChapterText>Stop copying snippets into a chat window. Keep reviewing while your agent answers.</ChapterText>
 	<ChapterList items={ASK} />
 	<TextLink href={PAGES.askYourAgent.href} label="See how questions work" />
 	<AskFigure slot="art" />

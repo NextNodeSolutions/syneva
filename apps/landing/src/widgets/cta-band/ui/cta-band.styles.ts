@@ -15,7 +15,7 @@ export const band = stylex.create({
 	},
 	text: {
 		margin: '22px 0 26px',
-		maxWidth: '420px',
+		maxWidth: '520px',
 		color: color['--wash-ink'],
 	},
 	links: { display: 'flex', flexWrap: 'wrap', gap: '14px 28px' },

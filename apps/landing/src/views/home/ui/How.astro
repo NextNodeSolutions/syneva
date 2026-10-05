@@ -3,7 +3,6 @@
 // The last step leads to the contract your agent reads, which has its own page.
 import { START_COMMAND } from '@entities/site/model/project'
 import { PAGES } from '@entities/site/model/site-map'
-import FigureTop from '@shared/ui/FigureTop.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { ruledItem } from '@shared/ui/ruled-item.styles'
 import { section } from '@shared/ui/section.styles'
@@ -17,7 +16,7 @@ import { how } from './how.styles'
 type Step = { title: string; text: string; link?: { href: string; title: string } }
 
 const STEPS: readonly Step[] = [
-	{ title: 'Open the desk', text: `Run <code>${START_COMMAND}</code> next to your repository. The diff opens in your browser, on localhost. Nothing leaves your machine.` },
+	{ title: 'Open the desk', text: `Run <code>${START_COMMAND}</code> inside your repository. The diff opens in your browser, on localhost.` },
 	{ title: 'Read in order', text: 'Your agent can attach a reading order that groups files into sections. Files it doesn’t list still appear, under Other.' },
 	{ title: 'Ask on the line', text: 'Questions anchor to the exact change. Your agent answers in the same thread while you keep reviewing.' },
 	{ title: 'Send the verdict', text: 'Keep or undo each change, then Send. Your agent receives a structured result and re-diffs its edits into the same tab.', link: PAGES.connectYourAgent },
@@ -27,7 +26,6 @@ const STEPS: readonly Step[] = [
 <section {...revealRuledGroup(section.ruled, section.rhythm, how.section)} id="how" aria-labelledby="how-title">
 	<h2 {...revealItem(how.head)} id="how-title">One loop.<br />Same tab, every round.</h2>
 	<figure {...revealItem(how.figure)} {...scene}>
-		<FigureTop aside="THE REVIEW CIRCUIT">YOUR AGENT’S DIFF. YOUR ATTENTION.</FigureTop>
 		<Circuit />
 	</figure>
 	<ol {...sx(how.steps)}>

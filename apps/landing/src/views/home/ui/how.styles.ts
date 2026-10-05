@@ -6,7 +6,10 @@ import { color, layout } from '@syneva/design-system/tokens.stylex'
 // one ruled rail, read left to right.
 export const how = stylex.create({
 	section: { scrollMarginTop: '12px' },
-	head: { paddingBottom: '56px', paddingInline: layout['--gutter'] },
+	head: {
+		paddingBottom: { default: '56px', [media.phone]: '32px' },
+		paddingInline: layout['--gutter'],
+	},
 	figure: {
 		borderBlockWidth: '1px',
 		borderBlockStyle: 'solid',
@@ -27,7 +30,10 @@ export const how = stylex.create({
 		},
 		listStyle: 'none',
 		margin: 0,
-		padding: `64px ${layout['--gutter']} 0`,
+		padding: {
+			default: `64px ${layout['--gutter']} 0`,
+			[media.phone]: `40px ${layout['--gutter']} 0`,
+		},
 	},
 	step: { padding: '22px 0 0' },
 	stepTitle: {

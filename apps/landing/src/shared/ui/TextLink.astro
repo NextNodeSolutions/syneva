@@ -10,10 +10,11 @@ type Props = { href: string; label: string; arrow?: string; css?: Part }
 
 const { href, label, arrow, css } = Astro.props
 const glyph = arrow ?? (URL.canParse(href) ? '↗' : '→')
-// Subpages (and the 404) set chapter links a step lower.
+// Subpages (and the 404) set chapter links a step lower; the home's links
+// stand alone and take a touch target on phones instead.
 const isSubpageSheet = Astro.locals.page !== 'home'
 ---
 
-<a {...sx(textLink.base, isSubpageSheet && textLink.inChapterSub, css, textLinkMarker)} href={href}>
+<a {...sx(textLink.base, isSubpageSheet ? textLink.inChapterSub : textLink.touch, css, textLinkMarker)} href={href}>
 	{label} <span {...sx(textLink.arrow)} aria-hidden="true">{glyph}</span>
 </a>

@@ -34,6 +34,20 @@ export const textLink = stylex.create({
 			[media.phone]: { default: null, [inPageActions()]: '44px' },
 		},
 	},
+	// On the home every text link stands alone, so on phones it takes a
+	// centred 44px touch target that leaves the layout where it is.
+	touch: {
+		position: 'relative',
+		'::after': {
+			content: "''",
+			position: 'absolute',
+			insetInline: 0,
+			top: '50%',
+			height: '44px',
+			transform: 'translateY(-50%)',
+			display: { default: 'none', [media.phone]: 'block' },
+		},
+	},
 	inChapterSub: { marginTop: { default: null, [inChapter()]: '4px' } },
 	arrow: {
 		display: 'inline-block',

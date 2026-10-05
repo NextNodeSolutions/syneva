@@ -29,7 +29,7 @@ This system belongs to the standalone public site. The repository-root `DESIGN.m
 
 Self-hosted Geist handles display and body text; Geist Mono identifies paths, commands and drawing annotations. Font provenance and license live in `public/fonts/`.
 
-The heading scale, weights, tracking and responsive sizes are defined in `src/app/styles/global.css` (element typography, with the h2 size from the design system's `--h2-size`) and the components' StyleX styles. Headings use sentence case and tight tracking; paragraphs remain open and readable. Supporting functional text must remain readable after SVG scaling, not merely have a large nominal font size.
+The heading scale, weights, tracking and responsive sizes are defined in `src/app/styles/global.css` (element typography, with the h2 size from the design system's `--h2-size`) and the components' StyleX styles. Section headings share that one size, on the home and the subpages alike: a section never sets a larger one to outrank its neighbours, and only a heading that leads a column of rows (the home FAQ, a prose section) sets a smaller one. Headings use sentence case and tight tracking; paragraphs remain open and readable. Supporting functional text must remain readable after SVG scaling, not merely have a large nominal font size.
 
 ## Layout
 
@@ -37,7 +37,7 @@ A centered, ruled frame contains wide editorial sections and paired copy/drawing
 
 Navigation stays compact. The primary action remains distinct from the text-link alternative. Avoid feature-card grids that fragment the Before/After reading order.
 
-**The One Telling Rule.** The home says each idea once, in reading order: the hero, the problem, the loop (`#how`), two chapters for what ships today (the desk, questions on the line), locality and its facts (`#local`), the start band, the FAQ. Detail belongs on the subpages: the comparison on the product overview, the agent contract on Connect your agent, the plan desk prototype on its own page. A product that simplifies review cannot open on a page that is hard to read, so a new home section replaces one instead of joining them, and a home chapter's points stay headlines when its drawing already shows the detail.
+**The One Telling Rule.** The home says each idea once, in reading order: the hero, the problem, the loop (`#how`), two chapters for what ships today (the desk, questions on the line), locality and its facts (`#local`), the start band, the FAQ. Detail belongs on the subpages: the comparison on the product overview, the agent contract on Connect your agent, the plan desk prototype on its own page. A product that simplifies review cannot open on a page that is hard to read, so a new home section replaces one instead of joining them, and a home chapter's points stay headlines when its drawing already shows the detail. A home drawing speaks for itself: no slogan bar above it and no caption below that restates its heading (a truth label such as the gap chart's "Conceptual drawing" stays).
 
 ## Elevation & Depth
 
