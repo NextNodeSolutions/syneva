@@ -17,7 +17,6 @@ development = true
 
 [deploy]
 target = "cloudflare-workers"
-# No runtime secrets: the one route (the newsletter signup) only writes to D1.
 
 [deploy.services.web]
 url = "syneva.dev"
@@ -28,6 +27,9 @@ url = "syneva.dev"
 # apps/landing/public/healthz rides along with the assets for the smoke check.
 entry = "apps/landing/dist/server/entry.mjs"
 needs = ["d1"]
+# The signup's welcome email goes out through Resend, from hello@syneva.dev.
+# A GitHub env-secret in both environments (development, production).
+secrets = ["RESEND_API_KEY"]
 
 # The signup's abuse guard, per client address and Cloudflare location
 # (env.RL_SUBSCRIBE): a few tries a minute is plenty for one person.

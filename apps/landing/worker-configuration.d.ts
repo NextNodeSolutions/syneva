@@ -8,6 +8,7 @@ declare namespace Cloudflare {
 		readonly ASSETS: Fetcher
 		readonly D1_DATABASE_ID: string
 		readonly DB: D1Database
+		readonly RESEND_API_KEY: string
 		readonly RL_SUBSCRIBE: RateLimit
 		readonly SITE_URL: string
 	}
