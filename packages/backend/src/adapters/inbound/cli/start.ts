@@ -127,11 +127,18 @@ function readAllowedHosts(): string[] {
 }
 
 let handleToClose: HubHandle | undefined
+let stopping: Promise<void> | undefined
 
-async function stopProcess(code: number): Promise<void> {
-	const handle = handleToClose
-	handleToClose = undefined
-	if (handle) await handle.close().catch(() => undefined)
+// One teardown, however often it is asked for. A terminal's Ctrl-C reaches the hub once from
+// the tty and once more from every wrapper that relays signals (a script runner, a watcher),
+// and a second teardown would exit before the first has persisted the registry.
+function stopProcess(code: number): Promise<void> {
+	stopping ??= closeAndExit(code)
+	return stopping
+}
+
+async function closeAndExit(code: number): Promise<void> {
+	await handleToClose?.close().catch(() => undefined)
 	await removeHubLock(process.pid)
 	process.exit(code)
 }
@@ -140,6 +147,7 @@ function installExitHandlers(handle: HubHandle): void {
 	handleToClose = handle
 	for (const signal of ['SIGINT', 'SIGTERM'] as const)
 		process.on(signal, () => {
+			if (stopping) return
 			warn(
 				'Hub stopping - desks stay saved; `syneva start` restores them.',
 			)
