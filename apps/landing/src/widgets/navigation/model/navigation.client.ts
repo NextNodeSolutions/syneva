@@ -1,4 +1,6 @@
 import { compact } from './compact'
+import { HeaderDock } from './header-dock'
+import { MarkDial } from './mark-dial'
 import { Navigation } from './navigation'
 import { queryNavigationParts } from './navigation-parts'
 
@@ -61,10 +63,10 @@ function bindDocument(navigation: Navigation): void {
 	})
 }
 
-// The webfonts resize the triggers when they swap in.
-async function repositionAfterFonts(reposition: () => void): Promise<void> {
+// The webfonts resize the triggers and the page's sections when they swap in.
+async function afterFonts(measure: () => void): Promise<void> {
 	await document.fonts.ready
-	reposition()
+	measure()
 }
 
 // The dropdown follows the layout: the breakpoint, the window, the header or
@@ -80,7 +82,36 @@ function bindLayout(
 	resizeObserver.observe(root)
 	menus.forEach(({ panel }) => resizeObserver.observe(panel))
 	reposition()
-	void repositionAfterFonts(reposition)
+	void afterFonts(reposition)
+}
+
+// The dock and the dial follow the scroll once a frame. The ruler measures
+// the page again whenever its height or the viewport changes, and once the
+// webfonts settle the sections' heights.
+function bindScroll(dock: HeaderDock, dial: MarkDial): void {
+	let lastY = window.scrollY
+	let isQueued = false
+	const follow = (): void => {
+		isQueued = false
+		const y = window.scrollY
+		dock.follow(y)
+		dial.turn(y - lastY)
+		lastY = y
+	}
+	window.addEventListener(
+		'scroll',
+		() => {
+			if (isQueued) return
+			isQueued = true
+			requestAnimationFrame(follow)
+		},
+		{ passive: true },
+	)
+	const measure = (): void => dock.measure()
+	window.addEventListener('resize', measure)
+	new ResizeObserver(measure).observe(document.body)
+	dock.start(lastY)
+	void afterFonts(measure)
 }
 
 const parts = queryNavigationParts(document)
@@ -90,3 +121,7 @@ parts.previewLinks.forEach(link => bindPreview(navigation, link))
 bindHeader(navigation, parts)
 bindDocument(navigation)
 bindLayout(navigation, parts)
+bindScroll(
+	new HeaderDock(parts.root, parts.dock),
+	new MarkDial(parts.dock.dial),
+)

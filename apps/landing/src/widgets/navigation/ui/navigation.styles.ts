@@ -45,19 +45,26 @@ export const nav = stylex.create({
 			[media.navToggle]: '20px',
 			[media.tinyPhone]: '16px',
 		},
-		borderBottomWidth: '1px',
-		borderBottomStyle: 'solid',
-		borderBottomColor: color['--line'],
 		gap: {
 			default: '24px',
 			[media.narrow]: '12px',
 			[media.tinyPhone]: '8px',
 		},
-		position: 'relative',
+		// Once the dock runtime runs (it writes data-docked) the header stays
+		// at the top of the viewport; without it the header scrolls away with
+		// the page, as a plain row.
+		position: { default: 'relative', ':is([data-docked])': 'sticky' },
+		top: { default: null, ':is([data-docked])': 0 },
 		zIndex: 10,
+		// Docked, the header's box keeps its full height around the smaller
+		// sheet: the strips above and below the sheet let the pointer through
+		// to the page, and only the sheet and the controls take it.
+		pointerEvents: { default: null, ':is([data-docked="true"])': 'none' },
 		// Closed menus can retain desktop coordinates after a resize.
 		overflowX: 'clip',
 	},
+	// A control keeps the pointer inside the docked header's pass-through box.
+	control: { pointerEvents: 'auto' },
 	links: {
 		position: { default: 'relative', [media.navToggle]: 'absolute' },
 		display: {
@@ -71,6 +78,7 @@ export const nav = stylex.create({
 				[mobileOpen()]: 'space-between',
 			},
 		},
+		pointerEvents: 'auto',
 		alignItems: 'center',
 		gap: { default: '6px', [media.narrow]: 0 },
 		top: { default: null, [media.navToggle]: 'calc(100% + 8px)' },

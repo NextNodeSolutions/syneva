@@ -7,6 +7,15 @@ type NonEmptyArray<Item> = readonly [Item, ...Item[]]
 // A section's trigger and the panel its aria-controls names.
 export type SectionMenu = { trigger: HTMLElement; panel: HTMLElement }
 
+// The dock layer's live pieces: the reading ruler, its progress line, the
+// tick it clones per section, and the wordmark's dialling group.
+export type DockParts = {
+	ruler: HTMLElement
+	progress: HTMLElement
+	tick: HTMLElement
+	dial: SVGGElement
+}
+
 export type NavigationParts = {
 	root: HTMLElement
 	links: HTMLElement
@@ -16,6 +25,7 @@ export type NavigationParts = {
 	menus: NonEmptyArray<SectionMenu>
 	previewLinks: HTMLElement[]
 	scenes: HTMLElement[]
+	dock: DockParts
 }
 
 const missing = (attribute: string): Error =>
@@ -38,6 +48,23 @@ function queryParts(
 	]
 	if (!first) throw missing(attribute)
 	return [first, ...rest]
+}
+
+// The tick is the one element inside the ruler's template.
+function queryTick(scope: ParentNode): HTMLElement {
+	const template = scope.querySelector('template[data-nav-tick]')
+	const tick =
+		template instanceof HTMLTemplateElement
+			? template.content.firstElementChild
+			: null
+	if (!(tick instanceof HTMLElement)) throw missing('data-nav-tick')
+	return tick
+}
+
+function queryDial(scope: ParentNode): SVGGElement {
+	const dial = scope.querySelector('[data-brand-dial]')
+	if (!(dial instanceof SVGGElement)) throw missing('data-brand-dial')
+	return dial
 }
 
 // Each trigger with the panel its aria-controls names: a trigger naming no
@@ -71,5 +98,11 @@ export function queryNavigationParts(scope: ParentNode): NavigationParts {
 		]),
 		previewLinks: [...root.querySelectorAll<HTMLElement>('[data-preview]')],
 		scenes: [...root.querySelectorAll<HTMLElement>('[data-scene]')],
+		dock: {
+			ruler: queryPart(root, 'data-nav-ruler'),
+			progress: queryPart(root, 'data-nav-progress'),
+			tick: queryTick(root),
+			dial: queryDial(root),
+		},
 	}
 }

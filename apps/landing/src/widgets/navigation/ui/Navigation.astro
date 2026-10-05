@@ -1,6 +1,7 @@
 ---
 // The site header: wordmark, section triggers, the morphing dropdown that
-// holds every section's menu, the primary action and the phone toggle.
+// holds every section's menu, the primary action and the phone toggle, over
+// the dock layer the header condenses into once the page scrolls.
 import type { SectionId } from '@entities/site/model/site-map'
 import { PAGES, SECTIONS } from '@entities/site/model/site-map'
 import { sectionOf } from '@entities/site/model/routes'
@@ -15,6 +16,7 @@ import ProductMenu from './ProductMenu.astro'
 import ResourceMenu from './ResourceMenu.astro'
 import WorkflowMenu from './WorkflowMenu.astro'
 import { actionMarker, dropdownMarker, navMarker, triggerMarker } from './markers.stylex'
+import { dock } from './dock.styles'
 import { dropdown } from './dropdown.styles'
 import { headerActions } from './header-actions.styles'
 import { instant } from './instant.styles'
@@ -32,7 +34,20 @@ const MENUS: Record<SectionId, typeof ProductMenu> = {
 ---
 
 <header {...sx(nav.shell, navMarker, inputMarker)} data-navigation>
-	<Brand />
+	<div {...sx(dock.layer)} aria-hidden="true">
+		<span {...sx(dock.rule)}></span>
+		<span {...sx(dock.sheet)}>
+			<span {...sx(dock.ruler)} data-nav-ruler>
+				<span {...sx(dock.progress)} data-nav-progress></span>
+				<template data-nav-tick><span {...sx(dock.tick)}></span></template>
+			</span>
+		</span>
+		<span {...sx(dock.corner, dock.topLeft)}></span>
+		<span {...sx(dock.corner, dock.topRight)}></span>
+		<span {...sx(dock.corner, dock.bottomLeft)}></span>
+		<span {...sx(dock.corner, dock.bottomRight)}></span>
+	</div>
+	<Brand css={nav.control} />
 	<nav {...sx(nav.links)} id="site-navigation" aria-label="Main navigation" data-nav-links>
 		{
 			SECTIONS.map(section => (
@@ -55,11 +70,11 @@ const MENUS: Record<SectionId, typeof ProductMenu> = {
 		>
 		<span {...sx(nav.indicator, instant.transitions)} aria-hidden="true"></span>
 	</nav>
-	<a {...sx(press.control, headerActions.action, instant.transitions, actionMarker)} href={PAGES.getStarted.href} aria-current={currentPage(PAGES.getStarted.href, route)}>
+	<a {...sx(press.control, headerActions.action, nav.control, instant.transitions, actionMarker)} href={PAGES.getStarted.href} aria-current={currentPage(PAGES.getStarted.href, route)}>
 		{PAGES.getStarted.title} <span {...sx(headerActions.actionArrow, instant.transitions)} aria-hidden="true">→</span>
 	</a>
 	<button
-		{...sx(press.control, headerActions.toggle, instant.transitions)}
+		{...sx(press.control, headerActions.toggle, nav.control, instant.transitions)}
 		type="button"
 		aria-expanded="false"
 		aria-controls="site-navigation"

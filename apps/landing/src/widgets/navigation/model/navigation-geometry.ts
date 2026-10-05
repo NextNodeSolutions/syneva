@@ -7,7 +7,8 @@ import type { GeometryName } from './navigation-channels'
 // the width a panel may take, where the open panel lands independently of
 // the shell's current animated size, the folded sliver under its trigger it
 // grows from and shrinks back into, and the heights the viewport leaves.
-const PANEL_GAP = 10
+// The gap clears the docked sheet's edge as well as the trigger.
+const PANEL_GAP = 14
 const FOLD_HEIGHT = 4
 // The inset and the border apply on both sides.
 const SIDES = 2
