@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { installCommentBindings } from '@app/facade/comment-thread'
 import { installDialogBindings } from '@app/facade/dialogs'
 import { installGuideBindings } from '@app/facade/guide-bar'
-import { installNavigationBindings } from '@app/facade/navigate'
+import { installNavigationBindings, warmNextFile } from '@app/facade/navigate'
 import { installNotesBindings } from '@app/facade/notes'
 import { installProjectTreeBindings } from '@app/facade/project-tree'
 import { installFileActionBindings } from '@app/facade/review-header'
@@ -134,7 +134,12 @@ if (hasGuide(guideInputs(S))) {
 	S.sidebarTab =
 		S.settings.sidebarDefault === 'walkthrough' ? 'walkthrough' : 'tree'
 }
-void render()
+// The first file renders, then the next one warms (contents + highlight) while it is read.
+async function renderFirstFile(): Promise<void> {
+	await render()
+	warmNextFile()
+}
+void renderFirstFile()
 // Reveal the floating Approve button once the diff scrolls past its (non-sticky) header. #diff is
 // the persistent scroll container (x-ignore), so this listener is attached once and survives every
 // re-render/file switch.

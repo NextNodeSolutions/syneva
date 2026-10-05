@@ -43,14 +43,57 @@ type ReplayedDiff = {
 let lastReplayed: ReplayedDiff | null = null
 
 type FileVersion = { name: string; contents: string }
+type FileContents = { oldContents: string; newContents: string }
 
 function keyedFile(file: FileVersion): FileVersion & { cacheKey: string } {
 	return { ...file, cacheKey: `${file.name}@${fingerprint(file.contents)}` }
 }
 
+// A view-only file (a preview, or a file-mode review of a new or unchanged file) renders
+// one-sided: its old side is empty.
+function isViewOnlyDiff(
+	contents: FileContents,
+	isPreviewing: boolean,
+): boolean {
+	if (isPreviewing) return true
+	if (diffCtx().S.state?.mode !== 'file') return false
+	return (
+		contents.oldContents === '' ||
+		contents.oldContents === contents.newContents
+	)
+}
+
+function fileVersions(
+	file: ReviewFile,
+	contents: FileContents,
+	isViewOnly: boolean,
+): [FileVersion, FileVersion] {
+	return [
+		{
+			name: file.oldPath ?? file.path,
+			contents: isViewOnly ? '' : contents.oldContents,
+		},
+		{ name: file.newPath ?? file.path, contents: contents.newContents },
+	]
+}
+
+// A file's keyed raw diff, built fresh: for priming a file other than the one on screen (the
+// memoized parse below belongs to the visible file).
+export function rawFileDiff(
+	file: ReviewFile,
+	contents: FileContents,
+): FileDiffMetadata {
+	const [oldFile, newFile] = fileVersions(
+		file,
+		contents,
+		isViewOnlyDiff(contents, false),
+	)
+	return parseDiffFromFile(keyedFile(oldFile), keyedFile(newFile))
+}
+
 function parsedDiff(
-	oldFile: { name: string; contents: string },
-	newFile: { name: string; contents: string },
+	oldFile: FileVersion,
+	newFile: FileVersion,
 ): FileDiffMetadata {
 	const parsed = lastParsed
 	if (
@@ -88,17 +131,8 @@ export function buildDiffMetadata(
 	file: ReviewFile,
 	view: DiffView,
 ): FileDiffMetadata {
-	const isViewOnly =
-		view.isPreviewing ||
-		(diffCtx().S.state?.mode === 'file' &&
-			(cur.oldContents === '' || cur.oldContents === cur.newContents))
-	const raw = parsedDiff(
-		{
-			name: file.oldPath ?? file.path,
-			contents: isViewOnly ? '' : cur.oldContents,
-		},
-		{ name: file.newPath ?? file.path, contents: cur.newContents },
-	)
+	const isViewOnly = isViewOnlyDiff(cur, view.isPreviewing)
+	const raw = parsedDiff(...fileVersions(file, cur, isViewOnly))
 	if (isViewOnly) {
 		D.lineMap = null
 		return raw

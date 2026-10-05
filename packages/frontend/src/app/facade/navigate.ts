@@ -1,6 +1,6 @@
 import { currentFileOrNull, fileFinished } from '@entities/review/changes'
 import { fetchPreviewFile } from '@entities/review/file/api'
-import { prefetchContents } from '@entities/review/file/contents'
+import { peekContents, prefetchContents } from '@entities/review/file/contents'
 import { defaultFileView } from '@entities/review/file/file-summary'
 import { guideInputs, hasGuide, navOrder } from '@entities/review/guide/guide'
 import { nextUnreviewed } from '@entities/review/guide/seek'
@@ -11,7 +11,9 @@ import { D } from '@widgets/diff-view/runtime'
 import { S, toast } from '../store'
 
 import type { FileRow } from '@entities/review/file/tree-rows'
-import type { PreviewFile } from '@entities/review/model'
+import type { PreviewFile, ReviewState } from '@entities/review/model'
+
+type ReviewFile = ReviewState['files'][number]
 
 // The bindings behind moving around the review: picking a file (tree/walkthrough clicks, keyboard
 // steps) and opening an unchanged file for a read-only preview. Every step funnels through
@@ -46,13 +48,7 @@ function installFileSelection(): void {
 		// The sidebar highlight re-derives on the store bump this mutation causes -
 		// the React tree repaints it; nothing to patch in place.
 		deferRender()
-		// Quietly warm the file the next-step will actually open (the active pane's sorting) so
-		// the common next-file step never waits on the wire.
-		const next = walkthroughActive()
-			? nextInWalkthrough(1)
-			: (nextInTree(1)?.fileIndex ?? null)
-		if (next !== null)
-			prefetchContents(state.files[next], S.loadedOversized)
+		warmNextFile()
 	}
 	// Open any repo file (incl. unchanged ones) for read/comment: fetch its contents and show it
 	// as a plain view (old === new -> no diff blocks). Comments anchor to it like any file.
@@ -104,6 +100,31 @@ function nextInTree(dir: 1 | -1): FileRow | null {
 	)?.path
 	const pos = rows.findIndex(row => row.path === shown)
 	return rows[(pos + dir + rows.length) % rows.length] ?? null
+}
+
+// Quietly warm the file the next step will actually open (the active pane's sorting): its contents,
+// so the step never waits on the wire, then its highlight in Pierre's worker cache, so it opens
+// colored (widgets/diff-view/diff-prime.ts). Runs after each selection and after the first render.
+export function warmNextFile(): void {
+	const next = walkthroughActive()
+		? nextInWalkthrough(1)
+		: (nextInTree(1)?.fileIndex ?? null)
+	if (next === null) return
+	const file = S.state?.files[next]
+	if (file) void warmFile(file)
+}
+
+async function warmFile(file: ReviewFile): Promise<void> {
+	await prefetchContents(file, S.loadedOversized)
+	const contents = peekContents(file, null)
+	if (!contents) return
+	try {
+		const { primeDiffHighlight } =
+			await import('@widgets/diff-view/diff-prime')
+		await primeDiffHighlight(file, contents)
+	} catch {
+		// A failed island chunk is reported by the open itself (pages/desk/render.ts).
+	}
 }
 
 function installFileStepping(): void {
