@@ -40,7 +40,8 @@ export function installCommentBindings(): void {
 // Close the inline composer when clicking outside it (unless it has unsaved text). The
 // composer/editor live inside the diff DOM, so match their containers directly; the listener is on
 // the document, capturing, so it sees the press before any diff control handles the click. The
-// file header's comment icon toggles its own composer, so it is carved out of the dismissal.
+// whole-file comment triggers (the file header's icon, the guide bar's button, marked
+// data-file-comment-trigger) toggle their own composer, so they are carved out of the dismissal.
 function installComposerDismissal(): void {
 	document.addEventListener(
 		'pointerdown',
@@ -49,7 +50,9 @@ function installComposerDismissal(): void {
 			const { target } = event
 			if (
 				target instanceof HTMLElement &&
-				target.closest('.composer-card, .msg-edit, .fc-btn, .gb-fc')
+				target.closest(
+					'.composer-card, .msg-edit, .fc-btn, [data-file-comment-trigger]',
+				)
 			)
 				return
 			// Defer the closing render: this fires on pointerdown, before the click reaches a diff
