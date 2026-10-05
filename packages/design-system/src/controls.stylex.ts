@@ -1,0 +1,5 @@
+import * as stylex from '@stylexjs/stylex'
+
+// A control whose arrow steps forward while the control is hovered: the
+// control carries the marker, its arrow reads it.
+export const controlMarker = stylex.defineMarker()

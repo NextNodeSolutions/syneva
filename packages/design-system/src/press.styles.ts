@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { duration, ease } from '@syneva/design-system/tokens.stylex'
+
+import { duration, ease } from './tokens.stylex'
 
 const fast = `${duration['--duration-fast']} ${ease['--ease-out']}`
 

@@ -32,6 +32,21 @@ export const color = stylex.defineVars({
 	'--mint-tint': '#eef5ec',
 	'--mint-pale': '#f2f7f0',
 	'--green': '#35633f',
+	// The rule tone of a green-marked surface, as --accent-line is petrol's.
+	'--green-line': '#a9c6a5',
+	// The apps' two other signals, each as text (AA on --paper, --white and
+	// its own tint), tint fill and rule: amber marks a change the reviewer
+	// asked for, red marks what goes (a removed line, a destructive action,
+	// an error). Like petrol and green, neither decorates.
+	'--amber': '#875a0e',
+	'--amber-tint': '#f6ecd6',
+	'--amber-line': '#d8bd86',
+	'--red': '#a8322d',
+	'--red-deep': '#8a2722',
+	'--red-tint': '#f8e7e3',
+	'--red-line': '#e2aea6',
+	// A removed line's band: --mint-tint's counterpart.
+	'--red-pale': '#fbefec',
 	'--line': '#dcdfd4',
 	'--line-strong': '#a8afa1',
 	'--grid': '#e4e7dc',

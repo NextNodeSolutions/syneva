@@ -134,15 +134,27 @@ export default defineConfig({
 			rules: { 'eslint/no-param-reassign': 'off' },
 		},
 		{
-			// The public site and its packages use no Tailwind: CSS keyword strings
-			// they hand to the DOM ('fill-box', 'left center') only look like
-			// utility classes to the heuristic.
+			// The public site, the UI and their packages use no Tailwind: CSS keyword
+			// strings they hand to StyleX or the DOM ('fill-box', 'left center') only
+			// look like utility classes to the heuristic.
 			files: [
 				'apps/landing/**',
 				'packages/design-system/**',
+				'packages/frontend/**',
 				'packages/motion/**',
 			],
 			rules: { 'nextnode/no-detached-tailwind': 'off' },
+		},
+		{
+			// A UI entry loads CSS for its side effect: the design system's font
+			// faces, bundled into the stylesheet the page shells link.
+			files: ['packages/frontend/src/app/*.tsx'],
+			rules: {
+				'import/no-unassigned-import': [
+					'warn',
+					{ allow: ['**/*.css'] },
+				],
+			},
 		},
 		{
 			// The hide-reviewed distill pass is a mechanical translation of @pierre's own

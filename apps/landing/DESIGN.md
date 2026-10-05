@@ -27,7 +27,7 @@ This system belongs to the standalone public site. The repository-root `DESIGN.m
 
 ## Typography
 
-Self-hosted Geist handles display and body text; Geist Mono identifies paths, commands and drawing annotations. Font provenance and license live in `public/fonts/`.
+Self-hosted Geist handles display and body text; Geist Mono identifies paths, commands and drawing annotations. The faces ship with `@syneva/design-system` (`packages/design-system/fonts/`, with their provenance and license; `fonts.css` declares them), so the site and the hub load the same files.
 
 The heading scale, weights, tracking and responsive sizes are defined in `src/app/styles/global.css` (element typography, with the h2 size from the design system's `--h2-size`) and the components' StyleX styles. Headings use sentence case and tight tracking; paragraphs remain open and readable. Supporting functional text must remain readable after SVG scaling, not merely have a large nominal font size.
 
