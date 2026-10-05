@@ -2,9 +2,12 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, duration, ease } from '@syneva/design-system/tokens.stylex'
 
-import { actionMarker, navMarker } from './markers.stylex'
+import { actionMarker, navMarker, toggleMarker } from './markers.stylex'
+import { navClock } from './nav.stylex'
 
 const actionHover = (): string => stylex.when.ancestor(':hover', actionMarker)
+const toggleOpen = (): string =>
+	stylex.when.ancestor('[aria-expanded="true"]', toggleMarker)
 // Without scripts the noscript links are parsed into the header and the
 // toggle, which would open nothing, gives way to them.
 const scriptless = (): string =>
@@ -61,5 +64,24 @@ export const headerActions = stylex.create({
 		height: { default: null, [media.navToggle]: '20px' },
 		stroke: { default: null, [media.navToggle]: 'currentColor' },
 		strokeWidth: { default: null, [media.navToggle]: 1.5 },
+	},
+	// The two bars cross into a close mark while the bar is open: each meets
+	// the icon's centre line, then turns about the centre (10, 10 in its
+	// viewBox).
+	toggleBar: {
+		transformOrigin: '10px 10px',
+		transition: `transform ${navClock.barDuration} ${navClock.ease}`,
+	},
+	toggleTop: {
+		transform: {
+			default: null,
+			[toggleOpen()]: 'rotate(45deg) translateY(3px)',
+		},
+	},
+	toggleBottom: {
+		transform: {
+			default: null,
+			[toggleOpen()]: 'rotate(-45deg) translateY(-3px)',
+		},
 	},
 })

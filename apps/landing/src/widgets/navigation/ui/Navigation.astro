@@ -15,7 +15,7 @@ import NavPanel from './NavPanel.astro'
 import ProductMenu from './ProductMenu.astro'
 import ResourceMenu from './ResourceMenu.astro'
 import WorkflowMenu from './WorkflowMenu.astro'
-import { actionMarker, dropdownMarker, navMarker, triggerMarker } from './markers.stylex'
+import { actionMarker, dropdownMarker, navMarker, toggleMarker, triggerMarker } from './markers.stylex'
 import { dock } from './dock.styles'
 import { dropdown } from './dropdown.styles'
 import { headerActions } from './header-actions.styles'
@@ -74,7 +74,7 @@ const MENUS: Record<SectionId, typeof ProductMenu> = {
 		{PAGES.getStarted.title} <span {...sx(headerActions.actionArrow, instant.transitions)} aria-hidden="true">→</span>
 	</a>
 	<button
-		{...sx(press.control, headerActions.toggle, nav.control, instant.transitions)}
+		{...sx(press.control, headerActions.toggle, nav.control, instant.transitions, toggleMarker)}
 		type="button"
 		aria-expanded="false"
 		aria-controls="site-navigation"
@@ -82,7 +82,10 @@ const MENUS: Record<SectionId, typeof ProductMenu> = {
 		data-nav-toggle
 	>
 		<span {...sx(headerActions.toggleLabel)}>Menu</span>
-		<svg {...sx(headerActions.toggleIcon)} viewBox="0 0 20 20" aria-hidden="true"><path d="M4 7h12M4 13h12"></path></svg>
+		<svg {...sx(headerActions.toggleIcon)} viewBox="0 0 20 20" aria-hidden="true">
+			<path {...sx(headerActions.toggleBar, headerActions.toggleTop, instant.transitions)} d="M4 7h12"></path>
+			<path {...sx(headerActions.toggleBar, headerActions.toggleBottom, instant.transitions)} d="M4 13h12"></path>
+		</svg>
 	</button>
 	<div {...sx(dropdown.base, dropdownMarker)} data-open="false" data-nav-dropdown>
 		{

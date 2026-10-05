@@ -36,6 +36,7 @@ type BoundName = Extract<keyof typeof navBounds, `--${string}`>
 export class NavigationMorph {
 	readonly #navigation: HTMLElement
 	readonly #links: HTMLElement
+	readonly #toggle: HTMLElement
 	readonly #panels: HTMLElement[]
 	readonly #scenes: HTMLElement[]
 	readonly #shell: Channel<GeometryName>
@@ -51,11 +52,16 @@ export class NavigationMorph {
 	constructor({
 		root,
 		links,
+		toggle,
 		menus,
 		scenes,
-	}: Pick<NavigationParts, 'root' | 'links' | 'menus' | 'scenes'>) {
+	}: Pick<
+		NavigationParts,
+		'root' | 'links' | 'toggle' | 'menus' | 'scenes'
+	>) {
 		this.#navigation = root
 		this.#links = links
+		this.#toggle = toggle
 		this.#panels = menus.map(({ panel }) => panel)
 		this.#scenes = scenes
 		this.#shell = registerChannel(root, '', GEOMETRY)
@@ -164,6 +170,7 @@ export class NavigationMorph {
 		const geometry = measureNavigation({
 			navigation: this.#navigation,
 			links: this.#links,
+			toggle: this.#toggle,
 			...menu,
 		})
 		this.#setPixels('--dropdown-max-height', geometry.maxHeight.dropdown)

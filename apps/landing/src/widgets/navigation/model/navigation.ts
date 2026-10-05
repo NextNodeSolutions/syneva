@@ -86,7 +86,7 @@ export class Navigation {
 				container.contains(focused),
 			)
 		this.#closePanel()
-		this.#phoneBar.close()
+		this.#phoneBar.close(this.#inputMode)
 		if (shouldRestore) this.#phoneBar.focus()
 	}
 

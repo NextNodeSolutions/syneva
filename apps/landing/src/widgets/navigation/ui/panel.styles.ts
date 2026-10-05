@@ -11,7 +11,11 @@ export const panel = stylex.create({
 	base: {
 		position: 'absolute',
 		top: 0,
-		left: 0,
+		// On phones the dropdown unfolds from its top-right corner, under the
+		// toggle: the panel holds to that corner, so the shell uncovers it in
+		// place instead of dragging it along.
+		left: { default: 0, [media.navToggle]: 'auto' },
+		right: { default: null, [media.navToggle]: 0 },
 		width: `min(var(--panel-width), ${navBounds['--nav-available']})`,
 		opacity: 'var(--opacity, 0)',
 		transform: {

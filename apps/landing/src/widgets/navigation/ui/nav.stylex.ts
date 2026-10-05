@@ -16,13 +16,15 @@ export const navClock = stylex.defineConsts({
 
 // The dock's clock (dock.styles.ts): the header locks onto its floating sheet
 // on a slow, settling move with a springy lock-on for the corners, and lets go
-// of it faster than it took it.
+// of it faster than it took it. The phone bar folds back into its toggle on
+// the close time (phone-bar.ts waits it out before hiding the bar).
 export const dockClock = stylex.defineConsts({
 	dockDuration: '520ms',
 	undockDuration: '240ms',
 	settleDelay: '380ms',
 	ease: 'cubic-bezier(0.23, 1, 0.32, 1)',
 	lockEase: 'cubic-bezier(0.34, 1.45, 0.5, 1)',
+	foldDuration: '160ms',
 })
 
 // The docked sheet, centred on the header's own centre line so nothing inside

@@ -8,7 +8,7 @@ import {
 } from '@syneva/design-system/tokens.stylex'
 
 import { navMarker, triggerMarker } from './markers.stylex'
-import { navClock, navFrame } from './nav.stylex'
+import { dockClock, navClock, navFrame } from './nav.stylex'
 
 // Without scripts the noscript links are parsed into the header and stand in
 // for the triggers, which would open nothing. With scripts they stay text, so
@@ -17,14 +17,28 @@ const scriptless = (): string =>
 	stylex.when.ancestor(':has(noscript a)', navMarker)
 const mobileOpen = (): string =>
 	stylex.when.ancestor('[data-mobile-open="true"]', navMarker)
+// The bar folding back into the toggle before it hides (phone-bar.ts).
+const mobileFolding = (): string =>
+	stylex.when.ancestor('[data-mobile-open="folding"]', navMarker)
 const expanded = (): string =>
 	stylex.when.siblingBefore('[aria-expanded="true"]', triggerMarker)
 const triggerExpanded = (): string =>
 	stylex.when.ancestor('[aria-expanded="true"]', triggerMarker)
 
-const arrive = stylex.keyframes({
-	from: { opacity: 0, transform: 'translateY(-6px)' },
-	to: { opacity: 1, transform: 'translateY(0)' },
+// The phone bar opens out of the toggle above its right end and folds back
+// into it: a clip from that corner, so its words never scale.
+const BAR_RADIUS = '8px'
+const CLOSED_CLIP = `inset(0 0 100% 86% round ${BAR_RADIUS})`
+const OPEN_CLIP = `inset(0 0 0 0 round ${BAR_RADIUS})`
+const unfold = stylex.keyframes({
+	'0%': { clipPath: CLOSED_CLIP, opacity: 0 },
+	'30%': { opacity: 1 },
+	'100%': { clipPath: OPEN_CLIP, opacity: 1 },
+})
+const fold = stylex.keyframes({
+	'0%': { clipPath: OPEN_CLIP, opacity: 1 },
+	'70%': { opacity: 1 },
+	'100%': { clipPath: CLOSED_CLIP, opacity: 0 },
 })
 
 // The header bar: the wordmark row, the section triggers with their
@@ -69,16 +83,24 @@ export const nav = stylex.create({
 		position: { default: 'relative', [media.navToggle]: 'absolute' },
 		display: {
 			default: 'flex',
-			[media.navToggle]: { default: 'none', [mobileOpen()]: 'flex' },
+			[media.navToggle]: {
+				default: 'none',
+				[mobileOpen()]: 'flex',
+				[mobileFolding()]: 'flex',
+			},
 		},
 		justifyContent: {
 			default: null,
 			[media.navToggle]: {
 				default: null,
 				[mobileOpen()]: 'space-between',
+				[mobileFolding()]: 'space-between',
 			},
 		},
-		pointerEvents: 'auto',
+		pointerEvents: {
+			default: 'auto',
+			[media.navToggle]: { default: 'auto', [mobileFolding()]: 'none' },
+		},
 		alignItems: 'center',
 		gap: { default: '6px', [media.narrow]: 0 },
 		top: { default: null, [media.navToggle]: 'calc(100% + 8px)' },
@@ -95,30 +117,40 @@ export const nav = stylex.create({
 		borderWidth: { default: null, [media.navToggle]: '1px' },
 		borderStyle: { default: null, [media.navToggle]: 'solid' },
 		borderColor: { default: null, [media.navToggle]: color['--line'] },
-		borderRadius: { default: null, [media.navToggle]: '8px' },
+		borderRadius: { default: null, [media.navToggle]: BAR_RADIUS },
 		overflowX: { default: null, [media.smallPhone]: 'auto' },
 		scrollbarWidth: { default: null, [media.smallPhone]: 'none' },
 		animationName: {
 			default: null,
-			[media.motionSafe]: { default: null, [mobileOpen()]: arrive },
+			[media.motionSafe]: {
+				default: null,
+				[mobileOpen()]: unfold,
+				[mobileFolding()]: fold,
+			},
 		},
 		animationDuration: {
 			default: null,
 			[media.motionSafe]: {
 				default: null,
 				[mobileOpen()]: navClock.barDuration,
+				[mobileFolding()]: dockClock.foldDuration,
 			},
 		},
 		animationTimingFunction: {
 			default: null,
 			[media.motionSafe]: {
 				default: null,
-				[mobileOpen()]: navClock.ease,
+				[mobileOpen()]: dockClock.ease,
+				[mobileFolding()]: navClock.ease,
 			},
 		},
 		animationFillMode: {
 			default: null,
-			[media.motionSafe]: { default: null, [mobileOpen()]: 'both' },
+			[media.motionSafe]: {
+				default: null,
+				[mobileOpen()]: 'both',
+				[mobileFolding()]: 'both',
+			},
 		},
 	},
 	item: {
