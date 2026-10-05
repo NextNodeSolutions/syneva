@@ -36,6 +36,7 @@ import type {
 	ReviewComment,
 	ReviewState,
 } from '@entities/review/model'
+import type { StaticStyle } from '@shared/lib/cx'
 import type { AnnotationInput } from './types'
 
 type ReviewFile = ReviewState['files'][number]
@@ -180,9 +181,9 @@ const VERDICT = [press.control, control.base, deskControl.mini]
 const VERDICT_BUTTONS = `<button class="${cx(VERDICT, deskControl.undo)}" data-verdict="rejected">Undo${kbdHtml('⇧N')}</button><button class="${cx(VERDICT, deskControl.keep)}" data-verdict="accepted">Keep${kbdHtml('⇧Y', kbd.onFill)}</button>`
 
 // The verdict bar under a change or a thread: the two decision buttons, wired by wireVerdict below.
-function verdictBar(): HTMLElement {
+function verdictBar(placement: StaticStyle): HTMLElement {
 	const bar = document.createElement('div')
-	bar.className = cx(verdict.bar)
+	bar.className = cx(verdict.bar, placement)
 	bar.innerHTML = VERDICT_BUTTONS
 	return bar
 }
@@ -205,11 +206,12 @@ export function renderAnnotation(a: { metadata: AnnotationMeta }): HTMLElement {
 		annotation.slot,
 		c.type === 'thread' && c.status === 'resolved' && annotation.resolved,
 	)
-	if (c.type === 'change') {
-		el.appendChild(verdictBar())
-	} else {
+	// A bare change pins its bar over the line it decides; a thread that covers one takes the
+	// bar in flow above its first message, so the two never overlap.
+	if (c.type === 'change') el.appendChild(verdictBar(verdict.pinned))
+	else {
+		if (change) el.appendChild(verdictBar(verdict.aboveThread))
 		el.appendChild(buildCommentThread(c))
-		if (change) el.appendChild(verdictBar())
 	}
 	wireVerdict(el, change)
 	return el

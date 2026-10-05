@@ -8,9 +8,9 @@ const messageHover = (): string => stylex.when.ancestor(':hover', messageMarker)
 
 // The box every thread and composer hangs in: the annotation Pierre slots under
 // a line, a thread of the file-comment section or of the unanchored strip, a
-// thread inside the rendered markdown. It draws on the diff's white canvas; the
-// verdict bar pins itself to its top-right corner. A resolved thread dims as a
-// whole, its verdict bar included.
+// thread inside the rendered markdown. It draws on the diff's white canvas and
+// holds the verdict bar of the change it covers (annotations.styles.ts). A
+// resolved thread dims as a whole, its verdict bar included.
 export const annotation = stylex.create({
 	slot: {
 		position: 'relative',
