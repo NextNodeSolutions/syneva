@@ -1,3 +1,4 @@
+import '@syneva/design-system/fonts.css'
 import { createRoot } from 'react-dom/client'
 
 import { installCommentBindings } from '@app/facade/comment-thread'
