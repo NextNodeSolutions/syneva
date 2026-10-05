@@ -5,6 +5,7 @@ import {
 } from '@entities/review/changes'
 import { cur } from '@entities/review/file/contents'
 import { parseDiffFromFile } from '@pierre/diffs'
+import { fingerprint } from '@shared/lib/fingerprint'
 
 import { diffCtx } from './context'
 import { decidedPositions, replayDecisions } from './replay-decisions'
@@ -19,10 +20,12 @@ import type { DiffView } from './types'
 type ReviewFile = ReviewState['files'][number]
 
 // Pierre keeps an instance's highlighted render while the diff it is handed is the same target
-// (areDiffTargetsEqual: identity without a cacheKey), so a pass whose inputs did not change must
-// hand back the SAME metadata - a fresh object re-tokenizes the whole file. Both steps memoize on
-// their inputs: the parse on the two named file versions, the replay on the parse and the
-// decided list.
+// (areDiffTargetsEqual), so a pass whose inputs did not change must hand back the SAME metadata -
+// a fresh object re-tokenizes the whole file. Both steps memoize on their inputs: the parse on the
+// two named file versions, the replay on the parse and the decided list. Each file version also
+// carries a content cacheKey: Pierre derives the diff's key from both (and a new one per
+// accept/reject resolution), which is what its worker pool caches highlighted results under -
+// across instances, so a revisited file colors from the cache.
 type ParsedDiff = {
 	oldName: string
 	newName: string
@@ -39,6 +42,12 @@ type ReplayedDiff = {
 }
 let lastReplayed: ReplayedDiff | null = null
 
+type FileVersion = { name: string; contents: string }
+
+function keyedFile(file: FileVersion): FileVersion & { cacheKey: string } {
+	return { ...file, cacheKey: `${file.name}@${fingerprint(file.contents)}` }
+}
+
 function parsedDiff(
 	oldFile: { name: string; contents: string },
 	newFile: { name: string; contents: string },
@@ -51,7 +60,7 @@ function parsedDiff(
 		parsed.newContents === newFile.contents
 	)
 		return parsed.diff
-	const diff = parseDiffFromFile(oldFile, newFile)
+	const diff = parseDiffFromFile(keyedFile(oldFile), keyedFile(newFile))
 	lastParsed = {
 		oldName: oldFile.name,
 		newName: newFile.name,

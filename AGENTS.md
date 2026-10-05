@@ -46,7 +46,7 @@ Lint/format behaviour is the shared `@nextnode-solutions/standards` preset; `oxl
 
 ## Render path
 
-All render passes funnel through `packages/frontend/src/pages/desk/render.ts`; `widgets/diff-view/diff-instance.ts` keeps one `FileDiff` per file on screen and calls `render()` again on every pass, following `@pierre/diffs`' own model: Pierre skips what did not change, so the inputs must keep their identity while unchanged — the diff metadata is memoized (`diff-metadata.ts`, a fresh object re-tokenizes the file), annotations reuse their objects and array (`stable-annotations.ts`, a fresh one rebuilds the rows), every option callback is a stable function, and option changes go through `setOptions`/`setThemeType`. The diff header is our own DOM, refilled each pass (`file-header.ts`). `packages/frontend/scripts/bundle-budget.mjs` budgets the whole static import graph, not just `ui.js`. `@pierre/diffs` renumbers lines per render — display anchors are derived, raw file lines stay canonical.
+All render passes funnel through `packages/frontend/src/pages/desk/render.ts`; `widgets/diff-view/diff-instance.ts` keeps one `FileDiff` per file on screen and calls `render()` again on every pass, following `@pierre/diffs`' own model: Pierre skips what did not change, so the inputs must keep their identity while unchanged — the diff metadata is memoized (`diff-metadata.ts`, a fresh object re-tokenizes the file), annotations reuse their objects and array (`stable-annotations.ts`, a fresh one rebuilds the rows), every option callback is a stable function, and option changes go through `setOptions`/`setThemeType`. The diff header is our own DOM, refilled each pass (`file-header.ts`). Tokenizing never runs on the main thread: every instance highlights through Pierre's worker pool (`diff-workers.ts`, booted by `app/main.tsx` with the first file's grammar), which paints plain rows at once and caches highlighted results under the metadata's content `cacheKey`. The theme and line-diff mode the pool highlights with are pushed with `setRenderOptions`, not through the instance options. `packages/frontend/scripts/bundle-budget.mjs` budgets the whole static import graph, not just `ui.js`. `@pierre/diffs` renumbers lines per render — display anchors are derived, raw file lines stay canonical.
 
 ## Key invariants
 
@@ -66,7 +66,7 @@ Everything a coding-agent harness loads from the published package (the extensio
 ## Conventions
 
 - Commits follow **Conventional Commits** (`feat:`, `fix:`, `perf:`, `refactor:`, `docs:`, `chore:`, …); `semantic-release` (config in `apps/syneva/.releaserc.json`, extending the shared `@nextnode-solutions/standards` preset) infers the semver bump from the prefix, publishes the `syneva` package and cuts the GitHub release. Run it with `pnpm release`; don't edit the version by hand.
-- Comments in this codebase explain *why* and record invariants; match that style.
+- Comments in this codebase explain _why_ and record invariants; match that style.
 
 <!-- BEGIN:turborepo-agent-rules -->
 

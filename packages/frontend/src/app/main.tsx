@@ -82,6 +82,21 @@ configureMarkdownRuntime({
 	// receives the resolver injected here (repo-relative images rewrite to /api/blob).
 	repoImageSrc: repoBlobUrl,
 })
+// Boot Pierre's highlight workers as soon as the review is known, so their boot (with the first
+// file's grammar) overlaps the first contents fetch and the diff island's own load; the island
+// adopts the same pool singleton.
+async function bootDiffWorkers(firstPaths: string[]): Promise<void> {
+	try {
+		const workers = await import('@widgets/diff-view/diff-workers')
+		workers.diffWorkerPool(
+			workers.poolRenderOptions(S.settings),
+			firstPaths,
+		)
+	} catch {
+		// A failed chunk is reported by the diff island's own load path (pages/desk/render.ts).
+	}
+}
+
 // Display preferences live in ~/.syneva/settings.json (localStorage is per-origin and the port is
 // random, so it can't hold them). Fold the file over the defaults before first paint.
 const [prefs, state, tree] = await Promise.all([
@@ -96,6 +111,9 @@ if (prefs.diffStyle === 'split' || prefs.diffStyle === 'unified')
 applyAppearance(S.settings) // font + size before first paint
 setMarkdownTheme(S.settings.theme)
 S.state = adoptDeskStatus(state)
+void bootDiffWorkers(
+	S.state.files.slice(S.fileIndex, S.fileIndex + 1).map(file => file.path),
+)
 S.projectFiles = tree.files ?? []
 S.lastBaseDiffHash = S.state.baseDiffHash
 // Tab title: name the desk so multiple desks are distinguishable in the browser.

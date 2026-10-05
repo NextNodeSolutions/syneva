@@ -56,8 +56,18 @@ const budgetPlugin = (): Plugin => ({
 		const chunks: { fileName: string; code: string; imports: string[] }[] =
 			[]
 		for (const [fileName, chunk] of Object.entries(bundle)) {
-			if (chunk.type !== 'chunk') continue
-			chunks.push({ fileName, code: chunk.code, imports: chunk.imports })
+			if (chunk.type === 'chunk') {
+				chunks.push({
+					fileName,
+					code: chunk.code,
+					imports: chunk.imports,
+				})
+				continue
+			}
+			// A worker is built apart and lands here as a JS asset: it ships with the UI, so it
+			// counts toward the total (never toward the initial closure - nothing imports it).
+			if (fileName.endsWith('.js') && typeof chunk.source === 'string')
+				chunks.push({ fileName, code: chunk.source, imports: [] })
 		}
 		// esbuild metafile keys are cwd-relative ('dist/ui.js', 'dist/chunks/…');
 		// Vite's are outDir-relative, and an import path can be recorded relative to
@@ -99,6 +109,18 @@ export default defineConfig({
 	plugins: [budgetPlugin(), react()],
 	resolve: {
 		alias: frontendAliases,
+	},
+	// @pierre/diffs' highlight worker: an ES module (it lazy-loads the oniguruma wasm), emitted
+	// next to the UI chunks under the same name contract the desk's chunk route serves.
+	worker: {
+		format: 'es',
+		rollupOptions: {
+			output: {
+				entryFileNames: 'chunks/[name]-[hash].js',
+				chunkFileNames: 'chunks/[name]-[hash].js',
+				hashCharacters: CHUNK_HASH_CHARS,
+			},
+		},
 	},
 	build: buildOptions({
 		rollupOptions: {

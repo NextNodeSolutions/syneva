@@ -29,10 +29,11 @@ export const INITIAL_UI_BYTES_LIMIT = 350_000
 // chrome is React - ~134 KB minified of the 333 KB measured; the limit sits just
 // above so the next real regression (a leaked grammar, a fat dep) still trips it.
 // The total is mostly shiki's full grammar set: @pierre/diffs resolves languages through shiki's
-// bundled loaders, so every grammar ships as its own lazy chunk (plus the oniguruma wasm of a path
-// Syneva never takes) and loads only when a file or a fence asks for it. The cold open is guarded
-// by the INITIAL limit above; this one only catches a new dependency landing wholesale.
-const TOTAL_UI_BYTES_LIMIT = 11_000_000
+// bundled loaders, so every grammar ships as its own lazy chunk and loads only when a file or a
+// fence asks for it. The rest is Pierre's highlight worker (~210 KB) and the oniguruma wasm its
+// workers load. The cold open is guarded by the INITIAL limit above; this one only catches a new
+// dependency landing wholesale.
+const TOTAL_UI_BYTES_LIMIT = 11_500_000
 
 export function checkBundleBudget(outputs, entry) {
 	const initialLimit = INITIAL_UI_BYTES_LIMIT

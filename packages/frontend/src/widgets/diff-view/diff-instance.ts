@@ -9,12 +9,14 @@ import { diffCtx } from './context'
 import { cursorResync } from './cursor'
 import { buildDiffMetadata } from './diff-metadata'
 import { currentDiffView, diffOptions } from './diff-options'
+import { diffWorkerPool, poolRenderOptions } from './diff-workers'
 import { refreshDiffHeader } from './file-header'
 import { clearOverviewRuler, scheduleOverviewRuler } from './overview-ruler'
 
 import type { AnnotationMeta } from '@entities/review/annotations'
 import type { ReviewState } from '@entities/review/model'
 import type { FileDiffOptions } from '@pierre/diffs'
+import type { WorkerPoolManager } from '@pierre/diffs/worker'
 
 type ReviewFile = ReviewState['files'][number]
 type DiffOptions = FileDiffOptions<AnnotationMeta, undefined>
@@ -34,9 +36,13 @@ type Surface = {
 }
 let surface: Surface | null = null
 
-function mountSurface(key: string, options: DiffOptions): Surface {
+function mountSurface(
+	key: string,
+	options: DiffOptions,
+	pool: WorkerPoolManager,
+): Surface {
 	const { D } = diffCtx()
-	const instance = new FileDiff(options)
+	const instance = new FileDiff(options, pool)
 	const wrapper = document.createElement('div')
 	wrapper.className = 'diff-wrap'
 	const container = document.createElement(DIFFS_TAG_NAME)
@@ -72,8 +78,9 @@ export async function renderDiffInstance(
 	isCurrent: () => boolean,
 ): Promise<void> {
 	if (!isCurrent()) return
-	// One stamp per diff pass (the bench reads interaction latency from it): Pierre renders
-	// synchronously here, so the span covers metadata, tokenizing and the DOM build.
+	// One stamp per diff pass (the bench reads interaction latency from it): the span covers the
+	// metadata and Pierre's synchronous DOM build - tokenizing runs in its worker pool, and colors
+	// that land later re-render through Pierre itself.
 	const endRender = perfSpan('diff:render')
 	const host = $('diff')
 	const view = currentDiffView()
@@ -81,10 +88,13 @@ export async function renderDiffInstance(
 	clearOverviewRuler()
 	const metadata = buildDiffMetadata(file, view)
 	const options = diffOptions(view)
+	const pool = diffWorkerPool(poolRenderOptions(diffCtx().S.settings))
 	const kept = isLive(surface, key) ? surface : null
 	const { scrollTop: readerScrollTop } = host
 	const isOptionsChanged = kept ? applyOptions(kept, options) : false
-	const current = kept ? { ...kept, options } : mountSurface(key, options)
+	const current = kept
+		? { ...kept, options }
+		: mountSurface(key, options, pool)
 	surface = current
 	diffCtx().D.fileDiff = metadata
 	current.instance.render({
