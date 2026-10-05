@@ -43,7 +43,7 @@ export async function resolvePrTarget(
 	if (dirty.trim())
 		return {
 			ok: false,
-			reason: `Working tree has uncommitted changes to tracked files - commit or stash before reviewing a PR (no checkout performed):\n${dirty}`,
+			reason: `Working tree has uncommitted changes to tracked files. Commit or stash them before reviewing a PR (no checkout performed):\n${dirty}`,
 		}
 	if (isPrRef(target)) return resolvePrNumber(target, root, base, git)
 	return checkoutBranch(target, root, base, git)
