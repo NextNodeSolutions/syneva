@@ -86,6 +86,10 @@ export function createHubRequestHandler(
 			if (await handleAccess(deps, req, res, url)) return
 			const request: StaticRequest = { req, res, url }
 			if (await handleDashboardPage(deps, request)) return
+			// The hub listens before it rebuilds its desks (a restart's tabs reconnect at once):
+			// what follows may name a desk, and one still being restored must not read as closed
+			// - its page as not found, its tab as closed, the listing as empty.
+			await deps.hub.restored()
 			if (await handleDeskPage(deps, request)) return
 			if (await handleHubApi(deps, request)) return
 			if (await handleDeskApi(deps, request)) return

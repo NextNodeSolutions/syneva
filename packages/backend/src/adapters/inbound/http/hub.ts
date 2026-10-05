@@ -75,6 +75,10 @@ export type Hub = {
 	// Reopen every desk the registry recorded (a hub restart). Desks whose repo is gone or whose
 	// diff no longer builds are dropped from the registry, with the reason logged.
 	restore(): Promise<void>
+	// Settles once the restore under way (if any) has, whatever its outcome: the hub listens
+	// before it restores, and a request that names a desk waits for this rather than reading a
+	// desk still being rebuilt as closed.
+	restored(): Promise<void>
 	summary(desk: HubDesk): DeskSummary
 	// Write the registry now (also done on every open/close) - the shutdown path's last word.
 	persist(): Promise<void>
@@ -98,6 +102,7 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 		persist: () =>
 			serializeWrite(() => io.registry.save(liveRecords(desks))),
 	}
+	let restoring: Promise<void> = Promise.resolve()
 	return {
 		instanceId,
 		startedAt: nowIso(),
@@ -106,15 +111,24 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 		getDesk: id => liveDesk(desks, id),
 		listDesks: () => [...desks.values()].filter(desk => !desk.closing),
 		closeDesk: id => closeDesk(state, id),
-		async restore(): Promise<void> {
-			const records = await io.registry.load()
-			// Independent repos rebuild concurrently; a failed one only drops itself.
-			await Promise.all(records.map(record => restoreOne(state, record)))
-			await state.persist()
+		restore(): Promise<void> {
+			restoring = restoreAll(state)
+			return restoring
+		},
+		async restored(): Promise<void> {
+			// Settled either way: a failed restore is its caller's to report.
+			await Promise.allSettled([restoring])
 		},
 		summary: summarize,
 		persist: state.persist,
 	}
+}
+
+async function restoreAll(state: HubState): Promise<void> {
+	const records = await state.io.registry.load()
+	// Independent repos rebuild concurrently; a failed one only drops itself.
+	await Promise.all(records.map(record => restoreOne(state, record)))
+	await state.persist()
 }
 
 function liveDesk(
