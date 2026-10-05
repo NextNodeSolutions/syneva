@@ -24,5 +24,9 @@
 		"integrations/**/*",
 		"astro.config.ts"
 	],
-	"exclude": ["dist"]
+	// The Worker's code (the on-demand routes and the *.server.ts modules they
+	// call) is checked by tsconfig.worker.json against the Workers runtime:
+	// its globals (Element, Response, fetch...) differ from the DOM's, so the
+	// two never share a program.
+	"exclude": ["dist", "src/pages/api/**", "src/**/*.server.ts"]
 }

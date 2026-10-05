@@ -1,7 +1,7 @@
-# Landing page deploy — Cloudflare Workers (static assets), CI-only.
+# Landing page deploy — Cloudflare Workers (static assets + one route), CI-only.
 # The pipeline (NextNodeSolutions/core deploy-workers.yml) reads this file:
-# plan → quality → provision (Terraform) → deploy (wrangler). Local machines
-# never deploy (see ~/.pi/agent/AGENTS.md).
+# plan → quality → provision (Terraform) → migrate (D1) → deploy (wrangler).
+# Local machines never deploy (see ~/.pi/agent/AGENTS.md).
 [project]
 name = "syneva-landing"
 type = "app"
@@ -17,17 +17,29 @@ development = true
 
 [deploy]
 target = "cloudflare-workers"
-# No runtime secrets: the site is static and stateless.
+# No runtime secrets: the one route (the newsletter signup) only writes to D1.
 
 [deploy.services.web]
 url = "syneva.dev"
-# Static-assets-only Worker (core deploy-workers pipeline): no script at all -
-# the site is pure static, requests are answered by the assets, so there is no
-# _worker.js convention to feed the infra and no source dir for wrangler's
-# assets guard to refuse. The assets root is the Astro build itself, relative
-# to this file; apps/landing/public/healthz rides along for the smoke check.
-entry = false
-assets = "apps/landing/dist"
+# The Astro build through @astrojs/cloudflare: every page prerenders into
+# apps/landing/dist/client, the static assets the infra derives from this
+# entry and serves without invoking the script; the Worker runs only for the
+# on-demand route (POST /api/subscribe) and for addresses no asset answers.
+# apps/landing/public/healthz rides along with the assets for the smoke check.
+entry = "apps/landing/dist/server/entry.mjs"
+needs = ["d1"]
+
+# The signup's abuse guard, per client address and Cloudflare location
+# (env.RL_SUBSCRIBE): a few tries a minute is plenty for one person.
+[[deploy.services.web.rate_limiters]]
+name = "subscribe"
+limit = 5
+period = 60
+
+# The newsletter list (env.DB). The pipeline applies the migrations on every
+# deploy, before the Worker ships.
+[services.d1]
+migrations_folder = "apps/landing/migrations"
 
 [scripts]
 lint = "lint"

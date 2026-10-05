@@ -1,0 +1,17 @@
+{
+	// The Worker's code, checked against the Workers runtime instead of the
+	// DOM: the on-demand routes and the *.server.ts modules they call, with the
+	// env generated from nextnode.toml (worker-configuration.d.ts, which brings
+	// @cloudflare/workers-types). Same strictness and aliases as the site.
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"lib": ["es2024"],
+		"types": []
+	},
+	"include": [
+		"worker-configuration.d.ts",
+		"src/pages/api/**/*",
+		"src/**/*.server.ts"
+	],
+	"exclude": ["dist"]
+}
