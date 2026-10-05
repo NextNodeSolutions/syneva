@@ -6,7 +6,11 @@ import {
 	toDisplayLine,
 } from '@entities/review/changes'
 import { isUnanchored } from '@entities/review/changes'
+import { cx } from '@shared/lib/cx'
+import { tip } from '@shared/ui/tip.styles'
+import { tag } from '@syneva/design-system/controls.styles'
 
+import { blockers } from './blockers.styles'
 import { jumpTargetFor, jumpToThread } from './comment-jump'
 import { diffCtx } from './context'
 import { cursorJumpTo } from './cursor'
@@ -135,20 +139,40 @@ export function jumpToBlocker(b: Blocker): void {
 // The header chip + its jump-list popover (imperative DOM, like the rest of the header).
 
 // A row's kind tag, where-label and preview text: "Rejected / line 12 / title" for a rejected
-// hunk, "Change request / file|unanchored|line N / body" for an open change-request thread.
+// hunk, "Change request / file|unanchored|line N / body" for an open change-request thread. The
+// text span is empty here and marked data-part="text" for the caller to fill.
+const ROW_WHERE = cx(blockers.where)
+const ROW_TEXT = `<span class="${cx(blockers.text)}" data-part="text"></span>`
+
 function blockerRowBody(b: Blocker): { html: string; text: string } {
 	if (b.kind === 'reject')
 		return {
-			html: `<span class="bk-kind reject">Rejected</span><span class="bk-where">line ${b.decision.lineNumber}</span><span class="bk-text"></span>`,
+			html: `<span class="${cx(tag.base, tag.red, blockers.kind)}">Rejected</span><span class="${ROW_WHERE}">line ${b.decision.lineNumber}</span>${ROW_TEXT}`,
 			text: b.decision.title,
 		}
 	let where = `line ${b.lineNumber}`
 	if (b.fileLevel) where = 'file'
 	else if (b.unanchored) where = 'unanchored'
 	return {
-		html: `<span class="bk-kind change">Change request</span><span class="bk-where">${where}</span><span class="bk-text"></span>`,
+		html: `<span class="${cx(tag.base, tag.amber, blockers.kind)}">Change request</span><span class="${ROW_WHERE}">${where}</span>${ROW_TEXT}`,
 		text: b.preview,
 	}
+}
+
+// One row of the jump list: picking it closes the list and jumps to the blocker.
+function blockerRow(b: Blocker, close: () => void): HTMLElement {
+	const row = document.createElement('button')
+	row.className = cx(blockers.item)
+	const { html, text } = blockerRowBody(b)
+	row.innerHTML = html
+	// Text rides via textContent (escaping is the element's job, not the template's).
+	const textNode = row.querySelector('[data-part="text"]')
+	if (textNode) textNode.textContent = text
+	row.addEventListener('click', () => {
+		close()
+		jumpToBlocker(b)
+	})
+	return row
 }
 
 export function blockersChip(): HTMLElement | null {
@@ -160,36 +184,35 @@ export function blockersChip(): HTMLElement | null {
 	const items = fileBlockers(path)
 	if (!items.length) return null
 	const wrap = document.createElement('span')
-	wrap.className = 'blockers'
+	wrap.className = cx(blockers.wrap)
 	const btn = document.createElement('button')
-	btn.className = 'blockers-chip'
 	btn.textContent = `${items.length} blocker${items.length === 1 ? '' : 's'}`
 	btn.setAttribute('data-tip', "What's keeping this file from Approved")
 	wrap.appendChild(btn)
 	const pop = document.createElement('div')
-	pop.className = 'blockers-pop'
-	for (const b of items) {
-		const row = document.createElement('button')
-		row.className = 'blockers-item'
-		const { html, text } = blockerRowBody(b)
-		row.innerHTML = html
-		// Text rides via textContent (escaping is the element's job, not the template's).
-		const textNode = row.querySelector('.bk-text')
-		if (textNode) textNode.textContent = text
-		row.addEventListener('click', () => {
-			wrap.classList.remove('open')
-			jumpToBlocker(b)
-		})
-		pop.appendChild(row)
+	// The open state lives in the wrap's data-open attribute (class names are hashed, never a
+	// state); each change re-sets the trigger's and the list's classes to match it.
+	const setOpen = (isOpen: boolean): void => {
+		wrap.toggleAttribute('data-open', isOpen)
+		btn.className = cx(
+			blockers.trigger,
+			tip.host,
+			tip.end,
+			isOpen && blockers.triggerOpen,
+		)
+		pop.className = cx(blockers.pop, isOpen && blockers.popOpen)
 	}
+	setOpen(false)
+	for (const b of items) pop.appendChild(blockerRow(b, () => setOpen(false)))
 	wrap.appendChild(pop)
 	btn.addEventListener('click', e => {
 		e.stopPropagation()
-		const open = wrap.classList.toggle('open')
+		const open = !wrap.hasAttribute('data-open')
+		setOpen(open)
 		if (!open) return
 		const close = (ev: MouseEvent): void => {
 			if (ev.target instanceof Node && wrap.contains(ev.target)) return
-			wrap.classList.remove('open')
+			setOpen(false)
 			document.removeEventListener('click', close, true)
 		}
 		document.addEventListener('click', close, true)

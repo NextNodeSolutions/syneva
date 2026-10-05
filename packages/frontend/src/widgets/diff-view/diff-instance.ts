@@ -66,7 +66,6 @@ function mountSurface(
 	releaseDiffInstance()
 	const host = $('diff')
 	const wrapper = document.createElement('div')
-	wrapper.className = 'diff-wrap'
 	const container = document.createElement(DIFFS_TAG_NAME)
 	wrapper.append(container)
 	host.replaceChildren(wrapper)

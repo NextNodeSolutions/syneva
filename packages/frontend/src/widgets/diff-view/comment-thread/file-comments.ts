@@ -85,10 +85,9 @@ function triggerStyle(
 // The icon-only trigger (count badge when the file has open comments). Shared by the file
 // header, the oversized card and the markdown strip; the guide bar's twin is React
 // (widgets/chrome). Every trigger carries data-file-comment-trigger, the hook the composer's
-// outside-click dismissal spares (app/facade/comment-thread.ts). The placement defaults to
-// the header's while the header and the oversized card still call it bare.
+// outside-click dismissal spares (app/facade/comment-thread.ts).
 export function fileCommentIconButton(
-	placement: FileCommentPlacement = 'header',
+	placement: FileCommentPlacement,
 ): HTMLElement {
 	const isOpen = diffCtx().S.fileComposerOpen
 	const b = document.createElement('button')
