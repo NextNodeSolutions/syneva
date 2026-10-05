@@ -5,7 +5,9 @@ import { STATIC_PATHS } from '@syneva/contracts/routes'
 import {
 	dashboardBundlePath,
 	dashboardHtmlPath,
+	fontPath,
 	indexHtmlPath,
+	stylesPath,
 	uiBundlePath,
 	uiChunkPath,
 } from '../assets.js'
@@ -47,10 +49,19 @@ async function serveDashboardPage({ res }: StaticRequest): Promise<void> {
 	html(res, HTTP_OK, await fs.readFile(dashboardHtmlPath(), 'utf8'))
 }
 
-// An etag'd JS asset server. Assets change only on a rebuild, so they carry an
-// etag derived from size+mtime: the tab revalidates cheaply and a 304 skips the body entirely.
-async function serveJsBundle(
+const JS_TYPE = 'text/javascript; charset=utf-8'
+const CSS_TYPE = 'text/css; charset=utf-8'
+const FONT_TYPE = 'font/woff2'
+
+// A font file's name under the fonts prefix: one segment, no traversal, a woff2. The router
+// lets exactly this shape through before the access guard, whatever UI server answers it.
+export const FONT_FILE = /^[\w-]+\.woff2$/
+
+// An etag'd asset server. Assets change only on a rebuild, so they carry an etag derived
+// from size+mtime: the tab revalidates cheaply and a 304 skips the body entirely.
+async function serveAsset(
 	file: string,
+	contentType: string,
 	{ req, res }: Pick<StaticRequest, 'req' | 'res'>,
 ): Promise<void> {
 	const stat = await fs.stat(file).catch(() => null)
@@ -65,18 +76,18 @@ async function serveJsBundle(
 		res.end()
 		return
 	}
-	const js = await fs.readFile(file, 'utf8').catch(() => undefined)
-	if (!js) {
+	const body = await fs.readFile(file).catch(() => undefined)
+	if (!body?.length) {
 		res.writeHead(HTTP_NOT_FOUND)
 		res.end()
 		return
 	}
 	res.writeHead(HTTP_OK, {
-		'content-type': 'text/javascript; charset=utf-8',
+		'content-type': contentType,
 		etag,
 		'cache-control': 'no-cache',
 	})
-	res.end(js)
+	res.end(body)
 }
 
 async function serveUiChunk(request: StaticRequest): Promise<void> {
@@ -86,7 +97,17 @@ async function serveUiChunk(request: StaticRequest): Promise<void> {
 		request.res.end()
 		return
 	}
-	return serveJsBundle(uiChunkPath(name), request)
+	return serveAsset(uiChunkPath(name), JS_TYPE, request)
+}
+
+async function serveFont(request: StaticRequest): Promise<void> {
+	const name = request.url.pathname.slice(STATIC_PATHS.fontsPrefix.length)
+	if (!FONT_FILE.test(name)) {
+		request.res.writeHead(HTTP_NOT_FOUND)
+		request.res.end()
+		return
+	}
+	return serveAsset(fontPath(name), FONT_TYPE, request)
 }
 
 function serveFavicon({ res }: StaticRequest): void {
@@ -97,12 +118,16 @@ function serveFavicon({ res }: StaticRequest): void {
 async function serveBuiltAsset(request: StaticRequest): Promise<boolean> {
 	const { pathname } = request.url
 	if (pathname === STATIC_PATHS.bundle)
-		await serveJsBundle(uiBundlePath(), request)
+		await serveAsset(uiBundlePath(), JS_TYPE, request)
 	else if (pathname === STATIC_PATHS.dashboardBundle)
-		await serveJsBundle(dashboardBundlePath(), request)
+		await serveAsset(dashboardBundlePath(), JS_TYPE, request)
+	else if (pathname === STATIC_PATHS.styles)
+		await serveAsset(stylesPath(), CSS_TYPE, request)
 	else if (pathname === STATIC_PATHS.favicon) serveFavicon(request)
 	else if (pathname.startsWith(STATIC_PATHS.chunksPrefix))
 		await serveUiChunk(request)
+	else if (pathname.startsWith(STATIC_PATHS.fontsPrefix))
+		await serveFont(request)
 	else return false
 	return true
 }
