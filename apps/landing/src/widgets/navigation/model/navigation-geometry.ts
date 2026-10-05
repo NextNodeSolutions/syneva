@@ -6,9 +6,8 @@ import type { GeometryName } from './navigation-channels'
 // The dropdown's geometry, read from the layout and never written to it:
 // the width a panel may take, where the open panel lands independently of
 // the shell's current animated size, the folded sliver it grows from and
-// shrinks back into (under its trigger, or on phones at the open shell's
-// top-right corner, under the toggle that opened it), and the heights the
-// viewport leaves.
+// shrinks back into (under its trigger, or on phones under the toggle that
+// opened it), and the heights the viewport leaves.
 // The gap clears the docked sheet's edge as well as the trigger.
 const PANEL_GAP = 14
 const FOLD_HEIGHT = 4
@@ -40,21 +39,21 @@ export function availableWidth(navigation: HTMLElement): number {
 	return navigation.clientWidth - (inset + border) * SIDES
 }
 
-// The sliver the shell folds into: under the trigger on wide screens; on
-// phones as wide as the toggle, at the open shell's top-right corner.
+// The sliver the shell folds into: under the trigger on wide screens. On
+// phones it starts under the toggle's left edge and runs to the open shell's
+// right edge, which the panels hold to (panel.styles.ts): the toggle, inset
+// further than the shell, stays above the sliver, and that edge never moves.
 function foldedBox(
 	open: Box,
 	trigger: DOMRect,
 	toggle: DOMRect,
 	headerLeft: number,
 ): Box {
-	if (compact.matches)
-		return {
-			x: open.x + open.width - toggle.width,
-			y: open.y,
-			width: toggle.width,
-			height: FOLD_HEIGHT,
-		}
+	if (compact.matches) {
+		const right = open.x + open.width
+		const left = Math.min(Math.max(toggle.left - headerLeft, open.x), right)
+		return { x: left, y: open.y, width: right - left, height: FOLD_HEIGHT }
+	}
 	return {
 		x: trigger.left - headerLeft,
 		y: open.y - PANEL_GAP - FOLD_HEIGHT,
