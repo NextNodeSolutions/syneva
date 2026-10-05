@@ -14,7 +14,6 @@ export const problem = stylex.create({
 		alignItems: 'center',
 	},
 	text: { marginTop: '22px', maxWidth: '470px' },
-	emphasis: { color: color['--ink'] },
 	figure: {
 		borderWidth: '1px',
 		borderStyle: 'solid',

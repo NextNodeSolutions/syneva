@@ -54,9 +54,10 @@ export type HubHealth = {
 }
 
 // POST /api/hub/desks: open a desk (or reuse the live one for the same repo+session, reloading
-// its diff). `root` is any path inside the repo on the hub's machine; `path` narrows a repo-mode
-// diff; `target` is the file (file mode) or the ref/PR (pr mode); `guide` is a raw guide JSON
-// value the hub validates.
+// its diff). `root` is any absolute path (or one from `~`) inside the repo on the hub's machine
+// - a relative one is refused, the hub's cwd being no one's; `path` narrows a repo-mode diff;
+// `target` is the file (file mode, resolved against `root` when relative) or the ref/PR (pr
+// mode); `guide` is a raw guide JSON value the hub validates.
 export type OpenDeskRequest = {
 	root: string
 	mode?: ReviewMode | undefined

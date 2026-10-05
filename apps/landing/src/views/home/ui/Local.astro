@@ -1,28 +1,48 @@
 ---
-// Local by design: the desk runs next to your repository and calls no model.
-import { repoFile } from '@entities/site/model/project'
-import TextLink from '@shared/ui/TextLink.astro'
+// Local by design: the desk runs next to your repository and calls no model,
+// and the trust register under it states the numbers we can promise. They
+// are product facts, never adoption metrics, and the copy says so.
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { ruledItem } from '@syneva/design-system/ruled.styles'
 import { section } from '@shared/ui/section.styles'
-import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
+import { revealCount, revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import LocalFigure from './art/LocalFigure.astro'
 import { local } from './local.styles'
+
+// One review mode per workflow page.
+const REVIEW_MODES = SECTION_BY_ID.workflows.items.length
+const REVIEW_MODE_NAMES = SECTION_BY_ID.workflows.items.map(({ title }) => title.toLowerCase()).join(', ')
+// A count prints bare unless it carries a unit, set smaller after it.
+type Fact = { count: number; unit?: '%'; label: string }
+const FACTS: readonly Fact[] = [
+	{ count: 0, label: 'changes auto-approved. Every verdict is yours.' },
+	{ count: 1, label: 'tab for the whole loop.' },
+	{ count: REVIEW_MODES, label: `review modes: ${REVIEW_MODE_NAMES}.` },
+	{ count: 100, unit: '%', label: 'local. No model inside, no telemetry, no account.' },
+]
 ---
 
-<section {...revealRuledGroup(section.ruled, section.pad, local.section)} id="local" aria-labelledby="local-title">
-	<div>
-		<h2 {...revealItem()} id="local-title">Your code stays<br />on your machine.</h2>
-		<p {...revealItem(local.text)}>Review doesn’t need another cloud service. Syneva opens next to your repository, on loopback, and never calls a model. Your agent does the thinking; Syneva gives you a better place to judge it.</p>
-		<ul {...revealItem(local.points)}>
-			<li {...sx(local.point)}>Binds to 127.0.0.1 on a stable port per session</li>
-			<li {...sx(local.point)}>Decisions saved under <code {...sx(local.code)}>~/.syneva</code>, restored after a restart</li>
-			<li {...sx(local.point)}>Never edits your tracked files</li>
-		</ul>
-		<p {...revealItem(local.text, local.note)}>
-			<TextLink href={repoFile('test/benchmarks/history.json')} label="Recorded performance evidence" /><br />Historical runs published September 17, 2026. Not a guarantee for your repository.
-		</p>
+<section {...revealRuledGroup(section.ruled, section.pad)} id="local" aria-labelledby="local-title">
+	<div {...sx(local.lead)}>
+		<div>
+			<h2 {...revealItem()} id="local-title">Your code stays<br />on your machine.</h2>
+			<p {...revealItem(local.text)}>Review doesn’t need another cloud service. Syneva opens next to your repository, on loopback. The numbers below are product facts, not adoption metrics.</p>
+		</div>
+		<figure {...revealItem()} {...scene}>
+			<LocalFigure />
+		</figure>
 	</div>
-	<figure {...revealItem()} {...scene}>
-		<LocalFigure />
-	</figure>
+	<div {...sx(local.stats)}>
+		{
+			FACTS.map(({ count, unit, label }, index) => (
+				<div {...revealItem(ruledItem.base, local.stat)}>
+					<span {...sx(local.number, index === 0 && local.first)} {...revealCount(count)}>
+						{count}{unit && <span {...sx(local.unit)}>{unit}</span>}
+					</span>
+					<span {...sx(local.label)}>{label}</span>
+				</div>
+			))
+		}
+	</div>
 </section>

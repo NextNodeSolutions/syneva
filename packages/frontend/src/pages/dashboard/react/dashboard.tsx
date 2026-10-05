@@ -1,163 +1,69 @@
-import { useState } from 'react'
+import * as stylex from '@stylexjs/stylex'
 
-import { closeHubDesk } from '@entities/hub/api'
-import { groupByProject } from '@entities/hub/model'
+import { useDashboard } from '../use-dashboard'
 
-import { plural, relativeTime } from '../format'
-import { useHub } from '../use-hub'
+import { CloseNotice } from './close-notice'
+import { dashboard } from './dashboard.styles'
+import { DeskListing } from './desk-listing'
+import { HubFooter } from './hub-footer'
+import { HubHead } from './hub-head'
+import { HubHeader } from './hub-header'
+import { HubMain } from './hub-main'
+import { HubRegister } from './hub-register'
+import { NewReviewDialog } from './new-review-dialog'
+import { SkipLink } from './skip-link'
+import { UnreachableStrip } from './unreachable-strip'
 
-import { ProjectSection } from './desk-rows'
-import { NewDeskPanel } from './new-desk'
-
-import type { HubDesk, HubHealth } from '@entities/hub/model'
 import type { ReactElement } from 'react'
 
-// The Syneva mark - the favicon's three blurred discs, the geometry the desk page shares.
-function Mark(): ReactElement {
-	return (
-		<svg
-			className="mark"
-			aria-hidden="true"
-			viewBox="4 -5 120 120"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<circle cx="54" cy="56" r="44" fill="#EB5103" opacity="0.9" />
-			<circle cx="72.6" cy="56" r="44" fill="#EFCA44" opacity="0.9" />
-			<circle cx="64.6" cy="54" r="44" fill="#FAF6EA" opacity="0.92" />
-		</svg>
-	)
-}
-
-function Header({
-	health,
-	onNew,
-}: {
-	health: HubHealth | null
-	onNew: () => void
-}): ReactElement {
-	return (
-		<header className="hub-top">
-			<div className="brand">
-				<Mark />
-				<span className="name">Syneva</span>
-				<span className="label">Hub</span>
-			</div>
-			<div className="hub-meta">
-				<code className="origin">{window.location.origin}</code>
-				{health && <span className="version">v{health.version}</span>}
-				{health?.keyRequired && (
-					<a className="btn ghost" href="/logout">
-						Sign out
-					</a>
-				)}
-				<button className="btn primary" onClick={onNew}>
-					New review
-				</button>
-			</div>
-		</header>
-	)
-}
-
-function EmptyState({ onNew }: { onNew: () => void }): ReactElement {
-	return (
-		<section className="empty">
-			<p className="label">No desks open</p>
-			<h2>The hub is running. Nothing is under review yet.</h2>
-			<p>
-				In a repository, run <code>syneva open</code> (your agent does
-				this when it has changes for you), or open a desk from here.
-			</p>
-			<button className="btn primary" onClick={onNew}>
-				New review
-			</button>
-		</section>
-	)
-}
-
-function Footer({
-	desks,
-	unreachable,
-	notice,
-	now,
-	syncedAt,
-}: {
-	desks: HubDesk[] | null
-	unreachable: boolean
-	notice: string
-	now: number
-	syncedAt: string
-}): ReactElement {
-	return (
-		<footer className="hub-foot">
-			<span>{desks ? plural(desks.length, 'desk') : 'Loading…'}</span>
-			{notice && <span className="notice-text">{notice}</span>}
-			<span className="muted">
-				{unreachable
-					? 'hub not answering - showing the last listing'
-					: `updated ${relativeTime(syncedAt, now)}`}
-			</span>
-		</footer>
-	)
-}
-
-// Close a desk and say what happened, then re-read the listing so the row leaves at once.
-async function closeAndReport(
-	desk: HubDesk,
-	report: (notice: string) => void,
-	refresh: () => Promise<void>,
-): Promise<void> {
-	try {
-		const closed = await closeHubDesk(desk.id)
-		report(
-			closed
-				? `Closed ${desk.session} - the agent was told.`
-				: `${desk.session} was already closed.`,
-		)
-	} catch {
-		report(`Could not close ${desk.session}.`)
-	}
-	await refresh()
-}
-
+// The hub dashboard, in document order: the skip link, the header, the unreachable strip
+// (over a kept listing), the head with its statement and register, the listing (or the empty
+// band, which runs down to the footer), the footer bar, then the toast and the New review
+// dialog over the page. A signed-out browser is offered neither New review nor Sign out (its
+// sign-in already ended): only the way back in.
 export function Dashboard(): ReactElement {
-	const hub = useHub()
-	const [isNewOpen, setNewOpen] = useState(false)
-	const [notice, setNotice] = useState('')
-	const syncedAt = new Date(hub.now).toISOString()
-	const onClose = (desk: HubDesk): Promise<void> =>
-		closeAndReport(desk, setNotice, hub.refresh)
-	const projects = hub.desks ? groupByProject(hub.desks) : []
+	const { hub, phase, listed, projects, ...page } = useDashboard()
 	return (
-		<div className="hub">
-			<Header health={hub.health} onNew={() => setNewOpen(true)} />
-			{hub.unreachable && (
-				<div className="notice" role="status">
-					The hub is not answering. If it was stopped, run{' '}
-					<code>syneva start</code>; this page reconnects by itself.
-				</div>
-			)}
-			<main className="hub-main">
-				{hub.desks && !hub.desks.length && (
-					<EmptyState onNew={() => setNewOpen(true)} />
+		<div {...stylex.props(dashboard.frame)}>
+			<SkipLink />
+			<HubHeader {...page.header} />
+			<UnreachableStrip isShown={listed?.isStale === true} />
+			<HubHead phase={phase}>
+				{page.registerCounts && (
+					<HubRegister counts={page.registerCounts} />
 				)}
-				{projects.map(project => (
-					<ProjectSection
-						key={project.root}
-						project={project}
+			</HubHead>
+			<HubMain
+				bind={page.hold.bind}
+				listeners={page.hold.listeners}
+				isEmpty={listed?.desks.length === 0}
+			>
+				{listed && (
+					<DeskListing
+						projects={projects}
 						now={hub.now}
-						onClose={onClose}
+						freshness={{
+							isLive: !listed.isStale,
+							arrivedIds: hub.arrivedIds,
+						}}
+						close={page.close}
+						onNewReview={page.newReview.open}
 					/>
-				))}
-			</main>
-			<Footer
-				desks={hub.desks}
-				unreachable={hub.unreachable}
-				notice={notice}
+				)}
+			</HubMain>
+			<HubFooter
+				status={hub.status}
+				listing={page.footerListing}
+				health={hub.health}
 				now={hub.now}
-				syncedAt={syncedAt}
 			/>
-			{isNewOpen && <NewDeskPanel onCancel={() => setNewOpen(false)} />}
+			<CloseNotice toast={page.toast} />
+			{page.newReview.isOpen && (
+				<NewReviewDialog
+					roots={projects.map(project => project.root)}
+					onClose={page.newReview.close}
+				/>
+			)}
 		</div>
 	)
 }

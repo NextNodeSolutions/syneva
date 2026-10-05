@@ -1,19 +1,22 @@
 ---
-// The secondary action: an underlined link; one to another site (an
-// absolute URL) points up-right, unless `arrow` names its own glyph.
+// The secondary action: an underlined link (the design system's textLink,
+// shared with the hub); one to another site (an absolute URL) points
+// up-right, unless `arrow` names its own glyph.
+import { textLinkMarker } from '@syneva/design-system/controls.stylex'
+import { textLink } from '@syneva/design-system/inline.styles'
 import type { Part } from '../lib/sx'
 import { sx } from '../lib/sx'
-import { textLink } from './text-link.styles'
-import { textLinkMarker } from './actions.stylex'
+import { textLinkPlace } from './text-link.styles'
 
 type Props = { href: string; label: string; arrow?: string; css?: Part }
 
 const { href, label, arrow, css } = Astro.props
 const glyph = arrow ?? (URL.canParse(href) ? '↗' : '→')
-// Subpages (and the 404) set chapter links a step lower.
+// Subpages (and the 404) set chapter links a step lower; the home's links
+// stand alone and take a touch target on phones instead.
 const isSubpageSheet = Astro.locals.page !== 'home'
 ---
 
-<a {...sx(textLink.base, isSubpageSheet && textLink.inChapterSub, css, textLinkMarker)} href={href}>
+<a {...sx(textLink.base, textLinkPlace.base, isSubpageSheet ? textLinkPlace.inChapterSub : textLinkPlace.touch, css, textLinkMarker)} href={href}>
 	{label} <span {...sx(textLink.arrow)} aria-hidden="true">{glyph}</span>
 </a>

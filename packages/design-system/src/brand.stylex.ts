@@ -1,0 +1,4 @@
+import * as stylex from '@stylexjs/stylex'
+
+// The wordmark link: the mark inside it turns while the link is hovered.
+export const brandMarker = stylex.defineMarker()

@@ -100,10 +100,8 @@ export const layout = stylex.defineVars({
 })
 
 // The size global.css gives every h2 (a component's own heading style wins
-// over it): fluid down to its floor, then a step up on phones.
+// over it). Every section heading shares it, so no section outranks its
+// neighbours: fluid on desktops, at its floor from tablets down.
 export const typeScale = stylex.defineVars({
-	'--h2-size': {
-		default: 'clamp(32px, 4.2vw, 52px)',
-		[media.phone]: '33px',
-	},
+	'--h2-size': 'clamp(32px, 3.7vw, 46px)',
 })

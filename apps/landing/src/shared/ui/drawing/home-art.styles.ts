@@ -2,8 +2,9 @@ import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
 // The marks of the home page's drawings (the review gap chart, the desk, the
-// question, the plan and the local boundary), which the other sections'
-// drawings reuse: part of the kit, not of the home view.
+// question and the local boundary) and of the plan claims the plan desk page
+// draws, which the other sections' drawings reuse: part of the kit, not of
+// the home view.
 export const homeArt = stylex.create({
 	gapWritten: {
 		fill: 'none',
@@ -48,13 +49,9 @@ export const homeArt = stylex.create({
 	askChange: { fill: color['--white'], stroke: color['--line'] },
 	askChangeRail: { stroke: color['--signal'], strokeWidth: 2 },
 	planHighlight: { fill: color['--wash'] },
-	planBus: { stroke: color['--accent'], strokeWidth: 1.5 },
-	planSignal: { stroke: color['--signal'], strokeWidth: 3 },
-	planDot: { fill: color['--accent'] },
 	planClaim: { fill: color['--white'], stroke: color['--ink'] },
 	planRisk: { fill: color['--wash'], stroke: color['--accent'] },
 	planSettled: { fill: color['--mint'], stroke: color['--green'] },
-	planFlag: { fill: color['--accent'] },
 	localBoundary: {
 		fill: `color-mix(in srgb, ${color['--white']} 35%, transparent)`,
 		stroke: color['--ink'],

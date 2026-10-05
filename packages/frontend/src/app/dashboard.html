@@ -3,484 +3,89 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<title>Syneva - Hub</title>
+		<meta name="theme-color" content="#f6f6f0" />
+		<title>Syneva hub</title>
 		<link
 			rel="icon"
 			type="image/svg+xml"
-			href="data:image/svg+xml,%3Csvg%20viewBox%3D%224%20-5%20120%20120%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%2254%22%20cy%3D%2256%22%20r%3D%2244%22%20fill%3D%22%23EB5103%22%2F%3E%3Ccircle%20cx%3D%2272.6%22%20cy%3D%2256%22%20r%3D%2244%22%20fill%3D%22%23EFCA44%22%2F%3E%3Ccircle%20cx%3D%2264.6%22%20cy%3D%2254%22%20r%3D%2244%22%20fill%3D%22%23FAF6EA%22%2F%3E%3C%2Fsvg%3E"
+			href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23f6f6f0%27/%3E%3Cg stroke=%27%230e6582%27 stroke-width=%272%27 fill=%27none%27%3E%3Cpath d=%27M16 3v7m0 12v7M3 16h7m12 0h7M7 7l5 5m8 8 5 5M7 25l5-5m8-8 5-5%27/%3E%3Cpath d=%27m10 16 6-6 6 6-6 6Z%27/%3E%3C/g%3E%3C/svg%3E"
 		/>
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-			rel="stylesheet"
-		/>
+		<link rel="stylesheet" href="/styles.css" />
 		<style>
-			/* The hub dashboard speaks the desk's palette (DESIGN.md, "the verdict ledger"):
-			   near-black surfaces one tonal step apart, 1px hairlines, 10px uppercase
-			   micro-labels for the chrome's own script, mono for anything that is a path. */
-			:root {
-				color-scheme: dark;
-				--bg: #070909;
-				--surface: #0b0e0f;
-				--panel: #101415;
-				--surface-raised: #151a1c;
-				--panel3: #1d2426;
-				--line: #222a2d;
-				--line-strong: #354146;
-				--ink: #d9d9d4;
-				--ink-bright: #fafafa;
-				--muted: #8a9396;
-				--ghost: #4b5558;
-				--on-accent: #050608;
-				--cyan: #00a8ff;
-				--cyan-bg: #081923;
-				--cyan-bg-strong: #0c2533;
-				--cyan-line: #17394a;
-				--cyan-line-strong: #25617a;
-				--cyan-fg: #8fc4d4;
-				--green: #00d084;
-				--green-bg: #071811;
-				--green-line: #163b2b;
-				--green-fg: #9af0b2;
-				--amber: #e0af68;
-				--amber-fg: #f0c783;
-				--red: #ff4d6d;
-				--red-fg: #ff8095;
-				--radius-sm: 4px;
-				--radius: 6px;
-				--radius-lg: 8px;
-				--radius-pill: 999px;
-				--mono: 'JetBrains Mono', ui-monospace, monospace;
-				--sans:
-					Geist, system-ui, -apple-system, 'Segoe UI', Roboto,
-					sans-serif;
+			/* The hub dashboard speaks the public site's language (@syneva/design-system).
+			   These rules are the page's own: the shared stylesheet also serves the desk,
+			   so a reset there would reach it. There is no global :focus-visible rule here
+			   on purpose: an unlayered rule in this sheet would outrank the components'
+			   StyleX classes, which carry the one focus ring. */
+			html {
+				color-scheme: light;
+				background: var(--paper, #f6f6f0);
 			}
-			* {
+			/* A modal sheet holds the page still beneath it. */
+			html:has(dialog[open]) {
+				overflow: hidden;
+			}
+			body {
+				margin: 0;
+			}
+			*,
+			*::before,
+			*::after {
 				box-sizing: border-box;
 			}
-			html,
-			body {
-				margin: 0;
-				min-height: 100%;
-			}
-			body {
-				background: var(--bg);
-				color: var(--ink);
-				font: 12px/1.5 var(--sans);
-				-webkit-font-smoothing: antialiased;
-			}
-			code {
-				font-family: var(--mono);
-				font-size: 11.5px;
-			}
-			a {
-				color: var(--cyan-fg);
-				text-decoration: none;
-			}
-			.hub {
-				min-height: 100vh;
-				display: flex;
-				flex-direction: column;
-			}
-			.label {
-				font-size: 10px;
-				font-weight: 700;
-				letter-spacing: 0.08em;
-				text-transform: uppercase;
-				color: var(--muted);
-				margin: 0;
-			}
-			/* ── Top bar ── */
-			.hub-top {
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				gap: 16px;
-				height: 44px;
-				padding: 0 16px;
-				background: var(--panel);
-				border-bottom: 1px solid var(--line);
-				position: sticky;
-				top: 0;
-				z-index: 2;
-			}
-			.brand {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-			}
-			.brand .mark {
-				width: 18px;
-				height: 18px;
-				filter: blur(0.6px);
-			}
-			.brand .name {
-				font-weight: 700;
-				font-size: 13px;
-				color: var(--ink-bright);
-			}
-			.brand .label {
-				padding: 1px 6px;
-				border: 1px solid var(--line-strong);
-				border-radius: var(--radius-sm);
-			}
-			.hub-meta {
-				display: flex;
-				align-items: center;
-				gap: 10px;
-				min-width: 0;
-			}
-			.hub-meta .origin {
-				color: var(--muted);
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
-			}
-			.hub-meta .version {
-				color: var(--ghost);
-				font-family: var(--mono);
-				font-size: 11px;
-			}
-			/* ── Buttons ── */
-			.btn {
-				display: inline-flex;
-				align-items: center;
-				gap: 6px;
-				padding: 5px 9px;
-				background: var(--panel);
-				color: var(--ink);
-				border: 1px solid var(--line);
-				border-radius: var(--radius);
-				font: 500 12px var(--sans);
-				cursor: pointer;
-				line-height: 1.3;
-				white-space: nowrap;
-			}
-			.btn:hover {
-				background: var(--surface-raised);
-				border-color: var(--line-strong);
-			}
-			.btn:disabled {
-				opacity: 0.6;
-				cursor: default;
-			}
-			.btn.primary {
-				background: var(--cyan-bg);
-				color: var(--cyan-fg);
-				border-color: var(--cyan-line);
-			}
-			.btn.primary:hover {
-				background: var(--cyan-bg-strong);
-				border-color: var(--cyan-line-strong);
-			}
-			.btn.danger {
-				color: var(--red-fg);
-				border-color: #4a2330;
-			}
-			.btn.danger:hover {
-				background: #22090f;
-				border-color: var(--red);
-			}
-			.btn.ghost {
-				background: transparent;
-			}
-			/* ── Main ── */
-			.hub-main {
-				flex: 1;
-				width: min(1180px, 100%);
-				margin: 0 auto;
-				padding: 20px 16px 40px;
-			}
-			.notice {
-				margin: 12px auto 0;
-				width: min(1180px, 100%);
-				padding: 8px 16px;
-				background: #1c1706;
-				border: 1px solid #3f3414;
-				color: var(--amber-fg);
-				border-radius: var(--radius);
-			}
-			.project {
-				margin-bottom: 22px;
-			}
-			.project-head {
-				display: flex;
-				align-items: baseline;
-				gap: 10px;
-				padding: 0 2px 8px;
-				flex-wrap: wrap;
-			}
-			.project-head h2 {
-				margin: 0;
-				font-size: 14px;
-				font-weight: 700;
-				color: var(--ink-bright);
-			}
-			.project-head .root {
-				color: var(--muted);
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
-				max-width: 60ch;
-			}
-			.project-head .count {
-				margin-left: auto;
-				color: var(--ghost);
-			}
-			.desk-list {
-				list-style: none;
+			h1,
+			h2,
+			h3,
+			p,
+			ul,
+			ol,
+			figure,
+			dl,
+			dd,
+			fieldset,
+			legend {
 				margin: 0;
 				padding: 0;
-				background: var(--surface);
-				border: 1px solid var(--line);
-				border-radius: var(--radius-lg);
-				overflow: hidden;
 			}
-			.desk-row {
-				display: grid;
-				align-items: center;
-				gap: 12px;
-				grid-template-columns:
-					minmax(180px, 1.4fr) 80px minmax(170px, 1.2fr)
-					minmax(160px, 1.2fr) 70px auto;
-				padding: 10px 14px;
-				border-top: 1px solid var(--line);
+			ul,
+			ol {
+				list-style: none;
 			}
-			.desk-row:first-child {
-				border-top: 0;
-			}
-			.desk-row:hover {
-				background: var(--panel);
-			}
-			.desk-id {
-				display: flex;
-				align-items: center;
-				gap: 8px;
+			fieldset {
+				border: 0;
 				min-width: 0;
 			}
-			.desk-id .session {
-				font-family: var(--mono);
-				font-weight: 600;
-				color: var(--ink-bright);
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
+			a {
+				color: inherit;
+				text-decoration: none;
 			}
-			.chip {
-				flex: none;
-				padding: 1px 6px;
-				border: 1px solid var(--line-strong);
-				border-radius: var(--radius-sm);
-				color: var(--muted);
-				font-size: 10.5px;
-				white-space: nowrap;
+			button,
+			input,
+			select {
+				font: inherit;
+				color: inherit;
 			}
-			.desk-files {
-				color: var(--muted);
-				font-variant-numeric: tabular-nums;
-			}
-			.desk-progress {
-				display: flex;
-				flex-direction: column;
-				gap: 3px;
-				min-width: 0;
-			}
-			.progress {
-				position: relative;
+			svg {
 				display: block;
-				height: 14px;
-				background: var(--panel3);
-				border-radius: var(--radius-pill);
-				overflow: hidden;
 			}
-			.progress i {
-				position: absolute;
-				inset: 0 auto 0 0;
-				background: var(--green);
-				opacity: 0.75;
+			/* A field with suggestions (New review's Repository) keeps them on typing and
+			   arrow keys, without the platform's dropdown triangle in the well. Chromium
+			   shows that triangle through an !important user-agent rule, which only an
+			   !important author rule outranks. */
+			input::-webkit-calendar-picker-indicator {
+				display: none !important;
 			}
-			.progress b {
-				position: absolute;
-				inset: 0;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				font: 600 10px var(--mono);
-				color: var(--ink-bright);
-				letter-spacing: 0.04em;
+			::selection {
+				background: #dcedf4;
+				color: #191b18;
 			}
-			.progress-note,
-			.open-items {
-				color: var(--muted);
-				font-size: 11px;
-			}
-			.open-items {
-				color: var(--amber-fg);
-			}
-			.agent {
-				display: flex;
-				align-items: center;
-				gap: 6px;
-				min-width: 0;
-				color: var(--muted);
-			}
-			.agent i {
-				flex: none;
-				width: 7px;
-				height: 7px;
-				border-radius: 50%;
-				background: var(--ghost);
-			}
-			.agent-live i {
-				background: var(--green);
-				box-shadow: 0 0 0 3px var(--green-bg);
-			}
-			.agent-live span {
-				color: var(--green-fg);
-			}
-			.agent-queued i {
-				background: var(--amber);
-			}
-			.agent-queued span {
-				color: var(--amber-fg);
-			}
-			.agent em {
-				font-style: normal;
-				color: var(--ghost);
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
-			}
-			.desk-when {
-				color: var(--ghost);
-				font-variant-numeric: tabular-nums;
-				white-space: nowrap;
-			}
-			.desk-actions {
-				display: flex;
-				gap: 6px;
-				justify-content: flex-end;
-			}
-			.confirm-close {
-				display: inline-flex;
-				gap: 6px;
-			}
-			/* ── Empty state ── */
-			.empty {
-				margin: 48px auto;
-				max-width: 520px;
-				text-align: center;
-				padding: 28px 24px;
-				background: var(--surface);
-				border: 1px solid var(--line);
-				border-radius: var(--radius-lg);
-			}
-			.empty h2 {
-				margin: 6px 0 10px;
-				font-size: 15px;
-				color: var(--ink-bright);
-			}
-			.empty p {
-				color: var(--muted);
-				margin: 0 0 14px;
-			}
-			/* ── Footer ── */
-			.hub-foot {
-				display: flex;
-				gap: 16px;
-				padding: 8px 16px;
-				border-top: 1px solid var(--line);
-				color: var(--muted);
-				background: var(--panel);
-			}
-			.hub-foot .muted {
-				margin-left: auto;
-				color: var(--ghost);
-			}
-			.notice-text {
-				color: var(--cyan-fg);
-			}
-			/* ── New review panel ── */
-			.panel-backdrop {
-				position: fixed;
-				inset: 0;
-				background: rgba(0, 0, 0, 0.55);
-				display: grid;
-				place-items: center;
-				padding: 16px;
-				z-index: 5;
-			}
-			.panel {
-				width: min(100%, 440px);
-				background: var(--panel);
-				border: 1px solid var(--line-strong);
-				border-radius: var(--radius-lg);
-				padding: 18px 18px 16px;
-				display: flex;
-				flex-direction: column;
-				gap: 10px;
-			}
-			.panel h2 {
-				margin: 0;
-				font-size: 15px;
-				color: var(--ink-bright);
-			}
-			.panel .hint {
-				margin: 0;
-				color: var(--muted);
-			}
-			.panel label {
-				display: flex;
-				flex-direction: column;
-				gap: 4px;
-			}
-			.panel label span {
-				font-size: 10px;
-				font-weight: 700;
-				letter-spacing: 0.08em;
-				text-transform: uppercase;
-				color: var(--muted);
-			}
-			.panel input,
-			.panel select {
-				background: var(--bg);
-				color: var(--ink);
-				border: 1px solid var(--line-strong);
-				border-radius: var(--radius);
-				padding: 7px 9px;
-				font: 12px var(--mono);
-			}
-			.panel input:focus,
-			.panel select:focus {
-				outline: none;
-				border-color: var(--cyan);
-			}
-			.form-error {
-				margin: 0;
-				color: var(--red-fg);
-			}
-			.panel-actions {
-				display: flex;
-				justify-content: flex-end;
-				gap: 8px;
-				margin-top: 4px;
-			}
-			@media (max-width: 900px) {
-				.desk-row {
-					grid-template-columns: 1fr auto;
-					row-gap: 6px;
-				}
-				.desk-files,
-				.desk-when {
-					display: none;
-				}
-				.desk-progress,
-				.desk-agent {
-					grid-column: 1 / -1;
-				}
-				.hub-meta .origin {
-					display: none;
+			@media (prefers-reduced-motion: reduce) {
+				*,
+				*::before,
+				*::after {
+					animation: none !important;
+					transition: none !important;
+					scroll-behavior: auto !important;
 				}
 			}
 		</style>

@@ -3,7 +3,6 @@
 // disclosures on the right. The topic index above links to it and counts its
 // questions.
 import QaDisclosure from '@features/disclosure/ui/QaDisclosure.astro'
-import { heading } from '@shared/ui/heading.styles'
 import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import type { QaGroup } from '../model/faq'
@@ -18,7 +17,7 @@ const id = qaAnchor(group)
 
 <section {...revealRuledGroup(qa.block)} id={id} aria-labelledby={`${id}-title`}>
 	<div {...sx(qa.copy)}>
-		<h2 {...revealItem(heading.section, heading.subpage)} id={`${id}-title`}>{group.title}</h2>
+		<h2 {...revealItem()} id={`${id}-title`}>{group.title}</h2>
 		<p {...revealItem(qa.blurb)}>{group.blurb}</p>
 	</div>
 	<div {...sx(qa.list)}>

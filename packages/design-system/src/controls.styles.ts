@@ -2,7 +2,8 @@ import * as stylex from '@stylexjs/stylex'
 
 import { controlMarker } from './controls.stylex'
 import { media } from './media.stylex'
-import { color, duration, ease, font } from './tokens.stylex'
+import { color, ease, font } from './tokens.stylex'
+import { transition } from './transitions.stylex'
 
 // The apps' controls (the hub dashboard, the desk), at application density:
 // the site's square, ruled language - no radius, 1px borders, petrol for the
@@ -11,7 +12,6 @@ import { color, duration, ease, font } from './tokens.stylex'
 // [press.control, control.base, control.<tone>, control.<size>?] and put the
 // controlMarker on it when it carries an arrow.
 
-const fast = `${duration['--duration-fast']} ${ease['--ease-out']}`
 const controlHover = (): string => stylex.when.ancestor(':hover', controlMarker)
 
 // One focus ring for every control: petrol, outside the border.
@@ -22,9 +22,19 @@ const focusRing = {
 	outlineOffset: '2px',
 } as const
 
+// The same ring for anything focusable that is not a control (a link, a radio,
+// a skip link); `inset` draws it inside the box, for an element whose
+// surroundings would clip it or that sits flush against its neighbours.
+export const focus = stylex.create({
+	ring: focusRing,
+	inset: { ...focusRing, outlineOffset: '-2px' },
+})
+
 export const control = stylex.create({
 	base: {
 		...focusRing,
+		// The width and padding hold the border: the shared sheet has no reset.
+		boxSizing: 'border-box',
 		display: 'inline-flex',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -45,7 +55,7 @@ export const control = stylex.create({
 		// A disabled control keeps its place but takes no hover and no press.
 		opacity: { default: null, ':disabled': 0.55 },
 		pointerEvents: { default: null, ':disabled': 'none' },
-		transition: `color ${fast}, background-color ${fast}, border-color ${fast}, transform ${fast}`,
+		transition: `color ${transition.fast}, background-color ${transition.fast}, border-color ${transition.fast}, transform ${transition.fast}`,
 	},
 	// The action of a surface: solid petrol, white label.
 	primary: {
@@ -115,7 +125,7 @@ export const control = stylex.create({
 	// (the control carries controlMarker).
 	arrow: {
 		display: 'inline-block',
-		transition: `transform ${fast}`,
+		transition: `transform ${transition.fast}`,
 		transform: { default: null, [controlHover()]: 'translateX(3px)' },
 	},
 })
@@ -124,6 +134,7 @@ export const control = stylex.create({
 // rule and a petrol halo marking focus.
 export const field = stylex.create({
 	base: {
+		boxSizing: 'border-box',
 		display: 'block',
 		width: '100%',
 		minHeight: '40px',
@@ -145,7 +156,7 @@ export const field = stylex.create({
 		outline: 'none',
 		boxShadow: { default: null, ':focus': `0 0 0 3px ${color['--wash']}` },
 		caretColor: color['--accent'],
-		transition: `border-color ${fast}, box-shadow ${fast}`,
+		transition: `border-color ${transition.fast}, box-shadow ${transition.fast}`,
 		'::placeholder': { color: color['--muted'], opacity: 0.75 },
 	},
 	// Paths, refs, keys: anything typed that is not prose.
@@ -233,19 +244,29 @@ const pulse = stylex.keyframes({
 
 // The square that marks something live, set before its subject (the site's
 // live dot). It pulses only while a live process holds it, and only when
-// motion is welcome.
+// motion is welcome. A tone sets the colour and the square paints it as
+// currentColor, so `hollow` outlines any tone instead of filling it.
 export const dot = stylex.create({
 	base: {
 		display: 'inline-block',
 		flexShrink: 0,
 		width: '7px',
 		height: '7px',
-		backgroundColor: color['--line-strong'],
+		color: color['--line-strong'],
+		backgroundColor: 'currentColor',
 	},
-	accent: { backgroundColor: color['--signal'] },
-	green: { backgroundColor: color['--green'] },
-	amber: { backgroundColor: color['--amber'] },
-	red: { backgroundColor: color['--red'] },
+	// The live signal: a running process.
+	accent: { color: color['--signal'] },
+	// Petrol: the agent's work and the reviewer's questions.
+	petrol: { color: color['--accent'] },
+	green: { color: color['--green'] },
+	amber: { color: color['--amber'] },
+	red: { color: color['--red'] },
+	// Something sent or awaited rather than held: an outline in the tone.
+	hollow: {
+		backgroundColor: 'transparent',
+		boxShadow: 'inset 0 0 0 1px currentColor',
+	},
 	live: {
 		animationName: { default: null, [media.motionSafe]: pulse },
 		animationDuration: '2.4s',

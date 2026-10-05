@@ -706,11 +706,17 @@ export default defineConfig({
 			// for the chrome views only. Actions with logic still live in the facade modules.
 			// The effects sync EXTERNAL systems the store does not own: the browser tab
 			// title, the body layout classes, the rAF count-up animation, the hub dashboard's
-			// poll timer over HTTP - none of them are render-time derivations.
+			// poll timer over HTTP, its tab title, its document-wide N and Escape key
+			// listeners and the DOM focus it moves once a row's controls are on screen -
+			// none of them are render-time derivations.
 			files: [
 				'packages/frontend/src/widgets/chrome/react/**',
 				'packages/frontend/src/pages/dashboard/react/**',
 				'packages/frontend/src/pages/dashboard/use-hub.ts',
+				'packages/frontend/src/pages/dashboard/use-document-title.ts',
+				'packages/frontend/src/pages/dashboard/use-new-review-shortcut.ts',
+				'packages/frontend/src/pages/dashboard/use-escape-to-disarm.ts',
+				'packages/frontend/src/pages/dashboard/use-focus-next.ts',
 				'packages/frontend/src/app/react/app.tsx',
 			],
 			rules: {

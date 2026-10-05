@@ -1,9 +1,9 @@
 import { useStoreFields } from '@shared/lib/use-store-version'
 import { deskControl } from '@shared/ui/desk-control.styles'
 import { Kbd } from '@shared/ui/kbd'
-import { kbd } from '@shared/ui/kbd.styles'
 import * as stylex from '@stylexjs/stylex'
 import { control, field } from '@syneva/design-system/controls.styles'
+import { kbd } from '@syneva/design-system/inline.styles'
 import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'

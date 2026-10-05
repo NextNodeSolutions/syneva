@@ -53,6 +53,10 @@ const JS_TYPE = 'text/javascript; charset=utf-8'
 const CSS_TYPE = 'text/css; charset=utf-8'
 const FONT_TYPE = 'font/woff2'
 
+// A font file's name under the fonts prefix: one segment, no traversal, a woff2. The router
+// lets exactly this shape through before the access guard, whatever UI server answers it.
+export const FONT_FILE = /^[\w-]+\.woff2$/
+
 // An etag'd asset server. Assets change only on a rebuild, so they carry an etag derived
 // from size+mtime: the tab revalidates cheaply and a 304 skips the body entirely.
 async function serveAsset(
@@ -98,7 +102,7 @@ async function serveUiChunk(request: StaticRequest): Promise<void> {
 
 async function serveFont(request: StaticRequest): Promise<void> {
 	const name = request.url.pathname.slice(STATIC_PATHS.fontsPrefix.length)
-	if (!/^[\w-]+\.woff2$/.test(name)) {
+	if (!FONT_FILE.test(name)) {
 		request.res.writeHead(HTTP_NOT_FOUND)
 		request.res.end()
 		return

@@ -30,7 +30,7 @@ export const INITIAL_UI_BYTES_LIMIT = 405_000
 // object also ships as a class-name map (~27 KB minified, plus StyleX's ~3 KB runtime):
 // the 83 KB stylesheet the page shell used to inline left for the shared styles.css,
 // so the desk's whole cold payload (shell + CSS + JS, 133 KB gzipped) stays within 6%
-// of what it was. 390 KB measured; the limit sits just above so the next real
+// of what it was. 392 KB measured; the limit sits just above so the next real
 // regression (a leaked grammar, a fat dep) still trips it.
 // The total is mostly shiki's full grammar set: @pierre/diffs resolves languages through shiki's
 // bundled loaders, so every grammar ships as its own lazy chunk and loads only when a file or a

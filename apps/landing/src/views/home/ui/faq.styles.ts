@@ -11,7 +11,7 @@ export const faq = stylex.create({
 		gap: { default: '90px', [media.narrow]: '40px', [media.stacked]: 0 },
 	},
 	title: {
-		fontSize: { default: '36px', [media.phone]: '31px' },
+		fontSize: { default: '36px', [media.phone]: '32px' },
 	},
 	// Stacked, the link closes the heading column: its margin keeps the
 	// underline clear of the first question's rule.

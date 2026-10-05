@@ -206,11 +206,21 @@ function keyFromJson(body: string): string | undefined {
 	return parsed.key
 }
 
-// Only a same-origin path may be the post-login destination: an absolute URL or a protocol-relative
-// `//host` would turn the sign-in into an open redirect.
+// Only a path on this hub may be the post-login destination: an absolute URL or a
+// protocol-relative `//host` would turn the sign-in into an open redirect. A prefix test is not
+// enough - a browser reads "/\\evil.com" or "/<tab>/evil.com" as "//evil.com" - so the value is
+// resolved against a placeholder origin, kept only if it stays there, and rebuilt from its
+// parsed path; a path that resolves to "//..." ("/..//evil.com") is refused too.
+const NEXT_BASE = new URL('http://hub.invalid/')
+
 function safeNext(next: string | null): string {
-	if (!next || !next.startsWith('/') || next.startsWith('//')) return '/'
-	return next
+	if (!next?.startsWith('/')) return '/'
+	const target = URL.canParse(next, NEXT_BASE)
+		? new URL(next, NEXT_BASE)
+		: null
+	if (target?.origin !== NEXT_BASE.origin) return '/'
+	if (target.pathname.startsWith('//')) return '/'
+	return `${target.pathname}${target.search}${target.hash}`
 }
 
 function cookieHeader(

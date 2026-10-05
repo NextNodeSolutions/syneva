@@ -1,7 +1,6 @@
 import { cx } from '@shared/lib/cx'
 import { esc } from '@shared/lib/esc'
-
-import { kbd } from './kbd.styles'
+import { kbd } from '@syneva/design-system/inline.styles'
 
 import type { StaticStyle } from '@shared/lib/cx'
 

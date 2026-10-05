@@ -7,7 +7,7 @@ import ProseText from '@shared/ui/prose/ProseText.astro'
 import RuledList from '@shared/ui/prose/RuledList.astro'
 import SpecTable from '@shared/ui/prose/SpecTable.astro'
 import TextLink from '@shared/ui/TextLink.astro'
-import { ISSUES_URL, REPO_URL } from '@entities/site/model/project'
+import { ISSUES_URL, REPO_URL, repoFile } from '@entities/site/model/project'
 import { PAGES } from '@entities/site/model/site-map'
 import OpenBox from './art/OpenBox.astro'
 
@@ -38,6 +38,8 @@ const REPOSITORY = [
 </Prose>
 <Prose id="repo" title={'What’s in<br>the repository.'}>
 	<SpecTable rows={REPOSITORY} head={['Path', 'What lives there']} />
+	<ProseText>The repository also keeps the desk’s recorded performance runs. They are historical, published September 17, 2026, and not a guarantee for your repository.</ProseText>
+	<ProseText><TextLink href={repoFile('test/benchmarks/history.json')} label="Recorded performance evidence" /></ProseText>
 </Prose>
 <Prose id="contribute" title="Build it with us.">
 	<ProseText>Issues and pull requests are welcome. Commits follow Conventional Commits, and releases are cut automatically from them. The roadmap is public in the README: a command palette, more review modes, and lazy loading for very large diffs.</ProseText>
