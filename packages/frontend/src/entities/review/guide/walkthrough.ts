@@ -232,7 +232,7 @@ export type WalkRow =
 			complete: boolean
 			jumpIndex: number // diff index a header click selects (first pending in the group, else its first)
 	  }
-	| (WalkFile & { kind: 'file'; key: string; cls: string; style: string })
+	| (WalkFile & { kind: 'file'; key: string; active: boolean })
 
 // Whether a group's rows hide behind its header: only the two trailing fold groups -
 // Renamed (issue 01) and the hide-reviewed lens' Reviewed - collapse; every other group
@@ -284,8 +284,7 @@ export function walkRows(
 				...f,
 				kind: 'file',
 				key: `file:${f.path}`,
-				cls: f.path === activePath ? 'active' : '',
-				style: '--depth:1',
+				active: f.path === activePath,
 			})
 	})
 	return rows

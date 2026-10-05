@@ -1,35 +1,32 @@
 import { useStoreFields } from '@shared/lib/use-store-version'
-import { varStyle } from '@shared/lib/var-style'
+import { deskControl, tabs } from '@shared/ui/desk-control.styles'
 import { Icon } from '@shared/ui/icon'
+import { Kbd } from '@shared/ui/kbd'
+import { tip } from '@shared/ui/tip.styles'
+import * as stylex from '@stylexjs/stylex'
+import { caption, control } from '@syneva/design-system/controls.styles'
+import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'
 
+import { glyph, row, sidebar } from './sidebar.styles'
 import { ChangedIcon, StateBadge } from './tree-badges'
+import { Chevron, indentStyle, MovedFrom } from './tree-parts'
 import { WalkNode } from './walkthrough-rows'
 
 import type { TreeRow } from '@entities/review/file/tree-rows'
-import type { CSSProperties } from 'react'
+import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
 
 // The sidebar: Tree / Walkthrough tabs (guide-attached desks only), the file tree,
 // the walkthrough list, and the settings button. Rows render from the store methods
-// (treeRows()/walkthroughRows()); walkthrough rows carry their own derived classes
-// (walkRows() takes the active path). One click handler covers every row kind -
+// (treeRows()/walkthroughRows()); one click handler covers every tree row kind -
 // rowClick() dispatches dir toggles, fold groups, previews and file selection.
 
 function activePath(S: ReturnType<typeof chromeCtx>['S']): string | null {
 	// No file is "active" on the Overview; a previewed file wins over the indexed review file.
 	if (S.overviewOpen) return null
 	return S.preview?.path ?? S.state?.files.at(S.fileIndex)?.path ?? null
-}
-
-function MovedFrom({ from }: { from: string }): ReactElement {
-	return (
-		<span
-			className="moved-from"
-			title={`moved from ${from}`}
-		>{`← ${from}`}</span>
-	)
 }
 
 function TestCaret({
@@ -40,54 +37,50 @@ function TestCaret({
 	testCaret: string
 }): ReactElement {
 	const { S } = chromeCtx()
-	const open = testCaret === '▾'
 	return (
 		<span
-			className="testcaret"
+			{...stylex.props(glyph.testCaret)}
 			onClick={event => {
 				event.stopPropagation()
 				S.toggleTestDir?.(testKey)
 			}}
 		>
-			<Icon id="gly-chevron" className={open ? 'chev open' : 'chev'} />
+			<Chevron open={testCaret === '▾'} />
 		</span>
 	)
 }
 
 function DirRowBody({
-	row,
+	node,
 }: {
-	row: Extract<TreeRow, { kind: 'dir' }>
+	node: Extract<TreeRow, { kind: 'dir' }>
 }): ReactElement {
 	return (
 		<>
-			<Icon
-				id="gly-chevron"
-				className={row.open ? 'chev open' : 'chev'}
-			/>
-			<Icon id="gly-folder" className="folder" />
-			<span className="nm">{row.name}</span>
+			<Chevron open={node.open} />
+			<Icon id="gly-folder" css={glyph.folder} />
+			<span {...stylex.props(row.name)}>{node.name}</span>
 		</>
 	)
 }
 
 function FileRowBody({
-	row,
+	node,
 }: {
-	row: Extract<TreeRow, { kind: 'file' | 'test' }>
+	node: Extract<TreeRow, { kind: 'file' | 'test' }>
 }): ReactElement {
 	return (
 		<>
-			<span className="chev-spacer" />
-			{row.changeType && <ChangedIcon changeType={row.changeType} />}
-			<span className="nm">{row.name}</span>
-			{row.movedFrom && <MovedFrom from={row.movedFrom} />}
-			{row.testToggle && (
-				<TestCaret testKey={row.testKey} testCaret={row.testCaret} />
+			<span {...stylex.props(glyph.spacer)} />
+			{node.changeType && <ChangedIcon changeType={node.changeType} />}
+			<span {...stylex.props(row.name)}>{node.name}</span>
+			{node.movedFrom && <MovedFrom from={node.movedFrom} />}
+			{node.testToggle && (
+				<TestCaret testKey={node.testKey} testCaret={node.testCaret} />
 			)}
-			{row.state && (
-				<span className="status-pack">
-					<StateBadge state={row.state} />
+			{node.state && (
+				<span {...stylex.props(row.trail)}>
+					<StateBadge state={node.state} />
 				</span>
 			)}
 		</>
@@ -95,42 +88,39 @@ function FileRowBody({
 }
 
 function FoldGroupBody({
-	row,
+	node,
 }: {
-	row: Extract<TreeRow, { kind: 'foldgrp' }>
+	node: Extract<TreeRow, { kind: 'foldgrp' }>
 }): ReactElement {
 	return (
 		<>
-			<Icon
-				id="gly-chevron"
-				className={row.open ? 'chev open' : 'chev'}
-			/>
-			<span className="nm foldgrp-name">
-				{row.group === 'reviewed' ? 'Reviewed' : 'Renamed'}
+			<Chevron open={node.open} />
+			<span {...stylex.props(row.name)}>
+				{node.group === 'reviewed' ? 'Reviewed' : 'Renamed'}
 			</span>
-			<span className="foldgrp-count">
-				{row.count + (row.count === 1 ? ' file' : ' files')}
+			<span {...stylex.props(row.count)}>
+				{node.count + (node.count === 1 ? ' file' : ' files')}
 			</span>
 		</>
 	)
 }
 
-function rowVars(row: TreeRow): CSSProperties | undefined {
-	if (row.kind === 'foldgrp') return undefined
-	return varStyle(row.style)
-}
-
-function treeNodeClass(row: TreeRow, isActive: boolean): string {
-	const cls: string[] = ['node', row.kind === 'foldgrp' ? 'foldgrp' : row.cls]
-	if (isActive) cls.push('active')
-	return cls.filter(Boolean).join(' ')
+function rowStyles(node: TreeRow, isActive: boolean): Style {
+	if (node.kind === 'foldgrp') return [row.base, row.fold]
+	return [
+		row.base,
+		indentStyle(node.depth),
+		node.changed && row.changed,
+		node.kind === 'test' && row.test,
+		isActive && row.active,
+	]
 }
 
 function TreeRowNode({
-	row,
+	node,
 	isActive,
 }: {
-	row: TreeRow
+	node: TreeRow
 	isActive: boolean
 }): ReactElement {
 	const { S } = chromeCtx()
@@ -138,16 +128,15 @@ function TreeRowNode({
 		<div
 			role="button"
 			tabIndex={0}
-			className={treeNodeClass(row, isActive)}
-			data-key={row.key}
-			style={rowVars(row)}
-			onClick={() => S.rowClick?.(row)}
+			{...stylex.props(rowStyles(node, isActive))}
+			data-key={node.key}
+			onClick={() => S.rowClick?.(node)}
 		>
-			{row.kind === 'dir' && <DirRowBody row={row} />}
-			{(row.kind === 'file' || row.kind === 'test') && (
-				<FileRowBody row={row} />
+			{node.kind === 'dir' && <DirRowBody node={node} />}
+			{(node.kind === 'file' || node.kind === 'test') && (
+				<FileRowBody node={node} />
 			)}
-			{row.kind === 'foldgrp' && <FoldGroupBody row={row} />}
+			{node.kind === 'foldgrp' && <FoldGroupBody node={node} />}
 		</div>
 	)
 }
@@ -155,26 +144,23 @@ function TreeRowNode({
 // The w hint sits on the INACTIVE tab - the one pressing w switches to.
 function TreeTabs(): ReactElement {
 	const { S } = chromeCtx()
+	const tab = (pane: 'tree' | 'walkthrough', label: string): ReactElement => (
+		<button
+			{...stylex.props(tabs.tab, S.sidebarTab === pane && tabs.on)}
+			aria-selected={S.sidebarTab === pane}
+			role="tab"
+			onClick={() => {
+				S.sidebarTab = pane
+			}}
+		>
+			{label}
+			{S.sidebarTab !== pane && <Kbd keys="w" />}
+		</button>
+	)
 	return (
-		<div className="tree-tabs">
-			<button
-				className={S.sidebarTab === 'tree' ? 'active' : ''}
-				onClick={() => {
-					S.sidebarTab = 'tree'
-				}}
-			>
-				Tree
-				{S.sidebarTab !== 'tree' && <kbd>w</kbd>}
-			</button>
-			<button
-				className={S.sidebarTab === 'walkthrough' ? 'active' : ''}
-				onClick={() => {
-					S.sidebarTab = 'walkthrough'
-				}}
-			>
-				Walkthrough
-				{S.sidebarTab === 'tree' && <kbd>w</kbd>}
-			</button>
+		<div {...stylex.props(tabs.strip, sidebar.tabs)} role="tablist">
+			{tab('tree', 'Tree')}
+			{tab('walkthrough', 'Walkthrough')}
 		</div>
 	)
 }
@@ -182,31 +168,41 @@ function TreeTabs(): ReactElement {
 function TreePane({ active }: { active: string | null }): ReactElement {
 	const { S } = chromeCtx()
 	const rows = S.treeRows?.() ?? []
+	const anyOpen = S.treeAnyOpen?.() ?? false
 	return (
 		<>
-			<div className="label tree-title">
-				<span>Files</span>
+			<div {...stylex.props(sidebar.head)}>
+				<span {...stylex.props(caption.base, caption.upper)}>
+					Files
+				</span>
 				<button
-					className="tree-toggle"
-					onClick={() => S.toggleAllDirs?.()}
-					title={S.treeAnyOpen?.() ? 'Collapse all' : 'Expand all'}
-				>
-					{S.treeAnyOpen?.() ? (
-						<Icon id="gly-collapse-all" />
-					) : (
-						<Icon id="gly-expand-all" />
+					{...stylex.props(
+						press.control,
+						control.base,
+						control.quiet,
+						deskControl.mini,
+						deskControl.iconMini,
+						tip.host,
+						tip.end,
 					)}
+					data-tip={anyOpen ? 'Collapse all' : 'Expand all'}
+					aria-label={anyOpen ? 'Collapse all' : 'Expand all'}
+					onClick={() => S.toggleAllDirs?.()}
+				>
+					<Icon
+						id={anyOpen ? 'gly-collapse-all' : 'gly-expand-all'}
+					/>
 				</button>
 			</div>
-			<div id="files">
-				{rows.map(row => (
+			<div {...stylex.props(sidebar.pane)}>
+				{rows.map(node => (
 					<TreeRowNode
-						key={row.key}
-						row={row}
+						key={node.key}
+						node={node}
 						isActive={Boolean(
 							active &&
-							(row.key === `file:${active}` ||
-								row.key === `test:${active}`),
+							(node.key === `file:${active}` ||
+								node.key === `test:${active}`),
 						)}
 					/>
 				))}
@@ -216,8 +212,9 @@ function TreePane({ active }: { active: string | null }): ReactElement {
 }
 
 // The sidebar body: tabs (guide only), tree, walkthrough. `sidebarTab` switches the
-// panes; the tree pane also hosts the Files header with expand/collapse-all.
-export function Sidebar(): ReactElement {
+// panes; the tree pane also hosts the Files header with expand/collapse-all. A desk
+// without a tree keeps the aside mounted but hidden (its shape can change on reload).
+export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields(
 		'state',
@@ -235,23 +232,29 @@ export function Sidebar(): ReactElement {
 	const guided = S.hasGuide?.() ?? false
 	const showTree = !guided || S.sidebarTab === 'tree'
 	return (
-		<aside className={`tree${S.treeDrawerOpen ? ' drawer-open' : ''}`}>
+		<aside
+			{...stylex.props(
+				sidebar.aside,
+				S.treeDrawerOpen && sidebar.drawerOpen,
+				hidden && sidebar.hidden,
+			)}
+		>
 			{guided && <TreeTabs />}
 			{showTree && <TreePane active={activePath(S)} />}
 			{guided && S.sidebarTab === 'walkthrough' && (
-				<div id="walk">
-					{(S.walkthroughRows?.() ?? []).map(row => (
-						<WalkNode key={row.key} row={row} />
+				<div {...stylex.props(sidebar.pane)}>
+					{(S.walkthroughRows?.() ?? []).map(node => (
+						<WalkNode key={node.key} node={node} />
 					))}
 				</div>
 			)}
 			<button
-				className="tree-settings"
+				{...stylex.props(sidebar.settings)}
 				onClick={() => S.openSettings?.()}
 			>
 				<Icon id="gly-settings" />
 				<span>Settings</span>
-				<kbd>⇧,</kbd>
+				<Kbd keys="⇧," css={sidebar.settingsKey} />
 			</button>
 		</aside>
 	)

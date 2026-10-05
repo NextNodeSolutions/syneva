@@ -1,153 +1,84 @@
-import { useEffect, useRef, useState } from 'react'
-
-import { guideInputs, guideProgress } from '@entities/review/guide/guide'
 import { reviewNotes } from '@entities/review/notes'
 import { useStoreFields } from '@shared/lib/use-store-version'
+import { count, deskControl, segmented } from '@shared/ui/desk-control.styles'
 import { Icon } from '@shared/ui/icon'
+import { Kbd } from '@shared/ui/kbd'
+import { kbd } from '@shared/ui/kbd.styles'
+import { tip } from '@shared/ui/tip.styles'
+import * as stylex from '@stylexjs/stylex'
+import { control, dot } from '@syneva/design-system/controls.styles'
+import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'
+import { isTreeless } from '../layout'
 
-import { BrandBlock } from './brand-logo'
+import { BrandBlock } from './brand-block'
 import { ResetButton } from './reset-button'
+import { ReviewProgress } from './review-progress'
+import { topBar } from './top-bar.styles'
 
 import type { ReactElement } from 'react'
 
 // The top bar: brand, lenses, agent status, progress, and the desk-level actions.
-// The *moment* of progress is animated (count-up label, pulse strip), which is rAF
-// work on top of the store-version subscription.
 
-// Persistent review-progress chrome: a full-width fill strip along the bottom edge of
-// the topbar plus a "% reviewed" label beside the actions.
-const COUNT_UP_MS = 450
-const EASE_POWER = 3
-const FULL_PERCENT = 100
-
-// Tab title carries progress too ("(58%) Syneva - repo"), so it reads from other tabs.
-// main.ts names the base title at init; setBaseTitle stamps the prefix.
-let baseTitle = document.title
-export function setBaseTitle(title: string): void {
-	baseTitle = title
-}
-
-function titleFor(pct: number): string {
-	if (pct >= FULL_PERCENT) return `✓ ${baseTitle}`
-	if (pct > 0) return `(${pct}%) ${baseTitle}`
-	return baseTitle
-}
-
-// The animated "% reviewed" pair (strip + label). One component owns both, exactly
-// like the old imperative writer owned both elements.
-// The count-up animation: the label eases from the previous % to the new one over
-// ~450ms (ease-out) instead of jumping, and the strip pulses when the bar advances.
-// Extracted from the component so the render stays at one level of abstraction.
-function animateCountUp(
-	from: number,
-	to: number,
-	show: (pct: number) => void,
-): () => void {
-	const start = performance.now()
-	let raf = 0
-	const tick = (now: number): void => {
-		const k = Math.min(1, (now - start) / COUNT_UP_MS)
-		const eased = 1 - (1 - k) ** EASE_POWER
-		show(Math.round(from + (to - from) * eased))
-		if (k < 1) raf = requestAnimationFrame(tick)
-	}
-	raf = requestAnimationFrame(tick)
-	return () => cancelAnimationFrame(raf)
-}
-
-function restartPulse(strip: HTMLElement): void {
-	// Restart the .pulse CSS animation even when the class is already on.
-	strip.classList.remove('pulse')
-	void strip.offsetWidth
-	strip.classList.add('pulse')
-}
-
-function ReviewProgress(): ReactElement {
-	const { S } = chromeCtx()
-	useStoreFields(
-		'state',
-		'fileIndex',
-		'preview',
-		'overviewOpen',
-		'settings',
-		'awaitingAgent',
-		'queuedReviews',
-		'agentActivity',
-		'fileView',
-		'treeDrawerOpen',
-	)
-	const hasFiles = Boolean(S.state?.files.length)
-	const pct = hasFiles ? guideProgress(guideInputs(S)).pct : 0
-	// Count the label from the previous value to the new one over ~450ms
-	// (ease-out) instead of jumping; no movement means no ceremony.
-	const shownRef = useRef<number | null>(null)
-	const [labelPct, setLabelPct] = useState<number>(pct)
-	const stripRef = useRef<HTMLDivElement | null>(null)
-
-	useEffect(() => {
-		document.title = hasFiles ? titleFor(pct) : baseTitle
-		if (!hasFiles) return undefined
-		const shown = shownRef.current
-		if (shown === null || pct === shown) {
-			setLabelPct(pct)
-			shownRef.current = pct
-			return undefined
-		}
-		if (pct > shown && stripRef.current) restartPulse(stripRef.current)
-		const cancel = animateCountUp(shown, pct, setLabelPct)
-		shownRef.current = pct
-		return cancel
-	}, [pct, hasFiles])
-
-	if (!hasFiles) return <></>
+// One lens button inside its segmented register.
+function Lens({
+	on,
+	tipText,
+	onClick,
+	children,
+}: {
+	on: boolean
+	tipText: string
+	onClick: () => void
+	children: ReactElement | string | (ReactElement | string)[]
+}): ReactElement {
 	return (
-		<>
-			<span className="top-pct">{labelPct}% reviewed</span>
-			<div className="top-progress" ref={stripRef}>
-				<i style={{ width: `${pct}%` }} />
-			</div>
-		</>
+		<button
+			{...stylex.props(segmented.item, on && segmented.on, tip.host)}
+			aria-pressed={on}
+			data-tip={tipText}
+			onClick={onClick}
+		>
+			{children}
+		</button>
 	)
 }
 
 // The view lenses: hide-reviewed (multi-round reviews) and the markdown
 // rendered/source pair - each only when it applies to the current file.
-function TopToggles(): ReactElement {
+function TopLenses(): ReactElement {
 	const { S } = chromeCtx()
 	return (
-		<div className="toggles">
+		<div {...stylex.props(topBar.lenses)}>
 			{S.hasReviewed?.() && (
-				<div className="toggle">
-					<button
-						className={S.settings.hideReviewed ? 'active' : ''}
-						aria-pressed={S.settings.hideReviewed}
-						data-tip="Hide accepted changes (⇧H)"
+				<div {...stylex.props(segmented.group)}>
+					<Lens
+						on={S.settings.hideReviewed}
+						tipText="Hide accepted changes (⇧H)"
 						onClick={() => S.toggleHideReviewed?.()}
 					>
-						Hide approved<kbd>⇧H</kbd>
-					</button>
+						Hide approved
+						<Kbd keys="⇧H" css={kbd.onTint} />
+					</Lens>
 				</div>
 			)}
 			{S.isMarkdownFile?.() && (
-				<div className="toggle">
-					<button
-						className={S.fileView === 'rendered' ? 'active' : ''}
-						aria-pressed={S.fileView === 'rendered'}
-						data-tip="Rendered / source (m)"
+				<div {...stylex.props(segmented.group)}>
+					<Lens
+						on={S.fileView === 'rendered'}
+						tipText="Rendered / source (m)"
 						onClick={() => S.setFileView?.('rendered')}
 					>
 						Rendered
-					</button>
-					<button
-						className={S.fileView === 'source' ? 'active' : ''}
-						aria-pressed={S.fileView === 'source'}
-						data-tip="Rendered / source (m)"
+					</Lens>
+					<Lens
+						on={S.fileView === 'source'}
+						tipText="Rendered / source (m)"
 						onClick={() => S.setFileView?.('source')}
 					>
 						Source
-					</button>
+					</Lens>
 				</div>
 			)}
 		</div>
@@ -159,19 +90,28 @@ function AgentStatus(): ReactElement {
 	const visible =
 		S.awaitingAgent && (S.queuedReviews > 0 || Boolean(S.agentActivity))
 	if (!visible) return <></>
-	const text =
-		S.queuedReviews > 0
-			? 'No agent attached \u2014 review queued'
-			: (S.agentActivity ?? '')
+	const queued = S.queuedReviews > 0
+	const text = queued
+		? 'No agent attached \u2014 review queued'
+		: (S.agentActivity ?? '')
 	return (
-		<span className={`agent-status${S.queuedReviews > 0 ? ' queued' : ''}`}>
+		<span {...stylex.props(topBar.agent, queued && topBar.agentQueued)}>
+			<span
+				{...stylex.props(
+					dot.base,
+					queued ? dot.amber : dot.accent,
+					!queued && dot.live,
+				)}
+			/>
 			{text}
 		</span>
 	)
 }
 
-// The notes-panel trigger: a plain labeled button (the desk has no icon-only
-// habit in this corner) with the open-thread count riding it when there is one.
+// The compact tile every top-bar action starts from.
+const tile = [press.control, control.base, deskControl.compact]
+
+// The notes-panel trigger: a labelled button with the open-thread count riding it.
 // Own subscription: the count re-derives off `state` without dragging the other
 // desk buttons into every poll.
 function NotesButton(): ReactElement {
@@ -180,45 +120,61 @@ function NotesButton(): ReactElement {
 	const open = reviewNotes(S.state).filter(n => n.status === 'open').length
 	return (
 		<button
-			className={`btn top-notes${S.notesOpen ? ' active' : ''}`}
+			{...stylex.props(
+				tile,
+				S.notesOpen ? deskControl.ask : control.outlined,
+				tip.host,
+			)}
 			data-tip="Review notes - all comments & questions (n)"
 			aria-pressed={S.notesOpen}
 			onClick={() => S.toggleNotes?.()}
 		>
-			<span>Notes</span>
-			{open > 0 && <span className="notes-count">{open}</span>}
+			Notes
+			{open > 0 && <span {...stylex.props(count.base)}>{open}</span>}
 		</button>
 	)
 }
 
 // The desk-level actions: notes, settings, reset, send, close. Each is a store method
-// call - the confirm gates live behind the facade methods.
+// call - the confirm gates live behind the facade methods. Settings sits here only
+// on a desk without a tree (the tree docks it otherwise).
 function DeskButtons(): ReactElement {
 	const { S } = chromeCtx()
 	return (
 		<>
 			<NotesButton />
-			<button
-				className="btn icon top-settings"
-				data-tip="Settings (⇧,)"
-				aria-label="Open settings"
-				onClick={() => S.openSettings?.()}
-			>
-				<Icon id="gly-settings" />
-			</button>
+			{isTreeless(S) && (
+				<button
+					{...stylex.props(
+						tile,
+						control.quiet,
+						deskControl.iconCompact,
+						tip.host,
+					)}
+					data-tip="Settings (⇧,)"
+					aria-label="Open settings"
+					onClick={() => S.openSettings?.()}
+				>
+					<Icon id="gly-settings" />
+				</button>
+			)}
 			<ResetButton />
 			<button
-				className="btn primary"
+				{...stylex.props(tile, control.primary)}
 				disabled={S.awaitingAgent}
 				onClick={() => S.confirmSend?.()}
 			>
-				<span>
-					{S.awaitingAgent ? 'Waiting for Agent…' : 'Send to Agent'}
-				</span>
-				<kbd>⇧S</kbd>
+				{S.awaitingAgent ? 'Waiting for agent…' : 'Send to agent'}
+				<Kbd keys="⇧S" css={kbd.onFill} />
 			</button>
 			<button
-				className="btn danger"
+				{...stylex.props(
+					tile,
+					control.quiet,
+					deskControl.dangerHint,
+					tip.host,
+					tip.end,
+				)}
 				data-tip="Close Syneva - stop the desk (⇧Q)"
 				onClick={() => void S.closeDesk?.()}
 			>
@@ -230,7 +186,7 @@ function DeskButtons(): ReactElement {
 
 function TopActions(): ReactElement {
 	return (
-		<div className="actions">
+		<div {...stylex.props(topBar.actions)}>
 			<AgentStatus />
 			<ReviewProgress />
 			<DeskButtons />
@@ -240,9 +196,9 @@ function TopActions(): ReactElement {
 
 export function TopBar(): ReactElement {
 	return (
-		<header className="top">
+		<header {...stylex.props(topBar.bar)}>
 			<BrandBlock />
-			<TopToggles />
+			<TopLenses />
 			<TopActions />
 		</header>
 	)

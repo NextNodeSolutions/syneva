@@ -1,4 +1,5 @@
 import '@syneva/design-system/fonts.css'
+import './desk.css'
 import { createRoot } from 'react-dom/client'
 
 import { installCommentBindings } from '@app/facade/comment-thread'
@@ -10,8 +11,8 @@ import { installProjectTreeBindings } from '@app/facade/project-tree'
 import { installFileActionBindings } from '@app/facade/review-header'
 import { installKeys } from '@app/keys'
 import { adoptDeskStatus, POLL_INTERVAL_MS, pollState } from '@app/poll'
-import { installPaneResizers } from '@app/resizer'
 import { fetchState } from '@entities/review/api'
+import { deskName } from '@entities/review/desk-name'
 import { fetchTree } from '@entities/review/file/api'
 import { repoBlobUrl } from '@entities/review/file/api'
 import { defaultFileView } from '@entities/review/file/file-summary'
@@ -24,7 +25,7 @@ import { setMarkdownTheme } from '@shared/markdown'
 import { configureMarkdownRuntime } from '@shared/markdown/runtime-config'
 import { ensureIcons } from '@shared/ui/icons'
 import { bindChromeCtx } from '@widgets/chrome/context'
-import { setBaseTitle } from '@widgets/chrome/react/top-bar'
+import { setBaseTitle } from '@widgets/chrome/react/review-progress'
 import { bindDiffCtx } from '@widgets/diff-view/context'
 import { D } from '@widgets/diff-view/runtime'
 
@@ -33,16 +34,11 @@ import { App } from './react/app'
 import { persist, requireState, toast } from './store'
 import { S } from './store'
 
-import type { ReviewState } from '@entities/review/model'
-
 // The tab's bootstrap: store bindings, the React root, the initial fetch, and the few document-level
 // listeners. Everything with real behaviour lives in the modules this wires together.
 
-// The pr title is the ref, truncated so a long branch name can't dominate the tab strip.
-const REF_TITLE_MAX = 32
 // Scrolling the diff past its header reveals the floating Approve button.
 const FAB_REVEAL_SCROLL_PX = 140
-installPaneResizers()
 // Bind the features' use-case context before any binding that can invoke a feature action.
 bindFeaturePorts()
 // Bind the page/widget render-path context before the React root mounts and before any render or
@@ -65,8 +61,8 @@ installCommentBindings()
 installDialogBindings()
 
 // The React tree: mounted right after the contexts and facade bindings are in place, so
-// the shell (and the engine containers inside DiffArea) exist before the resizer and the
-// first render pass touch them. The store starts with state=null; the chrome tolerates it
+// the shell (and the engine containers inside DiffArea) exist before the first render pass
+// touches them. The store starts with state=null; the chrome tolerates it
 // and fills in when the initial fetch adopts.
 createRoot($('root')).render(<App />)
 
@@ -118,8 +114,8 @@ void bootDiffWorkers(
 S.projectFiles = tree.files ?? []
 S.lastBaseDiffHash = S.state.baseDiffHash
 // Tab title: name the desk so multiple desks are distinguishable in the browser.
-const deskName = readDeskName(S.state)
-if (deskName) document.title = `Syneva - ${deskName}`
+const name = deskName(S.state)
+if (name) document.title = `Syneva - ${name}`
 // The top bar's progress label prefixes the title with the review % - hand it the base.
 setBaseTitle(document.title)
 S.selected = {
@@ -148,19 +144,3 @@ $('diff').addEventListener('scroll', () => {
 	S.diffScrolled = $('diff').scrollTop > FAB_REVEAL_SCROLL_PX
 })
 setInterval(() => void pollState(), POLL_INTERVAL_MS)
-
-// Repo mode -> repo folder; file mode -> file name; pr mode -> the (truncated) ref.
-function readDeskName(review: ReviewState): string {
-	if (review.mode === 'file') return lastPathSegment(review.target)
-	if (review.mode === 'pr') {
-		const ref = review.target ?? review.session
-		return ref.length > REF_TITLE_MAX
-			? `${ref.slice(0, REF_TITLE_MAX)}…`
-			: ref
-	}
-	return lastPathSegment(review.root)
-}
-
-function lastPathSegment(path: string | undefined): string {
-	return path?.replace(/\/+$/, '').split('/').pop() ?? ''
-}

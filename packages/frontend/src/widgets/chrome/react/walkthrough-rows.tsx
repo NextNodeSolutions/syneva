@@ -1,31 +1,41 @@
-import { varStyle } from '@shared/lib/var-style'
 import { Icon } from '@shared/ui/icon'
+import * as stylex from '@stylexjs/stylex'
 
 import { chromeCtx } from '../context'
+
+import { glyph, row } from './sidebar.styles'
+import { Chevron, indentStyle, MovedFrom } from './tree-parts'
 
 import type { WalkRow } from '@entities/review/guide/walkthrough'
 import type { ReactElement } from 'react'
 
-// The walkthrough pane rows: category headers (with the two trailing fold groups): category headers (with the two trailing fold groups)
-// and per-file rows (status icon leads, +/- flush right). Rows come pre-classed
-// from walkRows(), which derives the active highlight from the active path.
+// The walkthrough pane rows: category headers (with the two trailing fold groups)
+// and per-file rows (status icon leads, +/- flush right). The active highlight comes
+// derived from walkRows(), which reads the active path.
 
 // The +/- glyph pair matches the diff's churn indicators; U+2212 is the minus the
-// CSS width was tuned against, written as an escape to keep comparisons ASCII-safe.
+// width was tuned against, written as an escape to keep comparisons ASCII-safe.
 const REMOVED_GLYPH = '\u2212'
 
-function WalkStateIcon({ state }: { state: string }): ReactElement {
-	const icons: Record<string, { id: string; title: string }> = {
-		pending: { id: 'gly-circle', title: 'Pending review' },
-		approved: { id: 'gly-check', title: 'Approved' },
-		'changes-requested': {
-			id: 'gly-circle-alert',
-			title: 'Changes requested',
-		},
-	}
-	const icon = icons[state]
-	if (!icon) return <></>
-	return <Icon id={icon.id} className={`st ${state}`} title={icon.title} />
+const STATE_ICONS = {
+	pending: { id: 'gly-circle', title: 'Pending review', css: glyph.todo },
+	approved: { id: 'gly-check', title: 'Approved', css: glyph.approved },
+	'changes-requested': {
+		id: 'gly-circle-alert',
+		title: 'Changes requested',
+		css: glyph.changes,
+	},
+}
+
+function WalkStateIcon({
+	state,
+}: {
+	state: keyof typeof STATE_ICONS
+}): ReactElement {
+	const icon = STATE_ICONS[state]
+	return (
+		<Icon id={icon.id} css={[glyph.badge, icon.css]} title={icon.title} />
+	)
 }
 
 function WalkLineStats({
@@ -35,89 +45,79 @@ function WalkLineStats({
 	added: number
 	removed: number
 }): ReactElement {
-	// Hidden on cat rows: an empty status-pack still carries margin-left:auto, and two
-	// auto margins would split the free space and strand the fold-group count mid-row.
 	return (
-		<span className="status-pack">
-			{added ? <i className="add">{`+${added}`}</i> : null}
+		<span {...stylex.props(row.trail)}>
+			{added ? <i {...stylex.props(row.added)}>{`+${added}`}</i> : null}
 			{removed ? (
-				<i className="del">{`${REMOVED_GLYPH}${removed}`}</i>
+				<i
+					{...stylex.props(row.removed)}
+				>{`${REMOVED_GLYPH}${removed}`}</i>
 			) : null}
 		</span>
 	)
 }
 
 function WalkCatNode({
-	row,
+	node,
 }: {
-	row: Extract<WalkRow, { kind: 'cat' }>
+	node: Extract<WalkRow, { kind: 'cat' }>
 }): ReactElement {
 	const { S } = chromeCtx()
-	const foldable = row.renamed || row.reviewed
+	const foldable = node.renamed || node.reviewed
 	return (
 		<div
-			className={`node walk-cat${foldable ? ' walk-fold' : ''}`}
-			data-key={row.key}
+			{...stylex.props(row.base, row.category, foldable && row.fold)}
+			data-key={node.key}
 			onClick={() => {
-				if (row.renamed) S.toggleRenamedGroup?.()
-				else if (row.reviewed) S.toggleReviewedGroup?.()
-				else S.selectFile?.(row.jumpIndex)
+				if (node.renamed) S.toggleRenamedGroup?.()
+				else if (node.reviewed) S.toggleReviewedGroup?.()
+				else S.selectFile?.(node.jumpIndex)
 			}}
 		>
-			{foldable && (
-				<Icon
-					id="gly-chevron"
-					className={row.open ? 'chev open' : 'chev'}
-				/>
-			)}
-			<span className="nm walk-cat-name" title={row.category}>
-				{row.category}
+			{foldable && <Chevron open={node.open} />}
+			<span {...stylex.props(row.name)} title={node.category}>
+				{node.category}
 			</span>
 			{foldable && (
-				<span className="walk-fold-count">
-					{row.total + (row.total === 1 ? ' file' : ' files')}
+				<span {...stylex.props(row.count)}>
+					{node.total + (node.total === 1 ? ' file' : ' files')}
 				</span>
 			)}
 		</div>
 	)
 }
 
-function MovedFrom({ from }: { from: string }): ReactElement {
-	return (
-		<span
-			className="moved-from"
-			title={`moved from ${from}`}
-		>{`← ${from}`}</span>
-	)
-}
-
 function WalkFileNode({
-	row,
+	node,
 }: {
-	row: Extract<WalkRow, { kind: 'file' }>
+	node: Extract<WalkRow, { kind: 'file' }>
 }): ReactElement {
 	return (
 		<div
-			className={`node ${row.cls}`}
-			data-key={row.key}
-			style={varStyle(row.style)}
-			onClick={() => chromeCtx().S.selectFile?.(row.fileIndex)}
+			{...stylex.props(
+				row.base,
+				row.changed,
+				indentStyle(1),
+				node.active && row.active,
+			)}
+			data-key={node.key}
+			onClick={() => chromeCtx().S.selectFile?.(node.fileIndex)}
 		>
 			{/* File status leads the row (empty circle = to do); ± stay flush right below. */}
-			<WalkStateIcon state={row.state} />
-			<span className="nm" title={row.path}>
-				{row.name}
+			<WalkStateIcon state={node.state} />
+			<span {...stylex.props(row.name)} title={node.path}>
+				{node.name}
 			</span>
-			{row.movedFrom && <MovedFrom from={row.movedFrom} />}
-			<WalkLineStats added={row.added} removed={row.removed} />
+			{node.movedFrom && <MovedFrom from={node.movedFrom} />}
+			<WalkLineStats added={node.added} removed={node.removed} />
 		</div>
 	)
 }
 
-export function WalkNode({ row }: { row: WalkRow }): ReactElement {
-	return row.kind === 'cat' ? (
-		<WalkCatNode row={row} />
+export function WalkNode({ node }: { node: WalkRow }): ReactElement {
+	return node.kind === 'cat' ? (
+		<WalkCatNode node={node} />
 	) : (
-		<WalkFileNode row={row} />
+		<WalkFileNode node={node} />
 	)
 }

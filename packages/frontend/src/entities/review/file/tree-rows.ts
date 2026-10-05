@@ -1,5 +1,6 @@
-// File-tree rows: pure data the project tree's x-for template renders. Built by
-// tree.ts per evaluation - display state only, never persisted.
+// File-tree rows: pure data the sidebar renders (the widget derives each row's look from
+// its kind, depth and flags). Built by tree.ts per evaluation - display state only, never
+// persisted.
 import type { FileReviewState } from '../model'
 
 export type DirRow = {
@@ -7,9 +8,6 @@ export type DirRow = {
 	key: string
 	depth: number
 	name: string
-	cls: string
-	// Inline `--depth:N` custom property - .node derives padding + indent guides from it.
-	style: string
 	full: string
 	dirCaret: string
 	open: boolean
@@ -21,8 +19,8 @@ export type FileRow = {
 	key: string
 	depth: number
 	name: string
-	cls: string
-	style: string
+	// The row's file or one of its tests changed - the row reads in full ink.
+	changed: boolean
 	path: string
 	fileIndex: number | undefined
 	testToggle: boolean
