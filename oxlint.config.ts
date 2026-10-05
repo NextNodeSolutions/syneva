@@ -145,38 +145,6 @@ export default defineConfig({
 			rules: { 'nextnode/no-detached-tailwind': 'off' },
 		},
 		{
-			// The token pool's pinned-library seam: @pierre/diffs pins a nominal-class
-			// WorkerPoolManager (private fields, no structural half) and types helpers against the
-			// full shiki v3 barrel (DiffsHighlighter) while syneva builds a lean shiki v4(core)
-			// instance; DOM libs also lack DedicatedWorkerGlobalScope so the worker scope needs a
-			// narrow view. Every assertion lives next to its seam and is documented there.
-			// Token-pool files also log failures (an unhighlighted desk must show WHY, not stay
-			// silent), and post worker messages without target-origin (workers post by identity,
-			// the rule targets window contexts).
-			files: [
-				'packages/frontend/src/widgets/diff-view/worker-pool.ts',
-				'packages/frontend/src/worker/diff-token-worker.ts',
-				'packages/frontend/src/shared/diff-renderer/token-pool/*.ts',
-			],
-			rules: {
-				'nextnode/no-type-assertion': 'off',
-				// The type-aware pass sees the same seams as unsafe (the nominal pool cast, the
-				// DiffsHighlighter parameter shape, the window-scope view).
-				'typescript/no-unsafe-type-assertion': 'off',
-				'unicorn/require-post-message-target-origin': 'off',
-				'eslint/no-console': 'off',
-				// The pool's PoolJob/WindowTask records are one piece of shared mutable state the
-				// class owns: settlement paths (window landed, worker crashed, options adopted)
-				// mutate the same record through their parameters by design - copying it per call
-				// would fork the state the countdown and the gate are read from.
-				'eslint/no-param-reassign': 'off',
-				// The single-class pool (pool.ts) is deliberate: the v1 book split the same state
-				// machine across six modules whose only seams were call boundaries. Keep the file
-				// cap from splitting it again.
-				'eslint/max-lines': 'off',
-			},
-		},
-		{
 			// The hide-reviewed distill pass is a mechanical translation of @pierre's own
 			// resolveRegion cursor walk (same counters, same collapsed-context handling, minus
 			// dropped rows) - the pinned-library seam's shape, not a reviewable logic tree.
