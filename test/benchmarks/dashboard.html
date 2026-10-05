@@ -869,6 +869,11 @@
 			"id": "simplify2",
 			"label": "Render-path simplification round 2",
 			"note": "Behavior-preserving simplification of the Diff -> @pierre render flow: unified desk/diff context seams, shared guideInputs/grouping helpers removed ~300 duplicated lines and 30+ single-use functions, dead exports and an unreachable legacy replay fallback deleted. Hypothesis: no measurable cold-open drift. Verdict: module 96-104 ms, contents 23-29 ms across two samples (existing build emits only these stamps)."
+		},
+		{
+			"id": "pierre-shiki",
+			"label": "Pierre-native highlighting",
+			"note": "Hypothesis: dropping the shiki shim (Pierre resolves grammars and themes itself; prose code blocks share its highlighter) cuts the JS on the cold-open path without slowing first colour. The milestone also restores the plain-paint and first-colour stamps (render:painted / render:colored, posted from Pierre's onPostRender), applied as a patch to the control build so both sides read the same stages. Verdict on medium (pi-frontend-check, Brave headless, driven by pi on zai/glm-5.3-flash at thinking low; 1920x1080, five fresh desks per build, interleaved): decoded JS loaded per open 1313 -> 1023 KB (-22%); first colour 1539-1754 ms (median 1631) against the control's 1562-1692 ms (median 1622), so no measurable change - the cold open stays CPU-bound in the renderer. render:painted equals render:colored in every sample: Pierre mounts the first diff already highlighted, so the ~1.4 s between contents and colour is tokenize plus DOM build, the lever for the next round."
 		}
 	],
 	"rejected": [
@@ -2350,6 +2355,196 @@
 				"windowDone": 0
 			},
 			"note": "Second sample of the simplify2 spread (pi-frontend-check, 960x720, fresh desk + fresh open, split). Same route caveat as simplify2-medium-1."
+		},
+		{
+			"id": "pierre-shiki-control-medium-1",
+			"fixture": "medium",
+			"milestone": "simplify2",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 93,
+				"contents": 17,
+				"plainPaint": 1622,
+				"firstColor": 1622
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Control for the pierre-shiki milestone: HEAD ac0f568 (shiki shim in place) plus the render:painted/render:colored stamp patch. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 1, interleaved with the other build. Decoded JS loaded per open: 1313 KB."
+		},
+		{
+			"id": "pierre-shiki-control-medium-2",
+			"fixture": "medium",
+			"milestone": "simplify2",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 126,
+				"contents": 17,
+				"plainPaint": 1628,
+				"firstColor": 1628
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Control for the pierre-shiki milestone: HEAD ac0f568 (shiki shim in place) plus the render:painted/render:colored stamp patch. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 1, interleaved with the other build. Decoded JS loaded per open: 1313 KB."
+		},
+		{
+			"id": "pierre-shiki-control-medium-3",
+			"fixture": "medium",
+			"milestone": "simplify2",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 129,
+				"contents": 18,
+				"plainPaint": 1562,
+				"firstColor": 1562
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Control for the pierre-shiki milestone: HEAD ac0f568 (shiki shim in place) plus the render:painted/render:colored stamp patch. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 2, interleaved with the other build. Decoded JS loaded per open: 1313 KB."
+		},
+		{
+			"id": "pierre-shiki-control-medium-4",
+			"fixture": "medium",
+			"milestone": "simplify2",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 168,
+				"contents": 27,
+				"plainPaint": 1692,
+				"firstColor": 1692
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Control for the pierre-shiki milestone: HEAD ac0f568 (shiki shim in place) plus the render:painted/render:colored stamp patch. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 2, interleaved with the other build. Decoded JS loaded per open: 1313 KB."
+		},
+		{
+			"id": "pierre-shiki-control-medium-5",
+			"fixture": "medium",
+			"milestone": "simplify2",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 123,
+				"contents": 18,
+				"plainPaint": 1596,
+				"firstColor": 1596
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Control for the pierre-shiki milestone: HEAD ac0f568 (shiki shim in place) plus the render:painted/render:colored stamp patch. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 2, interleaved with the other build. Decoded JS loaded per open: 1313 KB."
+		},
+		{
+			"id": "pierre-shiki-medium-1",
+			"fixture": "medium",
+			"milestone": "pierre-shiki",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 151,
+				"contents": 20,
+				"plainPaint": 1754,
+				"firstColor": 1754
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Shim removed, prose code blocks on Pierre's shared highlighter. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 1, interleaved with the other build. Decoded JS loaded per open: 1023 KB."
+		},
+		{
+			"id": "pierre-shiki-medium-2",
+			"fixture": "medium",
+			"milestone": "pierre-shiki",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 129,
+				"contents": 48,
+				"plainPaint": 1691,
+				"firstColor": 1691
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Shim removed, prose code blocks on Pierre's shared highlighter. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 1, interleaved with the other build. Decoded JS loaded per open: 1023 KB."
+		},
+		{
+			"id": "pierre-shiki-medium-3",
+			"fixture": "medium",
+			"milestone": "pierre-shiki",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 92,
+				"contents": 18,
+				"plainPaint": 1609,
+				"firstColor": 1609
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Shim removed, prose code blocks on Pierre's shared highlighter. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 2, interleaved with the other build. Decoded JS loaded per open: 1023 KB."
+		},
+		{
+			"id": "pierre-shiki-medium-4",
+			"fixture": "medium",
+			"milestone": "pierre-shiki",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 134,
+				"contents": 19,
+				"plainPaint": 1631,
+				"firstColor": 1631
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Shim removed, prose code blocks on Pierre's shared highlighter. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 2, interleaved with the other build. Decoded JS loaded per open: 1023 KB."
+		},
+		{
+			"id": "pierre-shiki-medium-5",
+			"fixture": "medium",
+			"milestone": "pierre-shiki",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 128,
+				"contents": 20,
+				"plainPaint": 1539,
+				"firstColor": 1539
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"note": "Shim removed, prose code blocks on Pierre's shared highlighter. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 2, interleaved with the other build. Decoded JS loaded per open: 1023 KB."
 		}
 	]
 };
