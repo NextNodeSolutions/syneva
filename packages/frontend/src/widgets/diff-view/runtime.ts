@@ -10,7 +10,8 @@ export type DiffHolder = {
 	instance: FileDiff<AnnotationMeta> | null
 	fileDiff: FileDiffMetadata | null
 	// Raw ↔ display line mapping for the current file's rendered (replayed) diff.
-	// Rebuilt by replayDecisions on every render; null = identity (no decisions / view-only).
+	// Set from the (memoized) decision replay on every pass; null = identity (no decisions /
+	// view-only).
 	lineMap: LineMap | null
 }
 

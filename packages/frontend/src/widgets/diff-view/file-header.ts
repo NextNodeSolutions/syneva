@@ -281,8 +281,22 @@ function previewHeader(): HTMLElement {
 	return wrap
 }
 
-export function createDiffHeader(
+// The header's host: Pierre slots it whenever it rebuilds its own header (a new diff, new
+// options), and every render pass refills it from the live store - approval, blockers and file
+// comments change without the diff changing, and must not cost Pierre a row rebuild.
+// `display: contents` keeps the host out of the slot's layout.
+const headerHost = document.createElement('div')
+headerHost.style.display = 'contents'
+
+export function slotDiffHeader(): HTMLElement {
+	return headerHost
+}
+
+export function refreshDiffHeader(
+	file: FileDiffMetadata,
 	isPreviewing: boolean,
-): (file: FileDiffMetadata) => HTMLElement {
-	return isPreviewing ? previewHeader : fileHeader
+): void {
+	headerHost.replaceChildren(
+		isPreviewing ? previewHeader() : fileHeader(file),
+	)
 }

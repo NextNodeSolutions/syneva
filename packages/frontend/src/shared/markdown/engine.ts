@@ -144,8 +144,17 @@ async function loadPendingLanguages(): Promise<void> {
 	if (loads.some(load => load.status === 'fulfilled')) repaint()
 }
 
+// Bumped whenever rendered output changes under the same input (a theme swap, a grammar landing),
+// so a consumer that keeps rendered HTML knows it went stale.
+let revision = 0
+
+export function outputRevision(): number {
+	return revision
+}
+
 // Cached comment HTML still carries the previous theme or plain fences.
 function repaint(): void {
+	revision++
 	cache.clear()
 	markdownRuntime().onLoaded()
 }

@@ -46,7 +46,7 @@ Lint/format behaviour is the shared `@nextnode-solutions/standards` preset; `oxl
 
 ## Render path
 
-All render passes funnel through `packages/frontend/src/pages/desk/render.ts`; `widgets/diff-view/diff-instance.ts` creates a fresh `FileDiff` for each pass and mounts its full output. `packages/frontend/scripts/bundle-budget.mjs` budgets the whole static import graph, not just `ui.js`. `@pierre/diffs` renumbers lines per render — display anchors are derived, raw file lines stay canonical.
+All render passes funnel through `packages/frontend/src/pages/desk/render.ts`; `widgets/diff-view/diff-instance.ts` keeps one `FileDiff` per file on screen and calls `render()` again on every pass, following `@pierre/diffs`' own model: Pierre skips what did not change, so the inputs must keep their identity while unchanged — the diff metadata is memoized (`diff-metadata.ts`, a fresh object re-tokenizes the file), annotations reuse their objects and array (`stable-annotations.ts`, a fresh one rebuilds the rows), every option callback is a stable function, and option changes go through `setOptions`/`setThemeType`. The diff header is our own DOM, refilled each pass (`file-header.ts`). `packages/frontend/scripts/bundle-budget.mjs` budgets the whole static import graph, not just `ui.js`. `@pierre/diffs` renumbers lines per render — display anchors are derived, raw file lines stay canonical.
 
 ## Key invariants
 

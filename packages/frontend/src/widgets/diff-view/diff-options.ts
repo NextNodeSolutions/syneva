@@ -8,12 +8,12 @@ import { perfFirst, perfMark } from '@shared/lib/perf'
 
 import { renderAnnotation } from './annotations'
 import { diffCtx } from './context'
-import { createDiffHeader, headerActions } from './file-header'
+import { slotDiffHeader } from './file-header'
 import { scheduleOverviewRuler } from './overview-ruler'
 import { D } from './runtime'
 
 import type { AnnotationMeta } from '@entities/review/annotations'
-import type { FileDiffOptions } from '@pierre/diffs'
+import type { FileDiffOptions, PostRenderPhase } from '@pierre/diffs'
 import type { DiffView } from './types'
 
 // Preview reads as a plain file: remap @pierre's addition styling to its CONTEXT (unchanged)
@@ -37,8 +37,33 @@ function stampPaint(container: HTMLElement): void {
 		perfMark('render:colored')
 }
 
-// The @pierre render options for one instance. `renderHeaderMetadata` and `renderCustomHeader`
-// are our own header builders (see file-header.ts).
+// The two render flags of the pass, read fresh from the store (see DiffView).
+export function currentDiffView(): DiffView {
+	const { S } = diffCtx()
+	return {
+		isPreviewing: !!S.preview,
+		isExpandedUnchanged: S.settings.unchangedLines === 'expand',
+	}
+}
+
+// Focus the composer after Pierre mounts its rows. A module-level function, like every callback
+// below: the options must compare equal across passes (areOptionsEqual) for the instance to keep
+// its render, so no callback may be a fresh closure.
+function handlePostRender(
+	container: HTMLElement,
+	instance: object,
+	phase: PostRenderPhase,
+): void {
+	if (instance !== D.instance) return
+	if (phase === 'unmount') return
+	stampPaint(container)
+	requestAnimationFrame(restorePendingComposerFocus)
+	const { isPreviewing, isExpandedUnchanged } = currentDiffView()
+	if (!isPreviewing && isExpandedUnchanged) scheduleOverviewRuler()
+}
+
+// The @pierre render options for one instance. The header is our own (file-header.ts): Pierre
+// slots its host, the render pass fills it.
 export function diffOptions(
 	view: DiffView,
 ): FileDiffOptions<AnnotationMeta, undefined> {
@@ -73,19 +98,11 @@ export function diffOptions(
 		onLineSelectionChange: handleDiffSelection,
 		onLineSelected: handleDiffSelection,
 		onLineSelectionEnd: handleDiffSelection,
-		renderHeaderMetadata: headerActions,
-		// Focus the composer after Pierre mounts its rows.
-		onPostRender: (container, instance, phase) => {
-			if (instance !== D.instance) return
-			if (phase === 'unmount') return
-			stampPaint(container)
-			requestAnimationFrame(restorePendingComposerFocus)
-			if (!isPreviewing && isExpandedUnchanged) scheduleOverviewRuler()
-		},
+		onPostRender: handlePostRender,
 		// @pierre reserves a right-side gutter via `scrollbar-gutter: stable` on the code grid (for
 		// a vertical scrollbar it hides) - drop it so rows fill the full width. PREVIEW_CSS (empty
 		// unless previewing) neutralizes addition styling to context, in-shadow.
 		unsafeCSS: `[data-code]{scrollbar-gutter:auto}${isPreviewing ? PREVIEW_CSS : ''}`,
-		renderCustomHeader: createDiffHeader(isPreviewing),
+		renderCustomHeader: slotDiffHeader,
 	}
 }

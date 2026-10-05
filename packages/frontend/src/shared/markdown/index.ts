@@ -15,7 +15,13 @@ import type { MarkdownComment } from './engine'
 let engine: typeof MarkdownEngine | undefined
 let loading: Promise<void> | undefined
 let themeName = ''
-export let markdownRevision = 0
+
+// Changes whenever rendered markdown would change for the same text: the engine landing (the
+// escaped fallback upgrades), then each theme or grammar it loads. A consumer that keeps rendered
+// markdown (the diff's comment threads) keys on it.
+export function markdownRevision(): number {
+	return engine ? 1 + engine.outputRevision() : 0
+}
 
 function loadMarkdown(): void {
 	loading ??= initializeMarkdown()
@@ -29,7 +35,6 @@ async function initializeMarkdown(): Promise<void> {
 		// A theme picked while the engine loaded only reached `themeName`.
 		module.setMarkdownTheme(themeName || theme)
 		engine = module
-		markdownRevision++
 		markdownRuntime().onLoaded()
 	} catch {
 		loading = undefined
