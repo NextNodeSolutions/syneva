@@ -27,7 +27,8 @@ import {
 	readDesk,
 	shutdownHub,
 } from './hub-routes.js'
-import { notFoundPage } from './pages.js'
+import { DESK_NOT_OPEN, NOTHING_HERE, notFoundPage } from './pages.js'
+import { FONT_FILE } from './routes/static.js'
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AccessGuard } from './auth.js'
@@ -94,7 +95,7 @@ export function createHubRequestHandler(
 			if (await handleHubApi(deps, request)) return
 			if (await handleDeskApi(deps, request)) return
 			if (await handleUiAsset(deps, request)) return
-			fail(res, NOT_FOUND_JSON)
+			notFound(request)
 		} catch (error) {
 			reportFailure(res, error)
 		}
@@ -104,8 +105,9 @@ export function createHubRequestHandler(
 	}
 }
 
-// The sign-in pages and the public health probe answer before the access guard; everything
-// else needs the key when one is configured. True once the request has been answered.
+// The sign-in pages, the public health probe and the font files answer before the access
+// guard; everything else needs the key when one is configured. True once the request has been
+// answered.
 async function handleAccess(
 	deps: HubRouterDeps,
 	req: IncomingMessage,
@@ -124,12 +126,29 @@ async function handleAccess(
 		hubHealth(deps, res)
 		return true
 	}
+	// The fonts are the design system's public OFL files and carry no hub data; without them a
+	// keyed hub's sign-in page (pages.ts) could not set in Geist. Only a read of one font file
+	// name under the fonts prefix passes - pinned here, not left to the UI server (the dev
+	// loop's is Vite, which would take any path) - and only when the UI server has it: anything
+	// else (the stylesheet, the bundles, the APIs) still meets the guard below.
+	if (isFontRead(req, url) && (await deps.ui.asset({ req, res, url })))
+		return true
 	return !deps.guard.allows(req, res, url)
 }
 
 // Pages and assets answer GET and HEAD (a HEAD gets the same headers, Node drops the body).
 function isRead(req: IncomingMessage): boolean {
 	return req.method === 'GET' || req.method === 'HEAD'
+}
+
+function isFontRead(req: IncomingMessage, url: URL): boolean {
+	const { pathname } = url
+	const { fontsPrefix } = STATIC_PATHS
+	return (
+		isRead(req) &&
+		pathname.startsWith(fontsPrefix) &&
+		FONT_FILE.test(pathname.slice(fontsPrefix.length))
+	)
 }
 
 // The dashboard is the hub root.
@@ -176,15 +195,18 @@ async function handleDeskPage(
 	}
 	if (rest.length > 1 || rest[0] !== '') return false
 	if (deps.hub.getDesk(id)) await deps.ui.deskPage(request)
-	else
-		html(
-			res,
-			HTTP_NOT_FOUND,
-			notFoundPage(
-				'This desk is not open on the hub any more. Its review state is saved; reopen it from the repo with `syneva open`.',
-			),
-		)
+	else html(res, HTTP_NOT_FOUND, notFoundPage(DESK_NOT_OPEN, url.pathname))
 	return true
+}
+
+// What no route answered: a page for a browser's navigation (it asks for HTML first), the
+// JSON failure for everything else - an agent, a fetch.
+function notFound({ req, res, url }: StaticRequest): void {
+	const isNavigation =
+		isRead(req) && (req.headers.accept ?? '').includes('text/html')
+	if (isNavigation)
+		html(res, HTTP_NOT_FOUND, notFoundPage(NOTHING_HERE, url.pathname))
+	else fail(res, NOT_FOUND_JSON)
 }
 
 async function handleHubApi(
