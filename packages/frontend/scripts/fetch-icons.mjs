@@ -29,14 +29,22 @@ const ICON_MAP = {
 	// Walkthrough per-file status trio (gly-check doubles as the approved state).
 	'gly-circle': 'lucide:circle',
 	'gly-circle-alert': 'lucide:circle-alert',
+	// The top bar's file-drawer toggle (tablets) and a panel's close.
+	'gly-menu': 'lucide:menu',
+	'gly-close': 'lucide:x',
 }
 
+// The line weight of the public site's drawings and controls (@syneva/design-system): Lucide
+// ships a 2-unit stroke, set lighter here so the icons sit with the site's thin rules.
+const STROKE_WIDTH = '1.5'
+
 // Hand-drawn glyphs with no good library equivalent (status primitives). 24-unit viewBox to
-// match the fetched set so they scale identically.
+// match the fetched set so they scale identically. The pending dot is square, like every
+// live marker of the design system.
 const CUSTOM = {
 	'gly-dot': {
 		vb: '0 0 24 24',
-		body: `<circle cx="12" cy="12" r="4.5" fill="currentColor"/>`,
+		body: `<rect x="8" y="8" width="8" height="8" fill="currentColor"/>`,
 	},
 }
 
@@ -49,6 +57,7 @@ async function fetchIcon(id) {
 	const body = svg
 		.replace(/^[\s\S]*?<svg[^>]*>/, '')
 		.replace(/<\/svg>\s*$/, '')
+		.replaceAll('stroke-width="2"', `stroke-width="${STROKE_WIDTH}"`)
 		.trim()
 	return { vb, body }
 }
