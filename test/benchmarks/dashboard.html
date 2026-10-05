@@ -874,6 +874,11 @@
 			"id": "pierre-shiki",
 			"label": "Pierre-native highlighting",
 			"note": "Hypothesis: dropping the shiki shim (Pierre resolves grammars and themes itself; prose code blocks share its highlighter) cuts the JS on the cold-open path without slowing first colour. The milestone also restores the plain-paint and first-colour stamps (render:painted / render:colored, posted from Pierre's onPostRender), applied as a patch to the control build so both sides read the same stages. Verdict on medium (pi-frontend-check, Brave headless, driven by pi on zai/glm-5.3-flash at thinking low; 1920x1080, five fresh desks per build, interleaved): decoded JS loaded per open 1313 -> 1023 KB (-22%); first colour 1539-1754 ms (median 1631) against the control's 1562-1692 ms (median 1622), so no measurable change - the cold open stays CPU-bound in the renderer. render:painted equals render:colored in every sample: Pierre mounts the first diff already highlighted, so the ~1.4 s between contents and colour is tokenize plus DOM build, the lever for the next round."
+		},
+		{
+			"id": "pierre-reuse",
+			"label": "Keep one Pierre FileDiff per file",
+			"note": "Hypothesis: following @pierre/diffs' instance model (one FileDiff kept per file, render() called again with inputs that keep their identity: memoized metadata, stable annotation objects and array, stable option callbacks, setOptions/setThemeType) removes the re-tokenize every render pass paid, without moving the cold open. Verdict on medium (pi-frontend-check driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; three fresh desks per build, interleaved; diff:render span per interaction): opening the composer 1428-1494 -> 248-276 ms, a Split/Stacked toggle 1298-1353 -> 138-148 ms, both now served from cached tokens. A decision (1283-1349 ms) and a file switch (1252-1326 ms) are unchanged: both hand Pierre a new diff, which it re-tokenizes on the main thread - the worker pool is the next lever. First colour 1603-1695 ms against the control's 1560-1606 ms: a 43-89 ms rise in every pair, not explained yet and to watch when the worker pool replaces this path."
 		}
 	],
 	"rejected": [
@@ -2545,6 +2550,144 @@
 				"windowDone": 0
 			},
 			"note": "Shim removed, prose code blocks on Pierre's shared highlighter. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080 default viewport (not comparable to the 960x720 rows), fresh desk + fresh open, split; batch 2, interleaved with the other build. Decoded JS loaded per open: 1023 KB."
+		},
+		{
+			"id": "pierre-reuse-control-medium-1",
+			"fixture": "medium",
+			"milestone": "pierre-shiki",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 99,
+				"firstColor": 1560
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 1428,
+				"diff:render:layout": 1298,
+				"diff:render:accept": 1319,
+				"diff:render:switch": 1284
+			},
+			"note": "Control for pierre-reuse: the pierre-shiki build plus the diff:render span (a fresh FileDiff per pass). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; interactions (in order: composer on a gutter click, Split->Stacked, Keep on the first change, switch to module-core-102.ts) timed by the diff:render span of the pass they trigger; interleaved with the other build."
+		},
+		{
+			"id": "pierre-reuse-control-medium-2",
+			"fixture": "medium",
+			"milestone": "pierre-shiki",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 89,
+				"firstColor": 1560
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 1494,
+				"diff:render:layout": 1353,
+				"diff:render:accept": 1283,
+				"diff:render:switch": 1252
+			},
+			"note": "Control for pierre-reuse: the pierre-shiki build plus the diff:render span (a fresh FileDiff per pass). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; interactions (in order: composer on a gutter click, Split->Stacked, Keep on the first change, switch to module-core-102.ts) timed by the diff:render span of the pass they trigger; interleaved with the other build."
+		},
+		{
+			"id": "pierre-reuse-control-medium-3",
+			"fixture": "medium",
+			"milestone": "pierre-shiki",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 103,
+				"firstColor": 1606
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 1439,
+				"diff:render:layout": 1303,
+				"diff:render:accept": 1292,
+				"diff:render:switch": 1273
+			},
+			"note": "Control for pierre-reuse: the pierre-shiki build plus the diff:render span (a fresh FileDiff per pass). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; interactions (in order: composer on a gutter click, Split->Stacked, Keep on the first change, switch to module-core-102.ts) timed by the diff:render span of the pass they trigger; interleaved with the other build."
+		},
+		{
+			"id": "pierre-reuse-medium-1",
+			"fixture": "medium",
+			"milestone": "pierre-reuse",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 108,
+				"firstColor": 1603
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 269,
+				"diff:render:layout": 138,
+				"diff:render:accept": 1303,
+				"diff:render:switch": 1289
+			},
+			"note": "One FileDiff kept per file, render() again with stable inputs. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; interactions (in order: composer on a gutter click, Split->Stacked, Keep on the first change, switch to module-core-102.ts) timed by the diff:render span of the pass they trigger; interleaved with the other build."
+		},
+		{
+			"id": "pierre-reuse-medium-2",
+			"fixture": "medium",
+			"milestone": "pierre-reuse",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 91,
+				"firstColor": 1654
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 276,
+				"diff:render:layout": 148,
+				"diff:render:accept": 1349,
+				"diff:render:switch": 1326
+			},
+			"note": "One FileDiff kept per file, render() again with stable inputs. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; interactions (in order: composer on a gutter click, Split->Stacked, Keep on the first change, switch to module-core-102.ts) timed by the diff:render span of the pass they trigger; interleaved with the other build."
+		},
+		{
+			"id": "pierre-reuse-medium-3",
+			"fixture": "medium",
+			"milestone": "pierre-reuse",
+			"date": "2026-10-05",
+			"stagesMs": {
+				"module": 102,
+				"firstColor": 1695
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"spans": {
+				"diff:render:composer": 248,
+				"diff:render:layout": 140,
+				"diff:render:accept": 1292,
+				"diff:render:switch": 1323
+			},
+			"note": "One FileDiff kept per file, render() again with stable inputs. pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk + fresh open, split; interactions (in order: composer on a gutter click, Split->Stacked, Keep on the first change, switch to module-core-102.ts) timed by the diff:render span of the pass they trigger; interleaved with the other build."
 		}
 	]
 };
