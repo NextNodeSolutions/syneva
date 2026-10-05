@@ -4,6 +4,7 @@ import {
 	handleDiffSelection,
 	handleLineNumberClick,
 } from '@features/manage-comment/selection'
+import { perfFirst, perfMark } from '@shared/lib/perf'
 
 import { renderAnnotation } from './annotations'
 import { diffCtx } from './context'
@@ -22,6 +23,19 @@ import type { DiffView } from './types'
 // override referencing them is invalid and silently reverts.
 const PREVIEW_CSS =
 	'[data-code]{--diffs-bg-addition-override:var(--diffs-bg-context);--diffs-bg-addition-emphasis-override:var(--diffs-bg-context);--diffs-bg-addition-number-override:var(--diffs-bg-context-gutter);--diffs-fg-number-addition-override:var(--diffs-fg-number)}'
+
+// The cold-open stages the bench reads (shared/lib/perf.ts): rows on screen, then rows carrying
+// token colors. Without a worker pool, Pierre paints nothing until its shared highlighter holds the
+// theme, and paints plain rows only while the file's grammar is still loading - so on a cold open
+// both stages usually land together. Pierre exposes no "highlighted" signal: a colored token is
+// read as a row span with an inline style, which holds while `useCSSClasses` stays off.
+// Only the first landing of each stage matters.
+function stampPaint(container: HTMLElement): void {
+	if (perfFirst('render:colored')) return
+	if (!perfFirst('render:painted')) perfMark('render:painted')
+	if (container.shadowRoot?.querySelector('[data-line]>span[style]'))
+		perfMark('render:colored')
+}
 
 // The @pierre render options for one instance. `renderHeaderMetadata` and `renderCustomHeader`
 // are our own header builders (see file-header.ts).
@@ -61,9 +75,10 @@ export function diffOptions(
 		onLineSelectionEnd: handleDiffSelection,
 		renderHeaderMetadata: headerActions,
 		// Focus the composer after Pierre mounts its rows.
-		onPostRender: (_node, instance, phase) => {
+		onPostRender: (container, instance, phase) => {
 			if (instance !== D.instance) return
 			if (phase === 'unmount') return
+			stampPaint(container)
 			requestAnimationFrame(restorePendingComposerFocus)
 			if (!isPreviewing && isExpandedUnchanged) scheduleOverviewRuler()
 		},
