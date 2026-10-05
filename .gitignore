@@ -21,3 +21,7 @@ browser-bench-results.json
 
 # Astro's generated types (apps/landing), rewritten on every build/check
 .astro/
+
+# The landing's local Worker state (D1, limiter) and local secrets
+.wrangler/
+.dev.vars

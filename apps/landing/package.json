@@ -2,16 +2,18 @@
 	"name": "@syneva/landing",
 	"version": "0.0.0",
 	"private": true,
-	"description": "The public site at syneva.dev: a static Astro site styled with StyleX and animated with Motion. Built to dist/, the static assets the Worker deploy serves directly.",
+	"description": "The public site at syneva.dev: an Astro site styled with StyleX and animated with Motion. Every page prerenders to dist/client, the static assets the Worker serves directly; the newsletter signup runs on demand in the Worker (dist/server) against D1.",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
 		"dev": "astro dev",
 		"build": "astro build",
 		"preview": "astro preview",
-		"check": "astro check"
+		"check": "astro check && tsc -p tsconfig.worker.json",
+		"db:local": "wrangler d1 migrations apply DB --local --config wrangler.dev.jsonc"
 	},
 	"dependencies": {
+		"@astrojs/cloudflare": "14.3.3",
 		"@stylexjs/stylex": "0.19.1",
 		"@syneva/design-system": "workspace:*",
 		"@syneva/motion": "workspace:*",
@@ -19,8 +21,10 @@
 	},
 	"devDependencies": {
 		"@astrojs/check": "0.9.10",
-		"@syneva/contracts": "workspace:*",
+		"@cloudflare/workers-types": "5.20261005.1",
 		"@stylexjs/unplugin": "0.19.1",
-		"typescript": "^6.0.3"
+		"@syneva/contracts": "workspace:*",
+		"typescript": "^6.0.3",
+		"wrangler": "4.147.0"
 	}
 }

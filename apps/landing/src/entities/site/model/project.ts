@@ -1,5 +1,13 @@
-// The project's facts: how to install and start Syneva, and where its
-// source, history and issues live on GitHub.
+// The project's facts: where it stands, how to install and start Syneva, and
+// where its source, history and issues live on GitHub.
+
+// Where Syneva stands, fixed at build. `waitlist` while the CLI is not ready
+// for anyone to install: every primary action asks for an email, and the
+// setup guide and the install calls to action stay in the code but out of the
+// site. `live` brings them back. Flipping it is the whole launch.
+export type LaunchStage = 'waitlist' | 'live'
+export const LAUNCH_STAGE: LaunchStage = 'waitlist'
+
 export const INSTALL_COMMAND = 'npm install -g syneva'
 // The runtime the published CLI requires (apps/syneva/package.json
 // engines.node).

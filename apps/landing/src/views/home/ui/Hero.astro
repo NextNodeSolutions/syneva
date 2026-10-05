@@ -1,19 +1,16 @@
 ---
 // The hero: the headline set as a two-line diff (the agent's addition, then
-// your verdict), the pitch and its actions, and the review-round instrument,
+// your verdict), the pitch and its calls to action, and the review-round instrument,
 // then the principle strip under it. Its intro (hero-intro.ts) plays every
 // part rendered here, the strip included.
-import { INSTALL_COMMAND } from '@entities/site/model/project'
 import { PAGES } from '@entities/site/model/site-map'
 import { PATH_LENGTH, poses } from '@syneva/motion/poses'
 
-import Button from '@shared/ui/Button.astro'
-import Command from '@features/copy-command/ui/Command.astro'
 import FigureTop from '@shared/ui/FigureTop.astro'
 import LiveDot from '@shared/ui/LiveDot.astro'
-import TextLink from '@shared/ui/TextLink.astro'
 import { scene } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
+import HeroActions from './HeroActions.astro'
 import HeroStage from './HeroStage.astro'
 import Principles from './Principles.astro'
 import { introPart } from './hero-intro-part'
@@ -40,11 +37,7 @@ import { heroMarker, newsMarker } from './hero.stylex'
 	<div {...sx(heroBody.body)}>
 		<div {...sx(poses.fade, heroBody.copy)} {...introPart('copy')}>
 			<p {...sx(heroBody.lede)}>Syneva is the review desk for code your agent wrote. Read the diff in a reading order, ask about the exact line, give every change a verdict, and hand a structured result back to your agent. Same tab, every round.</p>
-			<div {...sx(heroBody.actions)}>
-				<Button href={PAGES.getStarted.href} label="Start a local review" />
-				<TextLink href="#how" label="See how it works" arrow="↓" />
-			</div>
-			<Command text={INSTALL_COMMAND} label="Installation command" css={heroBody.command} />
+			<HeroActions />
 			<p {...sx(heroBody.works)}><span {...sx(heroBody.worksLead)}>Works with the agent you already use</span> Codex · Cursor · pi · your own scripts</p>
 		</div>
 		<figure {...sx(poses.fade, heroBody.stage)} {...scene} {...introPart('stage')}>

@@ -1,29 +1,53 @@
 ---
-// The start band: two commands to a first desk, and where to read more.
-import { INSTALL_COMMAND, NODE_REQUIREMENT, REPO_URL, START_COMMAND } from '@entities/site/model/project'
+// The start band: once Syneva is live, two commands to a first desk and where
+// to read more; until then, the signup (the anchor every primary action
+// reaches) and where to follow along.
+import { INSTALL_COMMAND, LAUNCH_STAGE, NODE_REQUIREMENT, REPO_URL, START_COMMAND } from '@entities/site/model/project'
+import { SIGNUP_ID } from '@entities/site/model/primary-action'
 import { PAGES } from '@entities/site/model/site-map'
 import { revealGroup, revealItem } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import Command from '@features/copy-command/ui/Command.astro'
 import { command } from '@features/copy-command/ui/command.styles'
+import { SUBSCRIBED_ID } from '@features/subscribe/model/endpoint'
+import { OUTCOME_MESSAGE } from '@features/subscribe/model/outcome'
+import SignupForm from '@features/subscribe/ui/SignupForm.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { section } from '@shared/ui/section.styles'
 import { band } from './cta-band.styles'
+
+const isLive = LAUNCH_STAGE === 'live'
 ---
 
-<section {...revealGroup(section.ruled, section.pad, band.root)}>
+<section {...revealGroup(section.ruled, section.pad, band.root)} id={isLive ? undefined : SIGNUP_ID}>
 	<div>
 		<h2 {...revealItem()}>Keep the speed.<br />Keep the understanding.</h2>
-		<p {...revealItem(band.text)}>Two commands to your first desk. Bring the agent you already use.</p>
+		{
+			isLive ? (
+				<p {...revealItem(band.text)}>Two commands to your first desk. Bring the agent you already use.</p>
+			) : (
+				<p {...revealItem(band.text)}>Syneva isn’t ready to install yet. Leave your email and I’ll write when it is, then now and then about what ships.</p>
+			)
+		}
 		<div {...revealItem(band.links)}>
-			<TextLink href={PAGES.getStarted.href} label="Read the setup guide" />
+			{isLive && <TextLink href={PAGES.getStarted.href} label="Read the setup guide" />}
 			<TextLink href={REPO_URL} label="Star it on GitHub" />
 		</div>
 	</div>
-	<div {...revealItem(band.install)}>
-		<p {...sx(band.label)}>Install · {NODE_REQUIREMENT} and git</p>
-		<Command text={INSTALL_COMMAND} label="Installation command" css={command.onWash} />
-		<p {...sx(band.label, band.next)}>Then, inside your repository</p>
-		<Command text={START_COMMAND} label="Start a review" css={command.onWash} />
-	</div>
+	{
+		isLive ? (
+			<div {...revealItem(band.install)}>
+				<p {...sx(band.label)}>Install · {NODE_REQUIREMENT} and git</p>
+				<Command text={INSTALL_COMMAND} label="Installation command" css={command.onWash} />
+				<p {...sx(band.label, band.next)}>Then, inside your repository</p>
+				<Command text={START_COMMAND} label="Start a review" css={command.onWash} />
+			</div>
+		) : (
+			<div {...revealItem(band.install)}>
+				<p {...sx(band.label)}>Your email · only for news about Syneva</p>
+				<SignupForm surface="wash" />
+				<p {...sx(band.subscribed)} id={SUBSCRIBED_ID}>{OUTCOME_MESSAGE.subscribed}</p>
+			</div>
+		)
+	}
 </section>

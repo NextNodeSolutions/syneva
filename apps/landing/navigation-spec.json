@@ -3,7 +3,7 @@
 	"items": [
 		{
 			"id": "sections",
-			"requirement": "The desktop navbar contains Product, Workflows, Resources, Open source, and a distinct Get started action.",
+			"requirement": "The desktop navbar contains Product, Workflows, Resources, Open source, and a distinct primary action: Get notified (the page's signup) before launch, Get started once live.",
 			"source": "User request for multiple product-relevant links and submenus"
 		},
 		{
