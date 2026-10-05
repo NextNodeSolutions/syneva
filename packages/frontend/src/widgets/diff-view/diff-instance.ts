@@ -2,6 +2,7 @@ import { revealThreadLines } from '@features/expand-context/expand'
 import { attachDiffSelectionHandlers } from '@features/manage-comment/selection'
 import { FileDiff, DIFFS_TAG_NAME } from '@pierre/diffs'
 import { $ } from '@shared/lib/dom'
+import { perfSpan } from '@shared/lib/perf'
 
 import { annotations } from './annotations'
 import { diffCtx } from './context'
@@ -23,6 +24,9 @@ export async function renderDiffInstance(
 	isCurrent: () => boolean,
 ): Promise<void> {
 	if (!isCurrent()) return
+	// One stamp per diff pass (the bench reads interaction latency from it): Pierre renders
+	// synchronously here, so the span covers metadata, tokenizing and the DOM build.
+	const endRender = perfSpan('diff:render')
 	const host = $('diff')
 	const { S, D } = diffCtx()
 	const view: DiffView = {
@@ -49,6 +53,7 @@ export async function renderDiffInstance(
 		containerWrapper: wrapper,
 	})
 	host.scrollTop = scrollTop
+	endRender({ path: file.path })
 	renderedPath = file.path
 	if (!view.isPreviewing) revealThreadLines()
 	attachDiffSelectionHandlers()
