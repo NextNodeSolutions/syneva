@@ -56,9 +56,11 @@
 	width: auto;
 	margin: 0 6px 0 0;
 	vertical-align: -1px;
+	accent-color: var(--accent);
 }
 
-[data-prose] li:has(> input[type='checkbox']) {
+/* markdown-it-task-lists wraps the box in a label inside a .task-list-item. */
+[data-prose] .task-list-item {
 	list-style: none;
 }
 
