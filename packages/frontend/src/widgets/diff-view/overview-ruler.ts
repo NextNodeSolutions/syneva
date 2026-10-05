@@ -1,6 +1,8 @@
 import { diffShadowRoot } from '@shared/lib/diff-dom'
 import { $ } from '@shared/lib/dom'
 
+import { D } from './runtime'
+
 // VSCode-style change overview: map every change row's position in the scrolled content to a
 // tick in a fixed right-edge ruler, so changes are visible in one skim of the whole file.
 // Only meaningful in "expand unchanged" mode (otherwise the diff is already compact).
@@ -102,7 +104,7 @@ function renderOverviewRuler(): void {
 	// Only a map for a scrollable file - if it fits without scrolling, the changes are already all
 	// on screen and the ruler is redundant noise.
 	if (contentHeight <= diff.clientHeight + SCROLL_TOLERANCE_PX) return
-	const marks = coalesceMarks(measureSpans())
+	const marks = coalesceMarks(D.virtual?.changeSpans() ?? measureSpans())
 	if (!marks.length) return
 	paintRuler(marks, contentHeight)
 }
