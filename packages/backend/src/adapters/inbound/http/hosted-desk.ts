@@ -1,5 +1,5 @@
 import { createActivity } from '../../../application/activity.js'
-import { deskSummary } from '../../../application/desk-summary.js'
+import { deskIdentity, deskSummary } from '../../../application/desk-summary.js'
 import { createEventStream } from '../../../application/events.js'
 import { journalSubject } from '../../../application/journal.js'
 
@@ -66,7 +66,7 @@ export function hostDesk(
 			close,
 			recordEvent: draft => {
 				io.journal.record({
-					...journalSubject(summarize(desk)),
+					...journalSubject(deskIdentity(desk.id, desk.ctx.state)),
 					...draft,
 				})
 			},

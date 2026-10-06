@@ -12,6 +12,7 @@ import type {
 } from '@syneva/contracts/hub'
 import type { JournalEvent } from '../domain/hub-journal.js'
 import type { ReviewState } from '../domain/review.js'
+import type { DeskIdentity } from './desk-summary.js'
 import type { HubJournalPort } from './ports.js'
 
 // The tail the hub keeps in memory and serves: the dashboard reads recent activity and the
@@ -158,10 +159,10 @@ function tailAfter(
 	return { events: following.slice(-limit), latest }
 }
 
-// Who an event is about: the desk named as the hub lists it at that moment, so an event outlives
-// its desk (a closed desk's history still reads).
+// Who an event is about: the desk named as the hub lists it at that moment (deskIdentity), so an
+// event outlives its desk (a closed desk's history still reads).
 export function journalSubject(
-	desk: DeskSummary,
+	desk: DeskIdentity,
 ): Omit<HubEventSubject, 'seq' | 'at'> {
 	return {
 		deskId: desk.id,
