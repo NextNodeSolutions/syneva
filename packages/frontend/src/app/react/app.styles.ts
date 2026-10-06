@@ -2,6 +2,7 @@ import { deskSize, deskText, deskVars } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
+import { shell } from '@widgets/hub-shell/react/shell.stylex'
 
 const TREE = `${deskVars['--left-width']} 1px`
 const DIFF = 'minmax(0, 1fr)'
@@ -16,10 +17,28 @@ const columns = (template: string): { gridTemplateColumns: object } => ({
 })
 
 export const app = stylex.create({
+	// The hub's rail, then the desk beside it; phones have no rail (the desk's own drawers and
+	// its bar's brand take them home).
+	frame: {
+		height: '100%',
+		display: 'grid',
+		gridTemplateColumns: {
+			default: `${shell.railWidth} minmax(0, 1fr)`,
+			[media.stacked]: 'minmax(0, 1fr)',
+		},
+	},
+	railSpace: {
+		display: { default: 'block', [media.stacked]: 'none' },
+		backgroundColor: color['--paper'],
+		borderRightWidth: '1px',
+		borderRightStyle: 'solid',
+		borderRightColor: color['--line'],
+	},
 	// The desk fills the viewport and never scrolls as a page: every column
 	// scrolls on its own.
 	root: {
 		height: '100%',
+		minWidth: 0,
 		display: 'grid',
 		gridTemplateRows: `${deskSize.topbar} minmax(0, 1fr)`,
 		backgroundColor: color['--paper'],
