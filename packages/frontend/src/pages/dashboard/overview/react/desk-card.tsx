@@ -4,7 +4,6 @@ import { Meter } from '@shared/ui/meter'
 import * as stylex from '@stylexjs/stylex'
 import { tag } from '@syneva/design-system/controls.styles'
 
-import { deskCloseId, deskKeepId } from '../../focus-targets'
 import { modeParts, plural } from '../../format'
 import { CloseControl } from '../../react/close-control'
 import { CloseWarning } from '../../react/close-warning'
@@ -18,9 +17,14 @@ import { cardLinkMarker, deskCardMarker } from './desk-card.stylex'
 
 import type { HubDesk } from '@entities/hub/model'
 import type { ReactElement } from 'react'
-import type { CloseActions, CloseState } from '../../use-desk-close'
+import type { RowClose } from '../../use-desk-close'
 
-type CardClose = { state: CloseState; actions: CloseActions }
+function cardIds(deskId: string): { description: string; warning: string } {
+	return {
+		description: `card-${deskId}-description`,
+		warning: `card-${deskId}-warning`,
+	}
+}
 
 // The card's review, as a row of the ledger says it: the decided changes, the approved files,
 // then what is still open.
@@ -75,36 +79,25 @@ function CardFoot({
 }: {
 	desk: HubDesk
 	waited: string
-	close: CardClose
+	close: RowClose
 }): ReactElement {
-	const isArmed = close.state !== 'rest'
 	return (
-		<>
-			<div {...stylex.props(deskCard.foot)}>
-				<span>{waited}</span>
-				<span {...stylex.props(deskCard.end)}>
-					<CloseControl
-						session={desk.session}
-						state={close.state}
-						ids={{
-							close: deskCloseId(desk.id),
-							keep: deskKeepId(desk.id),
-							warning: `card-${desk.id}-warning`,
-						}}
-						actions={close.actions}
-					/>
-					{!isArmed && (
-						<span
-							{...stylex.props(deskCard.open)}
-							aria-hidden="true"
-						>
-							Open
-							<ArrowRight css={deskCard.arrow} />
-						</span>
-					)}
-				</span>
-			</div>
-		</>
+		<div {...stylex.props(deskCard.foot)}>
+			<span>{waited}</span>
+			<span {...stylex.props(deskCard.end)}>
+				<CloseControl
+					desk={desk}
+					close={close}
+					warningId={cardIds(desk.id).warning}
+				/>
+				{close.state === 'rest' && (
+					<span {...stylex.props(deskCard.open)} aria-hidden="true">
+						Open
+						<ArrowRight css={deskCard.arrow} />
+					</span>
+				)}
+			</span>
+		</div>
 	)
 }
 
@@ -144,10 +137,10 @@ export function DeskCard({
 	desk: HubDesk
 	now: number
 	since: string
-	close: CardClose
+	close: RowClose
 }): ReactElement {
 	const copy = stageCopy(deskStage(desk))
-	const descriptionId = `card-${desk.id}-description`
+	const ids = cardIds(desk.id)
 	const what = [desk.project, ...modeParts(desk)].filter(Boolean).join(' · ')
 	return (
 		<article
@@ -155,8 +148,8 @@ export function DeskCard({
 			data-enter="rise"
 			{...stylex.props(deskCard.card, deskCardMarker)}
 		>
-			<CardTitle desk={desk} descriptionId={descriptionId} />
-			<span id={descriptionId} hidden>
+			<CardTitle desk={desk} descriptionId={ids.description} />
+			<span id={ids.description} hidden>
 				{rowDescription(desk, copy, now)}
 			</span>
 			<p {...stylex.props(deskCard.meta)}>{what}</p>
@@ -169,7 +162,7 @@ export function DeskCard({
 				<CardReview desk={desk} />
 			) : (
 				<CloseWarning
-					id={`card-${desk.id}-warning`}
+					id={ids.warning}
 					isAgentListening={desk.agentListening}
 				/>
 			)}

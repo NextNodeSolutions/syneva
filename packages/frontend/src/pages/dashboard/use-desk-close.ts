@@ -25,6 +25,9 @@ export type CloseActions = {
 	confirm: () => void
 }
 
+// One desk's close as its row or its card reads it: where it stands and what it can do.
+export type RowClose = { state: CloseState; actions: CloseActions }
+
 export type DeskClose = {
 	// A close is armed somewhere on the page: N then opens nothing (the reviewer is mid-decision).
 	isArmed: boolean

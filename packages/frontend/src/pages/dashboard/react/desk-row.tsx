@@ -3,7 +3,6 @@ import { ArrowRight } from '@shared/ui/arrow-right'
 import { LineIcon } from '@shared/ui/line-icon'
 import * as stylex from '@stylexjs/stylex'
 
-import { deskCloseId, deskKeepId } from '../focus-targets'
 import { modeKeyOf } from '../overview/display'
 import { rowDescription } from '../row-description'
 import { stageCopy } from '../stage-copy'
@@ -21,14 +20,14 @@ import type { HubDesk } from '@entities/hub/model'
 import type { IconName } from '@syneva/design-system/icons'
 import type { ReactElement } from 'react'
 import type { ModeKey } from '../overview/display'
-import type { CloseActions, CloseState } from '../use-desk-close'
+import type { RowClose } from '../use-desk-close'
 
 type DeskRowProps = {
 	desk: HubDesk
 	now: number
 	// The listing is stale (no pulses) / the desk just arrived (the tint fades out of it).
 	look: { isLive: boolean; hasArrived: boolean }
-	close: { state: CloseState; actions: CloseActions }
+	close: RowClose
 	// When the desk's current turn began (every display reads the same time).
 	since: string
 }
@@ -49,21 +48,12 @@ function RowEnd({
 	warningId,
 }: {
 	desk: HubDesk
-	close: DeskRowProps['close']
+	close: RowClose
 	warningId: string
 }): ReactElement {
 	return (
 		<>
-			<CloseControl
-				session={desk.session}
-				state={close.state}
-				ids={{
-					close: deskCloseId(desk.id),
-					keep: deskKeepId(desk.id),
-					warning: warningId,
-				}}
-				actions={close.actions}
-			/>
+			<CloseControl desk={desk} close={close} warningId={warningId} />
 			{close.state === 'rest' && (
 				<span {...stylex.props(deskRow.open)} aria-hidden="true">
 					Open
