@@ -1,10 +1,9 @@
 import { useRef } from 'react'
 
-import { hubPlace } from '@entities/hub/hub-place'
 import { useEntrance } from '@shared/lib/use-entrance'
 import * as stylex from '@stylexjs/stylex'
 
-import { headCopy } from '../../head-copy'
+import { listedTitle } from '../../head-copy'
 import { PageHead } from '../../react/page-head'
 import { turnSummary } from '../overview-copy'
 
@@ -36,7 +35,7 @@ export function OverviewHead({
 	return (
 		<div ref={head} {...stylex.props(overview.part)}>
 			<PageHead
-				title={headCopy(dashboard.phase, hubPlace()).title}
+				title={listedTitle(listed.desks)}
 				lede={turnSummary(listed.desks)}
 			>
 				<FilterMenu

@@ -7,7 +7,7 @@ import * as stylex from '@stylexjs/stylex'
 import { HUB_MAIN_ID } from '@widgets/hub-shell/react/hub-shell'
 
 import { closedDesks } from '../../closed'
-import { headCopy } from '../../head-copy'
+import { EMPTY_TITLE } from '../../head-copy'
 import { heroLede } from '../open-copy'
 import { resumeOf } from '../resume'
 
@@ -31,7 +31,7 @@ function heroCopy(
 ): HeroCopy {
 	const { hub } = dashboard
 	return {
-		title: headCopy(dashboard.phase, hubPlace()).title,
+		title: EMPTY_TITLE,
 		...heroLede({
 			place: hubPlace(),
 			lastClosed,

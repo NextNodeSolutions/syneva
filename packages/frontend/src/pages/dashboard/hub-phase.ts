@@ -1,7 +1,4 @@
-import { stageCounts } from '@entities/hub/stage'
-
 import type { HubDesk } from '@entities/hub/model'
-import type { StageCounts } from '@entities/hub/stage'
 import type { HubView } from '@entities/hub/use-hub'
 
 // What the page can say about the hub, from how it last answered: nothing yet; this browser
@@ -11,12 +8,7 @@ export type HubPhase =
 	| { kind: 'loading' }
 	| { kind: 'signed-out' }
 	| { kind: 'unreachable' }
-	| {
-			kind: 'listed'
-			desks: HubDesk[]
-			counts: StageCounts
-			isStale: boolean
-	  }
+	| { kind: 'listed'; desks: HubDesk[]; isStale: boolean }
 
 export function hubPhase({
 	status,
@@ -25,10 +17,5 @@ export function hubPhase({
 	if (status === 'signed-out') return { kind: 'signed-out' }
 	if (!desks)
 		return { kind: status === 'unreachable' ? 'unreachable' : 'loading' }
-	return {
-		kind: 'listed',
-		desks,
-		counts: stageCounts(desks),
-		isStale: status === 'unreachable',
-	}
+	return { kind: 'listed', desks, isStale: status === 'unreachable' }
 }

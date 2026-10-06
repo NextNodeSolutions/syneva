@@ -1,6 +1,9 @@
+import { turnCounts } from '@entities/hub/turn'
+
 import { numberWord } from './format'
 
 import type { HubPlace } from '@entities/hub/hub-place'
+import type { HubDesk } from '@entities/hub/model'
 import type { HubPhase } from './hub-phase'
 
 // What the head says for a phase: the statement (the page's h1), the lede under it, and the
@@ -13,10 +16,12 @@ export type HeadCopy = {
 	action?: 'start-hub' | 'sign-in'
 }
 
-const LISTING_LEDE =
-	'Every desk this hub hosts, by repository. A desk stays open across rounds until you or your agent close it.'
+export const EMPTY_TITLE = 'No desks open.'
 
-function statement(yours: number): string {
+// The statement over a listing: how many desks wait on the reviewer, or that none is open.
+export function listedTitle(desks: readonly HubDesk[]): string {
+	if (!desks.length) return EMPTY_TITLE
+	const { yours } = turnCounts(desks)
 	if (yours === 0) return 'No agent is waiting on you.'
 	if (yours === 1) return `${numberWord(yours)} desk waits on you.`
 	return `${numberWord(yours)} desks wait on you.`
@@ -44,15 +49,9 @@ const UNREACHABLE: Record<HubPlace, HeadCopy> = {
 	},
 }
 
-const EMPTY: HeadCopy = {
-	title: 'No desks open.',
-	lede: 'The hub is running. Nothing is under review yet.',
-}
-
 export function headCopy(phase: HubPhase, place: HubPlace): HeadCopy {
 	if (phase.kind === 'loading') return LOADING
 	if (phase.kind === 'signed-out') return SIGNED_OUT
 	if (phase.kind === 'unreachable') return UNREACHABLE[place]
-	if (!phase.desks.length) return EMPTY
-	return { title: statement(phase.counts.yours), lede: LISTING_LEDE }
+	return { title: listedTitle(phase.desks) }
 }
