@@ -18,6 +18,11 @@ import type { Settings } from '@entities/settings/model'
 import type { ReactElement } from 'react'
 import type { SaveState } from './use-hub-settings'
 
+// Shown while the hub has not given its settings: until it does, the page has nothing it could
+// write back, so it offers nothing to change.
+const READ_FAILED_WORDS =
+	'The hub did not give its settings. Trying again; nothing here changes them until it does.'
+
 const SAVE_WORDS: Record<SaveState, string> = {
 	idle: 'Saved to ~/.syneva/settings.json on this hub, for every desk.',
 	saving: 'Saving…',
@@ -95,7 +100,7 @@ function TypeChoices({ settings, change }: SectionProps): ReactElement {
 // or its night mirror) and the two voices. A change shows at once and is saved on the hub.
 export function SettingsPage(): ReactElement {
 	const root = useRef<HTMLDivElement>(null)
-	const { settings, save, change } = useHubSettings()
+	const { settings, hasReadFailed, save, change } = useHubSettings()
 	// The sections arrive with the saved settings: the entrance plays again once they are read
 	// (the pending head has barely started, and is held back from view anyway).
 	useEntrance(root, settings ? 'settings' : 'settings-pending')
@@ -103,7 +108,7 @@ export function SettingsPage(): ReactElement {
 		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			<PageHead
 				title="Settings"
-				lede={SAVE_WORDS[save]}
+				lede={hasReadFailed ? READ_FAILED_WORDS : SAVE_WORDS[save]}
 				isPending={!settings}
 			/>
 			{settings && (
