@@ -8,7 +8,7 @@ The site's `DESIGN.md` (`apps/landing/DESIGN.md`) describes the language: a ligh
 
 | Export | What it holds |
 | --- | --- |
-| `./tokens.stylex` | StyleX variables with literal custom-property names (`var(--paper)`, `var(--accent)`, ...): `color`, `font`, `ease`, `duration`, `layout`, `typeScale`, and `hexColor` for the places that need a hex (a `theme-color` meta). |
+| `./tokens.stylex` | StyleX variables with literal custom-property names (`var(--paper)`, `var(--accent)`, ...): `color`, `font`, `ease`, `duration`, `layout`, `typeScale`, and `hexColor`, the palette's hex values for the places that need a literal colour (a `theme-color` meta, the site's emails), which `color` takes its values from. |
 | `./themes.stylex` | Themes over `color` (`stylex.createTheme`), applied by a front on its root. |
 | `./media.stylex` | Every breakpoint and preference query as style keys (`media`) and as bare queries for `matchMedia` (`queries`). Width keys are max-width ranges declared widest first. |
 | `./curves.stylex` | The easing curves the tokens and `@syneva/motion` share. |
