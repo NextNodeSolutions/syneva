@@ -9,6 +9,8 @@ export type Choice<T extends string> = {
 	value: T
 	title: string
 	detail: string
+	// This choice's radio takes a dialog's first focus (data-autofocus).
+	isAutofocused?: boolean | undefined
 }
 
 type ChoiceTileProps<T extends string> = {
@@ -36,6 +38,7 @@ export function ChoiceTile<T extends string>({
 				name={name}
 				value={choice.value}
 				checked={isChosen}
+				data-autofocus={choice.isAutofocused || undefined}
 				onChange={() => onChoose(choice.value)}
 			/>
 			<span>

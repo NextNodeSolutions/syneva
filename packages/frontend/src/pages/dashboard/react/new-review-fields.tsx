@@ -31,26 +31,40 @@ const SOURCES: readonly Choice<Source>[] = [
 	},
 ]
 
-// The fields of New review: the repository (suggesting the roots the hub already lists), what
-// to review, the target that source reads, and the session. Each input is named after its
+// The sources with the chosen one marked for the dialog's first focus.
+function focusedOn(source: Source): readonly Choice<Source>[] {
+	return SOURCES.map(choice => ({
+		...choice,
+		isAutofocused: choice.value === source,
+	}))
+}
+
+// The fields of New review: the repository (suggesting the roots the hub lists or remembers),
+// what to review, the target that source reads, and the session. Each input is named after its
 // field, so a failed submit can send focus to it. While the hub opens the desk, they hold
-// still.
+// still. Opened on a repository (`isSeeded`), focus starts on what to review instead.
 export function NewReviewFields({
 	form,
 	roots,
+	isSeeded,
 }: {
 	form: NewReview
 	roots: readonly string[]
+	isSeeded: boolean
 }): ReactElement {
 	const { fields } = form
 	return (
 		<div {...stylex.props(newReviewDialog.fields)}>
-			<RepositoryField form={form} roots={roots} />
+			<RepositoryField
+				form={form}
+				roots={roots}
+				isAutofocused={!isSeeded}
+			/>
 			<ChoiceField
 				legend="What to review"
 				name="source"
 				value={fields.source}
-				options={SOURCES}
+				options={isSeeded ? focusedOn(fields.source) : SOURCES}
 				onChange={form.setSource}
 			/>
 			{needsTarget(fields.source) && (

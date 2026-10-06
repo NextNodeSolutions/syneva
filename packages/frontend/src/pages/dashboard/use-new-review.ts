@@ -124,9 +124,10 @@ function fieldSetters(
 
 // The New review form: its fields, the validation a submit runs (each error stands until its
 // field is edited or the next submit; a field the submit did not flag is never shown wanting),
-// and the one action, the open (use-open-desk.ts). While it runs, the fields hold still.
-export function useNewReview(): NewReview {
-	const [fields, setFields] = useState(BLANK)
+// and the one action, the open (use-open-desk.ts). While it runs, the fields hold still. A
+// `seed` fills the repository in (New review opened on a repository the page names).
+export function useNewReview(seed: string | null): NewReview {
+	const [fields, setFields] = useState(() => ({ ...BLANK, root: seed ?? '' }))
 	const [errors, setErrors] = useState(NO_ERRORS)
 	const desk = useOpenDesk()
 	const setters = fieldSetters(

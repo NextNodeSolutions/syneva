@@ -15,17 +15,20 @@ import { OpenRefusal } from './open-refusal'
 import type { ReactElement } from 'react'
 
 // "New review": open a desk from the dashboard - the same open the CLI performs, for a
-// repository on the hub's machine. Mounted only while open, so every opening starts blank;
-// every way out (Cancel, Escape, the cross, the backdrop) abandons an open still in flight.
+// repository on the hub's machine. Mounted only while open, so every opening starts blank (or
+// on its `seed` repository, focus then on what to review); every way out (Cancel, Escape, the
+// cross, the backdrop) abandons an open still in flight.
 export function NewReviewDialog({
 	roots,
+	seed,
 	onClose,
 }: {
-	// The repositories the hub already lists, suggested in the Repository field.
+	// The repositories the hub lists or remembers, suggested in the Repository field.
 	roots: readonly string[]
+	seed: string | null
 	onClose: () => void
 }): ReactElement {
-	const form = useNewReview()
+	const form = useNewReview(seed)
 	const titleId = useId()
 	const introId = useId()
 	const close = (): void => {
@@ -54,7 +57,11 @@ export function NewReviewDialog({
 						desk reads it the way <Code>syneva open</Code> would
 						from inside it.
 					</p>
-					<NewReviewFields form={form} roots={roots} />
+					<NewReviewFields
+						form={form}
+						roots={roots}
+						isSeeded={seed !== null}
+					/>
 					{form.refusal && <OpenRefusal refusal={form.refusal} />}
 				</DialogBody>
 				<NewReviewActions isBusy={form.isBusy} onCancel={close} />

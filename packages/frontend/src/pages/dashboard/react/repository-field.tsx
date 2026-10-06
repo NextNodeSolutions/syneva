@@ -7,13 +7,16 @@ import type { NewReview } from '../use-new-review'
 
 // The repository to open, an absolute path on the hub's machine (the hub expands ~ and refuses
 // a relative one: its own cwd is no one's); the roots the hub already lists come up as
-// suggestions. It takes focus when the dialog opens.
+// suggestions. It takes focus when the dialog opens blank (`isAutofocused`); opened on a
+// repository, it is already filled and focus starts further down.
 export function RepositoryField({
 	form,
 	roots,
+	isAutofocused,
 }: {
 	form: NewReview
 	roots: readonly string[]
+	isAutofocused: boolean
 }): ReactElement {
 	const rootsListId = useId()
 	return (
@@ -22,7 +25,7 @@ export function RepositoryField({
 				name="root"
 				label="Repository"
 				mono
-				data-autofocus
+				data-autofocus={isAutofocused || undefined}
 				list={rootsListId}
 				placeholder="/home/you/projects/app"
 				hint="An absolute path inside the repository (or ~/…), on this hub's machine."

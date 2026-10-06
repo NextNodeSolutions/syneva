@@ -2,6 +2,7 @@ import { usePlace } from '@shared/lib/use-place'
 import { HubShell } from '@widgets/hub-shell/react/hub-shell'
 
 import { NEW_REVIEW_ID } from '../focus-targets'
+import { knownRoots } from '../known-roots'
 import { pageOf } from '../route'
 import { useDashboard } from '../use-dashboard'
 
@@ -44,7 +45,11 @@ export function Dashboard(): ReactElement {
 			<CloseNotice toast={dashboard.toast} />
 			{dashboard.newReview.isOpen && (
 				<NewReviewDialog
-					roots={dashboard.projects.map(project => project.root)}
+					roots={knownRoots(
+						dashboard.projects,
+						dashboard.journal.events,
+					)}
+					seed={dashboard.newReview.seed}
 					onClose={dashboard.newReview.close}
 				/>
 			)}
