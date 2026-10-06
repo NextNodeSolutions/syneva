@@ -103,5 +103,6 @@ export function decodeJournal(raw: unknown, endpoint: string): Journal {
 		),
 		latest: requiredNumber(o, 'latest', endpoint),
 		freshAfter: null,
+		isRead: true,
 	}
 }

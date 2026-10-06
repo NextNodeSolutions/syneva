@@ -56,12 +56,16 @@ export type Journal = {
 	events: readonly JournalEvent[]
 	latest: number
 	freshAfter: number | null
+	// Whether the first read has settled, answered or not; until then an empty journal says
+	// nothing about the hub's history.
+	isRead: boolean
 }
 
 export const EMPTY_JOURNAL: Journal = {
 	events: [],
 	latest: 0,
 	freshAfter: null,
+	isRead: false,
 }
 
 export function isRoundSent(event: JournalEvent): event is RoundSent {

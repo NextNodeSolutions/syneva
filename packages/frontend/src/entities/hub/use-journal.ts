@@ -22,13 +22,16 @@ function appended(
 ): Journal {
 	const newest = held.events.at(-1)?.seq ?? 0
 	const fresh = read.events.filter(event => event.seq > newest)
-	if (!fresh.length) return { ...held, latest: read.latest }
+	// Nothing new: the journal held stays the same object, so the page does not render again.
+	if (!fresh.length && held.isRead && held.latest === read.latest) return held
+	if (!fresh.length) return { ...held, latest: read.latest, isRead: true }
 	let freshAfter: number | null = null
 	if (!isFirst) freshAfter = newest
 	return {
 		events: [...held.events, ...fresh].slice(-KEPT_EVENTS),
 		latest: read.latest,
 		freshAfter,
+		isRead: true,
 	}
 }
 
@@ -50,14 +53,16 @@ function followJournal(keep: Keep): () => void {
 			const isFirst = after === null
 			if (!isFirst && next.latest < (after ?? 0)) {
 				// The journal started over (its file removed): read it whole again.
-				keep(() => EMPTY_JOURNAL)
+				keep(() => ({ ...EMPTY_JOURNAL, isRead: true }))
 				after = null
 				return
 			}
 			keep(held => appended(held, next, { isFirst }))
 			after = next.latest
 		} catch {
-			// Kept as it was: the listing's poll reports an unreachable hub.
+			// Kept as it was, but read: a hub that did not answer has nothing more to say about
+			// its history (the listing's poll reports an unreachable hub).
+			keep(held => (held.isRead ? held : { ...held, isRead: true }))
 		} finally {
 			isReading = false
 		}
@@ -68,8 +73,8 @@ function followJournal(keep: Keep): () => void {
 }
 
 // The hub's journal, read whole once and then followed, paused while the tab is hidden. A
-// failed read leaves the journal as it was (the listing's own poll says whether the hub
-// answers).
+// failed read leaves its events as they were (the listing's own poll says whether the hub
+// answers), and still settles the first read.
 export function useJournal(): Journal {
 	const [journal, setJournal] = useState(EMPTY_JOURNAL)
 	// oxlint-disable-next-line nextnode/no-use-effect -- polls the hub over HTTP on a timer: an external system
