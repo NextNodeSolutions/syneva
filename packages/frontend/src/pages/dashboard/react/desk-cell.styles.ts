@@ -11,7 +11,7 @@ const linkFocus = (): string =>
 export const deskCell = stylex.create({
 	cell: { gridArea: 'desk', minWidth: 0 },
 	title: {
-		fontSize: { default: '17px', [media.phone]: '16px' },
+		fontSize: { default: '15px', [media.phone]: '15px' },
 		fontWeight: 500,
 		letterSpacing: '-.015em',
 		lineHeight: 1.3,
@@ -36,9 +36,9 @@ export const deskCell = stylex.create({
 	},
 	// A run (shared/ui/run.styles): it breaks only between its parts.
 	meta: {
-		marginTop: '5px',
+		marginTop: '3px',
 		fontFamily: font['--mono'],
-		fontSize: '11.5px',
+		fontSize: '11px',
 		lineHeight: 1.45,
 		color: color['--muted'],
 	},

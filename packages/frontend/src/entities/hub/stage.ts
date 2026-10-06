@@ -32,34 +32,3 @@ export function deskStage(desk: HubDesk): DeskStage {
 		return { kind: 'yours', activity: desk.agentActivity }
 	return { kind: 'idle' }
 }
-
-// How many desks stand at each stage. A sent review and sent questions count together:
-// either way something waits for an agent to pick it up.
-export type StageCounts = {
-	working: number
-	yours: number
-	sent: number
-	idle: number
-	empty: number
-}
-
-const COUNTED_AS: Record<DeskStage['kind'], keyof StageCounts> = {
-	sent: 'sent',
-	asked: 'sent',
-	working: 'working',
-	empty: 'empty',
-	yours: 'yours',
-	idle: 'idle',
-}
-
-export function stageCounts(desks: readonly HubDesk[]): StageCounts {
-	const counts: StageCounts = {
-		working: 0,
-		yours: 0,
-		sent: 0,
-		idle: 0,
-		empty: 0,
-	}
-	for (const desk of desks) counts[COUNTED_AS[deskStage(desk).kind]] += 1
-	return counts
-}

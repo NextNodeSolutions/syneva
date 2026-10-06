@@ -4,7 +4,7 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 
 const mono = {
 	fontFamily: font['--mono'],
-	fontSize: '11.5px',
+	fontSize: '11px',
 	color: color['--muted'],
 } as const
 
@@ -20,7 +20,7 @@ export const deskReview = stylex.create({
 		...mono,
 		display: 'flex',
 		alignItems: 'center',
-		gap: '10px',
+		gap: '8px',
 		minHeight: '22px',
 		marginTop: { default: '2px', [media.tablet]: 0 },
 		whiteSpace: 'nowrap',
@@ -33,9 +33,9 @@ export const deskReview = stylex.create({
 		display: 'flex',
 		flexWrap: 'wrap',
 		alignItems: 'center',
-		columnGap: '14px',
-		rowGap: '4px',
-		marginTop: '4px',
+		columnGap: '12px',
+		rowGap: '2px',
+		marginTop: '1px',
 		lineHeight: 1.45,
 	},
 	item: {

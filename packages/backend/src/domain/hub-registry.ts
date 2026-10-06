@@ -29,16 +29,17 @@ export type HubLock = {
 	readonly version: string
 }
 
-function isMode(raw: unknown): raw is ReviewMode {
+// The field readers every hub record decode shares (the journal's too, hub-journal.ts).
+export function isMode(raw: unknown): raw is ReviewMode {
 	return raw === 'repo' || raw === 'file' || raw === 'pr'
 }
 
-function nonEmptyString(raw: unknown): string | null {
+export function nonEmptyString(raw: unknown): string | null {
 	if (typeof raw !== 'string' || !raw.length) return null
 	return raw
 }
 
-function optionalString(raw: unknown): string | undefined {
+export function optionalString(raw: unknown): string | undefined {
 	if (typeof raw !== 'string' || !raw.length) return undefined
 	return raw
 }

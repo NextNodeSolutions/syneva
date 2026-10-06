@@ -1,6 +1,8 @@
 import os from 'node:os'
 import path from 'node:path'
 
+import { HUB_PATHS, JOURNAL_READ_MAX } from '@syneva/contracts/routes'
+
 import { validateGuide } from '../../../domain/guide.js'
 
 import {
@@ -20,15 +22,19 @@ import type {
 	OpenDeskResponse,
 } from '@syneva/contracts/hub'
 import type { ReviewMode } from '@syneva/contracts/review'
+import type { HubJournal, JournalQuery } from '../../../application/journal.js'
 import type { DeskQuery } from '../../../application/open-desk.js'
+import type { SettingsPort } from '../../../application/ports.js'
 import type { Guide } from '../../../domain/review.js'
 import type { ApiFailure } from './failure.js'
 import type { Hub } from './hub.js'
 
-// The hub's own API: liveness, the desk registry (list / open / read / close) and the hub
-// shutdown. Transport decode lives here; the hub decides.
+// The hub's own API: liveness, the desk registry (list / open / read / close), the journal, the
+// display preferences and the hub shutdown. Transport decode lives here; the hub decides.
 export type HubRouteDeps = {
 	hub: Hub
+	journal: HubJournal
+	settings: SettingsPort
 	version: string
 	keyRequired: boolean
 	onShutdown: () => void
@@ -126,9 +132,72 @@ export function closeDeskRoute(
 	json(res, HTTP_OK, response)
 }
 
+// GET /api/hub/journal[?after=<seq>][&limit=<n>] - what happened on the hub (HubJournalResponse).
+export async function readJournal(
+	deps: HubRouteDeps,
+	res: ServerResponse,
+	url: URL,
+): Promise<void> {
+	const query = parseJournalQuery(url.searchParams)
+	if ('error' in query)
+		return fail(res, {
+			status: HTTP_UNPROCESSABLE,
+			code: 'INVALID_JOURNAL_QUERY',
+			error: query.error,
+			fix: `GET ${HUB_PATHS.journal}[?after=<seq>][&limit=<1-${JOURNAL_READ_MAX}>], both non-negative integers.`,
+		})
+	json(res, HTTP_OK, await deps.journal.read(query))
+}
+
+// The display preferences (~/.syneva/settings.json), read and written exactly as a desk's
+// /settings routes do (routes/desk.ts): the dashboard has no desk base to reach them under.
+export async function serveHubSettings(
+	deps: HubRouteDeps,
+	res: ServerResponse,
+): Promise<void> {
+	json(res, HTTP_OK, await deps.settings.read())
+}
+
+export async function saveHubSettings(
+	deps: HubRouteDeps,
+	req: IncomingMessage,
+	res: ServerResponse,
+): Promise<void> {
+	const settings: unknown = await readJsonBody(req)
+	await deps.settings.write(settings)
+	json(res, HTTP_OK, { ok: true })
+}
+
 export function shutdownHub(deps: HubRouteDeps, res: ServerResponse): void {
 	res.on('finish', () => deps.onShutdown())
 	json(res, HTTP_OK, { ok: true, stopping: true })
+}
+
+// A read that names no limit (an agent's curl) gets a page of recent events; the dashboard asks
+// for JOURNAL_READ_MAX, the window it keeps.
+const JOURNAL_DEFAULT_LIMIT = 500
+const COUNT_PARAM = /^\d+$/
+
+// `after` defaults to 0 (seqs start at 1, so: everything kept); `limit` is clamped into
+// 1..JOURNAL_READ_MAX. Either one present but not a non-negative integer is refused.
+function parseJournalQuery(
+	params: URLSearchParams,
+): JournalQuery | { error: string } {
+	const after = params.get('after')
+	const limit = params.get('limit')
+	if (after !== null && !COUNT_PARAM.test(after))
+		return {
+			error: '`after` must be a non-negative integer (a journal seq).',
+		}
+	if (limit !== null && !COUNT_PARAM.test(limit))
+		return { error: '`limit` must be a non-negative integer.' }
+	return {
+		after: Number(after ?? 0),
+		limit: Math.min(
+			Math.max(Number(limit ?? JOURNAL_DEFAULT_LIMIT), 1),
+			JOURNAL_READ_MAX,
+		),
+	}
 }
 
 type ParsedOpen =

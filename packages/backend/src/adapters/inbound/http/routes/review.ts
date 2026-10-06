@@ -1,5 +1,6 @@
 import { appendLiveComment } from '../../../../application/add-comment.js'
 import { browserState } from '../../../../application/browser-state.js'
+import { roundSent } from '../../../../application/journal.js'
 import {
 	resetReviewPatch,
 	unstageReviewedFiles,
@@ -84,6 +85,11 @@ export async function sendReviewToAgent({
 			},
 		)
 		ctx.commit(sent.state)
+		// The same ReviewResult the stream hands the agent: its pickup names this round.
+		ctx.recordEvent(
+			roundSent(sent.state, sent.reviewResult),
+			sent.reviewResult,
+		)
 		res.on('finish', () => {
 			// The review supersedes any still-queued question (createEventStream drops them), so a
 			// stale question can never land after the round. Emitting only once the response has
@@ -114,9 +120,13 @@ export async function addComment({
 				fix: 'Send { path, lineNumber, side, body } as JSON.',
 			})
 		const appended = await appendLiveComment(ctx.state, request, ctx.git)
-		if (appended.comment.role === 'agent') ctx.activity.clear()
+		// The route is the agent's (`syneva comment`, the pi correspondent): the reviewer's own
+		// comments ride /save. A body may still claim role "user" - that one is no agent reply.
+		const isAgentReply = appended.comment.role === 'agent'
+		if (isAgentReply) ctx.activity.clear()
 		const saved = await ctx.persist(appended.state)
 		ctx.commit(saved.state)
+		if (isAgentReply) ctx.recordEvent({ kind: 'agent-replied' })
 		json(res, HTTP_OK, { ok: true, commentId: appended.comment.id })
 	})
 }

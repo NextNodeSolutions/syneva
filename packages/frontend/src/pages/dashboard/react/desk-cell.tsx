@@ -7,6 +7,7 @@ import { modeParts, relativeTime, unbroken } from '../format'
 
 import { deskCell } from './desk-cell.styles'
 import { deskLinkMarker } from './desk-row.stylex'
+import { deskSlide } from './desk-slide.styles'
 
 import type { HubDesk } from '@entities/hub/model'
 import type { ReactElement } from 'react'
@@ -20,16 +21,15 @@ type DeskCellProps = {
 
 // The desk's title, which is the row's link: a span stretched over the row makes the whole
 // row open the desk (same tab; a modified click opens a new one natively) and draws its focus
-// ring. Under it, what the desk reviews and how long it has been quiet, as a run of parts
-// that breaks only between them; when it opened is said to screen readers only, the row has no
-// room to show it. That a desk has no changes yet is the stage's to say.
+// ring. Under it, its repository and what it reviews, as a run of parts that breaks only
+// between them; when it opened is said to screen readers only (how long its turn has lasted
+// is the stage's to say).
 export function DeskCell({
 	desk,
 	now,
 	describedBy,
 }: DeskCellProps): ReactElement {
 	const [kind = '', detail] = modeParts(desk)
-	const active = `active ${relativeTime(desk.lastActivityAt, now)}`
 	const part = stylex.props(run.part)
 	const modePart = stylex.props(run.part, deskCell.metaMode)
 	return (
@@ -41,18 +41,20 @@ export function DeskCell({
 					aria-describedby={describedBy}
 					{...stylex.props(deskCell.link, deskLinkMarker)}
 				>
-					{desk.session}
+					<span {...stylex.props(deskSlide.part, deskSlide.text)}>
+						{desk.session}
+					</span>
 					<span
 						{...stylex.props(deskCell.stretch)}
 						aria-hidden="true"
 					/>
 				</a>
 			</h3>
-			<p {...stylex.props(deskCell.meta, run.clip)}>
+			<p {...stylex.props(deskCell.meta, run.clip, deskSlide.part)}>
 				<span {...stylex.props(run.parts)}>
+					<span {...part}>{unbroken(desk.project)}</span>
 					<span {...modePart}>{unbroken(kind)}</span>
 					{detail && <span {...modePart}>{unbroken(detail)}</span>}
-					<span {...part}>{unbroken(active)}</span>
 				</span>
 				<span {...stylex.props(a11y.srOnly)}>
 					{` · opened ${relativeTime(desk.openedAt, now)}`}

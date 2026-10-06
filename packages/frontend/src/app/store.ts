@@ -1,7 +1,8 @@
 import { saveReview } from '@entities/review/api'
-import { createSaver, reviewerSlice } from '@entities/review/save'
+import { reviewerSlice } from '@entities/review/save'
 import { loadSettings } from '@entities/settings/settings'
 import { reactive } from '@shared/lib/reactive'
+import { createSaver } from '@shared/lib/saver'
 
 import type { ReviewState } from '@entities/review/model'
 import type { Store } from './store-state'
@@ -103,6 +104,6 @@ export const saver = createSaver(
 )
 // Instant auto-save: there is no manual Save button, so every state mutation
 // (decision, comment, stage/unstage, approval) MUST call persist() to write the
-// review to ~/.syneva/<repoHash>/<session>/. Saves coalesce (see save.ts): at most one
+// review to ~/.syneva/<repoHash>/<session>/. Saves coalesce (@shared/lib/saver): at most one
 // in flight, rapid triggers collapse into a single trailing save.
 export const persist = (): void => saver.trigger()

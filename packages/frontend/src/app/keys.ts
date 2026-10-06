@@ -3,6 +3,7 @@ import { HOTKEYS_APP, HOTKEYS_NOTES } from '@app/hotkeys-app'
 import { HOTKEYS_DIFF } from '@app/hotkeys-diff'
 import { confirmYes } from '@widgets/dialogs/confirm'
 import { golineCancel } from '@widgets/diff-view/cursor-goline'
+import { isInRail } from '@widgets/hub-shell/rail-hook'
 
 import { S } from './store'
 
@@ -65,6 +66,8 @@ export function installKeys(): void {
 	document.addEventListener('keydown', e => {
 		// A closed desk shows its cover and nothing else: no action has a surface to act on.
 		if (S.deskClosed) return
+		// A key pressed inside the hub's rail is the rail's: Enter follows its link.
+		if (isInRail(e.target)) return
 		const typing = isTyping(e)
 		for (const h of HOTKEYS) {
 			if (!h.test(e)) continue

@@ -50,6 +50,13 @@ export function deskId(root: string, session: string): string {
 	return hash(`${root}\n${sanitizeSession(session)}`)
 }
 
+// The project's identity on the hub: deterministic per repo root (the same digest that keys the
+// repo's review dir), so the dashboard's project page keeps one URL across sessions, desks and
+// hub restarts, and two repos sharing a directory name never share a page.
+export function projectId(root: string): string {
+	return hash(root)
+}
+
 // Default session per mode: <branch> / file-<path> / pr-<ref>, overridable. Pure: the CLI and
 // the hub derive the same name for the same inputs, which is what makes an open idempotent
 // across the two entry points.

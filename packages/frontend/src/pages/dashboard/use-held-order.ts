@@ -1,32 +1,36 @@
 import { useState } from 'react'
 
-import type { HubProject } from '@entities/hub/model'
+import type { HubDesk } from '@entities/hub/model'
 
-// The order rows were last shown in: each project by root, its desks by id.
-type Slot = { root: string; ids: readonly string[] }
+// A listing's groups (a turn's, a project's), each named by a stable key, its desks in order.
+type Grouped = { key: string; desks: readonly HubDesk[] }
+
+// The order rows were last shown in: each group by key, its desks by id.
+type Slot = { key: string; ids: readonly string[] }
 type Order = readonly Slot[]
 
-function orderOf(projects: readonly HubProject[]): Order {
-	return projects.map(project => ({
-		root: project.root,
-		ids: project.desks.map(desk => desk.id),
+function orderOf(groups: readonly Grouped[]): Order {
+	return groups.map(group => ({
+		key: group.key,
+		ids: group.desks.map(desk => desk.id),
 	}))
 }
 
 // Keep every slot that is still listed where it was, drop what left, and append what is new:
-// new desks at the end of their project, new projects at the end of the page.
-function holdOrder(order: Order, projects: readonly HubProject[]): Order {
-	const fresh = orderOf(projects)
-	const freshByRoot = new Map(fresh.map(slot => [slot.root, slot.ids]))
+// new desks at the end of their group, new groups at the end of the page. A desk that changed
+// group leaves its old slot and joins the new one: that move is news, not a reshuffle.
+function holdOrder(order: Order, groups: readonly Grouped[]): Order {
+	const fresh = orderOf(groups)
+	const freshByKey = new Map(fresh.map(slot => [slot.key, slot.ids]))
 	const kept = order.flatMap(slot => {
-		const listed = freshByRoot.get(slot.root)
+		const listed = freshByKey.get(slot.key)
 		if (!listed) return []
 		const stayed = slot.ids.filter(id => listed.includes(id))
 		const joined = listed.filter(id => !slot.ids.includes(id))
-		return [{ root: slot.root, ids: [...stayed, ...joined] }]
+		return [{ key: slot.key, ids: [...stayed, ...joined] }]
 	})
-	const keptRoots = new Set(kept.map(slot => slot.root))
-	return [...kept, ...fresh.filter(slot => !keptRoots.has(slot.root))]
+	const keptKeys = new Set(kept.map(slot => slot.key))
+	return [...kept, ...fresh.filter(slot => !keptKeys.has(slot.key))]
 }
 
 function isSameList(a: readonly string[], b: readonly string[]): boolean {
@@ -42,38 +46,37 @@ function isSameOrder(a: Order, b: Order): boolean {
 			const other = b[index]
 			return (
 				!!other &&
-				slot.root === other.root &&
+				slot.key === other.key &&
 				isSameList(slot.ids, other.ids)
 			)
 		})
 	)
 }
 
-// The fresh projects and desks, laid out in `order` (which names exactly what they hold).
-function arrange(projects: readonly HubProject[], order: Order): HubProject[] {
-	const byRoot = new Map(projects.map(project => [project.root, project]))
+// The fresh groups and desks, laid out in `order` (which names exactly what they hold).
+function arrange<G extends Grouped>(groups: readonly G[], order: Order): G[] {
+	const byKey = new Map(groups.map(group => [group.key, group]))
 	return order.flatMap(slot => {
-		const project = byRoot.get(slot.root)
-		if (!project) return []
-		const byId = new Map(project.desks.map(desk => [desk.id, desk]))
+		const group = byKey.get(slot.key)
+		if (!group) return []
+		const byId = new Map(group.desks.map(desk => [desk.id, desk]))
 		const desks = slot.ids.flatMap(id => byId.get(id) ?? [])
-		return [{ ...project, desks }]
+		return [{ ...group, desks }]
 	})
 }
 
-// The listing in a stable order while the reviewer is at it. `lastActivityAt` moves with
-// every request a desk serves (an open tab's polls included), so the most-recent-first order
-// reshuffles every couple of seconds: rows would swap under the pointer or the focus. While
-// `isHeld`, the rows keep the order they were last shown in and only their contents refresh;
-// once released, the next render takes the fresh order. The last shown order is state, set
-// during render when it changes (React's "store information from previous renders" pattern):
-// the arrangement returned is computed from it in the same render, so nothing lags a frame.
-export function useHeldOrder(
-	projects: readonly HubProject[],
+// The listing in a stable order while the reviewer is at it: rows never swap under the pointer
+// or the focus. While `isHeld`, the rows keep the order they were last shown in and only their
+// contents refresh; once released, the next render takes the fresh order. The last shown order
+// is state, set during render when it changes (React's "store information from previous
+// renders" pattern): the arrangement returned is computed from it in the same render, so
+// nothing lags a frame.
+export function useHeldOrder<G extends Grouped>(
+	groups: readonly G[],
 	{ isHeld }: { isHeld: boolean },
-): HubProject[] {
-	const [shown, setShown] = useState<Order>(() => orderOf(projects))
-	const next = isHeld ? holdOrder(shown, projects) : orderOf(projects)
+): G[] {
+	const [shown, setShown] = useState<Order>(() => orderOf(groups))
+	const next = isHeld ? holdOrder(shown, groups) : orderOf(groups)
 	if (!isSameOrder(shown, next)) setShown(next)
-	return arrange(projects, next)
+	return arrange(groups, next)
 }

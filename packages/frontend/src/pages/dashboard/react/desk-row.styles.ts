@@ -13,23 +13,25 @@ const FOCUSED = ':has(a:focus-visible)'
 const rowHover = (): string => stylex.when.ancestor(':hover', deskRowMarker)
 const rowFocus = (): string => stylex.when.ancestor(FOCUSED, deskRowMarker)
 
-// The grid of a row: one line at full width, two from tablets down (the review under the desk,
-// the actions under the stage and the arrow, so Close ends on the arrow's edge), stacked on
-// phones. An armed row gives its warning the review's whole line on phones and moves the
-// actions under it.
+// The grid of a row: one line on a wide listing (the desk, its stage, its review, Close, then
+// Open as the row's end), two on a narrow one (the review and Close under the desk and the
+// stage), stacked on the narrowest. Armed, the pair takes Close's and Open's tracks on a wide
+// listing; on the narrowest the warning takes the review's whole line and the actions go
+// under it.
 const AREAS = {
-	wide: '"icon desk stage review actions arrow"',
-	tablet: '"icon desk stage arrow" ". review actions actions"',
-	stacked: '"icon desk arrow" ". stage stage" ". review actions"',
+	wide: '"icon desk stage review actions open"',
+	wideArmed: '"icon desk stage review actions actions"',
+	tablet: '"icon desk stage open" ". review actions actions"',
+	stacked: '"icon desk open" ". stage stage" ". review actions"',
 	stackedArmed:
-		'"icon desk arrow" ". stage stage" ". review review" ". actions actions"',
+		'"icon desk open" ". stage stage" ". review review" ". actions actions"',
 } as const
 
 // The site's index row at app density: the whole row is the link; hovering it (on a fine
-// pointer) or focusing its link slides the content in over a white ground, and turns the
-// icon and the arrow petrol. Every hover entry is a fine pointer's only: a tap leaves a sticky
-// :hover behind on touch screens, which must not half-light the row. The rule under it parts
-// it from the next.
+// pointer) or focusing its link slides the content in over a white ground (desk-slide.styles.ts:
+// the grid itself never changes width), and turns the icon and the arrow petrol. Every hover
+// entry is a fine pointer's only: a tap leaves a sticky :hover behind on touch screens, which
+// must not half-light the row. The rule under it parts it from the next.
 export const deskRow = stylex.create({
 	row: {
 		position: 'relative',
@@ -37,27 +39,22 @@ export const deskRow = stylex.create({
 		alignItems: 'start',
 		gridTemplateColumns: {
 			default: deskGrid.wide,
-			[media.tablet]: deskGrid.tablet,
-			[media.stacked]: deskGrid.stacked,
+			[deskGrid.narrow]: deskGrid.tablet,
+			[deskGrid.stackedWidth]: deskGrid.stacked,
 		},
 		gridTemplateAreas: {
 			default: AREAS.wide,
-			[media.tablet]: AREAS.tablet,
-			[media.stacked]: AREAS.stacked,
+			[deskGrid.narrow]: AREAS.tablet,
+			[deskGrid.stackedWidth]: AREAS.stacked,
 		},
-		columnGap: { default: deskGrid.gap, [media.stacked]: '14px' },
-		rowGap: { default: 0, [media.tablet]: '12px' },
-		paddingBlock: { default: '18px', [media.phone]: '16px' },
-		paddingRight: deskGrid.endInset,
-		paddingLeft: {
+		columnGap: { default: deskGrid.gap, [deskGrid.stackedWidth]: '14px' },
+		rowGap: {
 			default: 0,
-			[FOCUSED]: '10px',
-			[media.finePointer]: {
-				default: 0,
-				':hover': '10px',
-				[FOCUSED]: '10px',
-			},
+			[deskGrid.narrow]: '8px',
+			[deskGrid.stackedWidth]: '8px',
 		},
+		paddingBlock: { default: '13px', [media.phone]: '14px' },
+		paddingRight: deskGrid.endInset,
 		backgroundColor: {
 			default: null,
 			[FOCUSED]: WHITE_60,
@@ -70,13 +67,13 @@ export const deskRow = stylex.create({
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
-		transition: `background-color ${duration['--duration-medium']} ${out}, padding-left ${duration['--duration-shift']} ${out}`,
+		transition: `background-color ${duration['--duration-medium']} ${out}`,
 	},
 	armed: {
 		gridTemplateAreas: {
-			default: AREAS.wide,
-			[media.tablet]: AREAS.tablet,
-			[media.stacked]: AREAS.stackedArmed,
+			default: AREAS.wideArmed,
+			[deskGrid.narrow]: AREAS.tablet,
+			[deskGrid.stackedWidth]: AREAS.stackedArmed,
 		},
 	},
 	icon: {
@@ -103,23 +100,36 @@ export const deskRow = stylex.create({
 				[rowFocus()]: 'scale(1.08)',
 			},
 		},
-		transition: `color ${duration['--duration-medium']} ${out}, transform ${duration['--duration-spring-medium']} ${spring}`,
-	},
-	arrow: {
-		gridArea: 'arrow',
-		justifySelf: 'end',
-		width: '20px',
-		height: '20px',
-		marginTop: '1px',
-		color: {
-			default: color['--ink'],
-			[rowFocus()]: color['--accent'],
+		// It slides with the content (desk-slide.styles.ts), on its own clock.
+		translate: {
+			default: null,
+			[rowFocus()]: '10px 0',
 			[media.finePointer]: {
-				default: color['--ink'],
-				[rowHover()]: color['--accent'],
-				[rowFocus()]: color['--accent'],
+				default: null,
+				[rowHover()]: '10px 0',
+				[rowFocus()]: '10px 0',
 			},
 		},
+		transition: `color ${duration['--duration-medium']} ${out}, transform ${duration['--duration-spring-medium']} ${spring}, translate ${duration['--duration-shift']} ${out}`,
+	},
+	// The row's end: Open and its arrow, petrol like every way in; the arrow steps forward
+	// while the row is hovered or its link focused.
+	open: {
+		gridArea: 'open',
+		justifySelf: 'end',
+		display: 'inline-flex',
+		alignItems: 'center',
+		gap: '6px',
+		marginTop: '1px',
+		fontSize: '13px',
+		fontWeight: 500,
+		lineHeight: '20px',
+		whiteSpace: 'nowrap',
+		color: color['--accent'],
+	},
+	arrow: {
+		width: '16px',
+		height: '16px',
 		transform: {
 			default: null,
 			[rowFocus()]: 'translateX(4px)',
@@ -129,7 +139,7 @@ export const deskRow = stylex.create({
 				[rowFocus()]: 'translateX(4px)',
 			},
 		},
-		transition: `transform ${duration['--duration-step']} ${out}, color ${duration['--duration-medium']} ${out}`,
+		transition: `transform ${duration['--duration-step']} ${out}`,
 	},
 })
 

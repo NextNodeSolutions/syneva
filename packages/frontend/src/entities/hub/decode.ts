@@ -10,7 +10,9 @@ import {
 
 import type { HubDesk, HubHealth } from './model'
 
-const MODES = ['repo', 'file', 'pr'] as const
+// The review modes a desk can be in, as the wire names them (the journal's events carry them
+// too).
+export const MODES = ['repo', 'file', 'pr'] as const
 
 // The hub listing's wire→model mapper: required fields fail loudly with a named boundary
 // error; unknown response properties are ignored by construction, so a newer hub stays usable.
@@ -20,6 +22,7 @@ export function decodeHubDesk(raw: unknown, endpoint: string): HubDesk {
 		id: requiredString(o, 'id', endpoint),
 		root: requiredString(o, 'root', endpoint),
 		project: requiredString(o, 'project', endpoint),
+		projectId: requiredString(o, 'projectId', endpoint),
 		session: requiredString(o, 'session', endpoint),
 		mode: enumValue(o.mode, endpoint, MODES, 'desk.mode'),
 		target: optString(o, 'target', endpoint),

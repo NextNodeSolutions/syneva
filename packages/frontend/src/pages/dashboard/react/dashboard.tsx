@@ -1,69 +1,58 @@
-import * as stylex from '@stylexjs/stylex'
+import { usePlace } from '@shared/lib/use-place'
+import { HubShell } from '@widgets/hub-shell/react/hub-shell'
 
+import { NEW_REVIEW_ID } from '../focus-targets'
+import { knownRoots } from '../known-roots'
+import { pageOf } from '../route'
 import { useDashboard } from '../use-dashboard'
 
 import { CloseNotice } from './close-notice'
-import { dashboard } from './dashboard.styles'
-import { DeskListing } from './desk-listing'
-import { HubFooter } from './hub-footer'
-import { HubHead } from './hub-head'
-import { HubHeader } from './hub-header'
-import { HubMain } from './hub-main'
-import { HubRegister } from './hub-register'
+import { DashboardPage } from './dashboard-page'
 import { NewReviewDialog } from './new-review-dialog'
 import { SkipLink } from './skip-link'
 import { UnreachableStrip } from './unreachable-strip'
 
 import type { ReactElement } from 'react'
 
-// The hub dashboard, in document order: the skip link, the header, the unreachable strip
-// (over a kept listing), the head with its statement and register, the listing (or the empty
-// band, which runs down to the footer), the footer bar, then the toast and the New review
-// dialog over the page. A signed-out browser is offered neither New review nor Sign out (its
-// sign-in already ended): only the way back in.
+// The hub dashboard: the skip link, the shell (the sidebar and the page beside it), the
+// unreachable strip over a kept listing, the page the URL names and the close toast fixed
+// against it (under the page's own panels), then the New review dialog over everything. A signed-out browser is offered no New review: only the way
+// back in.
 export function Dashboard(): ReactElement {
-	const { hub, phase, listed, projects, ...page } = useDashboard()
+	const dashboard = useDashboard()
+	const place = usePlace()
+	const { offer } = dashboard.newReview
 	return (
-		<div {...stylex.props(dashboard.frame)}>
+		<>
 			<SkipLink />
-			<HubHeader {...page.header} />
-			<UnreachableStrip isShown={listed?.isStale === true} />
-			<HubHead phase={phase}>
-				{page.registerCounts && (
-					<HubRegister counts={page.registerCounts} />
-				)}
-			</HubHead>
-			<HubMain
-				bind={page.hold.bind}
-				listeners={page.hold.listeners}
-				isEmpty={listed?.desks.length === 0}
+			<HubShell
+				model={{
+					pathname: place.pathname,
+					counts: dashboard.navCounts,
+					status: dashboard.hub.status,
+					version: dashboard.hub.health?.version ?? null,
+				}}
+				newReview={offer && { id: NEW_REVIEW_ID, open: offer }}
 			>
-				{listed && (
-					<DeskListing
-						projects={projects}
-						now={hub.now}
-						freshness={{
-							isLive: !listed.isStale,
-							arrivedIds: hub.arrivedIds,
-						}}
-						close={page.close}
-						onNewReview={page.newReview.open}
-					/>
-				)}
-			</HubMain>
-			<HubFooter
-				status={hub.status}
-				listing={page.footerListing}
-				health={hub.health}
-				now={hub.now}
-			/>
-			<CloseNotice toast={page.toast} />
-			{page.newReview.isOpen && (
+				<UnreachableStrip
+					isShown={dashboard.listed?.isStale === true}
+				/>
+				<DashboardPage
+					page={pageOf(place.pathname)}
+					dashboard={dashboard}
+				/>
+				<CloseNotice toast={dashboard.toast} />
+			</HubShell>
+			{dashboard.newReview.isOpen && (
 				<NewReviewDialog
-					roots={projects.map(project => project.root)}
-					onClose={page.newReview.close}
+					roots={knownRoots(
+						dashboard.projects,
+						dashboard.journal.events,
+					)}
+					seed={dashboard.newReview.seed}
+					onClose={dashboard.newReview.close}
 				/>
 			)}
-		</div>
+		</>
 	)
 }

@@ -1,9 +1,16 @@
 import { ApiError, hubApi } from '@shared/api/client'
 import { assertObject, DecodeError, requiredBoolean } from '@shared/api/decode'
-import { HUB_PATHS, hubDeskPath, STATIC_PATHS } from '@syneva/contracts/routes'
+import {
+	HUB_PATHS,
+	hubDeskPath,
+	JOURNAL_READ_MAX,
+	STATIC_PATHS,
+} from '@syneva/contracts/routes'
 
 import { decodeHubDesk, decodeHubDesks, decodeHubHealth } from './decode'
+import { decodeJournal } from './journal-decode'
 
+import type { JournalRead } from './journal'
 import type { HubDesk, HubHealth, NewDeskInput } from './model'
 
 // The hub entity's API boundary: the only place the hub routes are named. Paths come from
@@ -33,6 +40,25 @@ export const fetchHubHealth = async (
 		await hubApi(HUB_PATHS.health, { signal: signal ?? null }),
 		HUB_PATHS.health,
 	)
+
+// The journal's events after `after` (its kept tail when absent), oldest first: the dashboard
+// reads the tail once, then only what follows the newest event it holds. Every read asks for the
+// most the hub answers (JOURNAL_READ_MAX), the window the page keeps, so a read capped at it
+// drops nothing the page would hold: the first read of a long journal, or a tab back after
+// hours hidden.
+export const fetchHubJournal = async (
+	after: number | null,
+	signal?: AbortSignal,
+): Promise<JournalRead> => {
+	const query = new URLSearchParams({ limit: String(JOURNAL_READ_MAX) })
+	if (after !== null) query.set('after', String(after))
+	return decodeJournal(
+		await hubApi(`${HUB_PATHS.journal}?${query}`, {
+			signal: signal ?? null,
+		}),
+		HUB_PATHS.journal,
+	)
+}
 
 // The dashboard's "New review": the same open the CLI performs, answered with the desk to
 // navigate to (created, or the live one reloaded). `signal` lets the form abandon an open

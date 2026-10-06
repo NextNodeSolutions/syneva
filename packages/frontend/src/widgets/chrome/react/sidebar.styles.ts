@@ -1,4 +1,5 @@
 import { deskSize, deskText } from '@shared/ui/desk.stylex'
+import { shell } from '@shared/ui/shell.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import {
@@ -14,7 +15,8 @@ const PAD = '8px'
 
 // The sidebar: the Tree / Walkthrough tabs (guided desks), the file tree or
 // the walkthrough, and Settings docked at the foot - on the paper chrome. On
-// tablets it leaves the flow as a drawer over the diff.
+// tablets it leaves the flow as a drawer over the diff, opening from the hub's
+// rail's edge (phones have no rail: from the screen's).
 export const sidebar = stylex.create({
 	aside: {
 		minWidth: 0,
@@ -27,7 +29,11 @@ export const sidebar = stylex.create({
 		backgroundColor: color['--paper'],
 		position: { default: null, [media.tablet]: 'fixed' },
 		top: { default: null, [media.tablet]: deskSize.topbar },
-		left: { default: null, [media.tablet]: 0 },
+		left: {
+			default: null,
+			[media.tablet]: shell.railWidth,
+			[media.stacked]: 0,
+		},
 		bottom: { default: null, [media.tablet]: 0 },
 		width: { default: null, [media.tablet]: 'min(86vw, 300px)' },
 		zIndex: { default: null, [media.tablet]: 30 },

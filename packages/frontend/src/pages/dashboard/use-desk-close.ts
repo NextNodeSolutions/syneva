@@ -8,7 +8,8 @@ import { useArmedDesk } from './use-armed-desk'
 import { useEscapeToDisarm } from './use-escape-to-disarm'
 import { useFocusNext } from './use-focus-next'
 
-import type { HubDesk, HubProject } from '@entities/hub/model'
+import type { HubDesk } from '@entities/hub/model'
+import type { ListedGroups } from './focus-after-close'
 import type { CloseOutcome } from './use-close-notice'
 
 // Where a desk's close stands: at rest, armed (asking for the second, deliberate click), or
@@ -24,6 +25,9 @@ export type CloseActions = {
 	confirm: () => void
 }
 
+// One desk's close as its row or its card reads it: where it stands and what it can do.
+export type RowClose = { state: CloseState; actions: CloseActions }
+
 export type DeskClose = {
 	// A close is armed somewhere on the page: N then opens nothing (the reviewer is mid-decision).
 	isArmed: boolean
@@ -32,8 +36,8 @@ export type DeskClose = {
 	// keyboard user whose focus fell with the busy control and has not landed again yet.
 	isHolding: boolean
 	stateOf: (deskId: string) => CloseState
-	// `projects`: the rows as displayed, for where focus goes once this row leaves.
-	actionsFor: (desk: HubDesk, projects: readonly HubProject[]) => CloseActions
+	// `groups`: the rows as displayed, for where focus goes once this row leaves.
+	actionsFor: (desk: HubDesk, groups: ListedGroups) => CloseActions
 }
 
 type DeskCloseDeps = {
@@ -109,9 +113,9 @@ export function useDeskClose({
 	// render that drops its row.
 	const confirm = async (
 		desk: HubDesk,
-		projects: readonly HubProject[],
+		groups: ListedGroups,
 	): Promise<void> => {
-		const after = focusAfterClose(projects, desk.id)
+		const after = focusAfterClose(groups, desk.id)
 		begin(desk.id)
 		const outcome = await closeOutcome(desk)
 		report(outcome)
@@ -130,14 +134,14 @@ export function useDeskClose({
 			if (closingIds.has(deskId)) return 'closing'
 			return armedId === deskId ? 'armed' : 'rest'
 		},
-		actionsFor: (desk, projects) => ({
+		actionsFor: (desk, groups) => ({
 			arm: () => {
 				focusNext(deskKeepId(desk.id))
 				arm(desk.id)
 			},
 			keep: () => keep(desk.id),
 			release: () => disarm(desk.id),
-			confirm: () => void confirm(desk, projects),
+			confirm: () => void confirm(desk, groups),
 		}),
 	}
 }

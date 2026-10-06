@@ -44,8 +44,9 @@ export const topBar = stylex.create({
 	},
 	// The mark and the name, linking back to the hub's dashboard; the mark
 	// turns on hover as it does on the public site.
+	// The rail at the desk's edge carries the mark home on every screen but a phone's.
 	home: {
-		display: 'inline-flex',
+		display: { default: 'none', [media.stacked]: 'inline-flex' },
 		alignItems: 'center',
 		gap: '8px',
 		color: color['--ink'],
@@ -68,13 +69,15 @@ export const topBar = stylex.create({
 	},
 	// The desk's name (repo, file or ref) after the wordmark, in the mono
 	// caption voice.
+	// Beside the rail the desk's name opens the bar; on phones it follows the wordmark, after a
+	// rule.
 	desk: {
 		minWidth: 0,
 		overflow: 'hidden',
 		textOverflow: 'ellipsis',
 		whiteSpace: 'nowrap',
-		paddingLeft: '10px',
-		borderLeftWidth: '1px',
+		paddingLeft: { default: 0, [media.stacked]: '10px' },
+		borderLeftWidth: { default: 0, [media.stacked]: '1px' },
 		borderLeftStyle: 'solid',
 		borderLeftColor: color['--line'],
 		fontFamily: font['--mono'],

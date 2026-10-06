@@ -1,8 +1,10 @@
 import { useEffect } from 'react'
 
+import { isDialogOpen } from '@shared/lib/page-keys'
+
 // Escape outside a dialog: the dialog's own Escape cancels it instead.
 function isDisarmKey(event: KeyboardEvent): boolean {
-	return event.key === 'Escape' && !document.querySelector('dialog[open]')
+	return event.key === 'Escape' && !isDialogOpen()
 }
 
 // While a close is armed, Escape disarms it from anywhere on the page - not only from inside

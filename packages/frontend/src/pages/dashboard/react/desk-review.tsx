@@ -1,3 +1,4 @@
+import { a11y } from '@shared/ui/a11y.styles'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 
@@ -5,6 +6,7 @@ import { plural } from '../format'
 
 import { DeskApprovals } from './desk-approvals'
 import { deskReview } from './desk-review.styles'
+import { deskSlide } from './desk-slide.styles'
 import { Fraction } from './fraction'
 
 import type { HubDesk } from '@entities/hub/model'
@@ -21,7 +23,10 @@ function progressItems(desk: HubDesk): ReactElement[] {
 					count={desk.decidedChanges}
 					total={desk.totalChanges}
 				/>{' '}
-				{desk.totalChanges === 1 ? 'change' : 'changes'} decided
+				decided
+				<span {...stylex.props(a11y.srOnly)}>
+					{desk.totalChanges === 1 ? ' change' : ' changes'}
+				</span>
 			</span>
 		</span>
 	)
@@ -31,7 +36,7 @@ function progressItems(desk: HubDesk): ReactElement[] {
 			{...stylex.props(deskReview.item, deskReview.requests)}
 		>
 			<LiveDot tone="amber" />
-			{plural(desk.openRequests, 'change')} requested
+			{desk.openRequests} requested
 		</span>
 	)
 	const questions = desk.openQuestions > 0 && (
@@ -40,7 +45,7 @@ function progressItems(desk: HubDesk): ReactElement[] {
 			{...stylex.props(deskReview.item, deskReview.questions)}
 		>
 			<LiveDot tone="petrol" hollow />
-			{plural(desk.openQuestions, 'question')} open
+			{plural(desk.openQuestions, 'question')}
 		</span>
 	)
 	return [decided, requests, questions].filter(
@@ -53,7 +58,7 @@ function progressItems(desk: HubDesk): ReactElement[] {
 export function DeskReview({ desk }: { desk: HubDesk }): ReactElement {
 	const items = progressItems(desk)
 	return (
-		<div {...stylex.props(deskReview.cell)}>
+		<div {...stylex.props(deskReview.cell, deskSlide.part)}>
 			<DeskApprovals desk={desk} />
 			{items.length > 0 && (
 				<p {...stylex.props(deskReview.progress)}>{items}</p>

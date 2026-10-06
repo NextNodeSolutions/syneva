@@ -1,3 +1,6 @@
+import { lazy, Suspense } from 'react'
+
+import { deskIdFromLocation } from '@shared/api/base'
 import * as stylex from '@stylexjs/stylex'
 import { isTreeless } from '@widgets/chrome/layout'
 import { DeskCovers } from '@widgets/chrome/react/desk-covers'
@@ -18,6 +21,14 @@ import { app } from './app.styles'
 
 import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
+
+// The hub's rail loads after the review's first paint: nothing in it is needed to read the
+// diff, and the desk's cold open (its initial bundle budget) stays the review's alone. Until it
+// lands, its column is the rail's empty paper.
+const DeskRail = lazy(async () => {
+	const module = await import('@widgets/hub-shell/react/desk-rail')
+	return { default: module.DeskRail }
+})
 
 // The workspace's columns for the desk's shape (see app.styles.ts).
 function columns(shape: { isTreeless: boolean; isNotesOpen: boolean }): Style {
@@ -59,8 +70,9 @@ function Workspace(): ReactElement {
 	)
 }
 
-// The app shell: top bar, the status covers, the workspace and the floating layers. Its
-// root carries the desk's scope marker (data-desk) the page-neutral desk stylesheet keys on.
+// The app shell: the hub's rail at the left edge, then the desk - top bar, the status covers,
+// the workspace and the floating layers. The desk's root carries its scope marker (data-desk)
+// the page-neutral desk stylesheet keys on.
 export function App(): ReactElement {
 	useStoreFields(
 		'state',
@@ -71,20 +83,27 @@ export function App(): ReactElement {
 	)
 	const isClosed = S.deskClosed && !S.isRefreshRequired
 	return (
-		<div
-			data-desk=""
-			{...stylex.props(
-				app.root,
-				S.isRefreshRequired && app.refreshRequired,
-			)}
-		>
-			<TopBar />
-			<DeskCovers />
-			{!isClosed && <Workspace />}
-			<SettingsModal />
-			<ConfirmModal />
-			<SendModal />
-			<TransientChrome />
+		<div {...stylex.props(app.frame)}>
+			<Suspense fallback={<div {...stylex.props(app.railSpace)} />}>
+				<DeskRail
+					deskId={deskIdFromLocation(window.location.pathname)}
+				/>
+			</Suspense>
+			<div
+				data-desk=""
+				{...stylex.props(
+					app.root,
+					S.isRefreshRequired && app.refreshRequired,
+				)}
+			>
+				<TopBar />
+				<DeskCovers />
+				{!isClosed && <Workspace />}
+				<SettingsModal />
+				<ConfirmModal />
+				<SendModal />
+				<TransientChrome />
+			</div>
 		</div>
 	)
 }

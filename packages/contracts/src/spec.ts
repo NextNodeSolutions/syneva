@@ -239,6 +239,10 @@ without a non-empty \`path\` refuses the open naming the offending field.
 ## Browser state & refresh
 - Every desk route lives under /api/desks/<deskId>/ on the hub (GET /api/hub/desks lists desks
   with their ids; POST /api/hub/desks opens one; DELETE /api/hub/desks/<id> closes one).
+  GET /api/hub/journal[?after=<seq>][&limit=<n>] reads what happened on the hub (desks opened,
+  reloaded and closed, rounds sent and picked, asks, your replies), oldest first, at most
+  limit (default 500, at most 2000; the newest when more follow) - you never write it: the hub
+  records each event as it happens.
 - GET …/state returns BrowserReviewState plus transient desk status and serverInstanceId, not
   the persisted ReviewState. POST …/reset returns the same browser projection in its state field
   plus serverInstanceId outside it, and takes { scope: "review" | "approved" | "all" }: 'review'

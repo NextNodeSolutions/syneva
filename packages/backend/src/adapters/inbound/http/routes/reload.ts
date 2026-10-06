@@ -1,3 +1,4 @@
+import { reviewScope } from '../../../../application/desk-summary.js'
 import { reloadDesk } from '../../../../application/reload-desk.js'
 import { HTTP_OK, HTTP_UNPROCESSABLE, readBody, json, fail } from '../http.js'
 
@@ -18,6 +19,10 @@ export async function reloadDeskFromRequest({
 		if (outcome.kind === 'invalid-guide')
 			return fail(res, invalidGuide(outcome.reason))
 		ctx.commit(outcome.state)
+		ctx.recordEvent({
+			kind: 'desk-reloaded',
+			...reviewScope(outcome.state),
+		})
 		json(res, HTTP_OK, {
 			ok: true,
 			empty: outcome.kind === 'empty',

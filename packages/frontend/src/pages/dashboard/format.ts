@@ -1,8 +1,8 @@
 import type { HubDesk } from '@entities/hub/model'
 
 export const MS_PER_SECOND = 1000
-const SECONDS_PER_MINUTE = 60
-const MINUTES_PER_HOUR = 60
+export const SECONDS_PER_MINUTE = 60
+export const MINUTES_PER_HOUR = 60
 const HOURS_PER_DAY = 24
 const JUST_NOW_SECONDS = 10
 
@@ -22,8 +22,20 @@ export function relativeTime(at: string | number, now: number): string {
 	return `${Math.floor(hours / HOURS_PER_DAY)}d ago`
 }
 
-export function plural(count: number, noun: string): string {
-	return `${count} ${noun}${count === 1 ? '' : 's'}`
+// A day as a date reads it short ("Oct 6"): a journal line older than today, a chart's day.
+export const SHORT_DATE = new Intl.DateTimeFormat(undefined, {
+	month: 'short',
+	day: 'numeric',
+})
+
+// "1 desk" / "3 desks"; a noun whose plural is not its singular plus s names it ("repository",
+// "repositories").
+export function plural(
+	count: number,
+	noun: string,
+	nouns = `${noun}s`,
+): string {
+	return `${count} ${count === 1 ? noun : nouns}`
 }
 
 // A count that opens a sentence is spelled out while it is a word a reader takes in at a
@@ -49,13 +61,15 @@ export function lastSegment(path: string | undefined): string {
 	return path?.replace(/\/+$/, '').split('/').pop() ?? ''
 }
 
+type ModeSubject = Pick<HubDesk, 'mode' | 'staged' | 'target' | 'session'>
+
 // A pull request named by its number, bare or inside a GitHub URL.
 const PR_NUMBER = /^(?<bare>\d+)$|\/pull\/(?<linked>\d+)/
 
 // What a desk reviews, in the words of the command that opened it: the working tree, the
 // staged changes, one file, or a branch or pull request (by number when it has one) - as
-// the parts a meta line joins.
-export function modeParts(desk: HubDesk): string[] {
+// the parts a meta line joins. A closed desk's journal event names it the same way.
+export function modeParts(desk: ModeSubject): string[] {
 	if (desk.mode === 'file') return ['file', lastSegment(desk.target)]
 	if (desk.mode === 'pr') return ['pr', pullRequestName(desk)]
 	return [desk.staged ? 'staged' : 'working tree']
@@ -64,7 +78,7 @@ export function modeParts(desk: HubDesk): string[] {
 const SEPARATOR = ' · '
 const NO_BREAK_SPACE = '\u00a0'
 
-export function modeLabel(desk: HubDesk): string {
+export function modeLabel(desk: ModeSubject): string {
 	return modeParts(desk).join(SEPARATOR)
 }
 
@@ -73,7 +87,7 @@ export function unbroken(words: string): string {
 	return words.replaceAll(' ', NO_BREAK_SPACE)
 }
 
-function pullRequestName(desk: HubDesk): string {
+function pullRequestName(desk: ModeSubject): string {
 	const found = desk.target?.match(PR_NUMBER)?.groups
 	const number = found?.bare ?? found?.linked
 	if (number) return `#${number}`
@@ -87,3 +101,8 @@ const HOME_DIRECTORY = /^\/(?:Users|home)\/[^/]+(?=\/|$)/
 export function displayRoot(root: string): string {
 	return root.replace(HOME_DIRECTORY, '~')
 }
+
+// Left-to-right marks: a path is set in a right-to-left box (so it is cut from its start, its
+// meaningful end kept), and its leading "~/" and trailing "/" would otherwise move to the other
+// end.
+export const LTR_MARK = '\u200e'

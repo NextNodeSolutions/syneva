@@ -1,19 +1,9 @@
 import { useEffect } from 'react'
 
-// Elements whose own typing a bare N belongs to.
-const TYPING_TARGETS =
-	'input, textarea, select, [contenteditable]:not([contenteditable="false"])'
+import { isPageShortcut } from '@shared/lib/page-keys'
 
 // A bare N, pressed once, outside anything that takes typing, and with no dialog open.
-function isNewReviewKey(event: KeyboardEvent): boolean {
-	if (event.key !== 'n' && event.key !== 'N') return false
-	if (event.metaKey || event.ctrlKey || event.altKey || event.repeat)
-		return false
-	const { target } = event
-	if (target instanceof Element && target.closest(TYPING_TARGETS))
-		return false
-	return !document.querySelector('dialog[open]')
-}
+const NEW_REVIEW_KEYS = ['n', 'N']
 
 // N opens New review from anywhere on the page; `open` is null while the page offers no New
 // review (a signed-out browser), and N stays quiet while `isQuiet` (a close is armed: the
@@ -30,7 +20,7 @@ export function useNewReviewShortcut({
 	useEffect(() => {
 		if (!open || isQuiet) return undefined
 		const onKeyDown = (event: KeyboardEvent): void => {
-			if (!isNewReviewKey(event)) return
+			if (!isPageShortcut(event, NEW_REVIEW_KEYS)) return
 			event.preventDefault()
 			open()
 		}

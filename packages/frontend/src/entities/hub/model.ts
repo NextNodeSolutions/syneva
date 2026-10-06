@@ -9,6 +9,7 @@ export type HubDesk = {
 	id: string
 	root: string
 	project: string
+	projectId: string
 	session: string
 	mode: ReviewMode
 	target?: string | undefined
@@ -41,6 +42,7 @@ export type HubHealth = {
 // One repository on the hub and its desks - the dashboard's grouping unit.
 export type HubProject = {
 	root: string
+	id: string
 	name: string
 	desks: HubDesk[]
 	lastActivityAt: string
@@ -53,6 +55,7 @@ export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 	for (const desk of desks) {
 		const project = byRoot.get(desk.root) ?? {
 			root: desk.root,
+			id: desk.projectId,
 			name: desk.project || desk.root,
 			desks: [],
 			lastActivityAt: desk.lastActivityAt,
@@ -72,11 +75,15 @@ export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 	)
 }
 
-// What the dashboard's "New review" form posts: the same open the CLI performs.
+// What the dashboard posts to open a desk: the same open the CLI performs. `base` and `path`
+// only ride a reopen (pages/dashboard/use-reopen.ts), which rebuilds a closed desk with its own
+// PR base and repo-mode path limit; the New review form never sets them.
 export type NewDeskInput = {
 	root: string
 	mode: ReviewMode
 	staged: boolean
 	target?: string | undefined
 	session?: string | undefined
+	base?: string | undefined
+	path?: string | undefined
 }

@@ -6,6 +6,7 @@
 // this layer calls it. Timestamps and ids are NOT ported - application code reads
 // them directly (time.ts) and passes values into the pure domain functions.
 
+import type { JournalEvent } from '../domain/hub-journal.js'
 import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { ReviewState } from '../domain/review.js'
 
@@ -116,4 +117,15 @@ export interface UpdateCheckPort {
 export interface HubRegistryPort {
 	readonly load: () => Promise<HubDeskRecord[]>
 	readonly save: (records: readonly HubDeskRecord[]) => Promise<void>
+}
+
+// The hub journal (~/.syneva/hub/journal.jsonl): what happened on the hub, one event per line,
+// appended as it happens. `load` reads every event the file holds, oldest first, decoded line by
+// line (domain/hub-journal) - a malformed line is skipped, a missing file is an empty journal.
+// `rewrite` replaces the whole file atomically: the compaction of a file that outgrew the tail
+// the hub keeps.
+export interface HubJournalPort {
+	readonly load: () => Promise<JournalEvent[]>
+	readonly append: (event: JournalEvent) => Promise<void>
+	readonly rewrite: (events: readonly JournalEvent[]) => Promise<void>
 }

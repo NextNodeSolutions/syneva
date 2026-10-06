@@ -2,6 +2,7 @@ import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 
 import { deskReview } from './desk-review.styles'
+import { deskSlide } from './desk-slide.styles'
 
 import type { ReactElement } from 'react'
 
@@ -17,7 +18,14 @@ export function CloseWarning({
 	isAgentListening: boolean
 }): ReactElement {
 	return (
-		<p id={id} {...stylex.props(deskReview.cell, deskReview.warning)}>
+		<p
+			id={id}
+			{...stylex.props(
+				deskReview.cell,
+				deskReview.warning,
+				deskSlide.part,
+			)}
+		>
 			<LiveDot tone="red" css={deskReview.warningDot} />
 			<span>
 				{isAgentListening

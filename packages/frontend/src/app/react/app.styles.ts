@@ -1,4 +1,5 @@
 import { deskSize, deskText, deskVars } from '@shared/ui/desk.stylex'
+import { shell } from '@shared/ui/shell.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
@@ -16,10 +17,34 @@ const columns = (template: string): { gridTemplateColumns: object } => ({
 })
 
 export const app = stylex.create({
+	// The hub's rail, then the desk beside it; phones have no rail (the desk's own drawers and
+	// its bar's brand take them home).
+	frame: {
+		height: '100%',
+		display: 'grid',
+		gridTemplateColumns: {
+			default: `${shell.railWidth} minmax(0, 1fr)`,
+			[media.stacked]: 'minmax(0, 1fr)',
+		},
+	},
+	// The rail's place while its code loads: the folded rail's own rules (its right edge, and
+	// its top bar's bottom rule, level with the desk's), so nothing redraws when it lands.
+	railSpace: {
+		display: { default: 'block', [media.stacked]: 'none' },
+		backgroundColor: color['--paper'],
+		backgroundImage: `linear-gradient(${color['--line']}, ${color['--line']})`,
+		backgroundSize: '100% 1px',
+		backgroundPosition: `0 calc(${shell.barHeight} - 1px)`,
+		backgroundRepeat: 'no-repeat',
+		borderRightWidth: '1px',
+		borderRightStyle: 'solid',
+		borderRightColor: color['--line'],
+	},
 	// The desk fills the viewport and never scrolls as a page: every column
 	// scrolls on its own.
 	root: {
 		height: '100%',
+		minWidth: 0,
 		display: 'grid',
 		gridTemplateRows: `${deskSize.topbar} minmax(0, 1fr)`,
 		backgroundColor: color['--paper'],
