@@ -81,7 +81,9 @@ export function useSignupForm(
 
 	return {
 		draft,
+		// Held while the signup is on its way: the verdict shows what was sent, so nothing typed after the press may change under it.
 		edit: change => {
+			if (attempt.phase === 'sending') return
 			setDraft(current => ({ ...current, ...change }))
 			if (refusal) setAttempt(EDITING)
 		},

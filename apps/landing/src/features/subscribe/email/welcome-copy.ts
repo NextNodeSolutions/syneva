@@ -8,7 +8,7 @@ export const WELCOME_COPY = {
 	added: 'You’re on the launch list.',
 	// The site's slogan, turned toward launch day; `decided` is the word set in green.
 	verdict: { before: 'Soon, you', decided: 'decide', after: 'what ships.' },
-	body: 'Thanks for joining. Syneva isn’t ready to install yet. The day it is, you’ll get one email, the only one this list sends. Until then, here’s what will be waiting for you.',
+	body: 'Thanks for joining. Syneva isn’t ready to install yet. The day it is, you’ll get one more email, and nothing in between. Until then, here’s what will be waiting for you.',
 	round: 'One review round',
 	illustrative: 'Illustrative · not a screenshot',
 	asker: 'You · ask',

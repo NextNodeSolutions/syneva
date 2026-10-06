@@ -7,8 +7,9 @@ export type Signup = { email: string; name: string; agents: readonly AgentId[] }
 
 export const EMPTY_SIGNUP: Signup = { email: '', name: '', agents: [] }
 
-// The form and the endpoint judge an address by this one rule.
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// The form and the endpoint judge an address by this one rule: the HTML standard's valid e-mail address (what a browser's type="email" accepts, so turning its check off on hydration loosens nothing), with at least one dot in the domain, since mail is not delivered to a bare host.
+const EMAIL_PATTERN =
+	/^[\w.!#$%&'*+/=?^`{|}~-]+@[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)+$/i
 const CONTROL_CHARACTER = /\p{Cc}/u
 
 export const isEmail = (email: string): boolean =>
