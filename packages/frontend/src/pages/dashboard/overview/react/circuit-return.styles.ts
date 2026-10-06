@@ -3,39 +3,16 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 import { transition } from '@syneva/design-system/transitions.stylex'
 
-// The next round's way back, under the stations: a dotted petrol rule from the Sent station's
-// foot round to the agent's, arriving on an arrowhead. Its ends sit on the outer stations'
-// centre lines: each station is a third of the row less the two 72px routes.
+// The next round's way back, under the stations (circuit-route.tsx draws it), from the Sent
+// station's foot round to the agent's. Its ends sit on the outer stations' centre lines: each
+// station is a third of the row less the two 72px routes.
 const PHONE = media.stacked
 
 export const circuitReturn = stylex.create({
 	path: {
 		display: { default: 'block', [PHONE]: 'none' },
-		position: 'relative',
 		height: '22px',
 		marginInline: 'calc((100% - 144px) / 6)',
-		color: color['--accent-line'],
-	},
-	line: {
-		position: 'absolute',
-		inset: 0,
-		width: '100%',
-		height: '100%',
-		overflow: 'visible',
-		fill: 'none',
-		stroke: 'currentColor',
-		strokeWidth: 1.5,
-		strokeDasharray: '2 5',
-	},
-	head: {
-		position: 'absolute',
-		top: '-3px',
-		left: '-5px',
-		width: '10px',
-		height: '10px',
-		fill: 'none',
-		stroke: 'currentColor',
-		strokeWidth: 1.5,
 	},
 	foot: {
 		display: 'flex',

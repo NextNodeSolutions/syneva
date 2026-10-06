@@ -17,10 +17,6 @@ export const circuit = stylex.create({
 		paddingTop: { default: '26px', [PHONE]: '16px' },
 		paddingBottom: { default: '14px', [PHONE]: '16px' },
 		paddingInline: { default: '32px', [PHONE]: '16px' },
-		backgroundColor: color['--white'],
-		backgroundImage: `linear-gradient(${color['--grid']} 1px, transparent 1px), linear-gradient(90deg, ${color['--grid']} 1px, transparent 1px)`,
-		backgroundSize: '24px 24px',
-		backgroundPosition: '-1px -1px',
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
@@ -135,24 +131,6 @@ export const circuit = stylex.create({
 		lineHeight: '9px',
 		color: color['--muted'],
 	},
-	route: {
-		display: 'flex',
-		alignItems: 'center',
-		paddingInline: { default: '10px', [PHONE]: '2px' },
-		color: color['--accent'],
-	},
-	routeLine: {
-		flex: '1',
-		height: '1px',
-		backgroundColor: 'currentColor',
-		transformOrigin: 'left',
-	},
-	routeHead: {
-		width: { default: '10px', [PHONE]: '7px' },
-		height: { default: '10px', [PHONE]: '7px' },
-		marginLeft: '-6px',
-		fill: 'none',
-		stroke: 'currentColor',
-		strokeWidth: 1.5,
-	},
+	// The route between two stations (circuit-route.tsx draws it).
+	route: { paddingInline: { default: '10px', [PHONE]: '2px' } },
 })

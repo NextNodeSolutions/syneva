@@ -1,6 +1,10 @@
+import { Fragment } from 'react'
+
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 
+import { ReturnArrow, RouteArrow } from './circuit-route'
+import { circuitRoute } from './circuit-route.styles'
 import { loopDiagram } from './loop-diagram.styles'
 
 import type { DotTone } from '@shared/ui/live-dot'
@@ -63,49 +67,24 @@ function StopTile({ stop }: { stop: Stop }): ReactElement {
 	)
 }
 
-function Route(): ReactElement {
-	return (
-		<span {...stylex.props(loopDiagram.route)}>
-			<span {...stylex.props(loopDiagram.routeLine)} data-enter="grow" />
-			<svg {...stylex.props(loopDiagram.routeHead)} viewBox="0 0 10 10">
-				<path d="M3 1.5 7 5l-4 3.5" />
-			</svg>
-		</span>
-	)
-}
-
 // The review loop at rest: how a desk goes round, before any desk does. A picture: what it
 // says is said again in the page's words, so it is hidden from assistive technology.
 export function LoopDiagram(): ReactElement {
-	const [agent, you, sent] = STOPS
 	return (
 		<figure
-			{...stylex.props(loopDiagram.figure)}
+			{...stylex.props(circuitRoute.field, loopDiagram.figure)}
 			aria-hidden="true"
 			data-enter="fade"
 		>
 			<div {...stylex.props(loopDiagram.stations)}>
-				{agent && <StopTile stop={agent} />}
-				<Route />
-				{you && <StopTile stop={you} />}
-				<Route />
-				{sent && <StopTile stop={sent} />}
+				{STOPS.map((stop, index) => (
+					<Fragment key={stop.label}>
+						{index > 0 && <RouteArrow css={loopDiagram.route} />}
+						<StopTile stop={stop} />
+					</Fragment>
+				))}
 			</div>
-			<div {...stylex.props(loopDiagram.back)} data-enter="fade">
-				<svg
-					{...stylex.props(loopDiagram.backLine)}
-					viewBox="0 0 100 20"
-					preserveAspectRatio="none"
-				>
-					<path d="M100 0V20H0V0" vectorEffect="non-scaling-stroke" />
-				</svg>
-				<svg
-					{...stylex.props(loopDiagram.backHead)}
-					viewBox="0 0 10 10"
-				>
-					<path d="M1.5 6.5 5 3l3.5 3.5" />
-				</svg>
-			</div>
+			<ReturnArrow css={loopDiagram.back} />
 		</figure>
 	)
 }

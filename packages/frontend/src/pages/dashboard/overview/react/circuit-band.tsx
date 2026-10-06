@@ -7,6 +7,8 @@ import * as stylex from '@stylexjs/stylex'
 import { focus } from '@syneva/design-system/controls.styles'
 
 import { circuitReturn } from './circuit-return.styles'
+import { ReturnArrow, RouteArrow } from './circuit-route'
+import { circuitRoute } from './circuit-route.styles'
 import { circuit } from './circuit.styles'
 import { Station } from './station'
 
@@ -38,47 +40,6 @@ function aroundTheReturn(
 		{ x: from.x, y: depth },
 		{ x: to.x, y: depth },
 	]
-}
-
-function Route(): ReactElement {
-	return (
-		<span
-			{...stylex.props(circuit.route)}
-			aria-hidden="true"
-			data-enter="fade"
-		>
-			<span {...stylex.props(circuit.routeLine)} data-enter="grow" />
-			<svg {...stylex.props(circuit.routeHead)} viewBox="0 0 10 10">
-				<path d="M3 1.5 7 5l-4 3.5" />
-			</svg>
-		</span>
-	)
-}
-
-function ReturnPath({
-	pathRef,
-}: {
-	pathRef: RefObject<HTMLDivElement | null>
-}): ReactElement {
-	return (
-		<div
-			ref={pathRef}
-			{...stylex.props(circuitReturn.path)}
-			aria-hidden="true"
-			data-enter="fade"
-		>
-			<svg
-				{...stylex.props(circuitReturn.line)}
-				viewBox="0 0 100 20"
-				preserveAspectRatio="none"
-			>
-				<path d="M100 0V20H0V0" vectorEffect="non-scaling-stroke" />
-			</svg>
-			<svg {...stylex.props(circuitReturn.head)} viewBox="0 0 10 10">
-				<path d="M1.5 6.5 5 3l3.5 3.5" />
-			</svg>
-		</div>
-	)
 }
 
 // The desks off the circuit (no agent attached, or no changes yet), named at its foot; a
@@ -163,16 +124,16 @@ export function CircuitBand({
 		<section
 			ref={band}
 			aria-label="Where each round stands"
-			{...stylex.props(circuit.band)}
+			{...stylex.props(circuitRoute.field, circuit.band)}
 		>
 			<div {...stylex.props(circuit.stations)}>
 				{stationOf('agent')}
-				<Route />
+				<RouteArrow css={circuit.route} hasEntrance />
 				{stationOf('yours')}
-				<Route />
+				<RouteArrow css={circuit.route} hasEntrance />
 				{stationOf('sent')}
 			</div>
-			<ReturnPath pathRef={returnPath} />
+			<ReturnArrow css={circuitReturn.path} pathRef={returnPath} />
 			<div {...stylex.props(circuitReturn.foot)} data-enter="fade">
 				<p {...stylex.props(circuitReturn.caption)}>
 					Next round: the agent reloads, and what it did not touch

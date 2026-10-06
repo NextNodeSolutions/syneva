@@ -3,9 +3,9 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
 // The review loop at rest, the empty overview's picture: the circuit band's drawing (ruled
-// stations on the grid field, the petrol route, the dotted return) at a reading size, each
-// station saying what happens there. The reviewer's own station sits on the palest petrol, as
-// it does when desks wait there.
+// stations on the grid field, the petrol route, the dotted return: circuit-route.tsx) at a
+// reading size, each station saying what happens there. The reviewer's own station sits on the
+// palest petrol, as it does when desks wait there.
 const PHONE = media.stacked
 const ROUTE = '56px'
 const ROUTE_PHONE = '18px'
@@ -19,10 +19,6 @@ export const loopDiagram = stylex.create({
 		paddingTop: { default: '28px', [PHONE]: '18px' },
 		paddingBottom: { default: '18px', [PHONE]: '16px' },
 		paddingInline: { default: '28px', [PHONE]: '12px' },
-		backgroundColor: color['--white'],
-		backgroundImage: `linear-gradient(${color['--grid']} 1px, transparent 1px), linear-gradient(90deg, ${color['--grid']} 1px, transparent 1px)`,
-		backgroundSize: '24px 24px',
-		backgroundPosition: '-1px -1px',
 		borderWidth: '1px',
 		borderStyle: 'solid',
 		borderColor: color['--line'],
@@ -74,56 +70,14 @@ export const loopDiagram = stylex.create({
 		color: color['--ink'],
 		textWrap: 'pretty',
 	},
-	route: {
-		display: 'flex',
-		alignItems: 'center',
-		paddingInline: { default: '8px', [PHONE]: '2px' },
-		color: color['--accent'],
-	},
-	routeLine: {
-		flex: '1',
-		height: '1px',
-		backgroundColor: 'currentColor',
-		transformOrigin: 'left',
-	},
-	routeHead: {
-		width: { default: '10px', [PHONE]: '7px' },
-		height: { default: '10px', [PHONE]: '7px' },
-		marginLeft: '-6px',
-		fill: 'none',
-		stroke: 'currentColor',
-		strokeWidth: 1.5,
-	},
+	route: { paddingInline: { default: '8px', [PHONE]: '2px' } },
 	// The way back, from Sent's foot round to the agent's: its ends on the outer stations'
 	// centre lines (a station is a third of the row less the two routes).
 	back: {
-		position: 'relative',
 		height: { default: '20px', [PHONE]: '14px' },
 		marginInline: {
 			default: `calc((100% - 2 * ${ROUTE}) / 6)`,
 			[PHONE]: `calc((100% - 2 * ${ROUTE_PHONE}) / 6)`,
 		},
-		color: color['--accent-line'],
-	},
-	backLine: {
-		position: 'absolute',
-		inset: 0,
-		width: '100%',
-		height: '100%',
-		overflow: 'visible',
-		fill: 'none',
-		stroke: 'currentColor',
-		strokeWidth: 1.5,
-		strokeDasharray: '2 5',
-	},
-	backHead: {
-		position: 'absolute',
-		top: '-3px',
-		left: '-5px',
-		width: '10px',
-		height: '10px',
-		fill: 'none',
-		stroke: 'currentColor',
-		strokeWidth: 1.5,
 	},
 })
