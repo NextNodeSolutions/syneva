@@ -9,9 +9,8 @@ import {
 
 import { useDismiss } from '@shared/lib/use-dismiss'
 import * as stylex from '@stylexjs/stylex'
-import { control } from '@syneva/design-system/controls.styles'
-import { press } from '@syneva/design-system/press.styles'
 
+import { Button } from './button'
 import { PopoverPanel } from './popover-panel'
 import { popover } from './popover.styles'
 
@@ -95,23 +94,18 @@ export function Popover({
 	const isOpen = place !== null
 	return (
 		<div {...stylex.props(popover.anchor)}>
-			<button
+			<Button
 				ref={triggerRef}
 				id={trigger.id}
-				type="button"
+				tone="outlined"
+				size="small"
+				css={(isOpen || trigger.isActive) && popover.triggerOn}
 				aria-expanded={isOpen}
 				aria-controls={isOpen ? panelId : undefined}
 				onClick={event => toggle(event.currentTarget)}
-				{...stylex.props(
-					press.control,
-					control.base,
-					control.outlined,
-					control.small,
-					(isOpen || trigger.isActive) && popover.triggerOn,
-				)}
 			>
 				{trigger.face}
-			</button>
+			</Button>
 			{place && (
 				<PopoverPanel
 					id={panelId}

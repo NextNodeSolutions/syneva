@@ -1,7 +1,6 @@
+import { Button } from '@shared/ui/button'
 import { Kbd } from '@shared/ui/kbd'
 import * as stylex from '@stylexjs/stylex'
-import { control } from '@syneva/design-system/controls.styles'
-import { press } from '@syneva/design-system/press.styles'
 
 import { sidebar } from './hub-sidebar.styles'
 import { ShellIcon } from './shell-icon'
@@ -21,21 +20,16 @@ export function NewReviewEntry({
 	onOpen: () => void
 }): ReactElement {
 	return (
-		<button
-			type="button"
+		<Button
+			tone="outlined"
+			size="small"
+			css={sidebarParts.newReview}
 			id={id}
 			aria-keyshortcuts="N"
 			aria-label={isFolded ? 'New review' : undefined}
 			data-tip={isFolded ? 'New review (N)' : undefined}
 			data-enter="fade"
 			onClick={onOpen}
-			{...stylex.props(
-				press.control,
-				control.base,
-				control.outlined,
-				control.small,
-				sidebarParts.newReview,
-			)}
 		>
 			<ShellIcon name="plus" />
 			<span
@@ -54,6 +48,6 @@ export function NewReviewEntry({
 					isFolded && sidebar.labelFolded,
 				]}
 			/>
-		</button>
+		</Button>
 	)
 }

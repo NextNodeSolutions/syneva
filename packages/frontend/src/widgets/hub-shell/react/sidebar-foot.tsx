@@ -1,7 +1,6 @@
+import { Button } from '@shared/ui/button'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
-import { control } from '@syneva/design-system/controls.styles'
-import { press } from '@syneva/design-system/press.styles'
 
 import { HUB_STATE } from '../hub-state'
 
@@ -40,22 +39,16 @@ export function SidebarFoot({
 				<span role="status">{state.word}</span>
 				{version && <span>{`v${version}`}</span>}
 			</p>
-			<button
-				type="button"
+			<Button
+				tone="quiet"
+				css={[sidebarParts.foldButton, sidebar.foldButton]}
 				aria-label={action}
 				aria-keyshortcuts="["
 				data-tip={`${action} ([)`}
 				onClick={fold.toggle}
-				{...stylex.props(
-					press.control,
-					control.base,
-					control.quiet,
-					sidebarParts.foldButton,
-					sidebar.foldButton,
-				)}
 			>
 				<ShellIcon name={fold.isFolded ? 'unfold' : 'fold'} />
-			</button>
+			</Button>
 		</div>
 	)
 }

@@ -1,6 +1,5 @@
+import { Button } from '@shared/ui/button'
 import * as stylex from '@stylexjs/stylex'
-import { control } from '@syneva/design-system/controls.styles'
-import { press } from '@syneva/design-system/press.styles'
 
 import { hubShell } from './hub-shell.styles'
 import { ShellIcon } from './shell-icon'
@@ -21,21 +20,16 @@ export function ShellBar({
 }): ReactElement {
 	return (
 		<header {...stylex.props(hubShell.bar)}>
-			<button
+			<Button
 				ref={menuRef}
-				type="button"
+				tone="quiet"
+				css={sidebarParts.foldButton}
 				aria-label="Open navigation"
 				aria-expanded={isDrawerOpen}
 				onClick={onMenu}
-				{...stylex.props(
-					press.control,
-					control.base,
-					control.quiet,
-					sidebarParts.foldButton,
-				)}
 			>
 				<ShellIcon name="menu" />
-			</button>
+			</Button>
 			<SidebarBrand isFolded={false} />
 		</header>
 	)
