@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 
 import { hubPlace } from '@entities/hub/hub-place'
 import { useEntrance } from '@shared/lib/use-entrance'
@@ -8,6 +8,7 @@ import { HUB_MAIN_ID } from '@widgets/hub-shell/react/hub-shell'
 
 import { closedDesks } from '../../closed'
 import { EMPTY_TITLE } from '../../head-copy'
+import { useFreshAfter } from '../../use-fresh-after'
 import { heroLede } from '../open-copy'
 import { resumeOf } from '../resume'
 
@@ -55,9 +56,7 @@ export function EmptyOverview({
 	useEntrance(root, 'empty')
 	useFocusHandoff(root, HUB_MAIN_ID)
 	const { journal, hub, newReview } = dashboard
-	// A desk closed while the page is open lands on the wash, once: a page that mounts again
-	// washes only what closes after it.
-	const [mountedAfter] = useState(() => journal.events.at(-1)?.seq ?? 0)
+	const freshAfter = useFreshAfter(journal)
 	const resume = resumeOf(closedDesks(journal.events, NO_LIVE_IDS))
 	const hasHistory = resume.groups.length > 0
 	return (
@@ -71,10 +70,7 @@ export function EmptyOverview({
 				<ResumeLedger
 					resume={resume}
 					events={journal.events}
-					freshAfter={Math.max(
-						journal.freshAfter ?? Number.POSITIVE_INFINITY,
-						mountedAfter,
-					)}
+					freshAfter={freshAfter}
 					now={hub.now}
 					onNewReviewIn={newReview.offerIn}
 				/>
