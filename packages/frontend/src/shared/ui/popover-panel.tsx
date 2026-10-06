@@ -4,6 +4,7 @@ import { popover } from './popover.styles'
 
 import type { ReactElement, ReactNode, RefObject } from 'react'
 
+// The panel's offsets from its trigger's top left corner.
 export type Placement = { top: number; left: number }
 
 // The open panel of a Popover, at the place measured from its trigger.

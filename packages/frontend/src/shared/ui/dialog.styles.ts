@@ -7,6 +7,16 @@ const rise = stylex.keyframes({
 	to: { opacity: 1, transform: 'none' },
 })
 
+const veil = stylex.keyframes({
+	from: { opacity: 0 },
+	to: { opacity: 1 },
+})
+
+// The sheet hangs from a fixed line near the top, never from the centre: when it grows (a
+// field joins it), it grows downwards and what is under the pointer stays where it was.
+const TOP = 'min(10dvh, 80px)'
+const ROOM = `calc(100dvh - ${TOP} - 16px)`
+
 // The site's focus object: a white sheet under an ink rule, no radius and no
 // shadow, over a paper scrim. `display` is never set on the dialog itself: it
 // would override the platform's display:none for a closed one, so the column
@@ -15,13 +25,15 @@ export const dialog = stylex.create({
 	root: {
 		paddingBlock: 0,
 		paddingInline: 0,
-		margin: 'auto',
+		marginTop: TOP,
+		marginInline: 'auto',
+		marginBottom: 'auto',
 		width: {
 			default: 'min(560px, calc(100vw - 32px))',
 			[media.phone]: 'calc(100vw - 24px)',
 		},
 		maxWidth: 'none',
-		maxHeight: 'calc(100dvh - 32px)',
+		maxHeight: ROOM,
 		overflow: 'hidden',
 		borderWidth: '1px',
 		borderStyle: 'solid',
@@ -34,13 +46,18 @@ export const dialog = stylex.create({
 		animationDuration: '200ms',
 		animationTimingFunction: ease['--ease-out'],
 		// A literal paper scrim: older engines do not inherit custom
-		// properties into ::backdrop.
-		'::backdrop': { backgroundColor: 'rgba(246, 246, 240, 0.82)' },
+		// properties into ::backdrop. It fades in with the sheet's rise.
+		'::backdrop': {
+			backgroundColor: 'rgba(246, 246, 240, 0.82)',
+			animationName: veil,
+			animationDuration: '200ms',
+			animationTimingFunction: ease['--ease-out'],
+		},
 	},
 	inner: {
 		display: 'flex',
 		flexDirection: 'column',
-		maxHeight: 'calc(100dvh - 32px)',
+		maxHeight: ROOM,
 	},
 	bar: {
 		display: 'flex',

@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 import { focus } from '@syneva/design-system/controls.styles'
 import { ShellIcon } from '@widgets/hub-shell/react/shell-icon'
 
+import { FILTER_TRIGGER_ID } from '../../focus-targets'
 import { MODE_KEYS, modeKeyOf } from '../display'
 import { MODE_NAMES } from '../filter-names'
 
@@ -90,7 +91,10 @@ export function FilterMenu(props: FilterMenuProps): ReactElement {
 		</span>
 	)
 	return (
-		<Popover trigger={{ face, isActive: active > 0 }} label="Filter">
+		<Popover
+			trigger={{ face, isActive: active > 0, id: FILTER_TRIGGER_ID }}
+			label="Filter"
+		>
 			<FilterLists {...props} />
 			<div {...stylex.props(menu.section, menu.sectionLast)}>
 				<button

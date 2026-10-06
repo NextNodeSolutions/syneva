@@ -19,23 +19,28 @@ import type { DismissCause } from '@shared/lib/use-dismiss'
 import type { ReactElement, ReactNode, RefObject } from 'react'
 import type { Placement } from './popover-panel'
 
-// Below the trigger, held inside the viewport: the panel's right edge never leaves the page.
 const GAP = 6
 const EDGE = 12
-const PANEL_WIDTH_GUESS = 300
 
-function placeUnder(trigger: HTMLElement): Placement {
+// Where the panel opens, as offsets from its trigger (it moves with the page when the page
+// scrolls): under the trigger, its left edge on the trigger's, or its right edge on the
+// trigger's when it would run past the window; held 12px inside the window either way. Its
+// width is measured, so it lines up with the trigger whatever it holds.
+function placeUnder(trigger: HTMLElement, width: number): Placement {
 	const box = trigger.getBoundingClientRect()
-	const room = window.innerWidth - EDGE - PANEL_WIDTH_GUESS
-	return {
-		top: box.bottom + GAP,
-		left: Math.max(EDGE, Math.min(box.left, room)),
-	}
+	const isRoomRight = box.left + width + EDGE <= window.innerWidth
+	const wanted = isRoomRight ? box.left : box.right - width
+	const held = Math.max(
+		EDGE,
+		Math.min(wanted, window.innerWidth - EDGE - width),
+	)
+	return { top: box.height + GAP, left: held - box.left }
 }
 
 type PopoverProps = {
-	// The trigger's face (its icon and words) and whether its panel holds a choice in force.
-	trigger: { face: ReactNode; isActive: boolean }
+	// The trigger's face (its icon and words), whether its panel holds a choice in force, and
+	// its id when focus must be able to come back to it.
+	trigger: { face: ReactNode; isActive: boolean; id?: string | undefined }
 	// The panel's accessible name.
 	label: string
 	children: ReactNode
@@ -49,8 +54,9 @@ type PopoverState = {
 }
 
 // Where the panel is open (null while closed), and what opens and closes it: Escape, a press
-// outside or a resize close it, Escape handing focus back to the trigger; opened, it hands
-// focus to its first control.
+// or focus outside, or a resize close it, Escape handing focus back to the trigger. Opened, it
+// first lays out under the trigger, is measured and placed before it paints, then hands focus
+// to its first control.
 function usePopover(): PopoverState {
 	const [place, setPlace] = useState<Placement | null>(null)
 	const triggerRef = useRef<HTMLButtonElement>(null)
@@ -63,21 +69,22 @@ function usePopover(): PopoverState {
 	}, [])
 	useDismiss({ isOpen, parts, onDismiss: dismiss })
 	useLayoutEffect(() => {
-		if (isOpen)
-			panelRef.current
-				?.querySelector<HTMLElement>('button, input, a')
-				?.focus()
+		const trigger = triggerRef.current
+		const panel = panelRef.current
+		if (!isOpen || !trigger || !panel) return
+		setPlace(placeUnder(trigger, panel.offsetWidth))
+		panel.querySelector<HTMLElement>('button, input, a')?.focus()
 	}, [isOpen])
 	const toggle = (trigger: HTMLElement): void => {
 		if (isOpen) dismiss('outside')
-		else setPlace(placeUnder(trigger))
+		else setPlace({ top: trigger.offsetHeight + GAP, left: 0 })
 	}
 	return { place, triggerRef, panelRef, toggle }
 }
 
 // A trigger and the panel it opens: Display and Filter, Linear's two controls over a view.
-// The panel is fixed (an overlay escapes any scrolling column) under its trigger. It is a
-// group of controls, not a menu: Tab moves through it.
+// The panel hangs from its trigger, so it stays with it when the page scrolls. It is a group
+// of controls, not a menu: Tab moves through it, and leaving it closes it.
 export function Popover({
 	trigger,
 	label,
@@ -90,6 +97,7 @@ export function Popover({
 		<div {...stylex.props(popover.anchor)}>
 			<button
 				ref={triggerRef}
+				id={trigger.id}
 				type="button"
 				aria-expanded={isOpen}
 				aria-controls={isOpen ? panelId : undefined}

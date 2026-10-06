@@ -1,7 +1,7 @@
 import { Notice } from '@shared/ui/notice'
 import * as stylex from '@stylexjs/stylex'
 
-import { NEW_REVIEW_ID } from '../focus-targets'
+import { focusTarget, NEW_REVIEW_ID } from '../focus-targets'
 
 import { closeNotice } from './close-notice.styles'
 
@@ -60,7 +60,7 @@ function noticeCopy(outcome: CloseOutcome): NoticeCopy {
 // moving it to the header would scroll a long listing back to its top.
 function moveFocusOut(event: MouseEvent<HTMLButtonElement>): void {
 	if (event.detail !== 0) return
-	document.getElementById(NEW_REVIEW_ID)?.focus()
+	focusTarget(NEW_REVIEW_ID)
 }
 
 // The toast after a close. Its container is always mounted as the status region, so a new
@@ -76,7 +76,14 @@ export function CloseNotice({
 	return (
 		<div {...stylex.props(closeNotice.root)} role="status" {...toast.hold}>
 			{notice && copy && (
-				<div key={notice.id} {...stylex.props(closeNotice.sheet)}>
+				<div
+					key={notice.id}
+					inert={toast.isLeaving}
+					{...stylex.props(
+						closeNotice.sheet,
+						toast.isLeaving && closeNotice.leaving,
+					)}
+				>
 					<Notice
 						tone={copy.tone}
 						lead={copy.lead}
