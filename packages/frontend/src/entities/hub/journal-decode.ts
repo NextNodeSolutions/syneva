@@ -8,6 +8,8 @@ import {
 	requiredString,
 } from '@shared/api/decode'
 
+import { MODES } from './decode'
+
 import type {
 	JournalEvent,
 	JournalRead,
@@ -16,7 +18,6 @@ import type {
 	RoundVerdicts,
 } from './journal'
 
-const MODES = ['repo', 'file', 'pr'] as const
 const KINDS = [
 	'desk-opened',
 	'desk-reloaded',
