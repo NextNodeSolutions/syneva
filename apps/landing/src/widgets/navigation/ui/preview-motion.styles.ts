@@ -7,9 +7,7 @@ import { navClock } from './nav.stylex'
 
 import type { When } from '@syneva/design-system/when'
 
-// The preview scenes' lines: a scene that starts illustrating replays them;
-// the clock pauses while the menu is shut or the tab is hidden, and keyboard
-// navigation shows the finished scene at once.
+// A scene that starts illustrating replays its lines; the clock pauses while the menu is shut or the tab is hidden; keyboard navigation shows the finished scene at once.
 const illustrating = (): string =>
 	stylex.when.ancestor(':is(.is-illustrating)', sceneMarker)
 const shut = (): string =>

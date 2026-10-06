@@ -1,8 +1,4 @@
 ---
-// The comparison on the product overview: your editor's diff, hosted AI
-// review, Syneva. Every cell stays true for the category as a whole. The
-// table needs the frame's full width, so it keeps its own heading row rather
-// than a prose section's columns, with a prose heading's size.
 import { SITE_NAME } from '@entities/site/model/site-map'
 import { prose } from '@shared/ui/prose/prose.styles'
 import { section } from '@shared/ui/section.styles'
@@ -10,14 +6,12 @@ import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
 import { sx } from '@shared/lib/sx'
 import { compare } from './compare.styles'
 
-// The columns in their order; ours comes last and carries the accent.
 const COLUMNS = [
 	{ key: 'editor', label: 'Your editor’s diff' },
 	{ key: 'hosted', label: 'Hosted AI review' },
 	{ key: 'ours', label: SITE_NAME },
 ] as const
 type Row = { aspect: string } & Record<(typeof COLUMNS)[number]['key'], string>
-// Each row answers its aspect once per column.
 const ROWS: readonly Row[] = [
 	{ aspect: 'Who judges the change', editor: 'You, file by file', hosted: 'A model, on its servers', ours: 'You, with your agent on call' },
 	{ aspect: 'Order you read in', editor: 'The file tree', hosted: 'The PR’s file list', ours: 'A walkthrough your agent sets' },

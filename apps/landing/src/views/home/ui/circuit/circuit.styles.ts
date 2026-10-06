@@ -2,13 +2,9 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The review circuit: sheets, stations and routes in two dimensions. The
-// leaves inside <defs> are drawn through <use>, so their paints read custom
-// properties each layer sets (leaf fill, border, side and code accent).
+// The leaves inside <defs> are drawn through <use>, so their paints read the custom properties each layer sets (leaf fill, border, side, code accent).
 export const circuit = stylex.create({
-	// Drawing sizes the root. The phone frame is a wide 900 units, so the
-	// circuit keeps the column's full width instead of the 460px cap a
-	// reframed drawing takes.
+	// The phone frame is a wide 900 units, so the circuit keeps the column's full width instead of the 460px cap a reframed drawing takes.
 	root: {
 		maxWidth: { default: null, [media.phone]: 'none' },
 		minHeight: { default: null, [media.phone]: 0 },
@@ -75,8 +71,7 @@ export const circuit = stylex.create({
 		fillOpacity: 0.4,
 		stroke: color['--accent'],
 	},
-	// Each review layer lifts open to its own height, the static pose; the
-	// loop (circuit-loop.ts) reads --lift and stacks the layers in between.
+	// Each layer lifts open to its own height (the static pose); the loop reads --lift and stacks the layers in between.
 	layer: { transform: 'translateY(var(--lift))' },
 	critical: {
 		'--lift': '-156px',

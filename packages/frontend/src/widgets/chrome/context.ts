@@ -7,10 +7,6 @@ import type { Settings } from '@entities/settings/model'
 import type { DiffStyle } from '@shared/diff-renderer/types'
 import type { ResetScope } from '@syneva/contracts/review'
 
-// The chrome widgets' view context (progress strip, sidebar highlight, dialogs, modals).
-// Chrome reaches the app-owned reactive store only through this seam (bound once by app
-// composition) - no chrome module imports @app. The React chrome components read the same
-// view; re-render comes from the store-version subscription (shared/lib/use-store-version).
 export interface ChromeStoreView {
 	state: ReviewState | null
 	settings: Settings
@@ -19,8 +15,6 @@ export interface ChromeStoreView {
 	preview: PreviewFile | null
 	overviewOpen: boolean
 	awaitingAgent: boolean
-	// Polling stores the activity line as a plain string (see app/poll.ts adoptLiveness);
-	// the widget view mirrors that representation, not the DeskStatus object.
 	agentActivity: string | null
 	agentListening: boolean
 	queuedQuestions: number
@@ -35,9 +29,6 @@ export interface ChromeStoreView {
 	golineBuffer: string
 	composerBody: string
 	editingCommentId: string | null
-	// The review-notes panel's working state (per-session like the other chrome flags,
-	// never persisted): the filter query, the status lens, the keyboard cursor, the '/'
-	// focus pulse. See notes-panel.tsx and entities/review/notes.ts for the derivation.
 	notesOpen: boolean
 	notesQuery: string
 	notesLens: 'all' | 'open' | 'resolved'
@@ -54,8 +45,6 @@ export interface ChromeStoreView {
 	fileView: 'rendered' | 'source'
 	diffScrolled: boolean
 
-	// The store methods the chrome calls (attached by the app facade modules before
-	// the React tree mounts, so the first render already sees them).
 	treeRows?(): TreeRow[]
 	selectFile?(i: number): void
 	previewFile?(path: string): void
@@ -88,7 +77,6 @@ export interface ChromeStoreView {
 	guideAtStart?(): boolean
 	guideAtLast?(): boolean
 	walkthroughRows?(): WalkRow[]
-	// The notes panel: open/close, jump to a thread, and its working-state setters.
 	toggleNotes?(): void
 	jumpToNote?(note: ReviewNote): void
 	setNotesQuery?(query: string): void

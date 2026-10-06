@@ -1,9 +1,8 @@
 import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// Workflows drawings: where a review's diff comes from.
 export const workflowsArt = stylex.create({
-	// 1.4 once WorkflowHub draws the 24-unit icons at 1.25x.
+	// The 1.4 stroke takes back WorkflowHub's 1.25x on the 24-unit icons.
 	hubGlyph: {
 		fill: 'none',
 		stroke: color['--ink'],

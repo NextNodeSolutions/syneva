@@ -9,7 +9,7 @@ import {
 
 import { copyMarker } from './command.stylex'
 
-// `border: 0` resets the style and colour too, not just the width.
+// border: 0 resets style and colour too, not just the width.
 const noBorder = {
 	borderWidth: 0,
 	borderStyle: 'none',
@@ -33,7 +33,6 @@ const icon = {
 	fill: 'none',
 }
 
-// The copyable command: a read-only field, a copy button and a live status.
 export const command = stylex.create({
 	box: {
 		position: 'relative',
@@ -51,13 +50,10 @@ export const command = stylex.create({
 		backgroundColor: color['--white'],
 		minWidth: 0,
 		transition: `border-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
-		// Among a page's actions it shares the row instead of filling it.
 		flex: { default: null, [inPageActions()]: '1 1 260px' },
 		maxWidth: { default: null, [inPageActions()]: '340px' },
 	},
-	// A command on a wash: paper ground, petrol rule. Merged over the box, its
-	// border colour replaces the box's whole value, so it restates the focus
-	// and copied states (the field drops its outline).
+	// Merging over the box replaces its whole border value, so this rule restates the focus and copied states (they drop their outline).
 	onWash: {
 		borderColor: {
 			default: color['--accent-line'],
@@ -66,7 +62,6 @@ export const command = stylex.create({
 		},
 		backgroundColor: color['--paper'],
 	},
-	// The command a prose body (or a chapter) offers to copy, at reading width.
 	prose: { margin: '8px 0 28px', maxWidth: '360px' },
 	prompt: { color: color['--accent'], font: `14px ${font['--mono']}` },
 	field: {
@@ -79,8 +74,7 @@ export const command = stylex.create({
 		font: `13.5px ${font['--mono']}`,
 		caretColor: color['--accent'],
 		padding: '8px 0',
-		// A command wider than a narrow field shows it is cut; the copy button
-		// still copies all of it.
+		// A command wider than a narrow field shows it is cut; the copy button still copies all of it.
 		textOverflow: 'ellipsis',
 	},
 	copy: {
@@ -104,8 +98,7 @@ export const command = stylex.create({
 			[copied()]: ease['--ease-spring'],
 		},
 	},
-	// Under the box, out of flow: the gap before whatever follows holds one
-	// line, so the status never wraps into a second one that would cover it.
+	// Out of flow so the gap after the box holds one status line that never wraps over what follows.
 	status: {
 		position: 'absolute',
 		top: 'calc(100% + 6px)',

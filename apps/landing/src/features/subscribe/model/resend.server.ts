@@ -1,5 +1,3 @@
-// Resend's email API, reached with one request: the one place the site
-// speaks Resend, so a provider change stays in this file.
 const RESEND_EMAILS_URL = 'https://api.resend.com/emails'
 
 export type Email = {
@@ -12,9 +10,7 @@ export type Email = {
 
 const UNKNOWN_ERROR = 'unknown_error'
 
-// Resend's error code (`validation_error`, `missing_api_key`...), never its
-// message: a message can quote the recipient, and the error ends up in the
-// logs, which never hold an address.
+// Propagate Resend's error code, never its message: a message can quote the recipient and the error ends up in the logs.
 async function errorCodeOf(response: Response): Promise<string> {
 	const body: unknown = await response.json().catch(() => undefined)
 	return typeof body === 'object' &&

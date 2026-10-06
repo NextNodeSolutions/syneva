@@ -6,8 +6,7 @@ export type Easing = Bezier | 'linear'
 
 const CONTROL_POINTS = 4
 
-// Parses a CSS cubic-bezier(): the design system's curves below, or one a
-// script reads from the computed style.
+// Parses a CSS cubic-bezier(): the design system's curves, or one read from a computed style.
 export function toBezier(css: string): Bezier {
 	const points = (css.match(/-?[\d.]+/g) ?? []).map(Number)
 	if (points.length !== CONTROL_POINTS)
@@ -16,10 +15,7 @@ export function toBezier(css: string): Bezier {
 	return [x1, y1, x2, y2]
 }
 
-// The runtime's curves as Motion's control points, parsed once from the CSS
-// notation the stylesheets use. out and spring are the design system's (the
-// stylesheets' --ease-out and --ease-spring); the others only the runtime
-// uses.
+// Parsed once from the stylesheets' CSS notation: out and spring are the design system's (--ease-out/--ease-spring); the rest are runtime-only.
 export const EASE = {
 	out: toBezier(curves.out),
 	spring: toBezier(curves.spring),

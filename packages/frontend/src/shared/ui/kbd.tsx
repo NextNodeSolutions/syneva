@@ -12,8 +12,6 @@ type KbdProps = Omit<
 	css?: Style | undefined
 }
 
-// A key hint: the key a shortcut answers to, set as a small keycap. A cap on a
-// solid or tinted control passes kbd.onFill / kbd.onTint through `css`.
 export function Kbd({ keys, css, ...native }: KbdProps): ReactElement {
 	return (
 		<kbd {...native} {...stylex.props(kbd.base, css)}>

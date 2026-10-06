@@ -4,7 +4,6 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 
-// Four product principles on one ruled strip, two by two on narrow screens.
 export const principles = stylex.create({
 	strip: {
 		display: 'grid',
@@ -30,8 +29,6 @@ export const principles = stylex.create({
 		padding: { default: '22px 12px', [media.phone]: '16px 8px' },
 		textAlign: 'center',
 	},
-	// Every item after the first is ruled on its left; on narrow screens the second
-	// row loses that rule at its start and gains one on top.
 	notFirst: {
 		borderLeftWidth: '1px',
 		borderLeftStyle: 'solid',

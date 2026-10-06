@@ -1,8 +1,6 @@
 import { queries } from '@syneva/design-system/media.stylex'
 
-// Drawings that reframe on phones declare data-compact="x y w h": on a phone
-// the viewBox swaps onto their subject instead of shrinking labels into
-// microtext, and back to the drawing's own viewBox on wider screens.
+// data-compact="x y w h": on a phone the viewBox swaps onto the subject instead of shrinking labels into microtext; the drawing's own viewBox returns on wider screens.
 type Frames = { svg: Element; wide: string; compact: string }
 
 // Drawing.astro writes both frames on every drawing it reframes.

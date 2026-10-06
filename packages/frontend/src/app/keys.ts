@@ -9,19 +9,9 @@ import { S } from './store'
 
 import type { Group, Hotkey } from '@app/hotkey-matchers'
 
-// ── Central keyboard map ─────────────────────────────────────────────────────
-// One ordered table is the single source of truth: the dispatcher runs the first binding whose
-// key matches and whose scope is active, and the ? help overlay renders from the same table - so
-// hints can never drift from behavior. Scopes keep a key meaning the right thing in context.
-//
-// The entries live in scope segments (hotkeys-diff.ts, hotkeys-app.ts) purely for size, and this
-// file owns their order - the dispatcher's first-match rule makes that order part of the contract:
-// the modal keys below come first because ⌘↵ must send while the Send modal is up even with a
-// composer still open behind it, ↵ must confirm a dialog raised from the diff, and the notes
-// panel's segment comes next because an open panel owns the arrows and Enter over the diff's.
+// One ordered table is the single source of truth: the dispatcher runs the first binding whose key matches and whose scope is active, and the ? overlay renders from the same table, so hints can never drift from behavior.
+// Entries live in scope segments for size, and the order is part of the contract: modal keys first (⌘↵ sends while the Send modal is up even with a composer behind it), then the notes panel (an open panel owns the arrows and Enter over the diff's).
 const HOTKEYS_MODAL: Hotkey[] = [
-	// Confirm dialog (⇧R / ⇧S / ⇧A): Enter accepts (Esc cancels via the escape cascade). First so
-	// it wins over any plain-key binding while the dialog is up.
 	{
 		combo: '↵',
 		desc: 'Confirm',
@@ -31,8 +21,6 @@ const HOTKEYS_MODAL: Hotkey[] = [
 		run: confirmYes,
 		hide: true,
 	},
-	// Send modal: ⌘↵ sends (typing:true - focus is in the note box). Plain Enter has no matching
-	// typing hotkey, so it falls through to a textarea newline; Esc cancels via the escape cascade.
 	{
 		combo: '⌘↵',
 		desc: 'Send to agent',
@@ -64,7 +52,6 @@ function isTyping(e: KeyboardEvent): boolean {
 
 export function installKeys(): void {
 	document.addEventListener('keydown', e => {
-		// A closed desk shows its cover and nothing else: no action has a surface to act on.
 		if (S.deskClosed) return
 		// A key pressed inside the hub's rail is the rail's: Enter follows its link.
 		if (isInRail(e.target)) return
@@ -73,8 +60,7 @@ export function installKeys(): void {
 			if (!h.test(e)) continue
 			if (typing && !h.typing) continue
 			if (h.when && !h.when()) continue
-			// Any other action abandons pending goline digits - otherwise the idle timer would
-			// yank the cursor away ~800ms after e.g. a j/⇧Y that already moved on.
+			// Any other action abandons pending goline digits - otherwise the idle timer would yank the cursor away ~800ms after a j/⇧Y that already moved on.
 			if (!h.goline) golineCancel()
 			e.preventDefault()
 			h.run(e)
@@ -83,7 +69,6 @@ export function installKeys(): void {
 	})
 }
 
-// Grouped view for the ? help overlay (built from the table so it stays in sync).
 export function helpGroups(): {
 	group: Group
 	items: { combo: string; desc: string }[]

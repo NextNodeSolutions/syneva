@@ -16,9 +16,8 @@ function orderOf(groups: readonly Grouped[]): Order {
 	}))
 }
 
-// Keep every slot that is still listed where it was, drop what left, and append what is new:
-// new desks at the end of their group, new groups at the end of the page. A desk that changed
-// group leaves its old slot and joins the new one: that move is news, not a reshuffle.
+// Keep every slot still listed where it was, drop what left, append what is new (new desks at the end of their group, new groups at the end of the page).
+// A desk that changed group leaves its old slot and joins the new one: that move is news, not a reshuffle.
 function holdOrder(order: Order, groups: readonly Grouped[]): Order {
 	const fresh = orderOf(groups)
 	const freshByKey = new Map(fresh.map(slot => [slot.key, slot.ids]))
@@ -53,7 +52,6 @@ function isSameOrder(a: Order, b: Order): boolean {
 	)
 }
 
-// The fresh groups and desks, laid out in `order` (which names exactly what they hold).
 function arrange<G extends Grouped>(groups: readonly G[], order: Order): G[] {
 	const byKey = new Map(groups.map(group => [group.key, group]))
 	return order.flatMap(slot => {
@@ -65,12 +63,8 @@ function arrange<G extends Grouped>(groups: readonly G[], order: Order): G[] {
 	})
 }
 
-// The listing in a stable order while the reviewer is at it: rows never swap under the pointer
-// or the focus. While `isHeld`, the rows keep the order they were last shown in and only their
-// contents refresh; once released, the next render takes the fresh order. The last shown order
-// is state, set during render when it changes (React's "store information from previous
-// renders" pattern): the arrangement returned is computed from it in the same render, so
-// nothing lags a frame.
+// While held, rows keep the order they were last shown in and only their contents refresh; released, the next render takes the fresh order (rows never swap under the pointer or focus).
+// The last shown order is state, set during render when it changes (React's "store information from previous renders" pattern); the arrangement is computed from it in the same render, so nothing lags a frame.
 export function useHeldOrder<G extends Grouped>(
 	groups: readonly G[],
 	{ isHeld }: { isHeld: boolean },

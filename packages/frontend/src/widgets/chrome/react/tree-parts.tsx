@@ -6,15 +6,9 @@ import { glyph, row } from './sidebar.styles'
 import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
 
-// The pieces the tree and the walkthrough rows share: the indent, the fold
-// chevron and the rename arrow.
-
-// The px a tree level indents and the row's own left padding (row.base); the rails in
-// row.base's background repeat at the same step.
 const INDENT_PX = 14
 const BASE_PAD_PX = 8
 
-// A row's indent and nesting rails at its depth (none at the root).
 export function indentStyle(depth: number): Style {
 	if (!depth) return null
 	return row.indent(

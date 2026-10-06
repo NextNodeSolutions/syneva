@@ -30,13 +30,9 @@ export type Listed = Extract<HubPhase, { kind: 'listed' }>
 
 const NO_DESKS: readonly HubDesk[] = []
 
-// Everything the dashboard's pages read: the hub's poll and what it says, the journal, the
-// repositories, the closes and their toast, New review, and whether the lists must hold their
-// order still (the reviewer is in one, a close is armed or under way, New review is open).
 export type DashboardState = {
 	hub: HubView
 	phase: HubPhase
-	// The listing when there is one to show (not while loading, signed out or never listed).
 	listed: Listed | null
 	// Whether the hub answers: a stale listing shows with every pulse off.
 	isLive: boolean

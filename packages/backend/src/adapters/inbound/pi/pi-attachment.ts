@@ -14,15 +14,13 @@ import type { CorrespondentIo } from './correspondent.js'
 import type { DeskConnection, DeskTarget } from './desk-connection.js'
 
 const ATTACHMENT_ENTRY = 'syneva-attachment'
-// A teardown is a best-effort handshake, never a lock: a correspondent that ignores its abort, or a
-// socket that never closes, must not be able to hold a tool call (or the human's Escape) open. The
-// detach that wedged a session for over an hour had no bound at all.
+// A teardown is a best-effort handshake, never a lock: a correspondent that ignores its abort, or
+// a socket that never closes, must not hold a tool call (or the human's Escape) open forever.
 const TEARDOWN_TIMEOUT_MS = 3_000
 
 type SavedEntry = { type: string; customType?: string; data?: unknown }
 
-// Resolve when the teardown work settles, when the caller aborts, or after the bound - whichever
-// comes first. `allSettled` never rejects, so the losing promise is left to finish in peace.
+// Resolve when the teardown work settles, when the caller aborts, or after the bound - whichever first; allSettled never rejects, so the losing promise is left to finish in peace.
 async function awaitBounded(
 	work: Promise<unknown>,
 	signal?: AbortSignal,
@@ -44,8 +42,7 @@ export type AttachmentContext = {
 	ui: Pick<ExtensionContext['ui'], 'notify'>
 }
 
-// Forked children must never inherit their parent's listener. All entries are
-// read, not just the active branch: tree navigation cannot undo a detach.
+// Forked children must never inherit their parent's listener; all entries are read, not just the active branch - tree navigation cannot undo a detach.
 export function savedAttachment(
 	entries: SavedEntry[],
 	owner: string,
@@ -76,12 +73,9 @@ export function savedAttachment(
 	return { repo: target.repo, session: target.session }
 }
 
-// One resource per owning Pi session, independent of agent_end. Pi alone schedules
-// model turns; this adapter never spawns a model turn for itself - the only thing it
-// spawns is the desk correspondent's thread, and only after a question event.
+// One resource per owning Pi session, independent of agent_end; Pi alone schedules model turns - the only thing this adapter spawns is the desk correspondent's thread, and only after a question event.
 export class PiDeskAttachment {
-	// Teardown resets these to undefined between attachments, so the optional
-	// props are explicitly `T | undefined` (exactOptionalPropertyTypes).
+	// Teardown resets these between attachments, so the optional props are explicitly `T | undefined` (exactOptionalPropertyTypes).
 	private connection?: DeskConnection | undefined
 	private controller?: AbortController | undefined
 	private pending: Promise<void> = Promise.resolve()
@@ -106,8 +100,7 @@ export class PiDeskAttachment {
 		return `Listening: ${this.connection.repo} / ${this.connection.session}`
 	}
 
-	// Exposed for verification: the correspondent thread is keyed by the desk session
-	// alone, so every answer of an attachment lands in the same conversation file.
+	// The correspondent thread is keyed by the desk session alone, so every answer of an attachment lands in the same conversation file.
 	threadFile(): string | undefined {
 		const desk = this.connection
 		if (!desk) return undefined
@@ -118,13 +111,10 @@ export class PiDeskAttachment {
 		await this.teardown(false, signal)
 	}
 
-	// Abort first, then wait for what the abort releases - bounded, because both waits are on work
-	// this call does not control.
-	//
-	// The listener is awaited only when the caller is NOT the listener. A `closed` event tears the
-	// attachment down from inside this.pending, and awaiting this.pending from there is a promise
-	// waiting on itself: the listener held the review's last event, the tool call held the listener,
-	// and no abort signal reached either of them (observed: a detach that never returned).
+	// Abort first, then wait for what the abort releases - bounded, on work this call does not
+	// control. The listener is awaited only when the caller is NOT the listener: a `closed` event
+	// tears the attachment down from inside this.pending, and awaiting it there is a promise
+	// waiting on itself.
 	private async teardown(
 		isListenerCaller: boolean,
 		signal?: AbortSignal,
@@ -137,8 +127,7 @@ export class PiDeskAttachment {
 		await awaitBounded(Promise.allSettled(waits), signal)
 		this.controller = undefined
 		this.connection = undefined
-		// Whatever the aborted listener is still doing - a socket that has not closed yet - is no
-		// longer this attachment's promise: the next detach or attach must not inherit the wait.
+		// Whatever the aborted listener is still doing (a socket not closed yet) is no longer this attachment's promise: the next detach or attach must not inherit the wait.
 		this.pending = Promise.resolve()
 	}
 
@@ -216,13 +205,12 @@ export class PiDeskAttachment {
 			this.reportFailure(error, ctx)
 			return
 		}
-		// The loop only resolves on a `closed` event with the signal still alive (aborts return
-		// silently, transport failures throw): the human ended the review from the browser.
-		// Detach cleanly - no saved target, no dangling connection, no dead-socket error report.
+		// The loop resolves only on a `closed` event with the signal still alive (aborts return
+		// silently, transport failures throw): the human ended the review from the browser - detach
+		// cleanly, no saved target, no dangling connection, no dead-socket error report.
 		if (signal.aborted) return
 		this.remember(ctx)
-		// NOT this.stop(): this runs inside this.pending, so awaiting the listener here would await the
-		// promise currently running. Bounded, and the answer worker is still awaited.
+		// NOT this.stop(): this runs inside this.pending, so awaiting the listener here would await the promise currently running. Bounded, and the answer worker is still awaited.
 		await this.teardown(true)
 		ctx.ui.notify(
 			'Syneva review closed by the reviewer - attachment detached.',
@@ -230,9 +218,7 @@ export class PiDeskAttachment {
 		)
 	}
 
-	// Questions must not block the poll loop (the desk must keep seeing an active agent),
-	// and they must run serialized so the one correspondent thread is never concurrent.
-	// They queue on a single worker instead; reviews and closed keep the synchronous wake.
+	// Questions must not block the poll loop (the desk must keep seeing an active agent) and run serialized so the one correspondent thread is never concurrent: they queue on a single worker; reviews and `closed` keep the synchronous wake.
 	private deliverEvent(
 		desk: DeskConnection,
 		event: string | { eventPath: string; kind: string },
@@ -252,8 +238,7 @@ export class PiDeskAttachment {
 
 	private async workAnswers(signal: AbortSignal): Promise<void> {
 		try {
-			// Serialized answers are the point: one thread, one answer at a time. The
-			// drain returns false on an empty queue, which is what ends the loop.
+			// Serialized answers are the point: one thread, one answer at a time; the drain returns false on an empty queue, which is what ends the loop.
 			let didDrain = true
 			while (didDrain) didDrain = await this.drainOneAnswer(signal)
 		} finally {
@@ -273,8 +258,7 @@ export class PiDeskAttachment {
 		eventPath: string,
 		signal: AbortSignal,
 	): Promise<void> {
-		// handleQuestionEvent owns the fallback wake; a throw here only means the
-		// listener aborted mid-answer, and an aborted attachment answers nobody.
+		// handleQuestionEvent owns the fallback wake; a throw here only means the listener aborted mid-answer, and an aborted attachment answers nobody.
 		await handleQuestionEvent({
 			pi: this.pi,
 			desk,

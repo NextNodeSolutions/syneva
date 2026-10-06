@@ -15,10 +15,7 @@ type ChoiceFieldProps<T extends string> = {
 	onChange: (choice: T) => void
 }
 
-// One choice among a few, as radio tiles under a legend styled like a field
-// label. The chosen tile's look follows `value` (React state), not :has(),
-// so it holds in every engine the hub supports; the radios stay native, so
-// arrow keys and Space move the choice.
+// The chosen tile's look follows `value` (React state), not :has(), so it holds in every engine the hub supports; the radios stay native, so arrow keys and Space still move the choice.
 export function ChoiceField<T extends string>({
 	legend,
 	name,

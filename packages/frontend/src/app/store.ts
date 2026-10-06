@@ -7,21 +7,14 @@ import { createSaver } from '@shared/lib/saver'
 import type { ReviewState } from '@entities/review/model'
 import type { Store } from './store-state'
 
-// How long a toast stays up before it clears itself.
 const TOAST_MS = 2800
 
-// Single reactive source of truth: the imperative diff island mutates it directly,
-// and the React-driven chrome (tree, toolbar, composer, modals, toast) renders from it.
-// `state` is null until the initial fetch in main.ts adopts it; the selectors that the
-// components can reach before then (treeRows, hasGuide, ...) tolerate null, and every
-// operation that needs a loaded review goes through requireState() below.
 export const S: Store = reactive<Store>({
 	state: null,
 	projectFiles: [],
 	expandedDirs: new Set<string>(),
 	collapsedDirs: new Set<string>(),
-	// Display preferences come from ~/.syneva/settings.json (fetched in main.ts init),
-	// not localStorage - a file follows the reviewer across browsers and hosts, an origin doesn't.
+	// Display preferences come from ~/.syneva/settings.json (fetched in main.ts init), not localStorage: the file follows the reviewer across browsers and hosts, an origin does not.
 	diffStyle: 'split',
 	fileIndex: 0,
 	preview: null,
@@ -32,12 +25,9 @@ export const S: Store = reactive<Store>({
 	queuedReviews: 0,
 	lastBaseDiffHash: null,
 	isRefreshRequired: false,
-	// The desk stopped (the browser Close action, or it's simply gone and the polls stopped
-	// answering). One-way for the tab: a cover replaces the work surface. Polling continues,
-	// so a same-origin restart can still propose refresh via isRefreshRequired.
+	// Polling continues, so a same-origin restart can still propose refresh via isRefreshRequired.
 	deskClosed: false,
 	selected: { side: 'additions', lineNumber: 1 },
-	// chrome UI flags (templates bind to these)
 	composerOpen: false,
 	fileComposerOpen: false,
 	toastMsg: '',
@@ -59,10 +49,6 @@ export const S: Store = reactive<Store>({
 	foldExpanded: new Set<string>(),
 	loadedOversized: new Set<string>(),
 	notesOpen: false,
-	// The notes panel's working state (per-session like notesOpen): the filter query, the
-	// status lens, and the keyboard cursor - an index into the panel's flat visible rows
-	// (questions then comments; see notesPanelView). notesSearchTick is a focus pulse: the
-	// '/' hotkey bumps it and the panel's effect focuses the filter box.
 	notesQuery: '',
 	notesLens: 'all',
 	notesCursor: 0,
@@ -71,17 +57,12 @@ export const S: Store = reactive<Store>({
 	resetMenuOpen: false,
 })
 
-// The loaded review, for the operations that mutate or render it - all of which run after main.ts
-// adopts the initial fetch. Enforces its own precondition instead of handing out a half-built state:
-// a read that somehow races the fetch fails here, with the cause named.
 export function requireState(): ReviewState {
 	const { state } = S
 	if (!state) throw new Error('review state read before the first fetch')
 	return state
 }
 
-// The chrome's element lookup. Every id comes from the desk's React shell, so a missing element
-// is a bug in the page rather than a runtime condition to branch on.
 export function $(id: string): HTMLElement {
 	const el = document.getElementById(id)
 	if (!el) throw new Error(`missing element #${id}`)
@@ -96,14 +77,11 @@ export function toast(t: string): void {
 	}, TOAST_MS)
 }
 
-// Post only the reviewer-owned slice (see save.ts) - never the whole (multi-MB) ReviewState.
-// Saves coalesce so rapid approvals don't saturate connections.
 export const saver = createSaver(
 	() => reviewerSlice(requireState()),
 	payload => saveReview(payload),
 )
-// Instant auto-save: there is no manual Save button, so every state mutation
-// (decision, comment, stage/unstage, approval) MUST call persist() to write the
-// review to ~/.syneva/<repoHash>/<session>/. Saves coalesce (@shared/lib/saver): at most one
-// in flight, rapid triggers collapse into a single trailing save.
+// There is no manual Save button, so every state mutation (decision, comment, stage/unstage,
+// approval) MUST call persist() to write the review to ~/.syneva/<repoHash>/<session>/; saves
+// coalesce: at most one in flight, rapid triggers collapse into a single trailing save.
 export const persist = (): void => saver.trigger()

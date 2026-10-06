@@ -15,18 +15,13 @@ import type {
 } from '../domain/review.js'
 import type { GitPort } from './ports.js'
 
-// How one reload's git-native renames map the reviewer's records onto the rebuilt diff.
 type RenameMigration = {
-	// The new path a recorded path moved to, or the same path when it didn't move.
 	migratePath: (path: string) => string
 	// A `path:stableKey` key whose path prefix was renamed - prefix swapped, stableKey kept.
 	migrateKey: (key: string) => string
 }
 
-// Reconcile a freshly-built base with the state a previous round saved: carry the reviewer's
-// decisions, sign-offs, comments and staged bookkeeping onto the new diff, and hand back the merged
-// state (the caller replaces its live state with it). Content hashes decide what survives - see
-// mergeDecisions / carryReviewedFiles - so a rewritten block or file falls back to pending.
+// Carry the previous round's decisions, sign-offs, comments and staged bookkeeping onto a rebuilt diff; content hashes decide what survives, so a rewritten block or file falls back to pending.
 export async function mergeReviewState(
 	base: ReviewState,
 	saved: ReviewState | null,
@@ -44,25 +39,17 @@ export async function mergeReviewState(
 		reviewedFiles: signOff.reviewedFiles,
 		reviewedFileHashes: signOff.reviewedFileHashes,
 		stagedFiles: saved.stagedFiles,
-		// Migrate staged-hunk keys old→new too, so a working-mode pair's pre-rename key doesn't linger
-		// stale after the rename appears (readStagedSnapshot later prunes keys whose file isn't staged).
+		// Rename key migration keeps a pre-rename key from lingering stale (readStagedSnapshot prunes unstaged keys).
 		stagedChangeKeys: (saved.stagedChangeKeys ?? []).map(rename.migrateKey),
 		decisionFiles: (saved.decisionFiles ?? []).map(rename.migratePath),
 		changes: decisions.changes,
 		decisions: decisions.decisions,
-		// Carry the attached guide forward across reload/restart (the rebuilt base has none).
 		guide: saved.guide ?? base.guide,
 		persistFile: saved.persistFile,
 	} satisfies ReviewState
 }
 
-// A file that became a git-native rename on THIS reload arrives at its new path, but every
-// decision/comment/sign-off the reviewer recorded before the rename is keyed to the old path. That
-// mismatch is guaranteed on every rename (unlike ordinary content staleness), so without remapping,
-// those records silently drop (comment path miss) or reset to pending (decision key miss) the
-// moment the rename appears. Remap old→new up front; the stableKey/contentHash/anchor checks then
-// judge staleness on the real content as usual. (Reused by issues 02/03 for working-mode move
-// pairing and guide-declared merges.)
+// A git-native rename remaps reviewer records old→new up front: without it, records silently drop (path miss) or reset (key miss); content checks judge staleness as usual.
 function renameMigration(files: readonly ReviewFile[]): RenameMigration {
 	const renamed = new Map<string, string>()
 	for (const file of files) {
@@ -81,14 +68,7 @@ function renameMigration(files: readonly ReviewFile[]): RenameMigration {
 	}
 }
 
-// Decisions are explicit and durable: carry them forward as the source of truth. A decision whose
-// change is gone from the rebuilt diff (e.g. accepting it staged the hunk out of the working tree)
-// is *kept* - that's the whole point. A decision whose change is still visible but whose content
-// changed is dropped as stale. An accepted decision whose change vanished is kept (accepting may
-// have staged the hunk out of the diff). A REJECTED decision whose change vanished means the agent
-// reworked the block away - the rejection was honored, and keeping it would leave an invisible
-// objection that blocks approval forever. Drop it; whatever replaced the block shows up as a fresh
-// pending change anyway.
+// Decisions survive a missing block (accepting may have staged the hunk out) and drop as stale when content changed; a vanished REJECTED decision is dropped too - an invisible objection would block approval forever.
 function mergeDecisions(
 	base: ReviewState,
 	saved: ReviewState,
@@ -101,8 +81,6 @@ function mergeDecisions(
 		migrated.map(decision => [decision.key, decision]),
 	)
 	const stale = new Set<string>()
-	// ChangeState records are readonly domain data - a surviving decision is applied
-	// by producing a new change record here, never by editing the base record in place.
 	const statusByKey = new Map<
 		string,
 		Pick<ChangeState, 'status' | 'reviewedHash'>
@@ -121,7 +99,7 @@ function mergeDecisions(
 			})
 			continue
 		}
-		stale.add(key) // agent rewrote this block since it was reviewed → re-review
+		stale.add(key)
 	}
 	const changes = base.changes.map(change => {
 		const applied = statusByKey.get(changeKey(change))
@@ -147,11 +125,6 @@ function renamedDecision(
 	return { ...decision, path, key: rename.migrateKey(decision.key) }
 }
 
-// A file's approval/sign-off survives reload only if the file is still present AND its content hash
-// is unchanged. A file whose content the agent rewrote (or that has no recorded hash - e.g. an old
-// "viewed" session) drops back to pending for re-review. Sign-off + its hash also migrate old→new (a
-// pure rename keeps the content hash, so approval survives; a rename+edit fails the hash check below
-// and re-reviews, as any content change does).
 function carryReviewedFiles(
 	base: ReviewState,
 	saved: ReviewState,
@@ -177,8 +150,6 @@ function carryReviewedFiles(
 	return { reviewedFiles, reviewedFileHashes }
 }
 
-// The reviewer's comments on the new diff: rename-migrated, marked stale (and dropped unless they
-// are change requests) when their file is gone, then re-anchored against live contents.
 async function mergeComments(
 	base: ReviewState,
 	saved: ReviewState,
@@ -221,13 +192,7 @@ function markStaleIfGone(
 	return { ...comment, status: 'stale' }
 }
 
-// Re-anchoring reads each commented file's contents on demand (the state embeds none). Fetch only
-// the files carrying an OPEN comment - the set reanchorComments actually processes - so a reload
-// spawns at most one content read per commented file, not per file in the diff. A read that fails
-// (a git object dropped mid-reload) is swallowed to no-contents: the thread just falls to the
-// file-level unanchored strip rather than crashing the whole reload. Read them concurrently - each is
-// an independent `git show` spawn, so awaiting them one at a time serialized the whole set behind
-// the slowest read on every reload.
+// Only the open-commented files, read on demand: one read per commented file (never per diff file); a failed read degrades to unanchored, not a crashed reload; the reads run concurrently via mapContentReads.
 async function readCommentedContents(
 	base: ReviewState,
 	openPaths: Set<string>,
@@ -244,15 +209,10 @@ async function readCommentedContents(
 	return contentsByPath
 }
 
-// The two index-derived collections readStagedSnapshot always hands back - both present, so a caller
-// can compare a snapshot's fields field-by-field without a `?? []` on its own side.
 export type StagedSnapshot = Required<
 	Pick<ReviewState, 'stagedFiles' | 'stagedChangeKeys'>
 >
 
-// Reflect the live index onto the review: which reviewed files are staged now, and the staged-hunk
-// bookkeeping pruned to keys whose file is still staged (declaring a hunk staged is only meaningful
-// while its file is). Returns the snapshot; the caller owns the live state and applies it.
 export async function readStagedSnapshot(
 	state: ReviewState,
 	git: GitPort,

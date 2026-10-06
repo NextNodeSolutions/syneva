@@ -7,9 +7,6 @@ import { covers } from './desk-covers.styles'
 
 import type { ReactElement } from 'react'
 
-// Full-surface status layers: the refresh notice (a restarted desk may require a
-// different UI bundle) and the desk-closed cover (one-way for the tab; polling
-// continues so a same-origin restart can propose the refresh above).
 export function DeskCovers(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields('state', 'deskClosed', 'isRefreshRequired')

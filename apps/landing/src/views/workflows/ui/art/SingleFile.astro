@@ -1,5 +1,4 @@
 ---
-// Single file: three states, and markdown reviewed as rendered blocks.
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { sx } from '@shared/lib/sx'
 import AskThread from '@shared/ui/drawing/AskThread.astro'
@@ -10,7 +9,6 @@ import { text } from '@shared/ui/drawing/text.styles'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import { workflowsArt } from './workflows-art.styles'
 
-// The three states syneva file opens; the drawing highlights the changed one.
 const STATES = [
 	{ label: 'UNCHANGED', words: 'full file', x: 40, isCurrent: false },
 	{ label: 'CHANGED', words: 'diff · stageable', x: 220, isCurrent: true },

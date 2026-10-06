@@ -4,9 +4,7 @@ import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 
-// The FAQ: an index of its topics, then one ruled block per topic whose
-// heading stays on the left (alternating would make answers harder to
-// find), stacking over its questions under 900px.
+// One ruled block per topic whose heading stays on the left (alternating would make answers harder to find), stacking over its questions under 900px.
 export const qa = stylex.create({
 	index: {
 		display: 'grid',

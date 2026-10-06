@@ -6,9 +6,6 @@ import { arrowRight } from './arrow-right.styles'
 import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
 
-// The arrow that closes a primary action and leads a row somewhere. The
-// caller sizes it (14px beside a small label, 16px beside a base or large
-// one, 20px at the end of a row) and moves it on hover.
 export function ArrowRight({ css }: { css: Style }): ReactElement {
 	return (
 		<svg

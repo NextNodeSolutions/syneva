@@ -4,14 +4,10 @@ import type { Easing } from '@syneva/motion/easing'
 import type { Keyframes } from '@syneva/motion/engine'
 import type { Frame, Frames } from '@syneva/motion/loop-timeline'
 
-// One 14s clock: dispatch, open, read, decide, return. The static pose tells
-// the whole story; only the three short signal strokes repaint, sheets move
-// with transform and opacity. Times are fractions of the cycle, and every
-// segment eases on its own.
+// One 14s clock: the static pose tells the whole story; only the three short signal strokes repaint, sheets move with transform and opacity. Times are fractions of the cycle; every segment eases on its own.
 const CYCLE_S = 14
 
-// A length a piece reads from its styles. The minifier may rewrite a value,
-// so it is parsed.
+// A length a piece reads from its styles; the minifier may rewrite the value, so it is parsed.
 export const pixels = (element: Element, property: string): number =>
 	Number.parseFloat(getComputedStyle(element).getPropertyValue(property))
 
@@ -21,8 +17,7 @@ type Timing = {
 	delay?: number
 }
 
-// A piece states one value per time of its timing: a missing one is a bug in
-// the piece, not a value to guess.
+// A piece states one value per time of its timing: a missing one is a bug in the piece, not a value to guess.
 function valueAt(
 	values: readonly (string | number)[],
 	index: number,
@@ -36,11 +31,8 @@ function valueAt(
 	return timedValue
 }
 
-// Starts a loop on the circuit's clock, or retimes a running one.
 type Runner = typeof loopTimeline
 
-// A piece is written as its values at six fractions of the cycle; they
-// become the loop timeline's frames on the circuit's clock.
 export function loop(
 	element: Element,
 	keyframes: Keyframes,
@@ -64,10 +56,7 @@ export function loop(
 	run(element, frames, { cycle: CYCLE_S, delay, easing: ease })
 }
 
-// Six values, one per time of a piece's timing: its resting value at the
-// first two times, its other value at the middle two, its resting value
-// again at the last two. The piece changes between the second and third
-// times and changes back between the fourth and fifth.
+// Six values, one per timing time: resting at the first two, the other value at the middle two, resting again at the last two - changes between the 2nd→3rd and 4th→5th times.
 export const blink = (on: number): (string | number)[] => [0, 0, on, on, 0, 0]
 export const hold = (resting: string, held: string): string[] => [
 	resting,

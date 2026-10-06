@@ -9,9 +9,6 @@ import {
 
 import type { TreeRow } from '@entities/review/file/tree-rows'
 
-// The file-tree bindings the chrome consumes from the store: the row list, folder open/close,
-// collapse-all / expand-all, the test-group carets and the two fold groups.
-
 function installTreeRows(): void {
 	S.treeRows = () =>
 		S.state
@@ -25,7 +22,7 @@ function installTreeRows(): void {
 					foldExpanded: S.foldExpanded,
 				})
 			: []
-	// Changed folders open by default -> toggle via collapsedDirs; unchanged closed -> expandedDirs.
+	// Changed folders open by default → toggled via collapsedDirs; unchanged closed → expandedDirs.
 	S.toggleDir = (full, changed) => {
 		const set = changed ? S.collapsedDirs : S.expandedDirs
 		if (set.has(full)) set.delete(full)
@@ -34,12 +31,10 @@ function installTreeRows(): void {
 }
 
 function installDirToggles(): void {
-	// Collapse-all / expand-all from the FILES title; anyOpen drives the button's icon.
 	S.treeAnyOpen = () =>
 		(S.treeRows?.() ?? []).some(row => row.kind === 'dir' && row.open)
 	S.toggleAllDirs = () => {
-		// Collapse all -> close every folder. Expand all -> open only folders with a touched file
-		// (changes/comments); purely-unchanged folders stay closed.
+		// Expand all opens only folders with a touched file (changes/comments); purely-unchanged folders stay closed.
 		if (S.treeAnyOpen?.()) {
 			S.collapsedDirs = new Set(
 				allDirPaths({
@@ -73,8 +68,6 @@ function installGroupToggles(): void {
 	}
 }
 
-// One click handler for every row kind: the Renamed/Reviewed group headers, a folder, an
-// unchanged file (open it as a preview) or a changed one (select it in the review).
 function installRowClick(): void {
 	S.rowClick = (row: TreeRow) => {
 		if (row.kind === 'foldgrp') {

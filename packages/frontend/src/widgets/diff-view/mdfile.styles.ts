@@ -1,11 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// The rendered markdown file: a centred reading column in place of the diff
-// (its typography is data-prose="document", shared/markdown/prose.css). Every
-// block that carries a source line takes a click to comment, washed in petrol
-// under the pointer; its threads sit inline under the block, on white behind a
-// petrol rule.
 export const mdFile = stylex.create({
 	document: {
 		maxWidth: '760px',
@@ -30,6 +25,5 @@ export const mdFile = stylex.create({
 		borderLeftColor: color['--accent-line'],
 		cursor: 'default',
 	},
-	// Under a list item the thread tucks back toward the item's marker.
 	threadInItem: { marginLeft: '-6px' },
 })

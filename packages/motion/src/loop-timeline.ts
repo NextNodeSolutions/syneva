@@ -2,10 +2,8 @@ import { animate } from './engine'
 
 import type { Easing } from './easing'
 
-// A looping timeline: one clock drives every element, so a choreography can
-// never drift out of sync. A frame is the props at a time on the clock (in
-// seconds), with the easing of the segment that starts there; 'hold' keeps
-// the props until the next frame, then jumps (CSS steps(1, end)).
+// One clock drives every element, so a choreography cannot drift out of sync.
+// A frame = props at a time on the clock (s) with the easing of its segment; 'hold' keeps props until the next frame, then jumps (CSS steps(1, end)).
 export type SegmentEasing = Easing | 'hold'
 export type AnimatedProperties = Record<string, string | number>
 export type Frame = {
@@ -13,8 +11,7 @@ export type Frame = {
 	props: AnimatedProperties
 	easing?: SegmentEasing
 }
-// A timeline has at least one frame, and its first frame names the
-// properties every other frame states.
+// At least one frame; the first names the properties every other frame must state.
 export type Frames = readonly [Frame, ...Frame[]]
 export type Clock = { cycle: number; delay: number; easing: Easing }
 
@@ -49,8 +46,7 @@ function expand(frames: Frames, clock: Clock): LoopKeyframe[] {
 	return keyframes
 }
 
-// Every frame states every animated property: a missing one is a bug in the
-// timeline, not a value to guess.
+// Every frame states every animated property: a missing one is a timeline bug, not a value to guess.
 function valueAt(
 	{ offset, props }: LoopKeyframe,
 	name: string,
@@ -65,7 +61,6 @@ function valueAt(
 
 type PropertyValues = Record<string, (string | number)[]>
 
-// Each animated property's values, one per keyframe.
 function valuesOf(frames: Frames, keyframes: LoopKeyframe[]): PropertyValues {
 	const [{ props: firstProps }] = frames
 	return Object.fromEntries(
@@ -76,7 +71,6 @@ function valuesOf(frames: Frames, keyframes: LoopKeyframe[]): PropertyValues {
 	)
 }
 
-// Loops the frames forever on `element`, after the clock's start delay.
 export function loopTimeline(
 	element: Element,
 	frames: Frames,
@@ -92,9 +86,7 @@ export function loopTimeline(
 	})
 }
 
-// A property's new value at one keyframe of a running loop. The new frames
-// lay out the times the loop started with, so a missing value means they do
-// not match.
+// New frames must keep the times the loop started with; a missing value means they don't match.
 function valueAtKeyframe(
 	values: PropertyValues,
 	name: string,
@@ -108,7 +100,6 @@ function valueAtKeyframe(
 	return keyframeValue
 }
 
-// One running animation's keyframes, its properties set to their new values.
 function retimed(
 	running: ComputedKeyframe[],
 	values: PropertyValues,
@@ -125,9 +116,7 @@ function retimed(
 	)
 }
 
-// Gives a loop already running on `element` new values at the same frame
-// times: each of its animations keeps its place in the cycle, and the
-// keyframe at each time takes its new value.
+// New values at the SAME frame times: each running animation keeps its place in the cycle.
 export function retimeLoop(
 	element: Element,
 	frames: Frames,

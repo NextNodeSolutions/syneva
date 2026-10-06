@@ -2,10 +2,6 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The guided review's Overview page: the public site's ruled grid field as
-// its ground, one white card under a strong rule set near the top, its
-// headline in the site's heading voice and Start review as the page's one
-// petrol action.
 export const overview = stylex.create({
 	page: {
 		minHeight: '100%',
@@ -39,7 +35,6 @@ export const overview = stylex.create({
 		color: color['--ink'],
 	},
 	sub: { marginBottom: '18px' },
-	// The grouping predates the diff: an amber notice, the stale-notice tone.
 	stale: {
 		marginTop: '12px',
 		marginBottom: '18px',

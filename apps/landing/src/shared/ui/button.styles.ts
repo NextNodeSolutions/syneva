@@ -6,7 +6,6 @@ import { buttonMarker } from './actions.stylex'
 
 const buttonHover = (): string => stylex.when.ancestor(':hover', buttonMarker)
 
-// The petrol primary action, its arrow stepping forward on hover.
 export const button = stylex.create({
 	base: {
 		display: 'inline-flex',

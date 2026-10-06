@@ -19,9 +19,7 @@ type SelectFieldProps = FieldText & {
 		'className' | 'style' | 'id' | 'children'
 	>
 
-// A labelled native select: the platform's own menu and keyboard, the
-// platform arrow replaced by a drawn chevron. Every native select attribute
-// (value, onChange, ref) reaches the select.
+// Every native select attribute (value, onChange, ref) reaches the select; the label wiring is the field's own.
 export function SelectField({
 	label,
 	aside,

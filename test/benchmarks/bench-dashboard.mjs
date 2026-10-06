@@ -1,15 +1,6 @@
 #!/usr/bin/env node
-// Renders the benchmark history into one self-contained HTML dashboard (no server, no CDN) and
-// records new runs into test/benchmarks/history.json, so the perf story of this UI stays a tracked
-// artifact instead of a chat log.
-//
-//   node test/benchmarks/bench-dashboard.mjs               # render test/benchmarks/dashboard.html
-//   node test/benchmarks/bench-dashboard.mjs --out <path>  # render somewhere else (e.g. ~/Desktop)
-//   node test/benchmarks/bench-dashboard.mjs --check       # validate history + template, write nothing
-//   node test/benchmarks/bench-dashboard.mjs --record <f>  # append the run object in <f> ("-" = stdin)
-//
-// A run is one JSON object; the shape the dashboard expects is documented in test/benchmarks/README.md.
-// Recording is idempotent by run id: re-recording the same id replaces that run in place.
+// Renders the benchmark history into one self-contained HTML dashboard and records new runs into test/benchmarks/history.json - the perf story is a tracked artifact, not a chat log.
+// Usage (--out/--check/--record) and the run shape live in test/benchmarks/README.md; recording is idempotent by run id.
 import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -20,8 +11,8 @@ const HISTORY = path.join(DIR, 'history.json')
 const TEMPLATE = path.join(DIR, 'dashboard-template.html')
 const DATA_START = '/*BENCH_DATA_START*/'
 const DATA_END = '/*BENCH_DATA_END*/'
-// In-repo by default: the timeline is a tracked artifact, and a copy in someone's home directory is
-// not. `--out` renders anywhere else (a personal Desktop copy, a scratch comparison).
+// In-repo by default: the timeline is a tracked artifact, a copy in someone's home directory is
+// not. --out renders anywhere else (a personal Desktop copy, a scratch comparison).
 const DEFAULT_OUT = path.join(DIR, 'dashboard.html')
 const BYTES_PER_KB = 1024
 
@@ -41,8 +32,7 @@ function readJson(file) {
 		fail(
 			`${path.relative(ROOT, file)} is not readable JSON: ${error.message}`,
 		)
-		// fail() already exited; rethrowing keeps this function total (a value on one path, a
-		// throw on the other) instead of falling off its end.
+		// fail() already exited; rethrowing keeps this function total instead of falling off its end.
 		throw error
 	}
 }
@@ -57,8 +47,8 @@ function fail(message) {
 	process.exit(1)
 }
 
-// The dashboard's own contract: a run must carry the keys every chart reads, and the numbers must be
-// numbers - a typo here would silently render as a gap in the evolution chart.
+// A run must carry the keys every chart reads (and real numbers) - a typo would silently render
+// as a gap in the evolution chart.
 function validateRun(run, label) {
 	for (const key of REQUIRED_RUN_KEYS)
 		if (run[key] === undefined) fail(`${label}: missing "${key}"`)
@@ -113,8 +103,8 @@ function record(source) {
 	)
 }
 
-// The template owns everything visual; this only swaps the data block, so the dashboard file stays
-// openable straight from disk (file://) with no fetch and no build step.
+// The template owns everything visual; this only swaps the data block, so the dashboard stays
+// openable from disk (file://) - no fetch, no build step.
 function render(history, out) {
 	const template = readFileSync(TEMPLATE, 'utf8')
 	const start = template.indexOf(DATA_START)
@@ -135,7 +125,6 @@ function render(history, out) {
 	)
 }
 
-// argv[0] is node, argv[1] the script.
 const ARGV_OFFSET = 2
 const argv = process.argv.slice(ARGV_OFFSET)
 function argValue(flag) {

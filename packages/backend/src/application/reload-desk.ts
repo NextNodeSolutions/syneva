@@ -7,7 +7,6 @@ import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 import type { Guide, ReviewState } from '../domain/review.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
 
-// The reload's collaborator ports: git (rebuild + reconcile) and the review store (persist).
 export type ReloadIo = { git: GitPort; store: ReviewStorePort }
 
 export type ReloadOutcome =
@@ -15,11 +14,7 @@ export type ReloadOutcome =
 	| { kind: 'empty'; state: ReviewState; baseDiffHash: string }
 	| { kind: 'invalid-guide'; reason: string }
 
-// Re-diff the review into a NEW state root so the open desk reflects the agent's edits without
-// a restart. Rebuilds using the stored mode params; an optional { guide } in the body swaps the
-// attached guide in the same round-trip - the multi-round path: regenerate the guide, reload,
-// same tab. Nothing is committed to the live state until every guide validation has passed; the
-// caller commits the returned root (copy-on-write - the live root is never edited in place).
+// Nothing is committed to the live state until every guide validation has passed; the caller commits the returned root (copy-on-write - the live root is never edited in place).
 export async function reloadDesk(
 	state: ReviewState,
 	io: ReloadIo,
@@ -35,8 +30,7 @@ export async function reloadDesk(
 	const base = await rebuildBase(state, io.git)
 	if (!base) return await reloadEmpty(state, io)
 	let merged = await mergeReviewState(base, state, io.git)
-	// A posted guide replaces the carried one, stamped with the diff it describes as of now so
-	// it isn't born stale; a reload without one leaves the carried guide alone.
+	// A posted guide replaces the carried one, stamped with the diff it describes as of now so it is not born stale; a reload without one leaves the carried guide alone.
 	if (validatedGuide)
 		merged = {
 			...merged,
@@ -69,9 +63,7 @@ async function rebuildBase(
 	)
 }
 
-// An empty rebuild keeps the desk up with an empty diff (whether to open an empty desk at all is
-// the startup decision). It deliberately does NOT run mergeReviewState/readStagedSnapshot
-// reconciliation - that divergence predates this cleanup and is preserved here.
+// Keeps the desk up with an empty diff; deliberately does NOT run mergeReviewState/readStagedSnapshot reconciliation - that divergence predates this cleanup and is preserved here.
 async function reloadEmpty(
 	state: ReviewState,
 	io: ReloadIo,

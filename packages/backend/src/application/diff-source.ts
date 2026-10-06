@@ -9,14 +9,10 @@ import type { DiffFile } from '../domain/review.js'
 import type { AssembledDiff } from './diff-files.js'
 import type { GitPort } from './ports.js'
 
-// Everything one build produced for a mode: the review files + change blocks and the raw diff
-// they came from.
 export type DiffSource = AssembledDiff & {
 	rawDiff: string
 }
 
-// What to build, per mode: repo → the working/staged diff (path is a root-relative limit);
-// file → one file (an absolute path); pr → base..HEAD (committed), verdict-only.
 export type DiffSourceQuery =
 	| { mode: 'pr'; root: string; base?: string | undefined }
 	| { mode: 'file'; root: string; path: string }
@@ -34,8 +30,7 @@ type RepoQuery = Extract<DiffSourceQuery, { mode: 'repo' }>
 // Branches a clone's default branch falls back to when origin/HEAD isn't set.
 const BRANCH_CANDIDATES = ['main', 'master'] as const
 
-// The branch a PR is taken against: origin's HEAD when the clone knows it, else the first of
-// main/master that exists, else HEAD (a detached or unusual checkout still gets a review).
+// Else the first of main/master that exists, else HEAD (a detached or unusual checkout still gets a review).
 export async function resolveDefaultBranch(
 	root: string,
 	git: GitPort,
@@ -62,9 +57,6 @@ async function branchExists(
 	)
 }
 
-// The deep module: produce review files + changes for a given mode (see DiffSourceQuery).
-// Returns null when the mode has nothing to review (an empty diff), which the callers turn into
-// "no changes" / an empty reload.
 export async function buildDiffSource(
 	query: DiffSourceQuery,
 	git: GitPort,
@@ -74,8 +66,7 @@ export async function buildDiffSource(
 	return await buildRepoSource(query, git)
 }
 
-// pr: base..HEAD, committed on both sides, so the file-level keys come from `git diff --raw` and
-// assembleDiff reads no blob contents at all.
+// pr is committed on both sides, so the file-level keys come from `git diff --raw` and assembleDiff reads no blob contents at all.
 async function buildPrSource(
 	query: PrQuery,
 	git: GitPort,
@@ -95,8 +86,6 @@ async function buildPrSource(
 	return { ...assembled, rawDiff }
 }
 
-// file: one absolute path. tracked+changed = the diff (stageable), untracked/new = the full file as
-// additions, tracked-unchanged = the full file as-is.
 async function buildFileSource(
 	query: FileQuery,
 	git: GitPort,
@@ -117,7 +106,7 @@ async function buildFileSource(
 			files: [fileEntry(key, working, 'added')],
 			changes: [],
 			rawDiff: '',
-		} // untracked/new → full file as additions
+		}
 	const rawDiff = await git.run(
 		['diff', '--no-ext-diff', '-M', '--', rel],
 		query.root,
@@ -127,9 +116,8 @@ async function buildFileSource(
 			files: [fileEntry(key, working, 'modified')],
 			changes: [],
 			rawDiff: '',
-		} // tracked, unchanged → full file
-	// New side is the working tree - hashed locally (no committed OID). The UI re-diffs old/new
-	// (fetched on open against the INDEX baseline via readFileContents), not these hunks.
+		}
+	// New side is the working tree - hashed locally (no committed OID); the UI re-diffs old/new (fetched on open against the INDEX baseline via readFileContents), not these hunks.
 	const parsedDiff = parseUnifiedDiff(rawDiff)
 	const assembled = await assembleDiff(parsedDiff, {
 		fetchNew: p => git.fileAt(query.root, p),
@@ -139,14 +127,12 @@ async function buildFileSource(
 	return { ...assembled, rawDiff }
 }
 
-// repo: the working-tree diff (or the staged one under --cached), plus the untracked files git's
-// diff can't see.
+// plus the untracked files git's diff can't see.
 async function buildRepoSource(
 	query: RepoQuery,
 	git: GitPort,
 ): Promise<DiffSource | null> {
-	// -M asks git itself to detect renames, so committed/staged renames render deterministically
-	// regardless of the user's `diff.renames` config.
+	// -M asks git itself to detect renames, so committed/staged renames render deterministically regardless of the user's `diff.renames` config.
 	const args = ['diff', '--no-ext-diff', '-M']
 	if (query.staged) args.push('--cached')
 	if (query.path) args.push('--', query.path)
@@ -165,9 +151,9 @@ async function buildRepoSource(
 	return { files, changes, rawDiff }
 }
 
-// Each side must match what the diff was taken against, because the UI re-diffs the old/new
-// contents itself instead of rendering these hunks. Unstaged diffs working tree vs INDEX, so old
-// reads :0 - a HEAD baseline would resurrect already-staged changes as pending diff on every reload.
+// Each side must match what the diff was taken against: the UI re-diffs the old/new contents
+// itself instead of rendering these hunks, and unstaged diffs working tree vs INDEX - old reads
+// :0, a HEAD baseline would resurrect already-staged changes as pending diff on every reload.
 async function assembleRepoDiff(
 	parsedDiff: readonly DiffFile[],
 	query: RepoQuery,
@@ -175,9 +161,7 @@ async function assembleRepoDiff(
 ): Promise<AssembledDiff> {
 	if (!parsedDiff.length) return { files: [], changes: [] }
 	return await assembleDiff(parsedDiff, {
-		// Staged: the new side is the index (committed object), harvested from `git diff --raw` in one
-		// process, so fetchNew is never called. Unstaged: the new side is the dirty working tree
-		// (`git diff --raw` reports it as all-zeros), so fetchNew reads it to hash.
+		// Staged: the new side is the index (committed), harvested from `git diff --raw` in one process, so fetchNew is never called; unstaged: the new side is the dirty working tree (reported all-zeros), so fetchNew reads it to hash.
 		fetchNew: p =>
 			query.staged
 				? git.fileAt(query.root, p, ':0')

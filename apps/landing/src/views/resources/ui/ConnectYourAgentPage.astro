@@ -40,8 +40,6 @@ const ACTING = [
 	['accepted and approvedFiles → leave them.', 'They are settled. Touching them reopens them for review.'],
 	['Then syneva reload.', 'Your tab shows the next revision. Anything rewritten is pending again.'],
 ] as const
-// The result's fields as a sentence's list: names in code, the optional
-// note introduced as such.
 const FIELD_PARTS = listFormat.formatToParts([...REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE])
 	.map(({ type, value }) => {
 		if (type === 'literal') return { kind: 'text', value } as const

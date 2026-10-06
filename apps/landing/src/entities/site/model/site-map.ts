@@ -1,7 +1,4 @@
-// The site map. Navigation menus, the footer sitemap, breadcrumbs, page
-// heroes and the per-section pagers all read it, and links name their pages
-// through it; the build fails on any internal link without a built target
-// (integrations/linked-pages.ts).
+// The map the menus, footer sitemap, breadcrumbs, heroes and pagers all read; links name pages through it, and the build fails on an internal link without a built target (integrations/linked-pages.ts).
 
 import { LAUNCH_STAGE, START_COMMAND } from './project'
 
@@ -10,16 +7,10 @@ import type { IconName } from '@syneva/design-system/icons'
 export const SITE_NAME = 'Syneva'
 export const SITE_URL = 'https://syneva.dev'
 
-// What a page describes: the CLI today, or a prototype direction. Product
-// and workflow pages state it in their hero; the menu and the overview rows
-// flag a prototype.
 export type Availability = 'available' | 'prototype'
 export type PreviewName = 'review' | 'guide' | 'ask' | 'plan'
 
-// What every page has: its route and how the menus present it.
 type BasePage = { href: string; title: string; blurb: string; icon: IconName }
-// A product page previews its scene in the product menu; a workflow page
-// opens with the command it runs.
 export type ProductPage = BasePage & {
 	availability: Availability
 	preview: PreviewName
@@ -30,11 +21,9 @@ export type WorkflowPage = BasePage & {
 }
 export type Page = ProductPage | WorkflowPage | BasePage
 
-// Menus and the footer list the sections in this order.
 const SECTION_ORDER = ['product', 'workflows', 'resources'] as const
 export type SectionId = (typeof SECTION_ORDER)[number]
 
-// The kind of page each section lists.
 type SectionPages = {
 	product: ProductPage
 	workflows: WorkflowPage
@@ -52,11 +41,8 @@ type SectionOf<Id extends SectionId> = {
 
 export type Section = { [Id in SectionId]: SectionOf<Id> }[SectionId]
 
-// The home, which no menu lists.
 export const HOME_HREF = '/'
 
-// Every page but the home, by slug: a link names its page through it
-// (PAGES.getStarted.href), and each section lists its pages from it.
 export const PAGES = {
 	reviewDesk: {
 		href: '/product/review-desk/',
@@ -187,8 +173,6 @@ export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 		href: '/resources/',
 		overview: 'All resources',
 		footer: 'Open source, MIT licensed.',
-		// The setup guide joins the menus, the footer and the pagers at launch;
-		// until then its address leads to the signup (src/pages/get-started.astro).
 		items: [
 			...(LAUNCH_STAGE === 'live' ? [PAGES.getStarted] : []),
 			PAGES.connectYourAgent,

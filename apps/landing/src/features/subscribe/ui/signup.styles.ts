@@ -6,15 +6,13 @@ import {
 	font,
 } from '@syneva/design-system/tokens.stylex'
 
-// `border: 0` resets the style and colour too, not just the width.
+// border: 0 resets style and colour too, not just the width.
 const noBorder = {
 	borderWidth: 0,
 	borderStyle: 'none',
 	borderColor: 'currentcolor',
 } as const
 
-// The signup: an email field and its petrol button in one ruled box (the
-// copyable command's shape), and the status line under it.
 export const signup = stylex.create({
 	form: { position: 'relative', minWidth: 0 },
 	box: {
@@ -31,8 +29,7 @@ export const signup = stylex.create({
 		backgroundColor: color['--white'],
 		transition: `border-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 	},
-	// On a wash: paper ground, petrol rule. Merged over the box, its border
-	// colour replaces the box's whole value, so it restates the focus state.
+	// Merging over the box replaces its whole border value, so this rule restates the focus state.
 	onWash: {
 		borderColor: {
 			default: color['--accent-line'],
@@ -51,7 +48,6 @@ export const signup = stylex.create({
 		font: `15px ${font['--sans']}`,
 		color: color['--ink'],
 		caretColor: color['--accent'],
-		// The box's border carries the focus.
 		outline: { default: null, ':focus-visible': 'none' },
 		'::placeholder': { color: color['--muted'] },
 	},
@@ -69,7 +65,6 @@ export const signup = stylex.create({
 		},
 		cursor: { default: 'pointer', ':disabled': 'progress' },
 	},
-	// Read by screen readers, never drawn.
 	hidden: {
 		position: 'absolute',
 		width: '1px',
@@ -78,7 +73,6 @@ export const signup = stylex.create({
 		clipPath: 'inset(50%)',
 		whiteSpace: 'nowrap',
 	},
-	// Off screen for people, and out of the tab order.
 	trap: { position: 'absolute', left: '-10000px', top: 0 },
 	// One line held open, so the outcome never shifts what follows.
 	status: {

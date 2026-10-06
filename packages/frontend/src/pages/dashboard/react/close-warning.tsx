@@ -6,10 +6,6 @@ import { deskSlide } from './desk-slide.styles'
 
 import type { ReactElement } from 'react'
 
-// What an armed close is about to do, in the review's place. The hub tells the agent only if
-// one is listening (a parked await takes the event; the desk's queue goes with the desk), so
-// that is said only then; the review stays saved either way. Close desk and Keep point at it
-// (aria-describedby).
 export function CloseWarning({
 	id,
 	isAgentListening,

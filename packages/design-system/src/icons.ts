@@ -1,6 +1,4 @@
-// The line icons every front draws (the site's menus and index rows, the
-// hub's desk rows): one path each on a 24-unit grid, stroked in currentColor
-// and never filled. Each front sets the stroke width for its own scale.
+// Line icons every front draws: one path each on a 24-unit grid, stroked in currentColor, never filled; each front sets its own stroke width.
 export const ICON_VIEW_BOX = '0 0 24 24'
 
 export const ICONS = {
@@ -21,7 +19,6 @@ export const ICONS = {
 
 export type IconName = keyof typeof ICONS
 
-// The arrow that closes a primary action and leads an index row: a 20-unit
-// grid, stroked like the icons.
+// The primary action's arrow: 20-unit grid (not 24), stroked like the icons.
 export const ARROW_VIEW_BOX = '0 0 20 20'
 export const ARROW_PATH = 'M4 10h12m-5-5 5 5-5 5'

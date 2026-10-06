@@ -3,12 +3,9 @@ import { anchorTextFor } from './contents.js'
 import type { FileContents } from './contents.js'
 import type { ReviewComment } from './review.js'
 
-// The Dice coefficient weights the shared bigrams twice: 2|A∩B| / (|A| + |B|).
 const DICE_PAIR_WEIGHT = 2
 
-// Character-bigram width for the similarity metric, and the two thresholds that decide when a
-// lightly-edited line is still "the same" line: >= floor to be a candidate at all, and within the
-// tie window the candidate nearest the old position wins.
+// Thresholds for "the same line, lightly edited": >= floor is a candidate; inside the tie window the nearest-to-old-position wins.
 const BIGRAM_WIDTH = 2
 const SIMILARITY_FLOOR = 0.6
 const SIMILARITY_TIE = 0.05
@@ -22,29 +19,19 @@ export type CommentInput = {
 	role: 'user' | 'agent'
 }
 
-// ── Whole-file anchor ─────────────────────────────────────────────────────────
-// A whole-file comment anchors to the file, not a diff line: lineNumber 0 is the file-level
-// slot (real lines are 1-based, so no rendered line can ever sit there). ONE rule derives
-// both the persisted `anchor` stamp and the meaningless side/anchorText placeholders, so the
-// live route, the offline agent reply, and the UI can't disagree with each other or with the
-// persisted record.
+// lineNumber 0 is the file-level slot (real lines are 1-based); one rule derives the anchor stamp + placeholders so every replier agrees.
 export const FILE_LEVEL_LINE = 0
 
-// Is this comment anchored to the whole file rather than a rendered line?
 export function isFileLevelLine(lineNumber: number): boolean {
 	return lineNumber === FILE_LEVEL_LINE
 }
 
-// The persisted anchor stamp for a new comment (undefined on line comments).
 export function commentAnchor(lineNumber: number): 'file' | undefined {
 	if (!isFileLevelLine(lineNumber)) return undefined
 	return 'file'
 }
 
-// A transport's raw line value (unknown JSON, or a CLI flag string) narrowed to a line anchor:
-// only finite integers >= 0 are valid, 0 being the whole-file anchor. Anything else - NaN,
-// fractions, negatives - would serialize as null in the persisted record and silently drop the
-// comment on reload, so the boundary rejects it instead of trusting `Number(...)`.
+// Only finite integers >= 0: anything else would serialize to null and silently drop the comment on reload.
 export function parseLineNumber(raw: unknown): number | null {
 	if (typeof raw === 'undefined' || raw === null) return 1
 	if (typeof raw !== 'number' && typeof raw !== 'string') return null
@@ -53,9 +40,7 @@ export function parseLineNumber(raw: unknown): number | null {
 	return lineNumber
 }
 
-// The side a comment persists with: file-level comments have no diff side, so they always
-// store the additions placeholder regardless of what a caller sent (keeps agent replies that
-// named a side by habit thread-matched with the desk's own file comments).
+// The additions placeholder persists whatever was sent, so habit-side agent replies still thread-match the file comments.
 export function commentSide(
 	side: 'additions' | 'deletions',
 	lineNumber: number,
@@ -63,9 +48,7 @@ export function commentSide(
 	return isFileLevelLine(lineNumber) ? 'additions' : side
 }
 
-// The one requested-change classification, shared by file approval (computeApprovedFiles in
-// domain/decisions.ts) and the agent handoff (requestedChanges in application/review-result.ts):
-// a comment blocks and rides out exactly when it is open, reviewer-authored, and not a question.
+// A comment blocks (file approval + agent handoff) exactly when it is open, reviewer-authored and not a question.
 export function isRequestedChange(comment: ReviewComment): boolean {
 	return (
 		comment.status === 'open' &&
@@ -74,10 +57,7 @@ export function isRequestedChange(comment: ReviewComment): boolean {
 	)
 }
 
-// The one constructor for a freshly posted comment: the live route and the offline CLI reply both
-// land here, so the defaults (status/intent), the side normalization and the anchor stamps can only
-// be born one way. id and `now` are values per the ports.ts convention (the application owns id/time
-// generation); `contents` is the optional on-demand read callers do for line comments.
+// The one constructor for a freshly posted comment (live route + offline CLI reply alike): defaults, side normalization and anchor stamps are born one way.
 export function newComment(
 	input: CommentInput,
 	contents: FileContents | undefined,
@@ -100,21 +80,10 @@ export function newComment(
 	}
 }
 
-// Append a comment to the persisted review (IO sequencing lives in
-// backend/application/comments.ts); the pure anchor rules below are what the domain owns.
+// Pure anchor rules only; IO sequencing lives in application/comments.ts.
 
-// Recover comment anchors after the diff is rebuilt. Open comments only (resolved threads
-// are done - they only render if their line still does). Exact text at the recorded line →
-// anchored; else the unique nearest line with exactly that text → move the anchor there; else a
-// best-effort fuzzy match keeps a lightly-edited line's thread near its old spot; only when
-// nothing is similar enough do we flag `unanchored` so the desk shows the thread in its
-// file-level strip rather than silently dropping it (an open change request blocks approval, so
-// it must stay reachable). Legacy comments without anchorText can only be flagged when their
-// line is provably out of range.
-//
-// `contentsOf` resolves a present file's on-demand contents (the state no longer embeds them). The
-// caller fetches only the files carrying an open comment - the same set this processes - so a file
-// with no resolved contents is treated as empty (matching a missing embedded side before issue 04).
+// Recover open anchors after a diff rebuild: exact text at the recorded line; else the single line holding that text; else fuzzy best-effort near the old spot; only then `unanchored` - an open request blocks approval and must stay reachable, never silently dropped.
+// Legacy comments without anchorText flag only when their line is provably out of range. `contentsOf` resolves a present file's on-demand contents; the caller fetches exactly the files processed, so an unresolved file reads as empty.
 export function reanchorComments(
 	comments: ReviewComment[],
 	files: readonly { path: string }[],
@@ -123,16 +92,11 @@ export function reanchorComments(
 	return comments.map(comment => reanchorComment(comment, files, contentsOf))
 }
 
-// One comment anchored onto the file's current contents. Returns the same record when there is
-// nothing to recover (resolved threads are done - they only render if their line still does - and a
-// vanished file is the caller's staleness call), else a re-anchored copy.
 function reanchorComment(
 	comment: ReviewComment,
 	files: readonly { path: string }[],
 	contentsOf: (path: string) => FileContents | undefined,
 ): ReviewComment {
-	// Whole-file threads have no line anchor to recover - they're anchored to the path, which
-	// already matched, so they ride along untouched.
 	if (comment.status !== 'open' || comment.anchor === 'file') return comment
 	const file = files.find(candidate => candidate.path === comment.path)
 	if (!file) return comment
@@ -156,15 +120,12 @@ function withRecoveredAnchor(
 	if (lines[comment.lineNumber - 1] === comment.anchorText)
 		return { ...comment, unanchored: false }
 	const best = bestAnchorLine(lines, comment.anchorText, comment.lineNumber)
-	// An all-whitespace anchor is too thin to re-anchor (nearestSimilarLine refuses it) and a missing
-	// match means the line is gone: either way the thread detaches rather than guessing. Line numbers
-	// are 1-based, so a falsy best is "none".
+	// All-whitespace anchors are too thin; detach rather than guess (lines are 1-based: falsy best = none).
 	if (!best || !comment.anchorText.trim())
 		return { ...comment, unanchored: true }
 	return shiftedAnchor(comment, best)
 }
 
-// The comment moved from its old line to `best`, carrying a multi-line anchor's end line with it.
 function shiftedAnchor(comment: ReviewComment, best: number): ReviewComment {
 	const delta = best - comment.lineNumber
 	if (typeof comment.endLine !== 'number')
@@ -177,8 +138,6 @@ function shiftedAnchor(comment: ReviewComment, best: number): ReviewComment {
 	}
 }
 
-// The 1-based line an anchor should move to: the only exact match, the unambiguous nearest of
-// several, or wherever the anchor's text most nearly survives.
 function bestAnchorLine(
 	lines: string[],
 	anchorText: string,
@@ -198,8 +157,7 @@ function matchingLines(lines: string[], anchorText: string): number[] {
 	return matches
 }
 
-// The nearest exact match, or undefined on a tie: the text still exists verbatim, just in more than
-// one equally-near place - don't guess.
+// Nearest exact match; undefined on an equidistant tie rather than a guess.
 function unambiguousNearest(
 	matches: number[],
 	oldLine: number,
@@ -207,18 +165,13 @@ function unambiguousNearest(
 	const [closest, runnerUp] = matches.toSorted(
 		(a, b) => Math.abs(a - oldLine) - Math.abs(b - oldLine),
 	)
-	// No match at all, or a single one (no runner-up to tie against): the
-	// nearest is unambiguous by definition. A tie stays undefined - don't guess.
 	if (!closest || !runnerUp) return closest
 	if (Math.abs(closest - oldLine) === Math.abs(runnerUp - oldLine))
 		return undefined
 	return closest
 }
 
-// Best-effort fallback when a comment's anchor text no longer appears verbatim: the most similar
-// surviving line (Dice ≥ SIMILARITY_FLOOR), preferring the closest to the old position on a near-tie.
-// Returns the 1-based line, or undefined when nothing is similar enough (then the thread detaches
-// cleanly).
+// Anchor text gone verbatim: the most similar surviving line (Dice >= floor), nearest to the old position on a near-tie; undefined detaches.
 function nearestSimilarLine(
 	lines: string[],
 	anchorText: string,
@@ -237,7 +190,7 @@ function nearestSimilarLine(
 	return best?.line
 }
 
-// A higher score wins outright; inside the tie window the line nearer the old position wins.
+// Higher score wins; inside the tie window nearer the old position wins.
 function isBetterMatch(
 	candidate: { line: number; sim: number },
 	best: { line: number; sim: number } | undefined,
@@ -249,8 +202,7 @@ function isBetterMatch(
 	return Math.abs(candidate.line - oldLine) < Math.abs(best.line - oldLine)
 }
 
-// Sørensen-Dice similarity on character bigrams (whitespace-normalized), 0..1. Cheap and good at
-// "same line, lightly edited" - the case a comment loses its exact anchor to.
+// Sørensen-Dice on character bigrams (whitespace-normalized), 0..1: cheap, good at same-line-lightly-edited.
 function lineSimilarity(a: string, b: string): number {
 	const left = normalizeLine(a)
 	const right = normalizeLine(b)
@@ -271,7 +223,6 @@ function normalizeLine(line: string): string {
 	return line.trim().replace(/\s+/g, ' ')
 }
 
-// Character-bigram histogram of a normalized line.
 function bigramCounts(line: string): Map<string, number> {
 	const counts = new Map<string, number>()
 	for (let index = 0; index < line.length - 1; index++) {

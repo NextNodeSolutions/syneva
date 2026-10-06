@@ -1,8 +1,3 @@
-// The narrow render seam the layering contract earns: every layer below pages (features,
-// entities, widgets' lower modules) may request a render, but none of them may import the
-// funnel itself (pages/desk/render.ts) - composition happens above. app/main imports the
-// funnel, whose module body registers it here; until then the desk is pre-init and a
-// request is a bug, so it fails loudly.
 type RenderFunnel = {
 	render: () => Promise<void>
 	deferRender: () => void

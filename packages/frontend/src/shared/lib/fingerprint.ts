@@ -1,5 +1,3 @@
-// FNV-1a (32-bit) over UTF-16 code units: a cheap content fingerprint for cache keys, never a
-// security hash. The length rides along so two texts must also match in size to collide.
 const FNV_OFFSET_BASIS = 0x81_1c_9d_c5
 const FNV_PRIME = 0x01_00_01_93
 const KEY_RADIX = 36

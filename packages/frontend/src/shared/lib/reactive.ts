@@ -1,29 +1,12 @@
-// The reactive store kernel: a deep proxy with
-// the mutation surface (`S.field = …`, nested writes, Set/Map/Array methods)
-// and a two-level version counter. React subscribes either to the global version
-// or - the normal case - to the top-level store fields a component reads
-// (see ./use-store-version.ts); everything below React keeps reading and mutating
-// S exactly as before.
-//
-// Attribution rule: every nested write is attributed to the ROOT store field it
-// belongs to (the field of S the object was first reached through), so a poll
-// writing S.agentActivity re-renders only the components subscribed to that field.
-//
-// Identity rule: wrappers are cached per target (WeakMap), so the same nested
-// object always yields the same proxy - React memo and @pierre's element-identity
-// checks stay stable across reads.
-//
-// The Proxy handlers wrap unknowns by design (that is the seam), so the type
-// assertions here are the wrap/unwrap boundary and are lint-exempted for this
-// file in oxlint.config.ts.
+// The two-level version counter; every nested write is attributed to the ROOT store field it belongs to, so a poll writing S.agentActivity re-renders only the components subscribed to that field.
+// Wrappers are cached per target (WeakMap), so the same nested object always yields the same proxy - React memo and @pierre's element-identity checks stay stable across reads.
+// The Proxy handlers wrap unknowns by design (that is the seam), so the type assertions here are the wrap/unwrap boundary, lint-exempted in oxlint.config.ts.
 
 let storeVersion = 0
 const listeners = new Set<() => void>()
 const fieldVersions = new Map<string, number>()
 const fieldListeners = new Map<string, Set<() => void>>()
 
-// Sentinel root key for the store object itself: a set on S bumps the field key
-// being written, never the sentinel.
 const ROOT = '__store__'
 
 export function getStoreVersion(): number {
@@ -47,8 +30,6 @@ export function subscribeStore(listener: () => void): () => void {
 	return () => listeners.delete(listener)
 }
 
-// One subscription that re-fires when ANY of the fields bumps (the React
-// useStoreFields seam folds its field list into a single useSyncExternalStore).
 export function subscribeStoreFields(
 	fields: string[],
 	listener: () => void,
@@ -70,11 +51,8 @@ export function subscribeStoreField(
 	return () => subscribed.delete(listener)
 }
 
-// Notify subscribers that the state subtree changed without going through a proxy set.
-// Array iteration methods on a store proxy bind to the RAW target (identity rule above),
-// so elements handed to a for..of are raw and a nested write on them - the diff island's
-// resolve/reopen paths flipping comment.status - misses the proxy set handler and never
-// bumps. The mutation sites call this after writing so React chrome repaints.
+// Array iteration methods on a store proxy bind to the RAW target (identity rule), so a nested write on their elements - e.g. flipping comment.status - misses the proxy set handler and never bumps.
+// Mutation sites call this after writing so the React chrome repaints.
 export function notifyStateMutation(): void {
 	bumpVersion('state')
 }
@@ -83,12 +61,8 @@ type UnknownFn = (...args: unknown[]) => unknown
 
 const wrapperCache = new WeakMap<object, object>()
 const proxies = new WeakSet()
-// Each wrapped object remembers the ROOT store field it hangs from, so a nested
-// write can be attributed (see the attribution rule above).
 const rootFields = new WeakMap<object, string>()
 
-// Methods whose invocation mutates the collection they belong to - each one must
-// bump the version so subscribers re-render.
 const mutatingCollectionMethods = new Set([
 	'add',
 	'delete',
@@ -104,14 +78,12 @@ const mutatingCollectionMethods = new Set([
 	'fill',
 ])
 
-// A read of a store path: raw targets become their cached wrappers; functions stay
-// bound to their raw object (wrapping a function would break its `this`).
+// Raw targets become their cached wrappers; functions stay bound to their raw object (wrapping a function would break its `this`).
 function readValue(member: unknown, thisArg: object, field: string): unknown {
 	if (typeof member === 'function') return (member as UnknownFn).bind(thisArg)
 	return wrapValue(member, field)
 }
 
-// A mutating method call that bumps the version after the mutation settles.
 function bumpingCall(
 	method: UnknownFn,
 	thisArg: object,
@@ -142,8 +114,7 @@ function wrapValue(candidate: unknown, field: string): unknown {
 	return proxy
 }
 
-// A write of an already-wrapped value stores the raw target, so identity
-// comparisons inside the store never hit proxies.
+// A write of an already-wrapped value stores the raw target, so identity comparisons inside the store never hit proxies.
 function unwrap(candidate: unknown): unknown {
 	if (typeof candidate !== 'object' || candidate === null) return candidate
 	const raw = wrapperCache.get(candidate)
@@ -154,8 +125,6 @@ function unwrap(candidate: unknown): unknown {
 const objectHandler: ProxyHandler<object> = {
 	get(target, key, receiver) {
 		if (key === '__isStoreProxy') return true
-		// At the store root the KEY being read is the field; below it, the parent's
-		// root field carries the attribution down the whole branch.
 		const field =
 			rootFields.get(target) === ROOT
 				? String(key)
@@ -224,10 +193,6 @@ const collectionHandler: ProxyHandler<Set<unknown> | Map<unknown, unknown>> = {
 	},
 }
 
-// The one factory the app store uses. The generic documents the payload; the
-// return type stays T so existing mutation code keeps type-checking unchanged.
-// Subscription lives in subscribeStore/subscribeStoreField (module level) - the
-// React hook wires it, nothing on the store object itself.
 export function reactive<T extends object>(target: T): T {
 	const proxy = wrapValue(target, ROOT) as T
 	return proxy

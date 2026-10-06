@@ -6,8 +6,6 @@ import { queryNavigationParts } from './navigation-parts'
 
 import type { NavigationParts, SectionMenu } from './navigation-parts'
 
-// The header's script: wires the DOM events to the navigation's intents and
-// keeps the dropdown placed as the layout changes.
 function bindTrigger(navigation: Navigation, menu: SectionMenu): void {
 	const { trigger } = menu
 	trigger.addEventListener('pointerenter', event =>
@@ -69,8 +67,6 @@ async function afterFonts(measure: () => void): Promise<void> {
 	measure()
 }
 
-// The dropdown follows the layout: the breakpoint, the window, the header or
-// a panel changing size, and the webfonts.
 function bindLayout(
 	navigation: Navigation,
 	{ root, menus }: NavigationParts,
@@ -85,9 +81,6 @@ function bindLayout(
 	void afterFonts(reposition)
 }
 
-// The dock and the dial follow the scroll once a frame. The ruler measures
-// the page again whenever its height or the viewport changes, and once the
-// webfonts settle the sections' heights.
 function bindScroll(dock: HeaderDock, dial: MarkDial): void {
 	let lastY = window.scrollY
 	let isQueued = false

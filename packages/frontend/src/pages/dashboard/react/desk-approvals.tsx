@@ -8,10 +8,6 @@ import { Fraction } from './fraction'
 import type { HubDesk } from '@entities/hub/model'
 import type { ReactElement } from 'react'
 
-// The files the reviewer signed off over the files in the review - the same "approved" the
-// desk's own header counts, so the two never disagree. All of them is a verdict: green, ticked
-// at the line's end, so the figure keeps the column every other row's figure starts on. A
-// desk with no changes yet has no files to approve: a dashed meter and "0 files".
 export function DeskApprovals({ desk }: { desk: HubDesk }): ReactElement {
 	if (desk.empty)
 		return (

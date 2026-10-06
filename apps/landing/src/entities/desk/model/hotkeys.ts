@@ -1,5 +1,4 @@
-// The desk's key bindings, written the way its own keyboard map writes them
-// (packages/frontend/src/app/hotkeys-*.ts): ⇧ for Shift, ⌘ for Command.
+// Notation mirrors packages/frontend/src/app/hotkeys-*.ts: ⇧ is Shift, ⌘ is Command.
 export const HOTKEYS = {
 	nextChange: 'j',
 	previousChange: 'k',

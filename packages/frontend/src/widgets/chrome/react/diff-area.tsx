@@ -12,8 +12,6 @@ import { diffArea } from './diff-area.styles'
 
 import type { ReactElement } from 'react'
 
-// React owns the chrome; the diff renderer owns the contents of #diff and #ovr (the
-// ruler shows itself by clearing `hidden` when the unchanged lines are expanded).
 export function DiffArea(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields(

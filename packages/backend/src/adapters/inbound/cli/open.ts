@@ -16,11 +16,8 @@ import type { HubConnection } from './hub-client.js'
 
 const HTTP_OK = 200
 
-// `syneva open [file <path> | pr <ref>]` - open a desk on the hub (starting the hub in the
-// background when none runs) and print where it is. Idempotent: a live desk for this
-// repo+session is reused and its diff reloaded into the open tab instead of opening a second
-// one. Paths are resolved here, against the agent's cwd, because the hub's cwd is never the
-// agent's.
+// Open a desk on the hub (starting the hub detached when none runs); idempotent: a live desk for this repo+session is reused with its diff reloaded into the open tab.
+// Paths resolve here, against the agent's cwd, because the hub's cwd is never the agent's.
 export async function runOpen(
 	mode: ReviewMode,
 	target: string | undefined,
@@ -72,8 +69,7 @@ function openRequest(
 		root: repo,
 		mode,
 		session: flagText(args, 'session'),
-		// A file is reviewed where it is: resolve it like the old `syneva file` did, against
-		// the repo the command runs in. A PR ref is a name, never a path.
+		// A file is reviewed where it is: resolved against the repo the command runs in; a PR ref is a name, never a path.
 		target: mode === 'file' && target ? path.resolve(repo, target) : target,
 		base: mode === 'pr' ? flagText(args, 'base') : undefined,
 		staged:
@@ -83,8 +79,7 @@ function openRequest(
 	}
 }
 
-// The `guide` key only when a guide was given: an absent key means "none", and the hub
-// validates whatever a present key holds.
+// The `guide` key only when a guide was given: an absent key means none, and whatever a present key holds (null included) is validated, never ignored.
 function guideField(
 	guide: OpenDeskRequest['guide'],
 ): { guide: OpenDeskRequest['guide'] } | undefined {
@@ -106,9 +101,8 @@ function readOpened(body: unknown): Opened | null {
 	return { desk, outcome }
 }
 
-// stderr tells the human (the URL line is what harness prompts grep for); stdout hands the
-// agent the machine facts. The browser opens only for a NEW desk - a reused one already has
-// its tab, which updates by itself.
+// stderr tells the human (the URL line is what harness prompts grep for); stdout hands the agent
+// the machine facts. The browser opens only for a NEW desk - a reused one already has its tab.
 async function report(
 	hub: HubConnection,
 	{ desk, outcome }: Opened,

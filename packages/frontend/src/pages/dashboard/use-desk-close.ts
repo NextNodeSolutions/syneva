@@ -12,15 +12,11 @@ import type { HubDesk } from '@entities/hub/model'
 import type { ListedGroups } from './focus-after-close'
 import type { CloseOutcome } from './use-close-notice'
 
-// Where a desk's close stands: at rest, armed (asking for the second, deliberate click), or
-// closing (the hub is closing it).
 export type CloseState = 'rest' | 'armed' | 'closing'
 
 export type CloseActions = {
 	arm: () => void
-	// Back to rest, focus on Close (Keep).
 	keep: () => void
-	// Back to rest where focus already went (it left the pair).
 	release: () => void
 	confirm: () => void
 }
@@ -29,11 +25,7 @@ export type CloseActions = {
 export type RowClose = { state: CloseState; actions: CloseActions }
 
 export type DeskClose = {
-	// A close is armed somewhere on the page: N then opens nothing (the reviewer is mid-decision).
 	isArmed: boolean
-	// A close is armed or under way, its row not yet handed focus on: the listing's order holds
-	// still, or the rows would take a fresh order in the render the closed one leaves - under a
-	// keyboard user whose focus fell with the busy control and has not landed again yet.
 	isHolding: boolean
 	stateOf: (deskId: string) => CloseState
 	// `groups`: the rows as displayed, for where focus goes once this row leaves.
@@ -41,7 +33,6 @@ export type DeskClose = {
 }
 
 type DeskCloseDeps = {
-	// The desks listed now: an armed desk that left the listing is armed no more.
 	desks: readonly HubDesk[]
 	report: (outcome: CloseOutcome) => void
 	refresh: () => Promise<void>
@@ -49,7 +40,6 @@ type DeskCloseDeps = {
 
 const NONE: ReadonlySet<string> = new Set()
 
-// The desks whose close is under way - from the confirm until their row has handed focus on.
 function useClosingIds(): {
 	closingIds: ReadonlySet<string>
 	begin: (deskId: string) => void
@@ -64,8 +54,6 @@ function useClosingIds(): {
 	}
 }
 
-// Ask the hub to close the desk and say how it went: closed (and whether an agent was there
-// to be told), already gone, or not done and why.
 async function closeOutcome(desk: HubDesk): Promise<CloseOutcome> {
 	const { session } = desk
 	try {
@@ -86,9 +74,6 @@ async function closeOutcome(desk: HubDesk): Promise<CloseOutcome> {
 	}
 }
 
-// The listing's closes: one armed at a time, confirmed by a second click, then reported and
-// the listing re-read; several may be closing at once. Focus follows each step - to Keep when
-// armed, back to Close when kept or refused, to the neighbouring row once the row has left.
 export function useDeskClose({
 	desks,
 	report,
@@ -108,9 +93,6 @@ export function useDeskClose({
 	const isArmedIdle = armedId !== null && !closingIds.has(armedId)
 	useEscapeToDisarm(isArmedIdle ? armedId : null, keep)
 
-	// A refused close puts its row back at rest, Close taking focus in the same render. A done
-	// one stays "closing" - holding the order - until focus has landed on the neighbour, in the
-	// render that drops its row.
 	const confirm = async (
 		desk: HubDesk,
 		groups: ListedGroups,

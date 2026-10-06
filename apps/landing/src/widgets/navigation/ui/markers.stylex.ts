@@ -1,6 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
 
-// Ancestors whose state restyles their descendants (StyleX when.* selectors).
 export const navMarker = stylex.defineMarker()
 export const triggerMarker = stylex.defineMarker()
 export const dropdownMarker = stylex.defineMarker()

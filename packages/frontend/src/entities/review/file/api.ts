@@ -8,10 +8,6 @@ import {
 } from '@shared/api/decode'
 import { API_PATHS } from '@syneva/contracts/routes'
 
-// The review-file entity's API boundary: per-file/tree/blob endpoints, named only here.
-// Responses are decoded onto explicit shapes - the wire never escapes this module.
-
-// The changed-file listing for the project tree (paths only; review state comes from /state).
 export type TreeListing = { files: string[] }
 
 export const fetchTree = async (): Promise<TreeListing> => {
@@ -20,7 +16,6 @@ export const fetchTree = async (): Promise<TreeListing> => {
 	return { files: requiredStringArray(o, 'files', API_PATHS.tree) }
 }
 
-// One file's old/new contents (see file/contents.ts's per-file LRU).
 export type FileContents = { oldContents: string; newContents: string }
 
 export const fetchFileContents = async (
@@ -29,9 +24,7 @@ export const fetchFileContents = async (
 	const endpoint = `${API_PATHS.fileContents}?path=${encodeURIComponent(path)}`
 	const raw = await api(endpoint)
 	const o = assertObject(raw, endpoint)
-	// Surface a server-side failure message before the field checks: empty strings are
-	// VALID sides (added file -> empty old, deleted file -> empty new, empty file -> both),
-	// so only an absent field is a decode failure - never test the strings for truthiness.
+	// Empty strings are VALID sides (added file → empty old, deleted file → empty new, empty file → both), so only an absent field is a decode failure - never test the strings for truthiness.
 	const error = optString(o, 'error', endpoint)
 	if (error) throw new Error(error)
 	return {
@@ -40,14 +33,12 @@ export const fetchFileContents = async (
 	}
 }
 
-// A repo-relative file asset on the desk's blob route. This boundary is the only place
-// the blob path is spelled; shared consumers (the markdown runtime) receive this
-// resolver injected instead of the route itself. The URL lands in an <img src>, so it is
-// built with the desk prefix here rather than through the JSON transport.
+// The only place the blob path is spelled; shared consumers (the markdown runtime) receive this
+// resolver injected instead of the route. The URL lands in an <img src>, so it is built with the
+// desk prefix here rather than through the JSON transport.
 export const repoBlobUrl = (path: string): string =>
 	deskUrl(`${API_PATHS.blob}?path=${encodeURIComponent(path)}`)
 
-// Read an unchanged file through /file to preview it (old === new, no diff).
 export type PreviewPayload = { path: string; contents: string }
 
 export const fetchPreviewFile = async (

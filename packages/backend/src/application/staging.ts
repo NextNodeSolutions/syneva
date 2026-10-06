@@ -19,11 +19,7 @@ export type StageChangeOutcome =
 	| { decision: 'staged'; skipped: boolean; state: ReviewState }
 	| { decision: 'conflict'; skipped: false; message: string }
 
-// `{ path }` stages one file (back-compat); `{ paths }` stages several in one `git add` - used for a
-// working-mode move pair, where `git add`-ing both the old (deleted) and new path records the rename
-// in the index. Returns the next state root with the stagedFiles branch replaced (the same root when
-// nothing changed): stagedFiles records the review file's path once - the caller's `path`, else the
-// last of `paths` (approveCurrentFile sends [old, new]).
+// `git add`-ing both the old (deleted) and new path records the rename in the index; stagedFiles records the review file's path once - the caller's `path`, else the last of `paths` (approveCurrentFile sends [old, new]).
 export async function stagePaths(
 	state: ReviewState,
 	request: StagePathsRequest,
@@ -36,9 +32,7 @@ export async function stagePaths(
 	return { ...state, stagedFiles: [...state.stagedFiles, recorded] }
 }
 
-// Stage one change block by applying a patch rebuilt from the parsed diff onto the index. The
-// recorded key is what makes staging idempotent: a block already staged (e.g. the reviewer reloaded
-// and accepted it again) is a no-op, not a double-apply.
+// The recorded key is what makes staging idempotent: a block already staged (the reviewer reloaded and accepted it again) is a no-op, not a double-apply.
 export async function stageChange(
 	state: ReviewState,
 	request: StageChangeRequest,
@@ -69,8 +63,6 @@ export async function stageChange(
 	}
 }
 
-// Unstage one file and forget its recorded change keys. Returns the next state root with both
-// staged branches replaced.
 export async function unstagePath(
 	state: ReviewState,
 	filePath: string,
@@ -92,10 +84,9 @@ export async function unstagePath(
 	}
 }
 
-// Apply a patch to the git index, reporting whether it changed anything. A reverse `--check` first
-// tells "already staged" (a reload re-accepting a block the index already holds) from a real apply.
-// The patch travels through a temp file the workspace port provides - the application layer
-// never touches the filesystem itself.
+// A reverse `--check` first tells "already staged" (a reload re-accepting a block the index
+// already holds) from a real apply; the patch travels through a temp file the workspace port
+// provides - the application layer never touches the filesystem itself.
 async function applyPatchToIndex(
 	root: string,
 	patch: string,

@@ -7,7 +7,7 @@ const STABLE_KEY = /^(additions|deletions):(\d+):(\d+):(\d+)$/
 // An absent add/delete count in a stable key leaves its size term unweighted.
 const UNKNOWN_COUNT = -1
 
-// Score pinned below any line/distance score so an exact stable-key hit always wins the sort.
+// Pinned below any line/distance score so an exact stable-key hit always wins the sort.
 const EXACT_MATCH_SCORE = -1_000_000
 const SIZE_MISMATCH_WEIGHT = 10
 
@@ -32,8 +32,7 @@ export function changeStableKeyFromBlock(lines: readonly DiffLine[]): string {
 	const adds = lines.filter(line => line.kind === 'add')
 	const dels = lines.filter(line => line.kind === 'delete')
 	const side = adds.length > 0 ? 'additions' : 'deletions'
-	// First line of the block, matching the client's derivation so server-seeded
-	// and client-derived change ids line up.
+	// Matches the client's derivation, so server-seeded and client-derived change ids line up.
 	const start = side === 'additions' ? adds[0]?.newLine : dels[0]?.oldLine
 	const lineNumber = start ?? 0
 	return `${side}:${lineNumber}:${dels.length}:${adds.length}`
@@ -71,9 +70,7 @@ type RequestedChange = {
 }
 
 function parseStableKey(stableKey: string): RequestedChange {
-	// Capture slots are `undefined` when the key does not match, but destructuring a match
-	// array types every one as `string` - the annotation keeps the fallbacks below visible as
-	// real guards rather than dead code.
+	// Capture slots are `undefined` when the key does not match, but destructuring a match array types every one as `string` - the annotation keeps the fallbacks below visible as real guards rather than dead code.
 	const captures: (string | undefined)[] = stableKey.match(STABLE_KEY) ?? []
 	const [, side, rawLine, rawDeletes, rawAdds] = captures
 	return {
@@ -90,8 +87,7 @@ type ChangeCandidate = {
 	score: number
 }
 
-// The best block for a stable key: an exact stable-key match always wins; otherwise the
-// closest block by anchor line, tie-broken by how far the add/delete counts miss.
+// An exact stable-key match always wins; otherwise the closest block by anchor line, tie-broken by how far the add/delete counts miss.
 function findChangeCandidate(
 	file: DiffFile,
 	stableKey: string,

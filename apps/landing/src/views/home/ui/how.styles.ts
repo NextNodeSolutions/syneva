@@ -2,8 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, layout } from '@syneva/design-system/tokens.stylex'
 
-// How it works: the heading, the review circuit, then the four-step loop on
-// one ruled rail, read left to right.
 export const how = stylex.create({
 	section: { scrollMarginTop: '12px' },
 	head: {

@@ -12,8 +12,7 @@ export async function servePoll({
 	res,
 	url,
 }: RouteRequest): Promise<void> {
-	// A restarted desk may ship a different state contract. Tell an already-loaded tab to refresh
-	// its bundle first; legacy clients without an instance token still receive the normal heartbeat.
+	// A restarted desk may ship a different state contract: tell an already-loaded tab to refresh its bundle first; legacy clients without an instance token still receive the normal heartbeat.
 	const { searchParams } = url
 	const instance = searchParams.get('instance')
 	if (instance && instance !== ctx.instanceId) {
@@ -22,8 +21,7 @@ export async function servePoll({
 		return
 	}
 	// Keep the 1.5s heartbeat tiny and git-free; file summaries and changes only ride /state.
-	// One capture: the three review fields must come from one state root - a commit landing
-	// mid-build would otherwise stitch the poll from two revisions.
+	// One capture: the three review fields must come from one state root - a commit landing mid-build would stitch the poll from two revisions.
 	const { state } = ctx
 	const poll: PollPayload = {
 		baseDiffHash: state.baseDiffHash,
@@ -35,11 +33,8 @@ export async function servePoll({
 
 export async function serveState({ ctx, res }: RouteRequest): Promise<void> {
 	await ctx.refreshStaged()
-	// Revision first, then the root: a commit landing between the two reads can only park a
-	// body under the OLDER revision (the next read's revision check rejects it) - never serve
-	// a stale body under the newer one. The response is the browser projection plus the
-	// transient desk status; only the projection is expensive to build, and only the status
-	// can move between two reads of the same review, so the cached body keys on both.
+	// Revision first, then root: a commit landing between the two reads can only park a body under the OLDER revision (the next read's revision check rejects it) - never a stale body under the newer one.
+	// The cached body keys on revision plus transient desk status: only the projection is expensive, and only the status moves between the two reads.
 	const status = ctx.status()
 	const body = ctx.stateBodyCache.body(
 		ctx.revision,
@@ -59,8 +54,7 @@ export async function serveTree({ ctx, res }: RouteRequest): Promise<void> {
 	json(res, HTTP_OK, { files: await ctx.git.projectTree(ctx.state.root) })
 }
 
-// Display preferences, stored globally in ~/.syneva/settings.json - a file follows the reviewer
-// across browsers and hosts where a per-origin localStorage would not.
+// Stored globally in ~/.syneva/settings.json: the file follows the reviewer across browsers and hosts where a per-origin localStorage would not.
 export async function serveSettings({ ctx, res }: RouteRequest): Promise<void> {
 	json(res, HTTP_OK, await ctx.settings.read())
 }

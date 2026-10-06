@@ -1,6 +1,4 @@
-// How a signup ends: the endpoint answers it, the form tells it. An address
-// already on the list ends `subscribed` too, so the answer never reveals who
-// signed up.
+// An address already on the list ends `subscribed` too, so the answer never reveals who signed up.
 const OUTCOMES = ['subscribed', 'invalid', 'limited', 'failed'] as const
 export type Outcome = (typeof OUTCOMES)[number]
 

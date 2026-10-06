@@ -8,14 +8,8 @@ const mono = {
 	color: color['--muted'],
 } as const
 
-// The review cell, in the mono annotation voice: the approvals meter and its count on one
-// line, then the decided changes and what is still open (requests in amber, questions in
-// petrol). While a close is armed, its warning takes the cell: a sentence, so in red prose
-// at the stage note's size, its square on the first line.
 export const deskReview = stylex.create({
 	cell: { gridArea: 'review', minWidth: 0 },
-	// Beside the desk title (full width only: from tablets down the review has a line of its
-	// own), 2px lower, on the title's baseline.
 	approvals: {
 		...mono,
 		display: 'flex',
@@ -26,7 +20,6 @@ export const deskReview = stylex.create({
 		whiteSpace: 'nowrap',
 	},
 	figure: { color: color['--ink'] },
-	// Every file approved: a verdict, so green.
 	done: { color: color['--green'] },
 	progress: {
 		...mono,

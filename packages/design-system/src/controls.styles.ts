@@ -5,16 +5,11 @@ import { media } from './media.stylex'
 import { color, ease, font } from './tokens.stylex'
 import { transition } from './transitions.stylex'
 
-// The apps' controls (the hub dashboard, the desk), at application density:
-// the site's square, ruled language - no radius, 1px borders, petrol for the
-// action, Geist for the label and Geist Mono for anything typed or counted -
-// sized for a working surface instead of a page. Compose a control as
-// [press.control, control.base, control.<tone>, control.<size>?] and put the
-// controlMarker on it when it carries an arrow.
+// App controls at application density (no radius, 1px rules, petrol action, mono for typed/counted text).
+// Compose a control as [press.control, control.base, control.<tone>, control.<size>?]; add controlMarker when it carries an arrow.
 
 const controlHover = (): string => stylex.when.ancestor(':hover', controlMarker)
 
-// One focus ring for every control: petrol, outside the border.
 const focusRing = {
 	outlineWidth: { default: null, ':focus-visible': '2px' },
 	outlineStyle: { default: null, ':focus-visible': 'solid' },
@@ -22,12 +17,9 @@ const focusRing = {
 	outlineOffset: '2px',
 } as const
 
-// The same ring for anything focusable that is not a control (a link, a radio,
-// a skip link); `inset` draws it inside the box, for an element whose
-// surroundings would clip it or that sits flush against its neighbours.
 export const focus = stylex.create({
 	ring: focusRing,
-	inset: { ...focusRing, outlineOffset: '-2px' },
+	inset: { ...focusRing, outlineOffset: '-2px' }, // inset: for elements whose surroundings would clip an outside ring
 })
 
 // A tone's colour at rest and under the pointer, a fine pointer's only: a tap leaves a sticky
@@ -45,7 +37,7 @@ const hovered = (rest: string, hover: string): Hovered => ({
 export const control = stylex.create({
 	base: {
 		...focusRing,
-		// The width and padding hold the border: the shared sheet has no reset.
+		// No shared sheet reset: these hold the 1px border without shifting layout.
 		boxSizing: 'border-box',
 		display: 'inline-flex',
 		alignItems: 'center',
@@ -64,32 +56,26 @@ export const control = stylex.create({
 		borderWidth: '1px',
 		borderStyle: 'solid',
 		cursor: { default: 'pointer', ':disabled': 'default' },
-		// A disabled control keeps its place but takes no hover and no press.
 		opacity: { default: null, ':disabled': 0.55 },
 		pointerEvents: { default: null, ':disabled': 'none' },
 		transition: `color ${transition.fast}, background-color ${transition.fast}, border-color ${transition.fast}, transform ${transition.fast}`,
 	},
-	// The action of a surface: solid petrol, white label.
 	primary: {
 		color: color['--white'],
 		backgroundColor: hovered(color['--accent'], color['--accent-deep']),
 		borderColor: hovered(color['--accent'], color['--accent-deep']),
 	},
-	// The site header's action: a white tile under a strong rule that turns
-	// petrol on hover.
 	outlined: {
 		color: hovered(color['--ink'], color['--accent']),
 		backgroundColor: hovered(color['--white'], color['--wash']),
 		borderColor: hovered(color['--line-strong'], color['--accent']),
 	},
-	// A secondary action that should not compete: no tile until hovered.
 	quiet: {
 		color: hovered(color['--muted'], color['--ink']),
 		backgroundColor: hovered('transparent', color['--field']),
 		borderColor: 'transparent',
 	},
-	// A destructive action, shown only once it has been asked for (an armed
-	// close, a discard): solid red.
+	// Armed destructive actions only (an armed close, a discard).
 	danger: {
 		color: color['--white'],
 		backgroundColor: hovered(color['--red'], color['--red-deep']),
@@ -108,12 +94,9 @@ export const control = stylex.create({
 		fontSize: '14px',
 		gap: '14px',
 	},
-	// An icon-only control: a square of the control's height.
 	square: { paddingInline: 0, aspectRatio: '1' },
-	// A control that fills its row (a form's single submit).
 	block: { width: '100%' },
-	// The arrow after a label, stepping forward while the control is hovered
-	// (the control carries controlMarker).
+	// Requires controlMarker on the control: the arrow steps forward only under it.
 	arrow: {
 		display: 'inline-block',
 		transition: `transform ${transition.fast}`,
@@ -121,8 +104,6 @@ export const control = stylex.create({
 	},
 })
 
-// Text inputs, selects and text areas: white wells under a strong rule, the
-// rule and a petrol halo marking focus.
 export const field = stylex.create({
 	base: {
 		boxSizing: 'border-box',
@@ -150,9 +131,7 @@ export const field = stylex.create({
 		transition: `border-color ${transition.fast}, box-shadow ${transition.fast}`,
 		'::placeholder': { color: color['--muted'], opacity: 0.75 },
 	},
-	// Paths, refs, keys: anything typed that is not prose.
 	mono: { fontFamily: font['--mono'], fontSize: '13px' },
-	// The field a validation message points at.
 	invalid: {
 		borderColor: {
 			default: color['--red'],
@@ -164,9 +143,7 @@ export const field = stylex.create({
 			':focus': `0 0 0 3px ${color['--red-tint']}`,
 		},
 	},
-	// A native select keeps its own menu and loses the platform arrow: the
-	// select sits in selectBox beside a drawn chevron (an inline SVG stroked
-	// with --muted, so a theme recolours it with the rest).
+	// appearance: none drops the platform arrow: selectBox carries a drawn chevron, stroked with --muted so themes recolour it.
 	select: {
 		appearance: 'none',
 		paddingRight: '36px',
@@ -187,8 +164,6 @@ export const field = stylex.create({
 	},
 })
 
-// Small mono text the chrome speaks in: captions over a field or a figure,
-// counts, timestamps.
 export const caption = stylex.create({
 	base: {
 		fontFamily: font['--mono'],
@@ -197,14 +172,10 @@ export const caption = stylex.create({
 		letterSpacing: '.02em',
 		color: color['--muted'],
 	},
-	// The uppercase register, for a section's own label.
 	upper: { textTransform: 'uppercase', letterSpacing: '.08em' },
 })
 
-// A tag names a state or a kind in mono on its tint (the site's index-row
-// badge): petrol for the agent's work and the reviewer's questions, green for
-// a verdict, amber for a requested change, red for what goes, neutral for a
-// plain kind.
+// Tone meanings: petrol = the agent's work and the reviewer's questions, green = a verdict, amber = a requested change, red = what goes, neutral = a plain kind.
 export const tag = stylex.create({
 	base: {
 		display: 'inline-flex',
@@ -233,10 +204,7 @@ const pulse = stylex.keyframes({
 	'100%': { opacity: 1 },
 })
 
-// The square that marks something live, set before its subject (the site's
-// live dot). It pulses only while a live process holds it, and only when
-// motion is welcome. A tone sets the colour and the square paints it as
-// currentColor, so `hollow` outlines any tone instead of filling it.
+// Tone paints currentColor, so tone keys recolour it and `hollow` outlines any tone instead of filling.
 export const dot = stylex.create({
 	base: {
 		display: 'inline-block',
@@ -246,9 +214,7 @@ export const dot = stylex.create({
 		color: color['--line-strong'],
 		backgroundColor: 'currentColor',
 	},
-	// The live signal: a running process.
 	accent: { color: color['--signal'] },
-	// Petrol: the agent's work and the reviewer's questions.
 	petrol: { color: color['--accent'] },
 	green: { color: color['--green'] },
 	amber: { color: color['--amber'] },

@@ -1,8 +1,6 @@
 import { partAttribute } from '@shared/lib/part-attribute'
 
-// Every piece of the hero stage the runtime drives, named once: the markup
-// marks a piece with stagePart() and the timeline and the pointer select it
-// with stagePartSelector(), so a name only one side knows fails astro check.
+// Pieces named once: markup marks with stagePart(), the timeline and pointer select with stagePartSelector() - a one-side-only name fails astro check.
 export type StagePart =
 	| 'agent'
 	| 'desk'

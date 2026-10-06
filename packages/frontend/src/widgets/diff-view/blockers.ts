@@ -27,12 +27,6 @@ type HunkPart = NonNullable<
 const PREVIEW_MAX = 64
 const PREVIEW_HEAD = 63
 
-// ── "Why can't I approve this file?" ─────────────────────────────────────────
-// fileObjections gates Approve on rejected hunks and open change-request comments, but
-// either can sit far off-screen (or, for an orphaned thread, off the diff entirely). The
-// blockers chip in the diff header counts them and opens a jump list, so the reason a
-// file reads "Mark reviewed" / changes-requested is always one click away.
-
 export type Blocker =
 	| { kind: 'reject'; decision: Decision }
 	| {
@@ -42,13 +36,10 @@ export type Blocker =
 			lineNumber: number
 			preview: string
 			unanchored: boolean
-			// Whole-file thread (anchored to the file header, not a diff row) - the jump
-			// scrolls the file comment section instead of a rendered line.
 			fileLevel: boolean
 	  }
 
-// Must mirror fileObjections (changes.ts) exactly - the chip count and the button label
-// have to agree on what counts.
+// Must mirror fileObjections (changes.ts) exactly - the chip count and the button label have to agree on what counts.
 export function fileBlockers(path: string): Blocker[] {
 	const state = diffCtx().requireState()
 	const out: Blocker[] = []
@@ -56,8 +47,6 @@ export function fileBlockers(path: string): Blocker[] {
 		if (d.path === path && d.status === 'rejected')
 			out.push({ kind: 'reject', decision: d })
 	const file = state.files.find(f => f.path === path)
-	// Whole-file comments stay in the list (a file-level change request is a blocker); questions
-	// and agent remarks don't count - only user-written change requests do.
 	const groups = groupLineComments(
 		state.comments.filter(
 			c =>
@@ -87,14 +76,10 @@ export function fileBlockers(path: string): Blocker[] {
 	return out
 }
 
-// The rendered part at a raw (hunkIndex, changeIndex), or undefined when the hunk or index is gone.
 function partAt(hunkIndex: number, changeIndex: number): HunkPart | undefined {
 	return D.fileDiff?.hunks.at(hunkIndex)?.hunkContent.at(changeIndex)
 }
 
-// Where a rejected hunk renders now: after replay its block is a context entry at the
-// same (hunkIndex, changeIndex), so read the display position straight off the rendered
-// diff; fall back to mapping the decision's raw anchor.
 function decisionDisplayPos(d: Decision): { side: Side; line: number } {
 	const ch = diffCtx()
 		.requireState()
@@ -136,11 +121,6 @@ export function jumpToBlocker(b: Blocker): void {
 	cursorJumpTo(pos.side, pos.line)
 }
 
-// The header chip + its jump-list popover (imperative DOM, like the rest of the header).
-
-// A row's kind tag, where-label and preview text: "Rejected / line 12 / title" for a rejected
-// hunk, "Change request / file|unanchored|line N / body" for an open change-request thread. The
-// text span is empty here and marked data-part="text" for the caller to fill.
 const ROW_WHERE = cx(blockers.where)
 const ROW_TEXT = `<span class="${cx(blockers.text)}" data-part="text"></span>`
 
@@ -159,13 +139,11 @@ function blockerRowBody(b: Blocker): { html: string; text: string } {
 	}
 }
 
-// One row of the jump list: picking it closes the list and jumps to the blocker.
 function blockerRow(b: Blocker, close: () => void): HTMLElement {
 	const row = document.createElement('button')
 	row.className = cx(blockers.item)
 	const { html, text } = blockerRowBody(b)
 	row.innerHTML = html
-	// Text rides via textContent (escaping is the element's job, not the template's).
 	const textNode = row.querySelector('[data-part="text"]')
 	if (textNode) textNode.textContent = text
 	row.addEventListener('click', () => {
@@ -190,8 +168,6 @@ export function blockersChip(): HTMLElement | null {
 	btn.setAttribute('data-tip', "What's keeping this file from Approved")
 	wrap.appendChild(btn)
 	const pop = document.createElement('div')
-	// The open state lives in the wrap's data-open attribute (class names are hashed, never a
-	// state); each change re-sets the trigger's and the list's classes to match it.
 	const setOpen = (isOpen: boolean): void => {
 		wrap.toggleAttribute('data-open', isOpen)
 		btn.className = cx(

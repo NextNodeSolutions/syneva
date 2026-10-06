@@ -8,8 +8,6 @@ import { touchTarget } from './touch-target.styles'
 
 import type { ReactElement } from 'react'
 
-// A dialog's head: its caption in the mono register after a petrol square,
-// and an icon-only Cancel at the row's end.
 export function DialogBar({
 	caption,
 	onClose,

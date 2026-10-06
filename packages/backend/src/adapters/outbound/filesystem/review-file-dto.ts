@@ -8,26 +8,15 @@ import type {
 } from '../../../domain/review.js'
 import type { Raw } from './dto.js'
 
-// The persisted review file's storage DTO for the review-level records (the identity
-// header, comments, decisions, changes, and the guide). The on-disk JSON is decoded into
-// domain records field by field - never cast - and encoded back through the same
-// allowlist, so a field only reaches disk when it is listed here and unknown or
-// malformed data can never enter the live review state. The format is frozen: newer
-// desk runs read older files (missing optionals decode to their defaults) and older
-// runs keep reading newer records (unknown fields are dropped, not rejected). Malformed
-// nested records are dropped rather than fatal - a persisted file always loads whatever
-// is intact - while a file lacking its identity fields is not a review record at all
-// (decodeReviewStateFile reports that so the caller can skip the candidate). The diff
-// envelope (ReviewFile/hunks/lines) lives in diff-envelope-dto.ts.
+// The persisted review file's storage DTO for review-level records: decoded field by field - never cast - and encoded back through the same allowlist, so a field reaches disk only when listed and unknown/malformed data never enters live state.
+// The format is frozen both directions; malformed nested records are dropped rather than fatal (a file always loads what is intact); a file lacking its identity fields is not a review record at all (decodeReviewStateFile reports it so the caller skips it).
+// The diff envelope lives in diff-envelope-dto.ts.
 
-// Decode a whole persisted review body, or null when it is not a review record:
-// without the identity triple the file cannot be attributed to any review (a foreign
-// or truncated file) and the caller skips it.
+// Without the identity triple the file cannot be attributed to any review (a foreign or truncated file): the caller skips it.
 export function decodeReviewStateFile(
 	parsed: unknown,
 ): { id: string; session: string; root: string; body: Raw } | null {
 	if (!isObject(parsed)) return null
-	// The identity triple is what a loader keys on (session dir + repo root).
 	const id = asString(parsed.id)
 	const session = asString(parsed.session)
 	const root = asString(parsed.root)
@@ -42,7 +31,6 @@ export function decodeComment(raw: unknown): ReviewComment | null {
 	return { ...core, ...decodeCommentMeta(raw) }
 }
 
-// The required comment fields: all-or-nothing, so a record missing any one of them is dropped.
 function decodeCommentCore(raw: Raw): {
 	id: string
 	path: string
@@ -75,7 +63,6 @@ function decodeCommentCore(raw: Raw): {
 	return { id, path, body, createdAt, updatedAt, lineNumber, status, side }
 }
 
-// The optional comment fields.
 function decodeCommentMeta(raw: Raw): Partial<ReviewComment> {
 	return {
 		endLine: asNumber(raw.endLine) ?? undefined,
@@ -112,8 +99,7 @@ export function decodeChange(raw: unknown): ChangeState | null {
 		status === null
 	)
 		return null
-	// Display anchors are derived per render and never trusted from disk - the fields
-	// are deliberately absent from this decode.
+	// Display anchors are derived per render and never trusted from disk - the fields are deliberately absent from this decode.
 	return {
 		id,
 		path,
@@ -174,11 +160,8 @@ export function decodeGuide(raw: unknown): Guide | null {
 	return { files, baseDiffHash: asString(raw.baseDiffHash) ?? undefined }
 }
 
-// ── encode: domain records → persisted JSON ─────────────────────────────────────
-// Field-wise allowlists, so a future domain field stays private to the process until
-// it is added to the storage contract here. The persisted JSON shape is exactly what
-// these builders list - JSON.stringify omits undefined-valued keys, so the file bytes
-// are identical to an explicit conditional-omit mapping.
+// Field-wise allowlists, so a future domain field stays private to the process until added to the storage contract here.
+// JSON.stringify omits undefined-valued keys, so the file bytes match an explicit conditional-omit mapping.
 
 export function encodeComment(comment: ReviewComment): Raw {
 	return {
@@ -200,8 +183,6 @@ export function encodeComment(comment: ReviewComment): Raw {
 }
 
 export function encodeChange(change: ChangeState): Raw {
-	// Display anchors, if a stale in-memory record somehow carries them, are not
-	// storage data - they are re-derived per render.
 	return {
 		id: change.id,
 		path: change.path,

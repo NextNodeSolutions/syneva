@@ -10,23 +10,18 @@ import { resolveEditorCommand } from './editor.js'
 import type { EditorLaunch, EditorPort } from '../../../application/ports.js'
 import type { EditorCommand } from './editor.js'
 
-// An editor that has not attached within five seconds is hung (no TTY - see editor.ts); the desk
-// must answer the tab either way.
+// An editor that has not attached within five seconds is hung (no TTY - see editor.ts); the desk must answer the tab either way.
 const EDITOR_TIMEOUT_MS = 5000
 
 const execFileAsync = promisify(execFile)
 
-// The editor adapter's implementation of the application's editor capability: resolve the
-// reviewer's command template from the global settings, then launch it. A preference the
-// allowlist refuses and a failed spawn are both reported as EditorLaunch failures - the
-// route turns the codes into 422 (preference) / 500 (launch) answers. `run` is the desk's
-// launch seam (tests inject it); absent it is a real, bounded spawn (no TTY - see editor.ts).
+// Resolve the reviewer's command template from the global settings, then launch: a preference the allowlist refuses and a failed spawn both report as EditorLaunch failures (the route turns the codes into 422/500).
+// `run` is the launch seam (tests inject it); absent it is a real, bounded spawn (no TTY).
 export function editorPort(
 	run?: (command: string, args: string[]) => Promise<void>,
 ): EditorPort {
 	return Object.freeze({
-		// Parameters annotated explicitly: Object.freeze drops the port's contextual typing, so
-		// the arrow would otherwise infer implicit anys.
+		// Parameters annotated explicitly: Object.freeze drops the port's contextual typing, so the arrow would otherwise infer implicit anys.
 		open: async (
 			root: string,
 			file: string,
@@ -58,9 +53,7 @@ export type EditorTarget =
 	| { ok: true; command: EditorCommand }
 	| { ok: false; code: string; message: string }
 
-// The editor command is a reviewer/machine preference, so it lives in the global
-// ~/.syneva/settings.json with the rest of them (deliberately not per-repo). A template the
-// allowlist refuses is the caller's to fix - hence the code the route turns into a 422.
+// The editor command is a reviewer/machine preference, so it lives in the global ~/.syneva/settings.json (deliberately not per-repo); a template the allowlist refuses is the caller's to fix - the code the route turns into a 422.
 export async function resolveEditorTarget(
 	root: string,
 	file: string,
@@ -86,8 +79,7 @@ export async function resolveEditorTarget(
 	}
 }
 
-// Only an absent preference falls back to the OS opener. Malformed configured values must
-// fail instead of silently selecting an application the reviewer did not request.
+// Only an absent preference falls back to the OS opener: malformed configured values must fail instead of silently selecting an application the reviewer did not request.
 function editorTemplate(settings: Record<string, unknown>): string {
 	const nested = settings.settings
 	if (

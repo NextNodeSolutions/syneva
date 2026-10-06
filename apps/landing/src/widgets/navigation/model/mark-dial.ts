@@ -1,19 +1,14 @@
 import { reducedMotion } from '@syneva/motion/preference'
 
-// The wordmark's mark dials with the page: it turns a little for every pixel
-// scrolled, and once the page rests it springs onto the nearest quarter turn,
-// where eight rays around a diamond look exactly as they started. A detent,
-// not a spinner: it never turns on its own.
+// It springs onto the nearest quarter turn, where the eight rays around a diamond look exactly as they started - a detent, not a spinner: it never turns on its own.
 const DEGREES_PER_PX = 0.25
 const DETENT_DEG = 90
 const FULL_TURN_DEG = 360
 const REST_AFTER_MS = 140
-// Slightly underdamped: the mark clicks a hair past its detent and back.
 const STIFFNESS = 200
 const DAMPING = 20
 const SETTLED = 0.05
-// A long frame (a background tab) must not throw the spring: it steps at
-// most one frame of a 30fps clock at a time.
+// A long frame (a background tab) must not throw the spring: it steps at most one frame of a 30fps clock at a time.
 const SLOWEST_FPS = 30
 const MAX_STEP_S = 1 / SLOWEST_FPS
 const MS_PER_S = 1000

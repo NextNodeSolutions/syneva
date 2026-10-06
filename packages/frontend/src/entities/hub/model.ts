@@ -1,7 +1,4 @@
-// Frontend-owned hub models: what the dashboard renders. Declared structurally here (NOT
-// re-exported from @contracts) so contract DTOs cannot escape the entity API boundary - the
-// browser consumes these models only, and api.ts is the single place wire payloads are decoded
-// onto them. Keep structurally in sync with packages/contracts/src/hub.ts.
+// Declared structurally here (NOT re-exported from @contracts) so contract DTOs cannot escape the entity API boundary - the browser consumes these models only; keep structurally in sync with packages/contracts/src/hub.ts.
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
@@ -39,7 +36,6 @@ export type HubHealth = {
 	keyRequired: boolean
 }
 
-// One repository on the hub and its desks - the dashboard's grouping unit.
 export type HubProject = {
 	root: string
 	id: string
@@ -48,8 +44,6 @@ export type HubProject = {
 	lastActivityAt: string
 }
 
-// Group desks by repo root, most recently active project first, each project's desks most
-// recently active first - the order a reviewer coming back to the hub expects.
 export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 	const byRoot = new Map<string, HubProject>()
 	for (const desk of desks) {
@@ -75,9 +69,6 @@ export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 	)
 }
 
-// What the dashboard posts to open a desk: the same open the CLI performs. `base` and `path`
-// only ride a reopen (pages/dashboard/use-reopen.ts), which rebuilds a closed desk with its own
-// PR base and repo-mode path limit; the New review form never sets them.
 export type NewDeskInput = {
 	root: string
 	mode: ReviewMode

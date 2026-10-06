@@ -4,9 +4,6 @@ import { glyph } from './sidebar.styles'
 
 import type { ReactElement } from 'react'
 
-// The tree row's two badges: the change-type file icon (its color is the only per-row signal for
-// the kind, so the tooltip names it in words - a verdict must survive without color, DESIGN.md)
-// and the file's review-state dot/check/flag.
 const CHANGES = {
 	new: { label: 'Added file', css: glyph.new },
 	modified: { label: 'Modified file', css: glyph.modified },

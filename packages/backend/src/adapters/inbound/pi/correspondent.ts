@@ -6,8 +6,7 @@ import { runCorrespondent } from './pi-thread.js'
 
 import type { DeskConnection, DeskTarget } from './desk-connection.js'
 
-// These belong to the desk event semantics too, so they are re-exported by the delivery
-// layer; the mechanism (spawning and reading one pi thread) stays in this file.
+// Desk-event semantics re-exported by the delivery layer; the mechanism (spawning and reading one pi thread) stays in this file.
 export type DeskQuestion = {
 	path: string
 	lineNumber: number
@@ -60,9 +59,7 @@ export function buildCorrectivePrompt(count: number): string {
 	].join('\n')
 }
 
-// Replies parse out of "### q<N>" blocks, one per question, in question order. The anchor
-// is NOT taken from the reply - the desk envelope owns authoritative path/line/side, so
-// only the body is read here. Extra blocks are tolerated; missing or empty blocks throw.
+// Replies parse out of "### q<N>" blocks, one per question, in question order; the anchor is NOT taken from the reply (the desk envelope owns path/line/side) - only the body is read here; extra blocks tolerated, missing or empty throw.
 export function parseCorrespondentReply(text: string, count: number): string[] {
 	const marks = [...text.matchAll(/^###\s*q(\d+)\s*$/gm)]
 	const bodies = new Map<number, string>()
@@ -94,9 +91,7 @@ export function parseCorrespondentReply(text: string, count: number): string[] {
 	return replies
 }
 
-// The saved event envelope is the ground truth: path/lineNumber/side per question come
-// from the desk, never from the reply. Accepts both the batched `questions[]` form and
-// the single-`question` compatibility field.
+// The saved event envelope is ground truth for path/lineNumber/side, never the reply; accepts the batched `questions[]` and the single-`question` compatibility field.
 export async function readQuestions(
 	eventPath: string,
 ): Promise<DeskQuestion[]> {

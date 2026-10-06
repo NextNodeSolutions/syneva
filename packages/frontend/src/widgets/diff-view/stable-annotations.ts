@@ -2,15 +2,11 @@ import { threadSignature } from './comment-thread/comment-thread'
 
 import type { AnnotationInput } from './types'
 
-// Pierre keeps a rendered annotation while its metadata is the same object
-// (areDiffLineAnnotationsEqual), and skips the row rebuild entirely while the annotations array is
-// the same one. Each pass builds its annotations fresh from the store, so this hands back the
-// previous objects - and the previous array - for as long as what they render is unchanged.
+// Pierre keeps a rendered annotation while its metadata is the same object and skips the row rebuild entirely while the annotations array is the same one.
+// Each pass builds annotations fresh from the store, so the previous objects - and the previous array - are handed back for as long as what they render is unchanged.
 let lastAnnotations: AnnotationInput[] = []
 let reusable = new Map<string, AnnotationInput>()
 
-// What an annotation renders from: its anchor plus its metadata, or for a thread everything the
-// thread builder reads (comment-thread.ts).
 function annotationSignature(annotation: AnnotationInput): string {
 	const { metadata } = annotation
 	const content =

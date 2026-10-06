@@ -7,8 +7,6 @@ import { unreachableStrip } from './unreachable-strip.styles'
 import type { HubPlace } from '@entities/hub/hub-place'
 import type { ReactElement } from 'react'
 
-// How to start the hub again: the plain command for a loopback hub, the way it was started for
-// one this browser reaches over the network (hub-place.ts).
 const RESTART: Record<HubPlace, ReactElement> = {
 	loopback: (
 		<>
@@ -23,10 +21,7 @@ const RESTART: Record<HubPlace, ReactElement> = {
 	),
 }
 
-// Shown over a kept listing while the hub does not answer. Its status region is always
-// mounted and only its content comes and goes: a region that appears already filled is not
-// announced by every screen reader. It states no time, or it would re-announce on every
-// failed poll. The listing under it stays as it was, and stays usable.
+// What a screen reader hears on a row's link (its aria-describedby), written once from the same fields and words: read in a run the visible columns and annotations would lose their stops, so the row's description is spelled as sentences.
 export function UnreachableStrip({
 	isShown,
 }: {

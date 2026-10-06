@@ -1,8 +1,6 @@
 import { partAttribute } from '@shared/lib/part-attribute'
 
-// Every piece of the home headline's entrance, named once: the markup marks
-// a piece with introPart() and hero-intro.ts plays it by the same name, so a
-// name only one side knows fails astro check.
+// Pieces named once: markup marks with introPart(), hero-intro.ts plays by the same name - a one-side-only name fails astro check.
 export type IntroPart =
 	| 'news'
 	| 'gutter'

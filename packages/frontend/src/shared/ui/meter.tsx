@@ -5,9 +5,6 @@ import { meterShare } from './meter.styles'
 
 import type { ReactElement } from 'react'
 
-// A share of a whole as a thin track. It is hidden from assistive technology:
-// the text beside it states the numbers. A whole of nothing (max 0) is the
-// recipe's dashed rule, never an empty track that would read as 0%.
 export function Meter({
 	value = 0,
 	max,

@@ -2,7 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The availability line under the title: a square dot and the words.
 export const pageStatus = stylex.create({
 	root: {
 		display: 'inline-flex',

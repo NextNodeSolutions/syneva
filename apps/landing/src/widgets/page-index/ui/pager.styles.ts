@@ -13,8 +13,6 @@ import { pagerLinkMarker } from './page-index.stylex'
 const pagerHover = (): string => stylex.when.ancestor(':hover', pagerLinkMarker)
 const LINE = color['--line']
 
-// The pager: the previous and next pages of the section, or the way back to
-// its overview at either end.
 export const pager = stylex.create({
 	root: {
 		display: 'grid',
@@ -67,8 +65,6 @@ export const pager = stylex.create({
 		color: { default: null, [pagerHover()]: color['--accent'] },
 	},
 	blurb: { color: color['--muted'], fontSize: '14px' },
-	// Without an icon the words take the whole row; on the next side they
-	// keep the first column.
 	wide: { gridColumn: '1 / -1' },
 	nextText: { gridColumn: 1 },
 })

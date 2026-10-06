@@ -15,28 +15,22 @@ import type {
 	ReviewState,
 } from '@entities/review/model'
 
-// How often the tab polls the desk. The tick carries liveness, the guide, the comments and the
-// diff's hash - everything small enough to re-read continuously.
 export const POLL_INTERVAL_MS = 1500
 
-// Consecutive unreachable polls before the tab declares the desk gone (human Close, agent
-// `syneva stop`, crash). One miss is a tick of load jitter; three ≈ 4.5s of silence is closure.
+// One miss is a tick of load jitter; three ≈ 4.5s of silence is closure.
 const DESK_GONE_TICKS = 3
 
 let serverInstanceId: string | undefined
 let missedPolls = 0
 
-// Check every response that can replace browser state, including Reset. A notification is safer
-// than automatic navigation: stage/unstage/Send can still be in flight after their dialogs close.
+// A notification is safer than automatic navigation: stage/unstage/Send can still be in flight after their dialogs close.
 export function isCurrentDesk(instance: string | undefined): boolean {
 	if (!serverInstanceId || instance === serverInstanceId) return true
 	S.isRefreshRequired = true
 	return false
 }
 
-// Move the transient DeskStatus fields off a server payload into the store. They must never enter
-// S.state: persist() posts S.state back to /save, and the persisted review must not carry desk
-// liveness.
+// They must never enter S.state: persist() posts S.state back to /save, and the persisted review must not carry desk liveness.
 function adoptLiveness(status: Partial<DeskStatus>): void {
 	S.agentActivity = status.agentActivity?.body ?? null
 	S.agentListening = status.agentListening ?? false
@@ -82,8 +76,6 @@ function adoptPollStatus(
 	return lite
 }
 
-// One poll tick's payload, with liveness already adopted and patched into the waiting indicators.
-// null when the desk is unreachable or answered something that isn't a poll payload.
 async function pollOnce(): Promise<DeskPollSnapshot | DeskRefreshEvent | null> {
 	try {
 		const query = serverInstanceId
@@ -99,21 +91,15 @@ async function pollOnce(): Promise<DeskPollSnapshot | DeskRefreshEvent | null> {
 		}
 		if (!Array.isArray(payload.comments)) return null
 		const lite = adoptPollStatus(payload)
-		// Activity/presence changes alone don't warrant a render - patch the waiting indicators in
-		// place every tick.
 		updateAwaitingDom()
 		return lite
 	} catch {
-		// The desk stopped answering (Close, `syneva stop`, crash): a cover says so once the
-		// misses outlast a plausible jitter window. Clearing on the next success covers a
-		// same-origin restart racing the detection.
 		missedPolls++
 		if (missedPolls >= DESK_GONE_TICKS) S.deskClosed = true
 		return null
 	}
 }
 
-// Fetch the browser projection only when the diff changes, not on every heartbeat.
 async function loadReviewState(): Promise<ReviewState | null> {
 	try {
 		const payload = await fetchState()
@@ -126,11 +112,9 @@ async function loadReviewState(): Promise<ReviewState | null> {
 	}
 }
 
-// Replace the live review with a freshly loaded one, keeping the reviewer on the same file. File
-// order/membership can change (the agent added, removed, or reordered files), so re-find the
-// current path in the new list rather than trusting the numeric index - otherwise the shown file,
-// and guided auto-advance (which resolves "next" from the current index), silently jump to
-// whatever now sits there.
+// File order/membership can change (files added, removed or reordered), so re-find the current path
+// in the new list rather than trusting the numeric index - otherwise the shown file, and guided
+// auto-advance (which resolves "next" from the current index), silently jump to whatever sits there.
 function adoptReloadedState(server: ReviewState): void {
 	const curPath = S.state?.files[S.fileIndex]?.path
 	S.state = server
@@ -142,20 +126,15 @@ function adoptReloadedState(server: ReviewState): void {
 	else if (S.fileIndex >= server.files.length) S.fileIndex = 0
 }
 
-// The diff changed (e.g. a reload added files) - refresh the project listing too so the tree
-// reflects newly tracked files, not the listing fetched at startup. The listing is chrome: a
-// failed refresh leaves the previous one in place.
 async function refreshProjectFiles(): Promise<void> {
 	try {
 		const tree = await fetchTree()
 		if (tree.files) S.projectFiles = tree.files
 	} catch {
-		// keep the listing we already have
+		/* a failed refresh leaves the previous listing in place (chrome, not review data) */
 	}
 }
 
-// Adopt a swapped guide. A reload can regenerate one without changing the diff, so this is
-// checked on every tick; guides are small, so the compare is cheap.
 function adoptGuide(lite: DeskPollSnapshot): boolean {
 	const { state } = S
 	if (!state) return false
@@ -168,8 +147,7 @@ function adoptGuide(lite: DeskPollSnapshot): boolean {
 	return true
 }
 
-// Merge comments the tab doesn't have yet (an agent reply, another tab's comment). Additive by
-// design: removals only ever arrive with a full state adopt.
+// Additive by design: removals only ever arrive with a full state adopt.
 function adoptIncomingComments(comments: ReviewComment[]): boolean {
 	const { state } = S
 	if (!state) return false
@@ -184,7 +162,6 @@ function adoptIncomingComments(comments: ReviewComment[]): boolean {
 	return true
 }
 
-// The reload path: the diff's hash moved, so (and only then) pull the full state.
 async function adoptReload(): Promise<void> {
 	const server = await loadReviewState()
 	if (!server) return
@@ -196,7 +173,6 @@ async function adoptReload(): Promise<void> {
 	toast('Diff updated')
 }
 
-// The heartbeat carries hash + guide + comments + liveness, or a refresh event after a restart.
 // Fetch the browser review only when baseDiffHash moves; never poll its file/change arrays.
 export async function pollState(): Promise<void> {
 	const lite = await pollOnce()
@@ -206,14 +182,12 @@ export async function pollState(): Promise<void> {
 		return
 	}
 	if (lite.baseDiffHash !== S.lastBaseDiffHash) {
-		// The reload branch replaces S.state wholesale and re-renders, which would clobber local
-		// decisions/comments not yet persisted and rebuild the diff DOM out from under an open
-		// composer (losing in-progress typing). Defer while a save is busy OR a composer is open -
-		// S.lastBaseDiffHash stays put, and the next tick re-detects the changed hash and adopts
-		// once the save has drained and the composer has closed. This only narrows a race that
-		// already existed (fire-and-forget persist could lose the same way). Scoping the composer
-		// guard here (not at the top) keeps liveness/presence and the additive agent-reply comment
-		// merge running every tick while a reply box is open, so the desk never looks dead.
+		// The reload branch replaces S.state wholesale and re-renders, which would clobber
+		// decisions/comments not yet persisted and rebuild the diff DOM under an open composer
+		// (losing in-progress typing): defer while a save is busy OR a composer is open - the next
+		// tick re-detects the changed hash and adopts once the save drained and the composer closed.
+		// Scoping the composer guard here (not at the top) keeps liveness/presence and additive
+		// agent-reply merges running every tick, so the desk never looks dead.
 		if (saver.isBusy() || S.composerOpen || S.fileComposerOpen) return
 		await adoptReload()
 		return
@@ -221,8 +195,6 @@ export async function pollState(): Promise<void> {
 	const guideChanged = adoptGuide(lite)
 	const commentsChanged = adoptIncomingComments(lite.comments)
 	if (guideChanged) toast('Guide updated')
-	// Guide/comment deltas repaint through the coalesced path: these arrive on a
-	// background tick while the reviewer may be mid-scroll or mid-compose, so they
-	// must not stack a synchronous full rebuild on top of their interaction.
+	// These arrive on a background tick while the reviewer may be mid-scroll or mid-compose: they must not stack a synchronous full rebuild on top of their interaction.
 	if (guideChanged || commentsChanged) deferRender()
 }

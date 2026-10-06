@@ -1,9 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// The words around a field: its label (with an aside such as "optional" at
-// the row's end), then the hint under it, which an error replaces. Margins
-// are set both ways because the desk's shell has no reset for p.
 export const fieldParts = stylex.create({
 	labelRow: {
 		display: 'flex',
@@ -29,6 +26,5 @@ export const fieldParts = stylex.create({
 		lineHeight: 1.45,
 		color: color['--red'],
 	},
-	// The control under its label row.
 	control: { marginTop: '8px' },
 })

@@ -6,16 +6,12 @@ import {
 	font,
 } from '@syneva/design-system/tokens.stylex'
 
-// `border: 0` resets the style and colour too, so all three are written.
 const noBorder = {
 	borderWidth: 0,
 	borderStyle: 'none',
 	borderColor: 'currentcolor',
 } as const
 
-// The site's command box: a prompt, the read-only command and a copy button
-// on a white tile; the status line hangs under it, out of flow, so the row
-// after it keeps its place whatever it says.
 export const commandChip = stylex.create({
 	box: {
 		position: 'relative',
@@ -37,8 +33,6 @@ export const commandChip = stylex.create({
 		backgroundColor: color['--white'],
 		transition: `border-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 	},
-	// On a wash band: paper ground, petrol rule. Merging replaces the box's
-	// whole border colour, so the focus state is restated.
 	onWash: {
 		borderColor: {
 			default: color['--accent-line'],
@@ -46,9 +40,7 @@ export const commandChip = stylex.create({
 		},
 		backgroundColor: color['--paper'],
 	},
-	// Filling its column (a band's install column), level with the rules under it.
 	block: { maxWidth: 'none' },
-	// Merged last while the copy holds.
 	copied: { borderColor: color['--green'] },
 	prompt: {
 		fontFamily: font['--mono'],
@@ -67,8 +59,6 @@ export const commandChip = stylex.create({
 		color: color['--ink'],
 		backgroundColor: 'transparent',
 		caretColor: color['--accent'],
-		// A command wider than the field shows it is cut; Copy still copies
-		// all of it. The box's ink rule marks focus instead of an outline.
 		textOverflow: 'ellipsis',
 		outlineStyle: { default: null, ':focus-visible': 'none' },
 	},
@@ -95,6 +85,5 @@ export const commandChip = stylex.create({
 		fontSize: '11px',
 		color: color['--green'],
 	},
-	// The manual-copy fallback is guidance, not a verdict: petrol.
 	fallback: { color: color['--accent'] },
 })

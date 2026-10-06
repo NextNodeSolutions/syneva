@@ -3,25 +3,17 @@ import { readFrame } from './nav-frame'
 
 import type { GeometryName } from './navigation-channels'
 
-// The dropdown's geometry, read from the layout and never written to it:
-// the width a panel may take, where the open panel lands independently of
-// the shell's current animated size, the folded sliver it grows from and
-// shrinks back into (under its trigger, or on phones under the toggle that
-// opened it), and the heights the viewport leaves.
-// The gap clears the docked sheet's edge as well as the trigger.
+// Read from the layout, never written to it; the gap clears the docked sheet's edge as well as the trigger.
 const PANEL_GAP = 14
 const FOLD_HEIGHT = 4
-// The inset and the border apply on both sides.
 const SIDES = 2
 
-// Pixel values of the shell's geometry channels.
 type Measures = Record<GeometryName, number>
 type Box = Pick<Measures, 'x' | 'y' | 'width' | 'height'>
 
 export type Geometry = {
 	open: Box & Pick<Measures, 'indicator-x' | 'indicator-width'>
 	folded: Box
-	// The dropdown and its panel never run past the bottom of the viewport.
 	maxHeight: { dropdown: number; panel: number }
 }
 
@@ -33,16 +25,12 @@ type MeasureInput = {
 	panel: HTMLElement
 }
 
-// The width a panel may take inside the dropdown's inset and border.
 export function availableWidth(navigation: HTMLElement): number {
 	const { inset, border } = readFrame(navigation)
 	return navigation.clientWidth - (inset + border) * SIDES
 }
 
-// The sliver the shell folds into: under the trigger on wide screens. On
-// phones it starts under the toggle's left edge and runs to the open shell's
-// right edge, which the panels hold to (panel.styles.ts): the toggle, inset
-// further than the shell, stays above the sliver, and that edge never moves.
+// On phones the sliver runs from the toggle's left edge to the open shell's right edge; the panels hold to it (panel.styles.ts) and that edge never moves.
 function foldedBox(
 	open: Box,
 	trigger: DOMRect,

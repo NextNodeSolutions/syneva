@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict'
-// Perf regression gate: generates a throwaway ~1,000-file git repo (every file edited in
-// the working tree, plus one oversized generated file), starts a real hub against dist/,
-// opens a desk on it, and asserts the PRD's budgets with CI-safe margins. The point is catching order-of-magnitude
-// regressions - the 170 MB payload / ~2,550 sequential-spawn kind - not millisecond drift.
-// Run: pnpm build && pnpm perf-smoke
+// Perf regression gate: a throwaway ~1,000-file git repo (every file edited, one oversized generated file) against a real hub on dist/, the PRD's budgets asserted with CI-safe margins.
+// Catches order-of-magnitude regressions, not ms drift. Run: pnpm build && pnpm perf-smoke.
 import { execFileSync, spawn } from 'node:child_process'
 import {
 	mkdtempSync,
@@ -23,8 +20,8 @@ import {
 } from '../../packages/frontend/scripts/bundle-budget.mjs'
 
 const ID = 'perf-smoke'
-// The desk under test runs from the assembled published package (see
-// apps/syneva/scripts/build-dist.mjs); run this script from the repo root.
+// The desk under test runs from the assembled published package (apps/syneva/scripts/build-dist.mjs);
+// run from the repo root.
 const CLI = path.join(process.cwd(), 'apps', 'syneva', 'dist', 'cli.js')
 const UI_MANIFEST = path.join(
 	process.cwd(),
@@ -38,10 +35,9 @@ const DESK_URL_TIMEOUT_MS = 30_000
 const POLL_ATTEMPTS = 150
 const POLL_INTERVAL_MS = 100
 const JSON_INDENT = 2
-// Bound lazily from the hub's startup line once it launches - see waitForDeskUrl. The hub runs
-// on `--port 0` (a random free port) so the gate never collides with a developer's own hub; we
-// read the port it actually bound instead of assuming one. HUB keeps its trailing slash; BASE is
-// the opened desk's API base (HUB + api/desks/<id>) so BASE + "/state" is well-formed.
+// Bound lazily from the hub's startup line (see waitForDeskUrl); the hub runs on `--port 0` (a
+// random free port) so the gate never collides with a developer's own hub. HUB keeps its trailing
+// slash; BASE is the opened desk's API base (HUB + api/desks/<id>).
 let HUB
 let BASE
 const sleep = ms => new Promise(r => setTimeout(r, ms))
@@ -50,9 +46,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms))
 const bigLines = tag =>
 	`${Array.from({ length: 6000 }, (_, i) => `${tag} line ${i}`).join('\n')}\n`
 
-// The hub prints `Syneva hub: http://127.0.0.1:<port>/` to stderr once it's listening.
-// Read that line (accumulating chunks - it can arrive split) and return the origin without the
-// trailing slash.
+// Read the hub's `Syneva hub: http://127.0.0.1:<port>/` startup line (accumulating chunks; it can
+// arrive split) and return the origin without the trailing slash.
 const waitForDeskUrl = child =>
 	new Promise((resolve, reject) => {
 		let buf = ''
@@ -99,19 +94,13 @@ const oldHome = process.env.HOME
 const cleanup = () => {
 	try {
 		desk?.kill()
-	} catch {
-		/**/
-	}
+	} catch {}
 	try {
 		if (tmp) rmSync(tmp, { recursive: true, force: true })
-	} catch {
-		/**/
-	}
+	} catch {}
 	try {
 		if (homeDir) rmSync(homeDir, { recursive: true, force: true })
-	} catch {
-		/**/
-	}
+	} catch {}
 	process.env.HOME = oldHome
 }
 process.on('exit', cleanup)
@@ -127,29 +116,26 @@ function budget({ name, actual, limit, unit, note }) {
 		)
 }
 
-// Poll the hub's health until it answers. Sequential by design (each probe depends on the
+// Poll the hub's health until it answers; sequential by design (each probe depends on the
 // previous), so it recurses instead of awaiting inside a loop.
 async function waitForPoll(base, attemptsLeft) {
 	try {
 		const res = await fetch(`${base}/api/hub/health`)
 		if (res.ok) return true
-	} catch {
-		// Not listening yet.
-	}
+	} catch {}
 	if (attemptsLeft <= 0) return false
 	await sleep(POLL_INTERVAL_MS)
 	return waitForPoll(base, attemptsLeft - 1)
 }
 
 try {
-	// Point HOME at a throwaway dir so the persisted review file and the hub's own registry land
-	// somewhere we control and clean up.
+	// Point HOME at a throwaway dir so the persisted review file and the hub's registry land somewhere
+	// we control and clean up.
 	homeDir = mkdtempSync(path.join(tmpdir(), 'syneva-perf-home-'))
 	process.env.HOME = homeDir
 
-	// Throwaway ~1,000-file repo: committed base, then every file edited in the working tree,
-	// plus one oversized generated file (>5000 changed lines), as covered by
-	// the buildDiffSource fixtures in packages/backend/src/application/diffsource.test.ts.
+	// Throwaway ~1,000-file repo: committed base, then every file edited in the working tree, plus
+	// one oversized generated file (>5000 changed lines).
 	tmp = mkdtempSync(path.join(tmpdir(), 'syneva-perf-repo-'))
 	const git = (...a) => execFileSync('git', a, { cwd: tmp, stdio: 'ignore' })
 	git('init', '-q')
@@ -238,7 +224,6 @@ try {
 		'every file carries a changeKind stamp',
 	)
 
-	// The persisted review file under $HOME/.syneva - same content-free bar as /api/state.
 	const [repoHashDir] = readdirSync(path.join(homeDir, '.syneva'))
 	const sessionDir = path.join(homeDir, '.syneva', repoHashDir, ID)
 	const persistedName = readdirSync(sessionDir).find(n => n.endsWith('.json'))

@@ -120,7 +120,6 @@ async function dispatch(
 	}
 }
 
-// The agent-loop and desk-management verbs - everything that targets a desk already open.
 async function dispatchAgentCommand(sub: string, args: CliArgs): Promise<void> {
 	switch (sub) {
 		case 'desks':
@@ -141,7 +140,6 @@ async function dispatchAgentCommand(sub: string, args: CliArgs): Promise<void> {
 	}
 }
 
-// `syneva open` reviews the repo; `open file <path>` / `open pr <ref>` pick the other modes.
 function dispatchOpen(
 	first: string | undefined,
 	second: string | undefined,
@@ -166,8 +164,7 @@ function unknownCommand(sub: string): void {
 	process.exitCode = 1
 }
 
-// An uncaught failure is reported as text: the stack names the failing frame; a thrown
-// value that isn't an Error (or carries no stack) falls back to its message or String().
+// An uncaught failure is reported as text: the stack names the failing frame; a thrown value that isn't an Error (or carries no stack) falls back to its message or String().
 function errorText(error: unknown): string {
 	if (!(error instanceof Error)) return String(error)
 	if (error.stack) return error.stack
@@ -183,12 +180,9 @@ async function runMain(): Promise<void> {
 	}
 }
 
-// Run only when executed as the bin (`syneva` / `node dist/cli.js`), not when imported as a
-// module - otherwise import alone would open a desk. npm installs the bin as a SYMLINK
-// (.bin/syneva -> dist/cli.js); Node resolves import.meta.url through the symlink to the real
-// path, but leaves process.argv[1] as the symlink path - so argv[1] must be realpath'd before
-// comparing, or the guard never fires under the published bin and the CLI silently no-ops.
-// try/catch guards a dangling/unusual argv[1].
+// Run only when executed as the bin, not when imported (an import alone would open a desk).
+// npm installs the bin as a symlink: import.meta.url resolves through it but argv[1] stays the symlink path, so it must be realpath'd before comparing,
+// else the guard never fires and the CLI silently no-ops (try/catch covers a dangling/unusual argv[1]).
 function isEntryPoint(): boolean {
 	try {
 		return (

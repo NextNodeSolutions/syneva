@@ -1,23 +1,9 @@
-/* Rendered markdown: the one surface StyleX cannot class, since markdown-it writes the HTML.
-   The element that receives it carries data-prose - "thread" for a comment body, "document" for
-   a rendered markdown file - and every rule here is scoped under that attribute, so nothing
-   touches a bare element or leaks outside the prose. The stylesheet is shared with the hub
-   dashboard; it only ever matches inside a desk's rendered markdown.
-
-   A document hosts comment threads inline, so a thread's prose can sit inside a document's.
-   The shared rules come first, the document's next, the thread's last: at equal specificity
-   the thread's restatements win inside a nested thread, and nothing of the document's reading
-   scale leaks into a comment. Colours are the design system's variables, which the night theme
-   remaps. */
-
 [data-prose] {
 	font-family: var(--sans);
 	color: var(--ink);
 	overflow-wrap: break-word;
 }
 
-/* A block opens and closes flush with its prose: the container's own spacing sets it off.
-   (0,2,0) outranks every element rule below. */
 [data-prose] > :first-child {
 	margin-top: 0;
 }
@@ -35,7 +21,6 @@
 	color: var(--ink);
 }
 
-/* Markers inside the measure, so a list reads flush with the paragraphs around it. */
 [data-prose] ul,
 [data-prose] ol {
 	padding-left: 0;
@@ -51,7 +36,6 @@
 	margin: 2px 0 2px 1.2em;
 }
 
-/* A task list: the checkbox stands in for the marker. */
 [data-prose] input[type='checkbox'] {
 	width: auto;
 	margin: 0 6px 0 0;
@@ -59,7 +43,6 @@
 	accent-color: var(--accent);
 }
 
-/* markdown-it-task-lists wraps the box in a label inside a .task-list-item. */
 [data-prose] .task-list-item {
 	list-style: none;
 }
@@ -91,13 +74,10 @@
 	border-radius: 0;
 }
 
-/* A highlighted fence: shiki paints the code theme's own background inline, which keeps the last
-   word so a theme's tokens stay legible on it; the paper stands under it until then. */
 [data-prose] pre.shiki {
 	background-color: var(--paper);
 }
 
-/* Code inside a fence is the fence's: no chip of its own, and no second step down in size. */
 [data-prose] pre code {
 	font-size: inherit;
 	background: transparent;
@@ -126,8 +106,6 @@
 	padding: 3px 7px;
 }
 
-/* A rendered markdown file reads as a document: the reading scale, headings in the site's
-   tight display voice. */
 [data-prose='document'] {
 	font-size: 14px;
 	line-height: 1.7;
@@ -167,8 +145,6 @@
 	margin: 0 0 1em;
 }
 
-/* A comment body reads as chat at the thread's scale. Every property the document rules set is
-   restated here, so a thread inside a document keeps its own. */
 [data-prose='thread'] {
 	font-size: 13px;
 	line-height: 1.6;

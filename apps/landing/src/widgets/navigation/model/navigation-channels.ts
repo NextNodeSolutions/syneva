@@ -1,6 +1,4 @@
-// The morph's channels: every value it animates is a registered <number>
-// custom property on the navigation, aliased to the plain name the
-// stylesheet reads (--x, --reveal, --progress, ...).
+// Every value the morph animates is a registered <number> custom property on the navigation, aliased to the plain name the stylesheet reads (--x, --reveal, --progress, ...).
 export const GEOMETRY = [
 	'x',
 	'y',
@@ -18,16 +16,12 @@ export type GeometryName = (typeof GEOMETRY)[number]
 export type ContentName = (typeof CONTENT)[number]
 export type ChannelValues = Record<string, string>
 
-// One element's channels: the registered property behind each name, and
-// values keyed by name, renamed to those properties.
 export type Channel<Name extends string> = {
 	property: (name: Name) => string
 	values: (values: Partial<Record<Name, number>>) => ChannelValues
 }
 
-// Registered <number> channels are what let the Web Animations API
-// interpolate the morph. Without CSS.registerProperty the values still carry
-// (var() aliases inherit unregistered), but every move becomes a jump.
+// Registered <number> channels are what let the Web Animations API interpolate the morph: without CSS.registerProperty, values still carry (aliases inherit unregistered) but every move becomes a jump.
 export const canInterpolate =
 	typeof CSS !== 'undefined' && typeof CSS.registerProperty === 'function'
 

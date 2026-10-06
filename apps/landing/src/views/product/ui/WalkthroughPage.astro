@@ -30,8 +30,7 @@ const GUIDE = [
 	'',
 	'$ syneva --guide /tmp/guide.json',
 ]
-// The guide's field names come from the contract the desk reads, so a rename
-// there fails this build.
+// Field names mirror the desk contract: a rename there fails this build.
 const FILES = 'files' satisfies keyof Guide
 const fileField = (name: keyof GuideFile): string => `${FILES}[].${name}`
 const FIELDS = [

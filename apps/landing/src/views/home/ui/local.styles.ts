@@ -2,8 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// Locality: the copy paired with the machine drawing, then the trust register
-// (product facts) on one ruled row under both.
 export const local = stylex.create({
 	lead: {
 		display: 'grid',

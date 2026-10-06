@@ -1,7 +1,4 @@
 ---
-// The site header: wordmark, section triggers, the morphing dropdown that
-// holds every section's menu, the primary action and the phone toggle, over
-// the dock layer the header condenses into once the page scrolls.
 import type { SectionId } from '@entities/site/model/site-map'
 import { PAGES, SECTIONS } from '@entities/site/model/site-map'
 import { primaryAction } from '@entities/site/model/primary-action'
@@ -27,7 +24,6 @@ const route = Astro.url.pathname
 const active = sectionOf(route)
 const isOpenSource = route === PAGES.openSource.href
 const action = primaryAction(PAGES.getStarted.title, Astro.locals.page)
-// Each section's menu (it reads its own section), rendered inside its panel.
 const MENUS: Record<SectionId, typeof ProductMenu> = {
 	product: ProductMenu,
 	workflows: WorkflowMenu,

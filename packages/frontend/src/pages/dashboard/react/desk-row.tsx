@@ -25,7 +25,6 @@ import type { RowClose } from '../use-desk-close'
 type DeskRowProps = {
 	desk: HubDesk
 	now: number
-	// The listing is stale (no pulses) / the desk just arrived (the tint fades out of it).
 	look: { isLive: boolean; hasArrived: boolean }
 	close: RowClose
 	// When the desk's current turn began (every display reads the same time).
@@ -40,8 +39,7 @@ const MODE_ICONS: Record<ModeKey, IconName> = {
 	pr: 'branch',
 }
 
-// The row's end: Close (armed, Close desk and Keep), then Open, the row's way in, which the
-// whole row's link carries; the word and its arrow say so where the eye ends the line.
+// The row's end: Close (armed: Close desk and Keep), then Open - the row's way in, carried by the link the whole row is.
 function RowEnd({
 	desk,
 	close,
@@ -71,10 +69,6 @@ function rowIds(deskId: string): { description: string; warning: string } {
 	}
 }
 
-// One desk as the site's index row: icon, desk, stage, review, actions and the arrow; one
-// tab stop for the link, one for Close. The link is described by the row in sentences (a
-// hidden element: a reference reads it, browsing skips it). While its close is armed, the
-// warning takes the review's place and describes Close desk and Keep.
 export function DeskRow({
 	desk,
 	now,

@@ -7,9 +7,6 @@ import { Kbd } from './kbd'
 import type { ReactElement, ReactNode } from 'react'
 import type { ButtonLook } from './button-look'
 
-// What a button shows inside its tile: the label (or the busy label while its
-// action runs), the arrow, the key hint. The hint is hidden from assistive
-// technology: the button states its shortcut through aria-keyshortcuts.
 export function ButtonFace({
 	look,
 	children,

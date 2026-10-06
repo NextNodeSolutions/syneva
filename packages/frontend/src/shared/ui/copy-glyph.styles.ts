@@ -15,7 +15,6 @@ const sheet = {
 	strokeWidth: 1.5,
 } as const
 
-// The copy glyph: two sheets in the button's ink, then a green check that springs in.
 export const copyGlyph = stylex.create({
 	sheets: sheet,
 	check: {

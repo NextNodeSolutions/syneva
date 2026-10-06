@@ -1,8 +1,7 @@
 import { HUB_MAIN_ID } from '@widgets/hub-shell/react/hub-shell'
 
-// The ids focus is moved to when the control that held it goes away (an armed close turning
-// back into Close, a closed desk's row leaving): one name per target, shared by the elements
-// that carry them and the code that focuses them.
+// The ids focus moves to when the control that held it goes away (an armed close turning back into Close, a closed desk's row leaving).
+// One name per target, shared by the elements that carry them and the code that focuses them.
 export const NEW_REVIEW_ID = 'new-review'
 
 // The Filter trigger, where focus goes once the last filter chip is gone.

@@ -10,7 +10,6 @@ import type { Bezier } from '@syneva/motion/easing'
 import type { InputMode } from './input-mode'
 import type { NavigationParts } from './navigation-parts'
 
-// Open, or folding back into the toggle on its way to closed.
 type BarState = 'open' | 'folding' | 'closed'
 
 const ATTRIBUTE: Record<BarState, string> = {
@@ -19,10 +18,8 @@ const ATTRIBUTE: Record<BarState, string> = {
 	closed: 'false',
 }
 
-// What the reveal animates: the bar's clip and its opacity.
 type Pose = { clipPath: string; opacity: number }
 type Move = { duration: number; ease: Bezier }
-// Where a move heads, on which timing, and what follows once it lands.
 type Target = { pose: Pose; move: Move; onLand: () => void }
 
 const UNFOLDED: Pose = {
@@ -35,16 +32,12 @@ const UNFOLD: Move = {
 }
 const FOLD: Move = { duration: NAV_CLOCK.duration.fold, ease: NAV_CLOCK.ease }
 
-// The link bar the toggle opens on phones. One field holds its state, and
-// #render() writes it where it is read: data-mobile-open for the styles,
-// aria-expanded on the toggle. Opened by the pointer, the bar uncovers out of
-// the toggle above it, a clip whose words never scale; closed by the
-// pointer, it first folds back into the toggle, closed for the toggle and
-// the runtime from the start of the fold. Every move starts from the bar's
-// live pose, so reopening during a fold reverses it instead of jumping shut
-// first. From the keyboard, or with reduced motion, the bar opens and closes
-// at once. The toggle's name stays "Menu", the word it shows, so speech input
-// can call it (WCAG 2.5.3).
+// One field holds the bar's state, written where it is read: data-mobile-open for the styles,
+// aria-expanded on the toggle. Opened, it uncovers out of the toggle's clip whose words never
+// scale; closed by pointer it first folds back into the toggle; every move starts from the bar's
+// live pose, so reopening during a fold reverses instead of jumping shut. From the keyboard or
+// reduced motion it opens and closes at once; the toggle's name stays "Menu", the word it shows
+// (WCAG 2.5.3).
 export class PhoneBar {
 	readonly #root: HTMLElement
 	readonly #toggle: HTMLElement
@@ -121,8 +114,7 @@ export class PhoneBar {
 		this.#motion = motion
 	}
 
-	// The bar returns to its own styles: no clip, full opacity. A cancelled
-	// move never lands (Motion completes a move only when it finishes).
+	// Returned to its own styles (no clip, full opacity); a cancelled move never lands (Motion completes a move only when it finishes).
 	#stop(): void {
 		this.#motion?.cancel()
 		this.#motion = undefined
@@ -142,8 +134,6 @@ export class PhoneBar {
 		}
 	}
 
-	// Folded into the toggle above the bar: a zero-height clip across the
-	// toggle's own width.
 	#foldedPose(): Pose {
 		const bar = this.#bar.getBoundingClientRect()
 		const toggle = this.#toggle.getBoundingClientRect()

@@ -3,8 +3,6 @@ import { TextField } from '@shared/ui/text-field'
 import type { ReactElement } from 'react'
 import type { NewReview } from '../use-new-review'
 
-// The target of the sources that read one: a file (required) or a ref (optional, the
-// checked-out branch by default). Each source keeps what was typed for it.
 const TARGET = {
 	file: {
 		label: 'File',
@@ -19,7 +17,6 @@ const TARGET = {
 	},
 } as const
 
-// Shown, without animation, only while the chosen source reads a target.
 export function NewReviewTarget({
 	form,
 	source,

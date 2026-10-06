@@ -2,9 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The FAQ page's rows, refining the disclosure's question and answer: a
-// heavier question, a roomier answer. No rule above the first row, none
-// under the last.
 export const qaDisclosure = stylex.create({
 	row: {
 		borderBottomWidth: { default: '1px', ':last-child': 0 },

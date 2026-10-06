@@ -12,11 +12,6 @@ import type { NavigationParts, SectionMenu } from './navigation-parts'
 // A click without a press count came from the keyboard (Enter or Space).
 const isKeyboardActivation = (event: MouseEvent): boolean => event.detail === 0
 
-// The header's panel state and focus: hover and click open a section's panel
-// in the morphing dropdown, arrow keys move between triggers, Escape and
-// outside presses dismiss, and on phones the toggle opens the link bar first.
-// Hover timing, the phone bar and the product preview live in their own
-// classes.
 export class Navigation {
 	readonly #root: HTMLElement
 	readonly #links: HTMLElement
@@ -58,10 +53,8 @@ export class Navigation {
 		this.#preview.reposition()
 	}
 
-	// The inert attribute alone holds a panel's state: it takes the closed
-	// panels out of the accessibility tree and the tab order, and the styles
-	// key on it. The attribute is toggled, not the property, so a browser
-	// without inert still restyles the panel.
+	// The inert attribute alone holds a panel's state: it takes closed panels out of the accessibility tree and tab order, and the styles key on it.
+	// Toggle the attribute, not the property, so a browser without inert still restyles the panel.
 	#hidePanel(): void {
 		this.#openMenu?.trigger.setAttribute('aria-expanded', 'false')
 		this.#openMenu?.panel.toggleAttribute('inert', true)
@@ -90,11 +83,7 @@ export class Navigation {
 		if (shouldRestore) this.#phoneBar.focus()
 	}
 
-	// Focus that was in the header moves, before the dismissal, to what the
-	// dismissal leaves shown: on phones the toggle, since the bar folds and
-	// hides the triggers, else the open trigger or the first one. Moving it
-	// first leaves the dismissal nothing to restore. A menu opened by hover
-	// leaves focus where it was on the page.
+	// Focus moves, before the dismissal, to what the dismissal leaves shown (phones: the toggle; else the open or first trigger), so the dismissal has nothing to restore. A hover-opened menu leaves focus where it was.
 	#dismissRestoringFocus(focused: EventTarget | null): void {
 		const target = compact.matches
 			? this.#phoneBar
@@ -124,8 +113,6 @@ export class Navigation {
 		menu.panel.querySelector('a')?.focus()
 	}
 
-	// A key on a trigger moves along the bar or, with ArrowDown, into the
-	// trigger's panel. Returns whether the key was such a move.
 	moveFrom(menu: SectionMenu, key: string): boolean {
 		if (key === 'ArrowDown') {
 			this.#focusPanel(menu)
@@ -140,8 +127,6 @@ export class Navigation {
 		return true
 	}
 
-	// Tab around the open panel follows the visual order; leaving the panel
-	// for the bar closes it. Returns whether Tab was such a move.
 	tabAround(from: EventTarget | null, direction: TabDirection): boolean {
 		const menu = this.#openMenu
 		if (!menu || !(from instanceof Element)) return false
@@ -231,11 +216,7 @@ export class Navigation {
 			if (!this.#root.contains(next)) this.dismiss()
 			return
 		}
-		// Focus that moves nowhere is either a press on a non-focusable spot,
-		// inside the menu or out (outside presses dismiss on pointerdown), or a
-		// breakpoint hiding the focused element before its change event fires.
-		// Only the latter dismisses here; a hidden element has no boxes
-		// (checkVisibility is missing in Safari before 17.4).
+		// Only a breakpoint hiding the focused element before its change event fires dismisses here (a hidden element has no boxes, and checkVisibility is missing in Safari before 17.4).
 		if (
 			event.target instanceof Element &&
 			!event.target.getClientRects().length

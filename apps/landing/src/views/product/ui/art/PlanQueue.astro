@@ -1,5 +1,4 @@
 ---
-// Plan desk (prototype): a plan becomes a queue of claims ranked by risk.
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -16,7 +15,6 @@ const CLAIMS = [
 	{ words: 'No schema change is required', risk: 1, state: 'Settled', kind: 'yes' },
 ] as const
 const CELLS = [0, 1, 2] as const
-// A claim's risk fills its meter in one tone: three cells high, two mid.
 const RISK_TONE = { 3: productArt.riskHigh, 2: productArt.riskMid, 1: productArt.riskLow } as const
 const CLAIM_TONE = { risk: [homeArt.planClaim, homeArt.planRisk], question: [homeArt.planClaim], yes: [homeArt.planClaim, homeArt.planSettled] } as const
 const rowY = (index: number): number => 96 + index * 72

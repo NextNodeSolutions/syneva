@@ -4,17 +4,12 @@ import type { FileContents } from '../domain/contents.js'
 import type { ReviewFile, ReviewState } from '../domain/review.js'
 import type { GitPort } from './ports.js'
 
-// A small LRU of resolved file contents, so the tab re-opening a file (or re-fetching after a
-// render) doesn't re-spawn `git show`. Keyed by root + path + contentHash: contentHash is the
-// new-side blob OID, so a reload that rewrites the file changes the key and the stale entry
-// falls out naturally (no explicit invalidation). Process-global, shared by every desk the hub
-// hosts: the key carries the repo root, so two desks never collide.
+// Keyed by root + path + contentHash (the new-side blob OID): a reload that rewrites the file changes the key so the stale entry falls out (no explicit invalidation).
+// Process-global and shared by every desk, but the key carries the repo root, so two desks never collide.
 const CONTENTS_CACHE_CAP = 30
 const contentsCache = new Map<string, FileContents>()
 
-// On-demand old/new contents for one reviewed file - the state carries none (issue 04). Reads git /
-// the working tree, replaying the exact per-mode ref semantics buildDiffSource built the diff
-// against, so a fetch returns the bytes the diff was taken over.
+// Replays the exact per-mode ref semantics buildDiffSource built the diff against, so a fetch returns the bytes the diff was taken over (the state carries no contents).
 export async function readFileContents(
 	state: ReviewState,
 	file: ReviewFile,
@@ -53,10 +48,9 @@ function evictLeastRecentlyUsed(): void {
 	}
 }
 
-// pr: the diff is base..HEAD, so both sides are committed objects. Read strictly, so a git object
-// dropped by a mid-session rebase throws (→ /file-contents 404s with a reload hint) instead of
-// silently serving empty. `changeKind` says which sides exist: an added file has no old side, a
-// deletion no new side, so a legitimately absent side is "" WITHOUT a read.
+// pr: both sides are committed objects, read strictly - a git object dropped by a mid-session
+// rebase throws (→ /file-contents 404s with a reload hint) instead of serving empty; `changeKind`
+// says which sides exist, so a legitimately absent side is "" WITHOUT a read.
 async function prContents(
 	state: ReviewState,
 	file: ReviewFile,
@@ -74,9 +68,7 @@ async function prContents(
 	return { oldContents, newContents }
 }
 
-// file mode: tracked + changed reads old from the INDEX (:0) and new from the working tree
-// (buildDiffSource's file-mode fetchers); tracked-unchanged is full-file working/working;
-// untracked/new is ""/working. The working tree stays non-strict - a file deleted under us reads "".
+// file mode: tracked+changed reads old from the INDEX (:0) and new from the working tree; tracked-unchanged is full-file working/working; untracked/new is ""/working. The working tree stays non-strict - a file deleted under us reads "".
 async function fileModeContents(
 	state: ReviewState,
 	file: ReviewFile,
@@ -85,8 +77,6 @@ async function fileModeContents(
 	const abs = path.isAbsolute(file.path)
 		? file.path
 		: path.join(state.root, file.path)
-	// The working read goes through the workspace facet: a file-mode target may sit outside
-	// the repo, so plain fileAt's root-join doesn't apply. A vanished file reads "".
 	const working = (await git.workspace.readFile(abs)) ?? ''
 	const tracked = await git
 		.run(['ls-files', '--error-unmatch', '--', file.path], state.root)
@@ -102,7 +92,6 @@ async function fileModeContents(
 	return { oldContents: tracked ? working : '', newContents: working }
 }
 
-// staged repo diff: index vs HEAD, so both sides are committed objects read strictly.
 async function stagedContents(
 	state: ReviewState,
 	file: ReviewFile,
@@ -119,9 +108,7 @@ async function stagedContents(
 	return { oldContents, newContents }
 }
 
-// working repo diff: working tree vs index. Old reads :0 (committed → strict); new reads the dirty
-// working tree (non-strict → a vanished file reads ""). An untracked add is changeKind "added", so
-// its old side is "" without a (failing) `:0:path` read.
+// working repo diff: old reads :0 (committed → strict), new the dirty working tree (non-strict → a vanished file reads ""); an untracked add is changeKind "added", so its old side is "" without a (failing) :0 read.
 async function workingContents(
 	state: ReviewState,
 	file: ReviewFile,

@@ -1,9 +1,6 @@
 import { partAttribute } from '@shared/lib/part-attribute'
 
-// Every piece of the review circuit its runtime drives, named once: the
-// markup marks a piece with circuitPart(), layerPart() or signalPart() and
-// the loop and its signals select it by the same name, so a name only one
-// side knows fails astro check.
+// Pieces named once: markup marks with circuitPart()/layerPart()/signalPart() and the loop selects by the same name - a name only one side knows fails astro check.
 export type CircuitPart =
 	| 'dispatch'
 	| 'note'
@@ -12,9 +9,7 @@ export type CircuitPart =
 	| 'owner'
 	| 'accepted'
 	| 'seal'
-// The review layers, from the bottom of the stack up.
 export type LayerKind = 'tested' | 'important' | 'critical'
-// The travelling signals, by the leg of the loop they travel.
 export type SignalName = 'in' | 'out' | 'return'
 
 export const { mark: circuitPart, selector: circuitPartSelector } =
@@ -24,8 +19,7 @@ export const { mark: layerPart, selector: layerSelector } =
 export const { mark: signalPart, selector: signalSelector } =
 	partAttribute<SignalName>('data-signal')
 
-// Every piece the runtime drives is in the markup: a missing one is a bug in
-// Circuit.astro, not a piece to leave still.
+// Every piece the runtime drives is in the markup: a missing one is a bug in Circuit.astro, not a piece to leave still.
 export function findPart(
 	svg: SVGSVGElement,
 	selector: string,

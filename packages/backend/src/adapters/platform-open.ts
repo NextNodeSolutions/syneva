@@ -1,6 +1,5 @@
-// The one per-platform command that opens a URL or file with the OS default handler. The desk's
-// browser tab (inbound/http) and the empty-template editor fallback (outbound/editor) share it, so
-// a platform rule change (a new opener, a Windows quirk) lands on both callers at once.
+// The one per-platform opener shared by the desk's browser tab (inbound/http) and the editor
+// fallback (outbound/editor), so a platform rule change lands on both callers at once.
 export function platformOpenCommand(target: string): {
 	command: string
 	args: string[]

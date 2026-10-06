@@ -2,11 +2,8 @@ import * as stylex from '@stylexjs/stylex'
 
 import type { CompiledStyles, StyleXArray } from '@stylexjs/stylex'
 
-// Whatever stylex.props() takes: compiled styles (markers included), falsy
-// entries (conditional styles) and nested arrays of them.
 export type Style = StyleXArray<CompiledStyles | boolean | null | undefined>
-// A plain string is a state class the client toggles (is-current, is-previewed):
-// it rides along with the StyleX classes so the server-rendered state matches.
+// Plain strings are state classes the client toggles (is-current, is-previewed); they ride with the StyleX classes so the server-rendered state matches.
 export type Part = Style | string
 export type Attributes = { class?: string; style?: string }
 
@@ -15,8 +12,7 @@ const kebab = (name: string): string =>
 		? name
 		: name.replaceAll(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)
 
-// stylex.props() for Astro markup: `class` instead of className, and inline
-// styles (custom properties, mostly) serialised the way an attribute expects.
+// stylex.props() adapted for Astro markup: `class` instead of className, inline styles serialised as attribute values.
 export function sx(...parts: Part[]): Attributes {
 	const states = parts.filter(
 		(part): part is string => typeof part === 'string',

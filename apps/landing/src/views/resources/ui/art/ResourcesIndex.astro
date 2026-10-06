@@ -1,5 +1,4 @@
 ---
-// Resources overview: a ruled table of contents.
 import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { twoDigits } from '@shared/lib/two-digits'
 import { sx } from '@shared/lib/sx'
@@ -14,10 +13,8 @@ import { listFormat } from '@shared/lib/list-format'
 import { resourcesArt } from './resources-art.styles'
 
 const ROW = 70
-// The leader starts after the title, at the head font's average advance.
 const ADVANCE = 9.6
 const leaderAt = (title: string, index: number): string => `M${title.length * ADVANCE + 82} ${128 + index * ROW}H486`
-// The resources section's pages, as the site map lists them.
 const entries = SECTION_BY_ID.resources.items.map(({ title, blurb }, index) => ({
 	title,
 	blurb,

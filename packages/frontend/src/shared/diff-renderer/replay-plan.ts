@@ -5,20 +5,13 @@ import type {
 } from '@pierre/diffs'
 import type { DecidedPosition } from '@shared/diff-renderer/linemap'
 
-// Pure half of the decision replay, kept free of the store so it stays testable on its own:
-// which library call resolves which decided block.
 export type ReplayCall = {
 	hunkIndex: number
 	options: DiffAcceptRejectHunkConfig | DiffAcceptRejectHunkType
 }
 
-// One library call per decided block copies the whole diff, and the copy is the cost: measured
-// ~180 ms for 925 decisions on a 3 700-line file, which made an approve-all click grow with the
-// file. The library also resolves a whole hunk in a single call (the bare type, no config), which
-// is the same resolution whenever every change of that hunk is decided the same way - the common
-// case, "Approve ⇧A" included. Grouping consecutive decisions of one hunk (decidedPositions keeps
-// the order it computed them in) collapses those into one call and leaves mixed hunks on the
-// per-change path. The grouping preserves replay equivalence with the per-change path.
+// One library call per decided block copies the whole diff (measured ~180 ms for 925 decisions on a 3,700-line file, making an approve-all click grow with the file).
+// The library also resolves a whole hunk in one call, so grouping consecutive decisions of one hunk collapses those calls with replay-equivalent results; mixed hunks stay on the per-change path.
 export function planReplayCalls(
 	diff: FileDiffMetadata,
 	decided: DecidedPosition[],
@@ -51,7 +44,6 @@ export function planReplayCalls(
 	return calls
 }
 
-// The library's per-change form, one call per decided block - the path mixed hunks stay on.
 function perChangeCalls(group: DecidedPosition[]): ReplayCall[] {
 	return group.map(d => ({
 		hunkIndex: d.hunkIndex,
@@ -63,8 +55,6 @@ function perChangeCalls(group: DecidedPosition[]): ReplayCall[] {
 }
 
 function changeCount(diff: FileDiffMetadata, hunkIndex: number): number {
-	// `.at` rather than `[hunkIndex]`: the index comes from a decision record, so it can outlive the diff
-	// it was made against (a reload can shrink the file), and this is the check that catches that.
 	const hunk = diff.hunks.at(hunkIndex)
 	if (!hunk) return 0
 	return hunk.hunkContent.filter(part => part.type === 'change').length

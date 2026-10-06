@@ -1,14 +1,8 @@
-// The header's markup contract with its runtime (Navigation.astro): every
-// element the script drives, found once. A missing part means the template
-// changed under the script, so the lookup fails loud instead of leaving a
-// header whose menus never open. A menu may have no preview rows.
+// Every element the script drives is found once; a missing part means the template changed under the script, so the lookup fails loud instead of leaving a header whose menus never open. A menu may have no preview rows.
 type NonEmptyArray<Item> = readonly [Item, ...Item[]]
 
-// A section's trigger and the panel its aria-controls names.
 export type SectionMenu = { trigger: HTMLElement; panel: HTMLElement }
 
-// The dock layer's live pieces: the reading ruler, its progress line, the
-// tick it clones per section, and the wordmark's dialling group.
 export type DockParts = {
 	ruler: HTMLElement
 	progress: HTMLElement
@@ -21,7 +15,6 @@ export type NavigationParts = {
 	links: HTMLElement
 	dropdown: HTMLElement
 	toggle: HTMLElement
-	// In the bar's order.
 	menus: NonEmptyArray<SectionMenu>
 	previewLinks: HTMLElement[]
 	scenes: HTMLElement[]
@@ -50,7 +43,6 @@ function queryParts(
 	return [first, ...rest]
 }
 
-// The tick is the one element inside the ruler's template.
 function queryTick(scope: ParentNode): HTMLElement {
 	const template = scope.querySelector('template[data-nav-tick]')
 	const tick =
@@ -67,8 +59,6 @@ function queryDial(scope: ParentNode): SVGGElement {
 	return dial
 }
 
-// Each trigger with the panel its aria-controls names: a trigger naming no
-// panel would open nothing.
 function pairMenus(
 	triggers: NonEmptyArray<HTMLElement>,
 	panels: readonly HTMLElement[],

@@ -11,9 +11,7 @@ export const panel = stylex.create({
 	base: {
 		position: 'absolute',
 		top: 0,
-		// On phones the dropdown unfolds from its top-right corner, under the
-		// toggle: the panel holds to that corner, so the shell uncovers it in
-		// place instead of dragging it along.
+		// On phones the panel holds to the top-right corner the dropdown unfolds from, so the shell uncovers it in place instead of dragging it along.
 		left: { default: 0, [media.navToggle]: 'auto' },
 		right: { default: null, [media.navToggle]: 0 },
 		width: `min(var(--panel-width), ${navBounds['--nav-available']})`,
@@ -24,7 +22,6 @@ export const panel = stylex.create({
 		},
 		'--menu-title-line': 'calc(20 / 14)',
 		pointerEvents: { default: 'none', ':not([inert])': 'auto' },
-		// The open panel scrolls inside the shell when the viewport is short.
 		maxHeight: {
 			default: null,
 			':not([inert])': navBounds['--panel-max-height'],
@@ -65,8 +62,6 @@ export const panel = stylex.create({
 			position: 'absolute',
 			inset: '0 0 auto',
 			height: 'calc(var(--selection-height) * 1px)',
-			// The previewed row's lifted card (menu.styles.ts lifts the rows
-			// without a preview the same way).
 			backgroundColor: color['--white'],
 			boxShadow: menuElevation.raised,
 			borderRadius: '5px',

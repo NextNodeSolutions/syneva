@@ -15,15 +15,9 @@ import type { ReactElement } from 'react'
 type DeskCellProps = {
 	desk: HubDesk
 	now: number
-	// The id of the row's description, the sentence a screen reader hears on the link.
 	describedBy: string
 }
 
-// The desk's title, which is the row's link: a span stretched over the row makes the whole
-// row open the desk (same tab; a modified click opens a new one natively) and draws its focus
-// ring. Under it, its repository and what it reviews, as a run of parts that breaks only
-// between them; when it opened is said to screen readers only (how long its turn has lasted
-// is the stage's to say).
 export function DeskCell({
 	desk,
 	now,

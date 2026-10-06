@@ -1,23 +1,13 @@
-// Browser bench: cold open, interaction latencies, scroll smoothness, and memory across
-// the fixture repos test/benchmarks/bench-fixtures.mjs builds. Driver: playwright + chromium,
-// HEADFUL - headless-shell throttles requestAnimationFrame (~1fps), which would turn every
-// latency into a throttle artifact.
-//
-// Prereqs (not in devDependencies; the bench is a local perf tool, not part of CI):
-//   node test/benchmarks/bench-fixtures.mjs
-//   npm i playwright@~1.63  # in any scratch dir, or: pnpm dlx playwright@1.63 install chromium
-//   pnpm build
-//   node test/benchmarks/browser-bench.mjs [repo ...]   # default: every fixture
-//
-// Output: one result-browser-<repo>.json per repo, plus a summary line per repo on stdout.
+// Browser bench: cold open, interaction latencies, scroll smoothness, memory across the bench-fixtures repos. Driver: playwright + chromium, HEADFUL.
+// Headless-shell throttles rAF (~1fps), so headless turns every latency into a throttle artifact. Prereq: npm i playwright@~1.63 (scratch dir), or pnpm dlx playwright install chromium.
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { performance } from 'node:perf_hooks'
 
 const REPO_ROOT = path.join('/tmp', 'syneva-bench', 'repos')
-// The bench redirects HOME (desk state isolation). Pin playwright's browser cache to the
-// user's real one before the redirect, or every launch would look in the tmp home first.
+// The bench redirects HOME (desk state isolation); pin playwright's browser cache to the user's
+// real one first, or every launch looks in the tmp home.
 if (!process.env.PLAYWRIGHT_BROWSERS_PATH && process.env.HOME)
 	process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(
 		process.env.HOME,
@@ -30,9 +20,9 @@ const median = xs =>
 	xs.length ? xs.toSorted((a, b) => a - b)[Math.floor(xs.length / 2)] : 0
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
-// Boot helper: a fresh hub per repo/session (`--port 0` randomizes the port) with one desk
-// opened on it; the returned url is the desk page. HOME is redirected so the persisted review
-// files and the hub registry never touch the user's state.
+// Boot helper: a fresh hub per repo/session (`--port 0` randomizes the port) with one desk opened
+// on it; returns the desk URL. HOME is redirected so review files and the hub registry never
+// touch the user's state.
 async function spawnDesk(repo, session, env) {
 	const CLI = path.join(process.cwd(), 'apps', 'syneva', 'dist', 'cli.js')
 	const { spawn, execFileSync } = await import('node:child_process')
@@ -75,9 +65,9 @@ async function spawnDesk(repo, session, env) {
 	return { desk, url: opened.url }
 }
 
-// Instrumentation injected before the desk boots: MutationObserver timestamps, longtask
-// census, Chrome LoAF script attribution, rAF gap census, and a fetch hook the latency
-// battery anchors on (keydown -> relevant api response end -> second following rAF).
+// Instrumentation injected before the desk boots: MutationObserver timestamps, longtask census,
+// LoAF attribution, rAF gap census, and the fetch hook the latency battery anchors on
+// (keydown → relevant api response end → second following rAF).
 const INIT = `(() => {
   window.__bench = { muts: [], longtasks: [], glyphs: [], loaf: [], net: [], wlog: [] }
   const push = (arr, v) => { if (arr.length < 5000) arr.push(v) }
@@ -104,7 +94,7 @@ const INIT = `(() => {
       push(window.__bench.net, { end: performance.now(), url: String(args[0]).split('?')[0] })
       return r
     })
-  // Worker census: postMessage traffic per desk boot (init acks + diff/file task results).
+  // Worker census: postMessage traffic per desk boot (init acks + task results).
   const OW = window.Worker
   if (OW) {
     window.Worker = class extends OW {
@@ -170,8 +160,8 @@ async function benchRepo(name) {
 	}
 	let playwright
 	try {
-		// Resolve from the CWD first (the bench is often run from a scratch dir where
-		// playwright is installed), then from this script's own module graph.
+		// Resolve from the CWD first (the bench runs from scratch dirs), then from this script's own
+		// module graph.
 		const { createRequire } = await import('node:module')
 		const { pathToFileURL } = await import('node:url')
 		const req = createRequire(path.join(process.cwd(), 'bench.cjs'))
@@ -187,10 +177,8 @@ async function benchRepo(name) {
 	const page = await browser.newPage()
 	await page.addInitScript(INIT)
 
-	// ── cold open ──────────────────────────────────────────────────────────────
-	// The opening file may be oversized: the desk paints a summary card ("Load diff anyway")
-	// instead of rows. Accept either surface; when the card shows, drive Enter and measure
-	// the card and the real rows separately.
+	// The opening file may paint a "Load diff anyway" summary card instead of rows: accept either
+	// surface, and on the card drive Enter and measure card and rows separately.
 	const navStart = Date.now()
 	await page.goto(url, { waitUntil: 'load', timeout: 30_000 })
 	const surface = await page
@@ -246,9 +234,9 @@ async function benchRepo(name) {
 		)
 		.catch(() => {})
 	const timeToTokens = Date.now() - navStart
-	// Windowed pool: fully colored = every token window for this open landed (the token-task
-	// log stops producing new results for a beat). Falls through when the SIZE flag made the
-	// pool take no work (page heavy-file stamp: the wlog just stays init-only).
+	// Windowed pool: fully colored = every token window landed (the token-task log stops producing
+	// new results for a beat); falls through when SIZE left the pool no work (the heavy-file stamp
+	// keeps the pool init-only).
 	const timeToFullyColored = await page
 		.waitForFunction(
 			() => {
@@ -268,11 +256,11 @@ async function benchRepo(name) {
 		.catch(() => -1)
 	await sleep(1500)
 
-	// Network + parse census for the state payload (large desks: one sample only - refetching
-	// a >40MB payload three times would blow the tab's heap).
+	// Network + parse census for the state payload (one sample on large desks - refetching a >40MB
+	// payload three times would blow the tab's heap).
 	const cold = await page.evaluate(async () => {
-		// payload executes in the tab (performance/resource entries live there) - the
-		// scoping rule cannot see the evaluate boundary.
+		// The payload census executes in the tab (performance/resource entries live there); the scoping
+		// rule cannot see the evaluate boundary.
 		// oxlint-disable-next-line unicorn/consistent-function-scoping
 		const payload = async p => {
 			const s = performance.now()
@@ -310,9 +298,8 @@ async function benchRepo(name) {
 		}
 	})
 
-	// ── interaction latency battery ────────────────────────────────────────────
-	// Keypress → settle latency: waitPaint resolves on the second rAF after the relevant
-	// response (/api/decide, /api/file-contents) or after the keypress when nothing posts.
+	// Keypress → settle latency: waitPaint resolves on the second rAF after the relevant response
+	// (/api/decide, /api/file-contents) or after the keypress when nothing posts.
 	async function keyLatency(key, wantUrl, samples = 3, settle = 350) {
 		const lat = []
 		for (let i = 0; i < samples; i++) {
@@ -342,10 +329,9 @@ async function benchRepo(name) {
 		nextFileMs.push(ms)
 		await sleep(350)
 	}
-	// Warm revisit: one file back - the metadata memo + instance cache should be warm.
+	// Warm revisit: one file back - metadata memo + instance cache warm.
 	const revisitMs = await keyLatency('Shift+ArrowLeft', null, 2, 150)
 
-	// ── scroll smoothness ──────────────────────────────────────────────────────
 	await page.mouse.move(320, 400)
 	await page.mouse.wheel(0, 1500)
 	await sleep(200)
@@ -359,7 +345,6 @@ async function benchRepo(name) {
 		}
 	})
 
-	// ── memory: open baseline vs after browsing past the cache cap ────────────
 	const cdp = await page.context().newCDPSession(page)
 	await cdp.send('Performance.enable')
 	const heap = async () =>
@@ -375,7 +360,6 @@ async function benchRepo(name) {
 	await sleep(4000)
 	const heapChurn = await heap()
 
-	// ── census + LoAF attribution ──────────────────────────────────────────────
 	const loaf = await page.evaluate(() => {
 		const agg = new Map()
 		for (const s of window.__bench.loaf) {

@@ -2,9 +2,6 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The two transient labels pinned over the workspace's foot: the toast (a
-// done thing, in the verdict's green) and the go-to-line register (a mode,
-// neutral). Square, ruled, like a tag at reading size.
 export const transient = stylex.create({
 	pinned: {
 		position: 'absolute',

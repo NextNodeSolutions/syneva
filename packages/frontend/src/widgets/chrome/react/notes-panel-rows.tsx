@@ -8,19 +8,12 @@ import { note as row, notes as panel } from './notes-panel.styles'
 import type { ReviewNote } from '@entities/review/notes'
 import type { ReactElement } from 'react'
 
-// The notes panel's row layer: one thread row (status, where, body, the agent's reply
-// on an answered question), the per-file sections it groups into, and the two full-bleed
-// empty states. Pure presentation - the visible list itself is derived by notesPanelView
-// in @entities/review/notes and shared with the cursor logic in the facade.
-
 function statusLabel(note: ReviewNote): string {
 	if (note.status === 'resolved') return 'resolved'
 	if (note.status === 'answered') return 'answered'
 	return note.kind === 'question' ? 'waiting' : 'open'
 }
 
-// The status tag's tone: petrol while the thread waits on someone, green once the
-// agent answered, neutral when settled.
 const STATUS_TONES = {
 	open: tag.accent,
 	answered: tag.green,
@@ -33,7 +26,6 @@ function whereLabel(note: ReviewNote): string {
 	return `line ${note.lineNumber}${end ? `\u2013${note.endLine}` : ''}`
 }
 
-// The row's first line: where the thread sits, a lost anchor, its status.
 function NoteTop({ note }: { note: ReviewNote }): ReactElement {
 	return (
 		<span {...stylex.props(row.top)}>
@@ -77,7 +69,6 @@ export function NoteRow({
 			data-cursor={cursor || undefined}
 			data-current={current || undefined}
 			onClick={() => {
-				// Click and cursor stay one state: landing on a row moves the cursor onto it.
 				S.notesCursor = index
 				S.jumpToNote?.(note)
 			}}
@@ -95,10 +86,9 @@ export function NoteRow({
 	)
 }
 
-// Consecutive same-path notes become one file group; the cursor index keeps running ACROSS
-// groups - it is the section's slice of the panel's flat visible rows (questions then
-// comments; startIndex is where this section begins), so a restart per file would give
-// several rows the same index and scramble the cursor.
+// Consecutive same-path notes become one file group; the cursor index keeps running ACROSS groups
+// - it is the section's slice of the panel's flat visible rows (startIndex is where the section
+// begins), so a per-file restart would give several rows the same index and scramble the cursor.
 function groupByFile(
 	notes: ReviewNote[],
 	startIndex: number,
@@ -117,7 +107,6 @@ function groupByFile(
 	return groups
 }
 
-// One file's rows under its sticky name.
 function FileGroup({
 	group,
 	currentPath,
@@ -132,8 +121,6 @@ function FileGroup({
 			</div>
 			{group.rows.map(entry => (
 				<NoteRow
-					// A thread always carries its anchor comment; the composite
-					// fallback keeps the key a string even if that invariant breaks.
 					key={
 						entry.note.comments[0]?.id ??
 						`${entry.note.path}:${entry.index}`
@@ -171,7 +158,6 @@ export function NoteSection({
 				)}
 			</div>
 			{!notes.length && <div {...stylex.props(panel.none)}>{empty}</div>}
-			{/* Grouped by file, in the notes' review order (files arrive ordered). */}
 			{groupByFile(notes, startIndex).map(group => (
 				<FileGroup
 					key={group.path}

@@ -6,9 +6,6 @@ import { resizer } from './resizer.styles'
 
 import type { PointerEvent, ReactElement } from 'react'
 
-// The tree's width: dragged on the rule between the tree and the diff, clamped
-// to a readable range, and written to --left-width on the document so every
-// column reflows from one write.
 const LEFT_WIDTH_DEFAULT_PX = 280
 const LEFT_WIDTH_RANGE = { min: 180, max: 520 }
 
@@ -32,7 +29,6 @@ export function Resizer({ hidden }: { hidden: boolean }): ReactElement {
 		const startWidth = currentWidth()
 		handle.setPointerCapture(event.pointerId)
 		setDragging(true)
-		// Per-drag closures over the origin, removed on release.
 		const onMove = (move: globalThis.PointerEvent): void => {
 			document.documentElement.style.setProperty(
 				'--left-width',

@@ -12,11 +12,7 @@
 		/>
 		<link rel="stylesheet" href="/styles.css" />
 		<style>
-			/* The hub dashboard speaks the public site's language (@syneva/design-system).
-			   These rules are the page's own: the shared stylesheet also serves the desk,
-			   so a reset there would reach it. There is no global :focus-visible rule here
-			   on purpose: an unlayered rule in this sheet would outrank the components'
-			   StyleX classes, which carry the one focus ring. */
+			/* No global reset or :focus-visible rule here on purpose: this sheet is shared with the desk, and an unlayered rule would outrank the components' StyleX classes, which carry the one focus ring. */
 			html {
 				background: var(--paper, #f6f6f0);
 			}
@@ -80,10 +76,7 @@
 			svg {
 				display: block;
 			}
-			/* A field with suggestions (New review's Repository) keeps them on typing and
-			   arrow keys, without the platform's dropdown triangle in the well. Chromium
-			   shows that triangle through an !important user-agent rule, which only an
-			   !important author rule outranks. */
+			/* Chromium shows the datalist triangle through an !important user-agent rule, which only an !important author rule hides. */
 			input::-webkit-calendar-picker-indicator {
 				display: none !important;
 			}

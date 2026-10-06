@@ -19,15 +19,11 @@ import { mdFile } from './mdfile.styles'
 import type { ReviewComment } from '@entities/review/model'
 import type { StaticStyle } from '@shared/lib/cx'
 
-// A markdown-block line has no display/raw split (D.lineMap is null here), so the source
-// line is the anchor directly. The composer renders inline via renderMarkdownFile below.
 function openComposerAt(lineNumber: number): void {
 	diffCtx().S.selected = { side: 'additions', lineNumber }
 	openComposer()
 }
 
-// A commentable block is any element carrying a source line, except the list
-// containers themselves (you comment on the individual <li>, not the whole list).
 function isAnchor(el: Element): boolean {
 	return (
 		el.hasAttribute('data-line') &&
@@ -36,9 +32,6 @@ function isAnchor(el: Element): boolean {
 	)
 }
 
-// The formatted markdown gets its own child of #diff, so the overlays below have a
-// container that survives them (they append/insert siblings around the blocks). The rendered
-// HTML is not ours to class: data-prose="document" carries its typography (prose.css).
 function createMarkdownContainer(): HTMLElement {
 	const container = document.createElement('div')
 	container.className = cx(mdFile.document)
@@ -47,12 +40,8 @@ function createMarkdownContainer(): HTMLElement {
 	return container
 }
 
-// The anchor's atomic classes, added onto whatever the markdown output already put on the block
-// (task-list and shiki classes): they set only the click affordance.
 const ANCHOR = cx(mdFile.anchor).split(' ')
 
-// Mark every commentable block, and return them in document order - the overlay below
-// resolves a comment's line to the last block starting at or before it.
 function markAnchors(container: HTMLElement): HTMLElement[] {
 	const anchors = [
 		...container.querySelectorAll<HTMLElement>('[data-line]'),
@@ -64,9 +53,6 @@ function markAnchors(container: HTMLElement): HTMLElement[] {
 	return anchors
 }
 
-// Click anywhere on a block to comment on it (ignore text selection, links, and clicks
-// inside an existing thread or the whole-file comment strip - their rendered bodies carry
-// data-line too). Delegated so it survives the per-render rebuild.
 function attachBlockCommentHandler(container: HTMLElement): void {
 	container.addEventListener('click', event => {
 		const { target } = event
@@ -77,16 +63,13 @@ function attachBlockCommentHandler(container: HTMLElement): void {
 			)
 		)
 			return
-		if (!window.getSelection()?.isCollapsed) return // user is selecting text
+		if (!window.getSelection()?.isCollapsed) return
 		const el = target.closest<HTMLElement>('[data-line]')
-		if (!el || !isAnchor(el)) return // clicked the list container gutter, not an item
+		if (!el || !isAnchor(el)) return
 		openComposerAt(Number(el.dataset.line))
 	})
 }
 
-// A comment's own block: inside the <li> for list items (indented under the item), after
-// the block otherwise - and appended to the end when its line has no block (a stale
-// anchor, e.g. the block was edited away while the comment stayed).
 function placeAt(
 	container: HTMLElement,
 	anchor: HTMLElement | null,
@@ -101,9 +84,6 @@ function isListItem(anchor: HTMLElement | null): boolean {
 	return anchor?.tagName === 'LI'
 }
 
-// The inline box a thread or a new comment's composer hangs in. Its placement is known before
-// it is built (placeAt), so a box tucked into a list item takes that style up front.
-// data-md-thread keeps a click inside it from opening another composer.
 function threadSlot(
 	anchor: HTMLElement | null,
 	...styles: StaticStyle[]
@@ -119,9 +99,6 @@ function threadSlot(
 	return slot
 }
 
-// Comments grouped by the source line they anchor to, each thread oldest-first. Whole-file
-// comments address the file as a whole and are hosted by markdownFileCommentStrip, so they
-// never join a block group.
 function groupCommentsByLine(
 	comments: ReviewComment[],
 ): Map<number, ReviewComment[]> {
@@ -137,7 +114,6 @@ function groupCommentsByLine(
 	return byLine
 }
 
-// Existing comment threads, overlaid at each comment's source line.
 function overlayThreads(
 	container: HTMLElement,
 	anchors: HTMLElement[],
@@ -149,7 +125,6 @@ function overlayThreads(
 		const status = comments.some(c => c.status === 'open')
 			? 'open'
 			: 'resolved'
-		// A resolved thread dims and folds to its summary here as it does in the diff.
 		const thread = threadSlot(
 			anchor,
 			status === 'resolved' && annotation.resolved,
@@ -168,8 +143,6 @@ function overlayThreads(
 	}
 }
 
-// A new line comment (no existing thread on that line) opens an inline composer under
-// its block; a reply/edit renders inside the thread above via buildCommentThread.
 function overlayComposer(
 	container: HTMLElement,
 	anchors: HTMLElement[],
@@ -188,10 +161,6 @@ function overlayComposer(
 	placeAt(container, anchor, card)
 }
 
-// Render the current markdown file as formatted HTML in #diff, with click-to-comment on
-// each block and existing comment threads overlaid at their source line. Replaces the
-// @pierre/diffs view; comments are still plain line-anchored ReviewComments, plus the whole-file
-// comment strip at the top (the rendered view replaces the file header entirely).
 export function renderMarkdownFile(): void {
 	const { path } = currentFile(
 		diffCtx().S.state?.files,
@@ -199,8 +168,6 @@ export function renderMarkdownFile(): void {
 		diffCtx().S.fileIndex,
 	)
 	const container = createMarkdownContainer()
-	// Contents come from the per-file fetch (render() awaits it before this runs); `cur` holds
-	// the current file's new-side bytes.
 	container.innerHTML = renderFileMarkdown(cur.newContents)
 	const anchors = markAnchors(container)
 	attachBlockCommentHandler(container)
@@ -216,13 +183,10 @@ export function renderMarkdownFile(): void {
 	)
 	overlayThreads(container, anchors, threadsByLine, path)
 	overlayComposer(container, anchors, threadsByLine)
-	// The file-comment strip leads the flow (a comment on the file addresses its first block too);
-	// null on a single-file desk with no whole-file comments.
 	const strip = markdownFileCommentStrip()
 	if (strip) container.insertBefore(strip, container.firstChild)
 }
 
-// The anchor whose data-line is the largest value <= line (the block the comment sits in).
 function anchorForLine(
 	anchors: HTMLElement[],
 	line: number,

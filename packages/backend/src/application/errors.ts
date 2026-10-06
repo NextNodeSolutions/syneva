@@ -1,7 +1,4 @@
-// Application-owned error the outbound adapters raise when a native/platform
-// failure crosses into a use case. The adapter keeps the original message (so
-// callers' user-facing wording is unchanged) and chains the underlying failure as
-// `cause`, preserving the whole diagnostic chain.
+// Application-owned error the outbound adapters raise when a native/platform failure crosses into a use case: the adapter keeps the original message (user-facing wording unchanged) and chains the underlying failure as `cause`.
 
 export class AdapterError extends Error {
 	constructor(message: string, options?: { cause?: unknown }) {
@@ -10,8 +7,7 @@ export class AdapterError extends Error {
 	}
 }
 
-// The message an error carries, whatever shape it was thrown in. Shared by the use
-// cases that surface a staged-patch conflict and by the HTTP failure responses.
+// The message an error carries, whatever shape it was thrown in; shared by the use cases surfacing a staged-patch conflict and by the HTTP failure responses.
 export function errorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error)
 }

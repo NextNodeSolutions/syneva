@@ -8,9 +8,7 @@ const SEE_OTHER = 303
 const wantsJson = (request: Request): boolean =>
 	request.headers.get('accept')?.includes('application/json') ?? false
 
-// The script asks for JSON and tells the outcome in the form's status line.
-// A form posted without scripts navigates: a signup lands on the home's
-// confirmation, anything else reads its message as plain text.
+// The script asks for JSON and shows the outcome in the status line; a no-JS post navigates: a signup lands on the home's confirmation, anything else reads its message as text.
 export function answer(request: Request, outcome: Outcome): Response {
 	const status = OUTCOME_STATUS[outcome]
 	if (wantsJson(request)) return Response.json({ outcome }, { status })

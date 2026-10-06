@@ -1,9 +1,6 @@
 import type { NavigationMorph } from './navigation-morph'
 import type { NavigationParts } from './navigation-parts'
 
-// The product menu's preview: the hovered or focused row moves the shared
-// selection background and puts its scene on stage, and the row and the
-// scene are marked for the styles. The menu starts on its first row.
 export class ProductPreview {
 	readonly #links: HTMLElement[]
 	readonly #scenes: HTMLElement[]
@@ -42,8 +39,6 @@ export class ProductPreview {
 			this.#morph.preview(this.#sceneOf(this.#selected), this.#selected)
 	}
 
-	// A row previews the scene its data-preview names: a row naming none
-	// would put nothing on stage.
 	#sceneOf(link: HTMLElement): HTMLElement {
 		const scene = this.#scenes.find(
 			candidate => candidate.dataset.scene === link.dataset.preview,

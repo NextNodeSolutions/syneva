@@ -39,8 +39,7 @@ const COMMENT_USAGE =
 const STATUS_USAGE =
 	'Usage: syneva status --body "..." [--session <id>] [--repo <path>]'
 
-// The desk an agent command targets, when the hub is up and hosts one for this repo: --session
-// names it, else the lone live desk. Null when there is no hub or no such desk.
+// The desk an agent command targets: --session names it, else the lone live desk; null when there is no hub or no such desk.
 async function targetDesk(
 	args: CliArgs,
 ): Promise<{ hub: HubConnection; desk: DeskSummary } | null> {
@@ -62,10 +61,8 @@ function noDeskHint(args: CliArgs): string {
 		: 'No live desk for this repo. Open one with: syneva open'
 }
 
-// `syneva comment --path <file> --line <n> [--side additions] --body "..."`
-// Posts an agent reply. If a live desk hosts the session, it goes over HTTP so the open tab
-// updates immediately; otherwise it is appended to the saved review for the next time the
-// desk opens.
+// Post an agent reply; over HTTP when a live desk hosts the session so the open tab updates
+// immediately, else appended to the saved review for the desk's next open.
 export async function runComment(args: CliArgs): Promise<void> {
 	const payload = parseCommentPayload(args)
 	if (!payload) {
@@ -121,10 +118,8 @@ function readCommentId(body: unknown): string | undefined {
 	return body.commentId
 }
 
-// `syneva status --body "..."` - post an ephemeral "what I'm doing now" line that shows next
-// to the reviewer's waiting indicator. No offline fallback: ephemeral status is meaningless
-// without a live desk, and it must never fail the agent loop - no desk just reports
-// { live: false }, exit 0.
+// No offline fallback: ephemeral status is meaningless without a live desk, and it must never fail
+// the agent loop - no desk just reports { live: false }, exit 0.
 export async function runStatus(args: CliArgs): Promise<void> {
 	const body = flagText(args, 'body')?.trim() ?? ''
 	if (!body) {
@@ -148,12 +143,8 @@ export async function runStatus(args: CliArgs): Promise<void> {
 	printJson({ ok: false, live: false, session: flagText(args, 'session') })
 }
 
-// `syneva await [--timeout <s>]` - block until the next desk event, then print it to stdout as
-// a tagged envelope and exit. The event is either
-//   {"kind":"question","question":{…},"questions":[…]} - answer it now
-//   {"kind":"review","result":{…ReviewResult…}}       - the reviewer hit Send
-//   {"kind":"closed","session":…}                      - the reviewer closed the desk
-// Call in a loop and branch on `kind`. Answer a question with `syneva comment`.
+// Block until the next desk event, print it as a tagged envelope, exit: question (answer now),
+// review (reviewer hit Send), closed. Call in a loop and branch on `kind`; answer via `syneva comment`.
 export async function runAwait(args: CliArgs): Promise<void> {
 	const live = await targetDesk(args)
 	if (!live) {
@@ -174,7 +165,7 @@ export async function runAwait(args: CliArgs): Promise<void> {
 		return
 	}
 	// A dead/unreachable desk must NOT return empty-and-0, or the spec's `while ev=$(syneva await)`
-	// loop would spin against a corpse - exit non-zero so the caller re-checks liveness instead.
+	// loop would spin against a corpse; exit non-zero so the caller re-checks liveness.
 	warn(
 		`Desk for session "${live.desk.session}" is not answering (closed, or the hub stopped? ${live.hub.url}).`,
 	)
@@ -190,8 +181,6 @@ function awaitUrl(
 	return timeout > 0 ? `${base}?timeout=${timeout}` : base
 }
 
-// `syneva reload [--guide <file>]` - re-diff the working tree into the live desk so the agent's
-// edits show up in the open tab; --guide swaps the attached review guide in the same round-trip.
 export async function runReload(args: CliArgs): Promise<void> {
 	const guide = loadGuideArg(args.guide)
 	if (guide === null) {
@@ -223,8 +212,7 @@ export async function runReload(args: CliArgs): Promise<void> {
 	})
 }
 
-// The body is always an object so an absent guide posts `{}` (re-diff only) rather than an
-// empty body the hub would have to special-case.
+// A body that is always an object so an absent guide posts {} (re-diff only) rather than an empty body the hub would have to special-case.
 function reloadBody(guide: Guide | undefined): { guide?: Guide } {
 	if (!guide) return {}
 	return { guide }
@@ -243,10 +231,8 @@ function readReloadResult(body: unknown): {
 	return outcome
 }
 
-// `syneva close [--session <id> | --all]` (alias: stop) - close this repo's live desk(s) on the
-// hub. Idempotent: exit 0 whether or not anything was open, so agents can call it unconditionally
-// when a review round settles. The hub tells a parked waiter (a `closed` event) and keeps the
-// review state saved; the hub itself keeps running.
+// Idempotent: exit 0 whether or not anything was open, so agents call it unconditionally when a
+// round settles; the hub tells a parked waiter (a `closed` event) and keeps the review saved.
 export async function runClose(args: CliArgs): Promise<void> {
 	const hub = await connectHub(args, { autostart: false })
 	if (!hub) {
@@ -271,6 +257,6 @@ export async function runClose(args: CliArgs): Promise<void> {
 			if (response.status === HTTP_OK) closed.push(desk.session)
 		}),
 	)
-	// `stopped` is the name the previous contract printed; both ride for a transition.
+	// stopped is the name the previous contract printed; both ride for a transition.
 	printJson({ ok: true, stopped: closed, closed })
 }

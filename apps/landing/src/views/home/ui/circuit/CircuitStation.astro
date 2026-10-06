@@ -1,7 +1,4 @@
 ---
-// A station platform on the circuit: its foot and rim, its ports and its
-// caption. Circuit.astro passes what stands on it: the source's stack of
-// sheets, or the verdict's accepted sheet and seal.
 import { sx } from '@shared/lib/sx'
 import { PLATFORM_X, portsOn, ROW } from './circuit-layout'
 import { circuit } from './circuit.styles'
@@ -13,7 +10,6 @@ const STATION = {
 	source: { css: circuit.sourceStation, title: 'Your full diff', detail: 'Every change from your agent' },
 	verdict: { css: circuit.verdictStation, title: 'Ship with confidence', detail: 'Code you’ve reviewed' },
 }
-// The rim hangs 7 under the platform's side corners and 69 under its front.
 const RIM = 'M-124 0v7L0 69 124 7V0'
 const station = STATION[kind]
 ---

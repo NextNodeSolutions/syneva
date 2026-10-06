@@ -2,11 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import { color, duration, ease } from './tokens.stylex'
 
-// A share of a whole drawn as a thin track (the site's "1 of 5 settled"
-// bar): green, because what it counts is the reviewer's verdict. The fill
-// spans the track and scales to its ratio, so a change of share eases
-// instead of jumping; a whole of nothing is a dashed rule, not an empty
-// track that would read as 0%.
+// Green: what it counts is the reviewer's verdict. A whole of nothing is a dashed rule, not a track that would read as 0%.
 export const meter = stylex.create({
 	track: {
 		position: 'relative',
@@ -27,7 +23,6 @@ export const meter = stylex.create({
 		backgroundColor: color['--green'],
 		transition: `transform ${duration['--duration-shift']} ${ease['--ease-out']}`,
 	},
-	// Composed over track when there is nothing to count.
 	empty: {
 		height: 0,
 		backgroundColor: 'transparent',

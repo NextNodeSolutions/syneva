@@ -4,7 +4,6 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 
-// The keyboard map: two ruled columns of key and action, one on phones.
 export const kbdGrid = stylex.create({
 	root: {
 		display: 'grid',

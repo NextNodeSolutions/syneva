@@ -2,25 +2,15 @@ import type { AwaitEvent, QuestionPayload } from '@syneva/contracts/agent'
 
 export type EventStream = {
 	emit(event: AwaitEvent): void
-	// The next deliverable event, with queued questions drained into one batch when the head is a
-	// question; undefined when nothing is queued.
 	takeNext(): AwaitEvent | undefined
-	// Park a waiter for the next event; returns the undo (also used when the long-poll gives up).
 	park(waiter: (event: AwaitEvent) => void): () => void
 	listenerCount(): number
 	queuedCounts(): { questions: number; reviews: number }
 }
 
-// The desk's tagged event stream: `syneva await` is a stream of "question" (reviewer clicked Ask,
-// wants an answer now) and "review" (reviewer hit Send). An event hands straight to a parked waiter,
-// else queues (FIFO) until one arms.
-//
-// Two invariant-preserving rules live here rather than in the routes:
-//  - A Send flushes every still-queued question: the review supersedes them (their unanswered ones
-//    ride out in result.openQuestions), so a stale question can never dribble in after the round
-//    lands.
-//  - Draining all queued questions into one event is safe BECAUSE of the flush above: a review can
-//    never sit between two queued questions, so a batch can't skip past one.
+// `syneva await` streams "question" (answer now) and "review" (Send); an event hands to a parked waiter, else queues FIFO.
+// Two invariant rules live here rather than in the routes: a Send flushes every still-queued question (the review supersedes them; their unanswered ones ride out in result.openQuestions - a stale question can never dribble in after the round).
+// Draining all queued questions into one event is safe BECAUSE of that flush (a review can never sit between two queued questions, so a batch can't skip past one).
 export function createEventStream(): EventStream {
 	const waiters: Array<(event: AwaitEvent) => void> = []
 	const queue: AwaitEvent[] = []
@@ -58,9 +48,6 @@ export function createEventStream(): EventStream {
 	}
 }
 
-// All queued questions as one event, oldest first: singular `question` is the oldest (kept for
-// compatibility), `questions` holds every question in arrival order. Undefined only when the
-// queue holds no question at all (the caller then delivers nothing).
 function drainQuestions(queue: AwaitEvent[]): AwaitEvent | undefined {
 	const batched: QuestionPayload[] = []
 	for (let index = queue.length - 1; index >= 0; index--) {

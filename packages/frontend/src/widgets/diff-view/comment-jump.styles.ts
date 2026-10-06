@@ -8,9 +8,6 @@ const flash = stylex.keyframes({
 	'100%': { backgroundColor: 'transparent' },
 })
 
-// A thread jumped to from the blockers list or the notes panel (the
-// file-comment section's or the unanchored strip's): an amber wash that fades
-// out, so the eye lands on it.
 export const jump = stylex.create({
 	flash: {
 		animationName: flash,

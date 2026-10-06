@@ -28,7 +28,6 @@ function changeAnnotation(
 	}
 }
 
-// Every pending change carries its accept/reject bar under the block's last display line.
 function pushChange(annotations: AnnotationInput[], ch: ChangeState): void {
 	annotations.push(
 		changeAnnotation(

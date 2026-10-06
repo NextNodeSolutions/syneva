@@ -7,17 +7,8 @@ import type { ReviewerSavePatch } from '../../../application/send-review.js'
 import type { Decision, ReviewComment } from '../../../domain/review.js'
 import type { ApiFailure } from './failure.js'
 
-// Transport DTO decode for the reviewer-owned slice carried by /save and /send
-// bodies. The raw JSON is shaped into domain records field by field - never cast - so a
-// malformed patch is rejected here (422) instead of reaching the review state, where it
-// would fail later during result building, polling, or reconciliation. A key that is
-// absent from the body is left untouched (snapshot semantics, latest wins: a stale open
-// tab may still POST the whole old ReviewState - everything not allowlisted is ignored).
-// Domain business rules (hash freshness, comment anchoring) stay in the application/domain.
-//
-// Required-field decoders return null (not undefined) on absence/wrong kind - see the
-// rationale on dto.ts in the filesystem adapter: a null comparison keeps legitimate
-// falsy values (empty string, 0) distinguishable from a missing field.
+// Raw JSON shaped into domain records field by field - never cast - so a malformed patch is rejected here (422) instead of failing later during result building, polling or reconciliation; a key absent from the body is left untouched (snapshot semantics, latest wins).
+// Required-field decoders return null (not undefined) on absence/wrong kind - see dto.ts: a null comparison keeps legitimate falsy values distinguishable from a missing field.
 
 export const INVALID_SAVE: ApiFailure = {
 	status: HTTP_UNPROCESSABLE,
@@ -34,10 +25,6 @@ function isRecord(raw: unknown): raw is Record<string, unknown> {
 }
 
 export function parseReviewerSave(body: unknown): ReviewerSavePatch | null {
-	// The reviewer-owned KEY policy is application-owned (reviewerSavePatch): one list decides
-	// which keys a save may carry. This decode adds what the transport owes on top - the
-	// record-level DTO validation that turns a syntactically valid body with a malformed
-	// record into a 422 instead of a corrupt patch reaching the review state.
 	const slice = reviewerSavePatch(body)
 	const patch: ReviewerSavePatch = {}
 	if ('decisions' in slice) {
@@ -67,8 +54,6 @@ export function parseReviewerSave(body: unknown): ReviewerSavePatch | null {
 	}
 	return patch
 }
-
-// ── per-field decoders ──────────────────────────────────────────────────────────
 
 function parseDecisions(raw: unknown): Decision[] | null {
 	if (!Array.isArray(raw)) return null
@@ -119,16 +104,12 @@ function parseComment(raw: unknown): ReviewComment | null {
 	if (!isRecord(raw)) return null
 	const core = parseCommentCore(raw)
 	if (core === null) return null
-	// A comment's side normalizes through the domain rule (a whole-file comment carries
-	// the additions placeholder whatever arrived - see commentSide).
 	const side = commentSide(asSide(raw.side) ?? 'additions', core.lineNumber)
-	// A present endLine must be a finite number - anything else is a 422.
 	const endLine = raw.endLine ? asFiniteNumber(raw.endLine) : undefined
 	if (endLine === null) return null
 	return { ...core, ...parseCommentMeta(raw), side, endLine }
 }
 
-// The required comment fields: all-or-nothing, so a body missing any one of them is a 422.
 function parseCommentCore(raw: Record<string, unknown>): {
 	id: string
 	path: string
@@ -158,7 +139,6 @@ function parseCommentCore(raw: Record<string, unknown>): {
 	return { id, path, body, createdAt, updatedAt, lineNumber, status }
 }
 
-// The optional comment fields.
 function parseCommentMeta(
 	raw: Record<string, unknown>,
 ): Partial<ReviewComment> {

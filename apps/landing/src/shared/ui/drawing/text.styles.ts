@@ -4,11 +4,7 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 
 import { drawingMarker } from './drawing.stylex'
 
-// Text sizes are SVG user units: figures render between roughly 0.75x
-// (phones) and 1.25x (desktop chapters). On phones, reframed drawings and
-// small state diagrams grow their faintest words instead of letting them
-// shrink into microtext.
-// Dense diagrams are compact too: the compact rule leaves them to their own.
+// Text sizes are SVG user units (figures render between ~0.75x phones and 1.25x desktop); reframed drawings and small state diagrams grow their faintest words instead of shrinking into microtext.
 const compact = (): string =>
 	stylex.when.ancestor(':not(.is-dense)[data-compact]', drawingMarker)
 const dense = (): string =>
@@ -68,7 +64,7 @@ export const text = stylex.create({
 		letterSpacing: '-.02em',
 		fill: color['--ink'],
 	},
-	// Modifiers, applied after their base.
+	// Applied after their base.
 	strong: { fontWeight: 600 },
 	green: { fill: color['--green'] },
 	accent: { fill: color['--accent'] },

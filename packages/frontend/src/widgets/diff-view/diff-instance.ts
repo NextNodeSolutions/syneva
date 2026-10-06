@@ -29,12 +29,7 @@ import type { WorkerPoolManager } from '@pierre/diffs/worker'
 type ReviewFile = ReviewState['files'][number]
 type DiffOptions = FileDiffOptions<AnnotationMeta, undefined>
 
-// One FileDiff per file on screen - Pierre's model: keep the instance while its host stays
-// mounted and call render() again when the data changes; Pierre skips what did not change (the
-// same diff keeps its highlighted render, the same annotations keep their DOM, see
-// diff-metadata.ts and stable-annotations.ts). Another file - or a preview - gets a fresh
-// instance: Pierre keeps hunk expansions per instance across diffs, so one instance reused across
-// files would carry expansions over by hunk index.
+// One kept instance per file; a NEW instance per file change, because Pierre keeps hunk expansions per instance across diffs (a reused instance would carry expansions over by hunk index).
 type Surface = {
 	key: string
 	instance: FileDiff<AnnotationMeta>
@@ -44,9 +39,7 @@ type Surface = {
 }
 let surface: Surface | null = null
 
-// Pierre's surface choice: FileDiff for a diff, VirtualizedFileDiff for a very large one - it
-// renders only the rows in and around the viewport, where a full render of a file this long
-// blocks the page for seconds on every pass. Measured on the file's longer side.
+// Pierre's surface choice: VirtualizedFileDiff for a very large file - it renders only the rows around the viewport, where a full render of a file that long blocks the page for seconds on every pass; measured on the file's longer side.
 const VIRTUALIZE_FROM_LINES = 3000
 
 function isVeryLarge(metadata: FileDiffMetadata): boolean {
@@ -76,10 +69,6 @@ function mountSurface(
 	return { key, instance: D.instance, container, wrapper, options }
 }
 
-// Pierre's vanilla wiring: the virtualizer takes the scroll root and the content wrapper it
-// tracks, and the instance renders through it.
-// The surface's DOM: the scroll root, the content wrapper the virtualizer tracks, and the
-// file's own container.
 type SurfaceDom = {
 	host: HTMLElement
 	wrapper: HTMLElement
@@ -107,15 +96,12 @@ function mountVirtualized(
 	return instance
 }
 
-// The kept surface is live only while it is still this file's AND still the mounted instance:
-// render.ts cleans the instance up whenever another view takes the pane.
 function isLive(current: Surface | null, key: string): current is Surface {
 	return current?.key === key && current.instance === diffCtx().D.instance
 }
 
-// Hand changed options to a kept instance through Pierre's targeted APIs: an appearance flip only
-// swaps theme CSS (setThemeType); anything else replaces the options, and the render that follows
-// must be forced (render() compares data, not options). Returns whether it must.
+// Hand changed options to a kept instance through Pierre's targeted APIs: an appearance flip only swaps theme CSS (setThemeType).
+// Anything else replaces the options, and the render that follows must be forced (render() compares data, not options).
 function applyOptions(kept: Surface, options: DiffOptions): boolean {
 	if (areOptionsEqual(kept.options, options)) return false
 	const { themeType } = options
@@ -132,9 +118,6 @@ export async function renderDiffInstance(
 	isCurrent: () => boolean,
 ): Promise<void> {
 	if (!isCurrent()) return
-	// One stamp per diff pass (the bench reads interaction latency from it): the span covers the
-	// metadata and Pierre's synchronous DOM build - tokenizing runs in its worker pool, and colors
-	// that land later re-render through Pierre itself.
 	const endRender = perfSpan('diff:render')
 	const host = $('diff')
 	const view = currentDiffView()
@@ -160,8 +143,6 @@ export async function renderDiffInstance(
 		forceRender: isOptionsChanged,
 	})
 	refreshDiffHeader(metadata, view.isPreviewing)
-	// A kept instance updates in place and keeps the reader where they were; a new file starts at
-	// the top.
 	host.scrollTop = kept ? readerScrollTop : 0
 	endRender({ path: file.path, isReused: Boolean(kept) })
 	if (!view.isPreviewing) revealThreadLines()

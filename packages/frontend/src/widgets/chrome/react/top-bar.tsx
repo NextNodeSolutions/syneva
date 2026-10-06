@@ -19,9 +19,6 @@ import { topBar } from './top-bar.styles'
 
 import type { ReactElement } from 'react'
 
-// The top bar: brand, lenses, agent status, progress, and the desk-level actions.
-
-// One lens button inside its segmented register.
 function Lens({
 	on,
 	tipText,
@@ -45,11 +42,9 @@ function Lens({
 	)
 }
 
-// The view lenses: hide-reviewed (multi-round reviews) and the markdown
-// rendered/source pair - each only when it applies to the current file.
 function TopLenses(): ReactElement {
 	const { S } = chromeCtx()
-	// Its own subscription: a lens flips without anything else on the bar changing.
+	// Its own subscription: a lens flips without anything else on the bar changing (and the thread count below the same - own subscription so a poll doesn't drag every desk button).
 	useStoreFields('state', 'fileIndex', 'fileView', 'settings')
 	return (
 		<div {...stylex.props(topBar.lenses)}>
@@ -110,12 +105,8 @@ function AgentStatus(): ReactElement {
 	)
 }
 
-// The compact tile every top-bar action starts from.
 const tile = [press.control, control.base, deskControl.compact]
 
-// The notes-panel trigger: a labelled button with the open-thread count riding it.
-// Own subscription: the count re-derives off `state` without dragging the other
-// desk buttons into every poll.
 function NotesButton(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields('state', 'notesOpen')
@@ -137,9 +128,6 @@ function NotesButton(): ReactElement {
 	)
 }
 
-// The desk-level actions: notes, settings, reset, send, close. Each is a store method
-// call - the confirm gates live behind the facade methods. Settings sits here only
-// on a desk without a tree (the tree docks it otherwise).
 function DeskButtons(): ReactElement {
 	const { S } = chromeCtx()
 	return (

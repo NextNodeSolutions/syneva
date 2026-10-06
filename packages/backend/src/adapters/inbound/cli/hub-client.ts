@@ -19,9 +19,7 @@ import { readDesks } from './hub-wire.js'
 import type { DeskSummary, HubHealth } from '@syneva/contracts/hub'
 import type { CliArgs } from './args.js'
 
-// The CLI's client to the hub. Everything the agent subcommands send or receive goes through
-// here so the wire shapes (desk summaries, comment ids, reload results, await events) are read
-// in one place instead of via casts at each call site - and so the hub is found one way.
+// Everything the agent subcommands send or receive goes through here: the wire shapes are read field by field in one place (never casts at call sites) and the hub is found one way.
 
 const HEALTH_TIMEOUT_MS = 1500
 const POST_TIMEOUT_MS = 10_000
@@ -31,7 +29,6 @@ const NO_CONTENT = 204
 const UNAUTHORIZED = 401
 
 export type HubConnection = {
-	// The hub origin with a trailing slash (every endpoint joins onto it).
 	url: string
 	key: string | undefined
 	health: HubHealth
@@ -39,9 +36,7 @@ export type HubConnection = {
 
 export type JsonResponse = { status: number; body: unknown }
 
-// The hub a command talks to: `--hub` / SYNEVA_HUB when the user named one (a hosted hub),
-// else the hub this machine's lock recorded (when its process is alive), else the default
-// loopback origin (with `--port` / SYNEVA_PORT honored).
+// `--hub` / SYNEVA_HUB when the user named one (a hosted hub), else the hub this machine's lock recorded (when its process is alive), else the loopback origin (honoring `--port` / SYNEVA_PORT).
 export async function resolveHubUrl(args: CliArgs): Promise<string> {
 	const configured = flagText(args, 'hub') ?? process.env.SYNEVA_HUB
 	if (configured) return withTrailingSlash(configured)
@@ -106,9 +101,9 @@ function readHealth(body: unknown): HubHealth | null {
 	}
 }
 
-// Reach the hub, starting one in the background when none answers and the caller allows it
-// (desk opens do; the agent loop commands don't - a missing hub there means the review is
-// over, not that one should spring up). Null when no hub answers.
+// Reach the hub, spawning one detached when none answers and the caller allows it (desk opens
+// do; agent loop commands don't - a missing hub means the review is over, not that one should
+// spring up). Null when no hub answers.
 export async function connectHub(
 	args: CliArgs,
 	options: { autostart: boolean },
@@ -125,8 +120,7 @@ export async function connectHub(
 	return { url, key, health: started }
 }
 
-// A key-protected hub is "reachable" only with its key: say so here, once, instead of letting
-// every command read a 401 as an empty hub. The probe is the cheapest authenticated read.
+// A key-protected hub is "reachable" only with its key: say so here, once, instead of letting every command read a 401 as an empty hub; the probe is the cheapest authenticated read.
 async function authorized(hub: HubConnection): Promise<HubConnection | null> {
 	if (!hub.health.keyRequired) return hub
 	if (!hub.key) {
@@ -143,17 +137,16 @@ async function authorized(hub: HubConnection): Promise<HubConnection | null> {
 	return hub
 }
 
-// Only a loopback hub this CLI would itself bind is auto-started: a named remote hub (SYNEVA_HUB)
-// is somebody else's to run, and SYNEVA_NO_AUTOSTART=1 opts out entirely.
+// Only a loopback hub this CLI would itself bind is auto-started: a named remote hub (SYNEVA_HUB) is somebody else's to run; SYNEVA_NO_AUTOSTART=1 opts out entirely.
 function canAutostart(args: CliArgs, url: string): boolean {
 	if (process.env.SYNEVA_NO_AUTOSTART) return false
 	if (flagText(args, 'hub') ?? process.env.SYNEVA_HUB) return false
 	return url.startsWith('http://127.0.0.1:')
 }
 
-// Spawn `syneva start --no-open` detached: its stdio goes to ~/.syneva/hub/hub.log, it outlives
-// this CLI process, and it is idempotent - a hub that finds the port already answered by a hub
-// simply exits, so two agents racing to open the first desk end up on one hub.
+// Spawn `syneva start --no-open` detached: stdio to ~/.syneva/hub/hub.log, outliving this CLI
+// process, and idempotent - a second hub finding the port already answered exits, so two agents
+// racing to open the first desk land on one hub.
 export function startDetachedHub(args: CliArgs): void {
 	const entry = realpathSync(process.argv[1] ?? '')
 	const port = flagText(args, 'port') ?? process.env.SYNEVA_PORT
@@ -225,8 +218,7 @@ export async function hubSend(
 	}
 }
 
-// RequestInit.body admits no undefined under exactOptionalPropertyTypes: a bodiless request
-// (DELETE) gets no key at all, a payload gets its JSON.
+// RequestInit.body admits no undefined under exactOptionalPropertyTypes: a bodiless request (DELETE) gets no key at all, a payload gets its JSON.
 function jsonBody(payload: object | undefined): { body: string } | undefined {
 	if (!payload) return undefined
 	return { body: JSON.stringify(payload) }
@@ -242,8 +234,7 @@ async function readJson(response: Response): Promise<unknown> {
 	}
 }
 
-// GET with no client-side timeout, so a long-poll holds until the hub responds. Avoids undici's
-// ~5min headersTimeout that fetch() imposes.
+// GET with no client-side timeout, so a long-poll holds until the hub responds; avoids undici's ~5min headersTimeout that fetch() imposes.
 export function httpGetJson(
 	url: string,
 	key: string | undefined,
@@ -273,9 +264,7 @@ function parseJson(text: string): unknown {
 
 export { NO_CONTENT }
 
-// The desk a command targets: `--session` names it, else the lone live desk of this repo
-// (so the agent needn't know the session), else null. Several live desks and no --session is
-// ambiguous: say so and stop rather than guess.
+// `--session` names the desk, else the lone live desk of this repo; several live desks and no --session is ambiguous: say so and stop rather than guess.
 export async function findDesk(
 	hub: HubConnection,
 	root: string,

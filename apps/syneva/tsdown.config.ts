@@ -1,17 +1,8 @@
 import baseConfig from '@nextnode-solutions/standards/tsdown'
 import { defineConfig } from 'tsdown'
 
-// The published package's two bundles (the assembly flow lives in
-// scripts/build-dist.mjs, which calls tsdown's build API with this config):
-//
-// - cli: the bin (dist/cli.js, shebang kept from the entry source).
-// - pi-bridge: the module the pi extension imports at runtime (BRIDGE path in
-//   extension/syneva.ts - a dynamic path, never a static import, so no dts).
-//
-// The backend workspace package is bundled from its TS entry; its internal
-// .js specifiers resolve to the .ts sources. @syneva/backend and
-// @syneva/contracts are regular dependencies (bundled); the harness peers in
-// peerDependencies stay external and resolve from the host pi install.
+// Two bundles (assembly: scripts/build-dist.mjs): cli = the bin (dist/cli.js, shebang kept from the entry source); pi-bridge = the module the pi extension imports at runtime (dynamic path, no dts).
+// The backend bundles from its TS entry (internal .js specifiers resolve to .ts sources); harness peers stay external on the host install.
 export default defineConfig({
 	...baseConfig,
 	entry: {

@@ -16,12 +16,7 @@ type ConfirmCloseProps = {
 	actions: CloseActions
 }
 
-// An armed close: Close desk, then Keep (the secondary text link) at the row's end; both are
-// described by the row's warning, so whichever holds focus says what closing does. Focus
-// leaving the pair for another element disarms it; a blur to nowhere (a click on bare page,
-// or Safari, which does not focus a clicked button) leaves it armed: Keep, Escape (the owner
-// listens on the document) or arming another row still disarm it. While the hub closes the
-// desk, Close desk is busy and Keep holds still.
+// A blur to nowhere (a click on bare page, or Safari, which does not focus a clicked button) must not disarm: Keep, Escape or arming another row still does.
 export function ConfirmClose({
 	session,
 	isClosing,

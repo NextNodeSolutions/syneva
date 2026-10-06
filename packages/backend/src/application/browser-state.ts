@@ -17,18 +17,11 @@ import type {
 	ReviewState,
 } from '../domain/review.js'
 
-// The browser projection: the one place the domain review is translated onto the wire
-// DTOs. Every level is mapped field by field - files, and the nested change/comment/
-// decision/guide records - so a future backend-only field stays private until it is
-// allowlisted here, and no domain record object is ever shared with the wire (the
-// serializer and the browser each own their copies).
+// The one place the domain review translates onto the wire DTOs, field by field: a future backend-only field stays private until allowlisted here.
+// No domain record is ever shared with the wire - the serializer and the browser each own their copies.
 
-// Optional DTO fields that are absent on the source record stay absent on the wire object:
-// a key explicitly set to undefined is noise in equality checks and diagnostics. A JSON
-// round-trip strips exactly those keys (JSON.stringify omits undefined-valued properties,
-// and nothing else - every wire DTO field is JSON-safe) and keeps legitimate falsy values
-// (false, 0, ''). structuredClone would NOT strip them (an undefined-valued key survives
-// the clone), so the round-trip is the correct primitive here.
+// Optional DTO fields that are absent on the source record stay absent on the wire object: a key explicitly set to undefined is noise in equality checks and diagnostics.
+// A JSON round-trip strips exactly those keys (JSON.stringify omits undefined-valued properties, and nothing else - every wire DTO field is JSON-safe) and keeps legitimate falsy values (false, 0, '').
 // oxlint-disable-next-line unicorn/prefer-structured-clone
 function withoutUndefined<Dto extends object>(dto: Dto): Dto {
 	// structuredClone keeps undefined-valued keys (they survive the clone) - only the
@@ -44,7 +37,6 @@ function browserFile(file: ReviewFile): BrowserReviewFile {
 		newPath: file.newPath,
 		contentHash: file.contentHash,
 		changeKind: file.changeKind,
-		// Launch/reload rebuild files with counts before merging any saved reviewer records.
 		added: file.added ?? 0,
 		removed: file.removed ?? 0,
 		hasHunks: file.hunks.length > 0,
@@ -88,8 +80,6 @@ function browserChange(change: DomainChange): ChangeState {
 		stageable: change.stageable,
 		contentHash: change.contentHash,
 		reviewedHash: change.reviewedHash,
-		// Display anchors are the browser's own derived projection (syncDisplayAnchors) -
-		// never carried from the domain record.
 	})
 }
 
@@ -116,8 +106,7 @@ function browserGuide(guide: DomainGuide): Guide {
 	})
 }
 
-// Allowlist every level: spreading the backend state/files would silently expose future fields.
-// Do not mutate or clone diff bodies; staging and reconciliation still own the originals.
+// Allowlist every level: spreading the backend state/files would silently expose future fields. Do not mutate or clone diff bodies - staging and reconciliation still own the originals.
 export function browserState(state: ReviewState): BrowserReviewState {
 	return withoutUndefined({
 		root: state.root,

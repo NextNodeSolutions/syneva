@@ -1,14 +1,7 @@
-// Generates src/shared/ui/icon-data.ts by inlining SVGs from the Iconify API (https://icones.js.org).
-// Run: node scripts/fetch-icons.mjs   (from packages/frontend)
-//
-// To try a different icon set, edit ICON_MAP - values are Iconify ids ("prefix:name"); browse
-// sets at icones.js.org (e.g. solar, ph for Phosphor, lucide, tabler). The whole UI swaps in one
-// re-run. The result is inlined into the committed data file, so the app keeps zero runtime deps
-// and never hits the network at runtime.
+// Regenerates src/shared/ui/icon-data.ts by inlining SVGs from the Iconify API (edit ICON_MAP, re-run): committed inline keeps zero runtime dependencies and no runtime network.
 import { writeFileSync } from 'node:fs'
 
-// Lucide: a clean, consistent line set (the icons inherit currentColor; each path carries its own
-// stroke attributes). Editor-grade coverage of every primitive we need.
+// Lucide: clean line set, icons inherit currentColor; editor-grade coverage of every primitive needed.
 const ICON_MAP = {
 	'gly-chevron': 'lucide:chevron-right',
 	'gly-folder': 'lucide:folder',
@@ -17,30 +10,23 @@ const ICON_MAP = {
 	'gly-flag': 'lucide:flag',
 	'gly-collapse-all': 'lucide:chevrons-up',
 	'gly-expand-all': 'lucide:chevrons-down',
-	// Chrome buttons + markers (were unicode/emoji).
 	'gly-settings': 'lucide:settings',
 	'gly-home': 'lucide:house',
 	'gly-arrow-left': 'lucide:arrow-left',
 	'gly-arrow-right': 'lucide:arrow-right',
 	'gly-warn': 'lucide:triangle-alert',
 	'gly-open-editor': 'lucide:square-arrow-out-up-right',
-	// Whole-file comment (the file header / guide bar's comment trigger).
 	'gly-comment': 'lucide:message-square',
-	// Walkthrough per-file status trio (gly-check doubles as the approved state).
 	'gly-circle': 'lucide:circle',
 	'gly-circle-alert': 'lucide:circle-alert',
-	// The top bar's file-drawer toggle (tablets) and a panel's close.
 	'gly-menu': 'lucide:menu',
 	'gly-close': 'lucide:x',
 }
 
-// The line weight of the public site's drawings and controls (@syneva/design-system): Lucide
-// ships a 2-unit stroke, set lighter here so the icons sit with the site's thin rules.
+// 1.5 stroke: Lucide ships 2 units; lighter sits with the site's thin rules.
 const STROKE_WIDTH = '1.5'
 
-// Hand-drawn glyphs with no good library equivalent (status primitives). 24-unit viewBox to
-// match the fetched set so they scale identically. The pending dot is square, like every
-// live marker of the design system.
+// Hand-drawn glyphs with no library equivalent (status primitives); 24-unit viewBox matches the fetched set so they scale identically.
 const CUSTOM = {
 	'gly-dot': {
 		vb: '0 0 24 24',

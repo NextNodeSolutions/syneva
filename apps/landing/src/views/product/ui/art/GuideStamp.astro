@@ -1,5 +1,4 @@
 ---
-// Walkthrough: a guide is stamped to the diff it was written for.
 import { commandOf } from '@entities/desk/model/agent-contract'
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -7,7 +6,6 @@ import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 
-// The reload that swaps a new guide in, as the agent runs it.
 const SWAP_GUIDE = `${commandOf('reload')} --guide`
 ---
 

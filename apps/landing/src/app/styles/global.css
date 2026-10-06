@@ -1,12 +1,8 @@
-/* The document base: the reset and the element typography every page
-   shares; the font faces come from @syneva/design-system/fonts.css.
-   Components style themselves with StyleX, whose atomic rules always win
-   over these element rules; the variables come from @syneva/design-system
-   and keep their literal names (var(--paper), var(--accent), ...). */
+/* Element rules lose to StyleX atomic rules by design; variables come from @syneva/design-system and keep their literal var(--x) names. */
 * {
 	box-sizing: border-box;
 }
-/* An anchored section lands clear of the docked header's sheet. */
+/* scroll-padding below the sheet keeps a section anchored above it */
 html {
 	scroll-behavior: smooth;
 	scroll-padding-top: 96px;
@@ -82,17 +78,15 @@ code {
 	background: var(--wash);
 	color: var(--ink);
 	padding: 1px 5px;
-	/* A chip split across lines looks broken; the commands it holds are short. */
+	/* a chip split across lines looks broken; the commands it holds are short */
 	white-space: nowrap;
 }
-/* Without scripts the header lists its sections as plain links; markup inside
-   <noscript> is raw text to a scripted page, so it carries no classes. */
+/* markup inside <noscript> parses as raw text on a scripted page, so the fallback carries no styling hooks */
 [data-navigation] noscript a {
 	margin-inline: 8px;
 }
 
-/* Reduced motion is the complete static page: no smooth scrolling, no
-   transition, no keyframe animation (the runtime cancels its own). */
+/* Reduced motion is the full static page: no smooth scroll, no transition, no keyframe (the runtime cancels its own). */
 @media (prefers-reduced-motion: reduce) {
 	html {
 		scroll-behavior: auto;

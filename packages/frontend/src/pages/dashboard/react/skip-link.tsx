@@ -6,7 +6,6 @@ import { skipLink } from './skip-link.styles'
 
 import type { ReactElement } from 'react'
 
-// The first stop of the tab order: straight to the page, past the sidebar.
 export function SkipLink(): ReactElement {
 	return (
 		<a

@@ -5,9 +5,7 @@ import { color } from '@syneva/design-system/tokens.stylex'
 import { navMarker } from './markers.stylex'
 import { dockClock, navDock } from './nav.stylex'
 
-// The header docks (data-docked="true", written by header-dock.ts) once the
-// page leaves its top. Every pose below is the docked one under that marker;
-// data-dock-instant takes a page that loads already scrolled straight to it.
+// Every pose below is the docked one under data-docked (written by header-dock.ts); data-dock-instant takes a page that loads already scrolled straight to it.
 const docked = (): string =>
 	stylex.when.ancestor('[data-docked="true"]', navMarker)
 const instant = (): string =>
@@ -17,8 +15,6 @@ const TOP = navDock['--dock-top']
 const HEIGHT = navDock['--dock-height']
 const INSET = navDock['--dock-inset']
 const RADIUS = navDock['--dock-radius']
-// The registration corners: square crop marks standing off the sheet's
-// corners.
 const STANDOFF = '5px'
 const CORNER = '9px'
 const CORNER_STROKE = '1.5px'
@@ -29,15 +25,11 @@ const SETTLE = dockClock.settleDelay
 const EASE = dockClock.ease
 const LOCK = dockClock.lockEase
 
-// A value for each dock state: the undocked default, and the docked (or
-// instant) one under its condition.
 type DockValue = { readonly default: string | null } & Readonly<
 	Record<string, string | null>
 >
 
-// Each piece docks on its own transition list and undocks on a shorter one:
-// a transition runs on the list of the state it heads to, so letting go is
-// faster than locking on.
+// A transition runs on the list of the state it heads to, so letting go is faster than locking on.
 const travel = (
 	dock: string,
 	undock: string,
@@ -50,8 +42,7 @@ const travel = (
 	transitionDelay: { default: null, [instant()]: '0s !important' },
 })
 
-// On phones the sheet keeps too thin a margin for the corners to rest in:
-// they lock on, hold a beat and fade, a registration flash.
+// On phones the sheet keeps too thin a margin for the corners to rest in: they lock on, hold a beat and fade, a registration flash.
 const flash = stylex.keyframes({
 	'0%': { opacity: 0 },
 	'12%': { opacity: 1 },
@@ -61,9 +52,6 @@ const flash = stylex.keyframes({
 
 const lifted = `0 1px 2px color-mix(in srgb, ${color['--ink']} 5%, transparent), 0 14px 32px -16px color-mix(in srgb, ${color['--ink']} 24%, transparent)`
 
-// A corner leaves from the header's own corner: it travels the inset across
-// and the gap the sheet keeps from the header's edge (the same above and
-// below).
 const cornerTravel = (x: string, y: string): { transform: DockValue } => ({
 	transform: {
 		default: `translate(calc(${x} * ${INSET}), calc(${y} * ${TOP}))`,
@@ -72,16 +60,13 @@ const cornerTravel = (x: string, y: string): { transform: DockValue } => ({
 })
 
 export const dock = stylex.create({
-	// Under the header's own content, above the page.
 	layer: {
 		position: 'absolute',
 		inset: 0,
 		zIndex: -1,
 		pointerEvents: 'none',
 	},
-	// The floating sheet: a frosted paper plate that condenses out of the
-	// header row. It takes the pointer between the header's controls, so a
-	// pass across it never reads as leaving the header.
+	// It takes the pointer between the header's controls, so a pass across it never reads as leaving the header.
 	sheet: {
 		position: 'absolute',
 		top: TOP,
@@ -106,9 +91,6 @@ export const dock = stylex.create({
 			`opacity 180ms ${EASE}, transform ${UNDOCK} ${EASE}`,
 		),
 	},
-	// The header's bottom rule. Docking, it turns petrol, contracts to the
-	// sheet's width and lifts onto the sheet's bottom edge, then hands over
-	// to the sheet's own border.
 	rule: {
 		position: 'absolute',
 		left: 0,
@@ -133,9 +115,6 @@ export const dock = stylex.create({
 			`transform ${UNDOCK} ${EASE}, clip-path ${UNDOCK} ${EASE}`,
 		),
 	},
-	// Registration corners: crop marks that close in from the header's
-	// corners and lock onto the sheet's with a small overshoot, petrol in
-	// flight, settling into the drawing tone once locked.
 	corner: {
 		position: 'absolute',
 		width: CORNER,
@@ -196,9 +175,7 @@ export const dock = stylex.create({
 		borderRightWidth: CORNER_STROKE,
 		...cornerTravel('1', '1'),
 	},
-	// The sheet's bottom edge rules the reading position, as the desk's
-	// overview ruler does a file: a petrol line as far as you have read, and a
-	// tick where each section starts (header-dock.ts places them).
+	// The sheet's bottom edge rules the reading position, as the desk's overview ruler does a file: a petrol line as far as you have read, a tick where each section starts (header-dock.ts places them).
 	ruler: {
 		position: 'absolute',
 		left: `calc(${RADIUS} + 8px)`,

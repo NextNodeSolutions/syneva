@@ -5,8 +5,6 @@ import { env } from 'cloudflare:workers'
 
 import type { APIRoute } from 'astro'
 
-// The newsletter signup, the one route the Worker renders on demand: every
-// other route prerenders into static assets.
 export const prerender = false
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
