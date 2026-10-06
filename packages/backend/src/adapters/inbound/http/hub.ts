@@ -1,7 +1,6 @@
-import { createActivity } from '../../../application/activity.js'
-import { deskSummary } from '../../../application/desk-summary.js'
+import { reviewScope } from '../../../application/desk-summary.js'
 import { errorMessage } from '../../../application/errors.js'
-import { createEventStream } from '../../../application/events.js'
+import { deskClosed } from '../../../application/journal.js'
 import { createSerializer } from '../../../application/mutex.js'
 import {
 	buildDeskState,
@@ -12,38 +11,20 @@ import {
 import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
 
-import { createDeskContext } from './context.js'
+import { hostDesk, summarize } from './hosted-desk.js'
 import { queryOf, recordOf, sameSource } from './hub-records.js'
-import { createDeskLiveness } from './liveness.js'
 
 import type { DeskSummary, OpenDeskOutcome } from '@syneva/contracts/hub'
 import type { DeskIdentity, DeskQuery } from '../../../application/open-desk.js'
-import type {
-	EditorPort,
-	GitPort,
-	HubRegistryPort,
-	ReviewStorePort,
-	SettingsPort,
-} from '../../../application/ports.js'
+import type { HubRegistryPort } from '../../../application/ports.js'
 import type { HubDeskRecord } from '../../../domain/hub-registry.js'
 import type { Guide, ReviewState } from '../../../domain/review.js'
-import type { DeskContext } from './context.js'
-import type { DeskLiveness } from './liveness.js'
+import type { HostedDeskIo, HubDesk } from './hosted-desk.js'
 
 // How long a closed desk lingers after its `closed` event so the event reaches a parked waiter
 // (its HTTP response flushes on the emission, but Node needs a beat to write it to the socket
 // before the desk's routes answer 404). Loopback: a fraction of a second is generous.
 const CLOSED_EVENT_GRACE_MS = 150
-
-// One hosted desk: its id, the context its routes run against, and the rebuild parameters the
-// registry persists so a restarted hub reopens it on the same id.
-export type HubDesk = {
-	readonly id: string
-	readonly ctx: DeskContext
-	readonly liveness: DeskLiveness
-	readonly record: HubDeskRecord
-	closing: boolean
-}
 
 export type HubFailure = { ok: false; code: string; reason: string }
 
@@ -51,13 +32,8 @@ export type OpenOutcome =
 	| { ok: true; desk: HubDesk; outcome: OpenDeskOutcome }
 	| HubFailure
 
-export type HubIo = {
-	git: GitPort
-	store: ReviewStorePort
-	settings: SettingsPort
-	editor: EditorPort
+export type HubIo = HostedDeskIo & {
 	registry: HubRegistryPort
-	statusTtlMs: number
 	log: (line: string) => void
 }
 
@@ -147,16 +123,10 @@ function liveRecords(desks: Map<string, HubDesk>): HubDeskRecord[] {
 		.map(desk => desk.record)
 }
 
-function summarize(desk: HubDesk): DeskSummary {
-	return deskSummary(desk.id, desk.ctx.state, desk.ctx.status(), {
-		openedAt: desk.liveness.openedAt,
-		lastActivityAt: desk.liveness.lastActivityAt(),
-	})
-}
-
 function closeDesk(state: HubState, id: string): boolean {
 	const desk = state.desks.get(id)
 	if (!desk || desk.closing) return false
+	desk.ctx.recordEvent(deskClosed(summarize(desk)))
 	desk.closing = true
 	desk.ctx.events.emit({ kind: 'closed', session: desk.record.session })
 	state.io.log(
@@ -174,26 +144,9 @@ function registerDesk(
 	review: ReviewState,
 	record: HubDeskRecord,
 ): HubDesk {
-	const { io } = state
-	const liveness = createDeskLiveness(record.openedAt)
-	const desk: HubDesk = {
-		id: record.id,
-		liveness,
-		record,
-		closing: false,
-		ctx: createDeskContext(review, {
-			events: createEventStream(),
-			activity: createActivity(io.statusTtlMs),
-			liveness,
-			git: io.git,
-			store: io.store,
-			settings: io.settings,
-			editor: io.editor,
-			close: () => {
-				closeDesk(state, record.id)
-			},
-		}),
-	}
+	const desk = hostDesk(state.io, review, record, () => {
+		closeDesk(state, record.id)
+	})
 	state.desks.set(record.id, desk)
 	return desk
 }
@@ -242,6 +195,10 @@ async function reuseDesk(
 	if (outcome.kind === 'invalid-guide')
 		return { ok: false, code: 'INVALID_GUIDE', reason: outcome.reason }
 	live.ctx.commit(outcome.state)
+	live.ctx.recordEvent({
+		kind: 'desk-reloaded',
+		...reviewScope(outcome.state),
+	})
 	state.io.log(`desk reloaded ${live.id} (${live.record.root})`)
 	return { ok: true, desk: live, outcome: 'reloaded' }
 }
@@ -255,6 +212,7 @@ async function createDesk(
 	const built = await buildDeskState(identity, query, guide, state.io)
 	if (!built.ok) return { ok: false, code: 'NO_REVIEW', reason: built.reason }
 	const desk = registerDesk(state, built.state, recordOf(identity, query))
+	desk.ctx.recordEvent({ kind: 'desk-opened', ...reviewScope(built.state) })
 	state.io.log(
 		`desk opened ${desk.id} ${identity.root} (${identity.session}, ${query.mode})`,
 	)

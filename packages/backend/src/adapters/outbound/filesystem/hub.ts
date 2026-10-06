@@ -1,6 +1,7 @@
 import { promises as fs, mkdirSync, openSync } from 'node:fs'
 import path from 'node:path'
 
+import { decodeJournalEvent } from '../../../domain/hub-journal.js'
 import {
 	decodeHubLock,
 	decodeHubRegistry,
@@ -9,15 +10,21 @@ import {
 import { homeDir, SYNEVA_DIR } from './desk.js'
 import { writeFileAtomic } from './persistence.js'
 
-import type { HubRegistryPort } from '../../../application/ports.js'
+import type {
+	HubJournalPort,
+	HubRegistryPort,
+} from '../../../application/ports.js'
+import type { JournalEvent } from '../../../domain/hub-journal.js'
 import type { HubDeskRecord, HubLock } from '../../../domain/hub-registry.js'
 
 // Everything the hub keeps about itself lives under ~/.syneva/hub/: the lock the CLI reads to
-// find a running hub, the desk registry a restart restores from, and the log a detached hub
-// writes to. Review state stays where it always was (~/.syneva/<repoHash>/<session>/).
+// find a running hub, the desk registry a restart restores from, the journal of what happened
+// on the hub, and the log a detached hub writes to. Review state stays where it always was
+// (~/.syneva/<repoHash>/<session>/).
 const HUB_DIR = 'hub'
 const LOCK_FILE = 'hub.json'
 const REGISTRY_FILE = 'desks.json'
+const JOURNAL_FILE = 'journal.jsonl'
 const LOG_FILE = 'hub.log'
 const JSON_INDENT = 2
 
@@ -108,4 +115,71 @@ async function saveRegistry(records: readonly HubDeskRecord[]): Promise<void> {
 export const nodeHubRegistry: HubRegistryPort = Object.freeze({
 	load: loadRegistry,
 	save: saveRegistry,
+})
+
+// The journal is JSON lines: an event is one append of one line, so a crash can tear at most
+// the line being written - which its decode then skips - and never the events before it.
+async function loadJournal(): Promise<JournalEvent[]> {
+	const text = await readJournalText()
+	return text
+		.split('\n')
+		.map(decodeJournalLine)
+		.filter(event => event !== null)
+}
+
+async function readJournalText(): Promise<string> {
+	try {
+		return await fs.readFile(path.join(hubDir(), JOURNAL_FILE), 'utf8')
+	} catch (error) {
+		if (isMissingFile(error)) return '' // no journal yet: nothing has happened
+		throw error
+	}
+}
+
+function isMissingFile(error: unknown): boolean {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'code' in error &&
+		error.code === 'ENOENT'
+	)
+}
+
+function decodeJournalLine(line: string): JournalEvent | null {
+	if (!line.trim()) return null
+	try {
+		const parsed: unknown = JSON.parse(line)
+		return decodeJournalEvent(parsed)
+	} catch {
+		return null
+	}
+}
+
+function journalLine(event: JournalEvent): string {
+	return `${JSON.stringify(event)}\n`
+}
+
+async function appendJournal(event: JournalEvent): Promise<void> {
+	const dir = await ensureHubDir()
+	await fs.appendFile(
+		path.join(dir, JOURNAL_FILE),
+		journalLine(event),
+		'utf8',
+	)
+}
+
+async function rewriteJournal(events: readonly JournalEvent[]): Promise<void> {
+	const dir = await ensureHubDir()
+	await writeFileAtomic(
+		path.join(dir, JOURNAL_FILE),
+		events.map(journalLine).join(''),
+	)
+}
+
+// The node/filesystem implementation of the application's hub-journal capability. Frozen like
+// the registry's.
+export const nodeHubJournal: HubJournalPort = Object.freeze({
+	load: loadJournal,
+	append: appendJournal,
+	rewrite: rewriteJournal,
 })

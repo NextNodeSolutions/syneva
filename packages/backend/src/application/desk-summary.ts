@@ -4,11 +4,12 @@ import { deskPagePath } from '@syneva/contracts/routes'
 
 import { isRequestedChange } from '../domain/comments.js'
 import { computeApprovedFiles } from '../domain/decisions.js'
+import { projectId } from '../domain/identity.js'
 
 import { computeOpenQuestions } from './review-result.js'
 
 import type { DeskStatus } from '@syneva/contracts/browser'
-import type { DeskSummary } from '@syneva/contracts/hub'
+import type { DeskSummary, HubEventScope } from '@syneva/contracts/hub'
 import type { ReviewState } from '../domain/review.js'
 
 // When a desk was opened and when it last served a request - the dashboard's "last activity".
@@ -27,15 +28,15 @@ export function deskSummary(
 		id,
 		root: state.root,
 		project: path.basename(state.root) || state.root,
+		projectId: projectId(state.root),
 		session: state.session,
 		mode: state.mode,
 		target: state.target,
 		staged: state.staged,
 		baseDiffHash: state.baseDiffHash,
 		empty: !state.files.length,
-		files: state.files.length,
+		...reviewScope(state),
 		approvedFiles: computeApprovedFiles(state).length,
-		totalChanges: state.changes.length,
 		decidedChanges: state.changes.filter(
 			change => change.status !== 'pending',
 		).length,
@@ -51,4 +52,10 @@ export function deskSummary(
 		lastActivityAt: clock.lastActivityAt,
 		path: deskPagePath(id),
 	}
+}
+
+// The size of a desk's review: what the listing shows, and what a journal event records the
+// review at when it happens (application/journal.ts) - one count, so the two never disagree.
+export function reviewScope(state: ReviewState): HubEventScope {
+	return { files: state.files.length, totalChanges: state.changes.length }
 }

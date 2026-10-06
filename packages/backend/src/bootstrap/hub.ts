@@ -19,12 +19,17 @@ import { builtUi } from '../adapters/inbound/http/routes/static.js'
 import { hubLog } from '../adapters/outbound/console.js'
 import { editorPort } from '../adapters/outbound/editor/open-editor.js'
 import { nodeSettings } from '../adapters/outbound/filesystem/desk.js'
-import { nodeHubRegistry } from '../adapters/outbound/filesystem/hub.js'
+import {
+	nodeHubJournal,
+	nodeHubRegistry,
+} from '../adapters/outbound/filesystem/hub.js'
 import { nodeReviewStore } from '../adapters/outbound/filesystem/persistence.js'
 import { nodeGit } from '../adapters/outbound/git/repo.js'
+import { createHubJournal } from '../application/journal.js'
 
 import type { Hub } from '../adapters/inbound/http/hub.js'
 import type { HubHandle, HubOptions } from '../adapters/inbound/http/options.js'
+import type { HubJournal } from '../application/journal.js'
 
 // Test seam: TTL for the ephemeral agent-activity line (default 90s).
 const DEFAULT_STATUS_TTL_MS = 90_000
@@ -47,12 +52,17 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		options.key,
 		publicUrl?.protocol === 'https:',
 	)
-	const hub = wireHub(options)
+	const log = options.log ?? hubLog
+	// One journal for the hub's desks to record into and the dashboard to read.
+	const journal = createHubJournal(nodeHubJournal, log)
+	const hub = wireHub(options, journal, log)
 	const server = http.createServer()
 	server.on(
 		'request',
 		createHubRequestHandler({
 			hub,
+			journal,
+			settings: nodeSettings,
 			guard,
 			// The origin guard re-reads the port per request: server.address() is populated
 			// only once the socket is bound.
@@ -77,8 +87,13 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 	}
 }
 
-// The hub over its node collaborators (git, the filesystem stores, the editor launcher).
-function wireHub(options: HubOptions): Hub {
+// The hub over its node collaborators (git, the filesystem stores, the editor launcher) and
+// the journal its desks record into.
+function wireHub(
+	options: HubOptions,
+	journal: HubJournal,
+	log: (line: string) => void,
+): Hub {
 	return createHub(
 		{
 			git: nodeGit,
@@ -86,8 +101,9 @@ function wireHub(options: HubOptions): Hub {
 			settings: nodeSettings,
 			editor: editorPort(options.runEditorCommand),
 			registry: nodeHubRegistry,
+			journal,
 			statusTtlMs: options.statusTtlMs ?? DEFAULT_STATUS_TTL_MS,
-			log: options.log ?? hubLog,
+			log,
 		},
 		randomUUID(),
 	)

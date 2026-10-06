@@ -2,6 +2,7 @@ import {
 	DESK_API_PREFIX,
 	DESK_PAGE_PREFIX,
 	HUB_PATHS,
+	isDashboardPath,
 	STATIC_PATHS,
 } from '@syneva/contracts/routes'
 
@@ -25,6 +26,9 @@ import {
 	listDesks,
 	openDeskRoute,
 	readDesk,
+	readJournal,
+	saveHubSettings,
+	serveHubSettings,
 	shutdownHub,
 } from './hub-routes.js'
 import { DESK_NOT_OPEN, NOTHING_HERE, notFoundPage } from './pages.js'
@@ -93,6 +97,7 @@ export function createHubRequestHandler(
 			await deps.hub.restored()
 			if (await handleDeskPage(deps, request)) return
 			if (await handleHubApi(deps, request)) return
+			if (await handleDashboardApi(deps, request)) return
 			if (await handleDeskApi(deps, request)) return
 			if (await handleUiAsset(deps, request)) return
 			notFound(request)
@@ -151,13 +156,15 @@ function isFontRead(req: IncomingMessage, url: URL): boolean {
 	)
 }
 
-// The dashboard is the hub root.
+// The dashboard's pages (isDashboardPath: the hub root, its sections, every project page) all
+// answer with the one page shell - its assets load from absolute paths - which routes between
+// them in the browser.
 async function handleDashboardPage(
 	deps: HubRouterDeps,
 	request: StaticRequest,
 ): Promise<boolean> {
 	if (!isRead(request.req)) return false
-	if (request.url.pathname !== STATIC_PATHS.index) return false
+	if (!isDashboardPath(request.url.pathname)) return false
 	await deps.ui.dashboardPage(request)
 	return true
 }
@@ -229,6 +236,23 @@ async function handleHubApi(
 	if (!DESK_ID.test(id)) return false
 	if (method === 'GET') readDesk(deps, res, id)
 	else if (method === 'DELETE') closeDeskRoute(deps, res, id)
+	else return false
+	return true
+}
+
+// The dashboard's own API beside the desk registry: the journal it reads the hub's activity from,
+// and the display preferences it shares with every desk.
+async function handleDashboardApi(
+	deps: HubRouterDeps,
+	{ req, res, url }: StaticRequest,
+): Promise<boolean> {
+	if (url.pathname === HUB_PATHS.journal && req.method === 'GET') {
+		await readJournal(deps, res, url)
+		return true
+	}
+	if (url.pathname !== HUB_PATHS.settings) return false
+	if (req.method === 'GET') await serveHubSettings(deps, res)
+	else if (req.method === 'POST') await saveHubSettings(deps, req, res)
 	else return false
 	return true
 }

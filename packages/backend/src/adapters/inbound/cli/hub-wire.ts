@@ -35,24 +35,34 @@ export function readDesk(entry: unknown): DeskSummary | null {
 		return null
 	return {
 		...summaryCounts(record),
+		...summaryTexts(record),
 		id: record.id,
 		root: record.root,
-		project: typeof record.project === 'string' ? record.project : '',
 		session: record.session,
 		mode: record.mode,
 		target: typeof record.target === 'string' ? record.target : undefined,
 		staged: record.staged === true,
-		baseDiffHash:
-			typeof record.baseDiffHash === 'string' ? record.baseDiffHash : '',
 		empty: record.empty === true,
 		agentListening: record.agentListening === true,
 		agentActivity: null,
-		openedAt: typeof record.openedAt === 'string' ? record.openedAt : '',
-		lastActivityAt:
-			typeof record.lastActivityAt === 'string'
-				? record.lastActivityAt
-				: '',
 		path: record.path,
+	}
+}
+
+type SummaryTexts = Pick<
+	DeskSummary,
+	'project' | 'projectId' | 'baseDiffHash' | 'openedAt' | 'lastActivityAt'
+>
+
+function summaryTexts(record: Record<string, unknown>): SummaryTexts {
+	const text = (key: keyof SummaryTexts): string =>
+		typeof record[key] === 'string' ? record[key] : ''
+	return {
+		project: text('project'),
+		projectId: text('projectId'),
+		baseDiffHash: text('baseDiffHash'),
+		openedAt: text('openedAt'),
+		lastActivityAt: text('lastActivityAt'),
 	}
 }
 

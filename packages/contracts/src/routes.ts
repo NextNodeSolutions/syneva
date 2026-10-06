@@ -44,14 +44,47 @@ export const API_PATHS = {
 	shutdown: '/shutdown',
 } as const
 
-// Hub-level routes: liveness, the desk registry, and the access-key session pages.
+// Hub-level routes: liveness, the desk registry, the journal, the display preferences (the
+// same ~/.syneva/settings.json a desk's /settings reads, for the dashboard, which has no desk
+// base), and the access-key session pages.
 export const HUB_PATHS = {
 	health: '/api/hub/health',
 	desks: '/api/hub/desks',
+	journal: '/api/hub/journal',
+	settings: '/api/hub/settings',
 	shutdown: '/api/hub/shutdown',
 	login: '/login',
 	logout: '/logout',
 } as const
+
+// The dashboard's pages: the hub serves the dashboard's page shell at each of them (and at
+// every project page under PROJECT_PAGE_PREFIX), and the dashboard routes between them in the
+// browser, so each is also a URL that survives a reload or a shared link.
+export const DASHBOARD_PATHS = {
+	overview: '/',
+	reviews: '/reviews',
+	projects: '/projects',
+	plans: '/plans',
+	settings: '/settings',
+	hub: '/hub',
+} as const
+
+export const PROJECT_PAGE_PREFIX = '/projects/'
+
+// One project's page: /projects/<projectId> (DeskSummary.projectId).
+export function projectPagePath(projectId: string): string {
+	return `${PROJECT_PAGE_PREFIX}${projectId}`
+}
+
+// Whether the hub answers this path with the dashboard's page shell.
+export function isDashboardPath(pathname: string): boolean {
+	if (Object.values<string>(DASHBOARD_PATHS).includes(pathname)) return true
+	const rest = pathname.slice(PROJECT_PAGE_PREFIX.length)
+	return (
+		pathname.startsWith(PROJECT_PAGE_PREFIX) &&
+		/^[a-f0-9]{8,64}$/.test(rest)
+	)
+}
 
 export const DESK_PAGE_PREFIX = '/d/'
 export const DESK_API_PREFIX = '/api/desks/'

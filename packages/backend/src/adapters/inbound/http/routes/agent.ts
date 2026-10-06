@@ -10,7 +10,9 @@ import {
 
 import { parseCommentRequest } from './comment-body.js'
 
+import type { ServerResponse } from 'node:http'
 import type { AwaitEvent } from '@syneva/contracts/agent'
+import type { DeskContext } from '../context.js'
 import type { RouteRequest } from '../router.js'
 
 const SECONDS_PER_MINUTE = 60
@@ -39,7 +41,9 @@ export async function askQuestion({
 	// Bake the singular into a one-element `questions` here so a question handed straight to a parked
 	// waiter already carries the array - batching only has to merge on drain.
 	const question = questionPayload(ctx.state, request)
-	ctx.events.emit({ kind: 'question', question, questions: [question] })
+	const questions = [question]
+	ctx.events.emit({ kind: 'question', question, questions })
+	ctx.recordEvent({ kind: 'question-asked', questions: questions.length })
 	json(res, HTTP_OK, { ok: true })
 }
 
@@ -53,13 +57,13 @@ export async function awaitEvent({
 	// ({kind:"question"|"review"}), letting the agent learn of questions and Sends without the desk
 	// process exiting. createEventStream owns the queue's batching/flush rules.
 	const queued = ctx.events.takeNext()
-	if (queued) return json(res, HTTP_OK, queued)
+	if (queued) return deliver(ctx, res, queued)
 	let isSettled = false
 	const unpark = ctx.events.park((event: AwaitEvent): void => {
 		if (isSettled) return
 		isSettled = true
 		clearTimeout(timer)
-		json(res, HTTP_OK, event)
+		deliver(ctx, res, event)
 	})
 	const timer = setTimeout((): void => {
 		if (isSettled) return
@@ -76,6 +80,17 @@ export async function awaitEvent({
 		clearTimeout(timer)
 		unpark()
 	})
+}
+
+// Hand the agent its event. A review it receives is the round picked up: journaled once the
+// response carries it - a waiter that hung up first never had it (the review stays queued).
+function deliver(
+	ctx: DeskContext,
+	res: ServerResponse,
+	event: AwaitEvent,
+): void {
+	json(res, HTTP_OK, event)
+	if (event.kind === 'review') ctx.recordEvent({ kind: 'round-picked' })
 }
 
 export async function postStatus({
