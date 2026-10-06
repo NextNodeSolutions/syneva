@@ -1,3 +1,4 @@
+import { a11y } from '@shared/ui/a11y.styles'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 
@@ -21,7 +22,10 @@ function progressItems(desk: HubDesk): ReactElement[] {
 					count={desk.decidedChanges}
 					total={desk.totalChanges}
 				/>{' '}
-				{desk.totalChanges === 1 ? 'change' : 'changes'} decided
+				decided
+				<span {...stylex.props(a11y.srOnly)}>
+					{desk.totalChanges === 1 ? ' change' : ' changes'}
+				</span>
 			</span>
 		</span>
 	)
@@ -31,7 +35,7 @@ function progressItems(desk: HubDesk): ReactElement[] {
 			{...stylex.props(deskReview.item, deskReview.requests)}
 		>
 			<LiveDot tone="amber" />
-			{plural(desk.openRequests, 'change')} requested
+			{desk.openRequests} requested
 		</span>
 	)
 	const questions = desk.openQuestions > 0 && (
@@ -40,7 +44,7 @@ function progressItems(desk: HubDesk): ReactElement[] {
 			{...stylex.props(deskReview.item, deskReview.questions)}
 		>
 			<LiveDot tone="petrol" hollow />
-			{plural(desk.openQuestions, 'question')} open
+			{plural(desk.openQuestions, 'question')}
 		</span>
 	)
 	return [decided, requests, questions].filter(

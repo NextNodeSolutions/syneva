@@ -708,10 +708,12 @@ export default defineConfig({
 			// title, the body layout classes, the rAF count-up animation, the hub dashboard's
 			// poll timer over HTTP, its tab title, its document-wide N and Escape key
 			// listeners and the DOM focus it moves once a row's controls are on screen -
-			// none of them are render-time derivations.
+			// none of them are render-time derivations. The hub shell (its sidebar, the desk's
+			// rail) and the dashboard's pages are view compositions in the same sense.
 			files: [
 				'packages/frontend/src/widgets/chrome/react/**',
-				'packages/frontend/src/pages/dashboard/react/**',
+				'packages/frontend/src/widgets/hub-shell/react/**',
+				'packages/frontend/src/pages/dashboard/**/*.tsx',
 				'packages/frontend/src/entities/hub/use-hub.ts',
 				'packages/frontend/src/pages/dashboard/use-document-title.ts',
 				'packages/frontend/src/pages/dashboard/use-new-review-shortcut.ts',

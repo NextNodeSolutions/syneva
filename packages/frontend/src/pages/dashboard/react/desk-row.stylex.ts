@@ -13,9 +13,18 @@ export const deskLinkMarker = stylex.defineMarker()
 // lines from tablets down; three stacked lines on phones. `endInset` is the rows' room at
 // their end, where the arrow's +4px step stays clear of the focus ring.
 export const deskGrid = stylex.defineConsts({
-	wide: '24px minmax(0, 1.15fr) minmax(0, 1.35fr) minmax(0, 1fr) 148px 20px',
-	tablet: '24px minmax(0, 1fr) minmax(0, 1.15fr) 20px',
+	// The row lays itself out by the width of the listing it sits in (its container), not the
+	// window's: beside the sidebar and the journal a wide window can still give it a narrow
+	// column. The listing names itself `desks` (a containerType inline-size element).
+	// One line per desk down to a 640px listing (the overview's column beside the journal at a
+	// 1280px window holds it), two lines below, stacked on the narrowest. The ranges do not
+	// overlap: StyleX does not order container queries the way it orders media queries, so a
+	// width that matched two of them could take either.
+	narrow: '@container desks (min-width: 441px) and (max-width: 640px)',
+	stackedWidth: '@container desks (max-width: 440px)',
+	wide: '22px minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 1.1fr) auto auto',
+	tablet: '22px minmax(0, 1fr) minmax(0, 1.15fr) auto',
 	stacked: '20px minmax(0, 1fr) auto',
-	gap: '20px',
+	gap: '18px',
 	endInset: '8px',
 })

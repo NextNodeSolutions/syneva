@@ -6,6 +6,3 @@ export const NEW_REVIEW_ID = 'new-review'
 export const deskLinkId = (deskId: string): string => `desk-link-${deskId}`
 export const deskCloseId = (deskId: string): string => `desk-close-${deskId}`
 export const deskKeepId = (deskId: string): string => `desk-keep-${deskId}`
-
-// The skip link's target: the listing.
-export const DESKS_ID = 'desks'

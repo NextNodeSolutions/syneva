@@ -2,8 +2,6 @@ import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 import { tag } from '@syneva/design-system/controls.styles'
 
-import { relativeTime } from '../format'
-
 import { deskStage } from './desk-stage.styles'
 
 import type { ReactElement } from 'react'
@@ -11,15 +9,16 @@ import type { StageCopy } from '../stage-copy'
 
 type DeskStageProps = {
 	copy: StageCopy
-	now: number
+	// How long the desk's current turn has lasted (turn-age.ts), beside the label naming it.
+	age: string
 	// False while the hub is not answering: whether anything is live is then unknown, so no
 	// square pulses.
 	isLive: boolean
 }
 
-// Where the desk's round stands (entities/hub/stage.ts): a square and a label, then the
-// agent's own last line in quotes or a note of what the label means.
-export function DeskStage({ copy, now, isLive }: DeskStageProps): ReactElement {
+// Where the desk's round stands (entities/hub/stage.ts): a square, a label and how long the
+// turn has lasted, then the agent's own last line in quotes or a note of what the label means.
+export function DeskStage({ copy, age, isLive }: DeskStageProps): ReactElement {
 	const { detail } = copy
 	return (
 		<div {...stylex.props(deskStage.cell)}>
@@ -41,11 +40,7 @@ export function DeskStage({ copy, now, isLive }: DeskStageProps): ReactElement {
 				>
 					{copy.label}
 				</span>
-				{copy.activityAt && (
-					<span {...stylex.props(deskStage.ago)}>
-						{` · ${relativeTime(copy.activityAt, now)}`}
-					</span>
-				)}
+				<span {...stylex.props(deskStage.ago)}>{` · ${age}`}</span>
 			</p>
 			<p
 				{...stylex.props(

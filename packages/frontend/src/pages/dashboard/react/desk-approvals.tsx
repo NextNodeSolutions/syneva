@@ -1,3 +1,4 @@
+import { a11y } from '@shared/ui/a11y.styles'
 import { Meter } from '@shared/ui/meter'
 import * as stylex from '@stylexjs/stylex'
 
@@ -28,7 +29,8 @@ export function DeskApprovals({ desk }: { desk: HubDesk }): ReactElement {
 					total={desk.files}
 					css={isDone && deskReview.done}
 				/>{' '}
-				{desk.files === 1 ? 'file' : 'files'} approved
+				{desk.files === 1 ? 'file' : 'files'}
+				<span {...stylex.props(a11y.srOnly)}> approved</span>
 				{isDone && <span aria-hidden="true"> ✓</span>}
 			</span>
 		</p>

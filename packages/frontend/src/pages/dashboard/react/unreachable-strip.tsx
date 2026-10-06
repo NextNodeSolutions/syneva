@@ -1,12 +1,11 @@
+import { hubPlace } from '@entities/hub/hub-place'
 import { Code } from '@shared/ui/code'
 import * as stylex from '@stylexjs/stylex'
 
-import { hubPlace } from '@entities/hub/hub-place'
-
 import { unreachableStrip } from './unreachable-strip.styles'
 
-import type { ReactElement } from 'react'
 import type { HubPlace } from '@entities/hub/hub-place'
+import type { ReactElement } from 'react'
 
 // How to start the hub again: the plain command for a loopback hub, the way it was started for
 // one this browser reaches over the network (hub-place.ts).

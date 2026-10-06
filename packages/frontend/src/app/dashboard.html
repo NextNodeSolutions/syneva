@@ -18,8 +18,16 @@
 			   on purpose: an unlayered rule in this sheet would outrank the components'
 			   StyleX classes, which carry the one focus ring. */
 			html {
-				color-scheme: light;
 				background: var(--paper, #f6f6f0);
+			}
+			/* The page is an application frame: its columns scroll, the document does not. */
+			body {
+				overflow: hidden;
+			}
+			@media (max-width: 750px) {
+				body {
+					overflow: auto;
+				}
 			}
 			/* A modal sheet holds the page still beneath it. */
 			html:has(dialog[open]) {
@@ -75,9 +83,28 @@
 			input::-webkit-calendar-picker-indicator {
 				display: none !important;
 			}
+			/* The browser's own surfaces carry the palette too, in both appearances. */
 			::selection {
-				background: #dcedf4;
-				color: #191b18;
+				background: var(--wash, #dcedf4);
+				color: var(--ink, #191b18);
+			}
+			* {
+				scrollbar-color: var(--line-strong, #a8afa1) transparent;
+			}
+			/* A move between pages: the page beside the sidebar fades out over the next one, which
+			   shows at once and plays its own entrance (its groups and rows step in); one motion
+			   per move, never a rise on top of a rise. The sidebar, outside the named group, holds
+			   still. */
+			::view-transition-old(hub-page) {
+				animation: 140ms cubic-bezier(0.2, 0, 0, 1) both hub-page-out;
+			}
+			::view-transition-new(hub-page) {
+				animation: none;
+			}
+			@keyframes hub-page-out {
+				to {
+					opacity: 0;
+				}
 			}
 			@media (prefers-reduced-motion: reduce) {
 				*,
@@ -86,6 +113,10 @@
 					animation: none !important;
 					transition: none !important;
 					scroll-behavior: auto !important;
+				}
+				::view-transition-old(hub-page),
+				::view-transition-new(hub-page) {
+					animation: none !important;
 				}
 			}
 		</style>

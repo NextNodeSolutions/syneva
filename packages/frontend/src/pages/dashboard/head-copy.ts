@@ -1,7 +1,7 @@
 import { numberWord } from './format'
 
-import type { HubPhase } from './hub-phase'
 import type { HubPlace } from '@entities/hub/hub-place'
+import type { HubPhase } from './hub-phase'
 
 // What the head says for a phase: the statement (the page's h1), the lede under it, and the
 // one action the phase asks for. `isPending` marks the loading line, which stays hidden for

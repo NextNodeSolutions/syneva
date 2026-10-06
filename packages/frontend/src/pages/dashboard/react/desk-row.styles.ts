@@ -13,16 +13,16 @@ const FOCUSED = ':has(a:focus-visible)'
 const rowHover = (): string => stylex.when.ancestor(':hover', deskRowMarker)
 const rowFocus = (): string => stylex.when.ancestor(FOCUSED, deskRowMarker)
 
-// The grid of a row: one line at full width, two from tablets down (the review under the desk,
-// the actions under the stage and the arrow, so Close ends on the arrow's edge), stacked on
-// phones. An armed row gives its warning the review's whole line on phones and moves the
-// actions under it.
+// The grid of a row: one line on a wide listing (the desk, its stage, its review, Close, then
+// Open as the row's end), two on a narrow one (the review and Close under the desk and the
+// stage), stacked on the narrowest. An armed row gives its warning the review's whole line
+// there and moves the actions under it.
 const AREAS = {
-	wide: '"icon desk stage review actions arrow"',
-	tablet: '"icon desk stage arrow" ". review actions actions"',
-	stacked: '"icon desk arrow" ". stage stage" ". review actions"',
+	wide: '"icon desk stage review actions open"',
+	tablet: '"icon desk stage open" ". review actions actions"',
+	stacked: '"icon desk open" ". stage stage" ". review actions"',
 	stackedArmed:
-		'"icon desk arrow" ". stage stage" ". review review" ". actions actions"',
+		'"icon desk open" ". stage stage" ". review review" ". actions actions"',
 } as const
 
 // The site's index row at app density: the whole row is the link; hovering it (on a fine
@@ -37,17 +37,21 @@ export const deskRow = stylex.create({
 		alignItems: 'start',
 		gridTemplateColumns: {
 			default: deskGrid.wide,
-			[media.tablet]: deskGrid.tablet,
-			[media.stacked]: deskGrid.stacked,
+			[deskGrid.narrow]: deskGrid.tablet,
+			[deskGrid.stackedWidth]: deskGrid.stacked,
 		},
 		gridTemplateAreas: {
 			default: AREAS.wide,
-			[media.tablet]: AREAS.tablet,
-			[media.stacked]: AREAS.stacked,
+			[deskGrid.narrow]: AREAS.tablet,
+			[deskGrid.stackedWidth]: AREAS.stacked,
 		},
-		columnGap: { default: deskGrid.gap, [media.stacked]: '14px' },
-		rowGap: { default: 0, [media.tablet]: '12px' },
-		paddingBlock: { default: '18px', [media.phone]: '16px' },
+		columnGap: { default: deskGrid.gap, [deskGrid.stackedWidth]: '14px' },
+		rowGap: {
+			default: 0,
+			[deskGrid.narrow]: '8px',
+			[deskGrid.stackedWidth]: '8px',
+		},
+		paddingBlock: { default: '13px', [media.phone]: '14px' },
 		paddingRight: deskGrid.endInset,
 		paddingLeft: {
 			default: 0,
@@ -75,8 +79,8 @@ export const deskRow = stylex.create({
 	armed: {
 		gridTemplateAreas: {
 			default: AREAS.wide,
-			[media.tablet]: AREAS.tablet,
-			[media.stacked]: AREAS.stackedArmed,
+			[deskGrid.narrow]: AREAS.tablet,
+			[deskGrid.stackedWidth]: AREAS.stackedArmed,
 		},
 	},
 	icon: {
@@ -105,21 +109,24 @@ export const deskRow = stylex.create({
 		},
 		transition: `color ${duration['--duration-medium']} ${out}, transform ${duration['--duration-spring-medium']} ${spring}`,
 	},
-	arrow: {
-		gridArea: 'arrow',
+	// The row's end: Open and its arrow, petrol like every way in; the arrow steps forward
+	// while the row is hovered or its link focused.
+	open: {
+		gridArea: 'open',
 		justifySelf: 'end',
-		width: '20px',
-		height: '20px',
+		display: 'inline-flex',
+		alignItems: 'center',
+		gap: '6px',
 		marginTop: '1px',
-		color: {
-			default: color['--ink'],
-			[rowFocus()]: color['--accent'],
-			[media.finePointer]: {
-				default: color['--ink'],
-				[rowHover()]: color['--accent'],
-				[rowFocus()]: color['--accent'],
-			},
-		},
+		fontSize: '13px',
+		fontWeight: 500,
+		lineHeight: '20px',
+		whiteSpace: 'nowrap',
+		color: color['--accent'],
+	},
+	arrow: {
+		width: '16px',
+		height: '16px',
 		transform: {
 			default: null,
 			[rowFocus()]: 'translateX(4px)',
@@ -129,7 +136,7 @@ export const deskRow = stylex.create({
 				[rowFocus()]: 'translateX(4px)',
 			},
 		},
-		transition: `transform ${duration['--duration-step']} ${out}, color ${duration['--duration-medium']} ${out}`,
+		transition: `transform ${duration['--duration-step']} ${out}`,
 	},
 })
 

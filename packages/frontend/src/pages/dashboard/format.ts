@@ -22,8 +22,14 @@ export function relativeTime(at: string | number, now: number): string {
 	return `${Math.floor(hours / HOURS_PER_DAY)}d ago`
 }
 
-export function plural(count: number, noun: string): string {
-	return `${count} ${noun}${count === 1 ? '' : 's'}`
+// "1 desk" / "3 desks"; a noun whose plural is not its singular plus s names it ("repository",
+// "repositories").
+export function plural(
+	count: number,
+	noun: string,
+	nouns = `${noun}s`,
+): string {
+	return `${count} ${count === 1 ? noun : nouns}`
 }
 
 // A count that opens a sentence is spelled out while it is a word a reader takes in at a

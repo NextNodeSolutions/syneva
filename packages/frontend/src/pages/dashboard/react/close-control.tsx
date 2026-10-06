@@ -41,7 +41,7 @@ export function CloseControl({
 			<TextButton
 				id={ids.close}
 				small
-				css={touchTarget.small}
+				css={[touchTarget.small, closeControl.quiet]}
 				aria-label={`Close desk ${session}`}
 				onClick={actions.arm}
 			>

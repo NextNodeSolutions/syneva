@@ -1,22 +1,19 @@
 import { deskLinkId, NEW_REVIEW_ID } from './focus-targets'
 
-import type { HubProject } from '@entities/hub/model'
+import type { HubDesk } from '@entities/hub/model'
 
-// Where focus goes when a desk's row leaves: the next row of its project, else the one
-// before it, else the first row of the next project, else New review.
-export function focusAfterClose(
-	projects: readonly HubProject[],
-	deskId: string,
-): string {
-	const at = projects.findIndex(project =>
-		project.desks.some(desk => desk.id === deskId),
-	)
-	const project = projects[at]
-	if (!project) return NEW_REVIEW_ID
-	const index = project.desks.findIndex(desk => desk.id === deskId)
+// The rows as a listing displays them: its groups (a turn's, a project's) in order, each
+// group's desks in order.
+export type ListedGroups = readonly (readonly HubDesk[])[]
+
+// Where focus goes when a desk's row leaves: the next row of its group, else the one before
+// it, else the first row of the next group, else New review.
+export function focusAfterClose(groups: ListedGroups, deskId: string): string {
+	const at = groups.findIndex(group => group.some(desk => desk.id === deskId))
+	const group = groups[at]
+	if (!group) return NEW_REVIEW_ID
+	const index = group.findIndex(desk => desk.id === deskId)
 	const neighbour =
-		project.desks[index + 1] ??
-		project.desks[index - 1] ??
-		projects[at + 1]?.desks[0]
+		group[index + 1] ?? group[index - 1] ?? groups[at + 1]?.[0]
 	return neighbour ? deskLinkId(neighbour.id) : NEW_REVIEW_ID
 }
