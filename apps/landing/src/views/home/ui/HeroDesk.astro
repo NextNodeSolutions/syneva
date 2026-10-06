@@ -5,19 +5,11 @@ import AskThread from '@shared/ui/drawing/AskThread.astro'
 import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { sx } from '@shared/lib/sx'
+import { countLines, SAMPLE_CHANGE } from '@entities/desk/model/sample-round'
 import { DESK_FILE, DESK_THREAD } from './hero-round'
 import { stagePart } from './hero-stage-part'
 import { heroStage } from './hero-stage.styles'
 
-import type { LineKind } from './hero-round'
-
-const ROWS: readonly { line: string; kind: LineKind; code: string }[] = [
-	{ line: '12', kind: 'context', code: 'export function handle(req) {' },
-	{ line: '13', kind: 'removed', code: 'return run(req)' },
-	{ line: '14', kind: 'added', code: 'await verifySession(req)' },
-	{ line: '15', kind: 'added', code: 'return run(req)' },
-	{ line: '16', kind: 'context', code: '}' },
-]
 const ROW_KIND = {
 	context: { sign: undefined, tone: undefined, codeX: 284, isStruck: false },
 	added: { sign: '+', tone: text.green, codeX: 298, isStruck: false },
@@ -26,8 +18,10 @@ const ROW_KIND = {
 const FIRST_ROW_Y = 126
 const ROW_HEIGHT = 24
 const STRIKE = { width: 104, rise: 4 }
-const rows = ROWS.map((row, index) => ({ ...row, ...ROW_KIND[row.kind], y: FIRST_ROW_Y + index * ROW_HEIGHT }))
-const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind).length
+const rows = SAMPLE_CHANGE.lines.map(({ line, kind, code }, index) => {
+	const { sign, tone, codeX, isStruck } = ROW_KIND[kind]
+	return { line, code, sign, tone, codeX, isStruck, y: FIRST_ROW_Y + index * ROW_HEIGHT }
+})
 ---
 
 <g {...sx(heroStage.layer)} {...stagePart('desk')}>
@@ -40,7 +34,7 @@ const countOf = (kind: LineKind): number => ROWS.filter(row => row.kind === kind
 	</g>
 	<g {...stagePart('head')}>
 		<text {...sx(text.file, text.strong)} x="250" y="93">{DESK_FILE.path}</text>
-		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+{countOf('added')} −{countOf('removed')}</text>
+		<text {...sx(heroStage.sub, heroStage.mono)} x="354" y="93">+{countLines('added')} −{countLines('removed')}</text>
 		<g><rect {...sx(shape.kbd)} x="460" y="80" width="28" height="16"></rect><path {...sx(heroStage.buttonGlyph)} d="m471 85 6 6m0-6-6 6"></path></g>
 		<g>
 			<rect {...sx(shape.kbd, shape.chipYes)} x="492" y="80" width="28" height="16" {...stagePart('accept')}></rect>
