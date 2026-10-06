@@ -45,7 +45,7 @@ const FIELDS = [
 <PageHero
 	title="A reading order,<br>not a pile of files."
 	lede={'Git lists changed files alphabetically. Understanding doesn’t work that way. Your agent knows what it changed and why, so let it hand you the order: contracts first, behavior next, the interface last.'}
-	caption={`Same ${countWord(GUIDE_FILE_COUNT)} files. One order makes sense of them.`}
+	caption={`One order makes sense of the same ${countWord(GUIDE_FILE_COUNT)} files.`}
 >
 	<Fragment slot="actions"><PrimaryButton label="Try it on your diff" /><TextLink href={PAGES.connectYourAgent.href} label="How agents attach a guide" /></Fragment>
 	<GuideSort slot="art" />
@@ -55,9 +55,9 @@ const FIELDS = [
 	<Terminal lines={GUIDE} title="guide.json" />
 	<SpecTable rows={FIELDS} head={['Field', 'Meaning']} />
 </Prose>
-<Prose id="nothing-hidden" title="Nothing hidden.<br>Ever.">
+<Prose id="nothing-hidden" title="The guide reorders files,<br>and never hides one.">
 	<Callout lead={'A guide reorders and labels. It can’t remove.'}>Files the guide doesn&rsquo;t mention land in a trailing Other section. A guide carries no prose and no flags, and your verdicts, comments and Send work exactly the same with or without one.</Callout>
-	<ProseText>That is a deliberate limit. A reading order is advice from the agent that wrote the code; the decision about what deserves your attention stays with you.</ProseText>
+	<ProseText>That is a deliberate limit. A reading order is advice from the agent that wrote the code. The decision about what deserves your attention stays with you.</ProseText>
 </Prose>
 <Chapter id="stamped" title="Stamped to<br>its diff." artSide="left" caption="Guide → stamped diff → reload → refreshed guide">
 	<ChapterText>A guide is tied to the diff it was written for, and survives reloads and restarts.</ChapterText>

@@ -149,7 +149,7 @@ export const PAGES = {
 	openSource: {
 		href: '/open-source/',
 		title: 'Open source',
-		blurb: 'MIT licensed. A protocol you can read.',
+		blurb: 'MIT licensed, a protocol you can read.',
 		icon: 'source',
 	},
 } satisfies Record<string, Page>
@@ -173,7 +173,7 @@ export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 		label: 'Workflows',
 		href: '/workflows/',
 		overview: 'All workflows',
-		footer: 'On your machine. With your agent.',
+		footer: 'Local to your machine, driven by your agent.',
 		items: [
 			PAGES.workingTree,
 			PAGES.stagedChanges,
@@ -186,7 +186,7 @@ export const SECTION_BY_ID: { [Id in SectionId]: SectionOf<Id> } = {
 		label: 'Resources',
 		href: '/resources/',
 		overview: 'All resources',
-		footer: 'Open source. MIT licensed.',
+		footer: 'Open source, MIT licensed.',
 		// The setup guide joins the menus, the footer and the pagers at launch;
 		// until then its address leads to the signup (src/pages/get-started.astro).
 		items: [

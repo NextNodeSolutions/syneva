@@ -17,7 +17,7 @@ const GUIDE_STEPS = [
 ---
 
 <div {...sx(preview.frame)} aria-hidden="true">
-	<PreviewScene name="review" caption="YOUR LOCAL DESK" pitch={['Your agent writes.', 'You decide what stays.']}>
+	<PreviewScene name="review" caption="YOUR LOCAL DESK" pitch={['Your agent writes the code,', 'you decide what stays.']}>
 		<div {...sx(preview.diff)}>
 			<div {...sx(preview.filename)}>auth/session.ts <span {...sx(preview.filenameStat)}>+2 −1</span></div>
 			<div {...sx(preview.code)}>
@@ -28,7 +28,7 @@ const GUIDE_STEPS = [
 			<div {...sx(preview.verdict, motions.verdict)}><span {...sx(preview.check)}>✓</span> Accepted by you</div>
 		</div>
 	</PreviewScene>
-	<PreviewScene name="guide" caption="A READING ORDER" pitch={['Your agent sets the order.', 'Every file stays visible.']}>
+	<PreviewScene name="guide" caption="A READING ORDER" pitch={['Your agent sets the order,', 'and every file stays visible.']}>
 		<div {...sx(preview.tree)}>
 			{
 				GUIDE_STEPS.map((step, index) => (
@@ -41,7 +41,7 @@ const GUIDE_STEPS = [
 			}
 		</div>
 	</PreviewScene>
-	<PreviewScene name="ask" caption="ON THE EXACT LINE" pitch={['Ask where it matters.', 'The answer stays there.']}>
+	<PreviewScene name="ask" caption="ON THE EXACT LINE" pitch={['Ask where it matters,', 'and the answer stays there.']}>
 		<div {...sx(preview.conversation)}>
 			<code {...sx(preview.conversationCode)}>+ await verifySession(req)</code>
 			<div {...sx(preview.message, motions.message)}>
@@ -54,7 +54,7 @@ const GUIDE_STEPS = [
 			</div>
 		</div>
 	</PreviewScene>
-	<PreviewScene name="plan" caption="PLAN DESK" pitch={['Find the assumption.', 'Settle it before the diff.']}>
+	<PreviewScene name="plan" caption="PLAN DESK" pitch={['Find the assumption,', 'and settle it before any diff exists.']}>
 		<div {...sx(preview.plan)}>
 			<span {...sx(preview.planFile)}>plan.md</span>
 			<strong {...sx(preview.planTitle)}>Move session checks<br />into middleware.</strong>
