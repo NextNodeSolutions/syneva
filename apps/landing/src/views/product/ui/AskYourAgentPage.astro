@@ -28,15 +28,15 @@ const INTENTS = [
 ---
 
 <PageHero
-	title="Ask on the line.<br>The answer lands there."
+	title="Ask on the line,<br>and the answer lands there."
 	lede={'When a change doesn’t make sense, ask about it where it is. Your agent reads the code, posts a live status while it works, and answers in the thread on that exact line. You keep reviewing the whole time.'}
-	caption="Ask for an answer now. Request a change for the next round."
+	caption="Ask for an answer now, or request a change for the next round."
 >
 	<Fragment slot="actions"><PrimaryButton label="Start a local review" /><TextLink href={PAGES.connectYourAgent.href} label="How your agent answers" /></Fragment>
 	<AskFork slot="art" />
 </PageHero>
 <Chapter id="read-only" title="A question is<br>not a code change." caption="You → desk → agent → your thread">
-	<ChapterText>Answering is read-only. Your agent reads for context and replies on the line; it never edits tracked files to answer you, unless your question asks it to.</ChapterText>
+	<ChapterText>Answering is read-only. Your agent reads for context and replies on the line. It never edits tracked files to answer you, unless your question asks it to.</ChapterText>
 	<ChapterText>Questions don&rsquo;t block you either. Ask as many as you like without waiting, keep moving through the diff, and read the answers when they land.</ChapterText>
 	<ChapterList items={READ_ONLY} />
 	<AskSequence slot="art" />

@@ -12,14 +12,14 @@ const DESK = [['Follow the change, not the file list.'], ['Keep the good, undo t
 const ASK = [['Ask a question, or request a change.'], ['Answers in place, progress in sight.'], ['No question gets lost.']] as const
 ---
 
-<Chapter id="desk" title="A big diff.<br>A smaller mental load.">
+<Chapter id="desk" title="A big diff,<br>settled one decision at a time.">
 	<ChapterStatus page={PAGES.reviewDesk} />
 	<ChapterText>Read your agent’s work in the order that explains it, and record a verdict on every change.</ChapterText>
 	<ChapterList items={DESK} />
 	<TextLink href={PAGES.reviewDesk.href} label="Explore the review desk" />
 	<DeskFigure slot="art" />
 </Chapter>
-<Chapter id="ask" title="Ask on the line.<br>Get the answer there." artSide="left">
+<Chapter id="ask" title="Ask on the line,<br>and the answer lands there." artSide="left">
 	<ChapterStatus page={PAGES.askYourAgent} />
 	<ChapterText>Stop copying snippets into a chat window. Keep reviewing while your agent answers.</ChapterText>
 	<ChapterList items={ASK} />

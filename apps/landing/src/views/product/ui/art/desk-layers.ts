@@ -34,7 +34,7 @@ export const LAYER = {
 		y: 112,
 		from: 138,
 		label: '04 · VERDICTS',
-		words: 'Yours. Recorded per change.',
+		words: 'Recorded per change, and yours alone.',
 	},
 } as const satisfies { [Kind in LayerKind]: LayerOf<Kind> }
 
