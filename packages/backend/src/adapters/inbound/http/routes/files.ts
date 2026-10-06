@@ -9,8 +9,7 @@ import { HTTP_NOT_FOUND, HTTP_OK, json, fail } from '../http.js'
 
 import type { RouteRequest } from '../router.js'
 
-// GET /file - read an arbitrary repo file, for previewing/commenting on unchanged files. Same
-// strict path boundary as /file-contents (repo-relative, no escapes).
+// GET /file - read an arbitrary repo file, for previewing/commenting on unchanged files; same strict path boundary as /file-contents (repo-relative, no escapes).
 export async function serveFile({
 	ctx,
 	res,
@@ -32,22 +31,17 @@ export async function serveFile({
 	json(res, HTTP_OK, { path: rel, contents })
 }
 
-// GET /file-contents - one reviewed file's old/new contents, fetched on demand so the full
-// contents never have to ride /state. Resolves from git/the working tree via readFileContents,
-// never from embedded copies (the state embeds none).
+// GET /file-contents - one reviewed file's old/new contents, fetched on demand so the full contents never ride /state; resolved from git/the working tree (the state embeds none).
 export async function serveFileContents({
 	ctx,
 	res,
 	url,
 }: RouteRequest): Promise<void> {
 	const rel = url.searchParams.get('path') ?? ''
-	// One capture: the file lookup and the content read must come from one state root - a
-	// commit landing between them would resolve the file against one diff and its bytes
-	// against another.
+	// One capture: the file lookup and the content read must come from one state root - a commit landing between them would resolve the file against one diff and its bytes against another.
 	const { state } = ctx
 	const resolved = await resolveContained(state.root, rel, ctx.git.workspace)
-	// Only an ESCAPE is fatal here: a "missing" working-tree file is legitimate because the
-	// old/new bytes may come from git (a deleted or index-only file has no working-tree path).
+	// Only an ESCAPE is fatal here: a "missing" working-tree file is legitimate - the old/new bytes may come from git (a deleted or index-only file has no working-tree path).
 	if ('error' in resolved && resolved.error === 'escape')
 		return fail(res, BAD_PATH)
 	const file = state.files.find(candidate => candidate.path === rel)
@@ -59,8 +53,7 @@ export async function serveFileContents({
 			fix: 'Reload the desk (GET /state) if the diff changed.',
 		})
 	try {
-		// newOid is the file-level staleness key (the new-side blob OID); oldOid is hashed locally
-		// from the resolved old side. Carried for a future client cache - the tab ignores them now.
+		// newOid is the file-level staleness key (the new-side blob OID); oldOid is hashed locally from the resolved old side. Carried for a future client cache - the tab ignores them now.
 		const { oldContents, newContents } = await readFileContents(
 			state,
 			file,

@@ -2,7 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The start band: the call to action closing every page, install or signup.
 export const band = stylex.create({
 	root: {
 		display: 'grid',
@@ -30,8 +29,7 @@ export const band = stylex.create({
 		marginBottom: '10px',
 	},
 	next: { marginTop: '30px' },
-	// The confirmation a signup posted without scripts lands on: shown only
-	// while it is the page's target (the endpoint redirects to its anchor).
+	// Shown only while it is the page's target (the endpoint redirects to this anchor).
 	subscribed: {
 		display: { default: 'none', ':target': 'block' },
 		font: `13px ${font['--mono']}`,

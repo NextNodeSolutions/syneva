@@ -2,14 +2,11 @@ import type { Channel, ChannelValues, ContentName } from './navigation-channels'
 
 export type HandoverFrames = Map<string, { values: string[]; times: number[] }>
 
-// Readable content hands over instead of superimposing two menus: within a
-// channel group, an outgoing panel fades out by EXIT_AT of the move while
-// the incoming one holds, then fades in by ENTER_AT.
+// Readable content hands over instead of superimposing two panels: the outgoing panel fades out by EXIT_AT of the move while the incoming one holds, then fades in by ENTER_AT.
 const EXIT_AT = 0.22
 const ENTER_AT = 0.7
 
-// Both snapshots carry every channel: a missing one is a bug in the
-// registry, not a value to guess.
+// Both snapshots carry every channel: a missing one is a bug in the registry, not a value to guess.
 function valueOf(values: ChannelValues, name: string): string {
 	const channelValue = values[name]
 	if (channelValue === undefined)

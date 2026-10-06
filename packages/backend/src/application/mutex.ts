@@ -1,11 +1,5 @@
-// A minimal in-process serialization queue: a promise-chain mutex. `serialize(fn)` runs `fn`
-// only after every previously enqueued task has settled, so tasks execute one at a time in
-// enqueue order. Enqueue order (not completion order) is what determines the run order, so the
-// caller must enqueue synchronously to get a guaranteed sequence.
-//
-// A rejected task settles the chain WITHOUT poisoning it: the queue's tail promise only tracks
-// completion, so the next task still runs, while the promise handed back to the caller still
-// rejects - the caller sees its own failure.
+// Enqueue order (not completion order) sets the run order, so callers must enqueue synchronously for a guaranteed sequence.
+// A rejected task settles the chain WITHOUT poisoning it (the tail promise tracks completion, the returned promise still rejects).
 export type Serializer = <T>(fn: () => Promise<T>) => Promise<T>
 
 export function createSerializer(): Serializer {

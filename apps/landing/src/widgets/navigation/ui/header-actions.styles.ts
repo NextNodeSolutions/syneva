@@ -8,13 +8,10 @@ import { navClock } from './nav.stylex'
 const actionHover = (): string => stylex.when.ancestor(':hover', actionMarker)
 const toggleOpen = (): string =>
 	stylex.when.ancestor('[aria-expanded="true"]', toggleMarker)
-// Without scripts the noscript links are parsed into the header and the
-// toggle, which would open nothing, gives way to them.
+// Without scripts the noscript links are parsed into the header and the toggle, which would open nothing, gives way to them.
 const scriptless = (): string =>
 	stylex.when.ancestor(':has(noscript a)', navMarker)
 
-// The header's actions after the links: the primary action, and the toggle
-// that opens the link bar on phones.
 export const headerActions = stylex.create({
 	action: {
 		display: 'inline-flex',
@@ -65,9 +62,6 @@ export const headerActions = stylex.create({
 		stroke: { default: null, [media.navToggle]: 'currentColor' },
 		strokeWidth: { default: null, [media.navToggle]: 1.5 },
 	},
-	// The two bars cross into a close mark while the bar is open: each meets
-	// the icon's centre line, then turns about the centre (10, 10 in its
-	// viewBox).
 	toggleBar: {
 		transformOrigin: '10px 10px',
 		transition: `transform ${navClock.barDuration} ${navClock.ease}`,

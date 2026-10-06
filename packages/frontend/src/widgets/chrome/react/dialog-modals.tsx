@@ -12,10 +12,6 @@ import { modal } from './modal.styles'
 
 import type { ReactElement } from 'react'
 
-// The confirm dialog (destructive shortcuts route through askConfirm) and the
-// Send modal (⇧S receipt + overall note). Visibility flags are store state; the
-// buttons and the Enter/Esc hotkeys resolve through the same store methods.
-
 const action = [press.control, control.base, deskControl.compact]
 
 function DialogActions({

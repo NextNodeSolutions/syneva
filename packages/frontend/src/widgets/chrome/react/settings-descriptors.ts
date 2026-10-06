@@ -1,7 +1,3 @@
-// The settings descriptors: one entry per control in the preferences grid.
-// Each reads/writes the live store through chromeCtx() at call time, so the
-// pane re-renders from the store-version subscription like every other chrome view.
-
 import { CODE_THEMES } from '@entities/settings/code-themes'
 import { pairedCodeTheme } from '@entities/settings/settings'
 
@@ -9,8 +5,6 @@ import { chromeCtx } from '../context'
 
 import type { Settings } from '@entities/settings/model'
 
-// The select descriptors carry string options; applySetting is the one write
-// boundary that narrows a string back to its Settings field's union.
 function applySetting<K extends keyof Settings>(
 	key: K,
 	next: string | number | boolean,
@@ -119,8 +113,6 @@ export const APPEARANCE_SELECTS: SelectSpec[] = [
 		options: opts(['light', 'Light'], ['dark', 'Dark']),
 		get: () => chromeCtx().S.settings.appearance,
 		set: next => {
-			// A code theme still at the previous appearance's default follows the switch;
-			// one the reviewer picked stays theirs (the two settings mix freely).
 			const { settings } = chromeCtx().S
 			if (settings.theme === pairedCodeTheme(settings.appearance))
 				settings.theme = pairedCodeTheme(next)
@@ -232,8 +224,6 @@ export const EDITOR_COMMAND: TextSpec = {
 	},
 }
 
-// The code font size is a free number input (11-16, half steps) - the one control
-// the select table can't express.
 export const CODE_SIZE: NumberSpec = {
 	label: 'Code size',
 	min: 11,

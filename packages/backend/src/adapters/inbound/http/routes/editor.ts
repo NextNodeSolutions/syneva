@@ -11,9 +11,8 @@ import {
 
 import type { RouteRequest } from '../router.js'
 
-// The reviewer's file-open request, decoded at the transport boundary: a body without a
-// usable path is the caller's error (the route answers 400); the line value is passed raw -
-// the editor capability normalizes it (absent/non-integer → top of file).
+// Decoded at the transport boundary: a body without a usable path is the caller's error (the
+// route answers 400); the line value passes raw - the editor capability normalizes it.
 function parseOpenEditorRequest(
 	payload: unknown,
 ): { path: string; line: unknown } | null {

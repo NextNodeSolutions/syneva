@@ -3,9 +3,6 @@ import { reducedMotion } from '@syneva/motion/preference'
 
 import type { Scope } from './hero-timeline'
 
-// Depth on pointer: the instrument's three columns drift a few pixels apart
-// (a CSS transition on `translate` eases them), and the field's light
-// (hero.styles.ts, on hover) follows the cursor. Touch devices get neither.
 const DEPTHS = { agent: 5, desk: 9, ledger: 13 } as const
 const VERTICAL = 0.6
 const CENTER = 0.5

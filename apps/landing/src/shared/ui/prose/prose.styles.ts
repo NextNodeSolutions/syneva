@@ -2,9 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// Plain prose: a heading column and a body column, ruled from the section
-// above, stacking on narrow screens. A paragraph that follows something in
-// the body keeps its distance.
 export const prose = stylex.create({
 	root: {
 		display: 'grid',
@@ -22,7 +19,5 @@ export const prose = stylex.create({
 		maxWidth: '620px',
 		marginTop: { default: null, ':not(:first-child)': '18px' },
 	},
-	// A block of a prose body (a callout, a list, a table, a terminal) keeps
-	// its distance from what precedes it.
 	block: { marginTop: { default: null, ':not(:first-child)': '32px' } },
 })

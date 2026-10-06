@@ -1,9 +1,3 @@
-// Decoding primitives for the entity API boundaries: mechanics only - object/array
-// recognition, required/optional scalar fields, enum membership. Domain knowledge
-// (which fields an endpoint carries, what to do on absence) stays in the boundary
-// mappers; these helpers just fail loudly with a named cause when the wire lies.
-
-// A decode failure: the response was 2xx but not the shape the endpoint promises.
 export class DecodeError extends Error {
 	constructor(
 		message: string,
@@ -15,8 +9,7 @@ export class DecodeError extends Error {
 }
 
 // Narrowing predicates over the wire: keep every decode path free of `as` casts.
-// A generic runtime guard is a deliberate low-level exception here: this is the shared
-// HTTP decode primitive, and the entity boundary mappers validate field by field.
+// A generic runtime guard is a deliberate low-level exception here: this is the shared HTTP decode primitive, and the entity boundary mappers validate field by field.
 // oxlint-disable-next-line nextnode/no-generic-runtime-guard
 function isWireObject(raw: unknown): raw is Record<string, unknown> {
 	return typeof raw === 'object' && raw !== null && !Array.isArray(raw)
@@ -99,9 +92,6 @@ export function requiredStringArray(
 	})
 }
 
-// An optional field: absent/undefined passes through as undefined, a present value
-// must satisfy the check. Unknown fields are ignored by construction - callers copy
-// only what they read.
 export function optional<T>(
 	obj: Record<string, unknown>,
 	key: string,
@@ -148,7 +138,6 @@ export function optBoolean(
 	})
 }
 
-// Enum membership: a present value must be one of the allowed literals.
 export function optEnum<T extends string>(
 	obj: Record<string, unknown>,
 	key: string,

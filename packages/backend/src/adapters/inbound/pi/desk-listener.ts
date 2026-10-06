@@ -1,27 +1,20 @@
 import { TransientDeskError } from './desk-connection.js'
 
-// A received event envelope, as receiveDeskEvent hands it over: the saved JSON
-// file's path (what the agent got pointed at) plus its kind, so the listener can
-// recognize the terminal `closed` event without reading the file back.
+// The saved JSON file's path plus its kind, so the listener recognizes the terminal `closed` event without reading the file back.
 export type DeskEventEnvelope = { eventPath: string; kind: string }
 
 type DeskListener = {
 	signal: AbortSignal
 	receive: (signal: AbortSignal) => Promise<string | DeskEventEnvelope>
 	deliver: (event: string | DeskEventEnvelope) => void
-	// Test seam: the pause between retries of a transient transport failure.
 	retryDelayMs?: number | undefined
 }
 
-// A hub restart takes a few seconds; `syneva hub stop` + `syneva start` by hand a little
-// longer. Ride out about a minute of silence before declaring the attachment lost.
+// A hub restart takes a few seconds; `syneva hub stop` + `syneva start` by hand a little longer; ride out about a minute of silence before declaring the attachment lost.
 const RETRY_DELAY_MS = 3000
 const MAX_TRANSIENT_FAILURES = 20
 
-// The attachment, not an LLM turn or a one-shot child, owns this loop. Empty 204s
-// rearm it; a `closed` event ends it (the human ended the review in the browser);
-// a transient transport failure (the hub restarting) is retried with a pause, up to the
-// cap, before it is reported; an abort before delivery, or any other failure, stops.
+// The attachment, not an LLM turn or a one-shot child, owns this loop: empty 204s rearm it, a `closed` event ends it, a transient transport failure retries with a pause up to the cap, an abort or any other failure stops.
 export async function startDeskListener(listener: DeskListener): Promise<void> {
 	try {
 		await listenUntilClosed(listener)
@@ -32,8 +25,7 @@ export async function startDeskListener(listener: DeskListener): Promise<void> {
 
 async function listenUntilClosed(listener: DeskListener): Promise<void> {
 	let failures = 0
-	// The abort re-check comes BEFORE the cycle so an abort during delivery never reruns
-	// receive: a replaced attachment's loop must not read another event.
+	// The abort re-check comes BEFORE the cycle so an abort during delivery never reruns receive: a replaced attachment's loop must not read another event.
 	while (!listener.signal.aborted) {
 		const outcome = await listenOnce(listener)
 		if (outcome === 'stop') return
@@ -49,9 +41,8 @@ async function listenUntilClosed(listener: DeskListener): Promise<void> {
 
 type ListenOutcome = 'delivered' | 'stop' | { error: TransientDeskError }
 
-// One receive→deliver cycle. 'delivered' to keep listening: a timeout (no event) rearms,
-// a normal event delivers. 'stop': an abort before delivery, or `closed`. A transient
-// transport failure comes back as a value so the loop can count and pace the retries.
+// One receive→deliver cycle: 'delivered' keeps listening (a timeout rearms, a normal event delivers); 'stop' on an abort before delivery or `closed`.
+// A transient transport failure comes back as a value so the loop can count and pace the retries.
 async function listenOnce(listener: DeskListener): Promise<ListenOutcome> {
 	let event: string | DeskEventEnvelope
 	try {

@@ -16,25 +16,18 @@ const NO_NEWLINE_MARKER = '\\ No newline'
 const CONTENT_PREFIX_LENGTH = 1
 const DEFAULT_HUNK_COUNT = 1
 
-// Line-by-line unified-diff parser. Kept as an object so the running cursor (current file,
-// hunk, line numbers) lives on `this` instead of a mutable state bag threaded through helpers.
+// Kept as an object so the running cursor (current file, hunk, line numbers) lives on `this` instead of a mutable state bag threaded through helpers.
 class DiffParser {
-	// Build-time intermediates: mutable until the parse finishes, then widened into the
-	// readonly published shapes (see WritableDeep in domain/review.ts).
 	private readonly files: WritableDeep<DiffFile>[] = []
 	private file: WritableDeep<DiffFile> | undefined
 	private hunk: WritableDeep<DiffHunk> | undefined
 	private oldLine = 0
 	private newLine = 0
 	private diffPosition = 0
-	// Files whose content section is binary ("Binary files … differ" / "GIT binary patch") - a
-	// transient parse-time set (never a DiffFile field, so it can't leak into ReviewFile). Used
-	// to drop a renamed binary: it's zero-hunk with distinct paths, so the rename-keep rule below
-	// would otherwise keep it and its bytes would later be read as mangled utf8 text (fileAt).
+	// A transient parse-time set (never a DiffFile field, so it can't leak into ReviewFile): used to drop a renamed binary - it is zero-hunk with distinct paths,
+	// so the rename-keep rule would keep it and its bytes would later be read as mangled utf8 text.
 	private readonly binaryFiles = new WeakSet<WritableDeep<DiffFile>>()
-	// Files whose paths came from the `rename from`/`rename to` extended headers - those give the
-	// raw, unprefixed path (reliable for paths with spaces, unlike the `diff --git`/`--- +++`
-	// regexes), so once set we don't let the later `--- a/`/`+++ b/` lines clobber them.
+	// rename from/to extended headers give the raw, unprefixed path (reliable for paths with spaces), so once set the later `--- a/`/`+++ b/` lines must not clobber them.
 	private readonly renamedFiles = new WeakSet<WritableDeep<DiffFile>>()
 
 	parse(raw: string): DiffFile[] {
@@ -120,8 +113,7 @@ class DiffParser {
 		if (!file) return false
 		const match = rawLine.match(HUNK_HEADER)
 		if (!match) return false
-		// The count groups are optional in a hunk header, so a match can leave them absent even
-		// though destructuring a match array types every slot as `string`.
+		// The count groups are optional in a hunk header, so a match can leave them absent even though destructuring a match array types every slot as `string`.
 		const captures: (string | undefined)[] = match
 		const [, rawOldStart, rawOldCount, rawNewStart, rawNewCount] = captures
 		const hunk: WritableDeep<DiffHunk> = {
@@ -172,11 +164,8 @@ class DiffParser {
 		this.oldLine++
 	}
 
-	// Keep every file that has real hunks, plus a zero-hunk PURE rename (git -M with 100%
-	// similarity emits no content) - distinct old/new paths and not binary. A renamed binary is
-	// also zero-hunk with distinct paths, but its "Binary files … differ" line marks it (excluded
-	// so its bytes aren't read as text); same-path zero-hunk sections (mode-only changes, same-path
-	// binary diffs) have no rename to surface and stay dropped.
+	// Keep files with real hunks plus a zero-hunk PURE rename (git -M at 100% similarity emits no content); a renamed binary is also zero-hunk with distinct paths but marked binary, so excluded (its bytes would be read as text);
+	// same-path zero-hunk sections (mode-only changes, same-path binary diffs) have no rename to surface and stay dropped.
 	private isReviewable(file: WritableDeep<DiffFile>): boolean {
 		if (file.hunks.length) return true
 		return (

@@ -2,8 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The hanging indent sets a wrapped continuation deeper than the source
-// indents (up to 6 columns), so it never reads as a new line.
+// The hanging indent sets a wrapped continuation deeper than the source indents (up to 6 columns), so it never reads as a new line.
 const HANG = 'calc(7ch + 10px)'
 const line = {
 	display: 'block',
@@ -11,9 +10,7 @@ const line = {
 	textIndent: `calc(-1 * ${HANG})`,
 }
 
-// A terminal: "$" lines are commands (the prompt is drawn, not selectable),
-// "#" lines comments, anything else output. Lines wrap rather than scroll,
-// since a scrolled terminal hides its own prompt.
+// "$" lines are commands (the prompt is drawn, not selectable), "#" lines comments, anything else output; lines wrap rather than scroll, since a scrolled terminal hides its own prompt.
 export const terminal = stylex.create({
 	root: {
 		borderWidth: '1px',

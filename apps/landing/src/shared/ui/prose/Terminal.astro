@@ -1,18 +1,15 @@
 ---
-// A terminal-style block. "$ " lines are commands, "#" lines comments,
-// anything else output; an empty line keeps its height.
 import { revealItem } from '../../lib/reveal'
 import { sx } from '../../lib/sx'
 import { prose } from './prose.styles'
 import { terminal } from './terminal.styles'
 
 type Props = { lines: readonly string[]; title: string }
-// A command shows without its prompt, which the template draws apart.
 type Row = { kind: 'command' | 'comment' | 'output'; text: string }
 
 const { lines, title } = Astro.props
 const PROMPT = '$ '
-// A space, not nothing: an empty span would collapse the line.
+// A space, not nothing: an empty span collapses the line.
 const BLANK = ' '
 const rowOf = (line: string): Row => {
 	if (line.startsWith(PROMPT)) return { kind: 'command', text: line.slice(PROMPT.length) }

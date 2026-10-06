@@ -1,7 +1,4 @@
-// The circuit's wire routes, as pure geometry: the same math routes the wide
-// frame at build time and the live layout at runtime. A forward wire eases
-// across in one S-curve; the return wire drops below the row, runs back
-// under it with rounded corners and climbs to its port.
+// Pure geometry, so the same math routes the wide frame at build time and the live layout at runtime.
 export type Point = { readonly x: number; readonly y: number }
 export type Route = 'forward' | 'return'
 
@@ -26,8 +23,6 @@ const returning = (from: Point, to: Point): string => {
 export const routeWire = (route: Route, from: Point, to: Point): string =>
 	route === 'return' ? returning(from, to) : forward(from, to)
 
-// The loop label sits under the middle of the return wire's bottom run, its
-// midpoint, since both ends of the return share a row.
 export const loopLabelAt = (from: Point, to: Point): Point => ({
 	x: (from.x + to.x) * MIDPOINT,
 	y: bottomOf(from, to) + LABEL_GAP,

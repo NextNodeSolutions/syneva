@@ -7,8 +7,6 @@ import { a11y } from './a11y.styles'
 
 import type { ReactElement, ReactNode } from 'react'
 
-// Where the link sits and how loud it speaks: a step smaller beside small
-// controls, a petrol underline on a wash band.
 type TextLinkLook = {
 	small?: boolean | undefined
 	onWash?: boolean | undefined
@@ -21,9 +19,6 @@ type TextLinkProps = TextLinkLook & {
 	arrow?: boolean | undefined
 }
 
-// The secondary action: an underlined link. A link off the hub opens in a new
-// tab and says so, with ↗ and in words a screen reader reads (the glyph is
-// decoration); an internal one shows → only when `arrow` asks for it.
 export function TextLink({
 	href,
 	children,

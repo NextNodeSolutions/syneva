@@ -8,8 +8,7 @@ import { getGitRoot } from '../../outbound/git/repo.js'
 
 import type { Guide } from '@syneva/contracts/review'
 
-// A flag that was never passed has no key at all, so every read is `| undefined`: callers
-// default it instead of trusting the index signature's non-null type.
+// A flag that was never passed has no key at all, so every read is | undefined: callers default it instead of trusting the index signature's non-null type.
 export type CliArgs = Record<string, string | boolean | undefined>
 
 const FLAG_PREFIX = '--'
@@ -36,7 +35,6 @@ export function parseArgs(argv: string[]): CliArgs {
 	return parsed
 }
 
-// The leading bare words before the first flag: `open file plan.md` → ['file', 'plan.md'].
 export function leadingPositionals(argv: string[]): string[] {
 	const words: string[] = []
 	for (const arg of argv) {
@@ -46,7 +44,6 @@ export function leadingPositionals(argv: string[]): string[] {
 	return words
 }
 
-// A flag's string value, or undefined when absent or given bare (`--session` with no value).
 export function flagText(args: CliArgs, key: string): string | undefined {
 	const flag = args[key]
 	if (typeof flag !== 'string' || !flag.length) return undefined
@@ -57,16 +54,13 @@ export function resolveRepo(args: CliArgs): string {
 	return path.resolve(flagText(args, 'repo') ?? process.cwd())
 }
 
-// The repo root, falling back to the requested path when git can't resolve it (a
-// non-repo directory still gets a clear hub error rather than a crash).
+// The repo root falls back to the requested path when git can't resolve it: a non-repo directory still gets a clear hub error rather than a crash.
 export async function resolveRoot(args: CliArgs): Promise<string> {
 	const requested = resolveRepo(args)
 	return getGitRoot(requested).catch(() => requested)
 }
 
-// Read + validate a guide JSON file for the `--guide` flag. Returns the validated guide,
-// undefined when the flag is absent, or null on any error (after printing why) so the caller
-// can abort.
+// Returns the validated guide, undefined when the flag is absent, or null on any error (after printing why) so the caller can abort.
 export function loadGuideArg(
 	guideFlag: string | boolean | undefined,
 ): Guide | undefined | null {

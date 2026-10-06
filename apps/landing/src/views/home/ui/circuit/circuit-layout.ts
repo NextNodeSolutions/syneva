@@ -3,11 +3,7 @@ import { loopLabelAt, routeWire } from './circuit-routing'
 import type { SignalName } from './circuit-part'
 import type { Point, Route } from './circuit-routing'
 
-// The circuit on its wide frame: the source and verdict stations at either
-// end of one row, the review platform between them. The platforms draw their
-// ports from this table and the wires between the ports are routed from it at
-// build time, so the markup is the finished pose; the runtime re-routes them
-// from the live layout (circuit-wires.ts).
+// The table routes the wires at build time, so the markup is the finished pose; the runtime re-routes them from the live layout (circuit-wires.ts).
 export const ROW = 312
 export const PLATFORM_X = { source: 212, review: 580, verdict: 948 } as const
 
@@ -18,8 +14,6 @@ type Port = {
 	readonly y: number
 }
 
-// Each port, relative to its platform's centre: the forward wires leave and
-// reach the platforms' side corners, the return docks under the stations' rims.
 const PORTS = {
 	'agent-out': { platform: 'source', x: 124, y: 0 },
 	'agent-return': { platform: 'source', x: 0, y: 69 },
@@ -38,7 +32,6 @@ const pointOf = (id: PortId): Point => {
 	return { x: PLATFORM_X[platform] + x, y: ROW + y }
 }
 
-// A wire joins two ports and carries one travelling signal.
 type Wire = {
 	readonly id: string
 	readonly from: PortId

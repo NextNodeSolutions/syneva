@@ -13,8 +13,6 @@ export type DotTone =
 	| 'amber'
 	| 'red'
 
-// `signal` is the live process (the recipe's accent); `neutral` keeps the
-// base's strong rule tone.
 const TONE_STYLE: Record<DotTone, StyleXStyles> = {
 	neutral: null,
 	signal: dot.accent,
@@ -31,10 +29,6 @@ type LiveDotProps = {
 	css?: Style | undefined
 }
 
-// The square set before a state or a count. It is decoration: the words next
-// to it always carry its meaning, so it is hidden from assistive technology.
-// `hollow` outlines the tone (something sent or awaited); `live` pulses it
-// while a process holds it.
 export function LiveDot({
 	tone = 'neutral',
 	hollow,

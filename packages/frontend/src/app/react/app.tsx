@@ -22,24 +22,19 @@ import { app } from './app.styles'
 import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
 
-// The hub's rail loads after the review's first paint: nothing in it is needed to read the
-// diff, and the desk's cold open (its initial bundle budget) stays the review's alone. Until it
-// lands, its column is the rail's empty paper.
+// The hub's rail loads after the review's first paint: nothing in it is needed to read the diff, and the desk's cold open (its initial bundle budget) stays the review's alone.
+// Until it lands, its column is the rail's empty paper.
 const DeskRail = lazy(async () => {
 	const module = await import('@widgets/hub-shell/react/desk-rail')
 	return { default: module.DeskRail }
 })
 
-// The workspace's columns for the desk's shape (see app.styles.ts).
 function columns(shape: { isTreeless: boolean; isNotesOpen: boolean }): Style {
 	if (shape.isTreeless)
 		return shape.isNotesOpen ? app.treelessWithNotes : app.treeless
 	return shape.isNotesOpen ? app.withTreeAndNotes : app.withTree
 }
 
-// The workspace: tree, resizer, guide bar + diff, and the notes ledger when open. A desk
-// without a tree keeps the tree and the resizer mounted but hidden (its shape can change
-// on reload).
 function Workspace(): ReactElement {
 	const hasNoTree = isTreeless(S)
 	return (
@@ -50,7 +45,6 @@ function Workspace(): ReactElement {
 			)}
 		>
 			<Sidebar hidden={hasNoTree} />
-			{/* Tablets only: dims the diff behind the open file drawer; tap to close. */}
 			<div
 				{...stylex.props(
 					app.backdrop,
@@ -70,9 +64,6 @@ function Workspace(): ReactElement {
 	)
 }
 
-// The app shell: the hub's rail at the left edge, then the desk - top bar, the status covers,
-// the workspace and the floating layers. The desk's root carries its scope marker (data-desk)
-// the page-neutral desk stylesheet keys on.
 export function App(): ReactElement {
 	useStoreFields(
 		'state',

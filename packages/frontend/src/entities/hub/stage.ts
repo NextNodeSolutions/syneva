@@ -1,17 +1,8 @@
 import type { HubDesk } from './model'
 
-// The agent's own last line and when it posted it.
 export type Activity = NonNullable<HubDesk['agentActivity']>
 
-// Where a desk's round stands, read from the hub's own fields only: nothing (like "the agent
-// is answering") is inferred beyond what they say.
-// - sent / asked: a review or questions went out and no agent has picked them up (queued*).
-// - working: the agent posted a line of activity and is not parked on an await. The hub's
-//   TTL clears the line after about 90s.
-// - empty: the desk has no changes to review yet; `listening` says whether an agent waits.
-// - yours: an `await` is parked, so the agent is blocked on the reviewer. It outranks the
-//   agent's activity line, which it keeps to show what the agent last said.
-// - idle: no agent listening and nothing in flight: the review waits for its reviewer.
+// Read from the hub's own fields only - nothing is inferred beyond what they say; the hub's TTL clears the activity line after about 90s.
 export type DeskStage =
 	| { kind: 'sent' }
 	| { kind: 'asked'; questions: number }

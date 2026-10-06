@@ -1,18 +1,12 @@
 import type { DockParts } from './navigation-parts'
 
-// Past this many pixels from the top the header docks.
 const DOCK_AT_PX = 8
 
-// A section's tick and where it sits on the ruler, as a share of the scroll.
 type Tick = { element: HTMLElement; at: number }
 
 const share = (fraction: number): number => Math.min(Math.max(fraction, 0), 1)
 
-// The header's dock: once the page leaves its top, data-docked restyles the
-// header into its floating sheet (dock.styles.ts), and the sheet's bottom
-// edge rules the reading position, with a tick where each section of the page
-// begins. The ticks come from the page's own sections (the document's
-// #main > section), so every page gets its own ruler.
+// Past the page's top, data-docked restyles the header into its floating sheet whose bottom edge rules the reading position; the ticks come from the page's own #main > section elements, so every page gets its own ruler.
 export class HeaderDock {
 	readonly #root: HTMLElement
 	readonly #ruler: HTMLElement
@@ -36,10 +30,7 @@ export class HeaderDock {
 		this.#tick = tick
 	}
 
-	// A page that loads (or is restored) already scrolled docks without the
-	// move: the header it would condense from was never on screen. The
-	// instant flag holds for two frames, the docked pose's and the one before
-	// the transitions return.
+	// A page that loads (or is restored) already scrolled docks without the move: the header it would condense from was never on screen. The flag holds two frames: the docked pose and the one before the transitions return.
 	start(scrollY: number): void {
 		this.measure()
 		if (scrollY <= DOCK_AT_PX) {
@@ -55,8 +46,6 @@ export class HeaderDock {
 		)
 	}
 
-	// The scroll range, and where each section after the first meets the
-	// docked header.
 	measure(): void {
 		this.#range = Math.max(
 			document.documentElement.scrollHeight - window.innerHeight,

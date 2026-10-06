@@ -1,7 +1,4 @@
-// Native WAAPI easings Motion cannot pass through (steps()) are rebuilt as
-// keyframes: each step holds its value until the next one starts, with a
-// duplicate offset making the jump instantaneous. The result is exact, not a
-// sampled linear() approximation.
+// steps() as keyframes: each step holds until the next starts, a duplicate offset makes the jump instantaneous - exact, not a sampled linear() approximation.
 export type Stepped = { values: string[]; times: number[] }
 
 export function steps(

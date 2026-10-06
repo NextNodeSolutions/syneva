@@ -1,5 +1,3 @@
-// Copy spells small counts out ("six changed files"); a larger one reads as
-// a numeral.
 const COUNT_WORDS = [
 	'zero',
 	'one',

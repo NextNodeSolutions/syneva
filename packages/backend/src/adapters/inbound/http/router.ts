@@ -40,9 +40,7 @@ import type { DeskContext } from './context.js'
 import type { HubRouteDeps } from './hub-routes.js'
 import type { StaticRequest, UiServer } from './routes/static.js'
 
-// A desk route's whole world: the desk it belongs to, the request it answers, and the response
-// it writes. Handlers end the response themselves - some stream (the await-send long-poll), some
-// attach a post-flush hook (Send, close), so the dispatcher never writes on their behalf.
+// A desk route's whole world: its desk, its request, the response it writes. Handlers end the response themselves (some stream, some attach post-flush hooks), so the dispatcher never writes on their behalf.
 export type RouteRequest = {
 	ctx: DeskContext
 	req: IncomingMessage
@@ -52,14 +50,11 @@ export type RouteRequest = {
 
 export type RouteHandler = (request: RouteRequest) => Promise<void>
 
-// Keyed `METHOD /path` (the path under the desk's API base) - the desk route registry. Values
-// admit undefined because a lookup for any other method/path misses, which is the dispatcher's 404.
 export type RouteTable = Readonly<Record<string, RouteHandler | undefined>>
 
 export type HubRouterDeps = HubRouteDeps & {
 	guard: AccessGuard
-	// The authorities the origin guard accepts - a lookup, because the port is known only once
-	// the server listens.
+	// A lookup: the port is known only once the server listens.
 	authorities: () => readonly string[]
 	deskRoutes: RouteTable
 	ui: UiServer
@@ -75,9 +70,7 @@ const NOT_FOUND_JSON = {
 	fix: `See ${DOCS} for the route list.`,
 }
 
-// The hub's request entry point: the origin guard for every route (current and future), the
-// access guard, then the dispatch - the pages, the hub API, the per-desk API, the UI's assets -
-// and the one place an unexpected throw becomes a 500.
+// The hub's request entry point: the origin guard for every route, the access guard, then dispatch (pages, hub API, per-desk API, assets) - and the one place an unexpected throw becomes a 500.
 export function createHubRequestHandler(
 	deps: HubRouterDeps,
 ): (req: IncomingMessage, res: ServerResponse) => void {
@@ -91,9 +84,7 @@ export function createHubRequestHandler(
 			if (await handleAccess(deps, req, res, url)) return
 			const request: StaticRequest = { req, res, url }
 			if (await handleDashboardPage(deps, request)) return
-			// The hub listens before it rebuilds its desks (a restart's tabs reconnect at once):
-			// what follows may name a desk, and one still being restored must not read as closed
-			// - its page as not found, its tab as closed, the listing as empty.
+			// The hub listens before it rebuilds its desks (a restart's tabs reconnect at once): a request naming a desk still being restored must not read as closed - its page as not found, its tab as closed, the listing as empty.
 			await deps.hub.restored()
 			if (await handleDeskPage(deps, request)) return
 			if (await handleHubApi(deps, request)) return
@@ -110,9 +101,7 @@ export function createHubRequestHandler(
 	}
 }
 
-// The sign-in pages, the public health probe and the font files answer before the access
-// guard; everything else needs the key when one is configured. True once the request has been
-// answered.
+// The sign-in pages, the public health probe and the font files answer before the access guard; everything else needs the key when one is configured.
 async function handleAccess(
 	deps: HubRouterDeps,
 	req: IncomingMessage,
@@ -131,17 +120,14 @@ async function handleAccess(
 		hubHealth(deps, res)
 		return true
 	}
-	// The fonts are the design system's public OFL files and carry no hub data; without them a
-	// keyed hub's sign-in page (pages.ts) could not set in Geist. Only a read of one font file
-	// name under the fonts prefix passes - pinned here, not left to the UI server (the dev
-	// loop's is Vite, which would take any path) - and only when the UI server has it: anything
-	// else (the stylesheet, the bundles, the APIs) still meets the guard below.
+	// The fonts are the design system's public OFL files: no hub data, and a keyed hub's sign-in could not load Geist without them.
+	// One font file name under the prefix passes - pinned here, not left to the UI server (the dev loop's would take any path) - and only when the UI server has it.
 	if (isFontRead(req, url) && (await deps.ui.asset({ req, res, url })))
 		return true
 	return !deps.guard.allows(req, res, url)
 }
 
-// Pages and assets answer GET and HEAD (a HEAD gets the same headers, Node drops the body).
+// Pages and assets answer GET and HEAD (a HEAD gets the same headers; Node drops the body).
 function isRead(req: IncomingMessage): boolean {
 	return req.method === 'GET' || req.method === 'HEAD'
 }
@@ -156,9 +142,6 @@ function isFontRead(req: IncomingMessage, url: URL): boolean {
 	)
 }
 
-// The dashboard's pages (isDashboardPath: the hub root, its sections, every project page) all
-// answer with the one page shell - its assets load from absolute paths - which routes between
-// them in the browser.
 async function handleDashboardPage(
 	deps: HubRouterDeps,
 	request: StaticRequest,
@@ -169,10 +152,9 @@ async function handleDashboardPage(
 	return true
 }
 
-// The UI's assets come last. Every route above names its paths exactly; what is left is the
-// UI server's to recognize: the bundle's fixed URLs in an install, any module of the source
-// graph under the dev loop's Vite server - which must never be handed an API request (it
-// would try to transform it).
+// The UI's assets come last: every route above names its paths exactly, so the rest belongs to the
+// UI server to recognize (fixed bundle URLs in an install, any source-graph module under Vite,
+// which must never receive an API request - it would try to transform it).
 async function handleUiAsset(
 	deps: HubRouterDeps,
 	request: StaticRequest,
@@ -181,8 +163,7 @@ async function handleUiAsset(
 	return deps.ui.asset(request)
 }
 
-// /d/<id>/ serves the desk page for a live desk; /d/<id> (no slash) redirects onto it so the
-// page's relative URLs resolve under the desk; an unknown id gets the not-found page.
+// /d/<id>/ serves the desk page; /d/<id> (no slash) redirects so the page's relative URLs resolve under the desk; an unknown id gets the not-found page.
 async function handleDeskPage(
 	deps: HubRouterDeps,
 	request: StaticRequest,
@@ -206,8 +187,7 @@ async function handleDeskPage(
 	return true
 }
 
-// What no route answered: a page for a browser's navigation (it asks for HTML first), the
-// JSON failure for everything else - an agent, a fetch.
+// What no route answered: a page for a browser's navigation (it asks for HTML first), the JSON failure for everything else.
 function notFound({ req, res, url }: StaticRequest): void {
 	const isNavigation =
 		isRead(req) && (req.headers.accept ?? '').includes('text/html')
@@ -240,8 +220,6 @@ async function handleHubApi(
 	return true
 }
 
-// The dashboard's own API beside the desk registry: the journal it reads the hub's activity from,
-// and the display preferences it shares with every desk.
 async function handleDashboardApi(
 	deps: HubRouterDeps,
 	{ req, res, url }: StaticRequest,
@@ -257,9 +235,8 @@ async function handleDashboardApi(
 	return true
 }
 
-// /api/desks/<id>/<route>: the desk's own API, dispatched through the per-desk route table
-// with the prefix stripped. A route that exists but whose desk is gone answers DESK_NOT_FOUND
-// (the tab's poll turns that into its desk-closed cover; the CLI into "no live desk").
+// /api/desks/<id>/<route>: the desk's own API, dispatched through the per-desk route table with the prefix stripped.
+// A route whose desk is gone answers DESK_NOT_FOUND (the tab's poll turns that into its desk-closed cover, the CLI into "no live desk").
 async function handleDeskApi(
 	deps: HubRouterDeps,
 	{ req, res, url }: StaticRequest,
@@ -282,8 +259,7 @@ async function handleDeskApi(
 	return true
 }
 
-// The one place an unexpected throw becomes a response: a BodyDecodeError is the caller's
-// bug (a malformed/oversized body) and answers 400; anything else is an INTERNAL 500.
+// The one place an unexpected throw becomes a response: a BodyDecodeError is the caller's bug (malformed/oversized body) and answers 400; anything else is an INTERNAL 500.
 function reportFailure(res: ServerResponse, error: unknown): void {
 	if (res.headersSent) {
 		res.end()

@@ -2,7 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
 export const documentShell = stylex.create({
-	// A centered, ruled frame holds every page.
 	frame: {
 		maxWidth: '1280px',
 		margin: '0 auto',

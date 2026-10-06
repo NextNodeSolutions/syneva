@@ -5,7 +5,6 @@ import { openCommands } from './open-commands.styles'
 
 import type { ReactElement } from 'react'
 
-// The other ways in, as the CLI spells them.
 const VARIANTS = [
 	{ command: 'syneva open --diff staged', means: 'Only what is staged.' },
 	{
@@ -15,7 +14,6 @@ const VARIANTS = [
 	{ command: 'syneva open file <path>', means: 'One file, tracked or not.' },
 ] as const
 
-// The command that opens a desk, ready to copy, and its variants as the site's spec rows.
 export function OpenCommands(): ReactElement {
 	return (
 		<div {...stylex.props(openCommands.install)}>

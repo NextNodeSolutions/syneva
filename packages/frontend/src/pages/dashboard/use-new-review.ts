@@ -6,11 +6,8 @@ import type { NewDeskInput } from '@entities/hub/model'
 import type { FormEvent } from 'react'
 import type { OpenRefusal } from './use-open-desk'
 
-// What to review: the four sources the CLI opens, in the site's workflow order.
 export type Source = 'working' | 'staged' | 'pr' | 'file'
 
-// The sources that read a target, each keeping its own: a file path typed for one file never
-// becomes the ref a pull request checks out.
 type TargetSource = Extract<Source, 'pr' | 'file'>
 
 export type Fields = {
@@ -20,7 +17,6 @@ export type Fields = {
 	session: string
 }
 
-// The fields a submit can find wanting, with what to say about each.
 export type FieldErrors = {
 	root?: string | undefined
 	target?: string | undefined
@@ -36,7 +32,6 @@ export type NewReview = {
 	refusal: OpenRefusal | null
 	isBusy: boolean
 	submit: (event: FormEvent<HTMLFormElement>) => void
-	// Abandon an open in flight (the dialog closed while the hub was still opening).
 	abort: () => void
 }
 
@@ -47,8 +42,6 @@ const BLANK: Fields = {
 	session: '',
 }
 
-// The checked fields in the form's order (each input is named after its field): the first
-// one wanting takes focus.
 const FIELD_ORDER = [
 	'root',
 	'target',
@@ -77,8 +70,6 @@ function validate(fields: Fields): FieldErrors {
 	}
 }
 
-// The open the CLI performs, from the form. A target only travels with the source that
-// reads it; blank optional fields are left for the hub to default.
 function toInput(fields: Fields): NewDeskInput {
 	const { source } = fields
 	return {
@@ -97,7 +88,6 @@ type FieldSetters = Pick<
 	'setRoot' | 'setSource' | 'setTarget' | 'setSession'
 >
 
-// Each setter edits its field and clears the error a submit left on it.
 function fieldSetters(
 	edit: (next: (current: Fields) => Fields) => void,
 	clearError: (key: keyof FieldErrors) => void,
@@ -122,10 +112,8 @@ function fieldSetters(
 	}
 }
 
-// The New review form: its fields, the validation a submit runs (each error stands until its
-// field is edited or the next submit; a field the submit did not flag is never shown wanting),
-// and the one action, the open (use-open-desk.ts). While it runs, the fields hold still. A
-// `seed` fills the repository in (New review opened on a repository the page names).
+// The New review form: its fields, the validation a submit runs, the one action - the open (use-open-desk.ts). While it runs, the fields hold still.
+// Each error stands until its field is edited or the next submit; a field the submit did not flag is never shown wanting. A `seed` fills the repository in.
 export function useNewReview(seed: string | null): NewReview {
 	const [fields, setFields] = useState(() => ({ ...BLANK, root: seed ?? '' }))
 	const [errors, setErrors] = useState(NO_ERRORS)

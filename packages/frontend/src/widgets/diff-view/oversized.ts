@@ -45,15 +45,6 @@ type GuideEntry = ReturnType<typeof currentGuideEntry>
 
 const BYTES_PER_UNIT = 1024
 
-// ── Oversized-file placeholder card (issue 05) ───────────────────────────────
-// A file whose diff would freeze the tab (server-stamped `oversized`, see state.ts) renders as a
-// verdict-capable summary card INSTEAD of fetching + rendering its diff - so opening it never
-// blocks on a multi-MB tokenization pass. The card carries the file's stats, its guide badges, the
-// same whole-file verdict controls a rendered file has, and a "Load diff anyway" escape hatch. Once
-// loaded, the file behaves like any rendered file for the rest of the session (diffCtx().S.loadedOversized).
-
-// Whether `f` (default: the current file) should paint the placeholder card right now: it's stamped
-// oversized and the reviewer hasn't chosen to load its real diff this session.
 export function isOversizedPlaceholder(
 	f: ReviewFile = currentFile(
 		diffCtx().S.state?.files,
@@ -64,7 +55,6 @@ export function isOversizedPlaceholder(
 	return !!f.oversized && !diffCtx().S.loadedOversized.has(f.path)
 }
 
-// "Load diff anyway": remember the choice and render the file normally.
 export function loadOversizedDiff(): void {
 	const file = currentFileOrNull(
 		diffCtx().S.state?.files,
@@ -76,8 +66,6 @@ export function loadOversizedDiff(): void {
 	diffCtx().deferRender()
 }
 
-// Human-readable byte size (the card's focal stat - the file is large). Binary units, one decimal
-// past KB so a 1.4 MB file doesn't round to "1 MB".
 function formatBytes(n: number): string {
 	if (n < BYTES_PER_UNIT) return `${n} B`
 	const units = ['KB', 'MB', 'GB']
@@ -90,7 +78,6 @@ function formatBytes(n: number): string {
 	return `${i === 0 ? Math.round(v) : v.toFixed(1)} ${units[i]}`
 }
 
-// Change-kind → the tone the diff header's icon speaks in (change-kind.styles.ts).
 function kindTone(kind: ReviewFile['changeKind']): StaticStyle {
 	if (kind === 'added') return changeTone.added
 	if (kind === 'deleted') return changeTone.deleted
@@ -98,7 +85,7 @@ function kindTone(kind: ReviewFile['changeKind']): StaticStyle {
 	return changeTone.modified
 }
 
-// A finished file's verdict: its state as a tag, and a quiet Reset to undo the sign-off.
+// Identical semantics to a rendered file's header: finished → state tag + Reset; otherwise Reject file (when there are blocks) + Approve / Mark reviewed.
 function finishedControls(wrap: HTMLElement, path: string): HTMLElement {
 	const state = fileReviewState(diffCtx().S.state, path)
 	const pill = document.createElement('span')
@@ -118,16 +105,11 @@ function finishedControls(wrap: HTMLElement, path: string): HTMLElement {
 	return wrap
 }
 
-// The whole-file verdict controls - identical semantics to a rendered file's header:
-// finished → a state tag + Reset; otherwise Reject file (when there are blocks to reject) +
-// Approve / Mark reviewed.
 function verdictControls(path: string): HTMLElement {
 	const wrap = document.createElement('div')
 	wrap.className = cx(oversized.verdict)
 	if (fileFinished(diffCtx().S.state, path))
 		return finishedControls(wrap, path)
-	// Reject file only makes sense when the file actually has change blocks (a hunk-less added file
-	// has none - nothing to reject block-by-block).
 	const hasBlocks = (diffCtx().S.state?.changes ?? []).some(
 		c => c.path === path,
 	)
@@ -159,8 +141,6 @@ function verdictControls(path: string): HTMLElement {
 	return wrap
 }
 
-// Row 1: change-type icon + path (+ rename arrow) + a kind badge (+ the whole-file comment
-// trigger on unguided desks - the guide bar owns it otherwise).
 function headSection(file: ReviewFile): HTMLElement {
 	const head = document.createElement('div')
 	const tone = kindTone(file.changeKind)
@@ -181,16 +161,11 @@ function headSection(file: ReviewFile): HTMLElement {
 	kind.className = cx(caption.base, caption.upper, tone, oversized.kind)
 	kind.textContent = file.changeKind ?? 'modified'
 	head.appendChild(kind)
-	// The whole-file comment trigger, UNGUIDED desks only (a guided desk's icon is in the guide
-	// bar next to home; and the two surfaces must never show duplicates).
-	// Whole-file comment trigger: multi-file unguided desks only (a guided desk's icon is in
-	// the guide bar; a single-file desk has no use for the scope).
 	if (!hasGuide(guideInputs(diffCtx().S)) && fileCommentsEnabled())
 		head.appendChild(fileCommentIconButton('card'))
 	return head
 }
 
-// The section this file is grouped under, as a chip on the card (the diff header shows the same one).
 function badgesSection(entry: GuideEntry): HTMLElement | null {
 	if (!entry) return null
 	const badges = document.createElement('div')
@@ -202,7 +177,6 @@ function badgesSection(entry: GuideEntry): HTMLElement | null {
 	return badges
 }
 
-// Stats: byte size is the focal number (why this is a card), with the churn counts beside it.
 function statsSection(file: ReviewFile): HTMLElement {
 	const stats = document.createElement('div')
 	stats.className = cx(oversized.stats)
@@ -234,8 +208,6 @@ function actionsSection(path: string): HTMLElement {
 	return actions
 }
 
-// Render the summary card into #diff. Called from renderCenter in place of the diff, BEFORE any
-// contents fetch - so an oversized file costs nothing to open.
 export function renderOversizedCard(): void {
 	const file = currentFile(
 		diffCtx().S.state?.files,
@@ -254,9 +226,6 @@ export function renderOversizedCard(): void {
 	note.textContent =
 		'This file is large. Its diff is hidden to keep the desk responsive.'
 	card.appendChild(note)
-	// The oversized card is the file's whole verdict surface - a whole-file comment naturally
-	// lives here too (its thread renders inside the card like any file header section, set off
-	// from the note by the card placement's margin).
 	const fc = fileCommentSection('card')
 	if (fc) card.appendChild(fc)
 	card.appendChild(actionsSection(file.path))

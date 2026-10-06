@@ -11,19 +11,13 @@ import type { GitPort, ReviewStorePort } from './ports.js'
 const JSON_INDENT = 2
 
 export type SentReview = {
-	// The desk's next state root: the reviewer slice, the staged snapshot, and the persist
-	// stamp folded into a NEW root (copy-on-write; unchanged branches shared by reference).
-	// The caller commits it - this function never edits the live state in place.
 	state: ReviewState
 	resultJson: string
 	reviewResult: ReviewResult
 }
 
-// The reviewer-owned patch a save/send applies. The inbound route's DTO decode
-// (parseReviewerSave in the http adapter, keyed off reviewerSavePatch below) has already
-// shaped the raw body into these domain records - a malformed patch is refused there (422),
-// never applied to the review state. Absent keys are left untouched (snapshot semantics,
-// latest wins: a stale open tab may POST the whole old ReviewState).
+// The inbound route's DTO decode (parseReviewerSave, keyed off reviewerSavePatch) already shaped the raw body into these domain records - a malformed patch is refused there (422), never applied.
+// Absent keys are untouched (snapshot semantics: a stale open tab may POST the whole old ReviewState).
 export type ReviewerSavePatch = {
 	decisions?: Decision[] | undefined
 	comments?: ReviewComment[] | undefined
@@ -32,13 +26,8 @@ export type ReviewerSavePatch = {
 	decisionFiles?: string[] | undefined
 }
 
-// The reviewer-owned slice a save/send body carries: { decisions, comments, reviewedFiles,
-// reviewedFileHashes, decisionFiles }. Only these fields are mutated from the browser; everything
-// else (rawDiff, file contents, changes, guide, desk metadata) stays server-authoritative. We pick
-// each key from whatever body arrives and replace wholesale - picking (rather than assigning the
-// raw body) is what lets a stale open tab keep working: it may POST the whole old ReviewState,
-// and we simply ignore everything but these. This key policy is THE single source: the inbound
-// transport decodes exactly these keys off it.
+// Only these fields are mutated from the browser; everything else stays server-authoritative. Picking (rather than assigning the raw body) is what lets a stale open tab keep working.
+// This key policy is THE single source - the inbound transport decodes exactly these keys off it.
 const REVIEWER_SAVE_KEYS = [
 	'decisions',
 	'comments',
@@ -47,9 +36,7 @@ const REVIEWER_SAVE_KEYS = [
 	'decisionFiles',
 ] as const satisfies ReadonlyArray<keyof ReviewerSave>
 
-// The reviewer-owned keys of a raw body, or {} when it isn't a JSON object. The KEY-level
-// allowlist for the slice; record-level DTO validation lives with the inbound transport
-// (parseReviewerSave), which decodes into ReviewerSavePatch before anything reaches a use case.
+// The KEY-level allowlist for the slice; record-level DTO validation lives with the inbound transport (parseReviewerSave).
 export function reviewerSavePatch(body: unknown): Record<string, unknown> {
 	if (!body || typeof body !== 'object') return {}
 	const posted: Record<string, unknown> = { ...body }
@@ -61,9 +48,7 @@ export function reviewerSavePatch(body: unknown): Record<string, unknown> {
 	)
 }
 
-// The one applier for a decoded reviewer save (both /save and /send): only PRESENT
-// keys replace - absent keys mean "unchanged" - and each key is spelled against ReviewState,
-// so no raw or unknown patch can ever reach the state.
+// Only PRESENT keys replace - absent keys mean "unchanged" - and each key is spelled against ReviewState, so no raw or unknown patch can ever reach the state.
 export function applyReviewerSave(
 	state: ReviewState,
 	patch: ReviewerSavePatch,
@@ -79,18 +64,11 @@ export function applyReviewerSave(
 	}
 }
 
-// The collaborator ports a Send drives: git (the staged snapshot) and the review store
-// (persist the review, write the agent-facing result artifact).
 export type SendIo = { git: GitPort; store: ReviewStorePort }
 
-// The decoded save patch (DTO-validated by the inbound route) and the reviewer's ephemeral
-// overall note, both extracted from the Send body.
 export type SendInput = { patch: ReviewerSavePatch; overallNote: string }
 
-// The reviewer hit Send: fold the reviewer slice and the staged snapshot into a new state
-// root, persist the review, and write the agent-facing result artifact next to it. Building
-// the result is what the agent contract hands over; emitting the review event is the caller's
-// job, and only after the reviewer's response has flushed.
+// Building the result is what the agent contract hands over; emitting the review event is the caller's job, and only after the reviewer's response has flushed.
 export async function sendReview(
 	state: ReviewState,
 	io: SendIo,
@@ -117,6 +95,3 @@ export async function sendReview(
 	)
 	return { state: saved, resultJson, reviewResult }
 }
-
-// overallNote is an ephemeral, per-Send instruction threaded straight into the result -
-// reviewerSavePatch never copies it onto `state`, so it is never persisted.

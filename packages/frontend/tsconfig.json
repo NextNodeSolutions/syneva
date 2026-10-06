@@ -1,14 +1,7 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		// The preset's ESNext/bundler resolution already fits the browser world.
-		// Overrides: DOM libs next to the preset's ES2024, JSX runtime, the
-		// node types vite.config.ts needs, Vite's client types (the CSS the
-		// dashboard entry imports for side effects), and the frontend-only layer aliases
-		// (FSD): app -> pages -> widgets -> features -> entities -> shared.
-		// Enforced here by moduleResolution=bundler and by oxlint's layer rules.
-		// The shared wire shapes come from the @syneva/contracts workspace
-		// package, not an alias.
+		// Browser world (bundled): DOM libs + JSX; layer aliases only, the wire shapes come from @syneva/contracts. Same layering is enforced by oxlint's rules.
 		"lib": ["ES2024", "DOM", "DOM.Iterable"],
 		"jsx": "react-jsx",
 		"types": ["node", "vite/client"],
@@ -21,7 +14,5 @@
 			"@shared/*": ["./src/shared/*"]
 		}
 	},
-	// The whole browser world: it imports modules through bundler-style specifiers,
-	// so it cannot be checked in the NodeNext worlds.
 	"include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
 }

@@ -14,9 +14,6 @@ const stackedRule = {
 	borderTopColor: { default: null, [media.stacked]: LINE },
 }
 
-// A ruled chapter: copy and drawing side by side, alternating per chapter,
-// stacking (copy first) on narrow screens. `sub*` styles are the subpages'
-// refinements, layered on the base.
 export const chapter = stylex.create({
 	section: {
 		display: 'grid',
@@ -51,8 +48,6 @@ export const chapter = stylex.create({
 		gridColumn: { default: 2, [media.stacked]: 'auto' },
 		gridRow: { default: 1, [media.stacked]: 'auto' },
 	},
-	// A subpage chapter goes to one column from tablets down (subSection), so
-	// its swapped placement resets there too, not only once stacked.
 	subReverseCopy: {
 		gridColumn: { default: 2, [media.narrow]: 'auto' },
 		gridRow: { default: 1, [media.narrow]: 'auto' },
@@ -125,8 +120,6 @@ export const chapter = stylex.create({
 		borderRightColor: { default: LINE, [media.stacked]: 'currentcolor' },
 		backgroundColor: color['--field-green'],
 	},
-	// Subpages: a platform ground for every chapter drawing, and the figure
-	// stacks under its copy from tablets down.
 	subArt: {
 		backgroundColor: color['--iso-platform'],
 		borderLeftWidth: { default: '1px', [media.narrow]: 0 },

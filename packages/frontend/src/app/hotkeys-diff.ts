@@ -32,9 +32,6 @@ import { S } from './store'
 
 import type { Hotkey } from '@app/hotkey-matchers'
 
-// The diff's own keyboard map: the keys that act on the line, change, or file under the cursor,
-// plus the comment and review verdicts they lead to. Split from the app-wide map (hotkeys-app.ts)
-// only for size; keys.ts concatenates the segments and owns the dispatch order.
 export const HOTKEYS_DIFF: Hotkey[] = [
 	{
 		combo: '⇧↓',
@@ -107,8 +104,7 @@ export const HOTKEYS_DIFF: Hotkey[] = [
 		goline: true,
 		hide: true,
 	},
-	// On an oversized-file placeholder card there's no line to comment on - ↵ loads the real diff
-	// instead. More specific than the plain-↵ comment binding below, so it wins in that one scope.
+	// On an oversized placeholder card there is no line to comment on: loads the real diff instead, and being more specific than the plain-↵ comment binding it wins in that one scope.
 	{
 		combo: '↵',
 		desc: 'Load diff anyway (large file)',
@@ -133,13 +129,12 @@ export const HOTKEYS_DIFF: Hotkey[] = [
 		when: inDiff,
 		run: () => cursorComment(),
 		hide: true,
-	}, // alias for ↵
+	},
 	{
 		combo: '⇧C',
 		desc: 'Comment on file',
 		group: 'Comment',
 		test: shift('C'),
-		// A single-file desk has no use for whole-file scope - nothing to open.
 		when: () => inDiff() && fileCommentsEnabled(),
 		run: () => S.toggleFileComposer?.(),
 	},
@@ -215,8 +210,6 @@ export const HOTKEYS_DIFF: Hotkey[] = [
 		desc: 'Approve / mark file reviewed',
 		group: 'Review',
 		test: shift('A'),
-		// The diff's own surface AND a file to approve: before the first state lands, or on a
-		// review a reload emptied, approving would reach currentFile(S.state?.files, S.preview, S.fileIndex)'s ready-only throw.
 		when: () =>
 			inDiff() && hasCurrentFile(S.state?.files, S.preview, S.fileIndex),
 		run: () => void approveCurrentFile(),

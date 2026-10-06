@@ -1,5 +1,4 @@
 ---
-// Workflows overview: one source per workflow page, one desk, one verdict.
 import { ICONS } from '@syneva/design-system/icons'
 import { SECTION_BY_ID } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
@@ -17,12 +16,8 @@ import { workflowsArt } from './workflows-art.styles'
 
 const TOP = 50
 const ROW = 95
-// The menu's 24-unit icons, centred in each card's left margin at 1.25x;
-// workflowsArt.hubGlyph scales their stroke back to 1.4.
 const ICON_SCALE = 1.25
 const ICON_OFFSET = { x: 41, y: 10 } as const
-// The workflows section's pages, as the site map lists them: each card shows
-// the page's icon, title and command.
 const SOURCES = SECTION_BY_ID.workflows.items.map(({ title, icon, code }, index) => {
 	const y = TOP + index * ROW
 	return { title, icon, command: code, y, iconTransform: `translate(${ICON_OFFSET.x} ${y + ICON_OFFSET.y}) scale(${ICON_SCALE})` }

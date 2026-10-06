@@ -6,16 +6,10 @@ import { draw, FADE_END, FADE_START, loop, pop, travel } from './hero-timeline'
 import type { Palette } from './hero-palette'
 import type { Scope } from './hero-timeline'
 
-// The second half of the hero round (see hero-choreography.ts): you give
-// your verdict, the ledger records it, Send hands it to your agent, and the
-// agent's next revision comes back.
-
-// The cursor's pose: where its tip points, and its press.
 const at = (x: number, y: number, scale = 1): { transform: string } => ({
 	transform: `translate(${x}px, ${y}px) scale(${scale})`,
 })
 
-// 7.6 - 9.5  Your cursor accepts the change; the verdict travels on.
 export function accept({ one, all }: Scope, color: Palette): void {
 	loop(one('cursor'), [
 		{ time: 0, props: { opacity: 0, ...at(650, 300) } },
@@ -57,8 +51,6 @@ export function accept({ one, all }: Scope, color: Palette): void {
 	travel(one('signal-out'), 8.95, 0.5, 8)
 }
 
-// 9.4 - 10.8  Every file gets your verdict, one turn after another; the
-// ledger fills.
 export function decide({ one, all }: Scope): void {
 	const verdicts = all('verdict')
 	verdicts.forEach(verdict => {
@@ -67,7 +59,6 @@ export function decide({ one, all }: Scope): void {
 			pop(verdict, start)
 			return
 		}
-		// The rejected file: undone now, pending again once the agent revises.
 		loop(verdict, [
 			{ time: 0, props: { opacity: 0, transform: 'scale(0)' } },
 			{
@@ -80,7 +71,6 @@ export function decide({ one, all }: Scope): void {
 			{ time: 14.25, props: { opacity: 0, transform: 'scale(.6)' } },
 		])
 	})
-	// The revised file is pending again: progress gives back its share.
 	const kept = verdicts.filter(verdict => !isRejected(verdict)).length
 	const settled = `scaleX(${kept / verdicts.length})`
 	loop(one('fill'), [
@@ -92,7 +82,6 @@ export function decide({ one, all }: Scope): void {
 		{ time: FADE_START, props: { transform: settled, opacity: 1 } },
 		{ time: FADE_END, props: { transform: settled, opacity: 0 } },
 	])
-	// The count reads complete only once every verdict is in.
 	loop(one('progress-1'), [
 		{ time: 0, props: { opacity: 0 } },
 		{ time: 10.6, props: { opacity: 0 } },
@@ -109,7 +98,6 @@ export function decide({ one, all }: Scope): void {
 	])
 }
 
-// 11.1 - 13.1  Send: the verdict goes back to the agent.
 export function send({ one }: Scope, color: Palette): void {
 	loop(one('send-box'), [
 		{ time: 0, props: { fill: color.accent } },
@@ -117,7 +105,6 @@ export function send({ one }: Scope, color: Palette): void {
 		{ time: 11.22, props: { fill: color.accentDeep } },
 		{ time: 11.6, props: { fill: color.accent } },
 	])
-	// The button reads "Sent" while the agent works, then offers the next round.
 	loop(one('send-label'), [
 		{ time: 0, props: { opacity: 1 } },
 		{ time: 11.28, props: { opacity: 1 } },
@@ -135,7 +122,6 @@ export function send({ one }: Scope, color: Palette): void {
 	travel(one('signal-back'), 11.5, 1.6, 5)
 }
 
-// 13.1 - 14.4  The agent rewrites one file; it alone comes back pending.
 export function revise({ one }: Scope): void {
 	pop(one('rev'), 13.95)
 	pop(one('row-pending'), 14.1)

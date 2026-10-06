@@ -18,10 +18,8 @@ import type {
 import type { JournalEvent } from '../../../domain/hub-journal.js'
 import type { HubDeskRecord, HubLock } from '../../../domain/hub-registry.js'
 
-// Everything the hub keeps about itself lives under ~/.syneva/hub/: the lock the CLI reads to
-// find a running hub, the desk registry a restart restores from, the journal of what happened
-// on the hub, and the log a detached hub writes to. Review state stays where it always was
-// (~/.syneva/<repoHash>/<session>/).
+// Everything the hub keeps about itself lives under ~/.syneva/hub/: the lock the CLI reads to find a running hub, the desk registry a restart restores from, the log a detached hub appends to.
+// Review state stays at ~/.syneva/<repoHash>/<session>.
 const HUB_DIR = 'hub'
 const LOCK_FILE = 'hub.json'
 const REGISTRY_FILE = 'desks.json'
@@ -43,10 +41,8 @@ export function hubLogPath(): string {
 	return path.join(hubDir(), LOG_FILE)
 }
 
-// The append descriptor a detached hub's stdio is pointed at. The CLI opens it BEFORE any hub
-// has run, so on a fresh machine nothing has created ~/.syneva/hub/ yet (the lock and registry
-// writers only run inside a hub that is already up): the directory is made here. Synchronous
-// like the spawn it feeds; the caller closes the descriptor once the child has inherited it.
+// The CLI opens it BEFORE any hub has run (nothing creates ~/.syneva/hub on a fresh machine - the lock and registry writers only run inside an up hub), so the directory is made here, synchronously like the spawn it feeds.
+// The caller closes the descriptor once the child inherits it.
 export function openHubLog(): number {
 	mkdirSync(hubDir(), { recursive: true })
 	return openSync(hubLogPath(), 'a')
@@ -77,8 +73,7 @@ export async function writeHubLock(lock: HubLock): Promise<void> {
 	)
 }
 
-// Remove the lock only while it is OURS: a hub that exits late (a stop racing a restart) must
-// never erase the lock the newer hub just wrote.
+// Remove the lock only while it is OURS: a hub that exits late (a stop racing a restart) must never erase the lock the newer hub just wrote.
 export async function removeHubLock(pid: number): Promise<void> {
 	const lock = await readHubLock()
 	if (!lock || lock.pid !== pid) return
@@ -113,8 +108,7 @@ async function saveRegistry(records: readonly HubDeskRecord[]): Promise<void> {
 	)
 }
 
-// The node/filesystem implementation of the application's hub-registry capability. Frozen:
-// the hub sees a readonly port, never this module's internals.
+// The node/filesystem implementation of the application's hub-registry capability. Frozen: the hub sees a readonly port, never this module's internals.
 export const nodeHubRegistry: HubRegistryPort = Object.freeze({
 	load: loadRegistry,
 	save: saveRegistry,

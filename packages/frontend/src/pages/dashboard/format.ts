@@ -6,9 +6,7 @@ export const MINUTES_PER_HOUR = 60
 const HOURS_PER_DAY = 24
 const JUST_NOW_SECONDS = 10
 
-// "just now" / "42s ago" / "5m ago" / "3h ago" / "2d ago" - coarse on purpose: the dashboard
-// re-renders every poll, and a second-precise clock would flicker without informing. `at` is
-// an ISO timestamp (the hub's fields) or ms since the epoch (the page's own clock).
+// Coarse on purpose: the dashboard re-renders every poll, and a second-precise clock would flicker without informing.
 export function relativeTime(at: string | number, now: number): string {
 	const then = typeof at === 'number' ? at : Date.parse(at)
 	const elapsedSeconds = Math.max(0, Math.round((now - then) / MS_PER_SECOND))
@@ -38,8 +36,7 @@ export function plural(
 	return `${count} ${count === 1 ? noun : nouns}`
 }
 
-// A count that opens a sentence is spelled out while it is a word a reader takes in at a
-// glance ("Two desks wait on you."); from ten on, digits read faster.
+// A count that opens a sentence is spelled out while it is a word a reader takes in at a glance; from ten on, digits read faster.
 const NUMBER_WORDS = [
 	'Zero',
 	'One',
@@ -66,9 +63,8 @@ type ModeSubject = Pick<HubDesk, 'mode' | 'staged' | 'target' | 'session'>
 // A pull request named by its number, bare or inside a GitHub URL.
 const PR_NUMBER = /^(?<bare>\d+)$|\/pull\/(?<linked>\d+)/
 
-// What a desk reviews, in the words of the command that opened it: the working tree, the
-// staged changes, one file, or a branch or pull request (by number when it has one) - as
-// the parts a meta line joins. A closed desk's journal event names it the same way.
+// What a desk reviews, in the words of the command that opened it: the working tree, the staged changes, one file, or a branch or PR (by number when it has one), joined as the meta line's parts.
+// A closed desk's journal event names it the same way.
 export function modeParts(desk: ModeSubject): string[] {
 	if (desk.mode === 'file') return ['file', lastSegment(desk.target)]
 	if (desk.mode === 'pr') return ['pr', pullRequestName(desk)]
@@ -82,7 +78,6 @@ export function modeLabel(desk: ModeSubject): string {
 	return modeParts(desk).join(SEPARATOR)
 }
 
-// Words a narrow line never parts ("every 2 s", "active 2m ago"): their spaces do not break.
 export function unbroken(words: string): string {
 	return words.replaceAll(' ', NO_BREAK_SPACE)
 }
@@ -94,8 +89,6 @@ function pullRequestName(desk: ModeSubject): string {
 	return desk.target ?? desk.session
 }
 
-// A repository root as its owner reads it: the home directory folds to ~ (macOS /Users/<name>,
-// Linux /home/<name>). The full path stays in the element's title.
 const HOME_DIRECTORY = /^\/(?:Users|home)\/[^/]+(?=\/|$)/
 
 export function displayRoot(root: string): string {

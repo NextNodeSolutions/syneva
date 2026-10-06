@@ -2,11 +2,6 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The "N blockers" trigger in the diff header and its jump list. The trigger
-// belongs to the Mark reviewed action it precedes but is secondary - amber
-// text, no fill - and its asymmetric margins pull it toward that button (and
-// away from the churn counts) so the grouping reads at a glance. The list is
-// a floating layer: ruled, lifted, hung under the trigger's right edge.
 export const blockers = stylex.create({
 	wrap: {
 		position: 'relative',
@@ -28,8 +23,6 @@ export const blockers = stylex.create({
 		textDecorationLine: { default: 'none', ':hover': 'underline' },
 		textUnderlineOffset: '3px',
 	},
-	// While the list is open the trigger stays underlined, and its tooltip
-	// stays down: it would land on the list.
 	triggerOpen: {
 		textDecorationLine: 'underline',
 		'::after': { display: 'none' },

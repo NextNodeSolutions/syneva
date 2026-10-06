@@ -8,17 +8,11 @@ const TREE = `${deskVars['--left-width']} 1px`
 const DIFF = 'minmax(0, 1fr)'
 const NOTES = deskVars['--notes-width']
 
-// The workspace grid's columns: the tree and its resizer when the desk has a
-// tree (more than one file, not a single-file desk), the diff, and the notes
-// ledger when it is open. On tablets the tree and the notes leave the flow as
-// drawers, so the diff keeps the whole row.
 const columns = (template: string): { gridTemplateColumns: object } => ({
 	gridTemplateColumns: { default: template, [media.tablet]: DIFF },
 })
 
 export const app = stylex.create({
-	// The hub's rail, then the desk beside it; phones have no rail (the desk's own drawers and
-	// its bar's brand take them home).
 	frame: {
 		height: '100%',
 		display: 'grid',
@@ -27,8 +21,7 @@ export const app = stylex.create({
 			[media.stacked]: 'minmax(0, 1fr)',
 		},
 	},
-	// The rail's place while its code loads: the folded rail's own rules (its right edge, and
-	// its top bar's bottom rule, level with the desk's), so nothing redraws when it lands.
+	// The rail's placeholder while its code loads: the folded rail's own rules (its right edge, the top bar's bottom rule level with the desk's), so nothing redraws when it lands.
 	railSpace: {
 		display: { default: 'block', [media.stacked]: 'none' },
 		backgroundColor: color['--paper'],
@@ -40,8 +33,7 @@ export const app = stylex.create({
 		borderRightStyle: 'solid',
 		borderRightColor: color['--line'],
 	},
-	// The desk fills the viewport and never scrolls as a page: every column
-	// scrolls on its own.
+	// The desk fills the viewport and never scrolls as a page: every column scrolls on its own.
 	root: {
 		height: '100%',
 		minWidth: 0,
@@ -54,7 +46,6 @@ export const app = stylex.create({
 		lineHeight: 1.5,
 		WebkitFontSmoothing: 'antialiased',
 	},
-	// A restarted desk slots its notice between the top bar and the workspace.
 	refreshRequired: {
 		gridTemplateRows: `minmax(${deskSize.topbar}, max-content) auto minmax(0, 1fr)`,
 	},
@@ -76,7 +67,6 @@ export const app = stylex.create({
 		overflow: 'hidden',
 		backgroundColor: color['--white'],
 	},
-	// The veil behind an open drawer: tablets only, tap to close.
 	backdrop: {
 		display: 'none',
 	},
@@ -85,7 +75,6 @@ export const app = stylex.create({
 		position: 'fixed',
 		inset: `${deskSize.topbar} 0 0 0`,
 		zIndex: 29,
-		// A paper veil, as behind a dialog: the light field stays visible.
 		backgroundColor: `color-mix(in srgb, ${color['--paper']} 70%, transparent)`,
 	},
 })

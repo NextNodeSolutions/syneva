@@ -11,10 +11,6 @@ import {
 const fast = `${duration['--duration-fast']} ${ease['--ease-out']}`
 const PAD = '10px'
 
-// The review-notes ledger: every thread of the review, on the paper chrome to
-// the diff's right behind its own rule. Its head shares the guide bar's height
-// so the two bottom rules read as one line across the seam. On tablets it is
-// the file drawer's mirror: a right drawer over the diff.
 export const notes = stylex.create({
 	aside: {
 		display: 'flex',
@@ -59,7 +55,6 @@ export const notes = stylex.create({
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
 	},
-	// The filter: a white well whose whole rule lifts on focus.
 	search: {
 		alignSelf: 'stretch',
 		display: 'flex',
@@ -134,8 +129,6 @@ export const notes = stylex.create({
 		color: color['--muted'],
 	},
 	file: { marginTop: { default: 0, ':not(:first-of-type)': '10px' } },
-	// The file a group of rows is on, held while its rows scroll under it;
-	// full-bleed so the rule reads across the pane's padding.
 	fileName: {
 		position: 'sticky',
 		top: `-${PAD}`,
@@ -158,9 +151,6 @@ export const notes = stylex.create({
 	},
 })
 
-// One thread row: where, status, the opening line, the agent's reply on an
-// answered question. The keyboard cursor sits on the petrol wash; the file on
-// screen is marked by a short petrol rail, the tree's active language.
 export const note = stylex.create({
 	row: {
 		position: 'relative',

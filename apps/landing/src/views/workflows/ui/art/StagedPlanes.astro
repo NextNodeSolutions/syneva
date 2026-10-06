@@ -1,5 +1,4 @@
 ---
-// Staged: review the index, the exact content of your next commit.
 import { PAGES } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
@@ -11,8 +10,6 @@ import { text } from '@shared/ui/drawing/text.styles'
 import { countWord } from '@shared/lib/count-word'
 import { STATUS_BAR } from './status-bar'
 
-// The working tree's changed files: their row, the length of their
-// line and their status as git prints it (modified or added).
 const CHANGES = [
 	{ y: 86, length: 150, status: 'M' },
 	{ y: 116, length: 120, status: 'A' },

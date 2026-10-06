@@ -27,12 +27,9 @@ import type { NavigationParts, SectionMenu } from './navigation-parts'
 
 type Clock = 'menu' | 'preview'
 type Motion = { target: ChannelValues; controls?: ReturnType<typeof animate> }
-// The bounds the morph measures and writes; nav.stylex.ts declares them.
 type BoundName = Extract<keyof typeof navBounds, `--${string}`>
 
-// Menu geometry and content share one clock; preview hovers run on their own,
-// so selecting a product row never restarts the menu's movement. Each clock
-// samples its rendered pose before retargeting.
+// Menu geometry and content share one clock; preview hovers run on their own, so selecting a product row never restarts the menu's movement. Each clock samples its rendered pose before retargeting.
 export class NavigationMorph {
 	readonly #navigation: HTMLElement
 	readonly #links: HTMLElement
@@ -106,7 +103,6 @@ export class NavigationMorph {
 		)
 		const timing =
 			next[this.#shell.property('reveal')] === '0' ? 'close' : clock
-		// A move on either clock, or the fold back on closing.
 		const duration = NAV_CLOCK.duration[timing]
 		const frames = handoverFrames({ ...origin, ...seeds }, destination, [
 			this.#panelChannels,
@@ -127,8 +123,7 @@ export class NavigationMorph {
 		if (clock === 'preview') void this.#settleAfter(controls)
 	}
 
-	// One animation per channel on the shared clock: the menu ease spans the
-	// whole move and the hand-over keyframes are linear in its progress.
+	// One animation per channel on the shared clock: the menu ease spans the whole move, the hand-over keyframes are linear in its progress.
 	#play(
 		frames: HandoverFrames,
 		duration: number,

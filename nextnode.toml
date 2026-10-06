@@ -1,15 +1,14 @@
-# Landing page deploy — Cloudflare Workers (static assets + one route), CI-only.
-# The pipeline (NextNodeSolutions/core deploy-workers.yml) reads this file:
-# plan → quality → provision (Terraform) → migrate (D1) → deploy (wrangler).
-# Local machines never deploy (see ~/.pi/agent/AGENTS.md).
+# Landing deploy: Cloudflare Workers (static assets + one on-demand route), CI-only —
+# the NextNodeSolutions/core deploy-workers.yml pipeline reads this file
+# (plan → quality → provision → D1 migrate → deploy); local machines never deploy.
 [project]
 name = "syneva-landing"
 type = "app"
-# The reviewed app runs locally by design - the public site for the apex is
-# the landing. Workers custom domains: syneva.dev (prod), dev.syneva.dev (dev).
+# The reviewed app runs locally by design; this site is the public apex
+# (syneva.dev in prod, dev.syneva.dev in dev).
 domain = "syneva.dev"
-# Quality scripts are root-only pnpm scripts (oxlint over the monorepo), not
-# turbo tasks - filter=false makes the matrix run them with plain pnpm.
+# Quality scripts are root-only pnpm scripts, not turbo tasks -
+# filter=false runs the matrix with plain pnpm.
 filter = false
 
 [environment]
@@ -20,26 +19,23 @@ target = "cloudflare-workers"
 
 [deploy.services.web]
 url = "syneva.dev"
-# The Astro build through @astrojs/cloudflare: every page prerenders into
-# apps/landing/dist/client, the static assets the infra derives from this
-# entry and serves without invoking the script; the Worker runs only for the
-# on-demand route (POST /api/subscribe) and for addresses no asset answers.
-# apps/landing/public/healthz rides along with the assets for the smoke check.
+# @astrojs/cloudflare prerenders every page into dist/client, served as static
+# assets without the script; the Worker answers only the on-demand route
+# (POST /api/subscribe) and addresses no asset matches; public/healthz rides
+# along for the smoke check.
 entry = "apps/landing/dist/server/entry.mjs"
 needs = ["d1"]
-# The signup's welcome email goes out through Resend, from hello@syneva.dev.
-# A GitHub env-secret in both environments (development, production).
+# Welcome email via Resend from hello@syneva.dev (GitHub env-secret in dev and prod).
 secrets = ["RESEND_API_KEY"]
 
-# The signup's abuse guard, per client address and Cloudflare location
-# (env.RL_SUBSCRIBE): a few tries a minute is plenty for one person.
+# Signup abuse guard per client address (env.RL_SUBSCRIBE): a few tries a
+# minute is plenty for one person.
 [[deploy.services.web.rate_limiters]]
 name = "subscribe"
 limit = 5
 period = 60
 
-# The newsletter list (env.DB). The pipeline applies the migrations on every
-# deploy, before the Worker ships.
+# Newsletter list DB (env.DB); the pipeline applies the migrations on every deploy.
 [services.d1]
 migrations_folder = "apps/landing/migrations"
 

@@ -4,8 +4,6 @@ import { copyGlyph } from './copy-glyph.styles'
 
 import type { ReactElement } from 'react'
 
-// The copy button's glyph: two sheets, then a green check that springs in
-// once the copy is confirmed.
 export function CopyGlyph({ isCopied }: { isCopied: boolean }): ReactElement {
 	return (
 		<svg

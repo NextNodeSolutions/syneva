@@ -5,16 +5,12 @@ import { hash, sanitizeSession } from '../../../domain/identity.js'
 
 import type { SettingsPort } from '../../../application/ports.js'
 
-// The dot-directory under the user's home that holds every Syneva artifact (reviews, settings,
-// the hub registry, the update-check cache). One constant: a relocation of ~/.syneva updates
-// every consumer at once.
+// The dot-directory under the user's home holding every Syneva artifact (reviews, settings, the hub registry, the update-check cache); one constant, so relocating ~/.syneva updates every consumer at once.
 export const SYNEVA_DIR = '.syneva'
 const SETTINGS_FILE = 'settings.json'
 const JSON_INDENT = 2
 
-// The user's home directory, falling back to `fallback` when neither env var is set. An empty
-// HOME/USERPROFILE means "unset" (a shell can export it empty), so this is a presence check, not a
-// nullish one.
+// An empty HOME/USERPROFILE means "unset" (a shell can export it empty): a presence check, not a nullish one.
 export function homeDir(fallback: string): string {
 	const home = process.env.HOME
 	if (home) return home
@@ -23,8 +19,6 @@ export function homeDir(fallback: string): string {
 	return fallback
 }
 
-// Where a desk's reviews for one repo+session live: ~/.syneva/<repo hash>/<session>. Created on
-// demand - every writer of a review starts here.
 export async function reviewDir(
 	root: string,
 	session: string,
@@ -39,9 +33,7 @@ export async function reviewDir(
 	return dir
 }
 
-// Global display preferences (~/.syneva/settings.json) - deliberately NOT per-repo or
-// per-session: these are the reviewer's, and a file follows them across browsers and hosts
-// where a per-origin localStorage would not.
+// Deliberately NOT per-repo or per-session: these are the reviewer's, and the file follows them across browsers and hosts where a per-origin localStorage would not.
 export function globalSettingsPath(): string {
 	return path.join(homeDir(process.cwd()), SYNEVA_DIR, SETTINGS_FILE)
 }
@@ -57,16 +49,12 @@ export async function readGlobalSettings(): Promise<Record<string, unknown>> {
 	}
 }
 
-// The filesystem adapter's implementation of the application's settings capability: the same
-// global ~/.syneva/settings.json the desk's editor template reads, exposed read/write for the
-// tab's Settings dialog.
 export const nodeSettings = Object.freeze({
 	read: readGlobalSettings,
 	write: writeGlobalSettings,
 }) satisfies SettingsPort
 
-// writeGlobalSettings always writes a JSON object, so anything else in the file (a bare value, an
-// array) is not a settings body and the client keeps its defaults.
+// writeGlobalSettings always writes a JSON object, so anything else in the file (a bare value, an array) is not a settings body and the client keeps its defaults.
 function toSettings(parsed: unknown): Record<string, unknown> {
 	if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
 		return {}

@@ -10,14 +10,9 @@ import type {
 } from '@pierre/diffs'
 import type { ChangeSpan, LinePoint, VirtualNav } from './runtime'
 
-// The navigation a virtualized diff offers (see VirtualNav in runtime.ts): Pierre's line layout
-// (getLinePosition) places any line of the file, mounted or not, relative to the file's top, and
-// the virtualizer converts that into the pane's scroll space.
-
 export type VirtualLayout = {
 	virtualizer: Virtualizer
 	instance: VirtualizedFileDiff<AnnotationMeta>
-	// The file's own container element, whose offset in the pane anchors Pierre's positions.
 	container: HTMLElement
 }
 
@@ -36,13 +31,10 @@ function fileTop(layout: VirtualLayout): number {
 	return layout.virtualizer.getOffsetInScrollContainer(layout.container)
 }
 
-// Every content entry of the rendered diff, read from its metadata.
 function hunkEntries(): HunkEntry[] {
 	return (D.fileDiff?.hunks ?? []).flatMap(hunk => hunk.hunkContent)
 }
 
-// A change block's first row: its deletions render first, so it starts on its first deletion
-// when it has any.
 function blockStart(entry: HunkEntry): LinePoint[] {
 	if (entry.type !== 'change') return []
 	if (entry.deletions > 0)
@@ -83,7 +75,6 @@ function farChangeStart(
 	).point
 }
 
-// One side's run of a change block as a ruler span, in scroll-content coordinates.
 function runSpan(
 	layout: VirtualLayout,
 	side: LinePoint['side'],
@@ -104,7 +95,6 @@ function runSpan(
 	]
 }
 
-// A change block's deletion and addition runs, as ruler spans.
 function blockSpans(layout: VirtualLayout, entry: HunkEntry): ChangeSpan[] {
 	if (entry.type !== 'change') return []
 	return runSpan(

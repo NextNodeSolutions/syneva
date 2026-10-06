@@ -16,7 +16,7 @@ import {
 
 export type DeskTarget = { repo: string; session: string }
 export type DeskConnection = DeskTarget & {
-	// The desk's API base on the hub (…/api/desks/<id>) - route paths append to it.
+	// Route paths append to it.
 	url: string
 	hubUrl: string
 	key: string | undefined
@@ -30,8 +30,7 @@ const NO_CONTENT = 204
 const NOT_FOUND = 404
 const SERVER_ERROR_FLOOR = 500
 
-// A transport failure the listener may ride out: the hub restarting, a dropped socket, a 5xx.
-// Anything else (a desk that is gone, a malformed envelope) ends the attachment.
+// A transport failure the listener may ride out (the hub restarting, a dropped socket, a 5xx); anything else (a desk that is gone, a malformed envelope) ends the attachment.
 export class TransientDeskError extends Error {
 	constructor(message: string, options?: { cause?: unknown }) {
 		super(message, options)
@@ -39,9 +38,7 @@ export class TransientDeskError extends Error {
 	}
 }
 
-// The hub this background listener may talk to. A hub the user named (SYNEVA_HUB) is theirs
-// to trust, wherever it is; otherwise only a loopback hub qualifies - a stale or edited lock
-// must never turn this listener into a request to a remote host. Redirects are refused too.
+// A hub the user named (SYNEVA_HUB) is theirs to trust, wherever it is; otherwise only a loopback hub qualifies - a stale or edited lock must never turn this listener into a request to a remote host. Redirects are refused too.
 export function attachableHubUrl(hubUrl: string): URL {
 	const url = new URL(hubUrl)
 	const isNamed = Boolean(process.env.SYNEVA_HUB)
@@ -113,10 +110,10 @@ export async function connectDesk(target: DeskTarget): Promise<DeskConnection> {
 	}
 }
 
-// Save every received envelope before notifying Pi. Large reviews are delivered as
-// a file reference rather than truncated JSON; a failed wake still leaves evidence.
-// Returns the written event's path AND kind, or '' when the long-poll timed out (the
-// caller rearms). `closed` tells the attachment the human ended the review.
+// Save every received envelope before notifying Pi: large reviews deliver as a file reference
+// rather than truncated JSON, and a failed wake still leaves evidence. Returns the written event's
+// path AND kind, or '' on a long-poll timeout (the caller rearms); `closed` means the human ended
+// the review.
 export async function receiveDeskEvent(
 	connection: DeskConnection,
 	signal: AbortSignal,

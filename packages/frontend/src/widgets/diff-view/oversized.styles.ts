@@ -2,11 +2,6 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The oversized-file card that stands in for a diff too large to render: a
-// white sheet under one rule, centred in the diff pane. The change kind tints
-// the icon and the kind label only (change-kind.styles.ts); the byte size is
-// its focal figure, and its last row carries the same verdict a rendered
-// file's header does, with "Load diff anyway" pushed to the right.
 export const oversized = stylex.create({
 	card: {
 		maxWidth: '620px',
@@ -80,7 +75,6 @@ export const oversized = stylex.create({
 		lineHeight: 1.5,
 		color: color['--muted'],
 	},
-	// The whole-file comment section, when the card hosts one.
 	actions: {
 		display: 'flex',
 		alignItems: 'center',

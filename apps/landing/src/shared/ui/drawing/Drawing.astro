@@ -1,11 +1,5 @@
 ---
-// The root <svg> of every drawing: its viewBox and ruled frame, the phone
-// frame it reframes to (data-compact, swapped by frames.ts) and its
-// accessible name. The id names the title, the description and the frame's
-// grid, so it must be unique on its page. A drawing without the ruled frame
-// fills the frame slot with nothing, or with a frame of its own. Any data-*
-// attribute passed on (a runtime's hook, such as data-circuit) lands on the
-// root <svg>.
+// The id names the title, the description and the frame's grid, so it must be unique on its page; any data-* passed on (a runtime hook like data-circuit) lands on the root <svg>.
 import type { Part } from '../../lib/sx'
 import { sx } from '../../lib/sx'
 import ArtFrame from './ArtFrame.astro'
@@ -21,7 +15,6 @@ type Props = DataAttributes & {
 	title: string
 	description: string
 	compact?: string
-	// A dense diagram grows its labels on the phone frame.
 	density?: 'regular' | 'dense'
 	css?: Part
 }

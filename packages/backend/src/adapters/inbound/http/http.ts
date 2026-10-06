@@ -3,8 +3,7 @@ import { DOCS } from './failure.js'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { ApiFailure } from './failure.js'
 
-// The desk's HTTP status vocabulary. Named so every route spells the same code the same
-// way - the response codes are part of the agent contract (`syneva spec`), not decoration.
+// Named so every route spells the same code the same way - the response codes are part of the agent contract (`syneva spec`), not decoration.
 export const HTTP_OK = 200
 export const HTTP_NO_CONTENT = 204
 export const HTTP_MOVED_PERMANENTLY = 301
@@ -18,10 +17,8 @@ export const HTTP_CONFLICT = 409
 export const HTTP_UNPROCESSABLE = 422
 export const HTTP_INTERNAL = 500
 
-// 50 MB: pre-0.6.2 tabs post the entire multi-MB ReviewState on /send, and a big PR desk
-// crosses 5 MB - the old cap made Send fail on exactly the largest reviews (readBody threw
-// before the result was built, so no artifact and no event, while slice-only auto-saves kept
-// succeeding). The hub is loopback-only or key-guarded, so a generous cap is safe.
+// 50 MB: pre-0.6.2 tabs POST the whole multi-MB ReviewState on /send and a big PR desk crosses 5 MB - the old cap made Send fail on exactly the largest reviews (the body threw before any result existed: no artifact, no event).
+// Loopback-only or key-guarded, so a generous cap is safe.
 const MAX_BODY_BYTES = 50_000_000
 
 export async function readBody(req: IncomingMessage): Promise<string> {
@@ -37,10 +34,7 @@ export async function readBody(req: IncomingMessage): Promise<string> {
 	return Buffer.concat(chunks).toString('utf8')
 }
 
-// A request body that isn't the JSON the route asked for: malformed syntax, an oversized
-// body, or a shape that fails the route's DTO decode. Transport-owned by design - the
-// router answers it with a 4xx (the caller's bug) instead of the INTERNAL 500 fallback,
-// so a bad request can never be misread as a desk failure.
+// Transport-owned by design - the router answers it with a 4xx (the caller's bug) instead of the INTERNAL 500 fallback, so a bad request can never be misread as a desk failure.
 export class BodyDecodeError extends Error {
 	constructor(message: string, options?: { cause?: unknown }) {
 		super(message, options)
@@ -48,8 +42,6 @@ export class BodyDecodeError extends Error {
 	}
 }
 
-// Read a request body and decode it as JSON. Throws BodyDecodeError on malformed JSON -
-// route handlers never JSON.parse a raw body themselves.
 export async function readJsonBody(req: IncomingMessage): Promise<unknown> {
 	const raw = await readBody(req)
 	try {
@@ -63,8 +55,7 @@ export function json(res: ServerResponse, status: number, body: unknown): void {
 	jsonBody(res, status, JSON.stringify(body))
 }
 
-// A JSON response whose body is already serialized: /state hands back the string its cache
-// holds instead of stringifying the (possibly multi-MB) browser projection a second time.
+// /state hands back the serialized string its cache holds instead of stringifying the (possibly multi-MB) browser projection a second time.
 export function jsonBody(
 	res: ServerResponse,
 	status: number,
@@ -74,7 +65,6 @@ export function jsonBody(
 	res.end(serialized)
 }
 
-// An HTML page response (the dashboard shell, the desk page, the sign-in and not-found pages).
 export function html(res: ServerResponse, status: number, body: string): void {
 	res.writeHead(status, { 'content-type': 'text/html; charset=utf-8' })
 	res.end(body)

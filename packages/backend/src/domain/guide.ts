@@ -14,11 +14,8 @@ function fail(reason: string): { ok: false; reason: string } {
 	return { ok: false, reason }
 }
 
-// Validate + normalize an agent-supplied grouping guide. Required: a non-empty `files` array whose
-// every entry carries a `path`. `order` and `category` are optional (defaults: the entry's array
-// position / "Changes"). Every other key is ignored, so a guide written against the older
-// guided-review schema (orientation, flag, skim, movedFrom, overview, …) still attaches and simply
-// groups. Pure - no IO - so it's the same check on the server and CLI.
+// Required: a non-empty `files` array whose every entry carries a `path`; `order`/`category` optional with defaults; every other key ignored, so a guide against the older guided-review schema still attaches and just groups.
+// Pure - the same check server-side and in the CLI.
 export function validateGuide(input: unknown): GuideValidation {
 	const parsed = parseGuide(input)
 	if (!parsed.ok) return { ok: false, reason: parsed.reason }
@@ -44,11 +41,9 @@ function parseGuide(input: unknown): Parsed<Guide> {
 	}
 }
 
-// Only the fields the desk still reads. `baseDiffHash` is stamped by the desk on attach; a value
-// already in the file (a round-tripped guide) is honored so it isn't silently refreshed.
+// baseDiffHash is stamped by the desk on attach, but a value already in the file (a round-tripped guide) is honored so it isn't silently refreshed.
 function parseGuideExtras(input: object): Parsed<Partial<Guide>> {
-	// Guide is immutable domain data, so the optional stamp is built as a literal
-	// instead of mutating a Partial record field by field.
+	// Guide is immutable domain data: the optional stamp is built as a literal instead of mutating a Partial record field by field.
 	if (
 		'baseDiffHash' in input &&
 		typeof input.baseDiffHash === 'string' &&

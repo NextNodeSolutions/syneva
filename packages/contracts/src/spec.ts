@@ -1,15 +1,5 @@
-// The machine contract for driving Syneva as an agent. This is the SINGLE SOURCE OF TRUTH,
-// printed by `syneva spec` so an installed skill / AGENTS.md can fetch it at runtime instead
-// of hardcoding a copy that drifts from the user's installed binary. It covers the full
-// operational contract: the hub, review modes, the await/comment/reload loop, await exit
-// semantics, the ReviewResult shape, how to act on a review, the guided-review schema, reload
-// vs reopen, concurrency, settings, and errors. Bootstrap-only material (what Syneva is, when
-// to use it, how to install it) lives in the skill/AGENTS.md, because you need it before
-// running this.
-//
-// Written to be dense - every line carries a distinct fact. Keep it in sync with reality: if
-// you change CLI flags, events, or the ReviewResult shape, update this string in the same
-// change.
+// Second line of the agent contract (BOOT/.../spec), printed by `syneva spec` so skills fetch
+// it instead of hardcoding a drifting copy; boot principles live in the skill/AGENTS.md.
 export const SPEC = `syneva agent contract
 
 Syneva is a hub: one long-running process per machine that hosts review desks and serves a

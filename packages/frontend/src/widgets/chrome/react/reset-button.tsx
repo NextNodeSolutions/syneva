@@ -13,8 +13,6 @@ import { resetMenu, topBar } from './top-bar.styles'
 
 import type { ReactElement } from 'react'
 
-// The dropdown half of the Reset split button: the narrower and the nuclear option. A
-// fixed backdrop catches outside clicks without a document listener.
 function ResetMenu(): ReactElement {
 	const { S } = chromeCtx()
 	const close = (): void => S.setResetMenu?.(false)
@@ -58,10 +56,6 @@ const half = [
 	deskControl.dangerHintTiled,
 ]
 
-// The Reset split button: the labelled part fires the default scope ('review' - decisions
-// and sign-offs drop, the notes survive), the caret opens the dropdown with the narrower
-// and the nuclear option. Open state lives in the store so the Esc cascade can close it
-// (hotkeys-app) and a store bump mid-menu can't strand a closed-over local flag.
 export function ResetButton(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields('resetMenuOpen')

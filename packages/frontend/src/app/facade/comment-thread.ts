@@ -15,17 +15,13 @@ import { uuid } from '@shared/lib/uuid'
 import { fileCommentsEnabled } from '@widgets/diff-view/comment-thread/file-comments'
 import { D } from '@widgets/diff-view/runtime'
 
-// Submitting a comment from the inline composer. A new comment carries an intent: "question"
-// (Ask - pushed to the agent now via /ask, answered live) or "action" (Request change - goes
-// back on Send). Editing just updates the body and keeps the existing intent. The whole-file
-// composer binds here too: the guide bar's and file header's comment icons toggle it.
+// A new comment carries an intent: "question" (Ask - pushed to the agent now via /ask, answered live) or "action" (Request change - goes back on Send); editing just updates the body; the whole-file composer binds here too.
 export function installCommentBindings(): void {
 	S.saveComment = () => submitComment('action') // editing Save + the `c` shortcut default
 	S.ask = () => submitComment('question')
 	S.requestChange = () => submitComment('action')
 	S.toggleFileComposer = toggleFileComposer
-	// The guide bar's static icon shows when there's a file to comment on and the whole-file
-	// scope adds something over the line threads (hidden on the Overview and single-file desks).
+	// Shown when there's a file to comment on and the whole-file scope adds something over the line threads (hidden on the Overview and single-file desks).
 	S.fileCommentAvailable = (): boolean =>
 		hasCurrentFile(S.state?.files, S.preview, S.fileIndex) &&
 		fileCommentsEnabled()
@@ -37,12 +33,8 @@ export function installCommentBindings(): void {
 	installComposerDismissal()
 }
 
-// Close the inline composer when clicking outside it (unless it has unsaved text). The
-// composer/editor live inside the diff DOM, so match their containers directly (data-composer,
-// composer.ts); the listener is on the document, capturing, so it sees the press before any diff
-// control handles the click. Every whole-file comment trigger (the file header's, the oversized
-// card's, the markdown strip's, the guide bar's) toggles its own composer, so they are carved out
-// of the dismissal by their shared data-file-comment-trigger attribute.
+// The listener sits on the document, capturing, so it sees the press before any diff control handles the click; composers live inside the diff DOM so containers match directly.
+// Every whole-file trigger (file header, oversized card, markdown strip, guide bar) is carved out of the dismissal by its shared data-file-comment-trigger attribute.
 function installComposerDismissal(): void {
 	document.addEventListener(
 		'pointerdown',
@@ -54,9 +46,7 @@ function installComposerDismissal(): void {
 				target.closest('[data-composer], [data-file-comment-trigger]')
 			)
 				return
-			// Defer the closing render: this fires on pointerdown, before the click reaches a diff
-			// control (Keep/Undo/Reply). Rendering now rebuilds the diff and destroys that control, so
-			// the browser drops the pending click and the user's press is swallowed.
+			// Fires on pointerdown, before the click reaches a diff control: rendering now would rebuild the diff and destroy that control, so the browser drops the pending click and the press is swallowed.
 			closeComposerIfEmpty(true)
 		},
 		true,
@@ -72,8 +62,6 @@ function submitComment(intent: CommentIntent): void {
 		updateEditedComment(body)
 		return
 	}
-	// The file composer answers to the file header (no line anchor); the line composer to the
-	// selected line. The open helpers keep exactly one of the two flags up.
 	const anchor = S.fileComposerOpen ? fileAnchor() : selectedAnchor()
 	if (!anchor) return
 	const now = new Date().toISOString()
@@ -83,8 +71,6 @@ function submitComment(intent: CommentIntent): void {
 		side: anchor.side,
 		lineNumber: anchor.lineNumber,
 		endLine: anchor.endLine,
-		// Snapshot the anchored line's text so a reload can re-anchor the thread after the agent's
-		// edits shift it (reanchorComments).
 		anchorText: anchor.anchorText,
 		createdAt: now,
 		updatedAt: now,
@@ -112,7 +98,6 @@ function submitComment(intent: CommentIntent): void {
 	toast('Comment saved')
 }
 
-// Rewrite the comment being edited in place (its intent and anchor stay as they were).
 function updateEditedComment(body: string): void {
 	const comment = requireState().comments.find(
 		c => c.id === S.editingCommentId,
@@ -129,11 +114,8 @@ function updateEditedComment(body: string): void {
 	toast('Comment updated')
 }
 
-// The selection the composer targets, in the coordinates a persisted comment carries: S.selected is
-// display space (replayed decisions renumber the rendered diff), so it converts through the line map.
-// The anchor text comes from the current file's fetched contents (contents.ts `cur`) - best-effort,
-// since the server re-derives its own anchorText on reload - so a `cur` for another file is left
-// undefined rather than snapshotting the wrong file's line.
+// Converts through the line map because S.selected is display space (replayed decisions renumber the rendered diff); the anchor text comes from the current file's fetched contents, best-effort (the server re-derives its own anchorText on reload).
+// A `cur` for another file stays undefined.
 type CommentAnchor = {
 	path: string
 	side: 'additions' | 'deletions'
@@ -143,8 +125,7 @@ type CommentAnchor = {
 	anchor?: 'file' | undefined
 }
 
-// The whole-file anchor: addressed to the file, so no line - lineNumber 0 is the reserved
-// file-level slot (mirrors state/comments.ts's FILE_LEVEL_LINE).
+// lineNumber 0 is the reserved file-level slot (mirrors the backend's FILE_LEVEL_LINE).
 function fileAnchor(): CommentAnchor | null {
 	const file = currentFileOrNull(S.state?.files, S.preview, S.fileIndex)
 	if (!file) return null

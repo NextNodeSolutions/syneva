@@ -2,9 +2,7 @@ import path from 'node:path'
 
 import { platformOpenCommand } from '../../platform-open.js'
 
-// GUI editors + OS openers only. Terminal editors (vim/nvim/vi) are deliberately absent:
-// the desk spawns the command from a server process with no TTY, so they could never
-// attach - they'd hang until the exec timeout killed them.
+// Terminal editors (vim/nvim/vi) deliberately absent: the desk spawns the command from a server process with no TTY, so they could never attach - they'd hang until the exec timeout killed them.
 const ALLOWED_EDITORS = new Set([
 	'code',
 	'cursor',

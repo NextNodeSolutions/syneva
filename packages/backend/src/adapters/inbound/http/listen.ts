@@ -7,10 +7,7 @@ import type { Server } from 'node:http'
 
 const execFileAsync = promisify(execFile)
 
-// Bind the hub to its port - strictly. The port is the hub's address on the machine (every
-// agent and every tab find it there), so a collision is a fact the caller must act on (another
-// hub already answers there, or a foreign process holds it), never something to paper over
-// with a random port nobody knows about.
+// Strict bind: the port is the hub's address on the machine (every agent and every tab find it there), so a collision is a fact the caller must act on, never something to paper over with a random port nobody knows about.
 export async function listenOn(
 	server: Server,
 	port: number,
@@ -31,8 +28,7 @@ export async function listenOn(
 	})
 }
 
-// Open a URL in the reviewer's browser. Best-effort on purpose: a machine with no opener (a
-// container, a headless box) must still get a working hub - the URL is printed either way.
+// Best-effort on purpose: a machine with no opener (a container, a headless box) must still get a working hub - the URL is printed either way.
 export async function openBrowser(url: string): Promise<void> {
 	const { command, args } = platformOpenCommand(url)
 	await execFileAsync(command, args).catch(() => undefined)

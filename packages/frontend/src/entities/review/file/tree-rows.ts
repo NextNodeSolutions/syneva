@@ -1,6 +1,3 @@
-// File-tree rows: pure data the sidebar renders (the widget derives each row's look from
-// its kind, depth and flags). Built by tree.ts per evaluation - display state only, never
-// persisted.
 import type { FileReviewState } from '../model'
 
 export type DirRow = {
@@ -19,7 +16,6 @@ export type FileRow = {
 	key: string
 	depth: number
 	name: string
-	// The row's file or one of its tests changed - the row reads in full ink.
 	changed: boolean
 	path: string
 	fileIndex: number | undefined
@@ -27,16 +23,10 @@ export type FileRow = {
 	testKey: string
 	testCaret: string
 	changeType: 'new' | 'modified' | 'deleted' | null
-	// Single review-state badge (null = unchanged file / showing the test caret instead).
 	state: FileReviewState | null
-	// Pure rename (issue 01): the old path, shown as a "← old" arrow in the Renamed group.
 	movedFrom?: string
 }
 
-// The collapsible trailing group of files that left the reviewer's listing: the Renamed group
-// (pure renames, issue 01) and - with the hide-reviewed pref on - the Reviewed group
-// (fully-approved files the lens distills). Same shape, different label and expand key; `group`
-// says which. Its member FileRows follow only while `open`.
 export type FoldGroupRow = {
 	kind: 'foldgrp'
 	key: string
@@ -48,7 +38,6 @@ export type FoldGroupRow = {
 
 export type TreeRow = DirRow | FileRow | FoldGroupRow
 
-// Internal nodes used while building the tree (not rendered directly).
 export type TreeFile = {
 	name: string
 	index: number | undefined

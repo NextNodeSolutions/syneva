@@ -10,18 +10,9 @@ import { requireState, S } from '../store'
 
 import type { NotesView, ReviewNote } from '@entities/review/notes'
 
-// The panel's view inputs, read from the store at each derivation - the same shape the
-// component passes to notesPanelView, so both sides derive one visible list.
 const notesView = (): NotesView => ({ query: S.notesQuery, lens: S.notesLens })
 
-// The review-notes panel's actions: toggling it, and jumping to a note. The jump is the
-// feature's point - a question asked three files ago is one click from anywhere, instead
-// of a walk back through every file. Same-file notes land immediately; other-file notes
-// select the file (or open it as a preview, for notes on unchanged files) and stash a
-// pending jump the render funnel consumes once the target is actually on screen.
-// The panel's next unresolved thread at or after `pos` in its visible order (wrapping),
-// jumped through the normal executor with the cursor moved onto its row. False when
-// nothing qualifies - the sign-off caller then falls back to the plain file advance.
+// Other-file notes select the file (or open it as a preview, for notes on unchanged files) and stash a pending jump the render funnel consumes once the target is actually on screen.
 function advanceFrom(pos: number): boolean {
 	const { flat } = notesPanelView(S.state, notesView())
 	if (!flat.length) return false
@@ -34,12 +25,8 @@ function advanceFrom(pos: number): boolean {
 	return true
 }
 
-// The resolve-approve flow: resolving a thread on an already-signed-off file jumps to the
-// panel's next unresolved thread; on an unsigned file it arms, and that file's sign-off
-// consumes the flow. Panel closed: resolving stays a local act, exactly as before.
 function installResolveAdvance(): void {
-	// A resolve reports its thread BEFORE the status flips, so the panel position is the
-	// pre-resolve one. An immediate advance is queued, so its scan sees the flip.
+	// A resolve reports its thread BEFORE the status flips, so the panel position is the pre-resolve one and the queued advance's scan sees the flip.
 	S.noteResolved = ref => {
 		if (!S.notesOpen) return
 		const { flat } = notesPanelView(S.state, notesView())
@@ -55,8 +42,7 @@ function installResolveAdvance(): void {
 		}
 		S.notesAdvanceAfter = { ref, pos }
 	}
-	// The armed flow fires only when THIS path signs off; any other sign-off clears it -
-	// the reviewer moved on, the flow must not fire from nowhere.
+	// The armed flow fires only when THIS path signs off; any other sign-off clears it - the reviewer moved on, the flow must not fire from nowhere.
 	S.notesAfterSignOff = path => {
 		const armed = S.notesAdvanceAfter
 		S.notesAdvanceAfter = null
@@ -70,11 +56,8 @@ export function installNotesBindings(): void {
 		S.notesOpen = !S.notesOpen
 	}
 	S.jumpToNote = jumpToNote
-	// The panel's cursor state lives on the store; the visible rows come from
-	// notesPanelView - the same derivation the component renders, so the cursor and
-	// the screen can never drift apart.
+	// The visible rows come from notesPanelView - the same derivation the component renders - so the cursor and the screen can never drift apart.
 	S.setNotesQuery = query => {
-		// A new view is a new list: the cursor restarts at the top row.
 		S.notesQuery = query
 		S.notesCursor = 0
 	}
@@ -105,9 +88,7 @@ function jumpToNote(note: ReviewNote): void {
 		jumpToThread(current, target)
 		return
 	}
-	// The file may have left the review (its comments survive the round), in which case
-	// the only way back to it is the read-only preview - comments anchor there like on
-	// any file.
+	// The file may have left the review (its comments survive the round): the only way back is the read-only preview, where comments anchor like on any file.
 	const index = state.files.findIndex(f => f.path === note.path)
 	setPendingJump(target)
 	if (index >= 0) S.selectFile?.(index)

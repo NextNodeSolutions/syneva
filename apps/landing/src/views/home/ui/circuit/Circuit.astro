@@ -1,10 +1,4 @@
 ---
-// The review circuit: the full diff travels horizontally while its review
-// layers separate vertically. It opens the How it works section, where its
-// loop (diff, focus, verdict, next revision) is the story being told. Its
-// wires and loop label are routed at build time (circuit-layout.ts);
-// circuit.client.ts re-routes them from the ports' live positions and runs
-// its loop. Its frame is its corner marks alone, without the ruled grid.
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { sx } from '@shared/lib/sx'
 import CircuitLayer from './CircuitLayer.astro'
@@ -14,7 +8,6 @@ import { circuitPart, signalPart } from './circuit-part'
 import { LOOP_LABEL, PLATFORM_X, portsOn, ROW, WIRES } from './circuit-layout'
 import { circuit } from './circuit.styles'
 
-// Each signal's tone, by the leg of the loop it travels.
 const SIGNAL_TONE = { in: null, out: circuit.signalOut, return: circuit.signalReturn } as const
 ---
 

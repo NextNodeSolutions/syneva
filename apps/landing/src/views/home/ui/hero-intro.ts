@@ -8,12 +8,7 @@ import type { Easing } from '@syneva/motion/easing'
 import type { AnimateOptions, Keyframes } from '@syneva/motion/engine'
 import type { IntroPart } from './hero-intro-part'
 
-// The headline's entrance, once the runtime boots: the gutters fade in, both
-// lines rise out of their clips, the bands sweep behind them, the + and the
-// check land, the underline draws under "decide", and the figure and the
-// principle strip follow. The pitch rises with the headline and quickly: it is
-// the page's largest text, and the browser counts its paint as the page's
-// main content only once it is fully shown.
+// The pitch rises with the headline and quickly: it is the page's largest text, and the browser counts its paint as the page's main content only once fully shown.
 type Step = {
 	part: IntroPart
 	keyframes: Keyframes
@@ -28,8 +23,7 @@ const rise = { opacity: [0, 1], transform: ['translateY(14px)', 'none'] }
 const lineRise = { transform: [POSE_VALUES.lineRise, 'none'] }
 const bandIn = { transform: ['scaleX(0)', 'scaleX(1)'] }
 const markPop = { transform: ['scale(0) rotate(-30deg)', 'none'] }
-// The check and the underline declare PATH_LENGTH.draw as their pathLength:
-// the draw pose hides each behind one dash that long.
+// The check and the underline declare PATH_LENGTH.draw as their pathLength: the draw pose hides each behind one dash that long.
 const draw = { strokeDashoffset: [PATH_LENGTH.draw, 0] }
 
 const STEPS: Step[] = [
@@ -91,9 +85,7 @@ const STEPS: Step[] = [
 	{ part: 'principles', keyframes: fadeIn, duration: 0.8, delay: 0.9 },
 ]
 
-// Starts every step and returns their playback, which hero.client.ts can
-// complete at once. The figure is a scene: its step waits, paused, until it
-// is in view.
+// Starts every step and returns their playback, which hero.client.ts completes at once; the figure is a scene whose step waits paused until in view.
 export function playIntro(): ReturnType<typeof animate>[] {
 	return STEPS.flatMap(
 		({

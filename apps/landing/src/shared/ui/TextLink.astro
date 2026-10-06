@@ -1,7 +1,4 @@
 ---
-// The secondary action: an underlined link (the design system's textLink,
-// shared with the hub); one to another site (an absolute URL) points
-// up-right, unless `arrow` names its own glyph.
 import { textLinkMarker } from '@syneva/design-system/controls.stylex'
 import { textLink } from '@syneva/design-system/inline.styles'
 import type { Part } from '../lib/sx'
@@ -12,8 +9,6 @@ type Props = { href: string; label: string; arrow?: string; css?: Part }
 
 const { href, label, arrow, css } = Astro.props
 const glyph = arrow ?? (URL.canParse(href) ? '↗' : '→')
-// Subpages (and the 404) set chapter links a step lower; the home's links
-// stand alone and take a touch target on phones instead.
 const isSubpageSheet = Astro.locals.page !== 'home'
 ---
 

@@ -1,6 +1,4 @@
 ---
-// Walkthrough: the git order on the left becomes the guide's order on the
-// right; each file travels from its place in git's list to its section.
 import { twoDigits } from '@shared/lib/two-digits'
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -15,15 +13,13 @@ import { GUIDE_SECTIONS, GUIDE_FILE_COUNT, UNMENTIONED_FILE_COUNT } from './guid
 
 const LABEL_TONE = { guided: text.accent, other: null } as const
 const CHIP = { guided: null, other: productArt.guideChipOther } as const
-// Chips are numbered in reading order across sections; git lists the same
-// files sorted by path.
+// Chips are numbered in reading order across sections; git lists the same files sorted by path.
 const READING_ORDER: readonly string[] = GUIDE_SECTIONS.flatMap(section => section.rows.map(([name]) => name))
 const GIT_ORDER = READING_ORDER.toSorted()
 const ROW = 44
 const TOP = 92
 const ghostY = (name: string): number => TOP + GIT_ORDER.indexOf(name) * ROW
 const orderOf = (name: string): number => READING_ORDER.indexOf(name) + 1
-// Each chip travels in from its place in git's list, in reading order.
 const sections = GUIDE_SECTIONS.map(({ label, kind, y, rows }, sectionIndex) => ({
 	label,
 	kind,

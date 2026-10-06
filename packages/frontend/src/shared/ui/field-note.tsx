@@ -5,8 +5,6 @@ import { LiveDot } from './live-dot'
 
 import type { ReactElement } from 'react'
 
-// The line under a field that its aria-describedby points at: the error when
-// there is one (in red, after a red square), else the hint, else nothing.
 export function FieldNote({
 	id,
 	hint,

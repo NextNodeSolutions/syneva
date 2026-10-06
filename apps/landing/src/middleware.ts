@@ -2,10 +2,7 @@ import { defineMiddleware } from 'astro:middleware'
 
 import { HOME_HREF } from '@entities/site/model/site-map'
 
-// Sections shared by the landing and the subpages restyle themselves by the
-// kind of page they render in. The route decides it before any component
-// renders: the landing and the 404 have their own sheets, every other route
-// opens with a page hero.
+// The route decides the layout kind before any component renders: home and 404 own their sheets, every other route opens with a page hero.
 const KIND_BY_ROUTE: Partial<Record<string, App.PageKind>> = {
 	[HOME_HREF]: 'home',
 	'/404': 'lost',

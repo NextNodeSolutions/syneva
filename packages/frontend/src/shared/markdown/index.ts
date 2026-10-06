@@ -5,22 +5,10 @@ import { markdownRuntime } from './runtime-config'
 import type * as MarkdownEngine from './engine'
 import type { MarkdownComment } from './engine'
 
-// The markdown loader is stateless shared infrastructure: it lazily brings up the engine
-// (shiki + markdown-it), but it reads the live theme, repaints through the render funnel,
-// and toasts on failure - runtime behaviour composed in app/main.ts via
-// configureMarkdownRuntime() (runtime-config.ts, also the engine's read seam).
-// The rendered HTML is styled by prose.css (the desk entry loads it into the shared stylesheet):
-// the consumer marks the element it mounts the HTML into with data-prose="thread" or "document".
-
-// Loading a diff without prose must not initialize a second highlighter on the main thread.
-// The synchronous rendering seam keeps escaped text usable while the optional island loads.
 let engine: typeof MarkdownEngine | undefined
 let loading: Promise<void> | undefined
 let themeName = ''
 
-// Changes whenever rendered markdown would change for the same text: the engine landing (the
-// escaped fallback upgrades), then each theme or grammar it loads. A consumer that keeps rendered
-// markdown (the diff's comment threads) keys on it.
 export function markdownRevision(): number {
 	return engine ? 1 + engine.outputRevision() : 0
 }
@@ -34,7 +22,6 @@ async function initializeMarkdown(): Promise<void> {
 		const module = await import('@shared/markdown/engine')
 		const theme = themeName || markdownRuntime().getTheme()
 		await module.initializeMarkdown(theme)
-		// A theme picked while the engine loaded only reached `themeName`.
 		module.setMarkdownTheme(themeName || theme)
 		engine = module
 		markdownRuntime().onLoaded()
@@ -55,8 +42,6 @@ export function renderMarkdown(text: string): string {
 	return `<p>${esc(text)}</p>`
 }
 
-// The rendered FILE view: like renderMarkdown but raw HTML passes (sanitized) and the file's
-// relative image srcs rewrite to /blob - see engine.ts.
 export function renderFileMarkdown(text: string): string {
 	if (engine) return engine.renderFileMarkdown(text)
 	loadMarkdown()

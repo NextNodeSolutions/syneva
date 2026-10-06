@@ -1,8 +1,4 @@
-/* The desk's few rules StyleX cannot carry: element defaults inside the desk and the
-   scrollbars, all scoped under the app root's data-desk marker. The stylesheet is shared
-   with the hub dashboard (one styles.css), so nothing here touches a bare element or
-   applies outside the desk. Zero-specificity :where() keeps every component's StyleX
-   styles in charge. */
+/* All scoped under the desk root's data-desk marker and zero-specificity :where(), because one styles.css serves desk and dashboard: nothing touches a bare element and every component's StyleX styles stay in charge. */
 
 :where([data-desk]) :where(*, *::before, *::after) {
 	box-sizing: border-box;
@@ -21,8 +17,6 @@
 	font-family: var(--sans);
 }
 
-/* One visible focus treatment for whatever does not draw its own: the petrol ring every
-   control of the design system carries. */
 :where(
 	[data-desk]
 		:is(button, [role='button'], select, input, textarea, a):focus-visible
@@ -41,7 +35,6 @@
 	scrollbar-color: var(--line-strong) transparent;
 }
 
-/* Reduced motion is the still desk: no transition, no keyframe animation. */
 @media (prefers-reduced-motion: reduce) {
 	:where([data-desk]) :where(*, *::before, *::after) {
 		animation: none !important;

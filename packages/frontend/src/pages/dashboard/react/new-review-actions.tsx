@@ -7,8 +7,6 @@ import { newReviewDialog } from './new-review-dialog.styles'
 
 import type { ReactElement } from 'react'
 
-// Cancel is the secondary text link beside the primary, as on the site. It stays enabled while
-// the hub opens the desk: it abandons the open. Both actions are 44px tall at every width.
 export function NewReviewActions({
 	isBusy,
 	onCancel,

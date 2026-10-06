@@ -14,31 +14,19 @@ import { composer } from './composer.styles'
 import type { Side } from '@shared/diff-renderer/types'
 import type { StaticStyle } from '@shared/lib/cx'
 
-// ── Inline composers ─────────────────────────────────────────────────────────
-// The composer is imperative DOM built into the diff (like the thread): a new comment is a
-// `composer` annotation at the selected line,
-// a reply is a card at the bottom of its thread, an edit swaps a message body in place.
-// Exactly one is open at a time. Its text lives in featureCtx().S.composerBody (synced on input) so it
-// survives render()'s rebuild of the diff DOM; caret + focus are restored after each render
-// (restoreComposerFocus). The active textarea always carries `data-composer-focus`, and every
-// composer card `data-composer` (the outside-click dismissal's carve-out, app/facade) - the hooks
-// are attributes, the class names are hashed.
+// The composer is imperative DOM inside the diff: a new comment is a `composer` annotation at the selected line, a reply a card at its thread's bottom, an edit a body swap in place - one open at a time.
+// Its text lives in the store (composerBody) so it survives render()'s diff-DOM rebuild, caret and focus restored after each render; hooks are data attributes (class names are hashed).
 
 const SETTLE_TIMEOUT_MS = 200
 
-// Caret offset in the open composer, kept alongside featureCtx().S.composerBody so a rebuild can restore
-// the insertion point, not just the text. Reset whenever a composer opens.
 let composerCaret = 0
 let needsWindowFocus = false
 
-// Sync the store from the live textarea on every keystroke - the store is the source of
-// truth a re-render re-mounts from.
 function trackInput(ta: HTMLTextAreaElement): void {
 	ta.addEventListener('input', () => {
 		featureCtx().S.composerBody = ta.value
 		composerCaret = ta.selectionStart
 	})
-	// A click/arrow inside the textarea moves the caret without an input event.
 	const syncCaret = (): void => {
 		composerCaret = ta.selectionStart
 	}
@@ -62,8 +50,6 @@ function composerCard(
 	return { card, ta }
 }
 
-// The row's mini controls: Cancel quiet, the intents in their tones (Ask petrol, Request change
-// and Save amber), each intent's key chip sitting on its tint.
 const MINI = [press.control, control.base, deskControl.mini]
 const SPACER = `<span class="${cx(composer.spacer)}"></span>`
 
@@ -77,9 +63,6 @@ function actionButton(
 	return `<button class="${cx(MINI, tone)}" data-composer-action="${action}">${label}${chip}</button>`
 }
 
-// Wire the composer row's buttons, named by data-composer-action, to their handlers. The row
-// markup is static, so a missing button is a bug in this module's own HTML, not a runtime
-// condition.
 function wireButtons(
 	row: HTMLElement,
 	handlers: Record<string, () => void>,
@@ -92,9 +75,6 @@ function wireButtons(
 	}
 }
 
-// The new-comment / reply composer card: textarea + the two intent buttons (Ask / Request
-// change), in the same card family as a message. Used both as its own annotation (new
-// comment) and appended to a thread (reply).
 export function buildComposer(): HTMLElement {
 	const { card } = composerCard(composer.card, composer.input)
 	const row = document.createElement('div')
@@ -108,8 +88,6 @@ export function buildComposer(): HTMLElement {
 	return card
 }
 
-// The in-place edit state for a message: the body swaps for a textarea (amber accent) with
-// Save / Cancel, keeping the existing featureCtx().S.editingCommentId + submitComment edit path.
 export function buildEditor(): HTMLElement {
 	const { card } = composerCard(null, composer.edit)
 	const row = document.createElement('div')
@@ -123,9 +101,7 @@ export function buildEditor(): HTMLElement {
 	return card
 }
 
-// Is the open new/reply composer targeting this (raw) line? featureCtx().S.selected is display space on
-// the diff (and identity in the markdown view, where featureCtx().lineMap() is null), so convert before
-// comparing against a thread's raw anchor.
+// F.S.selected is display space on the diff but identity in the markdown view (lineMap() is null), so convert before comparing against a thread's raw anchor.
 export function composerTargets(side: Side, rawLine: number): boolean {
 	return (
 		featureCtx().S.composerOpen &&
@@ -139,9 +115,6 @@ export function composerTargets(side: Side, rawLine: number): boolean {
 	)
 }
 
-// Open a fresh new/reply composer at the current featureCtx().S.selected line (a reply first points
-// featureCtx().S.selected at the thread's anchor). The composer appears on the next render. The two
-// composer flags are mutually exclusive: opening one closes the other.
 export function openComposer(): void {
 	composerCaret = 0
 	featureCtx().S.composerBody = ''
@@ -152,9 +125,6 @@ export function openComposer(): void {
 	void render()
 }
 
-// Open a fresh whole-file composer (no line anchor - it hangs off the file header). Same
-// lifecycle as the line composer: one open at a time, text in featureCtx().S.composerBody, focused after
-// the next render.
 export function openFileComposer(): void {
 	composerCaret = 0
 	featureCtx().S.composerBody = ''
@@ -165,8 +135,6 @@ export function openFileComposer(): void {
 	void render()
 }
 
-// Toggle the whole-file composer from the header's comment icon: open when closed, close
-// when open (the closed case is a no-op - click-outside already closed it).
 export function toggleFileComposer(): void {
 	if (featureCtx().S.fileComposerOpen) {
 		featureCtx().S.composerBody = ''
@@ -176,16 +144,12 @@ export function toggleFileComposer(): void {
 	openFileComposer()
 }
 
-// Close whatever composer is open and rebuild the diff so its DOM goes away (the inline
-// composer is imperative DOM - closing it means rebuilding the diff, not toggling a flag).
-// `isDeferred` postpones the rebuild until the in-flight click has fully settled: the
-// outside-click close fires on pointerdown (capture), but the browser only dispatches
-// `click` after pointerup - ~50-150ms later for a human press - and any render in between
-// destroys the press's mousedown target (a Keep/Undo/Reply button), silently dropping the
-// click. A macrotask timer is NOT enough (it fires while the button is still held), so wait
-// for the click itself to bubble to the document, with a timeout fallback for pointerdowns
-// that never become clicks (drags). If that same click opened a fresh composer (clicking
-// another line), the render simply draws it - state is untouched here.
+// Closing rebuilds the diff (imperative DOM, not a flag toggle); `isDeferred` waits for the click
+// to settle first: the outside-click close fires on pointerdown but the browser dispatches `click`
+// ~50-150ms later, and a render in that window destroys the press's target and silently drops the
+// click. A macrotask is not enough (it fires while the button is still held), so wait for the click
+// itself to bubble to the document, with a timeout fallback for pointerdowns that never become
+// clicks (drags).
 export function closeComposer(isDeferred = false): void {
 	featureCtx().S.composerOpen = false
 	needsWindowFocus = false
@@ -193,8 +157,6 @@ export function closeComposer(isDeferred = false): void {
 	rebuildAfterClose(isDeferred)
 }
 
-// The file composer lives inside the file header (a rebuilt-on-every-render slot like the
-// unanchored strip), so closing it rebuilds the same way the line composer's close does.
 export function closeFileComposer(isDeferred = false): void {
 	featureCtx().S.fileComposerOpen = false
 	needsWindowFocus = false
@@ -202,7 +164,6 @@ export function closeFileComposer(isDeferred = false): void {
 	rebuildAfterClose(isDeferred)
 }
 
-// The shared close tail: immediate rebuild, or the click-settling deferral above.
 function rebuildAfterClose(isDeferred: boolean): void {
 	if (!isDeferred) {
 		void render()
@@ -215,11 +176,9 @@ function rebuildAfterClose(isDeferred: boolean): void {
 		void render()
 	}
 	timer = window.setTimeout(settle, SETTLE_TIMEOUT_MS)
-	document.addEventListener('click', settle) // bubble: runs after the target's own handlers
+	document.addEventListener('click', settle)
 }
 
-// After every render the diff DOM (and any composer inside it) is rebuilt from scratch, so
-// re-focus the open composer and restore its caret from the store. No-op when none is open.
 export function restorePendingComposerFocus(): void {
 	if (needsWindowFocus) restoreComposerFocus()
 }
@@ -237,8 +196,6 @@ export function restoreComposerFocus(): void {
 	if (ta.value !== featureCtx().S.composerBody)
 		ta.value = featureCtx().S.composerBody
 	ta.focus({ preventScroll: true })
-	// Focus only scrolls the diff pane, never the outer page. Unslotted offscreen
-	// composers wait for their window to mount before attempting to focus.
 	const pane = $('diff').getBoundingClientRect()
 	const box = ta.getBoundingClientRect()
 	if (box.top < pane.top) $('diff').scrollTop += box.top - pane.top

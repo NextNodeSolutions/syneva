@@ -4,8 +4,6 @@ import { crossIcon } from './cross-icon.styles'
 
 import type { ReactElement } from 'react'
 
-// The 12px cross of an icon-only dismiss or cancel; the button around it
-// carries the name.
 export function CrossIcon(): ReactElement {
 	return (
 		<svg

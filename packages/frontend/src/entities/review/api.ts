@@ -24,21 +24,15 @@ import type {
 	ReviewerSave,
 } from './model'
 
-// The review entity's API boundary: the only place review-domain endpoints are named.
-// Paths come from @contracts/routes so the wire stays in sync with the desk by
-// construction. Every response is decoded onto a frontend-owned model here - wire
-// shapes never escape this module.
+// The only place review-domain endpoints are named; paths from @contracts/routes, every response decoded onto a frontend-owned model - wire shapes never escape.
 
-// Every side-effect POST this entity issues acknowledges with `{ ok: true }`: decode it
-// so a 2xx body that lies still fails here, and no raw wire object escapes the boundary.
+// Every side-effect POST this entity issues acknowledges with { ok: true }: decode it so a 2xx body that lies still fails here, and no raw wire object escapes the boundary.
 function decodeAck(raw: unknown, endpoint: string): void {
 	const o = assertObject(raw, endpoint)
 	if (!requiredBoolean(o, 'ok', endpoint))
 		throw new DecodeError('acknowledgement ok is false', endpoint)
 }
 
-// Persist the reviewer-owned slice (snapshot semantics - see save.ts's reviewerSlice).
-// The response carries the persisted stamp the tab doesn't consume.
 export const saveReview = async (payload: ReviewerSave): Promise<void> => {
 	decodeAck(
 		await api(API_PATHS.save, {
@@ -49,8 +43,7 @@ export const saveReview = async (payload: ReviewerSave): Promise<void> => {
 	)
 }
 
-// Stage/unstage a change as a side effect of a decision (the git index follows the
-// decision record - the Decision, not the index, stays the source of truth).
+// The git index follows the decision record - the Decision, not the index, stays the source of truth.
 export const stageChange = async (body: unknown): Promise<void> => {
 	decodeAck(
 		await api(API_PATHS.stage, {
@@ -71,7 +64,6 @@ export const unstageChange = async (body: unknown): Promise<void> => {
 	)
 }
 
-// One-way handoff of the finished review back to the attached agent (see /send).
 export type SendResult = { sent?: boolean | undefined }
 
 export const sendReview = async (payload: unknown): Promise<SendResult> => {
@@ -88,7 +80,6 @@ export const sendReview = async (payload: unknown): Promise<SendResult> => {
 	}
 }
 
-// Push a question to the agent without ending the review round.
 export const askAgent = async (body: unknown): Promise<void> => {
 	decodeAck(
 		await api(API_PATHS.ask, {
@@ -99,7 +90,6 @@ export const askAgent = async (body: unknown): Promise<void> => {
 	)
 }
 
-// Jump into the reviewer's local editor at a real file line (see features/open-editor).
 export type EditorResult = {
 	ok?: boolean | undefined
 	error?: string | undefined
@@ -120,8 +110,6 @@ export const openEditor = async (body: {
 	}
 }
 
-// Destructive: drop every decision/comment and rebuild from the working tree. The
-// answer carries the rebuilt review state the tab adopts immediately.
 export type ResetResult = {
 	state: ReviewState
 	serverInstanceId?: string | undefined
@@ -133,8 +121,7 @@ export const resetReview = async (scope: ResetScope): Promise<ResetResult> => {
 		body: JSON.stringify({ scope }),
 	})
 	const o = assertObject(raw, API_PATHS.reset)
-	// The reset endpoint answers `{ ok, state, serverInstanceId }` - the rebuilt review
-	// lives under `state`, not at the top level.
+	// The reset endpoint answers { ok, state, serverInstanceId } - the rebuilt review lives under `state`, not at the top level.
 	if (!requiredBoolean(o, 'ok', API_PATHS.reset))
 		throw new DecodeError('acknowledgement ok is false', API_PATHS.reset)
 	return {
@@ -143,7 +130,7 @@ export const resetReview = async (scope: ResetScope): Promise<ResetResult> => {
 	}
 }
 
-// Stop the desk (browser Close). An unreachable desk resolves like a shutdown.
+// An unreachable desk resolves like a shutdown.
 export const shutdownDesk = async (): Promise<void> => {
 	decodeAck(
 		await api(API_PATHS.shutdown, { method: 'POST' }),
@@ -151,8 +138,6 @@ export const shutdownDesk = async (): Promise<void> => {
 	)
 }
 
-// Long-poll the desk for queued agent events (see app/poll.ts): the hash/guide/comments
-// tick with desk liveness, or a refresh event after a same-origin restart.
 export const fetchPoll = async (
 	query: string,
 ): Promise<(DeskPollSnapshot & DeskStatus) | DeskRefreshEvent> => {
@@ -161,7 +146,6 @@ export const fetchPoll = async (
 	return decodePollPayload(raw, endpoint)
 }
 
-// The full browser review snapshot (adopted as S.state after liveness is stripped).
 export const fetchState = async (): Promise<DeskStateSnapshot> => {
 	const raw = await api(API_PATHS.state)
 	return decodeDeskStateSnapshot(raw, API_PATHS.state)

@@ -3,10 +3,6 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 import { transition } from '@syneva/design-system/transitions.stylex'
 
-// Radio tiles: one white tile per choice under a strong rule, the chosen one
-// in petrol on the wash tint. The fieldset and legend lose the platform's
-// frame here (border written as three longhands: `border: 0` alone would
-// keep the style and colour).
 export const choiceField = stylex.create({
 	fieldset: {
 		minWidth: 0,
@@ -51,10 +47,6 @@ export const choiceField = stylex.create({
 		},
 		backgroundColor: color['--wash-tint'],
 	},
-	// The native radio, redrawn as the diamond at the brand mark's centre: a
-	// hollow square is the checkbox glyph, and would read as a multiple choice.
-	// Arrow keys and Space still move the choice; centred on the title's first
-	// line.
 	radio: {
 		appearance: 'none',
 		justifySelf: 'center',

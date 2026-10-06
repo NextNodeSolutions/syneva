@@ -1,6 +1,4 @@
 ---
-// The site footer: the pitch, a sitemap generated from the site map, the
-// frame-wide wordmark and the product's three promises.
 import { ISSUES_URL, REPO_URL, repoFile } from '@entities/site/model/project'
 import { PAGES, SECTIONS } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
@@ -8,7 +6,6 @@ import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
 import Brand from '@shared/ui/Brand.astro'
 import { footer } from './footer.styles'
 
-// Links to another site (absolute URLs) point up-right.
 const PROJECT = [
 	{ href: PAGES.openSource.href, label: PAGES.openSource.title },
 	{ href: REPO_URL, label: 'GitHub' },

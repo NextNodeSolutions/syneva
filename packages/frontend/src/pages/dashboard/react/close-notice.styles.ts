@@ -16,8 +16,7 @@ const leave = stylex.keyframes({
 // The page's inset (its head and body start 32px into the column, 16px on phones).
 const PAGE_INSET = '32px'
 
-// The toast holds the page's own left edge at the bottom of the screen, clear of the sidebar
-// (or the rail) beside it; on phones it spans the screen less a small margin.
+// The toast holds the page's own left edge at the bottom of the screen, clear of the sidebar (or the rail) beside it; on phones it spans the screen less a small margin.
 export const closeNotice = stylex.create({
 	root: {
 		position: 'fixed',
@@ -34,9 +33,6 @@ export const closeNotice = stylex.create({
 			[media.phone]: 'auto',
 		},
 	},
-	// Each notice rises in as it replaces the last (the container stays mounted: it is the
-	// live region). A paper margin rings the sheet - the focus ring's own gap, not a shadow -
-	// so the rows it passes over stop short of its rule instead of running under it.
 	sheet: {
 		boxShadow: `0 0 0 8px ${color['--paper']}`,
 		animationName: { default: null, [media.motionSafe]: rise },

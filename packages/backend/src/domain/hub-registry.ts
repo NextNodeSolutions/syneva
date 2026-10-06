@@ -1,14 +1,8 @@
-// The hub's persisted records (~/.syneva/hub/): the desk registry the hub restores from after
-// a restart, and the hub lock the CLI reads to find a running hub. Domain owns the shapes and
-// their decode: like the review records, they are persisted data whose bytes must be shaped
-// field by field before anything trusts them - an unchecked cast would let a malformed or
-// foreign file resurrect a desk on a wrong path, or point the CLI at an unintended URL.
+// Persisted data whose bytes must be shaped field by field before anything trusts them - an unchecked cast would let a malformed or foreign file resurrect a desk on a wrong path, or point the CLI at an unintended URL.
 
 import type { ReviewMode } from './review.js'
 
-// Everything the hub needs to rebuild a desk it hosted before: the rebuild parameters of its
-// review (the same ones a reload uses) plus when it was first opened. Review state itself is
-// not here - it lives in the per-session review files and is merged back on rebuild.
+// Review state itself lives in the per-session review files and is merged back on rebuild.
 export type HubDeskRecord = {
 	readonly id: string
 	readonly root: string
@@ -17,7 +11,6 @@ export type HubDeskRecord = {
 	readonly target?: string | undefined
 	readonly base?: string | undefined
 	readonly staged: boolean
-	// The repo-mode `--path` limit, which the review state does not carry.
 	readonly pathFilter?: string | undefined
 	readonly openedAt: string
 }
@@ -44,8 +37,7 @@ export function optionalString(raw: unknown): string | undefined {
 	return raw
 }
 
-// One registry entry, or null when it is not a complete record: a desk that cannot be
-// rebuilt from its own parameters is dropped rather than half-restored.
+// null when it is not a complete record: a desk that cannot be rebuilt from its own parameters is dropped rather than half-restored.
 export function decodeHubDeskRecord(raw: unknown): HubDeskRecord | null {
 	if (typeof raw !== 'object' || raw === null) return null
 	const record: Record<string, unknown> = Object.fromEntries(
@@ -70,8 +62,6 @@ export function decodeHubDeskRecord(raw: unknown): HubDeskRecord | null {
 	}
 }
 
-// The whole registry file: `{ desks: [...] }`. Malformed entries are skipped, a malformed
-// file reads as an empty registry (the hub starts with no desks rather than refusing to start).
 export function decodeHubRegistry(raw: unknown): HubDeskRecord[] {
 	if (typeof raw !== 'object' || raw === null || !('desks' in raw)) return []
 	const { desks } = raw
@@ -84,9 +74,7 @@ export function decodeHubRegistry(raw: unknown): HubDeskRecord[] {
 	return records
 }
 
-// The hub lock: a complete, well-formed record or nothing. A truthy url alone proves nothing -
-// the pid must be a positive integer and the strings present, so a corrupt lock degrades to
-// "no hub recorded" (the CLI then probes the default origin) rather than to a half-valid one.
+// A truthy url alone proves nothing - the pid must be a positive integer and the strings present, so a corrupt lock degrades to "no hub recorded" (the CLI then probes the default origin) rather than to a half-valid one.
 export function decodeHubLock(raw: unknown): HubLock | null {
 	if (typeof raw !== 'object' || raw === null) return null
 	const record: Record<string, unknown> = Object.fromEntries(

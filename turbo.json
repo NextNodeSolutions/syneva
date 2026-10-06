@@ -1,26 +1,20 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"tasks": {
+		// The transit tasks (no script) link each package to its dependencies' files:
+		// folding the source-only workspace deps (@syneva/design-system, @syneva/motion)
+		// and the built-dist type resolution into the hashes, so a changed dependency
+		// re-runs instead of replaying a stale cache and a check never runs against a
+		// stale (or missing) dist.
 		"build": {
-			// transit folds in workspace dependencies that ship as source with no build
-			// of their own (@syneva/design-system and @syneva/motion feed the landing):
-			// a change there changes this task's hash instead of replaying a stale cache.
 			"dependsOn": ["^build", "transit"],
-			// Every package rebuilds its own dist from scratch (its build script cleans
-			// first), so dist is the only output that matters and package sources the only
-			// input that matters - the default inputs already exclude dist via .gitignore.
 			"inputs": ["$TURBO_DEFAULT$"],
 			"outputs": ["dist/**"]
 		},
 		"check": {
-			// Type-checks resolve @syneva/* types through each package's built dist, so a
-			// check never runs against a stale (or missing) dependency build; transit
-			// covers the source-only dependencies (see build).
 			"dependsOn": ["^build", "transit"],
 			"outputs": []
 		},
-		// Matches no script: it only links each package to its dependencies' files
-		// (Turborepo's transit-node pattern).
 		"transit": {
 			"dependsOn": ["^transit"]
 		},

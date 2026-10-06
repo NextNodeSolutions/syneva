@@ -7,8 +7,6 @@ import type { Style } from '@shared/lib/cx'
 import type { IconName } from '@syneva/design-system/icons'
 import type { ReactElement } from 'react'
 
-// One of the site's line icons. Decoration: what it names is always in text
-// beside it.
 export function LineIcon({
 	name,
 	css,

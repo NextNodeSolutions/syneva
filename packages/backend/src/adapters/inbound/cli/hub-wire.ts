@@ -1,5 +1,4 @@
-// The hub's desk JSON as the CLI reads it: the summaries `syneva desks` prints and the
-// fields the agent commands act on, shaped field by field - never cast.
+// The hub's desk JSON as the CLI reads it, shaped field by field - never cast.
 import type { DeskSummary } from '@syneva/contracts/hub'
 
 export function readDesks(body: unknown): DeskSummary[] {
@@ -13,8 +12,7 @@ export function readDesks(body: unknown): DeskSummary[] {
 	})
 }
 
-// The fields the CLI acts on, shaped from the hub's JSON; the rest of the summary rides along
-// untouched for `syneva desks` output.
+// The fields the CLI acts on; the rest of the summary rides along untouched for `syneva desks` output.
 export function readDesk(entry: unknown): DeskSummary | null {
 	if (typeof entry !== 'object' || entry === null) return null
 	const record: Record<string, unknown> = Object.fromEntries(
@@ -93,7 +91,6 @@ function summaryCounts(record: Record<string, unknown>): SummaryCounts {
 	}
 }
 
-// The `error`/`fix` pair of a hub failure body, for the CLI's stderr.
 export function failureText(body: unknown, fallback: string): string {
 	if (typeof body !== 'object' || body === null) return fallback
 	const record: Record<string, unknown> = Object.fromEntries(

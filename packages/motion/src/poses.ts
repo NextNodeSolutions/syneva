@@ -6,39 +6,28 @@ import { motionRoot } from './root.stylex'
 
 import type { When } from '@syneva/design-system/when'
 
-// Hidden poses: where an element waits before its entrance plays. They apply
-// only with reduced-motion no-preference and an armed root, so the markup is
-// always the finished pose for everyone else. The runtime animates from these
-// values to the markup's own.
+// Hidden pre-entrance poses, gated on motion-safe + an armed root, so the markup stays the finished pose for everyone else; the runtime animates from these to the markup's own.
 const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
 // Armed but never booted: the safety net shows everything after three seconds.
 const stalled = (): string =>
 	stylex.when.ancestor('[data-motion="pending"]', motionRoot)
 
-// The values the hidden poses hold, which the runtime's entrances (reveal.ts,
-// vocabulary.ts) start from. StyleX evaluates only values local to this file,
-// so they live here and the runtime imports them.
+// StyleX evaluates only file-local values here: the runtime's entrances (reveal.ts, vocabulary.ts) import this file.
 const TYPE_OUTSET_PX = 4
 export const POSE_VALUES = {
 	itemRise: 'translateY(18px)',
-	// The accent rule rests just short of opaque while it draws.
 	ruleOpacity: 0.9,
 	rise: 'translateY(10px)',
 	lineRise: 'translateY(108%)',
-	// A typed line's clip reaches this far past its box, left edge aside.
 	typeOutset: TYPE_OUTSET_PX,
 	typeClipped: `inset(-${TYPE_OUTSET_PX}px 100% -${TYPE_OUTSET_PX}px 0)`,
 	typeUncovered: `inset(-${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px 0)`,
 } as const
 
-// The pathLength a drawing's animated paths declare, so the dash values below
-// and in vocabulary.ts hold whatever a path really measures. A drawn line
-// hides behind one dash of its whole length; a signal travels in hundredths.
+// The pathLength the animated paths declare, so dash values here and in vocabulary.ts hold whatever a path measures: draw hides behind one full dash, signal travels in hundredths.
 export const PATH_LENGTH = { draw: 1, signal: 100 } as const
 
-// A moving element starts offset by (x, y) px from its markup position:
-// moveOffset() writes the offset on the element, the move pose and the
-// runtime's first keyframe (moveStart()) read it.
+// moveOffset() writes the (x, y) start offset onto the element; the move pose and moveStart() read it.
 const OFFSET_X = '--tx'
 const OFFSET_Y = '--ty'
 const NO_OFFSET = '0px'
@@ -80,15 +69,13 @@ const safetyNet = (name: string): SafetyNet => ({
 })
 
 export const poses = stylex.create({
-	// [data-reveal-item]: rises in when its group arrives, staggered by its
-	// index in the group (see reveal.ts).
+	// [data-reveal-item]: rises when its group arrives, staggered by its index (reveal.ts).
 	revealItem: {
 		opacity: hidden(0),
 		transform: hidden(POSE_VALUES.itemRise),
 		...safetyNet(showAnyway),
 	},
-	// [data-rule]: an accent rule draws over the section's top border, then
-	// settles into it.
+	// [data-rule]: draws over the section's top border, then settles into it.
 	rule: {
 		position: hidden('relative'),
 		'::before': {
@@ -131,7 +118,6 @@ export const poses = stylex.create({
 		clipPath: hidden(POSE_VALUES.typeClipped),
 		...safetyNet(typeAnyway),
 	},
-	// The markup position is the resting one; moveOffset() gives the start.
 	move: {
 		opacity: hidden(0),
 		transform: hidden(
@@ -139,14 +125,13 @@ export const poses = stylex.create({
 		),
 		...safetyNet(showAnyway),
 	},
-	// A travelling signal is only ever seen in flight.
+	// Only ever seen in flight (deliberately without a safety net).
 	signal: { opacity: 0 },
 	spin: {
 		transformBox: hidden('fill-box'),
 		transformOrigin: hidden('center'),
 	},
-	// The home headline's intro: a line rises out of its clip (an overflow:
-	// hidden parent) and a highlight band (its ::before) sweeps in behind it.
+	// The home headline's intro: the line rises out of its overflow-hidden clip, the band's ::before sweeps in behind it.
 	lineRise: {
 		transform: hidden(POSE_VALUES.lineRise),
 		...safetyNet(showAnyway),

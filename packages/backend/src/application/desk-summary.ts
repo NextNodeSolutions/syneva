@@ -12,7 +12,6 @@ import type { DeskStatus } from '@syneva/contracts/browser'
 import type { DeskSummary, HubEventScope } from '@syneva/contracts/hub'
 import type { ReviewState } from '../domain/review.js'
 
-// When a desk was opened and when it last served a request - the dashboard's "last activity".
 export type DeskClock = { openedAt: string; lastActivityAt: string }
 
 export type DeskIdentity = Pick<
@@ -27,8 +26,7 @@ export type DeskIdentity = Pick<
 	| 'staged'
 >
 
-// Who a desk is, as the hub names it: what the listing shows and what a journal event records
-// it as (application/journal.ts journalSubject), one naming so the two never disagree.
+// One name for a desk everywhere: what the listing shows and what journalSubject records.
 export function deskIdentity(id: string, state: ReviewState): DeskIdentity {
 	return {
 		id,
@@ -42,9 +40,8 @@ export function deskIdentity(id: string, state: ReviewState): DeskIdentity {
 	}
 }
 
-// The dashboard projection of one desk: identity and counts derived from the live review
-// state, plus the transient liveness the desk already reports to its own tab. Mapped field by
-// field like browserState - the review's diff bodies and records never ride the hub listing.
+// The dashboard's projection of one desk: identity, counts and liveness, mapped field by field like browserState.
+// The review's diff bodies and records never ride the hub listing.
 export function deskSummary(
 	id: string,
 	state: ReviewState,
@@ -61,8 +58,6 @@ export function deskSummary(
 			change => change.status !== 'pending',
 		).length,
 		openQuestions: computeOpenQuestions(state).length,
-		// The requested-change classification (domain/comments.ts): open, reviewer-authored,
-		// non-question - the same rule the agent handoff rides out on.
 		openRequests: state.comments.filter(isRequestedChange).length,
 		agentListening: status.agentListening,
 		agentActivity: status.agentActivity,

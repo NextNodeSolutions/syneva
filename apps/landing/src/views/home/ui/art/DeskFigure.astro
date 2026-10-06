@@ -1,5 +1,4 @@
 ---
-// Chapter: the review desk. A reading order on the left, verdicts on the right.
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { sx } from '@shared/lib/sx'
 import Check from '@shared/ui/drawing/Check.astro'
@@ -23,7 +22,6 @@ const ROWS = [
 	{ name: 'pages/desk.tsx', y: 302, state: 'pending' },
 	{ name: 'README.md', y: 370, state: 'pending' },
 ] as const
-// The progress strip under the walkthrough fills by the files you settled.
 const TRACK_WIDTH = 138
 const settled = ROWS.filter(({ state }) => state === 'yes').length
 const fillWidth = (TRACK_WIDTH * settled) / ROWS.length

@@ -27,12 +27,8 @@ import { stageFiles, stageOneChange, unstageFile } from './routes/staging.js'
 
 import type { RouteTable } from './router.js'
 
-// The per-desk route registry: `METHOD /path` → its handler, where /path is the route's
-// position under the desk's API base (/api/desks/<id>). Paths come from
-// packages/contracts/src/routes.ts (the shared wire allowlist); a new route is an entry
-// here plus its module; the hub dispatcher, the origin guard, the access guard and the 500
-// handler cover it without further edits. Static assets and the hub's own API live with
-// the dispatcher (router.ts), not here.
+// Per-desk route registry: `METHOD /path` → handler, paths from packages/contracts/src/routes.ts (the shared wire allowlist); a new route is an entry here plus its module.
+// Dispatcher, origin/access guards and the 500 handler cover it with no further edits. Static assets and the hub's own API live with the dispatcher (router.ts), not here.
 export const routes: RouteTable = {
 	[`GET ${API_PATHS.poll}`]: servePoll,
 	[`GET ${API_PATHS.state}`]: serveState,

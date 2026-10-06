@@ -1,7 +1,6 @@
 import type { color } from '@syneva/design-system/tokens.stylex'
 
-// The hero timeline's colours. Keyframe values are resolved without custom
-// properties, so they are read once from the design system's tokens.
+// Keyframe values resolve without custom properties, so they are read once from the design system's tokens here.
 type ColorToken = Extract<keyof typeof color, `--${string}`>
 
 export type Palette = Record<

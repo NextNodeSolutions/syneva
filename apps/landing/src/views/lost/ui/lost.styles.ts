@@ -2,7 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, layout } from '@syneva/design-system/tokens.stylex'
 
-// The 404: the words and the way back beside the page drawn as a diff.
 export const lost = stylex.create({
 	root: {
 		padding: `96px ${layout['--gutter']} 120px`,

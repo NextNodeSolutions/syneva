@@ -7,9 +7,7 @@ import {
 import type { QuestionPayload, ReviewResult } from '@syneva/contracts/agent'
 import type { Decision, ReviewComment, ReviewState } from '../domain/review.js'
 
-// The single QuestionPayload constructor - shared by /ask (live question event) and
-// computeOpenQuestions (questions folded into a Send) so the two payload shapes can't drift.
-// lineNumber 0 (whole-file) stamps anchor - the agent reads "file" instead of inferring it.
+// Shared by /ask (live question event) and computeOpenQuestions (questions folded into a Send) so the two payload shapes can't drift; lineNumber 0 (whole-file) stamps anchor - the agent reads "file" instead of inferring it.
 export function questionPayload(
 	state: Pick<ReviewState, 'mode' | 'session'>,
 	question: {
@@ -30,19 +28,13 @@ export function questionPayload(
 	}
 }
 
-// Collision-free thread identity: a path may contain any character, so a plain joined string
-// could collide - the JSON tuple cannot.
+// A path may contain any character, so a plain joined string could collide - the JSON tuple cannot.
 const threadKey = (comment: ReviewComment): string =>
 	JSON.stringify([comment.path, comment.side, comment.lineNumber])
 
-// Questions the reviewer asked but the agent hasn't answered yet. Mirrors the UI's "answered"
-// heuristic (packages/frontend/src/widgets/diff-view/annotations.ts): an open question comment is unanswered until a later agent
-// reply lands in the same thread (same path/side/line). These ride out on the Send's ReviewResult
-// so an agent that never saw the live await still owes each an answer.
+// Mirrors the UI's "answered" heuristic (frontend diff-view/annotations.ts): an open question stays unanswered until a later agent reply lands in the same thread (same path/side/line).
+// They ride out on the Send's ReviewResult so an agent without the live await still owes each an answer.
 export function computeOpenQuestions(state: ReviewState): QuestionPayload[] {
-	// One pass indexes the latest agent-reply timestamp per thread, so each question answers
-	// in O(1) instead of rescanning every comment. Invalid timestamps never count, exactly as
-	// the strict `>` comparison behaved.
 	const latestReplies = new Map<string, number>()
 	for (const reply of state.comments) {
 		if (reply.role !== 'agent') continue
@@ -93,7 +85,6 @@ export function buildReviewResult(
 	}
 }
 
-// The accepted (or rejected) hunks, in decision order.
 function decisionSummaries(
 	state: ReviewState,
 	status: Decision['status'],
@@ -108,10 +99,8 @@ function decisionSummaries(
 		}))
 }
 
-// The change requests going back to the agent: open, reviewer-authored, non-question comments.
-// Whole-file requests (the file-header comment) ride out as lineNumber 0 + anchor "file" - no
-// line to edit, so the agent applies the remark to the file as a whole; side keeps its additions
-// placeholder (uniform array shape, same as the persisted record).
+// Whole-file requests (the file-header comment) ride out as lineNumber 0 + anchor "file" - no line to edit, so the agent applies the remark to the file as a whole.
+// Side keeps its additions placeholder (uniform array shape, same as the persisted record).
 function requestedChanges(
 	state: ReviewState,
 ): ReviewResult['requestedChanges'] {
@@ -124,8 +113,7 @@ function requestedChanges(
 	}))
 }
 
-// A blank overall note is left off the wire entirely - the agent contract prints `overallNote` only
-// when the reviewer wrote one.
+// A blank overall note is left off the wire entirely - the agent contract prints `overallNote` only when the reviewer wrote one.
 function noteStamp(note: string | undefined): { overallNote?: string } {
 	if (!note) return {}
 	return { overallNote: note }

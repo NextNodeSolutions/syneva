@@ -12,8 +12,7 @@ import type {
 import type { ApiFailure } from '../failure.js'
 import type { RouteRequest } from '../router.js'
 
-// PR changes are committed; accept/reject are approve/request-changes verdicts, so there is nothing
-// to stage. Both staging routes refuse identically.
+// PR changes are committed: accept/reject are approve/request-changes verdicts, so there is nothing to stage; both staging routes refuse identically.
 const STAGING_DISABLED: ApiFailure = {
 	status: HTTP_CONFLICT,
 	code: 'STAGING_DISABLED',
@@ -29,8 +28,7 @@ export async function stageFiles({
 	if (ctx.state.mode === 'pr') return fail(res, STAGING_DISABLED)
 	await ctx.serialize(async (): Promise<void> => {
 		const body: unknown = await readJsonBody(req)
-		// stagePaths returns the next root (the same one when nothing changed); persist+commit
-		// is what publishes it.
+		// stagePaths returns the next root (the same one when nothing changed); persist + commit is what publishes it.
 		const next = await stagePaths(
 			ctx.state,
 			parseStagePathsRequest(body),
@@ -88,9 +86,7 @@ export async function unstageFile({
 	})
 }
 
-// `{ path }` (back-compat) or `{ paths }` (a move pair in one `git add`). The recorded review path is
-// the explicit `path`, else the last of `paths` - approveCurrentFile sends [old, new], so the entry
-// that survives the rename is the one recorded.
+// `{ path }` (compat) or `{ paths }` (a move pair in one `git add`); the recorded review path is the explicit `path`, else the LAST of `paths` - approveCurrentFile sends [old, new], so the entry that survives the rename is the one recorded.
 function parseStagePathsRequest(payload: unknown): StagePathsRequest {
 	if (typeof payload !== 'object' || payload === null) return { paths: [] }
 	const single =

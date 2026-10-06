@@ -39,10 +39,8 @@ function focusedOn(source: Source): readonly Choice<Source>[] {
 	}))
 }
 
-// The fields of New review: the repository (suggesting the roots the hub lists or remembers),
-// what to review, the target that source reads, and the session. Each input is named after its
-// field, so a failed submit can send focus to it. While the hub opens the desk, they hold
-// still. Opened on a repository (`isSeeded`), focus starts on what to review instead.
+// The fields of New review: the repository (suggesting the roots the hub lists or remembers), what to review, the target its source reads, and the session.
+// Each input is named after its field, so a failed submit can send focus to it; while the hub opens the desk, they hold still. Opened on a repository (`isSeeded`), focus starts on what to review instead.
 export function NewReviewFields({
 	form,
 	roots,

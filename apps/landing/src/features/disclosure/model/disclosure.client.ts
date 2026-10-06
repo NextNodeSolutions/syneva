@@ -2,20 +2,14 @@ import { EASE } from '@syneva/motion/easing'
 import { animate } from '@syneva/motion/engine'
 import { reducedMotion } from '@syneva/motion/preference'
 
-// Disclosure rows ([data-disclosure], see Disclosure.astro) ease open and
-// shut instead of jumping. The native <details> stays the source of truth
-// (keyboard, find-in-page and no-JS keep working); the script only animates
-// the height between its two states. Closing keeps [open] until the motion
-// ends so the answer stays visible while it folds away; .is-closing turns the
-// chevron back early (disclosure.styles.ts). Every run starts from the
-// row's current height and the answer's current opacity, so a reversal or a
-// re-measure continues instead of jumping.
+// Native <details> is the source of truth (keyboard, find-in-page, no-JS); the script only animates height between its two states.
+// Closing keeps [open] until the motion ends so the answer stays visible while folding (.is-closing turns the chevron back early).
+// Every run starts from the row's current height and the answer's current opacity, so a reversal or re-measure continues, not jumps.
 const DURATION_S = 0.34
 const RISE_PX = 6
 const ease = EASE.out
 
-// Rows mid-motion re-measure when text can rewrap (resize, a late font), so
-// they glide to the new height instead of snapping to it when they finish.
+// Rows mid-motion re-measure when text can rewrap (resize, a late font) and glide to the new height instead of snapping.
 const moving = new Set<() => void>()
 const remeasure = (): void => {
 	moving.forEach(run => run())
@@ -27,7 +21,6 @@ function clearAnswer(answer: HTMLElement): void {
 	answer.style.removeProperty('transform')
 }
 
-// The opening answer rises in from its current opacity.
 function fadeAnswerIn(answer: HTMLElement, fade: number): void {
 	animate(
 		answer,
@@ -39,14 +32,10 @@ function fadeAnswerIn(answer: HTMLElement, fade: number): void {
 	)
 }
 
-// The closing fade holds at 0 until the row folds shut, so the answer never
-// pops back to full opacity in the last frames.
 function fadeAnswerOut(answer: HTMLElement, fade: number): void {
 	animate(answer, { opacity: [fade, 0] }, { duration: DURATION_S, ease })
 }
 
-// Disclosure.astro and QaDisclosure.astro render a summary and its answer, so
-// a row missing either is broken.
 function partsOf(details: HTMLDetailsElement): {
 	summary: HTMLElement
 	answer: HTMLElement
@@ -67,8 +56,7 @@ function partsOf(details: HTMLDetailsElement): {
 function bindDisclosure(details: HTMLDetailsElement): void {
 	const { summary, answer } = partsOf(details)
 	let isOpening = false
-	// The fold this script runs on the row. Only it is cancelled on a reversal:
-	// the row's reveal entrance runs on the same element and must finish.
+	// Only the fold cancels on a reversal: the row's reveal entrance runs on the same element and must finish.
 	let fold: ReturnType<typeof animate> | undefined
 	const settle = (): void => {
 		if (!isOpening) details.removeAttribute('open')
@@ -95,8 +83,7 @@ function bindDisclosure(details: HTMLDetailsElement): void {
 			: summary.offsetHeight + borders
 		details.style.setProperty('overflow', 'hidden')
 		moving.add(run)
-		// The fade starts first so the height's completion, which clears both,
-		// always runs after the fade committed its last frame.
+		// The fade starts before the height completes, and the height's completion clears both, so it always runs after the fade committed its last frame.
 		if (isOpening) fadeAnswerIn(answer, fade)
 		else fadeAnswerOut(answer, fade)
 		fold = animate(

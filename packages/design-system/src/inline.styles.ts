@@ -4,19 +4,14 @@ import { textLinkMarker } from './controls.stylex'
 import { color, font } from './tokens.stylex'
 import { transition } from './transitions.stylex'
 
-// What a front sets inside a line of text: the secondary link (the site's and
-// the apps'), an inline command, a key hint. The link is focusable but carries
-// no ring of its own: in the apps compose it after focus.ring
-// (controls.styles), as every focusable outside the control recipes does; the
-// site's document rings every focusable.
+// Focusable but carries no ring of its own: in the apps compose it right after focus.ring
+// (controls.styles); the site's document rings focusables outside the recipes one by one.
 
 const textLinkHover = (): string =>
 	stylex.when.ancestor(':hover', textLinkMarker)
 
-// The secondary action beside a primary one, on the site and in the apps
-// alike (there are no ghost buttons): an underlined link that takes its
-// sentence's colour and turns petrol on hover, its arrow (a glyph after the
-// label, reading the textLinkMarker the link carries) stepping forward.
+// The secondary action beside a primary one (there are no ghost buttons); its arrow reads
+// the textLinkMarker the link carries.
 export const textLink = stylex.create({
 	base: {
 		display: 'inline-flex',
@@ -34,7 +29,6 @@ export const textLink = stylex.create({
 		transition: `color ${transition.fast}, text-decoration-color ${transition.fast}`,
 	},
 	small: { fontSize: '13px', textUnderlineOffset: '4px', gap: '8px' },
-	// On a wash band the resting underline takes petrol's rule tone.
 	onWash: {
 		textDecorationColor: {
 			default: color['--accent-line'],
@@ -49,7 +43,6 @@ export const textLink = stylex.create({
 	},
 })
 
-// A command or a path quoted in prose: mono on the wash, never wrapped.
 export const code = stylex.create({
 	base: {
 		fontFamily: font['--mono'],
@@ -60,16 +53,12 @@ export const code = stylex.create({
 		color: color['--ink'],
 		whiteSpace: 'nowrap',
 	},
-	// A code chip sitting on a wash band: the paper keeps it apart.
 	onPaper: { backgroundColor: color['--paper'] },
 })
 
-// A key hint (a shortcut beside its action, "press ?"): a small white keycap
-// under a strong rule. Set in the sans, not the mono: Geist Mono lacks the key
-// symbols (⇧ ⌘ ↵ and the arrows), which would fall back to shrunken system
-// glyphs. It never takes its control's click. On a solid fill (a primary
-// action) or a tinted one, onFill and onTint drop the cap's own ground and draw
-// its rule from the control's text colour instead.
+// A key hint: set in the sans, not the mono - Geist Mono lacks the key symbols (⇧ ⌘ ↵ and arrows),
+// which fall back to shrunken system glyphs. Never takes its control's click; onFill and onTint
+// draw the cap's rule from the control's text colour.
 export const kbd = stylex.create({
 	base: {
 		boxSizing: 'border-box',

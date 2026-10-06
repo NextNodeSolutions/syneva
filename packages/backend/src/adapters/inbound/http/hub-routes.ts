@@ -29,8 +29,6 @@ import type { Guide } from '../../../domain/review.js'
 import type { ApiFailure } from './failure.js'
 import type { Hub } from './hub.js'
 
-// The hub's own API: liveness, the desk registry (list / open / read / close), the journal, the
-// display preferences and the hub shutdown. Transport decode lives here; the hub decides.
 export type HubRouteDeps = {
 	hub: Hub
 	journal: HubJournal
@@ -59,8 +57,6 @@ export function hubHealth(deps: HubRouteDeps, res: ServerResponse): void {
 	json(res, HTTP_OK, health)
 }
 
-// GET /api/hub/desks[?root=<abs path>][&session=<id>] - every live desk, newest first, narrowed
-// to one repo (the CLI's auto-targeting) and optionally one session.
 export function listDesks(
 	deps: HubRouteDeps,
 	res: ServerResponse,
@@ -117,8 +113,7 @@ export function readDesk(
 	json(res, HTTP_OK, { desk: deps.hub.summary(desk) })
 }
 
-// Idempotent: closing a desk that is already gone answers { closed: false } with 200, so an
-// agent can close unconditionally when its round settles.
+// Idempotent: closing an already-gone desk answers { closed: false } with 200, so an agent can close unconditionally when its round settles.
 export function closeDeskRoute(
 	deps: HubRouteDeps,
 	res: ServerResponse,
@@ -217,19 +212,15 @@ function optionalText(
 	return field
 }
 
-// A leading `~` names the home directory of the hub's user, as a shell would expand it (a
-// person typing a path into the dashboard writes it so); node's path functions never do.
+// A leading `~` names the home directory of the hub's user, as a shell would expand it (a person typing a path into the dashboard writes it so); Node's path functions never do.
 const HOME_PREFIX = /^~(?=$|[\\/])/
 
 function expandHome(text: string): string {
 	return text.replace(HOME_PREFIX, () => os.homedir())
 }
 
-// The open body, shaped field by field: `root` is required and absolute (after `~`): the
-// hub's cwd is no one's - an auto-started hub inherits whichever agent started it - so a
-// relative root would open whatever repository that happens to be. The mode defaults to repo;
-// a present `guide` is validated by the domain rule (a bad grouping is refused before any desk
-// is touched, exactly like the CLI's --guide check).
+// `root` is required and absolute (after `~`): the hub's cwd is no one's - an auto-started hub inherits whichever agent started it, so a relative root would open whatever repository that is.
+// A present `guide` is validated by the domain rule before any desk is touched.
 function parseOpenRequest(body: unknown): ParsedOpen {
 	if (typeof body !== 'object' || body === null)
 		return { error: 'The open body must be a JSON object.' }
@@ -261,7 +252,6 @@ function parseOpenRequest(body: unknown): ParsedOpen {
 			root,
 			mode,
 			session: optionalText(record, 'session'),
-			// A file may be named from home too; a ref (pr mode) is a name, never a path.
 			target: mode === 'file' && target ? expandHome(target) : target,
 			base: optionalText(record, 'base'),
 			staged: record.staged === true,

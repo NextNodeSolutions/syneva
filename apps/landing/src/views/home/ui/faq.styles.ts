@@ -13,8 +13,7 @@ export const faq = stylex.create({
 	title: {
 		fontSize: { default: '36px', [media.phone]: '32px' },
 	},
-	// Stacked, the link closes the heading column: its margin keeps the
-	// underline clear of the first question's rule.
+	// Its margin keeps the underline clear of the first question's rule.
 	link: {
 		marginTop: '22px',
 		marginBottom: { default: null, [media.stacked]: '30px' },

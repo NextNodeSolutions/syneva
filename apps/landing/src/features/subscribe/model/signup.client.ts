@@ -1,16 +1,11 @@
-// Signup forms: each [data-signup] posts its email without leaving the page
-// and tells the outcome in its own status line. Without scripts the form
-// posts natively and the endpoint answers with a navigation instead.
 import { isOutcome, OUTCOME_MESSAGE } from './outcome'
 
 import type { Outcome } from './outcome'
 
 const SENDING = 'Sending…'
-// The status line's tone, by the outcome it tells.
 const DONE = 'is-done'
 const ERROR = 'is-error'
 
-// SignupForm.astro renders every part, so a missing one is a broken form.
 const missing = (part: string): Error =>
 	new Error(
 		`A [data-signup] form has no ${part}: render it with SignupForm.astro.`,
@@ -24,8 +19,6 @@ const outcomeOf = (body: unknown): Outcome =>
 		? body.outcome
 		: 'failed'
 
-// A failure to reach the endpoint, or an answer it never gives, reads as one
-// that did not go through.
 async function post(form: HTMLFormElement): Promise<Outcome> {
 	try {
 		const response = await fetch(form.action, {
@@ -63,8 +56,6 @@ function bindSignup(form: HTMLFormElement): void {
 		if (isSubscribed) form.reset()
 		else field.focus()
 	}
-	// The browser validates the address first; a submit only fires once it
-	// accepted it.
 	form.addEventListener('submit', event => {
 		event.preventDefault()
 		void send()

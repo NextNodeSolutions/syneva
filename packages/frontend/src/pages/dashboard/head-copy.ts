@@ -6,9 +6,6 @@ import type { HubPlace } from '@entities/hub/hub-place'
 import type { HubDesk } from '@entities/hub/model'
 import type { HubPhase } from './hub-phase'
 
-// What the head says for a phase: the statement (the page's h1), the lede under it, and the
-// one action the phase asks for. `isPending` marks the loading line, which stays hidden for
-// the first moments of a load: a hub that answers at once never flashes it.
 export type HeadCopy = {
 	title: string
 	isPending?: boolean
@@ -35,8 +32,6 @@ const SIGNED_OUT: HeadCopy = {
 	action: 'sign-in',
 }
 
-// A hub never reached: the command to start it again, for a loopback hub; a hub reached over
-// the network restarts the way it was started (hub-place.ts).
 const UNREACHABLE: Record<HubPlace, HeadCopy> = {
 	loopback: {
 		title: 'The hub is not answering.',

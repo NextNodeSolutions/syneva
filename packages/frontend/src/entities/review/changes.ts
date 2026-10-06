@@ -16,12 +16,6 @@ import type {
 	ReviewState,
 } from './model'
 
-// One-pass per-path index over the live state for BULK derivations (the tree, walkthrough,
-// progress, nav seeks, completion gate) - anywhere that classifies every file per evaluation.
-// The per-path predicates below stay the source of truth for one-off call sites; iterating
-// files through them is O(files × changes) and froze big desks (see flow-index.ts). Build the
-// index once per evaluation and never cache it across effects. The distill option rides the
-// hide-reviewed preference so every index evaluation depends on the toggle reactively.
 export function flowIndex(
 	state: ReviewState | null,
 	opts: { distill: boolean },
@@ -29,9 +23,6 @@ export function flowIndex(
 	return deriveFlowIndex(state, { distill: opts.distill })
 }
 
-// The file the diff is currently showing, or null when there is nothing to show: before main.ts
-// adopts the first fetch, and after a reload whose rebuilt review carries no files. A `preview` (an
-// unchanged file the reviewer opened to read/comment on) takes precedence over the indexed file.
 export function currentFileOrNull(
 	files: ReviewFile[] | undefined,
 	preview: PreviewFile | null,
@@ -40,10 +31,6 @@ export function currentFileOrNull(
 	return pickCurrentFile(files, preview, fileIndex)
 }
 
-// Is there a file to act on? The file-scoped actions (approve, open in the editor) and the keys
-// that reach them clear this before calling currentFile(), which throws by contract: the pre-init
-// window (no review yet) and a review a reload emptied both have no current file. Desk-level
-// surfaces (help, settings, Send, Reset) deliberately do not depend on it.
 export function hasCurrentFile(
 	files: ReviewFile[] | undefined,
 	preview: PreviewFile | null,
@@ -52,8 +39,7 @@ export function hasCurrentFile(
 	return !!currentFileOrNull(files, preview, fileIndex)
 }
 
-// The current file for the render path and the reviewer operations that follow it. Enforces the
-// precondition - there is always a file to act on by then - rather than returning a stand-in.
+// Enforces the precondition - there is always a file to act on by then - rather than returning a stand-in.
 export function currentFile(
 	files: ReviewFile[] | undefined,
 	preview: PreviewFile | null,
@@ -64,8 +50,6 @@ export function currentFile(
 	return file
 }
 
-// Changes/comments of a file. Empty without a file - no path can match an absent one - so the
-// template-reachable callers need no guard.
 export function currentChanges(
 	state: ReviewState | null,
 	file: ReviewFile | null,
@@ -81,10 +65,7 @@ export function currentComments(
 	return (state?.comments ?? []).filter(c => c.path === path)
 }
 
-// Line comments grouped `side:lineNumber`, each group oldest-first (the order the conversation
-// happened in, which is the order the thread renders). Whole-file comments are NOT skipped here:
-// the annotation flow filters them out (they anchor to the file header), the blockers list keeps
-// them (a file-level change request is a blocker).
+// Whole-file comments are NOT skipped here: the annotation flow filters them out (they anchor to the file header), while the blockers list keeps them (a file-level change request is a blocker).
 export function groupLineComments(
 	comments: ReviewComment[],
 ): Map<string, ReviewComment[]> {
@@ -100,39 +81,28 @@ export function groupLineComments(
 	return groups
 }
 
-// ── Whole-file comments ────────────────────────────────────────────────────
-// lineNumber 0 is the whole-file anchor (real lines are 1-based, so it can never collide with
-// a rendered one); the persisted record stamps anchor "file" alongside it. Sister copy of
-// FILE_LEVEL_LINE in state/comments.ts - the UI must not import backend runtime code.
+// lineNumber 0 is the whole-file anchor (real lines are 1-based, so it can never collide with a
+// rendered one); the persisted record stamps anchor "file" alongside it; sister copy of
+// FILE_LEVEL_LINE - the UI must not import backend runtime code.
 const FILE_LEVEL_LINE = 0
 
-// Is this comment addressed to the file as a whole (a file-header thread) rather than a diff line?
-// Takes a structural subset so non-comment shapes carrying the same anchor (e.g. jump targets)
-// classify the same way.
 export function isFileComment(c: Pick<ReviewComment, 'lineNumber'>): boolean {
 	return c.lineNumber === FILE_LEVEL_LINE
 }
 
 function sideLineCount(file: ReviewFile, side: ReviewComment['side']): number {
-	// Line counts come from the current file's fetched contents (file/contents.ts `cur`); this runs
-	// during render() for the current file, so cur is loaded. If it isn't the current file yet,
-	// return Infinity so the out-of-range fallback can't wrongly flag a thread as unanchored (the
-	// authoritative `unanchored` flag from server-side re-anchoring is still honored by the caller).
+	// During render() for the current file, `cur` is loaded; otherwise return Infinity so the out-of-range fallback can't wrongly flag a thread as unanchored (the authoritative server-side `unanchored` flag is still honored by the caller).
 	if (cur.path !== file.path) return Infinity
 	const contents = side === 'deletions' ? cur.oldContents : cur.newContents
 	if (!contents) return 0
 	return contents.split('\n').length
 }
 
-// Re-anchoring (reanchorComments, server-side on reload) sets `unanchored` explicitly;
-// the out-of-range check additionally catches legacy comments it couldn't classify. One
-// derivation for every consumer (the diff island's thread strip and the auto-expand pass) -
-// both must agree on which open threads are unreachable in the rendered diff.
+// One derivation for every consumer (the diff island's thread strip and the auto-expand pass) - both must agree on which open threads are unreachable in the rendered diff.
 export function isUnanchored(c: ReviewComment, file: ReviewFile): boolean {
 	return c.unanchored === true || c.lineNumber > sideLineCount(file, c.side)
 }
 
-// The file's whole-file comments, oldest first.
 export function currentFileComments(
 	state: ReviewState | null,
 	file: ReviewFile | null,
@@ -142,9 +112,7 @@ export function currentFileComments(
 		.toSorted((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
 }
 
-// A file has objections if the reviewer rejected a hunk in it OR left an open requested-change
-// comment (open, by the user, not a question). Questions are answered live, so they don't count.
-// Mirrors the server's computeApprovedFiles so the desk and the handoff agree.
+// Mirrors the server's computeApprovedFiles so the desk and the handoff agree; questions are answered live, so they don't count.
 export function fileObjections(
 	state: ReviewState | null,
 	path: string,
@@ -162,8 +130,6 @@ export function fileObjections(
 	return rejected || openChange
 }
 
-// A file is "finished" only while its sign-off is current: it's in reviewedFiles and the content
-// hash recorded at sign-off still matches the file (the agent hasn't rewritten it since).
 export function fileFinished(state: ReviewState | null, path: string): boolean {
 	if (!state?.reviewedFiles.includes(path)) return false
 	const h = state.reviewedFileHashes?.[path]
@@ -171,7 +137,6 @@ export function fileFinished(state: ReviewState | null, path: string): boolean {
 	return !!h && !!file && h === file.contentHash
 }
 
-// The single source of truth for a changed file's badge/header/progress state.
 export function fileReviewState(
 	state: ReviewState | null,
 	path: string,
@@ -197,8 +162,7 @@ export function ensureChangesFromFileDiff(
 	state.changes = state.changes.filter(c => c.path !== path).concat(derived)
 }
 
-// Refresh pending changes' display anchors from the replayed diff: the annotation for a
-// block must sit at the line number @pierre will actually render, not the raw file line.
+// Refresh pending changes' display anchors from the replayed diff: the annotation for a block must sit at the line number @pierre will actually render, not the raw file line.
 export function syncDisplayAnchors(
 	resolved: FileDiffMetadata,
 	changes: ChangeState[],
@@ -222,8 +186,6 @@ export function syncDisplayAnchors(
 	}
 }
 
-// Raw ↔ display conversions (identity until decisions replay): the caller passes the
-// widget-owned line map of the current render.
 export function toDisplayLine(
 	side: Side,
 	line: number,

@@ -24,8 +24,7 @@ import type { BrowserResetResponse } from '@syneva/contracts/browser'
 import type { ResetScope } from '@syneva/contracts/review'
 import type { RouteRequest } from '../router.js'
 
-// The reset body's scope: absent/empty -> 'all' (the documented pre-scope behavior); a
-// recognized value passes; anything else parsed -> null, which the route rejects.
+// Absent/empty -> 'all' (the documented pre-scope behavior); a recognized value passes; anything else parses to null, which the route rejects.
 function parseResetScope(body: unknown): ResetScope | null {
 	if (typeof body !== 'object' || body === null) return 'all'
 	if (!('scope' in body)) return 'all'
@@ -35,8 +34,7 @@ function parseResetScope(body: unknown): ResetScope | null {
 	return null
 }
 
-// overallNote is an ephemeral, per-Send instruction threaded straight into the result -
-// parseReviewerSave never copies it onto `state`, so it is never persisted.
+// An ephemeral, per-Send instruction threaded straight into the result; parseReviewerSave never copies it onto state, so it is never persisted.
 function overallNoteOf(payload: unknown): string {
 	if (
 		typeof payload !== 'object' ||
@@ -53,10 +51,8 @@ export async function saveReview({
 	req,
 	res,
 }: RouteRequest): Promise<void> {
-	// Merge only the reviewer-owned slice; the diff, file contents, changes, and desk metadata stay
-	// authoritative here. The DTO decode shapes each record (and refuses a malformed patch with a
-	// 422) before applyReviewerSave builds the next root from it - present keys replace, absent
-	// keys are unchanged; the live root is never edited in place.
+	// Merge only the reviewer-owned slice; diff, contents, changes and desk metadata stay authoritative here. The DTO decode refuses a malformed patch with a 422 before the next root is built.
+	// Present keys replace, absent keys unchanged, never an in-place edit.
 	await ctx.serialize(async (): Promise<void> => {
 		const body: unknown = await readJsonBody(req)
 		const patch = parseReviewerSave(body)
@@ -91,9 +87,8 @@ export async function sendReviewToAgent({
 			sent.reviewResult,
 		)
 		res.on('finish', () => {
-			// The review supersedes any still-queued question (createEventStream drops them), so a
-			// stale question can never land after the round. Emitting only once the response has
-			// flushed keeps the reviewer's ack ahead of the agent's wake-up.
+			// The review supersedes any still-queued question (createEventStream drops them), so a stale question never lands after the round.
+			// Emitting only once the response has flushed keeps the reviewer's ack ahead of the agent's wake-up.
 			ctx.events.emit({ kind: 'review', result: sent.reviewResult })
 		})
 		json(res, HTTP_OK, {
@@ -137,8 +132,7 @@ export async function resetDesk({
 	res,
 }: RouteRequest): Promise<void> {
 	await ctx.serialize(async (): Promise<void> => {
-		// Bodyless POST = the documented 'all'. Malformed JSON means the same default; a parsed
-		// body with an unknown scope is rejected - the caller must name what it wants dropped.
+		// Bodyless POST = the documented 'all'; malformed JSON means the same default; a parsed body with an unknown scope is rejected - the caller must name what it wants dropped.
 		let body: unknown
 		try {
 			body = await readJsonBody(req)
@@ -153,8 +147,7 @@ export async function resetDesk({
 				error: 'scope must be "review", "approved" or "all"',
 				fix: 'Send { "scope": "review" } - review keeps the notes, all clears them.',
 			})
-		// 'approved' restores only the signed-off files to the working diff; the other scopes
-		// drop every decision, so the whole review unstages.
+		// 'approved' restores only the signed-off files to the working diff; the other scopes drop every decision, so the whole review unstages.
 		const unstagePaths =
 			scope === 'approved' ? [...ctx.state.reviewedFiles] : undefined
 		await unstageReviewedFiles(ctx.state, ctx.git, unstagePaths)

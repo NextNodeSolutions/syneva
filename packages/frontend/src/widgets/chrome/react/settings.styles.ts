@@ -2,9 +2,6 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The settings dialog: Settings / Shortcuts tabs, then the preferences as a
-// ruled register (a label left, its control right, a hairline under each row
-// like the public site's spec tables), or the keyboard map in two columns.
 export const settings = stylex.create({
 	tabs: {
 		height: '40px',
@@ -34,7 +31,6 @@ export const settings = stylex.create({
 		color: color['--ink'],
 		whiteSpace: 'nowrap',
 	},
-	// The design system's field, at the register's size.
 	control: {
 		width: '210px',
 		minHeight: '30px',
@@ -47,7 +43,6 @@ export const settings = stylex.create({
 	number: { width: '90px', fontFamily: font['--mono'] },
 	text: { fontFamily: font['--mono'] },
 	box: { flexShrink: 0 },
-	// The keyboard map.
 	keys: {
 		display: 'grid',
 		gridTemplateColumns: '1fr 1fr',

@@ -11,8 +11,6 @@ export type PrTargetOutcome =
 
 type PrInfo = { headRefName: string; baseRefName: string }
 
-// A `pr` target is a PR number (`123`) or a GitHub PR URL when it matches these; anything else is
-// treated as a plain branch name.
 export function isPrRef(ref: string): boolean {
 	return (
 		/^\d+$/.test(ref) ||
@@ -20,10 +18,7 @@ export function isPrRef(ref: string): boolean {
 	)
 }
 
-// PR mode targets a branch by default; a numeric ref or GitHub PR URL is resolved to its
-// head/base branches via the GitHub CLI and checked out. Non-PR modes pass the target through
-// untouched. A failure is a reason, never a thrown error: the hub answers it as a 422 and the
-// CLI prints it - the desk is simply not opened.
+// A failure is a reason, never a thrown error: the hub answers it as a 422 and the CLI prints it - the desk is simply not opened.
 export type PrTargetQuery = {
 	mode: ReviewMode
 	target: string | undefined
@@ -96,10 +91,9 @@ async function fetchPrInfo(
 }
 
 // `gh pr checkout` updates HEAD but never refreshes the base branch, so a merge-base against a
-// stale local base makes a long-lived PR show unrelated mainline commits. Refresh the base ref
-// and prefer the remote-tracking tip, matching GitHub's three-dot "Files changed". Best-effort:
-// offline / a fork base not on `origin` falls back to the bare branch name. --quiet keeps
-// rev-parse from printing on the miss path.
+// stale local base shows unrelated mainline commits; refresh the base ref and prefer the
+// remote-tracking tip (GitHub's three-dot "Files changed"). Best-effort: offline or a fork base
+// not on `origin` falls back to the bare branch name.
 async function resolveRemoteBase(
 	baseRefName: string,
 	root: string,

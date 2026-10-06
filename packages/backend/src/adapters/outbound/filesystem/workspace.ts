@@ -7,8 +7,7 @@ import { AdapterError, errorMessage } from '../../../application/errors.js'
 
 import type { WorkspacePort } from '../../../application/ports.js'
 
-// The node/filesystem implementation of the application's working-tree capability
-// object. Frozen: use cases see a readonly port, never this module's internals.
+// The node/filesystem implementation of the application's working-tree capability. Frozen: use cases see a readonly port, never this module's internals.
 
 export async function realpath(target: string): Promise<string | null> {
 	try {
@@ -34,10 +33,7 @@ export async function readFile(target: string): Promise<string | null> {
 	}
 }
 
-// Unique temp file under the OS temp dir (mkdtemp, not $TMPDIR-or-/tmp: Windows sets
-// TEMP/TMP instead, so the old fallback resolved to a nonexistent C:\tmp and mkdtemp
-// ENOENT'd there - hunk staging failed on Windows). Same-directory rename semantics
-// don't apply here; the file only has to live long enough for one `git apply`.
+// mkdtemp, not $TMPDIR-or-/tmp: Windows sets TEMP/TMP instead, so the old fallback resolved to a nonexistent C:\tmp and mkdtemp ENOENT'd there (hunk staging failed on Windows); the file only has to live long enough for one `git apply`.
 export async function writeTempFile(contents: string): Promise<string> {
 	const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'syneva-'))
 	const file = path.join(dir, `${crypto.randomUUID()}.diff`)

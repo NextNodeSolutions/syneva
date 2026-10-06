@@ -12,9 +12,6 @@ import { Fraction } from './fraction'
 import type { HubDesk } from '@entities/hub/model'
 import type { ReactElement } from 'react'
 
-// What is decided and what is still open on the desk: changes decided over changes (when the
-// desk has any), the changes the reviewer asked for, the questions still open. Each item is
-// keyed, so the line renders them as they come.
 function progressItems(desk: HubDesk): ReactElement[] {
 	const decided = desk.totalChanges > 0 && (
 		<span key="decided" {...stylex.props(deskReview.item)}>
@@ -53,8 +50,6 @@ function progressItems(desk: HubDesk): ReactElement[] {
 	)
 }
 
-// The review cell: approvals on one line, progress on the next (when there is any). A screen
-// reader hears the row through its link's description (row-description.ts), in sentences.
 export function DeskReview({ desk }: { desk: HubDesk }): ReactElement {
 	const items = progressItems(desk)
 	return (

@@ -5,11 +5,7 @@ import type { LineMap } from '@shared/diff-renderer/linemap'
 import type { DiffStyle, Selection } from '@shared/diff-renderer/types'
 import type { Side } from '@shared/diff-renderer/types'
 
-// The use-case context: feature actions receive narrow dependencies (review access,
-// persist, notify, the imperative island's bits they need) instead of importing the app
-// store. Bound once by app composition; no feature module imports @app. This module is
-// the features layer's own seam (like shared/lib/render-scheduler), not a slice internal -
-// every feature slice reads it, so it stays importable across slices by design.
+// Bound once by app composition; no feature module imports @app; this is the features layer's own seam (like shared/lib/render-scheduler) every slice reads, so it stays importable across slices by design.
 export interface FeatureStoreView {
 	state: ReviewState | null
 	settings: Settings
@@ -28,11 +24,8 @@ export interface FeatureStoreView {
 	projectFiles: string[]
 	golineBuffer: string
 	foldExpanded: Set<string>
-	// Facade methods features invoke directly (composed by the app facade modules).
 	promptFinish?: () => void
 	selectFile?: (i: number) => void
-	// The sign-off advance (installed by app/facade/navigate): notes flow first, else the
-	// active pane's plain next.
 	afterSignOff?: (path: string) => void
 	ask?: () => void
 	requestChange?: () => void
@@ -40,13 +33,10 @@ export interface FeatureStoreView {
 }
 
 export interface FeatureServices {
-	// The reactive store view (the store proxy itself) - feature actions read and mutate it.
 	S: FeatureStoreView
 	requireState: () => ReviewState
 	persist: () => void
 	toast: (message: string) => void
-	// The imperative island's read-only bits features act on. expandHunk/reveal are
-	// structurally narrowed here - @pierre's nominal instance never crosses as a type.
 	fileDiff: () => FileDiffMetadata | null
 	lineMap: () => LineMap | null
 	diffInstance: () => {
@@ -57,14 +47,10 @@ export interface FeatureServices {
 			lines: number,
 		) => unknown
 	} | null
-	// The keyboard cursor lives in the imperative diff island (widgets/diff-view/cursor.ts);
-	// features reach it through these two bound ports instead of importing the widget module.
 	cursorSyncTo: (side: Side, line: number) => void
 	cursorSelection: () => { side: Side; lineNumber: number } | null
 }
 
-// The context features read: the store view rides inside FeatureServices as `S` (feature
-// actions go through ctx.S.*), so the bound object is the services plus that one view.
 export type FeatureCtx = FeatureServices
 
 let ctx: FeatureCtx | null = null

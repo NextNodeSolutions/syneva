@@ -4,9 +4,6 @@ import { color, font, layout } from '@syneva/design-system/tokens.stylex'
 
 const LINE = color['--line']
 
-// The page hero: words on the left, the page's own drawing on the right,
-// stacking on tablets. The hero and its copy column each pad by the
-// gutter, so the words sit two gutters in from the frame.
 export const pageHero = stylex.create({
 	root: {
 		display: 'grid',

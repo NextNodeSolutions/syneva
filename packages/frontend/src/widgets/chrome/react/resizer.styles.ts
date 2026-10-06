@@ -2,8 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, duration, ease } from '@syneva/design-system/tokens.stylex'
 
-// The tree's resizer: the 1px rule between the tree and the diff, with a
-// wider invisible grip. It turns petrol under the pointer and while dragged.
 export const resizer = stylex.create({
 	rule: {
 		position: 'relative',

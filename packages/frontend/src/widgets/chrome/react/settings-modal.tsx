@@ -14,8 +14,6 @@ import { settings } from './settings.styles'
 
 import type { ReactElement } from 'react'
 
-// The keyboard-map pane: the grouped binding list the help overlay renders (fed by
-// the keys dispatcher's helpGroups()).
 function ShortcutsPane(): ReactElement {
 	const { S } = chromeCtx()
 	const groups = S.helpGroups?.() ?? []
@@ -72,9 +70,6 @@ function SettingsTabs(): ReactElement {
 	)
 }
 
-// The settings modal: preferences and the keyboard map behind two tabs. Every
-// control writes through the store and lands in applySettings() - the same
-// persist + appearance + funnel path as before.
 export function SettingsModal(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields('settingsOpen', 'settingsTab')

@@ -10,9 +10,7 @@ import { ENTRANCES, LOOPS } from './vocabulary'
 
 import type { AnimateOptions } from './engine'
 
-// Reveal groups arrive once: a [data-reveal] section's [data-reveal-item]
-// children rise in with a stagger, a [data-rule] section draws an accent rule
-// that settles into its border, its facts count up and its drawings play.
+// On arrival a [data-reveal] section raises its [data-reveal-item] children (staggered), draws its [data-rule], counts its facts up and plays its drawings.
 const REVEAL = { amount: 0.12, margin: '0px 0px -8% 0px' } as const
 const ITEM = { duration: 0.7, stagger: 0.07 } as const
 const STAGGER_CAP = 9
@@ -31,7 +29,6 @@ const itemsOf = (group: Element): Element[] => [
 	...group.querySelectorAll(`[${ATTRIBUTE.revealItem}]`),
 ]
 
-// The group's items and drawings leave their hidden poses.
 const enter = (group: Element): ReturnType<typeof animate>[] => [
 	animate(
 		itemsOf(group),
@@ -47,9 +44,7 @@ const enter = (group: Element): ReturnType<typeof animate>[] => [
 
 function playReveal(group: Element): void {
 	const entrances = enter(group)
-	// Reduced motion lands the entrances on their finished pose at once, so a
-	// later switch to no-preference never arms a hidden pose over content
-	// already seen. The rule, the counts and the loops stay still.
+	// Completing at once means a later switch to no-preference never arms a hidden pose over content already seen; the rule, counts and loops stay still.
 	if (reducedMotion.matches) {
 		entrances.forEach(entrance => entrance.complete())
 		return
@@ -66,15 +61,10 @@ function playReveal(group: Element): void {
 	for (const fact of group.querySelectorAll(`[${ATTRIBUTE.count}]`))
 		if (fact instanceof HTMLElement) countUp(fact)
 	playVocabulary(group, LOOPS)
-	// The group's scenes (its figures) hold their new animations until they
-	// are in view themselves.
 	syncScenes(group)
 }
 
-// A group reveals once, on whichever comes first: its arrival in view, or
-// focus landing inside it. Tabbing scrolls a control only to the viewport's
-// edge, short of the arrival line, and a focused control must never stay
-// hidden.
+// A group reveals once, on arrival in view OR focus landing inside it: tabbing scrolls a control only to the viewport's edge, short of the arrival line, and a focused control must never stay hidden.
 const GROUP = `[${ATTRIBUTE.revealGroup}]`
 const revealed = new WeakSet<Element>()
 function revealOnce(group: Element): void {
@@ -83,7 +73,6 @@ function revealOnce(group: Element): void {
 	playReveal(group)
 }
 
-// Every group around the focused element, innermost first.
 function revealAround(focused: EventTarget | null): void {
 	if (!(focused instanceof Element)) return
 	for (
@@ -94,9 +83,7 @@ function revealAround(focused: EventTarget | null): void {
 		revealOnce(group)
 }
 
-// Arms every group once the hidden poses are in effect, so the entrance plays
-// instead of landing on a pose that was never seen. The page's runtime arms
-// them once, at boot.
+// Arm once the hidden poses are in effect, or an entrance lands on a pose that was never seen; the page's runtime calls this once, at boot.
 export function armReveals(): void {
 	inView(GROUP, revealOnce, REVEAL)
 	document.addEventListener('focusin', ({ target }) => revealAround(target))

@@ -5,18 +5,11 @@ import type { Settings } from '@entities/settings/model'
 import type { LineDiffTypes } from '@pierre/diffs'
 import type { WorkerPoolManager } from '@pierre/diffs/worker'
 
-// Pierre's highlight worker pool. Tokenizing runs off the main thread: a diff Pierre has not
-// highlighted yet paints plain rows at once (its plain AST) and its colors land when a worker
-// finishes, so neither a cold open, a file switch nor a decision blocks the page. Highlighted
-// results are cached by the diff's cacheKey across instances (diff-metadata.ts), so a revisited
-// file colors from the cache. Two workers: the desk shows one file at a time, so a second only
-// overlaps a prefetch with the visible file, and every extra worker is one more boot competing
-// with the cold open.
+// Tokenizing runs off the main thread: an un-highlighted diff paints plain rows at once and colors land when a worker finishes; highlighted results are cached by cacheKey across instances.
+// Two workers: the desk shows one file at a time, so a second only overlaps a prefetch - every extra worker is one more boot competing with the cold open.
 const POOL_SIZE = 2
 
-// The render options the pool owns - in pool mode Pierre highlights with these, not with the
-// instance's own theme/lineDiffType options. The oniguruma engine tokenizes ~35% faster than the
-// JS regex engine on TypeScript, and its wasm only loads inside the workers.
+// In pool mode Pierre highlights with these, not the instance's own theme/lineDiffType options; the oniguruma engine tokenizes ~35% faster than the JS regex engine on TypeScript, and its wasm only loads inside the workers.
 export type PoolRenderOptions = {
 	theme: { dark: string; light: string }
 	lineDiffType: LineDiffTypes
@@ -31,20 +24,15 @@ export function poolRenderOptions(
 	}
 }
 
-// The options last handed to the pool, so a pass only pushes a real change.
 let pushedOptions: string | null = null
 
-// The languages of the files the desk opens on, resolved while the pool boots (Pierre's
-// highlighterOptions.langs): the first highlight then skips its grammar fetch. Only those files'
-// - every extra grammar delays the boot, and with it the first plain paint.
+// Only the files the desk opens - every extra grammar delays the boot, and with it the first plain paint.
 function preloadLanguages(paths: string[]): string[] {
 	return [...new Set(paths.map(path => getFiletypeFromFileName(path)))]
 }
 
-// The singleton: the first call boots the workers with these options (main.tsx calls it as soon
-// as the review is known, so the boot overlaps the first contents fetch). Every later call returns
-// it and syncs a changed theme or line-diff mode through setRenderOptions, which re-highlights the
-// subscribed instances itself.
+// The first call boots the workers as soon as the review is known (main.tsx), so the boot overlaps the first contents fetch; later calls return the singleton.
+// A changed theme or line-diff mode syncs through setRenderOptions, which re-highlights the subscribed instances itself.
 export function diffWorkerPool(
 	options: PoolRenderOptions,
 	preloadPaths: string[] = [],
@@ -78,7 +66,6 @@ async function pushRenderOptions(
 	try {
 		await pool.setRenderOptions(options)
 	} catch {
-		// A theme no loader can resolve keeps the pool on its previous theme (the settings decoder
-		// only admits loadable ones, so this is a failed chunk load).
+		/* a failed option push keeps the pool on its previous theme/mode; the settings decoder only admits loadable values */
 	}
 }

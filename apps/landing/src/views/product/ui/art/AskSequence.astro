@@ -1,5 +1,4 @@
 ---
-// Ask your agent: who talks to whom, in order.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
@@ -12,8 +11,6 @@ const LANES = {
 	agent: { name: 'YOUR AGENT', x: 510 },
 } as const
 const LANE_HALF = 56
-// Each message: the lane it leaves, the lane it reaches, the y of its arrow,
-// its label and its tone.
 const STEPS = [
 	{ from: 'you', to: 'desk', y: 84, label: 'Ask on line 19', tone: 'accent' },
 	{ from: 'desk', to: 'agent', y: 124, label: 'question event', tone: 'accent' },
@@ -24,8 +21,6 @@ const STEPS = [
 const LINE = { accent: productArt.lineAccent, green: productArt.lineGreen, muted: productArt.lineMuted } as const
 const HEAD = { accent: productArt.headAccent, green: productArt.headGreen, muted: productArt.headMuted } as const
 const ARROW = 4
-// The line stops ARROW short of the lane it reaches, where the head points
-// back along it; the head pops and the label fades in after the line.
 const arrows = STEPS.map(({ from, to, y, label, tone }, index) => {
 	const start = LANES[from].x
 	const end = LANES[to].x

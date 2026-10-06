@@ -1,14 +1,10 @@
 ---
-// The newsletter signup: an email field and its button. It posts natively to
-// the endpoint; signup.client.ts (booted by the site runtime) keeps the
-// visitor on the page and tells the outcome in the form's own status line.
 import type { Part } from '@shared/lib/sx'
 import { sx } from '@shared/lib/sx'
 import { press } from '@syneva/design-system/press.styles'
 import { EMAIL_FIELD, EMAIL_MAX_LENGTH, SUBSCRIBE_PATH, TRAP_FIELD } from '../model/endpoint'
 import { signup } from './signup.styles'
 
-// The ground the form sits on: a wash band gets a paper box with a petrol rule.
 type Props = { surface?: 'paper' | 'wash'; css?: Part }
 
 const { surface = 'paper', css } = Astro.props
