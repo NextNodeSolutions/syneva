@@ -34,42 +34,27 @@ export function isMotionReduced(): boolean {
 
 // The pose an element enters from, named by the data-enter attribute it carries: a row rises
 // into its place, a navigation item slides in from the edge it belongs to, a region that holds
-// its position only fades, a drawn route traces itself and a chart's bar grows from its base.
+// its position only fades, a drawn rule grows along its length and a chart's bar grows from its
+// base.
 const ENTER_POSE = {
 	rise: { opacity: 0, transform: 'translateY(8px)' },
 	slide: { opacity: 0, transform: 'translateX(-8px)' },
 	fade: { opacity: 0 },
-	pop: { opacity: 0, transform: 'scale(.96)' },
 	// A rule that draws itself along its length (its transform-origin sets the direction).
 	grow: { transform: 'scaleX(0)' },
 	// A bar that rises from its baseline (its transform-origin is the baseline).
 	growUp: { transform: 'scaleY(0)' },
 } as const satisfies Record<string, Keyframe>
 
-export type EnterPose = keyof typeof ENTER_POSE | 'draw'
-
-function isEnterPose(name: string): name is EnterPose {
-	return name === 'draw' || name in ENTER_POSE
-}
-
-// A drawn SVG path traces its length; its dash pattern (a dotted route keeps its own) returns
-// once the trace has played.
-function drawKeyframes(element: Element): Keyframe[] {
-	const length =
-		element instanceof SVGGeometryElement ? element.getTotalLength() : 0
-	return [
-		{ strokeDasharray: `${length} ${length}`, strokeDashoffset: length },
-		{ strokeDasharray: `${length} ${length}`, strokeDashoffset: 0 },
-	]
+function isEnterPose(name: string): name is keyof typeof ENTER_POSE {
+	return name in ENTER_POSE
 }
 
 // Play one element's entrance after `delay` ms.
-export function playEnter(element: Element, delay: number): void {
+function playEnter(element: Element, delay: number): void {
 	const pose = element.getAttribute('data-enter') ?? 'rise'
 	if (!isEnterPose(pose)) return
-	const frames =
-		pose === 'draw' ? drawKeyframes(element) : [ENTER_POSE[pose], {}]
-	element.animate(frames, {
+	element.animate([ENTER_POSE[pose], {}], {
 		duration: MOTION_MS.enter,
 		delay,
 		easing: EASE_OUT,
@@ -79,7 +64,7 @@ export function playEnter(element: Element, delay: number): void {
 
 // The delay of the index-th sibling of a staggered list, capped so a long list never makes
 // its last rows wait.
-export function staggerDelay(index: number): number {
+function staggerDelay(index: number): number {
 	return Math.min(index * MOTION_MS.step, MOTION_MS.staggerCap)
 }
 
@@ -118,11 +103,11 @@ export function playEntrance(root: Element, baseDelay = 0): void {
 }
 
 // A brief wash on something that just changed, fading back to its own ground: the eye lands on
-// what moved without the element changing place. `token` names the palette variable the wash
-// is drawn in (--wash), read from the page so either appearance gets its own.
-export function playFlash(element: Element, token: string): void {
+// what moved without the element changing place. The wash is the palette's --wash, read from
+// the page so either appearance gets its own.
+export function playFlash(element: Element): void {
 	if (isMotionReduced()) return
-	const wash = getComputedStyle(element).getPropertyValue(token).trim()
+	const wash = getComputedStyle(element).getPropertyValue('--wash').trim()
 	if (!wash) return
 	element.animate([{ backgroundColor: wash }, {}], {
 		duration: MOTION_MS.flash,
