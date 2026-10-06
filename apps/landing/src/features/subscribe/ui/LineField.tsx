@@ -1,9 +1,10 @@
 import { useId } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
+import { caption, dot } from '@syneva/design-system/controls.styles'
 
 import { fieldText } from './field.styles'
-import { FieldProblem } from './FieldProblem'
+import { reset } from './reset.styles'
 
 import type { ComponentPropsWithRef, ReactElement } from 'react'
 
@@ -14,6 +15,7 @@ type LineFieldProps = {
 	problem?: string | undefined
 } & Omit<ComponentPropsWithRef<'input'>, 'className' | 'style' | 'id'>
 
+// A labelled line of the sheet; what stops the form shows under it, and the field points at it with aria-describedby.
 export function LineField({
 	label,
 	aside,
@@ -27,13 +29,12 @@ export function LineField({
 		<>
 			<label htmlFor={id} {...stylex.props(fieldText.labelRow)}>
 				<span {...stylex.props(fieldText.label)}>{label}</span>
-				{aside && (
-					<span {...stylex.props(fieldText.aside)}>{aside}</span>
-				)}
+				{aside && <span {...stylex.props(caption.base)}>{aside}</span>}
 			</label>
 			<input
 				{...input}
 				{...stylex.props(
+					reset.border,
 					fieldText.input,
 					isRefused && fieldText.inputRefused,
 				)}
@@ -41,7 +42,15 @@ export function LineField({
 				aria-invalid={isRefused || undefined}
 				aria-describedby={isRefused ? problemId : undefined}
 			/>
-			{problem && <FieldProblem id={problemId} problem={problem} />}
+			{isRefused && (
+				<p {...stylex.props(fieldText.problem)} id={problemId}>
+					<span
+						{...stylex.props(dot.base, dot.red)}
+						aria-hidden="true"
+					/>
+					{problem}
+				</p>
+			)}
 		</>
 	)
 }

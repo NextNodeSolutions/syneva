@@ -2,13 +2,13 @@ import { useRef } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 
-import { SUBSCRIBE_PATH } from '../model/endpoint'
-import { useHydrated } from '../model/use-hydrated'
 import { useSignupForm } from '../model/use-signup-form'
 
+import { fieldText } from './field.styles'
 import { launchForm } from './launch-form.styles'
 import { LaunchFields } from './LaunchFields'
-import { LaunchFoot } from './LaunchFoot'
+import { ListForm } from './ListForm'
+import { SendButton } from './SendButton'
 
 import type { ReactElement, ReactNode } from 'react'
 import type { Signup } from '../model/signup'
@@ -27,24 +27,30 @@ export function LaunchForm({
 	children,
 }: LaunchFormProps): ReactElement {
 	const emailField = useRef<HTMLInputElement>(null)
-	const form = useSignupForm(onJoined, () => emailField.current?.focus())
-	const isHydrated = useHydrated()
+	const form = useSignupForm(onJoined, emailField)
+	const { notice } = form
 	return (
-		<form
-			{...stylex.props(launchForm.form)}
-			method="post"
-			action={SUBSCRIBE_PATH}
-			noValidate={isHydrated}
-			aria-busy={form.isSending || undefined}
-			onSubmit={form.submit}
-		>
+		<ListForm form={form}>
 			<LaunchFields
 				form={form}
 				emailField={emailField}
 				hasFocus={hasFocus}
 			/>
 			{children}
-			<LaunchFoot notice={form.notice} isSending={form.isSending} />
-		</form>
+			<div {...stylex.props(launchForm.foot)}>
+				<SendButton isSending={form.isSending} css={launchForm.send}>
+					Notify me at launch
+				</SendButton>
+				<p
+					{...stylex.props(
+						fieldText.status,
+						notice?.tone === 'refused' && fieldText.statusRefused,
+					)}
+					role="status"
+				>
+					{notice?.text}
+				</p>
+			</div>
+		</ListForm>
 	)
 }

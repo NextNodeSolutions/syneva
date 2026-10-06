@@ -1,7 +1,9 @@
 import * as stylex from '@stylexjs/stylex'
+import { a11y } from '@syneva/design-system/a11y.styles'
 
 import { EMAIL_INPUT } from './field-inputs'
 import { quickSignup } from './quick-signup.styles'
+import { reset } from './reset.styles'
 
 import type { ReactElement, RefObject } from 'react'
 import type { SignupForm } from '../model/use-signup-form'
@@ -22,11 +24,11 @@ export function QuickField({
 }: QuickFieldProps): ReactElement {
 	return (
 		<label {...stylex.props(quickSignup.field)}>
-			<span {...stylex.props(quickSignup.hidden)}>Email address</span>
+			<span {...stylex.props(a11y.srOnly)}>Email address</span>
 			<input
 				{...EMAIL_INPUT}
 				ref={emailField}
-				{...stylex.props(quickSignup.input)}
+				{...stylex.props(reset.border, quickSignup.input)}
 				value={form.draft.email}
 				autoFocus={hasFocus}
 				aria-invalid={Boolean(form.emailProblem) || undefined}

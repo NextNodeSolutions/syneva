@@ -21,7 +21,7 @@ import type { ReactElement } from 'react'
 
 export type WelcomeEmailProps = {
 	recipient: string
-	// The site that took the signup (syneva.dev, dev.syneva.dev, a local dev server): the email's links and images point back at it.
+	// The site the email's links and images point back at: the deploy's SITE_URL, or the dev server's own origin in the preview.
 	origin: string
 }
 
@@ -30,27 +30,24 @@ export function WelcomeEmail({
 	recipient,
 	origin,
 }: WelcomeEmailProps): ReactElement {
-	const copy = WELCOME_COPY
+	const { preview, caption, added, verdict, body, coming } = WELCOME_COPY
 	return (
 		<Html lang="en">
 			<EmailHead origin={origin} />
-			<Preview>{copy.preview}</Preview>
+			<Preview>{preview}</Preview>
 			<Body style={email.body}>
 				<Container style={email.container}>
-					<EmailHeader origin={origin} caption={copy.caption} />
+					<EmailHeader origin={origin} caption={caption} />
 					<Section style={email.card}>
 						<Section style={email.headline}>
-							<DiffHeadline
-								added={copy.added}
-								verdict={copy.verdict}
-							/>
+							<DiffHeadline added={added} verdict={verdict} />
 						</Section>
-						<Text style={email.paragraph}>{copy.body}</Text>
+						<Text style={email.paragraph}>{body}</Text>
 						<Section style={email.section}>
 							<ReviewRound />
 						</Section>
 						<Section style={email.section}>
-							<ComingList title={copy.coming} origin={origin} />
+							<ComingList title={coming} origin={origin} />
 						</Section>
 						<PrinciplesStrip />
 					</Section>

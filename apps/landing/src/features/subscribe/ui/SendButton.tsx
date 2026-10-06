@@ -1,3 +1,5 @@
+import { buttonMarker } from '@shared/ui/actions.stylex'
+import { button } from '@shared/ui/button.styles'
 import * as stylex from '@stylexjs/stylex'
 import {
 	MARK_DIAMOND,
@@ -7,20 +9,20 @@ import {
 import { ARROW_PATH, ARROW_VIEW_BOX } from '@syneva/design-system/icons'
 import { press } from '@syneva/design-system/press.styles'
 
+import { reset } from './reset.styles'
 import { sendButton } from './send-button.styles'
-import { sendMarker } from './signup.stylex'
 
 import type { StyleXStyles } from '@stylexjs/stylex'
 import type { ReactElement, ReactNode } from 'react'
 
 type SendButtonProps = {
 	isSending: boolean
-	// The size and spacing of the place it sits in.
-	css: StyleXStyles
+	// The size of the place it sits in, over the site's primary button.
+	css?: StyleXStyles
 	children: ReactNode
 }
 
-// Stays enabled while it sends (the form ignores a second press): a disabled button would drop the keyboard focus.
+// The site's primary button as a submit. It stays enabled while it sends (the form ignores a second press): a disabled button would drop the keyboard focus.
 export function SendButton({
 	isSending,
 	css,
@@ -28,14 +30,22 @@ export function SendButton({
 }: SendButtonProps): ReactElement {
 	return (
 		<button
-			{...stylex.props(press.control, sendButton.base, css, sendMarker)}
+			{...stylex.props(
+				press.control,
+				reset.border,
+				button.base,
+				button.primary,
+				sendButton.native,
+				css,
+				buttonMarker,
+			)}
 			type="submit"
 			aria-disabled={isSending || undefined}
 		>
 			{children}
 			{isSending ? (
 				<svg
-					{...stylex.props(sendButton.icon, sendButton.turning)}
+					{...stylex.props(button.arrow, sendButton.turning)}
 					viewBox={MARK_VIEW_BOX}
 					aria-hidden="true"
 				>
@@ -44,7 +54,7 @@ export function SendButton({
 				</svg>
 			) : (
 				<svg
-					{...stylex.props(sendButton.icon, sendButton.arrow)}
+					{...stylex.props(button.arrow)}
 					viewBox={ARROW_VIEW_BOX}
 					aria-hidden="true"
 				>

@@ -4,7 +4,7 @@ import { OUTCOME_MESSAGE } from './outcome'
 import { postSignup } from './post-signup'
 import { EMPTY_SIGNUP, cleanName, isEmail } from './signup'
 
-import type { SubmitEvent } from 'react'
+import type { RefObject, SubmitEvent } from 'react'
 import type { Outcome } from './outcome'
 import type { Signup } from './signup'
 
@@ -56,10 +56,10 @@ function emailProblemOf(
 	return problemWith(email)
 }
 
-// One form's draft, its checks and its round trip. A signup the endpoint takes goes to `onJoined`; a refusal keeps everything typed, so a retry is one press, and calls `onRefused` (the form puts the caret back in the address).
+// One form's draft, its checks and its round trip. A signup the endpoint takes goes to `onJoined`; a refusal keeps everything typed, so a retry is one press, and puts the caret back in `emailField`.
 export function useSignupForm(
 	onJoined: (signup: Signup) => void,
-	onRefused: () => void,
+	emailField: RefObject<HTMLInputElement | null>,
 ): SignupForm {
 	const [draft, setDraft] = useState<Signup>(EMPTY_SIGNUP)
 	const [isChecked, setIsChecked] = useState(false)
@@ -76,7 +76,7 @@ export function useSignupForm(
 			return
 		}
 		setAttempt({ phase: 'refused', outcome })
-		onRefused()
+		emailField.current?.focus()
 	}
 
 	return {
@@ -98,7 +98,7 @@ export function useSignupForm(
 			if (attempt.phase === 'sending') return
 			setIsChecked(true)
 			if (problemWith(email)) {
-				onRefused()
+				emailField.current?.focus()
 				return
 			}
 			void send(event.currentTarget)

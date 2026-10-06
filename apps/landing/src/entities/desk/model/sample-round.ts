@@ -1,6 +1,13 @@
 export type SampleLineKind = 'added' | 'removed' | 'context'
 
-export type SampleLine = {
+// The diff's sign for each kind of line, as the drawings set it (a true minus, not a hyphen).
+export const LINE_SIGN: Record<SampleLineKind, string> = {
+	context: '',
+	added: '+',
+	removed: '\u2212',
+}
+
+type SampleLine = {
 	readonly line: string
 	readonly kind: SampleLineKind
 	readonly code: string
@@ -28,3 +35,7 @@ export const SAMPLE_CHANGE = {
 
 export const countLines = (kind: SampleLineKind): number =>
 	SAMPLE_CHANGE.lines.filter(line => line.kind === kind).length
+
+// The file header's count of added and removed lines.
+export const changeStat = (): string =>
+	`+${countLines('added')} ${LINE_SIGN.removed}${countLines('removed')}`

@@ -16,7 +16,6 @@ const settle = stylex.keyframes({
 })
 
 export const quickSignup = stylex.create({
-	form: { position: 'relative', minWidth: 0, marginBlock: 0 },
 	box: {
 		display: 'flex',
 		alignItems: 'center',
@@ -42,9 +41,6 @@ export const quickSignup = stylex.create({
 	},
 	field: { flex: '1 1 auto', display: 'flex', minWidth: 0 },
 	input: {
-		borderWidth: 0,
-		borderStyle: 'none',
-		borderColor: 'currentcolor',
 		backgroundColor: 'transparent',
 		width: '100%',
 		minWidth: 0,
@@ -56,19 +52,12 @@ export const quickSignup = stylex.create({
 		outline: 'none',
 		'::placeholder': { color: color['--muted'], opacity: 0.75 },
 	},
+	// The compact size of the hero's button, over the site's primary one; restated under the phone query its own sizes use.
 	send: {
-		minHeight: '44px',
-		paddingLeft: '16px',
-		paddingRight: '14px',
-		fontSize: '14px',
-	},
-	hidden: {
-		position: 'absolute',
-		width: '1px',
-		height: '1px',
-		overflow: 'hidden',
-		clipPath: 'inset(50%)',
-		whiteSpace: 'nowrap',
+		minHeight: { default: '44px', [media.phone]: '44px' },
+		gap: { default: '14px', [media.phone]: '14px' },
+		padding: { default: '0 14px 0 16px', [media.phone]: '0 14px 0 16px' },
+		fontSize: { default: '14px', [media.phone]: '14px' },
 	},
 	// Joined: the verdict's mint and its green check, in the box the address went into.
 	joined: {
@@ -82,8 +71,6 @@ export const quickSignup = stylex.create({
 		borderStyle: 'solid',
 		borderColor: color['--green-line'],
 		backgroundColor: color['--mint-pale'],
-		// Focused on joining only so a screen reader reads it: nothing to operate, so no ring.
-		outline: 'none',
 		animationName: { default: null, [media.motionSafe]: settle },
 		animationDuration: duration['--duration-shift'],
 		animationTimingFunction: ease['--ease-out'],
@@ -111,41 +98,5 @@ export const quickSignup = stylex.create({
 		whiteSpace: 'nowrap',
 		font: `13px ${font['--mono']}`,
 		color: color['--ink'],
-	},
-	// One line held open under the box: the promise, or what stopped the form.
-	note: {
-		display: 'flex',
-		flexWrap: 'wrap',
-		alignItems: 'center',
-		gap: '4px 9px',
-		minHeight: '1.6em',
-		marginTop: '10px',
-		font: `11.5px/1.6 ${font['--mono']}`,
-		color: color['--muted'],
-	},
-	noteRefused: { color: color['--red'] },
-	noteSquare: {
-		flexShrink: 0,
-		width: '6px',
-		height: '6px',
-		backgroundColor: 'currentColor',
-	},
-	leave: {
-		paddingBlock: 0,
-		paddingInline: 0,
-		borderWidth: 0,
-		borderStyle: 'none',
-		borderColor: 'currentcolor',
-		backgroundColor: 'transparent',
-		font: 'inherit',
-		color: color['--ink'],
-		textDecorationLine: 'underline',
-		textDecorationThickness: '1px',
-		textUnderlineOffset: '4px',
-		textDecorationColor: {
-			default: color['--line-strong'],
-			':hover': color['--accent'],
-		},
-		cursor: 'pointer',
 	},
 })

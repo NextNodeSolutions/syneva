@@ -6,7 +6,8 @@ import type { Signup } from './signup'
 type ListState = { signup: Signup | undefined; by: string | undefined }
 
 // Each Astro island is its own React root, but this module is one instance per page: an address left in the hero shows as joined in the start band too.
-let state: ListState = { signup: undefined, by: undefined }
+const EMPTY: ListState = { signup: undefined, by: undefined }
+let state = EMPTY
 const listeners = new Set<() => void>()
 
 const subscribe = (listener: () => void): (() => void) => {
@@ -17,15 +18,14 @@ const subscribe = (listener: () => void): (() => void) => {
 }
 
 const current = (): ListState => state
-const BEFORE_HYDRATION: ListState = { signup: undefined, by: undefined }
-const beforeHydration = (): ListState => BEFORE_HYDRATION
+const beforeHydration = (): ListState => EMPTY
 
 function publish(next: ListState): void {
 	state = next
 	listeners.forEach(listener => listener())
 }
 
-export type Joining = {
+type Joining = {
 	signup: Signup | undefined
 	// This form made the last change, so it takes the focus that follows it (the verdict, or the emptied field).
 	hasFocus: boolean

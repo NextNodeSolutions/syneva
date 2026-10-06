@@ -11,17 +11,16 @@ import type { RowState } from './RowMark'
 type SheetRowProps = {
 	line: number
 	state: RowState
-	// The joined rows check off in this order.
-	order?: number
 	children: ReactNode
 }
 
 export function SheetRow({
 	line,
 	state,
-	order = 0,
 	children,
 }: SheetRowProps): ReactElement {
+	// The joined rows check off one after the other, in line order.
+	const order = line - 1
 	return (
 		<div {...stylex.props(sheetRow.root, rowMarker)}>
 			<span

@@ -41,7 +41,7 @@ export function LaunchVerdict({
 				</VerdictEntry>
 			</SheetRow>
 			{name && (
-				<SheetRow line={2} state="joined" order={1}>
+				<SheetRow line={2} state="joined">
 					<VerdictEntry caption="name">
 						<span {...stylex.props(launchVerdict.value)}>
 							{name}
@@ -50,7 +50,7 @@ export function LaunchVerdict({
 				</SheetRow>
 			)}
 			{hasAgents && (
-				<SheetRow line={3} state="joined" order={2}>
+				<SheetRow line={3} state="joined">
 					<VerdictEntry
 						caption={agents.length > 1 ? 'agents' : 'agent'}
 					>

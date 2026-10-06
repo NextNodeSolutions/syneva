@@ -1,4 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
+import { dot } from '@syneva/design-system/controls.styles'
+import { ARROW_VIEW_BOX, CHECK_PATH } from '@syneva/design-system/icons'
 
 import { sheetRow } from './sheet-row.styles'
 
@@ -18,7 +20,7 @@ export function RowMark({
 	if (state === 'refused')
 		return (
 			<span {...stylex.props(sheetRow.mark, sheetRow.markShown)}>
-				<span {...stylex.props(sheetRow.refusedSquare)} />
+				<span {...stylex.props(dot.base, dot.red)} />
 			</span>
 		)
 	if (state === 'joined')
@@ -30,8 +32,8 @@ export function RowMark({
 					sheetRow.stagger(order),
 				)}
 			>
-				<svg {...stylex.props(sheetRow.check)} viewBox="0 0 20 20">
-					<path d="m4 10.5 4 4 8-9" />
+				<svg {...stylex.props(sheetRow.check)} viewBox={ARROW_VIEW_BOX}>
+					<path d={CHECK_PATH} />
 				</svg>
 			</span>
 		)

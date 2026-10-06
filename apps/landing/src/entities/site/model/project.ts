@@ -10,10 +10,10 @@ export const PRINCIPLES = [
 	'Local by default',
 	'Your agent, not ours',
 	'No model inside Syneva',
-	'Open source \u00b7 MIT',
+	'Open source · MIT',
 ] as const
 export const TAGLINE = 'Your agent writes. You decide.'
-export const FOOTNOTE = 'No model inside \u00b7 No telemetry \u00b7 MIT'
+export const FOOTNOTE = 'No model inside · No telemetry · MIT'
 
 export const REPO_URL = 'https://github.com/walid-mos/syneva'
 export const repoFile = (path: string): string =>

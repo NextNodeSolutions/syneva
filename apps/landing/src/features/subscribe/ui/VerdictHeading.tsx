@@ -1,7 +1,7 @@
-import { useCallback } from 'react'
-
 import * as stylex from '@stylexjs/stylex'
-import { textLink } from '@syneva/design-system/inline.styles'
+import { textButton, textLink } from '@syneva/design-system/inline.styles'
+
+import { useFocusOnMount } from '../model/use-focus-on-mount'
 
 import { launchVerdict } from './launch-verdict.styles'
 
@@ -19,12 +19,7 @@ export function VerdictHeading({
 	hasFocus,
 	onLeave,
 }: VerdictHeadingProps): ReactElement {
-	const focusOnMount = useCallback(
-		(heading: HTMLHeadingElement | null) => {
-			if (hasFocus) heading?.focus()
-		},
-		[hasFocus],
-	)
+	const focusOnMount = useFocusOnMount<HTMLHeadingElement>(hasFocus)
 	return (
 		<div {...stylex.props(launchVerdict.top)}>
 			<h3
@@ -32,9 +27,7 @@ export function VerdictHeading({
 				{...stylex.props(launchVerdict.heading)}
 				tabIndex={-1}
 			>
-				{name
-					? `You\u2019re on the list, ${name}.`
-					: 'You\u2019re on the list.'}
+				{name ? `You’re on the list, ${name}.` : 'You’re on the list.'}
 			</h3>
 			<p {...stylex.props(launchVerdict.again)}>
 				Not you?{' '}
@@ -42,7 +35,7 @@ export function VerdictHeading({
 					{...stylex.props(
 						textLink.base,
 						textLink.small,
-						launchVerdict.reset,
+						textButton.base,
 					)}
 					type="button"
 					onClick={onLeave}

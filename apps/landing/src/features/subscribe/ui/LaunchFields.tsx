@@ -57,8 +57,6 @@ export function LaunchFields({
 				state={draft.agents.length > 0 ? 'added' : 'open'}
 			>
 				<AgentPicker
-					legend="Which agents write your code?"
-					aside="optional"
 					picked={draft.agents}
 					onPick={agents => edit({ agents })}
 				/>

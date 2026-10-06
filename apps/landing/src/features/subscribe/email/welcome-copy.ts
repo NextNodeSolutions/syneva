@@ -17,7 +17,7 @@ export const WELCOME_COPY = {
 	follow: 'Follow along',
 } as const
 
-export type FollowLink = { label: string; href: string }
+type FollowLink = { label: string; href: string }
 
 export const followLinks = (origin: string): readonly FollowLink[] => [
 	{ label: 'What ships each week', href: `${origin}${PAGES.changelog.href}` },

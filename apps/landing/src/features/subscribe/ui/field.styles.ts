@@ -7,13 +7,6 @@ import {
 	font,
 } from '@syneva/design-system/tokens.stylex'
 
-// border: 0 resets style and colour too, not just the width.
-const noBorder = {
-	borderWidth: 0,
-	borderStyle: 'none',
-	borderColor: 'currentcolor',
-} as const
-
 export const fieldText = stylex.create({
 	labelRow: {
 		display: 'flex',
@@ -21,8 +14,6 @@ export const fieldText = stylex.create({
 		alignItems: 'baseline',
 		gap: '12px',
 		width: '100%',
-		paddingBlock: 0,
-		paddingInline: 0,
 	},
 	label: {
 		fontSize: '13px',
@@ -30,14 +21,8 @@ export const fieldText = stylex.create({
 		lineHeight: '18px',
 		color: color['--ink'],
 	},
-	aside: {
-		font: `11px ${font['--mono']}`,
-		letterSpacing: '.02em',
-		color: color['--muted'],
-	},
 	// The row is the field: a bare line of text over one rule, petrol while it has focus.
 	input: {
-		...noBorder,
 		display: 'block',
 		width: '100%',
 		minWidth: 0,
@@ -79,10 +64,16 @@ export const fieldText = stylex.create({
 		lineHeight: 1.45,
 		color: color['--red'],
 	},
-	problemSquare: {
-		flexShrink: 0,
-		width: '6px',
-		height: '6px',
-		backgroundColor: 'currentColor',
+	// A form's status line, held open so a refusal never shifts what follows: the send under way, or what stopped it.
+	status: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		gap: '4px 9px',
+		minHeight: '1.6em',
+		marginTop: '10px',
+		font: `11.5px/1.6 ${font['--mono']}`,
+		color: color['--muted'],
 	},
+	statusRefused: { color: color['--red'] },
 })

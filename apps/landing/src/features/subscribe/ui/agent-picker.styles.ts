@@ -10,9 +10,6 @@ export const agentPicker = stylex.create({
 		marginInline: 0,
 		paddingBlock: 0,
 		paddingInline: 0,
-		borderWidth: 0,
-		borderStyle: 'none',
-		borderColor: 'currentcolor',
 	},
 	// A legend takes no flex layout of its own in older engines: it floats over the fieldset's own box instead.
 	legend: { float: 'left', width: '100%', paddingInline: 0 },

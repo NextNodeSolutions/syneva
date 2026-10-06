@@ -2,18 +2,14 @@ import { SAMPLE_CHANGE } from '@entities/desk/model/sample-round'
 import { Text } from '@react-email/components'
 
 import { round } from './round.styles'
+import { WELCOME_COPY } from './welcome-copy'
 
 import type { ReactElement } from 'react'
 
 // The question asked on those lines and the agent's answer, in the same place.
-export function RoundThread({
-	asker,
-	answerer,
-}: {
-	asker: string
-	answerer: string
-}): ReactElement {
+export function RoundThread(): ReactElement {
 	const { question, answer } = SAMPLE_CHANGE.thread
+	const { asker, answerer } = WELCOME_COPY
 	return (
 		<table role="presentation" cellPadding={0} cellSpacing={0} width="100%">
 			<tbody>

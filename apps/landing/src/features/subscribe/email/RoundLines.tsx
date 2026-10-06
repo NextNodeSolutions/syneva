@@ -1,4 +1,4 @@
-import { SAMPLE_CHANGE } from '@entities/desk/model/sample-round'
+import { LINE_SIGN, SAMPLE_CHANGE } from '@entities/desk/model/sample-round'
 
 import { round } from './round.styles'
 
@@ -13,15 +13,15 @@ type LineLook = {
 }
 
 const LOOK: Record<SampleLineKind, LineLook> = {
-	context: { sign: '', band: {}, ink: {}, code: {} },
+	context: { sign: LINE_SIGN.context, band: {}, ink: {}, code: {} },
 	added: {
-		sign: '+',
+		sign: LINE_SIGN.added,
 		band: round.addedBand,
 		ink: round.addedInk,
 		code: round.addedInk,
 	},
 	removed: {
-		sign: '−',
+		sign: LINE_SIGN.removed,
 		band: round.removedBand,
 		ink: round.removedInk,
 		code: { ...round.removedInk, ...round.struck },

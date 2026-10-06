@@ -2,8 +2,7 @@ import { SAMPLE_CHANGE } from '@entities/desk/model/sample-round'
 
 import type { SampleLineKind } from '@entities/desk/model/sample-round'
 
-export type LineKind = SampleLineKind
-export type Bar = { readonly kind: LineKind; readonly width: number }
+export type Bar = { readonly kind: SampleLineKind; readonly width: number }
 export type Verdict = 'yes' | 'no'
 
 type HeroFile = {
@@ -13,9 +12,7 @@ type HeroFile = {
 }
 export type Card = HeroFile & { readonly bars: readonly Bar[] }
 
-export const DESK_THREAD = SAMPLE_CHANGE.thread
-
-export const DESK_FILE = {
+const DESK_FILE = {
 	path: SAMPLE_CHANGE.path,
 	verdict: 'yes',
 	bars: [

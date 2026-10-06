@@ -110,11 +110,6 @@ export const sheetRow = stylex.create({
 	stagger: (order: number) => ({
 		animationDelay: `${order * STAGGER_MS}ms`,
 	}),
-	refusedSquare: {
-		width: '6px',
-		height: '6px',
-		backgroundColor: color['--red'],
-	},
 	check: {
 		width: '16px',
 		height: '16px',

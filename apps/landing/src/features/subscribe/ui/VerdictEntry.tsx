@@ -1,4 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
+import { caption as captionStyle } from '@syneva/design-system/controls.styles'
 
 import { launchVerdict } from './launch-verdict.styles'
 
@@ -15,7 +16,15 @@ export function VerdictEntry({
 	return (
 		<div {...stylex.props(launchVerdict.entry)}>
 			{children}
-			<span {...stylex.props(launchVerdict.caption)}>{caption}</span>
+			<span
+				{...stylex.props(
+					captionStyle.base,
+					captionStyle.upper,
+					launchVerdict.caption,
+				)}
+			>
+				{caption}
+			</span>
 		</div>
 	)
 }

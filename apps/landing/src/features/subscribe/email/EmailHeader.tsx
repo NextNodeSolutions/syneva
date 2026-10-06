@@ -1,4 +1,5 @@
 import { Column, Img, Link, Row, Section } from '@react-email/components'
+import { WORDMARK } from '@syneva/design-system/brand'
 
 import { email } from './email.styles'
 
@@ -23,7 +24,7 @@ export function EmailHeader({
 							src={`${origin}${LOCKUP.path}`}
 							width={LOCKUP.width}
 							height={LOCKUP.height}
-							alt="syneva"
+							alt={WORDMARK}
 							style={email.logo}
 						/>
 					</Link>

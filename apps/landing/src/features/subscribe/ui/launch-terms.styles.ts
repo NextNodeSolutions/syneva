@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
+
+import { sheet } from './signup.stylex'
 
 export const launchTerms = stylex.create({
 	// The sheet's last lines, under the form and under the verdict alike.
@@ -11,7 +12,7 @@ export const launchTerms = stylex.create({
 		marginBlock: 0,
 		paddingTop: 0,
 		paddingBottom: '18px',
-		paddingInline: { default: '20px', [media.phone]: '14px' },
+		paddingInline: sheet.inset,
 		listStyle: 'none',
 		font: `11px/1.6 ${font['--mono']}`,
 		letterSpacing: '.02em',

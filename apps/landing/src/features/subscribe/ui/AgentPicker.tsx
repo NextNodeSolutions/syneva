@@ -1,25 +1,23 @@
 import * as stylex from '@stylexjs/stylex'
+import { caption } from '@syneva/design-system/controls.styles'
 
 import { AGENTS, pickAgents } from '../model/agents'
 
 import { agentPicker } from './agent-picker.styles'
 import { AgentChip } from './AgentChip'
 import { fieldText } from './field.styles'
+import { reset } from './reset.styles'
 
 import type { ReactElement } from 'react'
 import type { AgentId } from '../model/agents'
 
 type AgentPickerProps = {
-	legend: string
-	aside: string
 	picked: readonly AgentId[]
 	onPick: (agents: AgentId[]) => void
 }
 
 // Native checkboxes under the chips: Space ticks, Tab walks them, and a form posted without scripts sends one `agent` per tick.
 export function AgentPicker({
-	legend,
-	aside,
 	picked,
 	onPick,
 }: AgentPickerProps): ReactElement {
@@ -32,11 +30,13 @@ export function AgentPicker({
 			),
 		)
 	return (
-		<fieldset {...stylex.props(agentPicker.fieldset)}>
+		<fieldset {...stylex.props(reset.border, agentPicker.fieldset)}>
 			<legend {...stylex.props(agentPicker.legend)}>
 				<span {...stylex.props(fieldText.labelRow)}>
-					<span {...stylex.props(fieldText.label)}>{legend}</span>
-					<span {...stylex.props(fieldText.aside)}>{aside}</span>
+					<span {...stylex.props(fieldText.label)}>
+						Which agents write your code?
+					</span>
+					<span {...stylex.props(caption.base)}>optional</span>
 				</span>
 			</legend>
 			<div {...stylex.props(agentPicker.chips)}>

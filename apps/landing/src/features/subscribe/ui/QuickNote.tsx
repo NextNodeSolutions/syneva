@@ -1,41 +1,40 @@
 import * as stylex from '@stylexjs/stylex'
+import { dot } from '@syneva/design-system/controls.styles'
 
-import { quickSignup } from './quick-signup.styles'
+import { LIST_PROMISE } from '../model/list'
+
+import { fieldText } from './field.styles'
 
 import type { ReactElement } from 'react'
+import type { Notice } from '../model/use-signup-form'
 
 type QuickNoteProps = {
 	id: string
-	promise: string
-	// What stopped the form, in place of the promise.
-	refusal: string | undefined
-	// The round trip under way, also in its place.
-	progress: string | undefined
+	emailProblem: string | undefined
+	notice: Notice | undefined
 }
 
-// The line under the hero's box, held open so the hero never shifts: the list's promise, the send under way, or what stopped it.
+// The line under the hero's box, held open so the hero never shifts: what stopped the form, the send under way, or the list's promise.
 export function QuickNote({
 	id,
-	promise,
-	refusal,
-	progress,
+	emailProblem,
+	notice,
 }: QuickNoteProps): ReactElement {
+	const refusal = notice?.tone === 'refused' ? notice.text : emailProblem
+	const isRefused = Boolean(refusal)
 	return (
 		<p
 			{...stylex.props(
-				quickSignup.note,
-				Boolean(refusal) && quickSignup.noteRefused,
+				fieldText.status,
+				isRefused && fieldText.statusRefused,
 			)}
 			id={id}
 			role="status"
 		>
-			{Boolean(refusal) && (
-				<span
-					{...stylex.props(quickSignup.noteSquare)}
-					aria-hidden="true"
-				/>
+			{isRefused && (
+				<span {...stylex.props(dot.base, dot.red)} aria-hidden="true" />
 			)}
-			{refusal ?? progress ?? promise}
+			{refusal ?? notice?.text ?? LIST_PROMISE}
 		</p>
 	)
 }
