@@ -45,13 +45,8 @@ const flights = new WeakMap<Element, Animation>()
 
 // Where an element is laid out, not where it is painted: offsetLeft/offsetTop summed up its
 // offset chain ignore every transform on it and above it (an entrance's pose, a travel still in
-// flight), which would otherwise read as a move. An element with no offset chain (SVG) falls
-// back on its painted box.
-function layoutPlace(element: Element): Place {
-	if (!(element instanceof HTMLElement)) {
-		const box = element.getBoundingClientRect()
-		return { x: box.left, y: box.top }
-	}
+// flight), which would otherwise read as a move.
+function layoutPlace(element: HTMLElement): Place {
 	const place = { x: 0, y: 0 }
 	for (
 		let node: Element | null = element;
@@ -64,10 +59,14 @@ function layoutPlace(element: Element): Place {
 	return place
 }
 
-function placesOf(container: Element): Map<string, Place> {
+function keyedChildren(container: HTMLElement): NodeListOf<HTMLElement> {
+	return container.querySelectorAll<HTMLElement>('[data-flip]')
+}
+
+function placesOf(container: HTMLElement): Map<string, Place> {
 	const origin = layoutPlace(container)
 	const places = new Map<string, Place>()
-	for (const element of container.querySelectorAll('[data-flip]')) {
+	for (const element of keyedChildren(container)) {
 		const key = element.getAttribute('data-flip')
 		if (!key) continue
 		const box = layoutPlace(element)
@@ -80,7 +79,7 @@ function placesOf(container: Element): Map<string, Place> {
 	return places
 }
 
-function snapshotOf(container: Element): Snapshot {
+function snapshotOf(container: HTMLElement): Snapshot {
 	return { places: placesOf(container), width: container.clientWidth }
 }
 
@@ -93,12 +92,14 @@ function seenOffset(element: Element): Place {
 }
 
 // What a traveller keeps on in every frame: its layer and, for one with no ground of its own
-// (a ledger row), the page's paper, so the rows it crosses never show through it.
-function liftOf(element: Element, isRegrouped: boolean): Keyframe {
+// (a ledger row), the page's paper (`ground`), so the rows it crosses never show through it.
+function liftOf(
+	element: Element,
+	{ isRegrouped, ground }: { isRegrouped: boolean; ground: string },
+): Keyframe {
 	const zIndex = isRegrouped ? OVER_TRAVELLERS : OVER_NEIGHBOURS
 	if (getComputedStyle(element).backgroundColor !== TRANSPARENT)
 		return { zIndex }
-	const ground = getComputedStyle(document.body).backgroundColor
 	return { zIndex, backgroundColor: ground }
 }
 
@@ -106,51 +107,81 @@ function offset(point: Place, to: Place): string {
 	return `translate(${point.x - to.x}px, ${point.y - to.y}px)`
 }
 
-function travel(
-	element: Element,
-	move: { from: Place; to: Place; route: FlipRoute },
-): void {
+// A move about to play, with every style it reads already taken: all of them are read before
+// the first one starts, so starting a flight never forces a style pass for the next one.
+type Flight = {
+	element: HTMLElement
+	start: Place
+	to: Place
+	corners: readonly Place[]
+	lift: Keyframe
+}
+
+function flightOf(
+	element: HTMLElement,
+	move: { from: Place; to: Place; route: FlipRoute; ground: string },
+): Flight | null {
 	const { from, to } = move
 	const isNudge =
 		Math.abs(from.x - to.x) < MIN_TRAVEL_PX &&
 		Math.abs(from.y - to.y) < MIN_TRAVEL_PX
-	if (isNudge) return
+	if (isNudge) return null
 	const seen = seenOffset(element)
-	const start = { x: from.x + seen.x, y: from.y + seen.y }
-	const lift = liftOf(element, from.group !== to.group)
-	const corners = move
-		.route(from, to)
-		.map(point => Object.assign({ transform: offset(point, to) }, lift))
+	return {
+		element,
+		start: { x: from.x + seen.x, y: from.y + seen.y },
+		to,
+		corners: move.route(from, to),
+		lift: liftOf(element, {
+			isRegrouped: from.group !== to.group,
+			ground: move.ground,
+		}),
+	}
+}
+
+function fly({ element, start, to, corners, lift }: Flight): void {
+	const turns = corners.map(point => ({
+		...lift,
+		transform: offset(point, to),
+	}))
 	flights.get(element)?.cancel()
 	const flight = element.animate(
 		[
 			{ ...lift, transform: offset(start, to), boxShadow: LIFTED },
-			...corners,
+			...turns,
 			{ ...lift, transform: 'none' },
 		],
 		{
-			duration: MOTION_MS.move * (1 + corners.length * CORNER_SHARE),
+			duration: MOTION_MS.move * (1 + turns.length * CORNER_SHARE),
 			easing: EASE_OUT,
 		},
 	)
 	flights.set(element, flight)
 }
 
-// Every keyed child that has a place before and after plays its move.
+// Every keyed child that has a place before and after plays its move: all the moves are read
+// first, then all of them start.
 function playMoves(
-	root: Element,
+	root: HTMLElement,
 	moves: {
 		before: Map<string, Place>
 		after: Map<string, Place>
 		route: FlipRoute
 	},
 ): void {
-	for (const element of root.querySelectorAll('[data-flip]')) {
+	const ground = getComputedStyle(document.body).backgroundColor
+	const planned: Flight[] = []
+	for (const element of keyedChildren(root)) {
 		const key = element.getAttribute('data-flip') ?? ''
 		const from = moves.before.get(key)
 		const to = moves.after.get(key)
-		if (from && to) travel(element, { from, to, route: moves.route })
+		const flight =
+			from && to
+				? flightOf(element, { from, to, route: moves.route, ground })
+				: null
+		if (flight) planned.push(flight)
 	}
+	for (const flight of planned) fly(flight)
 }
 
 // FLIP for keyed children ([data-flip="<key>"]) of `container`: after each render, every child
@@ -161,7 +192,7 @@ function playMoves(
 // its children out with no desk moving: its places are taken afresh as it happens, and a
 // render that finds it at another width plays nothing.
 export function useFlip(
-	container: RefObject<Element | null>,
+	container: RefObject<HTMLElement | null>,
 	route: FlipRoute = STRAIGHT,
 ): void {
 	const last = useRef<Snapshot>(NO_SNAPSHOT)
