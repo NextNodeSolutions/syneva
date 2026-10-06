@@ -96,10 +96,11 @@ export default defineConfig({
 			rules: { 'eslint/no-magic-numbers': 'off' },
 		},
 		{
-			// The landing's copy typesets intended glyphs a visitor reads (never compared as strings): its components, Astro and React (the signup's islands), and these copy modules.
+			// The landing's copy typesets intended glyphs a visitor reads (never compared as strings): its components, Astro and React (the signup's islands and emails), and these copy modules.
 			files: [
 				'apps/landing/src/**/*.astro',
 				'apps/landing/src/**/*.tsx',
+				'apps/landing/src/features/subscribe/email/welcome-copy.ts',
 				'apps/landing/src/entities/desk/model/agent-contract.ts',
 				'apps/landing/src/views/*/ui/art/*.ts',
 			],

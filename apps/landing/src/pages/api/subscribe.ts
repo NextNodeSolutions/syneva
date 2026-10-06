@@ -11,7 +11,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 	const outcome = await subscribe(request, clientAddress, {
 		list: env.DB,
 		limiter: env.RL_SUBSCRIBE,
-		welcome: email => sendWelcome(env.RESEND_API_KEY, email),
+		welcome: email =>
+			sendWelcome(env.RESEND_API_KEY, email, new URL(request.url).origin),
 	})
 	return answer(request, outcome)
 }
