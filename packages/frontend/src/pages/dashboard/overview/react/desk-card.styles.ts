@@ -70,7 +70,6 @@ export const deskCard = stylex.create({
 		color: color['--muted'],
 	},
 	track: { flex: '1', minWidth: '40px' },
-	figure: { color: color['--ink'] },
 	tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
 	foot: {
 		display: 'flex',

@@ -49,7 +49,6 @@ export const projectsList = stylex.create({
 		},
 		transition: `background-color ${transition.fast}`,
 	},
-	who: { minWidth: 0 },
 	name: {
 		display: 'block',
 		fontSize: '15px',

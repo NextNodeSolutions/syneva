@@ -12,7 +12,6 @@ export type NewReviewDialog = {
 	isOpen: boolean
 	// The repository the dialog opened on, null when it opened blank.
 	seed: string | null
-	open: () => void
 	close: () => void
 }
 
@@ -30,7 +29,6 @@ export function useNewReviewDialog(phase: HubPhase): NewReviewDialog {
 		offerIn: isOffered ? openIn : null,
 		isOpen: opened !== null,
 		seed: opened?.seed ?? null,
-		open,
 		close: () => setOpened(null),
 	}
 }

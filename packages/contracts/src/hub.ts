@@ -145,8 +145,6 @@ export type HubEvent =
 				decidedChanges: number
 			})
 
-export type HubEventKind = HubEvent['kind']
-
 // GET /api/hub/journal[?after=<seq>][&limit=<n>]: the events after `after` (all of the kept
 // tail without it), oldest first, at most `limit` (the newest ones when more follow). `latest`
 // is the newest seq the hub holds (0 for an empty journal): a reader that polls asks for what

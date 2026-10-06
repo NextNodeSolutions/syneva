@@ -87,5 +87,4 @@ export const hubShell = stylex.create({
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
 	},
-	barEnd: { marginLeft: 'auto' },
 })

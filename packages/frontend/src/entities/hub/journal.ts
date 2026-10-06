@@ -43,8 +43,6 @@ export type JournalEvent =
 				decidedChanges: number
 			})
 
-export type JournalKind = JournalEvent['kind']
-
 export type RoundSent = Extract<JournalEvent, { kind: 'round-sent' }>
 export type DeskClosed = Extract<JournalEvent, { kind: 'desk-closed' }>
 

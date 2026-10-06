@@ -35,7 +35,6 @@ export const sidebarParts = stylex.create({
 		overflow: 'hidden',
 	},
 	newReviewKey: { marginLeft: 'auto' },
-	foldIcon: { width: '16px', height: '16px' },
 	foldButton: {
 		width: '32px',
 		minHeight: '32px',
