@@ -15,7 +15,17 @@ function startOfDay(at: number): number {
 	return day.getTime()
 }
 
-// Rounds sent per calendar day (the viewer's own days), oldest first, today last.
+// The start of the calendar day `back` days before the one `now` falls in, stepped by the
+// calendar rather than by DAY_MS: a day across a daylight-saving change lasts 23 or 25 hours,
+// and a fixed step lands an hour inside the neighbouring day.
+export function dayStartBefore(now: number, back: number): number {
+	const day = new Date(startOfDay(now))
+	day.setDate(day.getDate() - back)
+	return day.getTime()
+}
+
+// Rounds sent per calendar day (the viewer's own days), oldest first, today last: index i
+// counts the day dayStartBefore(now, days - 1 - i).
 export function roundsPerDay(
 	events: readonly JournalEvent[],
 	now: number,

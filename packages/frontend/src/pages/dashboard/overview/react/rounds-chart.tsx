@@ -1,4 +1,4 @@
-import { DAY_MS } from '@entities/hub/journal-stats'
+import { dayStartBefore } from '@entities/hub/journal-stats'
 import { a11y } from '@shared/ui/a11y.styles'
 import { tip } from '@shared/ui/tip.styles'
 import * as stylex from '@stylexjs/stylex'
@@ -32,7 +32,7 @@ function daysOf(counts: readonly number[], now: number): Day[] {
 		name:
 			index === last
 				? 'Today'
-				: SHORT_DATE.format(new Date(now - (last - index) * DAY_MS)),
+				: SHORT_DATE.format(dayStartBefore(now, last - index)),
 		count,
 		isNamed: (last - index) % LABEL_EVERY === 0,
 	}))
