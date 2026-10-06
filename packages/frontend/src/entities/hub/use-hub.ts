@@ -46,9 +46,8 @@ function arrivals(
 ): ReadonlySet<string> {
 	if (!previous) return NO_ARRIVALS
 	const known = new Set(previous.map(desk => desk.id))
-	return new Set(
-		next.filter(desk => !known.has(desk.id)).map(desk => desk.id),
-	)
+	const arrived = next.filter(desk => !known.has(desk.id))
+	return arrived.length ? new Set(arrived.map(desk => desk.id)) : NO_ARRIVALS
 }
 
 // A listing that landed: live, stamped, its arrivals named against the one before.

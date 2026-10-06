@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { turnStarts } from '@entities/hub/journal-stats'
 import { groupByProject } from '@entities/hub/model'
 import { turnSince } from '@entities/hub/turn'
@@ -69,7 +71,8 @@ export function useDashboard(): DashboardState {
 	const projects = groupByProject(desks)
 	const navCounts = navCountsOf(listed?.desks ?? null)
 	useDocumentTitle(hub.status, navCounts?.yours ?? 0)
-	const starts = turnStarts(journal.events)
+	// Read from the events alone, which keep their identity across a poll that brought none.
+	const starts = useMemo(() => turnStarts(journal.events), [journal.events])
 	return {
 		hub,
 		phase,
