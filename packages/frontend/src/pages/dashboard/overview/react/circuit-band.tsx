@@ -43,7 +43,9 @@ function aroundTheReturn(
 }
 
 // The desks off the circuit (no agent attached, or no changes yet), named at its foot; a
-// toggle like a station's.
+// toggle like a station's. While selected it stays, at none too (the idle desks set aside in
+// Display, or gone since): the list under the circuit is narrowed to them, and this is the one
+// control that says so and undoes it.
 function IdleToggle({
 	count,
 	isSelected,
@@ -53,7 +55,7 @@ function IdleToggle({
 	isSelected: boolean
 	onToggle: () => void
 }): ReactElement | null {
-	if (!count) return null
+	if (!count && !isSelected) return null
 	return (
 		<button
 			type="button"
