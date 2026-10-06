@@ -3,7 +3,7 @@ import { run } from '@shared/ui/run.styles'
 import * as stylex from '@stylexjs/stylex'
 
 import { MS_PER_SECOND, plural, relativeTime, unbroken } from '../format'
-import { HUB_POLL_MS } from '../use-hub'
+import { HUB_POLL_MS } from '@entities/hub/use-hub'
 
 import { hubFooter } from './hub-footer.styles'
 
@@ -11,7 +11,7 @@ import type { HubHealth } from '@entities/hub/model'
 import type { DotTone } from '@shared/ui/live-dot'
 import type { ReactElement } from 'react'
 import type { FooterListing } from '../use-dashboard'
-import type { HubStatus } from '../use-hub'
+import type { HubStatus } from '@entities/hub/use-hub'
 
 // The poll's cadence, as the footer states it: one unit, never parted from its number.
 const EVERY = unbroken(`every ${HUB_POLL_MS / MS_PER_SECOND} s`)

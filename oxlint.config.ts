@@ -712,7 +712,7 @@ export default defineConfig({
 			files: [
 				'packages/frontend/src/widgets/chrome/react/**',
 				'packages/frontend/src/pages/dashboard/react/**',
-				'packages/frontend/src/pages/dashboard/use-hub.ts',
+				'packages/frontend/src/entities/hub/use-hub.ts',
 				'packages/frontend/src/pages/dashboard/use-document-title.ts',
 				'packages/frontend/src/pages/dashboard/use-new-review-shortcut.ts',
 				'packages/frontend/src/pages/dashboard/use-escape-to-disarm.ts',

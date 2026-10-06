@@ -20,6 +20,7 @@ export function decodeHubDesk(raw: unknown, endpoint: string): HubDesk {
 		id: requiredString(o, 'id', endpoint),
 		root: requiredString(o, 'root', endpoint),
 		project: requiredString(o, 'project', endpoint),
+		projectId: requiredString(o, 'projectId', endpoint),
 		session: requiredString(o, 'session', endpoint),
 		mode: enumValue(o.mode, endpoint, MODES, 'desk.mode'),
 		target: optString(o, 'target', endpoint),

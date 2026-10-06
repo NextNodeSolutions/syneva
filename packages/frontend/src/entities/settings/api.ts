@@ -1,4 +1,4 @@
-import { api } from '@shared/api/client'
+import { api, hubApi } from '@shared/api/client'
 import {
 	assertObject,
 	DecodeError,
@@ -8,7 +8,7 @@ import {
 	optString,
 	requiredBoolean,
 } from '@shared/api/decode'
-import { API_PATHS } from '@syneva/contracts/routes'
+import { API_PATHS, HUB_PATHS } from '@syneva/contracts/routes'
 
 import { isCodeTheme } from './code-themes'
 
@@ -100,45 +100,63 @@ export type DisplayPrefs = {
 	diffStyle?: DiffStyle | undefined
 }
 
-// An unreachable desk falls back to the defaults at the call site.
-export const fetchPrefs = async (): Promise<DisplayPrefs> => {
-	const raw = await api(API_PATHS.settings)
-	const o = assertObject(raw, API_PATHS.settings)
+// The preferences body, read from either route (a desk's /settings, the hub's own for the
+// dashboard): both read and write the same ~/.syneva/settings.json.
+function decodePrefs(raw: unknown, endpoint: string): DisplayPrefs {
+	const o = assertObject(raw, endpoint)
 	return {
-		settings: o.settings
-			? decodeSettings(o.settings, API_PATHS.settings)
-			: undefined,
-		diffStyle: optEnum(o, 'diffStyle', API_PATHS.settings, [
+		settings: o.settings ? decodeSettings(o.settings, endpoint) : undefined,
+		diffStyle: optEnum(o, 'diffStyle', endpoint, [
 			'split',
 			'unified',
 		] as const),
 	}
 }
 
+// Decode the { ok: true } acknowledgement even on a best-effort write: a 2xx body that isn't
+// the promised shape fails here, never as raw wire.
+function acknowledge(raw: unknown, endpoint: string): void {
+	if (!requiredBoolean(assertObject(raw, endpoint), 'ok', endpoint))
+		throw new DecodeError('acknowledgement ok is false', endpoint)
+}
+
+export type SavedPrefs = { settings: Settings; diffStyle: DiffStyle }
+
+// An unreachable desk falls back to the defaults at the call site.
+export const fetchPrefs = async (): Promise<DisplayPrefs> =>
+	decodePrefs(await api(API_PATHS.settings), API_PATHS.settings)
+
 // Best-effort: an unreachable desk must not break the settings UI.
-export const persistSettings = async (prefs: {
-	settings: Settings
-	diffStyle: DiffStyle
-}): Promise<void> => {
+export const persistSettings = async (prefs: SavedPrefs): Promise<void> => {
 	try {
-		const raw = await api(API_PATHS.settings, {
-			method: 'POST',
-			body: JSON.stringify(prefs),
-		})
-		// Decode the { ok: true } acknowledgement even on this best-effort write: a 2xx
-		// body that isn't the promised shape fails here, never as raw wire.
-		if (
-			!requiredBoolean(
-				assertObject(raw, API_PATHS.settings),
-				'ok',
-				API_PATHS.settings,
-			)
+		acknowledge(
+			await api(API_PATHS.settings, {
+				method: 'POST',
+				body: JSON.stringify(prefs),
+			}),
+			API_PATHS.settings,
 		)
-			throw new DecodeError(
-				'acknowledgement ok is false',
-				API_PATHS.settings,
-			)
 	} catch {
 		// Preferences are best-effort: an unreachable desk must not break the settings UI.
 	}
+}
+
+// The dashboard's read of the same preferences, through the hub's own route (it has no desk).
+export const fetchHubPrefs = async (
+	signal?: AbortSignal,
+): Promise<DisplayPrefs> =>
+	decodePrefs(
+		await hubApi(HUB_PATHS.settings, { signal: signal ?? null }),
+		HUB_PATHS.settings,
+	)
+
+// The dashboard's write. Unlike the desk's, it throws: the Settings page says a save failed.
+export const persistHubPrefs = async (prefs: SavedPrefs): Promise<void> => {
+	acknowledge(
+		await hubApi(HUB_PATHS.settings, {
+			method: 'POST',
+			body: JSON.stringify(prefs),
+		}),
+		HUB_PATHS.settings,
+	)
 }

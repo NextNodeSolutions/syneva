@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { fetchHubDesks, fetchHubHealth, hubRefusal } from '@entities/hub/api'
+import { fetchHubDesks, fetchHubHealth, hubRefusal } from './api'
 
-import type { HubDesk, HubHealth } from '@entities/hub/model'
+import type { HubDesk, HubHealth } from './model'
 
 // The dashboard refreshes on the desk's own cadence class: often enough that an agent
 // attaching, a Send queueing or a desk closing shows within a couple of seconds.

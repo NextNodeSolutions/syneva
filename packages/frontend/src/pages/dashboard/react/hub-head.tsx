@@ -4,7 +4,7 @@ import { CommandChip } from '@shared/ui/command-chip'
 import * as stylex from '@stylexjs/stylex'
 
 import { headCopy } from '../head-copy'
-import { hubPlace } from '../hub-place'
+import { hubPlace } from '@entities/hub/hub-place'
 
 import { hubHead } from './hub-head.styles'
 

@@ -9,6 +9,7 @@ export type HubDesk = {
 	id: string
 	root: string
 	project: string
+	projectId: string
 	session: string
 	mode: ReviewMode
 	target?: string | undefined
@@ -41,6 +42,7 @@ export type HubHealth = {
 // One repository on the hub and its desks - the dashboard's grouping unit.
 export type HubProject = {
 	root: string
+	id: string
 	name: string
 	desks: HubDesk[]
 	lastActivityAt: string
@@ -53,6 +55,7 @@ export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 	for (const desk of desks) {
 		const project = byRoot.get(desk.root) ?? {
 			root: desk.root,
+			id: desk.projectId,
 			name: desk.project || desk.root,
 			desks: [],
 			lastActivityAt: desk.lastActivityAt,
