@@ -10,6 +10,7 @@ import { JournalFeed } from '../journal/journal-feed'
 import { OpenCommands } from '../react/open-commands'
 import { PageHead } from '../react/page-head'
 import { PageSection } from '../react/page-section'
+import { dashboardPage } from '../react/page.styles'
 import { pageSection } from '../react/section.styles'
 
 import { AgentsOnHub } from './agents-on-hub'
@@ -88,7 +89,7 @@ export function HubPage({
 	const { health, now } = dashboard.hub
 	const desks = dashboard.listed?.desks ?? []
 	return (
-		<div ref={root} {...stylex.props(pageSection.page)}>
+		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			<HubHead
 				desks={desks.length}
 				isKeyed={health?.keyRequired === true}

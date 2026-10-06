@@ -2,6 +2,8 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
+import { pageInset } from '../../react/page.stylex'
+
 // The empty overview: a centred composition on the page column, never a column pushed to one
 // side and never stretched across it. The hero (the review loop at rest, the statement, the
 // ways to open a desk) stands in the middle; the desks closed before follow under it in a
@@ -16,7 +18,7 @@ export const emptyOverview = stylex.create({
 		display: 'flex',
 		flexDirection: 'column',
 		minHeight: '100%',
-		paddingInline: { default: '32px', [PHONE]: '16px' },
+		paddingInline: pageInset.gutter,
 		paddingBottom: { default: '72px', [PHONE]: '48px' },
 	},
 	hero: {

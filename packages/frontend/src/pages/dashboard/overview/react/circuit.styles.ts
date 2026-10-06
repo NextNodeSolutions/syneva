@@ -3,6 +3,8 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 import { transition } from '@syneva/design-system/transitions.stylex'
 
+import { pageInset } from '../../react/page.stylex'
+
 // The review circuit at the head of the overview: the landing's drawing put to work on the
 // ruled grid. Three ruled stations joined by the petrol route, the dotted return of the next
 // round under them; one square per desk at the station whose turn it is.
@@ -16,7 +18,7 @@ export const circuit = stylex.create({
 		position: 'relative',
 		paddingTop: { default: '26px', [PHONE]: '16px' },
 		paddingBottom: { default: '14px', [PHONE]: '16px' },
-		paddingInline: { default: '32px', [PHONE]: '16px' },
+		paddingInline: pageInset.gutter,
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],

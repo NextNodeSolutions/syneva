@@ -2,6 +2,8 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
+import { pageInset } from './page.stylex'
+
 // Hidden for the animation's whole run, then shown: the loading statement waits out a hub that
 // answers at once, so it never flashes. With motion reduced the shell drops the animation and
 // the line shows at once.
@@ -24,7 +26,7 @@ export const pageHead = stylex.create({
 		gap: { default: '24px', [PHONE]: '14px' },
 		paddingTop: { default: '30px', [PHONE]: '22px' },
 		paddingBottom: '20px',
-		paddingInline: { default: '32px', [PHONE]: '16px' },
+		paddingInline: pageInset.gutter,
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],

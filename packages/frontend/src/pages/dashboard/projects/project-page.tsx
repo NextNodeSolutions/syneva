@@ -9,6 +9,7 @@ import { JournalAside } from '../overview/react/journal-aside'
 import { overview } from '../overview/react/overview.styles'
 import { LiveAndClosed } from '../react/live-and-closed'
 import { PageHead } from '../react/page-head'
+import { dashboardPage } from '../react/page.styles'
 import { PhasePage } from '../react/phase-page'
 
 import { ProjectFigures } from './project-figures'
@@ -56,7 +57,7 @@ export function ProjectPage({
 		desks[0] ??
 		dashboard.journal.events.findLast(event => event.projectId === id)
 	return (
-		<div ref={root} {...stylex.props(overview.page)}>
+		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			<PageHead
 				title={named?.project ?? 'Unknown project'}
 				lede={

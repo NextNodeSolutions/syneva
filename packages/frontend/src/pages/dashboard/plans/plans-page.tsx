@@ -8,6 +8,7 @@ import { groupsByTurn } from '../overview/groups'
 import { listPage } from '../react/list-page.styles'
 import { LiveAndClosed } from '../react/live-and-closed'
 import { PageHead } from '../react/page-head'
+import { dashboardPage } from '../react/page.styles'
 import { PhasePage } from '../react/phase-page'
 
 import type { ReactElement } from 'react'
@@ -29,7 +30,7 @@ function PlansListed({
 	useEntrance(root, 'plans')
 	const plans = listed.desks.filter(desk => desk.mode === 'file')
 	return (
-		<div ref={root} {...stylex.props(listPage.page)}>
+		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			<PageHead
 				title="Plans"
 				lede={`${plural(plans.length, 'plan')} under review: the files your agent hands you before it writes code (a plan, a PRD, an issue), each on its own desk.`}

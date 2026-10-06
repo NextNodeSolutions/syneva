@@ -3,6 +3,8 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 import { transition } from '@syneva/design-system/transitions.stylex'
 
+import { pageInset } from '../../react/page.stylex'
+
 // The overview's body under its head and display: the ledger with the journal beside it when
 // the page is wide enough for both, under it otherwise. The page is the `page` container its
 // columns read.
@@ -10,11 +12,6 @@ const SIDE_BY_SIDE = '@container page (min-width: 1040px)'
 const PHONE = media.stacked
 
 export const overview = stylex.create({
-	page: {
-		containerType: 'inline-size',
-		containerName: 'page',
-		minHeight: '100%',
-	},
 	// A wrapper that only scopes an entrance: it takes no box, so the page lays out as without it.
 	part: { display: 'contents' },
 	split: {
@@ -26,7 +23,7 @@ export const overview = stylex.create({
 	},
 	list: {
 		minWidth: 0,
-		paddingInline: { default: '32px', [PHONE]: '16px' },
+		paddingInline: pageInset.gutter,
 		paddingBottom: '48px',
 	},
 	journal: {

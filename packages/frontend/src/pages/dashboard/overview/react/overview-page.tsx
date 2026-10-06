@@ -5,6 +5,7 @@ import { MOTION_MS } from '@shared/lib/motion'
 import { useEntrance } from '@shared/lib/use-entrance'
 import * as stylex from '@stylexjs/stylex'
 
+import { dashboardPage } from '../../react/page.styles'
 import { PhasePage } from '../../react/phase-page'
 import { applyFilter } from '../display'
 import { useDisplayPrefs } from '../use-display-prefs'
@@ -41,7 +42,7 @@ function OverviewListed({
 		? filtered
 		: filtered.filter(desk => turnOf(desk) !== 'idle')
 	return (
-		<div {...stylex.props(overview.page)}>
+		<div {...stylex.props(dashboardPage.root)}>
 			<OverviewHead
 				dashboard={dashboard}
 				listed={listed}

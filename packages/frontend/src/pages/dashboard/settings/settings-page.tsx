@@ -9,6 +9,7 @@ import { focus } from '@syneva/design-system/controls.styles'
 import { menu } from '../overview/react/menu.styles'
 import { PageHead } from '../react/page-head'
 import { PageSection } from '../react/page-section'
+import { dashboardPage } from '../react/page.styles'
 import { pageSection } from '../react/section.styles'
 
 import { useHubSettings } from './use-hub-settings'
@@ -99,7 +100,7 @@ export function SettingsPage(): ReactElement {
 	// (the pending head has barely started, and is held back from view anyway).
 	useEntrance(root, settings ? 'settings' : 'settings-pending')
 	return (
-		<div ref={root} {...stylex.props(pageSection.page)}>
+		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			<PageHead
 				title="Settings"
 				lede={SAVE_WORDS[save]}

@@ -8,6 +8,8 @@ import {
 } from '@syneva/design-system/tokens.stylex'
 import { transition } from '@syneva/design-system/transitions.stylex'
 
+import { pageInset } from '../../react/page.stylex'
+
 // The filters in force as a row of petrol chips under the head, each closing itself. The row
 // opens and closes by its height (a grid track easing between none and its content), so the
 // page under it slides rather than jumps when the first filter is set or the last one lifted.
@@ -25,7 +27,7 @@ export const chips = stylex.create({
 		flexWrap: 'wrap',
 		gap: '8px',
 		paddingBlock: '10px',
-		paddingInline: { default: '32px', [media.stacked]: '16px' },
+		paddingInline: pageInset.gutter,
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],

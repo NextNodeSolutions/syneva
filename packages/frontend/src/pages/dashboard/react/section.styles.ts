@@ -1,17 +1,13 @@
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
+
+import { pageInset } from './page.stylex'
 
 // A settings-like page's sections: a heading and its note on the left, the section's content on
 // the right, the pair under a hairline; one column on narrow pages.
 const NARROW = '@container page (max-width: 760px)'
 
 export const pageSection = stylex.create({
-	page: {
-		containerType: 'inline-size',
-		containerName: 'page',
-		minHeight: '100%',
-	},
 	section: {
 		display: 'grid',
 		gridTemplateColumns: {
@@ -21,7 +17,7 @@ export const pageSection = stylex.create({
 		columnGap: '40px',
 		rowGap: '14px',
 		paddingBlock: '26px',
-		marginInline: { default: '32px', [media.stacked]: '16px' },
+		marginInline: pageInset.gutter,
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],

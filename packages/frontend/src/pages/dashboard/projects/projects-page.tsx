@@ -10,6 +10,7 @@ import { focus } from '@syneva/design-system/controls.styles'
 import { displayRoot, plural, relativeTime } from '../format'
 import { listPage } from '../react/list-page.styles'
 import { PageHead } from '../react/page-head'
+import { dashboardPage } from '../react/page.styles'
 import { PhasePage } from '../react/phase-page'
 
 import { projectIndex } from './project-index'
@@ -109,7 +110,7 @@ export function ProjectsPage({
 		dashboard.hub.now,
 	)
 	return (
-		<div ref={root} {...stylex.props(listPage.page)}>
+		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			<PageHead
 				title="Projects"
 				lede={`${plural(entries.length, 'repository', 'repositories')} this hub has reviewed, with their desks and their rounds.`}

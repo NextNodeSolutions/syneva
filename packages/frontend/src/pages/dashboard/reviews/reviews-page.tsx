@@ -12,6 +12,7 @@ import { useOverviewView } from '../overview/use-overview-view'
 import { listPage } from '../react/list-page.styles'
 import { LiveAndClosed } from '../react/live-and-closed'
 import { PageHead } from '../react/page-head'
+import { dashboardPage } from '../react/page.styles'
 import { PhasePage } from '../react/phase-page'
 
 import type { ReactElement } from 'react'
@@ -29,7 +30,7 @@ function ReviewsListed({
 	useEntrance(root, 'reviews')
 	const lede = `${plural(listed.desks.length, 'live desk')} in ${plural(dashboard.projects.length, 'repository', 'repositories')}, with the desks closed before them.`
 	return (
-		<div ref={root} {...stylex.props(listPage.page)}>
+		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			<PageHead title="Reviews" lede={lede}>
 				<FilterMenu
 					desks={listed.desks}
