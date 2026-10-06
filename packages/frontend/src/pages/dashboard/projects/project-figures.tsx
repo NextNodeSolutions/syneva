@@ -1,14 +1,6 @@
-import {
-	DAY_MS,
-	median,
-	reviewTimes,
-	roundsSince,
-	WEEK_DAYS,
-} from '@entities/hub/journal-stats'
-import { turnCounts } from '@entities/hub/turn'
 import * as stylex from '@stylexjs/stylex'
 
-import { reviewFigure } from '../overview/cockpit-stats'
+import { cockpitStats, reviewFigure } from '../overview/cockpit-stats'
 import { cockpit } from '../overview/react/cockpit.styles'
 import { StatTile } from '../overview/react/stat-tile'
 
@@ -29,17 +21,17 @@ export function ProjectFigures({
 	id,
 	desks,
 }: ProjectProps): ReactElement {
-	const events = dashboard.journal.events.filter(
-		event => event.projectId === id,
+	const stats = cockpitStats(
+		desks,
+		dashboard.journal.events.filter(event => event.projectId === id),
+		dashboard.hub.now,
 	)
-	const weekAgo = dashboard.hub.now - WEEK_DAYS * DAY_MS
-	const recent = events.filter(event => Date.parse(event.at) >= weekAgo)
 	return (
 		<div {...stylex.props(cockpit.root)}>
 			<div {...stylex.props(cockpit.tiles)}>
 				<StatTile
 					label="Wait on you"
-					stat={{ figure: turnCounts(desks).yours }}
+					stat={{ figure: stats.yours }}
 					sub="Agents blocked on your review"
 					isYours
 				/>
@@ -50,12 +42,12 @@ export function ProjectFigures({
 				/>
 				<StatTile
 					label="Rounds this week"
-					stat={{ figure: roundsSince(events, weekAgo).length }}
+					stat={{ figure: stats.roundsThisWeek }}
 					sub="Reviews you sent here"
 				/>
 				<StatTile
 					label="Your median review"
-					stat={reviewFigure(median(reviewTimes(recent)))}
+					stat={reviewFigure(stats.medianReview)}
 					sub="From the diff landing to your Send"
 				/>
 			</div>
