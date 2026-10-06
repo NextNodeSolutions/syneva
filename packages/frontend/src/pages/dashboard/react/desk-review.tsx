@@ -6,6 +6,7 @@ import { plural } from '../format'
 
 import { DeskApprovals } from './desk-approvals'
 import { deskReview } from './desk-review.styles'
+import { deskSlide } from './desk-slide.styles'
 import { Fraction } from './fraction'
 
 import type { HubDesk } from '@entities/hub/model'
@@ -57,7 +58,7 @@ function progressItems(desk: HubDesk): ReactElement[] {
 export function DeskReview({ desk }: { desk: HubDesk }): ReactElement {
 	const items = progressItems(desk)
 	return (
-		<div {...stylex.props(deskReview.cell)}>
+		<div {...stylex.props(deskReview.cell, deskSlide.part)}>
 			<DeskApprovals desk={desk} />
 			{items.length > 0 && (
 				<p {...stylex.props(deskReview.progress)}>{items}</p>

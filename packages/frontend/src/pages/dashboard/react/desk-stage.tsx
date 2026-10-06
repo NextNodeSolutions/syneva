@@ -2,6 +2,7 @@ import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 import { tag } from '@syneva/design-system/controls.styles'
 
+import { deskSlide } from './desk-slide.styles'
 import { deskStage } from './desk-stage.styles'
 
 import type { ReactElement } from 'react'
@@ -21,7 +22,7 @@ type DeskStageProps = {
 export function DeskStage({ copy, age, isLive }: DeskStageProps): ReactElement {
 	const { detail } = copy
 	return (
-		<div {...stylex.props(deskStage.cell)}>
+		<div {...stylex.props(deskStage.cell, deskSlide.part)}>
 			<p {...stylex.props(deskStage.line)}>
 				<LiveDot
 					{...copy.dot}

@@ -17,9 +17,9 @@ type CloseControlProps = {
 
 // Close ends the review for the agent, so the first click arms it and only a second,
 // deliberate one confirms. At rest it is the site's secondary action, an underlined text link,
-// never hidden until hover. Armed, Close desk comes first and Keep lands where Close was, so a
-// double click meant for Close hits Keep; focus moves to Keep, the least destructive choice, so
-// a held Enter never confirms. Escape and focus leaving the pair disarm it. Focus is placed by
+// never hidden until hover. Armed, Close desk comes first, then Keep; the second click of a
+// double click meant for Close never confirms (confirm-close.tsx), and focus moves to Keep, the
+// least destructive choice, so a held Enter never confirms. Escape and focus leaving the pair disarm it. Focus is placed by
 // the owner once the pair or Close is on screen (ids.keep, ids.close).
 export function CloseControl({
 	session,

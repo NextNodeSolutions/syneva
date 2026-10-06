@@ -2,7 +2,7 @@ import { deskStage } from '@entities/hub/stage'
 import { ArrowRight } from '@shared/ui/arrow-right'
 import { Meter } from '@shared/ui/meter'
 import * as stylex from '@stylexjs/stylex'
-import { focus, tag } from '@syneva/design-system/controls.styles'
+import { tag } from '@syneva/design-system/controls.styles'
 
 import { deskCloseId, deskKeepId } from '../../focus-targets'
 import { modeParts, plural } from '../../format'
@@ -14,7 +14,7 @@ import { stageCopy } from '../../stage-copy'
 import { turnAge } from '../../turn-age'
 
 import { deskCard } from './desk-card.styles'
-import { deskCardMarker } from './desk-card.stylex'
+import { cardLinkMarker, deskCardMarker } from './desk-card.stylex'
 
 import type { HubDesk } from '@entities/hub/model'
 import type { ReactElement } from 'react'
@@ -66,7 +66,8 @@ function CardReview({ desk }: { desk: HubDesk }): ReactElement {
 	)
 }
 
-// The card's foot: how long the turn has lasted, Close (armed, it asks first), and the way in.
+// The card's foot: how long the turn has lasted, Close (armed, it asks first, its warning in
+// the review's place above, so the card keeps its height), and the way in.
 function CardFoot({
 	desk,
 	waited,
@@ -79,12 +80,6 @@ function CardFoot({
 	const isArmed = close.state !== 'rest'
 	return (
 		<>
-			{isArmed && (
-				<CloseWarning
-					id={`card-${desk.id}-warning`}
-					isAgentListening={desk.agentListening}
-				/>
-			)}
 			<div {...stylex.props(deskCard.foot)}>
 				<span>{waited}</span>
 				<span {...stylex.props(deskCard.end)}>
@@ -127,13 +122,10 @@ function CardTitle({
 			<a
 				href={desk.path}
 				aria-describedby={descriptionId}
-				{...stylex.props(deskCard.link)}
+				{...stylex.props(deskCard.link, cardLinkMarker)}
 			>
 				{desk.session}
-				<span
-					{...stylex.props(focus.ring, deskCard.stretch)}
-					aria-hidden="true"
-				/>
+				<span {...stylex.props(deskCard.stretch)} aria-hidden="true" />
 			</a>
 		</h3>
 	)
@@ -173,7 +165,14 @@ export function DeskCard({
 					<q>{copy.detail.body}</q>
 				</p>
 			)}
-			<CardReview desk={desk} />
+			{close.state === 'rest' ? (
+				<CardReview desk={desk} />
+			) : (
+				<CloseWarning
+					id={`card-${desk.id}-warning`}
+					isAgentListening={desk.agentListening}
+				/>
+			)}
 			<CardFoot
 				desk={desk}
 				waited={turnAge(desk, since, now)}

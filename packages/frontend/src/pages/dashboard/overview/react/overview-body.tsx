@@ -60,27 +60,37 @@ function LedgerAndJournal({
 	)
 }
 
+// The board, then the journal: the board's cards are the ledger there.
+function BoardAndJournal({
+	dashboard,
+	desks,
+	view,
+	prefs,
+}: OverviewBodyProps): ReactElement {
+	return (
+		<>
+			<BoardView
+				desks={desks}
+				now={dashboard.hub.now}
+				isLive={dashboard.listed?.isStale !== true}
+				since={dashboard.since}
+				close={dashboard.close}
+				hold={{ list: dashboard.hold, isHeld: dashboard.isListHeld }}
+			/>
+			{prefs.showsJournal && (
+				<JournalAside dashboard={dashboard} filter={view.filter} />
+			)}
+		</>
+	)
+}
+
 // The overview under its head, in the chosen display: the circuit above the ledger, the
 // board, or the cockpit's numbers above it. The board's cards are the ledger there, so only
 // the journal follows it.
 export function OverviewBody(props: OverviewBodyProps): ReactElement {
 	const { dashboard, desks, view } = props
 	const isLive = dashboard.listed?.isStale !== true
-	if (view.layout === 'board')
-		return (
-			<>
-				<BoardView
-					desks={desks}
-					now={dashboard.hub.now}
-					isLive={isLive}
-					since={dashboard.since}
-					close={dashboard.close}
-				/>
-				{props.prefs.showsJournal && (
-					<JournalAside dashboard={dashboard} filter={view.filter} />
-				)}
-			</>
-		)
+	if (view.layout === 'board') return <BoardAndJournal {...props} />
 	if (view.layout === 'cockpit') {
 		const yours = desks
 			.filter(desk => turnOf(desk) === 'yours')

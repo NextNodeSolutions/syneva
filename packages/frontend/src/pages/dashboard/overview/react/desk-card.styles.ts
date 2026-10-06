@@ -1,10 +1,13 @@
 import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 import { transition } from '@syneva/design-system/transitions.stylex'
 
-import { deskCardMarker } from './desk-card.stylex'
+import { cardLinkMarker, deskCardMarker } from './desk-card.stylex'
 
 const cardHover = (): string => stylex.when.ancestor(':hover', deskCardMarker)
+const linkFocus = (): string =>
+	stylex.when.ancestor(':focus-visible', cardLinkMarker)
 
 // A desk as a card on the board: a white tile under a hairline, the whole card its link. Its
 // title first, then what it reviews, the agent's words when it has some, the review's progress
@@ -23,7 +26,10 @@ export const deskCard = stylex.create({
 		borderStyle: 'solid',
 		borderColor: {
 			default: color['--line'],
-			':hover': color['--line-strong'],
+			[media.finePointer]: {
+				default: color['--line'],
+				':hover': color['--line-strong'],
+			},
 		},
 		transition: `border-color ${transition.fast}`,
 	},
@@ -33,12 +39,20 @@ export const deskCard = stylex.create({
 		letterSpacing: '-.01em',
 		lineHeight: 1.3,
 	},
-	link: { color: 'inherit', textDecoration: 'none' },
-	// The link's area covers the card, and draws the focus ring around it.
+	link: {
+		color: 'inherit',
+		textDecoration: 'none',
+		outlineStyle: { default: null, ':focus-visible': 'none' },
+	},
+	// The link's area covers the card, and draws its focus ring around the card (the petrol
+	// ring, over the card's own rule).
 	stretch: {
 		position: 'absolute',
 		inset: '-1px',
-		outlineWidth: { default: null, ':focus-visible': '2px' },
+		outlineWidth: { default: null, [linkFocus()]: '2px' },
+		outlineStyle: { default: null, [linkFocus()]: 'solid' },
+		outlineColor: color['--accent'],
+		outlineOffset: '-1px',
 	},
 	meta: {
 		fontFamily: font['--mono'],

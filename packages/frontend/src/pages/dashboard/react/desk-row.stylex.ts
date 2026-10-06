@@ -22,7 +22,9 @@ export const deskGrid = stylex.defineConsts({
 	// width that matched two of them could take either.
 	narrow: '@container desks (min-width: 441px) and (max-width: 640px)',
 	stackedWidth: '@container desks (max-width: 440px)',
-	wide: '22px minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 1.1fr) auto auto',
+	// The row's end has fixed tracks at full width (Close, then Open), which an armed close's
+	// pair (Close desk and Keep) spans whole: arming never moves the columns before them.
+	wide: '22px minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 1.1fr) 60px 58px',
 	tablet: '22px minmax(0, 1fr) minmax(0, 1.15fr) auto',
 	stacked: '20px minmax(0, 1fr) auto',
 	gap: '18px',

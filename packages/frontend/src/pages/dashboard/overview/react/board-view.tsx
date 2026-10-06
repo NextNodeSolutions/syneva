@@ -5,6 +5,8 @@ import { useFlip } from '@shared/lib/use-flip'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 
+import { HoldList } from '../../react/hold-list'
+import { useHeldOrder } from '../../use-held-order'
 import { TURN_COPY } from '../turn-copy'
 
 import { board } from './board.styles'
@@ -15,6 +17,7 @@ import type { Turn } from '@entities/hub/turn'
 import type { ReactElement } from 'react'
 import type { ListedGroups } from '../../focus-after-close'
 import type { DeskClose } from '../../use-desk-close'
+import type { ListHold } from '../../use-list-hold'
 import type { WaitingSince } from '../groups'
 
 type BoardViewProps = {
@@ -23,6 +26,8 @@ type BoardViewProps = {
 	isLive: boolean
 	since: WaitingSince
 	close: DeskClose
+	// What holds the cards' order still: the pointer or focus in the board, an armed close.
+	hold: { list: ListHold; isHeld: boolean }
 }
 
 function BoardColumn({
@@ -76,19 +81,26 @@ function BoardColumn({
 }
 
 // The board: a column per turn, each desk a card in the column of whoever moves next. When a
-// desk's turn changes, its card travels to its new column.
+// desk's turn changes, its card travels to its new column. Its cards hold their order while
+// the reviewer is at them (use-held-order.ts), as the ledger's rows do.
 export function BoardView(props: BoardViewProps): ReactElement {
 	const root = useRef<HTMLDivElement>(null)
 	useFlip(root)
 	const sorted = props.desks.toSorted((a, b) =>
 		props.since(a).localeCompare(props.since(b)),
 	)
-	const columns = TURNS.map(turn =>
-		sorted.filter(desk => turnOf(desk) === turn),
+	const held = useHeldOrder(
+		TURNS.map(turn => ({
+			key: turn,
+			desks: sorted.filter(desk => turnOf(desk) === turn),
+		})),
+		{ isHeld: props.hold.isHeld },
 	)
+	const byTurn = new Map(held.map(column => [column.key, column.desks]))
+	const columns = TURNS.map(turn => byTurn.get(turn) ?? [])
 	return (
-		<div ref={root} {...stylex.props(board.root)}>
-			<div {...stylex.props(board.columns)}>
+		<HoldList hold={props.hold.list} css={board.root}>
+			<div ref={root} {...stylex.props(board.columns)}>
 				{TURNS.map((turn, index) => (
 					<BoardColumn
 						key={turn}
@@ -99,6 +111,6 @@ export function BoardView(props: BoardViewProps): ReactElement {
 					/>
 				))}
 			</div>
-		</div>
+		</HoldList>
 	)
 }
