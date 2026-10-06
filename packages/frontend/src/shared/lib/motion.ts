@@ -34,7 +34,7 @@ export function isMotionReduced(): boolean {
 
 // The pose an element enters from, named by the data-enter attribute it carries: a row rises
 // into its place, a navigation item slides in from the edge it belongs to, a region that holds
-// its position only fades, and a drawn route traces itself.
+// its position only fades, a drawn route traces itself and a chart's bar grows from its base.
 const ENTER_POSE = {
 	rise: { opacity: 0, transform: 'translateY(8px)' },
 	slide: { opacity: 0, transform: 'translateX(-8px)' },
@@ -42,6 +42,8 @@ const ENTER_POSE = {
 	pop: { opacity: 0, transform: 'scale(.96)' },
 	// A rule that draws itself along its length (its transform-origin sets the direction).
 	grow: { transform: 'scaleX(0)' },
+	// A bar that rises from its baseline (its transform-origin is the baseline).
+	growUp: { transform: 'scaleY(0)' },
 } as const satisfies Record<string, Keyframe>
 
 export type EnterPose = keyof typeof ENTER_POSE | 'draw'
@@ -81,11 +83,20 @@ export function staggerDelay(index: number): number {
 	return Math.min(index * MOTION_MS.step, MOTION_MS.staggerCap)
 }
 
+// Until when an entrance is still playing somewhere on the page: an element still arriving is
+// not yet seen anywhere, so nothing travels (use-flip.ts) before it has settled.
+let enteringUntil = 0
+
+export function isEntering(): boolean {
+	return performance.now() < enteringUntil
+}
+
 // Every [data-enter] element under `root`, entering in nested order: the outermost ones step in
 // one after another, and the ones inside each of them step in after it, by a short lead. One
 // pass over the tree; the delays are summed down the nesting.
 export function playEntrance(root: Element, baseDelay = 0): void {
 	if (isMotionReduced()) return
+	let lastDelay = baseDelay
 	const scheduled = new Map<Element, number>()
 	const siblingsSeen = new Map<Element | null, number>()
 	for (const element of root.querySelectorAll('[data-enter]')) {
@@ -100,7 +111,10 @@ export function playEntrance(root: Element, baseDelay = 0): void {
 		const delay = start + staggerDelay(index)
 		scheduled.set(element, delay)
 		playEnter(element, delay)
+		lastDelay = Math.max(lastDelay, delay)
 	}
+	const settles = performance.now() + lastDelay + MOTION_MS.enter
+	enteringUntil = Math.max(enteringUntil, settles)
 }
 
 // A brief wash on something that just changed, fading back to its own ground: the eye lands on

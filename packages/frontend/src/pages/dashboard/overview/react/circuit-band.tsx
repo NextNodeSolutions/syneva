@@ -12,17 +12,28 @@ import { Station } from './station'
 
 import type { HubDesk } from '@entities/hub/model'
 import type { Turn } from '@entities/hub/turn'
-import type { FlipRoute } from '@shared/lib/use-flip'
-import type { ReactElement } from 'react'
+import type { FlipRoute, Place } from '@shared/lib/use-flip'
+import type { ReactElement, RefObject } from 'react'
 
-// How far under the stations a square dips to take the return: the dotted rule's depth.
-const RETURN_DEPTH = 44
+// Half a square (circuit.token, 9px): a square runs centred on the dotted rule.
+const TOKEN_HALF = 4.5
+
+type ReturnFrame = { band: Element | null; path: HTMLElement | null }
 
 // A square going back round the circuit (from Sent to the agent, leftwards) takes the dotted
-// return under the stations instead of crossing them; every other move is straight.
-const aroundTheReturn: FlipRoute = (from, to) => {
-	if (to.x >= from.x) return []
-	const depth = Math.max(from.y, to.y) + RETURN_DEPTH
+// return drawn under the stations instead of crossing them, along its bottom rule; every other
+// move is straight, a square reordered inside its own station too. Phones draw no return: there
+// the square goes straight as well.
+function aroundTheReturn(
+	from: Place,
+	to: Place,
+	{ band, path }: ReturnFrame,
+): readonly Place[] {
+	if (from.group === to.group || to.x >= from.x) return []
+	if (!band || !path || path.offsetParent === null) return []
+	const rule =
+		path.getBoundingClientRect().bottom - band.getBoundingClientRect().top
+	const depth = rule - TOKEN_HALF
 	return [
 		{ x: from.x, y: depth },
 		{ x: to.x, y: depth },
@@ -31,7 +42,11 @@ const aroundTheReturn: FlipRoute = (from, to) => {
 
 function Route(): ReactElement {
 	return (
-		<span {...stylex.props(circuit.route)} aria-hidden="true">
+		<span
+			{...stylex.props(circuit.route)}
+			aria-hidden="true"
+			data-enter="fade"
+		>
 			<span {...stylex.props(circuit.routeLine)} data-enter="grow" />
 			<svg {...stylex.props(circuit.routeHead)} viewBox="0 0 10 10">
 				<path d="M3 1.5 7 5l-4 3.5" />
@@ -40,14 +55,22 @@ function Route(): ReactElement {
 	)
 }
 
-function ReturnPath(): ReactElement {
+function ReturnPath({
+	pathRef,
+}: {
+	pathRef: RefObject<HTMLDivElement | null>
+}): ReactElement {
 	return (
-		<div {...stylex.props(circuitReturn.path)} aria-hidden="true">
+		<div
+			ref={pathRef}
+			{...stylex.props(circuitReturn.path)}
+			aria-hidden="true"
+			data-enter="fade"
+		>
 			<svg
 				{...stylex.props(circuitReturn.line)}
 				viewBox="0 0 100 20"
 				preserveAspectRatio="none"
-				data-enter="fade"
 			>
 				<path d="M100 0V20H0V0" vectorEffect="non-scaling-stroke" />
 			</svg>
@@ -95,6 +118,22 @@ type CircuitBandProps = {
 	onSelect: (station: Turn | null) => void
 }
 
+// The circuit's squares travel between stations, back round by the return drawn under them:
+// FLIP over the band, routed by the return's element (whose ref this hands out).
+function useCircuitFlip(
+	band: RefObject<HTMLElement | null>,
+): RefObject<HTMLDivElement | null> {
+	const returnPath = useRef<HTMLDivElement>(null)
+	// Read when a move plays (in useFlip's layout effect), never during the render.
+	const route: FlipRoute = (from, to) =>
+		aroundTheReturn(from, to, {
+			band: band.current,
+			path: returnPath.current,
+		})
+	useFlip(band, route)
+	return returnPath
+}
+
 // The circuit at the head of the overview: whose turn it is on every desk, as the review loop
 // runs (your agent, you, sent, and back round to the agent). Choosing a station narrows the
 // list under it to that turn; the desks off the circuit (idle) are named at its foot.
@@ -105,7 +144,7 @@ export function CircuitBand({
 	onSelect,
 }: CircuitBandProps): ReactElement {
 	const band = useRef<HTMLElement>(null)
-	useFlip(band, aroundTheReturn)
+	const returnPath = useCircuitFlip(band)
 	// Choosing the selected station again shows every turn.
 	const toggle = (turn: Turn): void => {
 		if (turn === station) onSelect(null)
@@ -133,9 +172,9 @@ export function CircuitBand({
 				<Route />
 				{stationOf('sent')}
 			</div>
-			<ReturnPath />
-			<div {...stylex.props(circuitReturn.foot)}>
-				<p {...stylex.props(circuitReturn.caption)} data-enter="fade">
+			<ReturnPath pathRef={returnPath} />
+			<div {...stylex.props(circuitReturn.foot)} data-enter="fade">
+				<p {...stylex.props(circuitReturn.caption)}>
 					Next round: the agent reloads, and what it did not touch
 					keeps your verdict.
 				</p>

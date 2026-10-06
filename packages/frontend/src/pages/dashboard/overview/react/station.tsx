@@ -36,6 +36,7 @@ function StationTokens({
 				<span
 					key={desk.id}
 					data-flip={desk.id}
+					data-flip-group={turn}
 					title={desk.session}
 					{...stylex.props(circuit.token, TOKEN_LOOK[turn])}
 				/>

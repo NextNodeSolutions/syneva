@@ -1,10 +1,12 @@
 import { useLayoutEffect, useRef } from 'react'
 
-import { EASE_OUT, isMotionReduced, MOTION_MS } from './motion'
+import { EASE_OUT, isEntering, isMotionReduced, MOTION_MS } from './motion'
 
 import type { RefObject } from 'react'
 
-export type Place = { x: number; y: number }
+// A keyed child's place in its container, and the group it sits in (data-flip-group: a
+// circuit station), when it names one.
+export type Place = { x: number; y: number; group?: string | undefined }
 
 // The points a move passes through between where it was and where it is (both excluded): none
 // for a straight move. A route that must go around something (the circuit's return) names its
@@ -21,16 +23,83 @@ const CORNER_SHARE = 0.5
 // casts the system's one floating shadow (DESIGN.md, Elevation).
 const LIFTED = '0 12px 32px rgb(25 27 24 / 14%)'
 
+// A traveller paints over the neighbours it crosses (they keep z-index auto), and one that
+// changes group over the others travelling with it. Kept low: the page's own layers (the
+// toast, the panels) stay above.
+const OVER_NEIGHBOURS = 1
+const OVER_TRAVELLERS = 2
+
+const TRANSPARENT = 'rgba(0, 0, 0, 0)'
+
+// A shift shorter than this is a neighbour's text settling (a count, an age), not a desk
+// moving: it is taken in place, never flown with the lift.
+const MIN_TRAVEL_PX = 3
+
+type Snapshot = { places: Map<string, Place>; width: number }
+
+const NO_SNAPSHOT: Snapshot = { places: new Map(), width: 0 }
+
+// The flight each element is on, so a move that starts while one is in the air takes over
+// from where the element is seen, instead of jumping back to where it was laid out.
+const flights = new WeakMap<Element, Animation>()
+
+// Where an element is laid out, not where it is painted: offsetLeft/offsetTop summed up its
+// offset chain ignore every transform on it and above it (an entrance's pose, a travel still in
+// flight), which would otherwise read as a move. An element with no offset chain (SVG) falls
+// back on its painted box.
+function layoutPlace(element: Element): Place {
+	if (!(element instanceof HTMLElement)) {
+		const box = element.getBoundingClientRect()
+		return { x: box.left, y: box.top }
+	}
+	const place = { x: 0, y: 0 }
+	for (
+		let node: Element | null = element;
+		node instanceof HTMLElement;
+		node = node.offsetParent
+	) {
+		place.x += node.offsetLeft
+		place.y += node.offsetTop
+	}
+	return place
+}
+
 function placesOf(container: Element): Map<string, Place> {
-	const origin = container.getBoundingClientRect()
+	const origin = layoutPlace(container)
 	const places = new Map<string, Place>()
 	for (const element of container.querySelectorAll('[data-flip]')) {
 		const key = element.getAttribute('data-flip')
 		if (!key) continue
-		const box = element.getBoundingClientRect()
-		places.set(key, { x: box.left - origin.left, y: box.top - origin.top })
+		const box = layoutPlace(element)
+		places.set(key, {
+			x: box.x - origin.x,
+			y: box.y - origin.y,
+			group: element.getAttribute('data-flip-group') ?? undefined,
+		})
 	}
 	return places
+}
+
+function snapshotOf(container: Element): Snapshot {
+	return { places: placesOf(container), width: container.clientWidth }
+}
+
+// How far from its layout place an element is seen now: its flight's current offset, none when
+// it is not in the air.
+function seenOffset(element: Element): Place {
+	if (flights.get(element)?.playState !== 'running') return { x: 0, y: 0 }
+	const seen = new DOMMatrixReadOnly(getComputedStyle(element).transform)
+	return { x: seen.m41, y: seen.m42 }
+}
+
+// What a traveller keeps on in every frame: its layer and, for one with no ground of its own
+// (a ledger row), the page's paper, so the rows it crosses never show through it.
+function liftOf(element: Element, isRegrouped: boolean): Keyframe {
+	const zIndex = isRegrouped ? OVER_TRAVELLERS : OVER_NEIGHBOURS
+	if (getComputedStyle(element).backgroundColor !== TRANSPARENT)
+		return { zIndex }
+	const ground = getComputedStyle(document.body).backgroundColor
+	return { zIndex, backgroundColor: ground }
 }
 
 function offset(point: Place, to: Place): string {
@@ -42,21 +111,29 @@ function travel(
 	move: { from: Place; to: Place; route: FlipRoute },
 ): void {
 	const { from, to } = move
-	if (from.x === to.x && from.y === to.y) return
-	const corners = move.route(from, to).map(point => ({
-		transform: offset(point, to),
-	}))
-	element.animate(
+	const isNudge =
+		Math.abs(from.x - to.x) < MIN_TRAVEL_PX &&
+		Math.abs(from.y - to.y) < MIN_TRAVEL_PX
+	if (isNudge) return
+	const seen = seenOffset(element)
+	const start = { x: from.x + seen.x, y: from.y + seen.y }
+	const lift = liftOf(element, from.group !== to.group)
+	const corners = move
+		.route(from, to)
+		.map(point => Object.assign({ transform: offset(point, to) }, lift))
+	flights.get(element)?.cancel()
+	const flight = element.animate(
 		[
-			{ transform: offset(from, to), boxShadow: LIFTED },
+			{ ...lift, transform: offset(start, to), boxShadow: LIFTED },
 			...corners,
-			{ transform: 'none' },
+			{ ...lift, transform: 'none' },
 		],
 		{
 			duration: MOTION_MS.move * (1 + corners.length * CORNER_SHARE),
 			easing: EASE_OUT,
 		},
 	)
+	flights.set(element, flight)
 }
 
 // Every keyed child that has a place before and after plays its move.
@@ -79,18 +156,42 @@ function playMoves(
 // FLIP for keyed children ([data-flip="<key>"]) of `container`: after each render, every child
 // that changed place plays from where it was to where it is, so a desk that moves to another
 // column or group is seen moving rather than vanishing and reappearing. Places are measured
-// against the container, so a page scroll between two renders never reads as a move.
+// against the container, so a page scroll between two renders never reads as a move. A
+// container that changes size between renders (the sidebar folds, the window resizes) re-lays
+// its children out with no desk moving: its places are taken afresh as it happens, and a
+// render that finds it at another width plays nothing.
 export function useFlip(
 	container: RefObject<Element | null>,
 	route: FlipRoute = STRAIGHT,
 ): void {
-	const last = useRef<Map<string, Place>>(new Map())
+	const last = useRef<Snapshot>(NO_SNAPSHOT)
+	useLayoutEffect(() => {
+		const root = container.current
+		if (!root) return undefined
+		const observer = new ResizeObserver(() => {
+			if (!isMotionReduced()) last.current = snapshotOf(root)
+		})
+		observer.observe(root)
+		return (): void => observer.disconnect()
+	}, [container])
 	useLayoutEffect(() => {
 		const root = container.current
 		if (!root) return
-		const now = placesOf(root)
-		if (!isMotionReduced())
-			playMoves(root, { before: last.current, after: now, route })
+		// Reduced motion plays no travel, so it measures nothing either: a poll's render
+		// forces no layout.
+		if (isMotionReduced()) {
+			last.current = NO_SNAPSHOT
+			return
+		}
+		const now = snapshotOf(root)
+		// A child that moves while the page is still entering is taken at its new place: it
+		// enters there, it is not seen travelling to it.
+		if (now.width === last.current.width && !isEntering())
+			playMoves(root, {
+				before: last.current.places,
+				after: now.places,
+				route,
+			})
 		last.current = now
 	})
 }
