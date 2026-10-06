@@ -10,6 +10,7 @@ import {
 import { homeDir, SYNEVA_DIR } from './desk.js'
 import { writeFileAtomic } from './persistence.js'
 
+import type { FileHandle } from 'node:fs/promises'
 import type {
 	HubJournalPort,
 	HubRegistryPort,
@@ -27,6 +28,8 @@ const REGISTRY_FILE = 'desks.json'
 const JOURNAL_FILE = 'journal.jsonl'
 const LOG_FILE = 'hub.log'
 const JSON_INDENT = 2
+// The byte every journal line ends with.
+const LINE_FEED = 0x0a
 
 export function hubDir(): string {
 	return path.join(homeDir(process.cwd()), SYNEVA_DIR, HUB_DIR)
@@ -118,7 +121,8 @@ export const nodeHubRegistry: HubRegistryPort = Object.freeze({
 })
 
 // The journal is JSON lines: an event is one append of one line, so a crash can tear at most
-// the line being written - which its decode then skips - and never the events before it.
+// the line being written - which its decode then skips - and never the events around it (an
+// append starts every event on a fresh line: appendJournal).
 async function loadJournal(): Promise<JournalEvent[]> {
 	const text = await readJournalText()
 	return text
@@ -159,13 +163,43 @@ function journalLine(event: JournalEvent): string {
 	return `${JSON.stringify(event)}\n`
 }
 
+// An append that never completed (the hub killed mid-write, a write cut short by a full disk)
+// leaves a line with no end, and the next event appended onto it would be lost with it at the
+// next load. So an append starts on a fresh line whatever the file ends with, and a write that
+// fails is cut back off: the hub dropped that event and hands its seq out again.
 async function appendJournal(event: JournalEvent): Promise<void> {
 	const dir = await ensureHubDir()
-	await fs.appendFile(
-		path.join(dir, JOURNAL_FILE),
-		journalLine(event),
-		'utf8',
-	)
+	const file = await fs.open(path.join(dir, JOURNAL_FILE), 'a+')
+	try {
+		const { size } = await file.stat()
+		const lead = (await hasTornTail(file, size)) ? '\n' : ''
+		await appendOrRollBack(file, size, `${lead}${journalLine(event)}`)
+	} finally {
+		await file.close()
+	}
+}
+
+// Whether the file's last byte leaves a line open.
+async function hasTornTail(file: FileHandle, size: number): Promise<boolean> {
+	if (size === 0) return false
+	const last = Buffer.alloc(1)
+	await file.read(last, 0, 1, size - 1)
+	return last[0] !== LINE_FEED
+}
+
+async function appendOrRollBack(
+	file: FileHandle,
+	size: number,
+	text: string,
+): Promise<void> {
+	try {
+		await file.appendFile(text, 'utf8')
+	} catch (error) {
+		// Shrinking needs no space, so it works on a full disk. If it fails anyway, the next
+		// append still ends the torn line before writing its own.
+		await file.truncate(size).catch(() => undefined)
+		throw error
+	}
 }
 
 async function rewriteJournal(events: readonly JournalEvent[]): Promise<void> {
