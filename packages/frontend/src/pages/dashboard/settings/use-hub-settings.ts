@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { fetchHubPrefs, persistHubPrefs } from '@entities/settings/api'
 import { applyAppearance, DEFAULT_SETTINGS } from '@entities/settings/settings'
+import { createSaver } from '@shared/lib/saver'
 
 import type { SavedPrefs } from '@entities/settings/api'
 import type { Settings } from '@entities/settings/model'
@@ -59,10 +60,10 @@ function readUntilAnswered(
 	}
 }
 
-async function saveSettings(
-	prefs: SavedPrefs,
-	report: (state: SaveState) => void,
-): Promise<void> {
+// A write of the whole preferences file, and the page to tell how it went.
+type PrefsWrite = { prefs: SavedPrefs; report: (state: SaveState) => void }
+
+async function saveSettings({ prefs, report }: PrefsWrite): Promise<void> {
 	report('saving')
 	try {
 		await persistHubPrefs(prefs)
@@ -72,9 +73,25 @@ async function saveSettings(
 	}
 }
 
+// Every save writes the whole file, so two in flight could land out of order and leave an older
+// choice on disk while the page says it saved. One saver for the page keeps one write in flight
+// and folds the changes made meanwhile into one trailing write of the newest preferences (the
+// hub answers once the file is written), so the file ends on the last choice. Module-wide, so
+// the order holds across a Settings page that mounts again mid-save.
+let newestWrite: PrefsWrite = {
+	prefs: { settings: DEFAULT_SETTINGS, diffStyle: DEFAULT_DIFF_STYLE },
+	report: () => undefined,
+}
+const prefsSaver = createSaver(() => newestWrite, saveSettings)
+
+function queueWrite(write: PrefsWrite): void {
+	newestWrite = write
+	prefsSaver.trigger()
+}
+
 // The reviewer's preferences, read from the hub (the same ~/.syneva/settings.json every desk
 // reads) and written back on each change: the page applies a change at once, then says whether
-// the hub kept it.
+// the hub kept it (queueWrite: the last choice is the one left on disk).
 export function useHubSettings(): HubSettings {
 	const [settings, setSettings] = useState<Settings | null>(null)
 	const [diffStyle, setDiffStyle] = useState<DiffStyle>(DEFAULT_DIFF_STYLE)
@@ -97,7 +114,10 @@ export function useHubSettings(): HubSettings {
 			const merged = { ...settings, ...next }
 			setSettings(merged)
 			applyAppearance(merged)
-			void saveSettings({ settings: merged, diffStyle }, setSave)
+			queueWrite({
+				prefs: { settings: merged, diffStyle },
+				report: setSave,
+			})
 		},
 		[settings, diffStyle],
 	)
