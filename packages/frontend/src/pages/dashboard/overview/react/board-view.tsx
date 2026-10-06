@@ -16,16 +16,13 @@ import type { HubDesk } from '@entities/hub/model'
 import type { Turn } from '@entities/hub/turn'
 import type { ReactElement } from 'react'
 import type { ListedGroups } from '../../focus-after-close'
-import type { DeskClose } from '../../use-desk-close'
+import type { LedgerContext } from '../../react/desk-ledger'
 import type { ListHold } from '../../use-list-hold'
-import type { WaitingSince } from '../groups'
 
 type BoardViewProps = {
 	desks: readonly HubDesk[]
-	now: number
-	isLive: boolean
-	since: WaitingSince
-	close: DeskClose
+	// The clock, whether the hub answers, the closes: what a ledger reads besides its desks.
+	context: LedgerContext
 	// What holds the cards' order still: the pointer or focus in the board, an armed close.
 	hold: { list: ListHold; isHeld: boolean }
 }
@@ -34,15 +31,16 @@ function BoardColumn({
 	turn,
 	desks,
 	columns,
-	props,
+	context,
 }: {
 	turn: Turn
 	desks: readonly HubDesk[]
 	// Every column's cards in display order: where focus goes once a closed card leaves.
 	columns: ListedGroups
-	props: BoardViewProps
+	context: LedgerContext
 }): ReactElement {
 	const copy = TURN_COPY[turn]
+	const isPulsing = context.isLive && copy.dot.isLive && desks.length > 0
 	return (
 		<section
 			aria-label={`${copy.heading}: ${desks.length}`}
@@ -56,7 +54,7 @@ function BoardColumn({
 				<LiveDot
 					tone={copy.dot.tone}
 					hollow={copy.dot.isHollow}
-					live={props.isLive && copy.dot.isLive && desks.length > 0}
+					live={isPulsing}
 				/>
 				{copy.heading}
 				<span {...stylex.props(board.count)}>{desks.length}</span>
@@ -68,11 +66,11 @@ function BoardColumn({
 				<DeskCard
 					key={desk.id}
 					desk={desk}
-					now={props.now}
-					since={props.since(desk)}
+					now={context.now}
+					since={context.since(desk)}
 					close={{
-						state: props.close.stateOf(desk.id),
-						actions: props.close.actionsFor(desk, columns),
+						state: context.close.stateOf(desk.id),
+						actions: context.close.actionsFor(desk, columns),
 					}}
 				/>
 			))}
@@ -86,9 +84,11 @@ function BoardColumn({
 export function BoardView(props: BoardViewProps): ReactElement {
 	const root = useRef<HTMLDivElement>(null)
 	useFlip(root)
+	const { since } = props.context
 	const sorted = props.desks.toSorted((a, b) =>
-		props.since(a).localeCompare(props.since(b)),
+		since(a).localeCompare(since(b)),
 	)
+	// Every turn is a column, even an empty one, so the held order keeps the four in TURNS order.
 	const held = useHeldOrder(
 		TURNS.map(turn => ({
 			key: turn,
@@ -96,18 +96,17 @@ export function BoardView(props: BoardViewProps): ReactElement {
 		})),
 		{ isHeld: props.hold.isHeld },
 	)
-	const byTurn = new Map(held.map(column => [column.key, column.desks]))
-	const columns = TURNS.map(turn => byTurn.get(turn) ?? [])
+	const columns = held.map(column => column.desks)
 	return (
 		<HoldList hold={props.hold.list} css={board.root}>
 			<div ref={root} {...stylex.props(board.columns)}>
-				{TURNS.map((turn, index) => (
+				{held.map(column => (
 					<BoardColumn
-						key={turn}
-						turn={turn}
-						desks={columns[index] ?? []}
+						key={column.key}
+						turn={column.key}
+						desks={column.desks}
 						columns={columns}
-						props={props}
+						context={props.context}
 					/>
 				))}
 			</div>

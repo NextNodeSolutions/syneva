@@ -38,6 +38,8 @@ export type DashboardState = {
 	phase: HubPhase
 	// The listing when there is one to show (not while loading, signed out or never listed).
 	listed: Listed | null
+	// Whether the hub answers: a stale listing shows with every pulse off.
+	isLive: boolean
 	journal: Journal
 	projects: HubProject[]
 	toast: CloseNoticeState
@@ -77,6 +79,7 @@ export function useDashboard(): DashboardState {
 		hub,
 		phase,
 		listed,
+		isLive: listed?.isStale !== true,
 		journal,
 		projects,
 		toast,

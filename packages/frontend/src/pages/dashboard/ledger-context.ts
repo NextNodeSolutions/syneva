@@ -6,7 +6,7 @@ import type { DashboardState } from './use-dashboard'
 export function ledgerContext(dashboard: DashboardState): LedgerContext {
 	return {
 		now: dashboard.hub.now,
-		isLive: dashboard.listed?.isStale !== true,
+		isLive: dashboard.isLive,
 		arrivedIds: dashboard.hub.arrivedIds,
 		close: dashboard.close,
 		since: dashboard.since,

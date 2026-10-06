@@ -71,10 +71,7 @@ function BoardAndJournal({
 		<>
 			<BoardView
 				desks={desks}
-				now={dashboard.hub.now}
-				isLive={dashboard.listed?.isStale !== true}
-				since={dashboard.since}
-				close={dashboard.close}
+				context={ledgerContext(dashboard)}
 				hold={{ list: dashboard.hold, isHeld: dashboard.isListHeld }}
 			/>
 			{prefs.showsJournal && (
@@ -89,7 +86,6 @@ function BoardAndJournal({
 // the journal follows it.
 export function OverviewBody(props: OverviewBodyProps): ReactElement {
 	const { dashboard, desks, view } = props
-	const isLive = dashboard.listed?.isStale !== true
 	if (view.layout === 'board') return <BoardAndJournal {...props} />
 	if (view.layout === 'cockpit') {
 		const yours = desks
@@ -114,7 +110,7 @@ export function OverviewBody(props: OverviewBodyProps): ReactElement {
 			<CircuitBand
 				desks={desks}
 				station={view.station}
-				isLive={isLive}
+				isLive={dashboard.isLive}
 				onSelect={station => view.change({ station })}
 			/>
 			<LedgerAndJournal {...props} />
