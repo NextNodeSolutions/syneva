@@ -6,7 +6,6 @@ import { displayRoot } from '../format'
 import { TURN_COPY } from './turn-copy'
 
 import type { HubDesk } from '@entities/hub/model'
-import type { Turn } from '@entities/hub/turn'
 import type { LedgerGroup } from '../react/desk-ledger'
 
 // How the overview's ledger groups its desks: by turn (the default: the reviewer's own first)
@@ -19,10 +18,9 @@ export type WaitingSince = (desk: HubDesk) => string
 
 export function groupsByTurn(
 	desks: readonly HubDesk[],
-	{ station, since }: { station: Turn | null; since: WaitingSince },
+	since: WaitingSince,
 ): LedgerGroup[] {
-	const turns = station ? [station] : TURNS
-	return turns.flatMap(turn => {
+	return TURNS.flatMap(turn => {
 		const copy = TURN_COPY[turn]
 		const listed = desks
 			.filter(desk => turnOf(desk) === turn)
@@ -33,7 +31,7 @@ export function groupsByTurn(
 				key: turn,
 				title: copy.heading,
 				note: copy.note,
-				dot: { tone: copy.dot.tone, isHollow: copy.dot.isHollow },
+				dot: copy.dot,
 				desks: listed,
 			},
 		]

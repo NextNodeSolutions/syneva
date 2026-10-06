@@ -33,12 +33,9 @@ function PlansListed({
 	const root = useRef<HTMLDivElement>(null)
 	useEntrance(root, 'plans')
 	const plans = listed.desks.filter(desk => desk.mode === 'file')
-	const groups = useHeldOrder(
-		groupsByTurn(plans, { station: null, since: dashboard.since }),
-		{
-			isHeld: dashboard.isListHeld,
-		},
-	)
+	const groups = useHeldOrder(groupsByTurn(plans, dashboard.since), {
+		isHeld: dashboard.isListHeld,
+	})
 	const liveIds = new Set(listed.desks.map(desk => desk.id))
 	const closed = closedDesks(dashboard.journal.events, liveIds).filter(
 		event => event.mode === 'file',

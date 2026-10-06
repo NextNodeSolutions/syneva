@@ -40,7 +40,7 @@ function LedgerAndJournal({
 		: desks
 	const groups = useHeldOrder(
 		prefs.grouping === 'turn'
-			? groupsByTurn(listed, { station: null, since: dashboard.since })
+			? groupsByTurn(listed, dashboard.since)
 			: groupsByProject(listed, dashboard.since),
 		{ isHeld: dashboard.isListHeld },
 	)

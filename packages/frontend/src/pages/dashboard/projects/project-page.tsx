@@ -28,12 +28,9 @@ function ProjectBody({
 	desks,
 	listed,
 }: ProjectProps & { listed: Listed }): ReactElement {
-	const groups = useHeldOrder(
-		groupsByTurn(desks, { station: null, since: dashboard.since }),
-		{
-			isHeld: dashboard.isListHeld,
-		},
-	)
+	const groups = useHeldOrder(groupsByTurn(desks, dashboard.since), {
+		isHeld: dashboard.isListHeld,
+	})
 	const liveIds = new Set(listed.desks.map(desk => desk.id))
 	const closed = closedDesks(dashboard.journal.events, liveIds).filter(
 		event => event.projectId === id,
