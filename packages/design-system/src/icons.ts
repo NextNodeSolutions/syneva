@@ -22,3 +22,5 @@ export type IconName = keyof typeof ICONS
 // The primary action's arrow: 20-unit grid (not 24), stroked like the icons.
 export const ARROW_VIEW_BOX = '0 0 20 20'
 export const ARROW_PATH = 'M4 10h12m-5-5 5 5-5 5'
+// A verdict's check, on the arrow's 20-unit grid: the hero's line 2, the signup's joined lines.
+export const CHECK_PATH = 'm4 10.5 4 4 8-9'

@@ -116,12 +116,4 @@ export const compare = stylex.create({
 			fontWeight: { default: 600, [media.phone]: 600 },
 		},
 	},
-	hidden: {
-		position: 'absolute',
-		width: '1px',
-		height: '1px',
-		overflow: 'hidden',
-		clipPath: 'inset(50%)',
-		whiteSpace: 'nowrap',
-	},
 })

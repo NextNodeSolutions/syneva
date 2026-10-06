@@ -1,6 +1,6 @@
-import { a11y } from '@shared/ui/a11y.styles'
 import { Meter } from '@shared/ui/meter'
 import * as stylex from '@stylexjs/stylex'
+import { a11y } from '@syneva/design-system/a11y.styles'
 
 import { deskReview } from './desk-review.styles'
 import { Fraction } from './fraction'

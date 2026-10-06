@@ -1,5 +1,5 @@
-import { a11y } from '@shared/ui/a11y.styles'
 import * as stylex from '@stylexjs/stylex'
+import { a11y } from '@syneva/design-system/a11y.styles'
 
 import { deskReview } from './desk-review.styles'
 

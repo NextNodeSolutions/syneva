@@ -1,7 +1,7 @@
 import { dayStartBefore } from '@entities/hub/journal-stats'
-import { a11y } from '@shared/ui/a11y.styles'
 import { tip } from '@shared/ui/tip.styles'
 import * as stylex from '@stylexjs/stylex'
+import { a11y } from '@syneva/design-system/a11y.styles'
 
 import { plural, SHORT_DATE } from '../../format'
 

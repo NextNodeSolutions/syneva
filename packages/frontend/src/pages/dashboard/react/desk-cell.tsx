@@ -1,6 +1,6 @@
-import { a11y } from '@shared/ui/a11y.styles'
 import { run } from '@shared/ui/run.styles'
 import * as stylex from '@stylexjs/stylex'
+import { a11y } from '@syneva/design-system/a11y.styles'
 
 import { deskLinkId } from '../focus-targets'
 import { modeParts, relativeTime, unbroken } from '../format'

@@ -1,8 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { focus } from '@syneva/design-system/controls.styles'
 import { textLink } from '@syneva/design-system/inline.styles'
-
-import { textButton } from './text-button.styles'
+import { textButton } from '@syneva/design-system/inline.styles'
 
 import type { Style } from '@shared/lib/cx'
 import type { ComponentPropsWithRef, ReactElement } from 'react'

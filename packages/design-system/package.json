@@ -19,6 +19,7 @@
 		"./controls.stylex": "./src/controls.stylex.ts",
 		"./controls.styles": "./src/controls.styles.ts",
 		"./inline.styles": "./src/inline.styles.ts",
+		"./a11y.styles": "./src/a11y.styles.ts",
 		"./meter.styles": "./src/meter.styles.ts",
 		"./ruled.styles": "./src/ruled.styles.ts",
 		"./icons": "./src/icons.ts",

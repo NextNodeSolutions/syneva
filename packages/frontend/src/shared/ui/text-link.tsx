@@ -1,9 +1,8 @@
 import * as stylex from '@stylexjs/stylex'
+import { a11y } from '@syneva/design-system/a11y.styles'
 import { focus } from '@syneva/design-system/controls.styles'
 import { textLinkMarker } from '@syneva/design-system/controls.stylex'
 import { textLink } from '@syneva/design-system/inline.styles'
-
-import { a11y } from './a11y.styles'
 
 import type { ReactElement, ReactNode } from 'react'
 
