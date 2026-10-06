@@ -57,6 +57,11 @@ export const HUB_PATHS = {
 	logout: '/logout',
 } as const
 
+// The most events one GET /api/hub/journal answers: a larger `limit` is clamped to it, and a read
+// with more events after `after` than its limit answers the newest ones. A reader that keeps a
+// window of this many events (the dashboard) therefore loses none it would hold to the cap.
+export const JOURNAL_READ_MAX = 2000
+
 // The dashboard's pages: the hub serves the dashboard's page shell at each of them (and at
 // every project page under PROJECT_PAGE_PREFIX), and the dashboard routes between them in the
 // browser, so each is also a URL that survives a reload or a shared link.

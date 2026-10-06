@@ -1,6 +1,11 @@
 import { ApiError, hubApi } from '@shared/api/client'
 import { assertObject, DecodeError, requiredBoolean } from '@shared/api/decode'
-import { HUB_PATHS, hubDeskPath, STATIC_PATHS } from '@syneva/contracts/routes'
+import {
+	HUB_PATHS,
+	hubDeskPath,
+	JOURNAL_READ_MAX,
+	STATIC_PATHS,
+} from '@syneva/contracts/routes'
 
 import { decodeHubDesk, decodeHubDesks, decodeHubHealth } from './decode'
 import { decodeJournal } from './journal-decode'
@@ -36,15 +41,19 @@ export const fetchHubHealth = async (
 		HUB_PATHS.health,
 	)
 
-// The journal's events after `after` (its whole kept tail when absent), oldest first: the
-// dashboard reads the tail once, then only what follows the newest event it holds.
+// The journal's events after `after` (its kept tail when absent), oldest first: the dashboard
+// reads the tail once, then only what follows the newest event it holds. Every read asks for the
+// most the hub answers (JOURNAL_READ_MAX), the window the page keeps, so a read capped at it
+// drops nothing the page would hold: the first read of a long journal, or a tab back after
+// hours hidden.
 export const fetchHubJournal = async (
 	after: number | null,
 	signal?: AbortSignal,
 ): Promise<JournalRead> => {
-	const query = after === null ? '' : `?after=${after}`
+	const query = new URLSearchParams({ limit: String(JOURNAL_READ_MAX) })
+	if (after !== null) query.set('after', String(after))
 	return decodeJournal(
-		await hubApi(`${HUB_PATHS.journal}${query}`, {
+		await hubApi(`${HUB_PATHS.journal}?${query}`, {
 			signal: signal ?? null,
 		}),
 		HUB_PATHS.journal,

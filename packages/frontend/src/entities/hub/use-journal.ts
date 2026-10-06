@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 
+import { JOURNAL_READ_MAX } from '@syneva/contracts/routes'
+
 import { fetchHubJournal } from './api'
 import { EMPTY_JOURNAL } from './journal'
 import { pollWhileVisible, READ_TIMEOUT_MS } from './poll'
 
 import type { Journal, JournalRead } from './journal'
 
-// How much of the journal the page keeps: weeks of a busy hub, bounded so a long-open tab
-// never grows without end. The hub keeps more; the page reads what its views count.
-const KEPT_EVENTS = 2000
+// The page keeps the newest JOURNAL_READ_MAX events: weeks of a busy hub, bounded so a long-open
+// tab never grows without end, and exactly what one read answers (api.ts), so no read leaves a
+// hole in it. The hub keeps more; the page reads what its views count.
 
 // The journal with the events of a read appended (a read only ever brings newer ones). The
 // first read is the journal as it stood: none of it counts as arrived.
@@ -24,7 +26,7 @@ function appended(
 	let freshAfter: number | null = null
 	if (!isFirst) freshAfter = newest
 	return {
-		events: [...held.events, ...fresh].slice(-KEPT_EVENTS),
+		events: [...held.events, ...fresh].slice(-JOURNAL_READ_MAX),
 		freshAfter,
 		isRead: true,
 	}
@@ -32,7 +34,7 @@ function appended(
 
 type Keep = (update: (held: Journal) => Journal) => void
 
-// Follow the hub's journal into `keep`, on the listing's cadence (poll.ts): the whole kept tail
+// Follow the hub's journal into `keep`, on the listing's cadence (poll.ts): its newest events
 // first, then only what follows the newest event read. Returns the teardown.
 function followJournal(keep: Keep): () => void {
 	let after: number | null = null

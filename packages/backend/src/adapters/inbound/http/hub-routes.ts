@@ -1,7 +1,7 @@
 import os from 'node:os'
 import path from 'node:path'
 
-import { HUB_PATHS } from '@syneva/contracts/routes'
+import { HUB_PATHS, JOURNAL_READ_MAX } from '@syneva/contracts/routes'
 
 import { validateGuide } from '../../../domain/guide.js'
 
@@ -144,7 +144,7 @@ export async function readJournal(
 			status: HTTP_UNPROCESSABLE,
 			code: 'INVALID_JOURNAL_QUERY',
 			error: query.error,
-			fix: `GET ${HUB_PATHS.journal}[?after=<seq>][&limit=<1-${JOURNAL_MAX_LIMIT}>], both non-negative integers.`,
+			fix: `GET ${HUB_PATHS.journal}[?after=<seq>][&limit=<1-${JOURNAL_READ_MAX}>], both non-negative integers.`,
 		})
 	json(res, HTTP_OK, await deps.journal.read(query))
 }
@@ -173,13 +173,13 @@ export function shutdownHub(deps: HubRouteDeps, res: ServerResponse): void {
 	json(res, HTTP_OK, { ok: true, stopping: true })
 }
 
-// A dashboard poll reads a page of recent events; a cold read of the whole kept tail pages too.
+// A read that names no limit (an agent's curl) gets a page of recent events; the dashboard asks
+// for JOURNAL_READ_MAX, the window it keeps.
 const JOURNAL_DEFAULT_LIMIT = 500
-const JOURNAL_MAX_LIMIT = 2000
 const COUNT_PARAM = /^\d+$/
 
 // `after` defaults to 0 (seqs start at 1, so: everything kept); `limit` is clamped into
-// 1..JOURNAL_MAX_LIMIT. Either one present but not a non-negative integer is refused.
+// 1..JOURNAL_READ_MAX. Either one present but not a non-negative integer is refused.
 function parseJournalQuery(
 	params: URLSearchParams,
 ): JournalQuery | { error: string } {
@@ -195,7 +195,7 @@ function parseJournalQuery(
 		after: Number(after ?? 0),
 		limit: Math.min(
 			Math.max(Number(limit ?? JOURNAL_DEFAULT_LIMIT), 1),
-			JOURNAL_MAX_LIMIT,
+			JOURNAL_READ_MAX,
 		),
 	}
 }
