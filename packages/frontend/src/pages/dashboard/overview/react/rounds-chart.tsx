@@ -3,18 +3,13 @@ import { a11y } from '@shared/ui/a11y.styles'
 import { tip } from '@shared/ui/tip.styles'
 import * as stylex from '@stylexjs/stylex'
 
-import { plural } from '../../format'
+import { plural, SHORT_DATE } from '../../format'
 
 import { roundsChart } from './rounds-chart.styles'
 import { slotMarker } from './rounds-chart.stylex'
 
 import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
-
-const DAY = new Intl.DateTimeFormat(undefined, {
-	month: 'short',
-	day: 'numeric',
-})
 
 // Every other day is named under the axis (today always), so the labels never crowd.
 const LABEL_EVERY = 2
@@ -37,7 +32,7 @@ function daysOf(counts: readonly number[], now: number): Day[] {
 		name:
 			index === last
 				? 'Today'
-				: DAY.format(new Date(now - (last - index) * DAY_MS)),
+				: SHORT_DATE.format(new Date(now - (last - index) * DAY_MS)),
 		count,
 		isNamed: (last - index) % LABEL_EVERY === 0,
 	}))

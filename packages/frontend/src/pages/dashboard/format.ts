@@ -1,8 +1,8 @@
 import type { HubDesk } from '@entities/hub/model'
 
 export const MS_PER_SECOND = 1000
-const SECONDS_PER_MINUTE = 60
-const MINUTES_PER_HOUR = 60
+export const SECONDS_PER_MINUTE = 60
+export const MINUTES_PER_HOUR = 60
 const HOURS_PER_DAY = 24
 const JUST_NOW_SECONDS = 10
 
@@ -21,6 +21,12 @@ export function relativeTime(at: string | number, now: number): string {
 	if (hours < HOURS_PER_DAY) return `${hours}h ago`
 	return `${Math.floor(hours / HOURS_PER_DAY)}d ago`
 }
+
+// A day as a date reads it short ("Oct 6"): a journal line older than today, a chart's day.
+export const SHORT_DATE = new Intl.DateTimeFormat(undefined, {
+	month: 'short',
+	day: 'numeric',
+})
 
 // "1 desk" / "3 desks"; a noun whose plural is not its singular plus s names it ("repository",
 // "repositories").

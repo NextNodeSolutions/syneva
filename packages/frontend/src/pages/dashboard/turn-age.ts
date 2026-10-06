@@ -15,11 +15,10 @@ export function turnLasted(since: string, now: number): string {
 }
 
 export function turnAge(desk: HubDesk, since: string, now: number): string {
-	const ago = relativeTime(since, now)
-	const lasted = ago.replace(AGO, '')
+	const lasted = turnLasted(since, now)
 	const turn = turnOf(desk)
 	if (turn === 'yours') return `waiting ${lasted}`
 	if (turn === 'agent') return `working ${lasted}`
-	if (turn === 'sent') return `sent ${ago}`
+	if (turn === 'sent') return `sent ${relativeTime(since, now)}`
 	return `quiet ${lasted}`
 }

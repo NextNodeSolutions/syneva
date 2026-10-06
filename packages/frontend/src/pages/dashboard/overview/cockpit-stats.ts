@@ -9,6 +9,8 @@ import {
 } from '@entities/hub/journal-stats'
 import { turnCounts } from '@entities/hub/turn'
 
+import { MINUTES_PER_HOUR, MS_PER_SECOND, SECONDS_PER_MINUTE } from '../format'
+
 import type { JournalEvent } from '@entities/hub/journal'
 import type { VerdictTotals } from '@entities/hub/journal-stats'
 import type { HubDesk } from '@entities/hub/model'
@@ -55,10 +57,6 @@ export function cockpitStats(
 		verdicts: verdictTotals(thisWeek),
 	}
 }
-
-const MS_PER_SECOND = 1000
-const SECONDS_PER_MINUTE = 60
-const MINUTES_PER_HOUR = 60
 
 // A duration as a figure and its unit, at the coarsest unit that keeps it whole: "45 s",
 // "6 min", "2 h".

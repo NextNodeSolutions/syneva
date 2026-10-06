@@ -1,4 +1,4 @@
-import { plural } from '../format'
+import { plural, SHORT_DATE } from '../format'
 
 import type { JournalEvent, RoundSent } from '@entities/hub/journal'
 import type { DotTone } from '@shared/ui/live-dot'
@@ -67,15 +67,11 @@ const TIME = new Intl.DateTimeFormat(undefined, {
 	hour: '2-digit',
 	minute: '2-digit',
 })
-const DATE = new Intl.DateTimeFormat(undefined, {
-	month: 'short',
-	day: 'numeric',
-})
 
 // When it happened, as a feed reads it: the time of day for today, the date before that.
 export function eventTime(at: string, now: number): string {
 	const when = new Date(at)
 	return when.toDateString() === new Date(now).toDateString()
 		? TIME.format(when)
-		: DATE.format(when)
+		: SHORT_DATE.format(when)
 }
