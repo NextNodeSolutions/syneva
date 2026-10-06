@@ -23,7 +23,7 @@ export type CockpitStats = {
 	roundsThisWeek: number
 	// Null until the journal reaches back two weeks.
 	roundsWeekBefore: number | null
-	// The reviewer's median time from a diff landing to the Send, this week (ms).
+	// The reviewer's median time from a diff landing to the Send, over this week's Sends (ms).
 	medianReview: number | null
 	perDay: number[]
 	verdicts: VerdictTotals
@@ -44,7 +44,6 @@ export function cockpitStats(
 	const thisWeek = roundsSince(events, weekAgo)
 	const [first] = events
 	const reachesTwoWeeks = !!first && Date.parse(first.at) <= twoWeeksAgo
-	const recent = events.filter(event => Date.parse(event.at) >= weekAgo)
 	return {
 		yours: counts.yours,
 		agent: counts.agent,
@@ -52,7 +51,7 @@ export function cockpitStats(
 		roundsWeekBefore: reachesTwoWeeks
 			? roundsSince(events, twoWeeksAgo).length - thisWeek.length
 			: null,
-		medianReview: median(reviewTimes(recent)),
+		medianReview: median(reviewTimes(events, weekAgo)),
 		perDay: roundsPerDay(events, now, CHART_DAYS),
 		verdicts: verdictTotals(thisWeek),
 	}

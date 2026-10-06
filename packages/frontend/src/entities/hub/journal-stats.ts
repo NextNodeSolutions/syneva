@@ -45,9 +45,14 @@ export function roundsSince(
 }
 
 // How long each round took the reviewer: from the moment its diff landed on the desk (the
-// desk opened, or the agent reloaded it) to the Send. A Send with no landing since the
-// previous one (a second Send over the same diff) measures nothing.
-export function reviewTimes(events: readonly JournalEvent[]): number[] {
+// desk opened, or the agent reloaded it) to the Send, for the Sends from `since` on. Landings
+// are read from every event: a diff that landed before `since` and was sent after it is a
+// review of that period, and dropping it would leave the slowest reviews out. A Send with no
+// landing since the previous one (a second Send over the same diff) measures nothing.
+export function reviewTimes(
+	events: readonly JournalEvent[],
+	since: number,
+): number[] {
 	const landings = new Map<string, number>()
 	const times: number[] = []
 	for (const event of events) {
@@ -56,7 +61,7 @@ export function reviewTimes(events: readonly JournalEvent[]): number[] {
 			landings.set(event.deskId, at)
 		if (!isRoundSent(event)) continue
 		const landed = landings.get(event.deskId)
-		if (landed) times.push(at - landed)
+		if (landed && at >= since) times.push(at - landed)
 		landings.delete(event.deskId)
 	}
 	return times
