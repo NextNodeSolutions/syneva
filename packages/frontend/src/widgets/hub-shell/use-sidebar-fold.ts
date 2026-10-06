@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 
+import { readStored, writeStored } from '@shared/lib/browser-storage'
 import { queries } from '@syneva/design-system/media.stylex'
 
 // The sidebar folded to its rail or open, as the reviewer last left it on this browser (a
@@ -11,22 +12,10 @@ const FOLDED = 'folded'
 const OPEN = 'open'
 
 function remembered(): boolean | null {
-	try {
-		const kept = window.localStorage.getItem(STORAGE_KEY)
-		if (kept === FOLDED) return true
-		if (kept === OPEN) return false
-	} catch {
-		// Storage refused: fall back on the screen's width.
-	}
+	const kept = readStored(STORAGE_KEY)
+	if (kept === FOLDED) return true
+	if (kept === OPEN) return false
 	return null
-}
-
-function remember(isFolded: boolean): void {
-	try {
-		window.localStorage.setItem(STORAGE_KEY, isFolded ? FOLDED : OPEN)
-	} catch {
-		// Storage refused: the choice holds for this page only.
-	}
 }
 
 export type SidebarFold = { isFolded: boolean; toggle: () => void }
@@ -37,7 +26,7 @@ export function useSidebarFold(): SidebarFold {
 	)
 	const toggle = useCallback(() => {
 		setFolded(was => {
-			remember(!was)
+			writeStored(STORAGE_KEY, was ? OPEN : FOLDED)
 			return !was
 		})
 	}, [])

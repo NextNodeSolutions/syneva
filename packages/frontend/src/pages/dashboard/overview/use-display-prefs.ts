@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 
+import { readStored, writeStored } from '@shared/lib/browser-storage'
+
 import type { Grouping } from './groups'
 
 // How the reviewer likes the overview's lists, remembered on this browser (a per-viewer
@@ -21,9 +23,7 @@ const STORAGE_KEY = 'syneva.hub.display'
 
 function remembered(): DisplayPrefs {
 	try {
-		const kept: unknown = JSON.parse(
-			window.localStorage.getItem(STORAGE_KEY) ?? 'null',
-		)
+		const kept: unknown = JSON.parse(readStored(STORAGE_KEY) ?? 'null')
 		if (typeof kept !== 'object' || kept === null) return DEFAULT_PREFS
 		const grouping = Reflect.get(kept, 'grouping')
 		const showsIdle = Reflect.get(kept, 'showsIdle')
@@ -34,6 +34,7 @@ function remembered(): DisplayPrefs {
 			showsJournal: showsJournal !== false,
 		}
 	} catch {
+		// A memory this page cannot read back.
 		return DEFAULT_PREFS
 	}
 }
@@ -47,11 +48,7 @@ export function useDisplayPrefs(): DisplayPrefsState {
 	const change = useCallback((next: Partial<DisplayPrefs>) => {
 		setPrefs(was => {
 			const merged = { ...was, ...next }
-			try {
-				window.localStorage.setItem(STORAGE_KEY, JSON.stringify(merged))
-			} catch {
-				// Storage refused: the choice holds for this page only.
-			}
+			writeStored(STORAGE_KEY, JSON.stringify(merged))
 			return merged
 		})
 	}, [])
