@@ -1,3 +1,5 @@
+import { TURNS } from '@entities/hub/turn'
+
 import type { HubDesk } from '@entities/hub/model'
 import type { Turn } from '@entities/hub/turn'
 
@@ -33,14 +35,12 @@ const PARAM = {
 	mode: 'mode',
 } as const
 
-const STATIONS: readonly Turn[] = ['yours', 'agent', 'sent', 'idle']
-
 function isLayout(name: string | null): name is Layout {
 	return LAYOUTS.some(layout => layout === name)
 }
 
 function isStation(name: string | null): name is Turn {
-	return STATIONS.some(station => station === name)
+	return TURNS.some(turn => turn === name)
 }
 
 function isModeKey(name: string): name is ModeKey {

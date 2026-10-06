@@ -4,6 +4,7 @@ import { LineIcon } from '@shared/ui/line-icon'
 import * as stylex from '@stylexjs/stylex'
 
 import { deskCloseId, deskKeepId } from '../focus-targets'
+import { modeKeyOf } from '../overview/display'
 import { rowDescription } from '../row-description'
 import { stageCopy } from '../stage-copy'
 import { turnLasted } from '../turn-age'
@@ -19,6 +20,7 @@ import { DeskStage } from './desk-stage'
 import type { HubDesk } from '@entities/hub/model'
 import type { IconName } from '@syneva/design-system/icons'
 import type { ReactElement } from 'react'
+import type { ModeKey } from '../overview/display'
 import type { CloseActions, CloseState } from '../use-desk-close'
 
 type DeskRowProps = {
@@ -32,10 +34,11 @@ type DeskRowProps = {
 }
 
 // The site's line icon for what the desk reviews.
-function iconOf(desk: HubDesk): IconName {
-	if (desk.mode === 'file') return 'file'
-	if (desk.mode === 'pr') return 'branch'
-	return desk.staged ? 'staged' : 'tree'
+const MODE_ICONS: Record<ModeKey, IconName> = {
+	working: 'tree',
+	staged: 'staged',
+	file: 'file',
+	pr: 'branch',
 }
 
 // The row's end: Close (armed, Close desk and Keep), then Open, the row's way in, which the
@@ -103,7 +106,7 @@ export function DeskRow({
 				deskRowMarker,
 			)}
 		>
-			<LineIcon name={iconOf(desk)} css={deskRow.icon} />
+			<LineIcon name={MODE_ICONS[modeKeyOf(desk)]} css={deskRow.icon} />
 			<DeskCell desk={desk} now={now} describedBy={ids.description} />
 			<span id={ids.description} hidden>
 				{rowDescription(desk, copy, now)}
