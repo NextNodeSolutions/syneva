@@ -2,16 +2,13 @@ import { useEffect, useState } from 'react'
 
 import { fetchHubJournal } from './api'
 import { EMPTY_JOURNAL } from './journal'
-import { HUB_POLL_MS } from './use-hub'
+import { pollWhileVisible, READ_TIMEOUT_MS } from './poll'
 
 import type { Journal, JournalRead } from './journal'
 
 // How much of the journal the page keeps: weeks of a busy hub, bounded so a long-open tab
 // never grows without end. The hub keeps more; the page reads what its views count.
 const KEPT_EVENTS = 2000
-// A read the hub has not answered within two cadences is abandoned, as the listing's are.
-const READ_TIMEOUT_CADENCES = 2
-const READ_TIMEOUT_MS = READ_TIMEOUT_CADENCES * HUB_POLL_MS
 
 // The journal with the events of a read appended (a read only ever brings newer ones). The
 // first read is the journal as it stood: none of it counts as arrived.
@@ -35,14 +32,11 @@ function appended(
 
 type Keep = (update: (held: Journal) => Journal) => void
 
-// Follow the hub's journal into `keep`, on the listing's cadence: the whole kept tail first,
-// then only what follows the newest event read. Returns the teardown.
+// Follow the hub's journal into `keep`, on the listing's cadence (poll.ts): the whole kept tail
+// first, then only what follows the newest event read. Returns the teardown.
 function followJournal(keep: Keep): () => void {
 	let after: number | null = null
-	let isReading = false
-	const read = async (): Promise<void> => {
-		if (isReading || document.hidden) return
-		isReading = true
+	return pollWhileVisible(async () => {
 		try {
 			const next = await fetchHubJournal(
 				after,
@@ -61,13 +55,8 @@ function followJournal(keep: Keep): () => void {
 			// Kept as it was, but read: a hub that did not answer has nothing more to say about
 			// its history (the listing's poll reports an unreachable hub).
 			keep(held => (held.isRead ? held : { ...held, isRead: true }))
-		} finally {
-			isReading = false
 		}
-	}
-	void read()
-	const timer = setInterval(() => void read(), HUB_POLL_MS)
-	return (): void => clearInterval(timer)
+	})
 }
 
 // The hub's journal, read whole once and then followed, paused while the tab is hidden. A
