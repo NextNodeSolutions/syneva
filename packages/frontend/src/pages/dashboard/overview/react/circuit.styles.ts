@@ -51,7 +51,10 @@ export const circuit = stylex.create({
 		borderStyle: 'solid',
 		borderColor: {
 			default: color['--line-strong'],
-			':hover': color['--accent'],
+			[media.finePointer]: {
+				default: color['--line-strong'],
+				':hover': color['--accent'],
+			},
 		},
 		transition: `background-color ${transition.fast}, border-color ${transition.fast}`,
 	},
@@ -61,14 +64,20 @@ export const circuit = stylex.create({
 		backgroundColor: color['--wash-tint'],
 		borderColor: {
 			default: color['--accent-line'],
-			':hover': color['--accent'],
+			[media.finePointer]: {
+				default: color['--accent-line'],
+				':hover': color['--accent'],
+			},
 		},
 	},
 	stationOn: {
 		backgroundColor: color['--wash'],
 		borderColor: {
 			default: color['--accent'],
-			':hover': color['--accent'],
+			[media.finePointer]: {
+				default: color['--accent'],
+				':hover': color['--accent'],
+			},
 		},
 	},
 	label: {

@@ -30,6 +30,18 @@ export const focus = stylex.create({
 	inset: { ...focusRing, outlineOffset: '-2px' },
 })
 
+// A tone's colour at rest and under the pointer, a fine pointer's only: a tap leaves a sticky
+// :hover behind on touch screens, which would read as the control's chosen or active state.
+type Hovered = {
+	default: string
+	[key: string]: string | { default: string; ':hover': string }
+}
+
+const hovered = (rest: string, hover: string): Hovered => ({
+	default: rest,
+	[media.finePointer]: { default: rest, ':hover': hover },
+})
+
 export const control = stylex.create({
 	base: {
 		...focusRing,
@@ -60,49 +72,28 @@ export const control = stylex.create({
 	// The action of a surface: solid petrol, white label.
 	primary: {
 		color: color['--white'],
-		backgroundColor: {
-			default: color['--accent'],
-			':hover': color['--accent-deep'],
-		},
-		borderColor: {
-			default: color['--accent'],
-			':hover': color['--accent-deep'],
-		},
+		backgroundColor: hovered(color['--accent'], color['--accent-deep']),
+		borderColor: hovered(color['--accent'], color['--accent-deep']),
 	},
 	// The site header's action: a white tile under a strong rule that turns
 	// petrol on hover.
 	outlined: {
-		color: { default: color['--ink'], ':hover': color['--accent'] },
-		backgroundColor: {
-			default: color['--white'],
-			':hover': color['--wash'],
-		},
-		borderColor: {
-			default: color['--line-strong'],
-			':hover': color['--accent'],
-		},
+		color: hovered(color['--ink'], color['--accent']),
+		backgroundColor: hovered(color['--white'], color['--wash']),
+		borderColor: hovered(color['--line-strong'], color['--accent']),
 	},
 	// A secondary action that should not compete: no tile until hovered.
 	quiet: {
-		color: { default: color['--muted'], ':hover': color['--ink'] },
-		backgroundColor: {
-			default: 'transparent',
-			':hover': color['--field'],
-		},
+		color: hovered(color['--muted'], color['--ink']),
+		backgroundColor: hovered('transparent', color['--field']),
 		borderColor: 'transparent',
 	},
 	// A destructive action, shown only once it has been asked for (an armed
 	// close, a discard): solid red.
 	danger: {
 		color: color['--white'],
-		backgroundColor: {
-			default: color['--red'],
-			':hover': color['--red-deep'],
-		},
-		borderColor: {
-			default: color['--red'],
-			':hover': color['--red-deep'],
-		},
+		backgroundColor: hovered(color['--red'], color['--red-deep']),
+		borderColor: hovered(color['--red'], color['--red-deep']),
 	},
 	small: {
 		minHeight: '30px',

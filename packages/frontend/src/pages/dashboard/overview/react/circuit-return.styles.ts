@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
+import { transition } from '@syneva/design-system/transitions.stylex'
 
 // The next round's way back, under the stations: a dotted petrol rule from the Sent station's
 // foot round to the agent's, arriving on an arrowhead. Its ends sit on the outer stations'
@@ -63,12 +64,21 @@ export const circuitReturn = stylex.create({
 		paddingInline: '8px',
 		fontFamily: font['--mono'],
 		fontSize: '11px',
-		color: { default: color['--muted'], ':hover': color['--ink'] },
+		color: {
+			default: color['--muted'],
+			[media.finePointer]: {
+				default: color['--muted'],
+				':hover': color['--ink'],
+			},
+		},
 		backgroundColor: 'transparent',
 		borderWidth: '1px',
 		borderStyle: 'solid',
 		borderColor: 'transparent',
 		cursor: 'pointer',
+		// It gives under the pointer, as every control does (press.control).
+		transform: { default: null, ':active': 'scale(.97)' },
+		transition: `color ${transition.fast}, background-color ${transition.fast}, border-color ${transition.fast}, transform ${transition.fast}`,
 	},
 	idleOn: {
 		color: color['--ink'],

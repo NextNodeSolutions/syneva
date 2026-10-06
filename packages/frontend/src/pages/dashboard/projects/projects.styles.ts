@@ -1,4 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 import { transition } from '@syneva/design-system/transitions.stylex'
 
@@ -44,7 +45,13 @@ export const projectsList = stylex.create({
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
-		backgroundColor: { default: 'transparent', ':hover': color['--white'] },
+		backgroundColor: {
+			default: 'transparent',
+			[media.finePointer]: {
+				default: 'transparent',
+				':hover': color['--white'],
+			},
+		},
 		transition: `background-color ${transition.fast}`,
 	},
 	who: { minWidth: 0 },
