@@ -30,8 +30,9 @@ export function JournalAside({
 		<aside
 			{...stylex.props(overview.journal)}
 			aria-labelledby="journal-title"
+			data-enter="fade"
 		>
-			<div {...stylex.props(overview.journalHead)} data-enter="fade">
+			<div {...stylex.props(overview.journalHead)}>
 				<h2 id="journal-title" {...stylex.props(overview.journalTitle)}>
 					Journal
 				</h2>

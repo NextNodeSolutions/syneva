@@ -22,8 +22,9 @@ export function useTurnFlash(
 		if (!before || !root.current) return
 		for (const [id, turn] of turns) {
 			const was = before.get(id)
+			if (!was || was === turn) continue
 			const row = root.current.querySelector(`[data-flip="${id}"]`)
-			if (was && was !== turn && row) playFlash(row, '--wash')
+			if (row) playFlash(row, '--wash')
 		}
 	})
 }

@@ -38,4 +38,12 @@ export const tip = stylex.create({
 	end: {
 		'::after': { left: 'auto', right: 0, transform: 'none' },
 	},
+	// Left-anchored, for controls near the left edge.
+	start: {
+		'::after': { left: 0, transform: 'none' },
+	},
+	// Over the control, for one whose underside holds labels the tip must not cover.
+	above: {
+		'::after': { top: 'auto', bottom: 'calc(100% + 6px)' },
+	},
 })

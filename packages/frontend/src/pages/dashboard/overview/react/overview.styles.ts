@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
+import { transition } from '@syneva/design-system/transitions.stylex'
 
 // The overview's body under its head and display: the ledger with the journal beside it when
 // the page is wide enough for both, under it otherwise. The page is the `page` container its
@@ -14,6 +15,8 @@ export const overview = stylex.create({
 		containerName: 'page',
 		minHeight: '100%',
 	},
+	// A wrapper that only scopes an entrance: it takes no box, so the page lays out as without it.
+	part: { display: 'contents' },
 	split: {
 		display: 'grid',
 		gridTemplateColumns: {
@@ -59,5 +62,6 @@ export const overview = stylex.create({
 		color: { default: color['--muted'], ':hover': color['--accent'] },
 		textDecoration: 'underline',
 		textUnderlineOffset: '3px',
+		transition: `color ${transition.fast}`,
 	},
 })

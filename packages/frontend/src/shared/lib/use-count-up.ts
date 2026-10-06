@@ -33,7 +33,12 @@ export function useCountUp(
 		const start = performance.now()
 		let frame = 0
 		const tick = (time: number): void => {
-			const progress = Math.min(1, (time - start) / MOTION_MS.count)
+			// The first frame's timestamp can precede `start`: a progress below zero would
+			// ease past `from` and show a figure the count never holds.
+			const progress = Math.min(
+				1,
+				Math.max(0, (time - start) / MOTION_MS.count),
+			)
 			show(Math.round(from + (target - from) * eased(progress)))
 			if (progress < 1) frame = requestAnimationFrame(tick)
 		}

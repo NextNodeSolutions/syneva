@@ -1,5 +1,4 @@
 import { DAY_MS } from '@entities/hub/journal-stats'
-import { MOTION_MS, staggerDelay } from '@shared/lib/motion'
 import { a11y } from '@shared/ui/a11y.styles'
 import { tip } from '@shared/ui/tip.styles'
 import * as stylex from '@stylexjs/stylex'
@@ -7,7 +6,9 @@ import * as stylex from '@stylexjs/stylex'
 import { plural } from '../../format'
 
 import { roundsChart } from './rounds-chart.styles'
+import { slotMarker } from './rounds-chart.stylex'
 
+import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
 
 const DAY = new Intl.DateTimeFormat(undefined, {
@@ -17,6 +18,15 @@ const DAY = new Intl.DateTimeFormat(undefined, {
 
 // Every other day is named under the axis (today always), so the labels never crowd.
 const LABEL_EVERY = 2
+// The slots at either end whose tip would run past the cell: anchored to their own edge.
+const EDGE_SLOTS = 2
+
+// Where a day's tip opens: over its bar, anchored inward at the chart's two ends.
+function tipAt(index: number, count: number): Style {
+	if (index < EDGE_SLOTS) return [tip.host, tip.above, tip.start]
+	if (index >= count - EDGE_SLOTS) return [tip.host, tip.above, tip.end]
+	return [tip.host, tip.above]
+}
 
 // The days of the chart, oldest first, each with its name and its count.
 type Day = { name: string; count: number; isNamed: boolean }
@@ -51,7 +61,8 @@ function DaysTable({ days }: { days: readonly Day[] }): ReactElement {
 }
 
 // Rounds sent per day, oldest left, today right, growing from the baseline as the chart
-// enters. Each bar names its day and count on hover; today's carries its number.
+// enters. Each day names itself and its count over its bar on hover; today's carries its
+// number.
 export function RoundsChart({
 	counts,
 	now,
@@ -68,16 +79,18 @@ export function RoundsChart({
 					<span
 						key={day.name}
 						data-tip={`${day.name} · ${plural(day.count, 'round')}`}
-						{...stylex.props(roundsChart.slot, tip.host)}
+						{...stylex.props(
+							roundsChart.slot,
+							tipAt(index, days.length),
+							slotMarker,
+						)}
 					>
 						<span
+							data-enter="growUp"
 							{...stylex.props(
 								roundsChart.bar,
 								!day.count && roundsChart.barZero,
 								roundsChart.height(day.count / max),
-								roundsChart.delay(
-									MOTION_MS.nestedLead + staggerDelay(index),
-								),
 							)}
 						>
 							{index === days.length - 1 && (

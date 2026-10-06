@@ -1,23 +1,18 @@
 import { useRef } from 'react'
 
-import { hubPlace } from '@entities/hub/hub-place'
 import { turnOf } from '@entities/hub/turn'
+import { MOTION_MS } from '@shared/lib/motion'
 import { useEntrance } from '@shared/lib/use-entrance'
 import * as stylex from '@stylexjs/stylex'
 
-import { headCopy } from '../../head-copy'
-import { PageHead } from '../../react/page-head'
 import { PhasePage } from '../../react/phase-page'
 import { applyFilter } from '../display'
-import { turnSummary } from '../overview-copy'
 import { useDisplayPrefs } from '../use-display-prefs'
 import { useOverviewView } from '../use-overview-view'
 
-import { DisplayMenu } from './display-menu'
 import { EmptyOverview } from './empty-overview'
-import { FilterChips } from './filter-chips'
-import { FilterMenu } from './filter-menu'
 import { OverviewBody } from './overview-body'
+import { OverviewHead } from './overview-head'
 import { overview } from './overview.styles'
 
 import type { ReactElement } from 'react'
@@ -25,6 +20,11 @@ import type { HubPhase } from '../../hub-phase'
 import type { DashboardState, Listed } from '../../use-dashboard'
 
 const LOADING_PHASE: HubPhase = { kind: 'loading' }
+
+// The body steps in after the head's two entrances (its statement, then its controls), as it
+// would in one entrance over the whole page.
+const HEAD_ENTRANCES = 2
+const BODY_LEAD_MS = HEAD_ENTRANCES * MOTION_MS.step
 
 function OverviewListed({
 	dashboard,
@@ -35,41 +35,30 @@ function OverviewListed({
 }): ReactElement {
 	const view = useOverviewView()
 	const prefs = useDisplayPrefs()
-	const root = useRef<HTMLDivElement>(null)
-	useEntrance(root, view.layout)
+	const body = useRef<HTMLDivElement>(null)
+	// The body enters again with each display the reviewer picks, while the head (and the
+	// Display panel they picked it in, still open) holds still above it.
+	useEntrance(body, view.layout, BODY_LEAD_MS)
 	const filtered = applyFilter(listed.desks, view.filter)
 	const desks = prefs.showsIdle
 		? filtered
 		: filtered.filter(desk => turnOf(desk) !== 'idle')
 	return (
-		<div ref={root} {...stylex.props(overview.page)}>
-			<PageHead
-				title={headCopy(dashboard.phase, hubPlace()).title}
-				lede={turnSummary(listed.desks)}
-			>
-				<FilterMenu
-					desks={listed.desks}
-					projects={dashboard.projects}
-					filter={view.filter}
-					onFilter={filter => view.change({ filter })}
-				/>
-				<DisplayMenu
-					layout={view.layout}
-					onLayout={layout => view.change({ layout })}
-					prefs={prefs}
-				/>
-			</PageHead>
-			<FilterChips
-				filter={view.filter}
-				projects={dashboard.projects}
-				onFilter={filter => view.change({ filter })}
-			/>
-			<OverviewBody
+		<div {...stylex.props(overview.page)}>
+			<OverviewHead
 				dashboard={dashboard}
-				desks={desks}
+				listed={listed}
 				view={view}
 				prefs={prefs}
 			/>
+			<div ref={body} {...stylex.props(overview.part)}>
+				<OverviewBody
+					dashboard={dashboard}
+					desks={desks}
+					view={view}
+					prefs={prefs}
+				/>
+			</div>
 		</div>
 	)
 }

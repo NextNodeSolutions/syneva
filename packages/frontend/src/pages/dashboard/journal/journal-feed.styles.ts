@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { color, ease, font } from '@syneva/design-system/tokens.stylex'
+import { transition } from '@syneva/design-system/transitions.stylex'
 
 // The arrival wash: a just-recorded event lands on the petrol wash and settles into the list,
 // so the eye finds what moved without anything changing place.
@@ -48,10 +49,15 @@ export const journalFeed = stylex.create({
 		fontSize: '11.5px',
 		color: color['--muted'],
 	},
+	// The link is as wide as its name, not the row (an inline block keeps the cut at its end).
 	deskLink: {
+		display: 'inline-block',
+		maxWidth: '100%',
+		verticalAlign: 'top',
 		color: { default: color['--muted'], ':hover': color['--accent'] },
 		textDecoration: { default: 'none', ':hover': 'underline' },
 		textUnderlineOffset: '3px',
+		transition: `color ${transition.fast}`,
 	},
 	empty: {
 		paddingBlock: '14px',

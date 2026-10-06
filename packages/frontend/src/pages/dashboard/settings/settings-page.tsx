@@ -94,8 +94,10 @@ function TypeChoices({ settings, change }: SectionProps): ReactElement {
 // or its night mirror) and the two voices. A change shows at once and is saved on the hub.
 export function SettingsPage(): ReactElement {
 	const root = useRef<HTMLDivElement>(null)
-	useEntrance(root, 'settings')
 	const { settings, save, change } = useHubSettings()
+	// The sections arrive with the saved settings: the entrance plays again once they are read
+	// (the pending head has barely started, and is held back from view anyway).
+	useEntrance(root, settings ? 'settings' : 'settings-pending')
 	return (
 		<div ref={root} {...stylex.props(pageSection.page)}>
 			<PageHead

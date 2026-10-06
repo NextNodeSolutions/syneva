@@ -1,5 +1,10 @@
 import * as stylex from '@stylexjs/stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
 
 import type { VerdictTotals } from '@entities/hub/journal-stats'
 import type { ReactElement } from 'react'
@@ -35,7 +40,13 @@ const verdictRows = stylex.create({
 		backgroundColor: color['--line'],
 		overflow: 'hidden',
 	},
-	fill: { display: 'block', height: '100%', transformOrigin: 'left' },
+	// A share that changes (a round landed) eases to its new length, as the meter does.
+	fill: {
+		display: 'block',
+		height: '100%',
+		transformOrigin: 'left',
+		transition: `transform ${duration['--duration-shift']} ${ease['--ease-out']}`,
+	},
 	share: (fraction: number) => ({ transform: `scaleX(${fraction})` }),
 	kept: { backgroundColor: color['--green'] },
 	undone: { backgroundColor: color['--red'] },

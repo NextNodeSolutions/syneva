@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 import { focus } from '@syneva/design-system/controls.styles'
@@ -44,7 +46,8 @@ function DeskName({
 }
 
 // The hub's journal, newest first: what happened, when, and on which desk. An event that just
-// arrived lands on the wash.
+// arrived lands on the wash, once: a feed that mounts again (another display, another page)
+// washes only what arrives after it mounted.
 export function JournalFeed({
 	journal,
 	events,
@@ -52,9 +55,13 @@ export function JournalFeed({
 	now,
 	emptyText,
 }: JournalFeedProps): ReactElement {
+	const [mountedAfter] = useState(() => journal.events.at(-1)?.seq ?? 0)
 	if (!events.length)
 		return <p {...stylex.props(journalFeed.empty)}>{emptyText}</p>
-	const freshAfter = journal.freshAfter ?? Number.POSITIVE_INFINITY
+	const freshAfter = Math.max(
+		journal.freshAfter ?? Number.POSITIVE_INFINITY,
+		mountedAfter,
+	)
 	return (
 		<ol {...stylex.props(journalFeed.list)}>
 			{events.toReversed().map(event => {
