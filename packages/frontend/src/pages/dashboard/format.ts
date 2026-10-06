@@ -55,13 +55,15 @@ export function lastSegment(path: string | undefined): string {
 	return path?.replace(/\/+$/, '').split('/').pop() ?? ''
 }
 
+type ModeSubject = Pick<HubDesk, 'mode' | 'staged' | 'target' | 'session'>
+
 // A pull request named by its number, bare or inside a GitHub URL.
 const PR_NUMBER = /^(?<bare>\d+)$|\/pull\/(?<linked>\d+)/
 
 // What a desk reviews, in the words of the command that opened it: the working tree, the
 // staged changes, one file, or a branch or pull request (by number when it has one) - as
-// the parts a meta line joins.
-export function modeParts(desk: HubDesk): string[] {
+// the parts a meta line joins. A closed desk's journal event names it the same way.
+export function modeParts(desk: ModeSubject): string[] {
 	if (desk.mode === 'file') return ['file', lastSegment(desk.target)]
 	if (desk.mode === 'pr') return ['pr', pullRequestName(desk)]
 	return [desk.staged ? 'staged' : 'working tree']
@@ -70,7 +72,7 @@ export function modeParts(desk: HubDesk): string[] {
 const SEPARATOR = ' · '
 const NO_BREAK_SPACE = '\u00a0'
 
-export function modeLabel(desk: HubDesk): string {
+export function modeLabel(desk: ModeSubject): string {
 	return modeParts(desk).join(SEPARATOR)
 }
 
@@ -79,7 +81,7 @@ export function unbroken(words: string): string {
 	return words.replaceAll(' ', NO_BREAK_SPACE)
 }
 
-function pullRequestName(desk: HubDesk): string {
+function pullRequestName(desk: ModeSubject): string {
 	const found = desk.target?.match(PR_NUMBER)?.groups
 	const number = found?.bare ?? found?.linked
 	if (number) return `#${number}`

@@ -3,10 +3,8 @@ import { Button } from '@shared/ui/button'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 
-import { unbroken } from '../format'
+import { modeParts, unbroken } from '../format'
 import { eventTime } from '../journal/event-copy'
-import { modeKeyOf } from '../overview/display'
-import { MODE_NAMES } from '../overview/filter-names'
 import { useReopen } from '../use-reopen'
 
 import { closedList } from './closed-desks.styles'
@@ -67,13 +65,11 @@ export function ClosedRow({
 	look?: ClosedLook | undefined
 }): ReactElement {
 	const failure = reopen.failures.get(closed.deskId)
+	// Named as the desk was while it was live (format.ts modeParts).
 	const what = [
-		look.isProjectNamed === true ? closed.project : null,
-		MODE_NAMES[modeKeyOf(closed)],
-		closed.target,
-	]
-		.filter(Boolean)
-		.join(' · ')
+		...(look.isProjectNamed === true ? [closed.project] : []),
+		...modeParts(closed),
+	].join(' · ')
 	return (
 		<li
 			{...stylex.props(
