@@ -5,6 +5,7 @@ import { readStagedSnapshot } from '../../../application/reconcile.js'
 import { createStateBodyCache } from '../../../application/state-cache.js'
 import { createStateOwner } from '../../../application/state-owner.js'
 
+import type { ReviewResult } from '@syneva/contracts/agent'
 import type { DeskStatus } from '@syneva/contracts/browser'
 import type { DeskActivity } from '../../../application/activity.js'
 import type { EventStream } from '../../../application/events.js'
@@ -78,8 +79,9 @@ export type DeskContext = {
 	close(): void
 	// Journal what just happened on this desk, once it has (after the commit): the hub binds the
 	// desk's subject, the journal stamps the seq and time. Never throws and never waits - a
-	// journal write failure is logged, never the failure of the request that recorded it.
-	recordEvent(draft: DeskEventDraft): void
+	// journal write failure is logged, never the failure of the request that recorded it. A Send
+	// and the await that delivers it pass their ReviewResult, which ties the pickup to its round.
+	recordEvent(draft: DeskEventDraft, verdicts?: ReviewResult): void
 }
 
 export function createDeskContext(
@@ -93,7 +95,7 @@ export function createDeskContext(
 		settings: SettingsPort
 		editor: EditorPort
 		close: () => void
-		recordEvent: (draft: DeskEventDraft) => void
+		recordEvent: (draft: DeskEventDraft, verdicts?: ReviewResult) => void
 	},
 ): DeskContext {
 	const { events, activity, git, store, close } = collaborators

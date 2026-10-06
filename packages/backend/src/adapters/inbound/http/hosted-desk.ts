@@ -64,11 +64,16 @@ export function hostDesk(
 			settings: io.settings,
 			editor: io.editor,
 			close,
-			recordEvent: draft => {
-				io.journal.record({
-					...journalSubject(deskIdentity(desk.id, desk.ctx.state)),
-					...draft,
-				})
+			recordEvent: (draft, verdicts) => {
+				io.journal.record(
+					{
+						...journalSubject(
+							deskIdentity(desk.id, desk.ctx.state),
+						),
+						...draft,
+					},
+					verdicts,
+				)
 			},
 		}),
 	}

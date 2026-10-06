@@ -85,7 +85,11 @@ export async function sendReviewToAgent({
 			},
 		)
 		ctx.commit(sent.state)
-		ctx.recordEvent(roundSent(sent.state, sent.reviewResult))
+		// The same ReviewResult the stream hands the agent: its pickup names this round.
+		ctx.recordEvent(
+			roundSent(sent.state, sent.reviewResult),
+			sent.reviewResult,
+		)
 		res.on('finish', () => {
 			// The review supersedes any still-queued question (createEventStream drops them), so a
 			// stale question can never land after the round. Emitting only once the response has

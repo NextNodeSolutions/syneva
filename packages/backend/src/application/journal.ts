@@ -46,8 +46,10 @@ export type JournalQuery = { after: number; limit: number }
 // recorded in and a read sees every event recorded before it.
 export type HubJournal = {
 	// Fire-and-forget: a recording site never waits on the disk, and a failed write is logged,
-	// never the failure of the request that recorded it.
-	record(draft: HubEventDraft): void
+	// never the failure of the request that recorded it. A Send and its pickup pass the same
+	// `verdicts`, the ReviewResult the event stream carries from one to the other, so the pickup
+	// names the round it delivered.
+	record(draft: HubEventDraft, verdicts?: ReviewResult): void
 	read(query: JournalQuery): Promise<HubJournalResponse>
 }
 
@@ -56,6 +58,7 @@ export function createHubJournal(
 	log: (line: string) => void,
 ): HubJournal {
 	const kept: JournalEvent[] = []
+	const sentRounds = createSentRounds()
 	let latest = 0
 	let isLoaded = false
 	const serialize = createSerializer()
@@ -71,9 +74,14 @@ export function createHubJournal(
 	}
 	// The event joins the kept tail only once it is on disk: a seq a reader saw is never handed
 	// out again by a restarted hub. A failed append drops the event, and its seq with it.
-	async function append(draft: HubEventDraft, at: string): Promise<void> {
+	async function append(
+		draft: HubEventDraft,
+		at: string,
+		verdicts?: ReviewResult,
+	): Promise<void> {
 		await loaded()
-		const event = stamp(draft, { seq: latest + 1, at }, kept)
+		const picked = sentRounds.of(verdicts)
+		const event = stamp(draft, { seq: latest + 1, at, picked }, kept)
 		try {
 			await port.append(event)
 		} catch (error) {
@@ -83,12 +91,13 @@ export function createHubJournal(
 		latest = event.seq
 		kept.push(event)
 		if (kept.length > KEPT_EVENTS) kept.shift()
+		sentRounds.note(verdicts, event)
 	}
 	return {
-		record(draft: HubEventDraft): void {
+		record(draft: HubEventDraft, verdicts?: ReviewResult): void {
 			// Stamped now, appended in turn: `at` is when it happened, not when the queue got to it.
 			const at = nowIso()
-			void serialize(() => append(draft, at))
+			void serialize(() => append(draft, at, verdicts))
 		},
 		read: query =>
 			serialize(async () => {
@@ -124,10 +133,15 @@ async function loadTail(
 // A Send's `round` is 1-based per desk: one past the desk's latest send in the kept journal -
 // its sends so far, this one included. Following the latest round rather than counting sends
 // keeps the numbering monotonic once a compaction has trimmed the desk's earliest sends. A
-// pickup carries the round it picked: the desk's latest send.
+// pickup carries the round of the review it delivered (`picked`, see createSentRounds); only one
+// whose Send never reached the disk falls back on the desk's latest send.
 function stamp(
 	draft: HubEventDraft,
-	{ seq, at }: { seq: number; at: string },
+	{
+		seq,
+		at,
+		picked,
+	}: { seq: number; at: string; picked: number | undefined },
 	history: readonly JournalEvent[],
 ): HubEvent {
 	if (draft.kind === 'round-sent')
@@ -138,8 +152,33 @@ function stamp(
 			round: lastRound(history, draft.deskId) + 1,
 		}
 	if (draft.kind === 'round-picked')
-		return { seq, at, ...draft, round: lastRound(history, draft.deskId) }
+		return {
+			seq,
+			at,
+			...draft,
+			round: picked ?? lastRound(history, draft.deskId),
+		}
 	return { seq, at, ...draft }
+}
+
+// The round each Send was journaled as, by the review it queued. Several Sends can queue before
+// an await, which hands over the oldest, so the desk's latest send is not always the one picked
+// up. Keyed by the ReviewResult object itself, which the event stream hands from the Send to the
+// await unchanged (a clone would miss and fall back on the latest send). Noted once the send is
+// on disk, like every round a reader sees; weak, so a review no await ever takes (its desk
+// closed, the hub restarted) leaves nothing behind.
+function createSentRounds(): {
+	of(verdicts: ReviewResult | undefined): number | undefined
+	note(verdicts: ReviewResult | undefined, event: HubEvent): void
+} {
+	const rounds = new WeakMap<ReviewResult, number>()
+	return {
+		of: verdicts => (verdicts ? rounds.get(verdicts) : undefined),
+		note(verdicts, event): void {
+			if (verdicts && event.kind === 'round-sent')
+				rounds.set(verdicts, event.round)
+		},
+	}
 }
 
 // 0 when the kept journal holds no send for the desk.

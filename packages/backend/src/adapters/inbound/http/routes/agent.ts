@@ -83,14 +83,16 @@ export async function awaitEvent({
 }
 
 // Hand the agent its event. A review it receives is the round picked up: journaled once the
-// response carries it - a waiter that hung up first never had it (the review stays queued).
+// response carries it - a waiter that hung up first never had it (the review stays queued) -
+// and named by the review itself, the oldest queued Send rather than the latest.
 function deliver(
 	ctx: DeskContext,
 	res: ServerResponse,
 	event: AwaitEvent,
 ): void {
 	json(res, HTTP_OK, event)
-	if (event.kind === 'review') ctx.recordEvent({ kind: 'round-picked' })
+	if (event.kind === 'review')
+		ctx.recordEvent({ kind: 'round-picked' }, event.result)
 }
 
 export async function postStatus({
