@@ -1,5 +1,5 @@
 ---
-import { ISSUES_URL, REPO_URL, repoFile } from '@entities/site/model/project'
+import { FOOTNOTE, ISSUES_URL, REPO_URL, TAGLINE, repoFile } from '@entities/site/model/project'
 import { PAGES, SECTIONS } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
@@ -52,5 +52,5 @@ const PROJECT = [
 		</nav>
 	</div>
 	<div {...sx(footer.word)} aria-hidden="true"><span {...sx(footer.wordmark)}>syneva</span></div>
-	<div {...sx(footer.bottom)}><span>Your agent writes. You decide.</span><span>No model inside · No telemetry · MIT</span></div>
+	<div {...sx(footer.bottom)}><span>{TAGLINE}</span><span>{FOOTNOTE}</span></div>
 </footer>

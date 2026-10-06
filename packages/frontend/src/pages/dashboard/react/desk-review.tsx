@@ -1,6 +1,6 @@
-import { a11y } from '@shared/ui/a11y.styles'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
+import { a11y } from '@syneva/design-system/a11y.styles'
 
 import { plural } from '../format'
 

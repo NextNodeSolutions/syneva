@@ -43,6 +43,30 @@ export const textLink = stylex.create({
 	},
 })
 
+// A <button> that reads as text: the native control's box, border and fill taken away, its colour and type left to what it is composed with (in the site, after textLink).
+export const textButton = stylex.create({
+	base: {
+		appearance: 'none',
+		boxSizing: 'border-box',
+		justifyContent: 'center',
+		margin: 0,
+		paddingBlock: 0,
+		paddingInline: 0,
+		borderWidth: 0,
+		borderStyle: 'none',
+		borderColor: 'currentcolor',
+		backgroundColor: 'transparent',
+		fontFamily: font['--sans'],
+		fontWeight: 400,
+		lineHeight: 1.2,
+		whiteSpace: 'nowrap',
+		color: { default: color['--ink'], ':hover': color['--accent'] },
+		cursor: { default: 'pointer', ':disabled': 'default' },
+		opacity: { default: null, ':disabled': 0.55 },
+		pointerEvents: { default: null, ':disabled': 'none' },
+	},
+})
+
 export const code = stylex.create({
 	base: {
 		fontFamily: font['--mono'],

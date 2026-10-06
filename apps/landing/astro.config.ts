@@ -2,9 +2,11 @@ import { defineConfig } from 'astro/config'
 import { fileURLToPath } from 'node:url'
 
 import cloudflare from '@astrojs/cloudflare'
+import react from '@astrojs/react'
 import stylexVite from '@stylexjs/unplugin/vite'
 
 import { devCache } from './integrations/dev-cache'
+import { emailPreview } from './integrations/email-preview'
 import { linkedPages } from './integrations/linked-pages'
 import LAYERS from './layers.json' with { type: 'json' }
 import { SITE_URL } from './src/entities/site/model/site-map'
@@ -30,7 +32,8 @@ export default defineConfig({
 		configPath: 'wrangler.dev.jsonc',
 	}),
 	build: { format: 'directory', inlineStylesheets: 'never' },
-	integrations: [linkedPages(), devCache()],
+	// React renders the signup's islands (src/features/subscribe/ui/*.tsx) and its emails (src/features/subscribe/email/); everything else stays plain Astro.
+	integrations: [react(), linkedPages(), devCache(), emailPreview()],
 	vite: {
 		build: {
 			cssTarget: Object.entries(BROWSERS).map(

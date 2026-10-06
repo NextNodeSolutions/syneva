@@ -1,5 +1,8 @@
-export type LineKind = 'added' | 'removed' | 'context'
-export type Bar = { readonly kind: LineKind; readonly width: number }
+import { SAMPLE_CHANGE } from '@entities/desk/model/sample-round'
+
+import type { SampleLineKind } from '@entities/desk/model/sample-round'
+
+export type Bar = { readonly kind: SampleLineKind; readonly width: number }
 export type Verdict = 'yes' | 'no'
 
 type HeroFile = {
@@ -9,13 +12,8 @@ type HeroFile = {
 }
 export type Card = HeroFile & { readonly bars: readonly Bar[] }
 
-export const DESK_THREAD = {
-	question: 'What if the session already expired?',
-	answer: 'It returns 401 before the handler runs.',
-} as const
-
-export const DESK_FILE = {
-	path: 'auth/session.ts',
+const DESK_FILE = {
+	path: SAMPLE_CHANGE.path,
 	verdict: 'yes',
 	bars: [
 		{ kind: 'removed', width: 84 },

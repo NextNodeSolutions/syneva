@@ -30,6 +30,10 @@ body {
 	outline: 2px solid var(--accent);
 	outline-offset: 5px;
 }
+/* An element focused from code (a verdict a screen reader then reads) operates nothing, so it takes no ring. */
+[tabindex='-1']:focus-visible {
+	outline: none;
+}
 a {
 	color: inherit;
 	text-decoration: none;

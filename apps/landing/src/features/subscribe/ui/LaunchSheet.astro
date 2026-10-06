@@ -1,0 +1,13 @@
+---
+import { sx } from '@shared/lib/sx'
+import { launchSheet } from './launch-sheet.styles'
+import { sheetMarker } from './signup.stylex'
+
+const CROPS = [launchSheet.topLeft, launchSheet.topRight, launchSheet.bottomLeft, launchSheet.bottomRight]
+// The launch list drawn as one of the site's figures: a white ruled sheet; its crop marks close in on focus with CSS alone.
+---
+
+<div {...sx(launchSheet.root, sheetMarker)}>
+	{CROPS.map(corner => <span {...sx(launchSheet.crop, corner)} aria-hidden="true"></span>)}
+	<slot />
+</div>

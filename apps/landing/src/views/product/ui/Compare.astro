@@ -1,4 +1,5 @@
 ---
+import { a11y } from '@syneva/design-system/a11y.styles'
 import { SITE_NAME } from '@entities/site/model/site-map'
 import { prose } from '@shared/ui/prose/prose.styles'
 import { section } from '@shared/ui/section.styles'
@@ -31,7 +32,7 @@ const ROWS: readonly Row[] = [
 		<table {...sx(compare.table)}>
 			<thead {...sx(compare.thead)}>
 				<tr {...sx(compare.row)}>
-					<th {...sx(compare.cell, compare.column, compare.stacked)} scope="col"><span {...sx(compare.hidden)}>Aspect</span></th>
+					<th {...sx(compare.cell, compare.column, compare.stacked)} scope="col"><span {...sx(a11y.srOnly)}>Aspect</span></th>
 					{COLUMNS.map(({ key, label }) => <th {...sx(compare.cell, compare.column, key === 'ours' && compare.columnUs, compare.stacked)} scope="col">{label}</th>)}
 				</tr>
 			</thead>

@@ -5,6 +5,8 @@ export type Email = {
 	to: string
 	replyTo: string
 	subject: string
+	html: string
+	// The same message for clients that show no HTML (and the spam filters that compare the two).
 	text: string
 }
 
@@ -33,6 +35,7 @@ export async function sendEmail(apiKey: string, email: Email): Promise<void> {
 			to: [email.to],
 			reply_to: email.replyTo,
 			subject: email.subject,
+			html: email.html,
 			text: email.text,
 		}),
 	})

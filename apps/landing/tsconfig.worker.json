@@ -9,6 +9,7 @@
 	},
 	"include": [
 		"worker-configuration.d.ts",
+		"worker-assets.d.ts",
 		"src/pages/api/**/*",
 		"src/**/*.server.ts"
 	],

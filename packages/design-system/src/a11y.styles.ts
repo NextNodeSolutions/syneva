@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 
 export const a11y = stylex.create({
+	// Read by screen readers, drawn nowhere.
 	srOnly: {
 		position: 'absolute',
 		width: '1px',
