@@ -1,5 +1,5 @@
-import { SUBSCRIBED_HREF } from './endpoint'
 import { OUTCOME_MESSAGE, OUTCOME_STATUS } from './outcome'
+import { SUBSCRIBED_HREF } from './subscribed'
 
 import type { Outcome } from './outcome'
 

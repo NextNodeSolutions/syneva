@@ -7,6 +7,8 @@
 	"name": "syneva-landing-local",
 	"compatibility_date": "2026-06-01",
 	"compatibility_flags": ["nodejs_compat"],
+	// The deploy injects SITE_URL per environment (the email's links); locally it is astro dev's default address.
+	"vars": { "SITE_URL": "http://localhost:4321" },
 	"d1_databases": [
 		{
 			"binding": "DB",

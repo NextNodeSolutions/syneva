@@ -8,6 +8,8 @@ export type SignupBindings = {
 	list: D1Database
 	limiter: RateLimit
 	welcome: (email: string) => Promise<void>
+	// Keeps work running after the response is sent (the Worker's waitUntil).
+	defer: (work: Promise<void>) => void
 }
 
 // The address keeps the case it was typed in; the column's NOCASE collation makes it unique regardless (migrations/0001_subscribers.sql).
@@ -30,7 +32,16 @@ async function addSubscriber(
 	return meta.changes > 0
 }
 
-// Every try counts against the client's limit, a valid one included, before the body is read; only a new address is welcomed, and a failed welcome leaves the signup standing.
+// A failed welcome is logged, never thrown: the signup it follows already stands.
+async function welcome(bindings: SignupBindings, email: string): Promise<void> {
+	try {
+		await bindings.welcome(email)
+	} catch (error) {
+		logFailure('subscribe.welcome-failed', error)
+	}
+}
+
+// Every try counts against the client's limit, a valid one included, before the body is read; only a new address is welcomed, after the answer is sent (the welcome never changes it), and a failed welcome leaves the signup standing.
 export async function subscribe(
 	request: Request,
 	client: string,
@@ -49,10 +60,6 @@ export async function subscribe(
 		logFailure('subscribe.failed', error)
 		return 'failed'
 	}
-	try {
-		await bindings.welcome(signup.email)
-	} catch (error) {
-		logFailure('subscribe.welcome-failed', error)
-	}
+	bindings.defer(welcome(bindings, signup.email))
 	return 'subscribed'
 }

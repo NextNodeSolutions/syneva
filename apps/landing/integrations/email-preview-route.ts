@@ -6,8 +6,8 @@ export const prerender = false
 
 const SAMPLE_RECIPIENT = 'you@example.com'
 
-export const GET: APIRoute = async ({ url }) => {
-	const { html, text } = await renderWelcome({
+export const GET: APIRoute = ({ url }) => {
+	const { html, text } = renderWelcome({
 		recipient: SAMPLE_RECIPIENT,
 		origin: url.origin,
 	})
