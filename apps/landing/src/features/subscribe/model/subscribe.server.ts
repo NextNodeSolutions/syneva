@@ -1,7 +1,8 @@
-import { EMAIL_FIELD, EMAIL_MAX_LENGTH, TRAP_FIELD } from './endpoint'
 import { logFailure } from './log-failure.server'
+import { isTrapped, readForm, signupOf } from './read-signup.server'
 
 import type { Outcome } from './outcome'
+import type { Signup } from './signup'
 
 export type SignupBindings = {
 	list: D1Database
@@ -9,56 +10,23 @@ export type SignupBindings = {
 	welcome: (email: string) => Promise<void>
 }
 
-const MAX_BODY_BYTES = 2048
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // The address keeps the case it was typed in; the column's NOCASE collation makes it unique regardless (migrations/0001_subscribers.sql).
+// A second signup changes nothing, its details included: whoever knows an address cannot rewrite what its owner left.
 const INSERT_SUBSCRIBER =
-	'INSERT INTO subscribers (email) VALUES (?1) ON CONFLICT (email) DO NOTHING'
-
-// The body as it streams in, failing once it outgrows the cap.
-// Measured on the bytes themselves: a Content-Length header is optional, and a client can leave it out.
-function capped(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
-	let received = 0
-	return body.pipeThrough(
-		new TransformStream<Uint8Array, Uint8Array>({
-			transform(chunk, controller) {
-				received += chunk.byteLength
-				if (received > MAX_BODY_BYTES)
-					controller.error(new RangeError('signup body over the cap'))
-				else controller.enqueue(chunk)
-			},
-		}),
-	)
-}
-
-async function readForm(request: Request): Promise<FormData | undefined> {
-	if (!request.body) return undefined
-	const contentType = request.headers.get('content-type') ?? ''
-	try {
-		return await new Response(capped(request.body), {
-			headers: { 'content-type': contentType },
-		}).formData()
-	} catch {
-		return undefined
-	}
-}
-
-function emailOf(form: FormData): string | undefined {
-	const submitted = form.get(EMAIL_FIELD)
-	if (typeof submitted !== 'string') return undefined
-	const email = submitted.trim()
-	if (email.length > EMAIL_MAX_LENGTH || !EMAIL_PATTERN.test(email))
-		return undefined
-	return email
-}
-
-const isTrapped = (form: FormData): boolean => Boolean(form.get(TRAP_FIELD))
+	'INSERT INTO subscribers (email, name, agents) VALUES (?1, ?2, ?3) ON CONFLICT (email) DO NOTHING'
 
 async function addSubscriber(
 	list: D1Database,
-	email: string,
+	{ email, name, agents }: Signup,
 ): Promise<boolean> {
-	const { meta } = await list.prepare(INSERT_SUBSCRIBER).bind(email).run()
+	const { meta } = await list
+		.prepare(INSERT_SUBSCRIBER)
+		.bind(
+			email,
+			name || null,
+			agents.length > 0 ? JSON.stringify(agents) : null,
+		)
+		.run()
 	return meta.changes > 0
 }
 
@@ -73,16 +41,16 @@ export async function subscribe(
 	const form = await readForm(request)
 	if (!form) return 'invalid'
 	if (isTrapped(form)) return 'subscribed'
-	const email = emailOf(form)
-	if (!email) return 'invalid'
+	const signup = signupOf(form)
+	if (!signup) return 'invalid'
 	try {
-		if (!(await addSubscriber(bindings.list, email))) return 'subscribed'
+		if (!(await addSubscriber(bindings.list, signup))) return 'subscribed'
 	} catch (error) {
 		logFailure('subscribe.failed', error)
 		return 'failed'
 	}
 	try {
-		await bindings.welcome(email)
+		await bindings.welcome(signup.email)
 	} catch (error) {
 		logFailure('subscribe.welcome-failed', error)
 	}
