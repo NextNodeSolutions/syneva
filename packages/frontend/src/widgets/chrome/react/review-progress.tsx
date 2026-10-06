@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { guideInputs, guideProgress } from '@entities/review/guide/guide'
+import { isMotionReduced } from '@shared/lib/motion'
 import { useStoreFields } from '@shared/lib/use-store-version'
 import * as stylex from '@stylexjs/stylex'
 
@@ -78,7 +79,8 @@ export function ReviewProgress(): ReactElement {
 		document.title = hasFiles ? titleFor(pct) : baseTitle
 		if (!hasFiles) return undefined
 		const shown = shownRef.current
-		if (shown === null || pct === shown) {
+		// Reduced motion: the label takes its new value at once, as the strip does.
+		if (shown === null || pct === shown || isMotionReduced()) {
 			setLabelPct(pct)
 			shownRef.current = pct
 			return undefined

@@ -2,6 +2,7 @@ import { isFileComment, toDisplayLine } from '@entities/review/changes'
 import { revealLine } from '@features/expand-context/expand'
 import { cx } from '@shared/lib/cx'
 import { $ } from '@shared/lib/dom'
+import { isMotionReduced } from '@shared/lib/motion'
 
 import { jump } from './comment-jump.styles'
 import { cursorJumpTo } from './cursor'
@@ -44,7 +45,10 @@ function scrollAndFlash(selector: string, fallbackSelector?: string): void {
 		(fallbackSelector
 			? $('diff').querySelector<HTMLElement>(fallbackSelector)
 			: null)
-	target?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+	target?.scrollIntoView({
+		block: 'center',
+		behavior: isMotionReduced() ? 'auto' : 'smooth',
+	})
 	if (el) flash(el)
 }
 
