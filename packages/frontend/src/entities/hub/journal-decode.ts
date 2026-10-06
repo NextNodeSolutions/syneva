@@ -93,6 +93,8 @@ function decodeEvent(raw: unknown, endpoint: string): JournalEvent {
 		kind,
 		approvedFiles: requiredNumber(o, 'approvedFiles', endpoint),
 		decidedChanges: requiredNumber(o, 'decidedChanges', endpoint),
+		base: optString(o, 'base', endpoint),
+		pathFilter: optString(o, 'pathFilter', endpoint),
 	}
 }
 

@@ -126,7 +126,7 @@ function liveRecords(desks: Map<string, HubDesk>): HubDeskRecord[] {
 function closeDesk(state: HubState, id: string): boolean {
 	const desk = state.desks.get(id)
 	if (!desk || desk.closing) return false
-	desk.ctx.recordEvent(deskClosed(summarize(desk)))
+	desk.ctx.recordEvent(deskClosed(summarize(desk), desk.record))
 	desk.closing = true
 	desk.ctx.events.emit({ kind: 'closed', session: desk.record.session })
 	state.io.log(

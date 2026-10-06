@@ -41,6 +41,10 @@ export type JournalEvent =
 				kind: 'desk-closed'
 				approvedFiles: number
 				decidedChanges: number
+				// What the desk was opened with beyond its subject (the PR base, the repo-mode path
+				// limit), so a reopen rebuilds the same review.
+				base?: string | undefined
+				pathFilter?: string | undefined
 			})
 
 export type RoundSent = Extract<JournalEvent, { kind: 'round-sent' }>

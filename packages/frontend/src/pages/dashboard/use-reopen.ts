@@ -19,8 +19,9 @@ function failureOf(error: unknown): string {
 	return 'The hub did not answer.'
 }
 
-// Reopen a closed desk exactly as it was opened (its repository, session, mode and target):
-// the hub rebuilds it and merges its saved review back, then the page goes to it.
+// Reopen a closed desk exactly as it was opened (its repository, session, mode, target, PR base
+// and path limit): the hub rebuilds it and merges its saved review back, then the page goes to
+// it.
 export function useReopen(): Reopen {
 	const [busyId, setBusyId] = useState<string | null>(null)
 	const [failures, setFailures] = useState<ReadonlyMap<string, string>>(
@@ -35,6 +36,8 @@ export function useReopen(): Reopen {
 				staged: closed.staged,
 				target: closed.target,
 				session: closed.session,
+				base: closed.base,
+				path: closed.pathFilter,
 			})
 			window.location.assign(desk.path)
 		} catch (error) {

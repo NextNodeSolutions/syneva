@@ -44,6 +44,13 @@ type DeskProgress = {
 	readonly decidedChanges: number
 }
 
+// What a reopen needs beyond the subject: the PR base and the repo-mode path limit the desk was
+// opened with (hub-registry.ts HubDeskRecord), which the review state does not carry.
+type DeskOpening = {
+	readonly base?: string | undefined
+	readonly pathFilter?: string | undefined
+}
+
 export type JournalEvent =
 	| (EventSubject & EventScope & { readonly kind: 'desk-opened' })
 	| (EventSubject & EventScope & { readonly kind: 'desk-reloaded' })
@@ -56,7 +63,8 @@ export type JournalEvent =
 	| (EventSubject & { readonly kind: 'agent-replied' })
 	| (EventSubject &
 			EventScope &
-			DeskProgress & { readonly kind: 'desk-closed' })
+			DeskProgress &
+			DeskOpening & { readonly kind: 'desk-closed' })
 
 const SCOPE_COUNTS = ['files', 'totalChanges'] as const
 const ROUND_SENT_COUNTS = [
@@ -148,6 +156,8 @@ function decodeVariant(
 			...scopeOf(record),
 			approvedFiles: record.approvedFiles,
 			decidedChanges: record.decidedChanges,
+			base: optionalString(record.base),
+			pathFilter: optionalString(record.pathFilter),
 		}
 	return null
 }

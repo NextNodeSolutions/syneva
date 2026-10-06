@@ -75,11 +75,15 @@ export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 	)
 }
 
-// What the dashboard's "New review" form posts: the same open the CLI performs.
+// What the dashboard posts to open a desk: the same open the CLI performs. `base` and `path`
+// only ride a reopen (pages/dashboard/use-reopen.ts), which rebuilds a closed desk with its own
+// PR base and repo-mode path limit; the New review form never sets them.
 export type NewDeskInput = {
 	root: string
 	mode: ReviewMode
 	staged: boolean
 	target?: string | undefined
 	session?: string | undefined
+	base?: string | undefined
+	path?: string | undefined
 }

@@ -11,6 +11,7 @@ import type {
 	HubJournalResponse,
 } from '@syneva/contracts/hub'
 import type { JournalEvent } from '../domain/hub-journal.js'
+import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { ReviewState } from '../domain/review.js'
 import type { DeskIdentity } from './desk-summary.js'
 import type { HubJournalPort } from './ports.js'
@@ -193,13 +194,20 @@ export function roundSent(
 	}
 }
 
-// A desk leaving the hub: how far its review had come, as the listing counted it at the close.
-export function deskClosed(desk: DeskSummary): DeskEventDraft {
+// A desk leaving the hub: how far its review had come, as the listing counted it at the close,
+// and the open parameters a reopen needs that its review state does not carry (the registry
+// record's PR base and --path limit).
+export function deskClosed(
+	desk: DeskSummary,
+	opened: Pick<HubDeskRecord, 'base' | 'pathFilter'>,
+): DeskEventDraft {
 	return {
 		kind: 'desk-closed',
 		files: desk.files,
 		totalChanges: desk.totalChanges,
 		approvedFiles: desk.approvedFiles,
 		decidedChanges: desk.decidedChanges,
+		base: opened.base,
+		pathFilter: opened.pathFilter,
 	}
 }

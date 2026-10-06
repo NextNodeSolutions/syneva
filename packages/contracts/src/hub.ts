@@ -137,12 +137,16 @@ export type HubEvent =
 	| (HubEventSubject & { kind: 'question-asked'; questions: number })
 	// The agent posted into the desk (`syneva comment`): an answer or a note.
 	| (HubEventSubject & { kind: 'agent-replied' })
-	// The desk left the hub, with how far its review had come.
+	// The desk left the hub, with how far its review had come and the open parameters its subject
+	// does not name: the PR base and the repo-mode path limit (absolute), as the desk was opened.
+	// A reopen posts them back, so it rebuilds the same review rather than a wider one.
 	| (HubEventSubject &
 			HubEventScope & {
 				kind: 'desk-closed'
 				approvedFiles: number
 				decidedChanges: number
+				base?: string | undefined
+				pathFilter?: string | undefined
 			})
 
 // GET /api/hub/journal[?after=<seq>][&limit=<n>]: the events after `after` (all of the kept
