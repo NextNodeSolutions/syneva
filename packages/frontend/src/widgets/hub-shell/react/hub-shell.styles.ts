@@ -1,8 +1,7 @@
+import { shell } from '@shared/ui/shell.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, ease } from '@syneva/design-system/tokens.stylex'
-
-import { shell } from './shell.stylex'
 
 const FOLD = `220ms ${ease['--ease-out']}`
 const DRAWER = `260ms ${ease['--ease-out']}`
@@ -51,18 +50,19 @@ export const hubShell = stylex.create({
 			[PHONE]: '0 12px 32px rgb(25 27 24 / 14%)',
 		},
 	},
-	// The paper veil behind the open drawer (a dialog's veil, never a dark scrim); a tap on it
-	// closes the drawer.
+	// The paper veil behind the open drawer (a dialog's veil, never a dark scrim), fading in
+	// and out with the drawer's slide; a tap on it closes the drawer.
 	veil: {
-		display: 'none',
-	},
-	veilOpen: {
 		display: { default: 'none', [PHONE]: 'block' },
 		position: 'fixed',
 		inset: 0,
 		zIndex: 39,
 		backgroundColor: `color-mix(in srgb, ${color['--paper']} 74%, transparent)`,
+		opacity: 0,
+		pointerEvents: 'none',
+		transition: `opacity ${DRAWER}`,
 	},
+	veilOpen: { opacity: 1, pointerEvents: 'auto' },
 	main: {
 		minWidth: 0,
 		height: { default: '100dvh', [PHONE]: 'auto' },

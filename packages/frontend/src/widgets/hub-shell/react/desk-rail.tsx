@@ -12,15 +12,32 @@ import { useShellKeys } from '../use-shell-keys'
 
 import { deskRail } from './desk-rail.styles'
 import { HubSidebar } from './hub-sidebar'
+import { sidebar } from './hub-sidebar.styles'
+import { RailTip } from './rail-tip'
 
 import type { HubDesk } from '@entities/hub/model'
 import type { ReactElement } from 'react'
 
 // The other desks waiting on the reviewer, from the open rail: the next review is one click
-// away, without going back to the overview.
-function WaitingDesks({ desks }: { desks: readonly HubDesk[] }): ReactElement {
+// away, without going back to the overview. It stays in place while the rail is folded, faded
+// with the labels and out of reach (inert), so opening the rail never moves the icons.
+function WaitingDesks({
+	desks,
+	isShown,
+}: {
+	desks: readonly HubDesk[]
+	isShown: boolean
+}): ReactElement {
 	return (
-		<nav aria-labelledby="rail-waiting" {...stylex.props(deskRail.waiting)}>
+		<nav
+			aria-labelledby="rail-waiting"
+			inert={!isShown}
+			{...stylex.props(
+				deskRail.waiting,
+				sidebar.label,
+				!isShown && sidebar.labelFolded,
+			)}
+		>
 			<p id="rail-waiting" {...stylex.props(deskRail.waitingLabel)}>
 				Also waiting on you
 			</p>
@@ -65,7 +82,8 @@ export function DeskRail({ deskId }: { deskId: string }): ReactElement {
 	)
 	return (
 		// data-desk: the desk's scoped element defaults (box sizing, focus) reach the rail too.
-		<div data-desk="" {...stylex.props(deskRail.rail)}>
+		// data-hub-rail: the desk's hotkeys leave the rail's keys alone (rail-hook.ts).
+		<div data-desk="" data-hub-rail="" {...stylex.props(deskRail.rail)}>
 			<div
 				ref={panel}
 				{...stylex.props(deskRail.panel, isOpen && deskRail.panelOpen)}
@@ -80,11 +98,12 @@ export function DeskRail({ deskId }: { deskId: string }): ReactElement {
 					fold={{ isFolded: !isOpen, toggle }}
 					newReview={null}
 				>
-					{isOpen && waiting.length > 0 && (
-						<WaitingDesks desks={waiting} />
+					{waiting.length > 0 && (
+						<WaitingDesks desks={waiting} isShown={isOpen} />
 					)}
 				</HubSidebar>
 			</div>
+			<RailTip scope={panel} />
 		</div>
 	)
 }

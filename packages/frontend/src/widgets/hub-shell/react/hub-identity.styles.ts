@@ -20,11 +20,15 @@ export const hubIdentity = stylex.create({
 		borderStyle: 'solid',
 		borderColor: color['--line'],
 		overflow: 'hidden',
+		// The tile fades with the labels as the sidebar folds, on their clock.
+		transition: 'background-color 120ms, border-color 120ms',
+		transitionDelay: '80ms',
 	},
 	// Folded to the rail, the tile gives way to its square alone, on the rail's centre line.
 	folded: {
 		backgroundColor: 'transparent',
 		borderColor: 'transparent',
+		transitionDelay: '0ms',
 	},
 	text: {
 		margin: 0,

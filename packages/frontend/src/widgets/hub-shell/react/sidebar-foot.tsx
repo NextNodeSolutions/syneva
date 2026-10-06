@@ -6,7 +6,6 @@ import { press } from '@syneva/design-system/press.styles'
 import { HUB_STATE } from '../hub-state'
 
 import { sidebar } from './hub-sidebar.styles'
-import { railTip } from './rail-tip.styles'
 import { ShellIcon } from './shell-icon'
 import { sidebarParts } from './sidebar-parts.styles'
 
@@ -29,13 +28,12 @@ export function SidebarFoot({
 	const state = HUB_STATE[status]
 	const action = fold.isFolded ? 'Expand sidebar' : 'Collapse sidebar'
 	return (
-		<div
-			{...stylex.props(sidebar.foot, fold.isFolded && sidebar.footFolded)}
-		>
+		<div {...stylex.props(sidebar.foot)}>
 			<p
 				{...stylex.props(
 					sidebar.status,
-					fold.isFolded && sidebar.statusFolded,
+					sidebar.label,
+					fold.isFolded && sidebar.labelFolded,
 				)}
 			>
 				<LiveDot tone={state.tone} />
@@ -54,8 +52,6 @@ export function SidebarFoot({
 					control.quiet,
 					sidebarParts.foldButton,
 					sidebar.foldButton,
-					fold.isFolded && sidebar.foldButtonFolded,
-					railTip.host,
 				)}
 			>
 				<ShellIcon name={fold.isFolded ? 'unfold' : 'fold'} />

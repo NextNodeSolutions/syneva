@@ -28,6 +28,10 @@
 				body {
 					overflow: auto;
 				}
+				/* The open drawer holds the page still beneath its veil. */
+				html:has([data-drawer-open]) {
+					overflow: hidden;
+				}
 			}
 			/* A modal sheet holds the page still beneath it. */
 			html:has(dialog[open]) {
@@ -99,6 +103,17 @@
 				animation: 140ms cubic-bezier(0.2, 0, 0, 1) both hub-page-out;
 			}
 			::view-transition-new(hub-page) {
+				animation: none;
+			}
+			/* Everything else swaps at once: the browser's own crossfade of the rest of the page
+			   would ghost the sidebar's old highlight over the new one, and its groups would
+			   stretch the move to 250ms. */
+			::view-transition-old(root) {
+				display: none;
+			}
+			::view-transition-new(root),
+			::view-transition-group(root),
+			::view-transition-group(hub-page) {
 				animation: none;
 			}
 			@keyframes hub-page-out {

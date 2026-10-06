@@ -4,7 +4,6 @@ import { control } from '@syneva/design-system/controls.styles'
 import { press } from '@syneva/design-system/press.styles'
 
 import { sidebar } from './hub-sidebar.styles'
-import { railTip } from './rail-tip.styles'
 import { ShellIcon } from './shell-icon'
 import { sidebarParts } from './sidebar-parts.styles'
 
@@ -36,7 +35,6 @@ export function NewReviewEntry({
 				control.outlined,
 				control.small,
 				sidebarParts.newReview,
-				isFolded && railTip.host,
 			)}
 		>
 			<ShellIcon name="plus" />

@@ -1,7 +1,7 @@
+import { shell } from '@shared/ui/shell.stylex'
 import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/design-system/media.stylex'
 import { color, ease, font } from '@syneva/design-system/tokens.stylex'
-
-import { shell } from './shell.stylex'
 
 // The sidebar: the chrome's paper ground under a right rule, its entries at the app's density.
 // It folds to the rail by narrowing, never by re-laying itself out: every icon sits on the
@@ -37,7 +37,9 @@ export const sidebar = stylex.create({
 		alignItems: 'center',
 		flexShrink: 0,
 		height: shell.barHeight,
-		paddingInline: '18px',
+		// 17px puts the 22px mark's centre on the rail's centre line (28px), with the icons.
+		paddingLeft: '17px',
+		paddingRight: '18px',
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
@@ -75,15 +77,20 @@ export const sidebar = stylex.create({
 		textTransform: 'uppercase',
 		color: color['--muted'],
 	},
+	// The fold control keeps to the foot's end, 12px in from the rail's edge (11px inside the
+	// sidebar's right rule), so its icon sits on the rail's centre line folded and follows the moving edge while the sidebar folds (never re-centred, which
+	// would jump it on the fold's first frame). Folded, the state has no room: the foot packs to
+	// its end and the state, shrunk to nothing, passes the start edge, where the sidebar clips.
 	foot: {
 		display: 'flex',
 		alignItems: 'center',
+		justifyContent: 'flex-end',
 		gap: '8px',
 		marginTop: 'auto',
 		flexShrink: 0,
 		minHeight: '48px',
 		paddingLeft: '24px',
-		paddingRight: '8px',
+		paddingRight: '11px',
 		borderTopWidth: '1px',
 		borderTopStyle: 'solid',
 		borderTopColor: color['--line'],
@@ -97,18 +104,13 @@ export const sidebar = stylex.create({
 		alignItems: 'center',
 		gap: '8px',
 		minWidth: 0,
-		flex: '1',
+		flex: '1 1 0',
+		overflow: 'hidden',
+		whiteSpace: 'nowrap',
 	},
+	// Phones never fold the sidebar (it is their drawer): no fold control there.
 	foldButton: {
 		flexShrink: 0,
-		marginLeft: 'auto',
+		display: { default: null, [media.stacked]: 'none' },
 	},
-	// Folded, the foot keeps only the fold control, on the rail's centre line.
-	footFolded: {
-		paddingLeft: 0,
-		paddingRight: 0,
-		justifyContent: 'center',
-	},
-	statusFolded: { display: 'none' },
-	foldButtonFolded: { marginLeft: 0 },
 })

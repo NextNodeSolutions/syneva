@@ -4,7 +4,6 @@ import { focus } from '@syneva/design-system/controls.styles'
 
 import { sidebar } from './hub-sidebar.styles'
 import { navEntry } from './nav-entry.styles'
-import { railTip } from './rail-tip.styles'
 import { ShellIcon } from './shell-icon'
 
 import type { ReactElement } from 'react'
@@ -31,20 +30,31 @@ function EntryCount({
 	const count = counts[entry.count]
 	const isYours = entry.count === 'yours'
 	if (isYours && !count) return null
-	if (isFolded && !isYours) return null
-	if (isFolded)
-		return (
-			<span {...stylex.props(navEntry.badge)} aria-hidden="true">
+	return (
+		<>
+			<span
+				{...stylex.props(
+					navEntry.count,
+					isYours && navEntry.countYours,
+					sidebar.label,
+					isFolded && sidebar.labelFolded,
+				)}
+				aria-label={isYours ? `${count} waiting on you` : undefined}
+			>
 				{count}
 			</span>
-		)
-	return (
-		<span
-			{...stylex.props(navEntry.count, isYours && navEntry.countYours)}
-			aria-label={isYours ? `${count} waiting on you` : undefined}
-		>
-			{count}
-		</span>
+			{isYours && (
+				<span
+					{...stylex.props(
+						navEntry.badge,
+						!isFolded && navEntry.badgeHidden,
+					)}
+					aria-hidden="true"
+				>
+					{count}
+				</span>
+			)}
+		</>
 	)
 }
 
@@ -70,7 +80,6 @@ export function SidebarNav({
 								focus.inset,
 								navEntry.link,
 								isCurrent && navEntry.current,
-								isFolded && railTip.host,
 							]}
 						>
 							<ShellIcon

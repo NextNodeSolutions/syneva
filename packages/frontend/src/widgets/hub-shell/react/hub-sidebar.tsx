@@ -26,6 +26,7 @@ function HubNav({
 		<nav aria-labelledby="hub-nav-label">
 			<p
 				id="hub-nav-label"
+				data-enter="slide"
 				{...stylex.props(
 					sidebar.group,
 					sidebar.label,
@@ -69,7 +70,8 @@ export function HubSidebar({
 	model: SidebarModel
 	fold: SidebarFold
 	newReview: NewReviewOffer | null
-	// What a page adds under the work (the desk's rail: the other desks waiting on you).
+	// What a page adds under the hub's own entries (the desk's rail: the other desks waiting on
+	// you), below the icons the rail shows, so it never moves them.
 	children?: ReactNode
 }): ReactElement {
 	const current = currentNav(model.pathname)
@@ -95,8 +97,8 @@ export function HubSidebar({
 					isFolded={isFolded}
 				/>
 			</nav>
-			{children}
 			<HubNav current={current} isFolded={isFolded} />
+			{children}
 			<SidebarFoot
 				status={model.status}
 				version={model.version}

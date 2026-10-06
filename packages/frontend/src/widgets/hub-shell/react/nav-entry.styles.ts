@@ -62,5 +62,11 @@ export const navEntry = stylex.create({
 		textAlign: 'center',
 		color: color['--white'],
 		backgroundColor: color['--accent'],
+		opacity: 1,
+		transition: 'opacity 120ms',
+		transitionDelay: '80ms',
 	},
+	// Open, the badge waits unseen while the count beside the label shows: the two cross-fade
+	// with the labels as the sidebar folds, on the labels' clock (hub-sidebar.styles.ts).
+	badgeHidden: { opacity: 0, transitionDelay: '0ms' },
 })

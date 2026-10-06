@@ -7,19 +7,22 @@ import { ShellIcon } from './shell-icon'
 import { SidebarBrand } from './sidebar-brand'
 import { sidebarParts } from './sidebar-parts.styles'
 
-import type { ReactElement } from 'react'
+import type { ReactElement, RefObject } from 'react'
 
 // The phone's bar over the page: the menu that slides the sidebar in, and the wordmark home.
 export function ShellBar({
+	menuRef,
 	isDrawerOpen,
 	onMenu,
 }: {
+	menuRef: RefObject<HTMLButtonElement | null>
 	isDrawerOpen: boolean
 	onMenu: () => void
 }): ReactElement {
 	return (
 		<header {...stylex.props(hubShell.bar)}>
 			<button
+				ref={menuRef}
 				type="button"
 				aria-label="Open navigation"
 				aria-expanded={isDrawerOpen}
