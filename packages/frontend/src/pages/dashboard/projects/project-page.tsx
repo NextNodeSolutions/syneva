@@ -73,13 +73,7 @@ export function ProjectPage({
 	const root = useRef<HTMLDivElement>(null)
 	useEntrance(root, id)
 	const { listed } = dashboard
-	if (!listed)
-		return (
-			<PhasePage
-				phase={dashboard.phase}
-				onNewReview={dashboard.newReview.offer}
-			/>
-		)
+	if (!listed) return <PhasePage phase={dashboard.phase} />
 	const desks = listed.desks.filter(desk => desk.projectId === id)
 	const named =
 		desks[0] ??

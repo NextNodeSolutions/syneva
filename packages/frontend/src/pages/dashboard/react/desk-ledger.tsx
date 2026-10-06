@@ -4,7 +4,7 @@ import { useFlip } from '@shared/lib/use-flip'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 
-import { plural } from '../format'
+import { LTR_MARK, plural } from '../format'
 import { useTurnFlash } from '../use-turn-flash'
 
 import { deskLedger } from './desk-ledger.styles'
@@ -15,11 +15,6 @@ import type { DotTone } from '@shared/ui/live-dot'
 import type { ReactElement } from 'react'
 import type { WaitingSince } from '../overview/groups'
 import type { DeskClose } from '../use-desk-close'
-
-// Left-to-right marks: a path is set in a right-to-left box (so it is cut from its start, its
-// meaningful end kept), and its leading "~/" and trailing "/" would otherwise move to the other
-// end.
-const LTR_MARK = '\u200e'
 
 // One group of the ledger: its name, what it means (a turn's note) or where it is (a
 // project's path), the square of its turn, and its desks in display order.

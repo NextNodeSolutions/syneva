@@ -1,7 +1,7 @@
 import { CommandChip } from '@shared/ui/command-chip'
 import * as stylex from '@stylexjs/stylex'
 
-import { emptyHub } from './empty-hub.styles'
+import { openCommands } from './open-commands.styles'
 
 import type { ReactElement } from 'react'
 
@@ -18,21 +18,20 @@ const VARIANTS = [
 // The command that opens a desk, ready to copy, and its variants as the site's spec rows.
 export function OpenCommands(): ReactElement {
 	return (
-		<div {...stylex.props(emptyHub.install)}>
-			<p {...stylex.props(emptyHub.label)}>Inside your repository</p>
+		<div {...stylex.props(openCommands.install)}>
+			<p {...stylex.props(openCommands.label)}>Inside your repository</p>
 			<CommandChip
 				command="syneva open"
 				label="Command to open a desk"
-				onWash
 				block
 			/>
-			<ul {...stylex.props(emptyHub.spec)}>
+			<ul {...stylex.props(openCommands.spec)}>
 				{VARIANTS.map(variant => (
 					<li
 						key={variant.command}
-						{...stylex.props(emptyHub.specRow)}
+						{...stylex.props(openCommands.specRow)}
 					>
-						<span {...stylex.props(emptyHub.specKey)}>
+						<span {...stylex.props(openCommands.specKey)}>
 							{variant.command}
 						</span>
 						<span>{variant.means}</span>

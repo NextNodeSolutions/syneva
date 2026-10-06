@@ -3,12 +3,14 @@ import { Button } from '@shared/ui/button'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
 
+import { unbroken } from '../format'
 import { eventTime } from '../journal/event-copy'
 import { modeKeyOf } from '../overview/display'
 import { MODE_NAMES } from '../overview/filter-names'
 import { useReopen } from '../use-reopen'
 
 import { closedList } from './closed-desks.styles'
+import { deskArrival } from './desk-row.styles'
 
 import type { DeskClosed, JournalEvent } from '@entities/hub/journal'
 import type { ReactElement } from 'react'
@@ -21,30 +23,72 @@ type ClosedDesksProps = {
 	title: string
 }
 
-function ClosedRow({
+// A space a line never breaks at.
+const NO_BREAK = unbroken(' ')
+
+// When the desk closed, how far its review had come and how many rounds it ran, each part kept
+// whole: a narrow line breaks only after a separator, never inside "8 rounds".
+function progressLine(
+	closed: DeskClosed,
+	{ rounds, now }: { rounds: number; now: number },
+): string {
+	return [
+		`Closed ${eventTime(closed.at, now)}`,
+		`${closed.approvedFiles}/${closed.files} files approved`,
+		rounds ? `${rounds} rounds` : null,
+	]
+		.filter(part => part !== null)
+		.map(unbroken)
+		.join(`${NO_BREAK}· `)
+}
+
+// How a closed row reads where it sits: whether it names its repository (not under a group
+// that already does), and whether it just closed (it lands on the arrival wash).
+export type ClosedLook = {
+	isProjectNamed?: boolean | undefined
+	isFresh?: boolean | undefined
+}
+
+const LISTED_LOOK: ClosedLook = { isProjectNamed: true }
+
+// One closed desk, its Reopen at the end. Its list (or the group around it) is the `closed`
+// container its narrow layout reads.
+export function ClosedRow({
 	closed,
 	rounds,
 	now,
 	reopen,
+	look = LISTED_LOOK,
 }: {
 	closed: DeskClosed
 	rounds: number
 	now: number
 	reopen: Reopen
+	look?: ClosedLook | undefined
 }): ReactElement {
 	const failure = reopen.failures.get(closed.deskId)
-	const what = [closed.project, MODE_NAMES[modeKeyOf(closed)], closed.target]
+	const what = [
+		look.isProjectNamed === true ? closed.project : null,
+		MODE_NAMES[modeKeyOf(closed)],
+		closed.target,
+	]
 		.filter(Boolean)
 		.join(' · ')
 	return (
-		<li {...stylex.props(closedList.row)} data-enter="rise">
+		<li
+			{...stylex.props(
+				closedList.row,
+				look.isFresh === true && deskArrival.row,
+			)}
+			data-enter="rise"
+		>
 			<LiveDot hollow />
 			<div>
 				<p {...stylex.props(closedList.name)}>{closed.session}</p>
 				<p {...stylex.props(closedList.meta)}>{what}</p>
 			</div>
 			<p {...stylex.props(closedList.progress)}>
-				{`Closed ${eventTime(closed.at, now)} · ${closed.approvedFiles}/${closed.files} files approved${rounds ? ` · ${rounds} rounds` : ''}`}
+				{progressLine(closed, { rounds, now })}
 			</p>
 			<Button
 				size="small"
@@ -74,8 +118,9 @@ export function ClosedDesks({
 		<section
 			{...stylex.props(closedList.root)}
 			aria-labelledby="closed-title"
+			data-enter="fade"
 		>
-			<div {...stylex.props(closedList.head)} data-enter="fade">
+			<div {...stylex.props(closedList.head)}>
 				<h2 id="closed-title" {...stylex.props(closedList.title)}>
 					{title}
 				</h2>

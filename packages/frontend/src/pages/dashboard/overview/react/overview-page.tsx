@@ -14,13 +14,17 @@ import { useDisplayPrefs } from '../use-display-prefs'
 import { useOverviewView } from '../use-overview-view'
 
 import { DisplayMenu } from './display-menu'
+import { EmptyOverview } from './empty-overview'
 import { FilterChips } from './filter-chips'
 import { FilterMenu } from './filter-menu'
 import { OverviewBody } from './overview-body'
 import { overview } from './overview.styles'
 
 import type { ReactElement } from 'react'
+import type { HubPhase } from '../../hub-phase'
 import type { DashboardState, Listed } from '../../use-dashboard'
+
+const LOADING_PHASE: HubPhase = { kind: 'loading' }
 
 function OverviewListed({
 	dashboard,
@@ -71,20 +75,20 @@ function OverviewListed({
 }
 
 // The overview: whose turn it is on every desk, in the display the reviewer picked (the
-// circuit by default, the board, the cockpit), under the filters they set. Before there is a
-// listing to show, the page says why.
+// circuit by default, the board, the cockpit), under the filters they set. Before any listing
+// the page says why (a phase page); a listing with no desk is the empty overview: the way to
+// open one, and the desks closed before.
 export function OverviewPage({
 	dashboard,
 }: {
 	dashboard: DashboardState
 }): ReactElement {
 	const { listed } = dashboard
-	if (!listed?.desks.length)
-		return (
-			<PhasePage
-				phase={dashboard.phase}
-				onNewReview={dashboard.newReview.offer}
-			/>
-		)
+	if (!listed) return <PhasePage phase={dashboard.phase} />
+	// The listing waits for the journal's first read (it orders the desks by how long their
+	// turn has lasted), so the page mounts once, in its final order: nothing reshuffles under
+	// its entrance. The loading head stays hidden for a quick read.
+	if (!dashboard.journal.isRead) return <PhasePage phase={LOADING_PHASE} />
+	if (!listed.desks.length) return <EmptyOverview dashboard={dashboard} />
 	return <OverviewListed dashboard={dashboard} listed={listed} />
 }

@@ -93,3 +93,8 @@ const HOME_DIRECTORY = /^\/(?:Users|home)\/[^/]+(?=\/|$)/
 export function displayRoot(root: string): string {
 	return root.replace(HOME_DIRECTORY, '~')
 }
+
+// Left-to-right marks: a path is set in a right-to-left box (so it is cut from its start, its
+// meaningful end kept), and its leading "~/" and trailing "/" would otherwise move to the other
+// end.
+export const LTR_MARK = '\u200e'

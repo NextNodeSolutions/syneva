@@ -1,17 +1,15 @@
-import { numberWord } from './format'
+import { numberWord, relativeTime } from './format'
 
 import type { HubPlace } from '@entities/hub/hub-place'
+import type { DeskClosed } from '@entities/hub/journal'
 import type { HubPhase } from './hub-phase'
 
 // What the head says for a phase: the statement (the page's h1), the lede under it, and the
 // one action the phase asks for. `isPending` marks the loading line, which stays hidden for
-// the first moments of a load: a hub that answers at once never flashes it. `isAlone` marks a
-// head with no listing under it (signed out, a hub never reached, an empty hub, whose band
-// sits low on the footer): no rule closes it, so the paper under it reads as its own space.
+// the first moments of a load: a hub that answers at once never flashes it.
 export type HeadCopy = {
 	title: string
 	isPending?: boolean
-	isAlone?: boolean
 	lede?: string
 	action?: 'start-hub' | 'sign-in'
 }
@@ -29,7 +27,6 @@ const LOADING: HeadCopy = { title: 'Reading the hub…', isPending: true }
 
 const SIGNED_OUT: HeadCopy = {
 	title: 'Sign in again.',
-	isAlone: true,
 	lede: "This browser's sign-in no longer opens the hub: its key changed, or the sign-in ended.",
 	action: 'sign-in',
 }
@@ -39,22 +36,18 @@ const SIGNED_OUT: HeadCopy = {
 const UNREACHABLE: Record<HubPlace, HeadCopy> = {
 	loopback: {
 		title: 'The hub is not answering.',
-		isAlone: true,
 		lede: 'If it was stopped, start it again on its machine. This page reconnects by itself.',
 		action: 'start-hub',
 	},
 	network: {
 		title: 'The hub is not answering.',
-		isAlone: true,
 		lede: 'If it was stopped, start it again on its machine with the same --host and --key. This page reconnects by itself.',
 	},
 }
 
-const EMPTY: HeadCopy = {
-	title: 'No desks open.',
-	isAlone: true,
-	lede: 'The hub is running. Nothing is under review yet.',
-}
+const EMPTY_LEDE = 'The hub is running. Nothing is under review yet.'
+
+const EMPTY: HeadCopy = { title: 'No desks open.', lede: EMPTY_LEDE }
 
 export function headCopy(phase: HubPhase, place: HubPlace): HeadCopy {
 	if (phase.kind === 'loading') return LOADING
@@ -62,4 +55,11 @@ export function headCopy(phase: HubPhase, place: HubPlace): HeadCopy {
 	if (phase.kind === 'unreachable') return UNREACHABLE[place]
 	if (!phase.desks.length) return EMPTY
 	return { title: statement(phase.counts.yours), lede: LISTING_LEDE }
+}
+
+// The empty overview's lede: what a fresh hub says, or when the last desk closed (a closed
+// desk is one click from back, its verdicts with it).
+export function emptyLede(lastClosed: DeskClosed | null, now: number): string {
+	if (!lastClosed) return EMPTY_LEDE
+	return `The last desk closed ${relativeTime(lastClosed.at, now)}. A closed desk reopens with its verdicts.`
 }

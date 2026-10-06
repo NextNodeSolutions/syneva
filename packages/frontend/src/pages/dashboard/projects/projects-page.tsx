@@ -102,13 +102,7 @@ export function ProjectsPage({
 }): ReactElement {
 	const root = useRef<HTMLDivElement>(null)
 	useEntrance(root, 'projects')
-	if (!dashboard.listed)
-		return (
-			<PhasePage
-				phase={dashboard.phase}
-				onNewReview={dashboard.newReview.offer}
-			/>
-		)
+	if (!dashboard.listed) return <PhasePage phase={dashboard.phase} />
 	const entries = projectIndex(
 		dashboard.projects,
 		dashboard.journal.events,

@@ -72,12 +72,6 @@ export function PlansPage({
 	dashboard: DashboardState
 }): ReactElement {
 	const { listed } = dashboard
-	if (!listed)
-		return (
-			<PhasePage
-				phase={dashboard.phase}
-				onNewReview={dashboard.newReview.offer}
-			/>
-		)
+	if (!listed) return <PhasePage phase={dashboard.phase} />
 	return <PlansListed dashboard={dashboard} listed={listed} />
 }
