@@ -58,7 +58,7 @@ export function useDashboard(): DashboardState {
 	const journal = useJournal()
 	const toast = useCloseNotice()
 	const hold = useListHold()
-	const phase = hubPhase(hub)
+	const phase = hubPhase(hub, journal.isRead)
 	const listed = phase.kind === 'listed' ? phase : null
 	const desks = listed?.desks ?? NO_DESKS
 	const close = useDeskClose({

@@ -44,8 +44,8 @@ function heroCopy(
 
 // The overview with no desk live, as one centred composition: the review loop at rest, the
 // statement and the ways to open a desk, then the desks closed before, by repository, each one
-// a Reopen from back. It mounts once the journal's first read has settled (overview-page.tsx),
-// so it shows its history from its first frame.
+// a Reopen from back. It mounts once the journal's first read has settled (hub-phase.ts), so it
+// shows its history from its first frame.
 export function EmptyOverview({
 	dashboard,
 }: {

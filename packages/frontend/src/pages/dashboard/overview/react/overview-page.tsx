@@ -16,10 +16,7 @@ import { OverviewHead } from './overview-head'
 import { overview } from './overview.styles'
 
 import type { ReactElement } from 'react'
-import type { HubPhase } from '../../hub-phase'
 import type { DashboardState, Listed } from '../../use-dashboard'
-
-const LOADING_PHASE: HubPhase = { kind: 'loading' }
 
 // The body steps in after the head's two entrances (its statement, then its controls), as it
 // would in one entrance over the whole page.
@@ -74,10 +71,6 @@ export function OverviewPage({
 }): ReactElement {
 	const { listed } = dashboard
 	if (!listed) return <PhasePage phase={dashboard.phase} />
-	// The listing waits for the journal's first read (it orders the desks by how long their
-	// turn has lasted), so the page mounts once, in its final order: nothing reshuffles under
-	// its entrance. The loading head stays hidden for a quick read.
-	if (!dashboard.journal.isRead) return <PhasePage phase={LOADING_PHASE} />
 	if (!listed.desks.length) return <EmptyOverview dashboard={dashboard} />
 	return <OverviewListed dashboard={dashboard} listed={listed} />
 }
