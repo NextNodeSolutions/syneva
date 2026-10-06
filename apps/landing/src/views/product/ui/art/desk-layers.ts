@@ -7,8 +7,6 @@ type LayerOf<Kind extends LayerKind> = {
 	words: string
 }
 
-// Each layer by what it carries: where it rests, where it travels in from,
-// and its legend.
 export const LAYER = {
 	diff: {
 		kind: 'diff',
@@ -40,7 +38,6 @@ export const LAYER = {
 	},
 } as const satisfies { [Kind in LayerKind]: LayerOf<Kind> }
 
-// The layers bottom to top.
 export const LAYERS = [LAYER.diff, LAYER.guide, LAYER.thread, LAYER.verdict]
 
 export type Layer = (typeof LAYERS)[number]

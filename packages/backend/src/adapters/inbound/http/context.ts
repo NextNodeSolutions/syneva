@@ -21,23 +21,18 @@ import type { StateBodyCache } from '../../../application/state-cache.js'
 import type { ReviewState } from '../../../domain/review.js'
 import type { DeskLiveness } from './liveness.js'
 
-// The persist outcome a route needs: the stamped root to commit plus the file it was written to.
+// Persist outcome for a route: the stamped root to commit + the file it was written to.
 export type PersistedState = { state: ReviewState; file: string }
 
-// Everything a route needs from one hosted desk: the live review, the liveness collaborators,
-// the capability ports, and the state-ownership operations every route shares (commit, persist,
-// and the write mutex). The hub holds one of these per desk; nothing here is process-wide.
+// Everything a route needs from one hosted desk; the hub holds ONE per desk, nothing process-wide.
 export type DeskContext = {
-	// Changes whenever the desk is (re)created - on a hub restart, the restored desk carries a new
-	// one, which is how an open tab learns it must refresh (see /poll).
+	// Changes whenever the desk is (re)created; a restored desk carries a new one - how an open tab learns to refresh (see /poll).
 	instanceId: string
-	// The current immutable state root. Copy-on-write: mutations never edit a root in place -
-	// they build a NEW root (unchanged branches shared by reference) and publish it with
-	// `commit`. One reference read is atomic in JS, so a reader captures a consistent snapshot
-	// without the write mutex and can never observe an in-place intermediate.
+	// Copy-on-write: mutations build a new root (unchanged branches shared, published via
+	// commit); a reader captures a consistent snapshot from one atomic reference read.
 	readonly state: ReviewState
-	// The application revision: monotonic, advanced ONLY when a mutation commits a different
-	// state root (commit of the same root is a no-op). The /state body cache keys on it.
+	// Monotonic, advanced only when a mutation commits a different root (a same root is a no-op);
+	// the /state body cache keys on it.
 	readonly revision: number
 	events: EventStream
 	activity: DeskActivity
@@ -47,35 +42,21 @@ export type DeskContext = {
 	store: ReviewStorePort
 	settings: SettingsPort
 	editor: EditorPort
-	// Serialize every mutating route through one promise-chain mutex. Mutual exclusion ORDERS
-	// writes - a concurrent /send and /reload each compute their next root from the
-	// latest committed one, so neither can overwrite the other mid-flight (this is the exact
-	// window the two-actor design opens: an agent calls `syneva reload` while the reviewer hits
-	// Send). It no longer guards READS: copy-on-write state makes `ctx.state` a consistent
-	// snapshot on its own. The /await-send long-poll MUST stay out - it parks for the
-	// length of a round, so serializing it would wedge every mutation behind a waiter that
-	// only a mutation releases.
+	// One promise-chain mutex ordering every mutating route: a concurrent /send and /reload each compute their next root from the latest committed one (the two-actor window).
+	// It no longer guards reads (copy-on-write snapshots are atomic enough alone); the /await-send long-poll MUST stay out - it parks a whole round, so serializing it would wedge every mutation behind a waiter only a mutation releases.
 	serialize: Serializer
-	// Publish a mutation's next state root - the ONLY way live state changes. A root that
-	// differs from the current one becomes the live state and advances the revision; the same
-	// root is a no-op, so an unchanged desk keeps serving its cached /state body.
+	// The ONLY way live state changes: a differing root goes live and advances the revision; the same root is a no-op, so an unchanged desk keeps its cached /state body.
 	commit(next: ReviewState): void
-	// Persist `next` and hand back the stamped root to commit (the stamp the written file
-	// carries - updatedAt/persistFile - is adopted as a state change like any other) plus the
-	// file's path (Send writes its result artifact next to it).
+	// Persist `next` and hand back the stamped root to commit (the written file's updatedAt/persistFile stamp is adopted as a state change) plus the file path (Send writes its result artifact there).
 	persist(next: ReviewState): Promise<PersistedState>
-	// The serialized /state body, keyed on the application revision plus the transient
-	// desk status (see state-cache.ts).
+	// The serialized /state body, keyed on the application revision plus the transient desk
+	// status (state-cache.ts).
 	stateBodyCache: StateBodyCache
 	status(): DeskStatus
 	// Reflect the live git index onto the review for the read routes (/state, /tree).
-	// The index snapshot is read OUTSIDE the write mutex (a git spawn is the desk's slowest
-	// operation); the conditional commit re-validates under it - a mutation that landed
-	// mid-read re-computes against the newest root instead of overwriting it. An unchanged
-	// index commits nothing, so the same root keeps serving the cached body.
 	refreshStaged(): Promise<void>
 	// Close this desk on the hub: a `closed` event reaches a parked agent waiter, then the desk
-	// leaves the registry. The review state stays saved; the hub keeps running.
+	// leaves the registry; the review state stays saved and the hub keeps running.
 	close(): void
 	// Journal what just happened on this desk, once it has (after the commit): the hub binds the
 	// desk's subject, the journal stamps the seq and time. Never throws and never waits - a
@@ -103,7 +84,6 @@ export function createDeskContext(
 	const stateBodyCache = createStateBodyCache()
 	const owner = createStateOwner(state)
 	return {
-		// The collaborators ARE the context's collaborators - spread, not re-listed.
 		...collaborators,
 		instanceId: randomUUID(),
 		stateBodyCache,
@@ -133,8 +113,8 @@ export function createDeskContext(
 	}
 }
 
-// Persist next and hand back the stamped root to commit: the stamp the written file carries
-// (updatedAt/persistFile) is adopted as a state change like any other.
+// Persist `next` and hand back the stamped root to commit; the written file's stamp is adopted
+// as a state change like any other.
 async function persistState(
 	store: ReviewStorePort,
 	next: ReviewState,
@@ -143,7 +123,6 @@ async function persistState(
 	return { state: { ...next, ...persisted.stamp }, file: persisted.file }
 }
 
-// The desk status is derived read-only from the event stream and the agent activity log.
 function deskStatus(events: EventStream, activity: DeskActivity): DeskStatus {
 	const queued = events.queuedCounts()
 	return {
@@ -154,26 +133,21 @@ function deskStatus(events: EventStream, activity: DeskActivity): DeskStatus {
 	}
 }
 
-// Reflect the live git index onto the review for the read routes (/state, /tree).
-// The index snapshot is read OUTSIDE the write mutex (a git spawn is the desk's slowest
-// operation); the conditional commit re-validates under it - a mutation that landed
-// mid-read re-computes against the newest root instead of overwriting it. An unchanged
-// index commits nothing, so the same root keeps serving the cached body.
+// Read the index outside the write mutex (a git spawn is the desk's slowest op) and re-validate under it: a mutation mid-read recomputes against the newest root instead of overwriting it.
+// An unchanged index commits nothing.
 async function refreshStagedIndex(
 	read: () => ReviewState,
 	git: GitPort,
 	runMutation: Serializer,
 	commit: (next: ReviewState) => void,
 ): Promise<void> {
-	// Capture the root, then read the index mutex-free; the write below only runs when
-	// the snapshot actually moved the staged bookkeeping.
+	// Capture the root, then read the index mutex-free; the write runs only when the snapshot moved the staged bookkeeping.
 	const observed = read()
 	const snapshot = await readStagedSnapshot(observed, git)
 	await runMutation(async () => {
 		const live = read()
-		// A commit landed while the index was being read: the snapshot was filtered
-		// against the observed root's file set, so recompute against the live one
-		// (rare - only when a mutation raced the read).
+		// A commit landed during the index read: the snapshot was filtered against the observed
+		// root's file list, so recompute against the live one (rare mutation-read race).
 		const fresh =
 			live === observed ? snapshot : await readStagedSnapshot(live, git)
 		if (!stagedSnapshotMoved(live, fresh)) return
@@ -182,7 +156,7 @@ async function refreshStagedIndex(
 }
 
 // Both arrays come from the same git output in the same order on every read, so a positional
-// compare is exact - and unlike a set compare it would still catch a genuine reorder.
+// compare is exact - and unlike a set compare it still catches a genuine reorder.
 function stagedSnapshotMoved(
 	state: ReviewState,
 	snapshot: {

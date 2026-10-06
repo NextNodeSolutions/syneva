@@ -15,28 +15,20 @@ import type { PreviewFile, ReviewState } from '@entities/review/model'
 
 type ReviewFile = ReviewState['files'][number]
 
-// The bindings behind moving around the review: picking a file (tree/walkthrough clicks, keyboard
-// steps) and opening an unchanged file for a read-only preview. Every step funnels through
-// S.selectFile, so the tree highlight, cursor reset and diff render stay in one place.
 export function installNavigationBindings(): void {
 	installFileSelection()
 	installFileStepping()
 	installSignOffAdvance()
 }
 
-// The navigation generation: bumped by every selection that replaces the rendered file
-// (S.selectFile) and by every preview request. An in-flight preview whose token is no
-// longer current is discarded, so a late response can't overwrite a newer selection.
+// Bumped by every selection that replaces the rendered file and by every preview request; an in-flight preview whose token is no longer current is discarded, so a late response can't overwrite a newer selection.
 let navGeneration = 0
 
 function installFileSelection(): void {
-	// Update selection immediately, then schedule the diff render.
 	S.selectFile = i => {
 		const { state } = S
-		if (i < 0 || !state?.files[i]) return // ignore out-of-range selections
+		if (i < 0 || !state?.files[i]) return
 		navGeneration++ // invalidate any in-flight preview for the file being left
-		// Narrow-width drawer: opening a file is the drawer's whole purpose, so get it out of the
-		// way. The single funnel for tree/walkthrough clicks + next/prev + guide nav; no-op when shut.
 		S.treeDrawerOpen = false
 		S.overviewOpen = false
 		S.preview = null
@@ -44,14 +36,10 @@ function installFileSelection(): void {
 		S.fileIndex = i
 		S.fileView = defaultFileView(state.files[i], S.settings.markdownView)
 		D.fileDiff = null
-		cursorReset() // re-init the line cursor to the new file's first change
-		// The sidebar highlight re-derives on the store bump this mutation causes -
-		// the React tree repaints it; nothing to patch in place.
+		cursorReset()
 		deferRender()
 		warmNextFile()
 	}
-	// Open any repo file (incl. unchanged ones) for read/comment: fetch its contents and show it
-	// as a plain view (old === new -> no diff blocks). Comments anchor to it like any file.
 	S.previewFile = path => {
 		void openPreview(path)
 	}
@@ -60,8 +48,6 @@ function installFileSelection(): void {
 async function openPreview(path: string): Promise<void> {
 	const gen = ++navGeneration
 	const preview = await readPreviewFile(path)
-	// A newer selection (file pick or preview) happened while this request was in flight:
-	// drop the stale response instead of rendering the wrong file.
 	if (gen !== navGeneration) return
 	if (!preview) return
 	S.overviewOpen = false
@@ -71,14 +57,10 @@ async function openPreview(path: string): Promise<void> {
 	await render()
 }
 
-// The active pane's sorting: the walkthrough tab walks the guide order (plus the guide's
-// "Other" files, in file order); the tree tab walks the tree's own rows. Two sortings, one
-// review state - a sign-off in either view approves globally.
+// Two sortings, one review state - a sign-off in either view approves globally.
 const walkthroughActive = (): boolean =>
 	hasGuide(guideInputs(S)) && S.sidebarTab === 'walkthrough'
 
-// Plain next/prev in the walkthrough order - the next file is the next file, period, with
-// no unreviewed seek. Cyclic at both ends.
 function nextInWalkthrough(dir: 1 | -1): number | null {
 	const order = navOrder(guideInputs(S))
 	if (!order.length) return null
@@ -86,8 +68,6 @@ function nextInWalkthrough(dir: 1 | -1): number | null {
 	return order[(pos + dir + order.length) % order.length] ?? null
 }
 
-// Plain next/prev in the tree's file rows (previews included - an unchanged file has no
-// index and opens as one). Cyclic at both ends.
 function nextInTree(dir: 1 | -1): FileRow | null {
 	const rows = (S.treeRows?.() ?? []).filter(
 		(row): row is FileRow => row.kind === 'file' || row.kind === 'test',
@@ -102,9 +82,7 @@ function nextInTree(dir: 1 | -1): FileRow | null {
 	return rows[(pos + dir + rows.length) % rows.length] ?? null
 }
 
-// Quietly warm the file the next step will actually open (the active pane's sorting): its contents,
-// so the step never waits on the wire, then its highlight in Pierre's worker cache, so it opens
-// colored (widgets/diff-view/diff-prime.ts). Runs after each selection and after the first render.
+// Warm the file the next step will actually open (the active pane's sorting): its contents, so the step never waits on the wire, then its highlight in Pierre's worker cache, so it opens colored.
 export function warmNextFile(): void {
 	const next = walkthroughActive()
 		? nextInWalkthrough(1)
@@ -123,22 +101,18 @@ async function warmFile(file: ReviewFile): Promise<void> {
 			await import('@widgets/diff-view/diff-prime')
 		await primeDiffHighlight(file, contents)
 	} catch {
-		// A failed island chunk is reported by the open itself (pages/desk/render.ts).
+		/* a failed warm-up is silent: the open re-fetches and renders the error card */
 	}
 }
 
 function installFileStepping(): void {
-	// One dispatch for "open the file this tree row points at": stepInView's tree fallthrough
-	// and the explicit tree-order keys share it, so the two can never drift apart.
+	// One dispatch for "open the file this tree row points at": stepInView's tree fallthrough and the explicit tree-order keys share it, so the two can never drift apart.
 	const openTreeRow = (dir: 1 | -1): void => {
 		const row = nextInTree(dir)
 		if (!row) return
 		if (typeof row.fileIndex === 'number') S.selectFile?.(row.fileIndex)
 		else S.previewFile?.(row.path)
 	}
-	// The step is the ACTIVE pane's sorting - tree pane steps tree order, walkthrough pane
-	// steps walkthrough order - never a seek. The Overview is the walkthrough's front page:
-	// Next enters the first file, Prev lands on the last one.
 	S.stepInView = dir => {
 		if (S.overviewOpen) {
 			if (dir === 1) {
@@ -158,22 +132,14 @@ function installFileStepping(): void {
 		}
 		openTreeRow(dir)
 	}
-	// The keyboard keys and the guide-bar buttons share this one step; the explicit tree-order
-	// keys below stay the escape hatch from the walkthrough pane.
 	S.nextFile = () => S.stepInView?.(1)
 	S.prevFile = () => S.stepInView?.(-1)
-	// Tree-order file stepping (⌘⇧↑/⇧↓) - the tree's rows whatever pane is showing. Cyclic,
-	// like every other step; previews (unchanged files) open as previews.
 	S.treeStep = openTreeRow
 }
 
 function installSignOffAdvance(): void {
-	// approveCurrentFile's advance: the armed notes flow wins (facade/notes owns it and says
-	// whether it jumped), else the next UNSIGNED file in the ACTIVE pane's sorting. The scan
-	// walks the pane's own order cyclically and skips what is already signed off - approving
-	// must hand over the next work item, and a reviewed neighbor is not work. Plain next/prev
-	// (stepInView) keeps the pane's raw order; only the sign-off advance seeks. When nothing
-	// unsigned remains, the completion gate (promptFinish) already owns what happens next.
+	// The armed notes flow wins; else the next UNSIGNED file in the ACTIVE pane's sorting - the scan walks cyclically and skips what is already signed off: approving hands over the next work item, and a reviewed neighbor is not work.
+	// Plain next/prev keeps the raw order; only the sign-off advance seeks; when nothing unsigned remains the completion gate takes over.
 	S.afterSignOff = path => {
 		if (S.notesAfterSignOff?.(path)) return
 		const { state } = S
@@ -195,9 +161,7 @@ function installSignOffAdvance(): void {
 	}
 }
 
-// Fetch an unchanged file for a preview read. A preview is UI-only (never persisted or wired), so it
-// carries its single contents inline via previewContents (old === new -> no diff). contentHash is
-// unused: previews are never approved.
+// A preview is UI-only (never persisted or wired): its single contents ride inline via previewContents; contentHash is unused - previews are never approved.
 async function readPreviewFile(path: string): Promise<PreviewFile | null> {
 	try {
 		const body = await fetchPreviewFile(path)

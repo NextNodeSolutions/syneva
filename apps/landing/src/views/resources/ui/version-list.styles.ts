@@ -2,7 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The changelog: a dated rail of shipped entries, each change tagged.
 export const versionList = stylex.create({
 	root: {
 		listStyle: 'none',

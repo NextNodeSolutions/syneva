@@ -3,10 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// The built UI sits next to the bundled server: the apps/syneva assembly bundles
-// cli.js and copies the UI assets into the same dist/. A hub run from source has
-// no built UI beside it - the dev loop serves the pages from source through its
-// own UiServer instead (routes/static.ts).
+// Assembly copies the built UI next to the bundled server; a hub run from source has none beside it - the dev loop serves the pages from source through its own UiServer (routes/static.ts).
 function assetPath(...segments: string[]): string {
 	return path.join(__dirname, ...segments)
 }
@@ -19,13 +16,11 @@ export function dashboardBundlePath(): string {
 	return assetPath('dashboard.js')
 }
 
-// The stylesheet both page shells link.
 export function stylesPath(): string {
 	return assetPath('styles.css')
 }
 
-// Font names are the design system's file names (validated by the route), never arbitrary
-// filesystem paths from a request.
+// Font names are the design system's file names (validated by the route), never arbitrary filesystem paths from a request.
 export function fontPath(name: string): string {
 	return assetPath('fonts', name)
 }
@@ -35,7 +30,6 @@ export function uiChunkPath(name: string): string {
 	return assetPath('chunks', name)
 }
 
-// The desk page (served under /d/<id>/) and the dashboard page (the hub root).
 export function indexHtmlPath(): string {
 	return assetPath('index.html')
 }

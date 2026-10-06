@@ -10,8 +10,7 @@ import { render, deferRender } from '@shared/lib/render-scheduler'
 
 import type { ChangeState, Decision, ReviewFile } from '@entities/review/model'
 
-// The explicit decision record is the source of truth for accept/reject (decoupled
-// from git staging). Every status change must go through these so it survives reload.
+// The explicit decision record is the source of truth for accept/reject (decoupled from git staging): every status change goes through these so it survives reload.
 function recordDecision(change: ChangeState, status: Decision['status']): void {
 	const state = featureCtx().requireState()
 	state.decisions = state.decisions ?? []
@@ -54,9 +53,6 @@ function markFileReviewed(path: string, contentHash: string): void {
 	state.reviewedFileHashes[path] = contentHash
 }
 
-// A working-mode move pair (issue 02) stages BOTH paths - `git add`-ing the old (deleted) path
-// records the deletion, so the index ends with a rename. Only in working-repo mode: pr approve
-// is a pure verdict, and staged mode can't contain these pairs. stagedFiles records the new path.
 async function stageApprovedFile(
 	file: ReviewFile,
 	path: string,
@@ -69,10 +65,6 @@ async function stageApprovedFile(
 	if (!state.stagedFiles.includes(path)) state.stagedFiles.push(path)
 }
 
-// Sign off on the current file: accept any still-pending hunks (un-objected lines you've
-// reviewed and didn't reject), mark the file finished against its current content hash, stage
-// it when it's a clean approval and the "Approve stages file" setting is on, then advance.
-// The displayed terminal state (approved vs changes-requested) is derived from objections.
 export async function approveCurrentFile(): Promise<void> {
 	const file = currentFile(
 		featureCtx().S.state?.files,
@@ -83,50 +75,38 @@ export async function approveCurrentFile(): Promise<void> {
 	const state = featureCtx().requireState()
 	acceptPendingChanges(path)
 	markFileReviewed(path, file.contentHash)
-	// A file with objections (a rejected hunk or open requested-change comment) is "changes
-	// requested" - the agent still has work on it, so never stage it. Clean → stage if enabled.
 	const isClean = !fileObjections(featureCtx().S.state, path)
 	if (isClean && featureCtx().S.settings.stageOnAccept)
 		await stageApprovedFile(file, path)
 	featureCtx().persist()
 	const label = isClean ? 'Approved' : 'Marked reviewed'
-	// The review-complete gate is over in-flow files only (issue 01): pure renames left the flow,
-	// so they never block completion (and are never auto-approved).
-	// One flow-index pass instead of per-file predicate rescans (see flow-index.ts).
 	const ix = flowIndex(featureCtx().S.state, {
 		distill: featureCtx().S.settings.hideReviewed,
 	})
 	const scope = state.files.filter(f => !ix.outOfFlow.has(f.path))
-	// Every in-flow file signed off → the review is done: prompt to send it back to the agent.
 	if (scope.every(f => state.reviewedFiles.includes(f.path))) {
 		featureCtx().toast(`${label} - review complete`)
 		void render()
 		featureCtx().S.promptFinish?.()
 		return
 	}
-	// Each sign-off toasts the running score ("7 of 12 files · 58%") so progress is felt at the
-	// moment it moves, not just visible in the bar. % matches the strip (LOC-weighted by default).
 	const done = scope.filter(f => ix.reviewState(f.path) !== 'pending').length
 	featureCtx().toast(
 		`${label} - ${done} of ${scope.length} files · ${guideProgress(guideInputs(featureCtx().S)).pct}%`,
 	)
-	// The advance is the facade's: the notes flow (panel open, armed on this path) first,
-	// else the next file in the ACTIVE pane's sorting - plain next, no unreviewed seek.
 	void render()
 	featureCtx().S.afterSignOff?.(path)
 }
 
-// Unstage is a git-index op the UI state already reflects - fire it without blocking so the
-// re-render (and its indicator) start immediately, and swallow a failed index op.
+// Best-effort unstage: fired without blocking so the re-render (and its indicator) starts immediately, a failed index op swallowed.
 async function unstagePath(path: string): Promise<void> {
 	try {
 		await unstageChange({ path })
 	} catch {
-		// Best-effort: the reviewer-facing state is already reset above.
+		/* the reviewer-facing state is already reset above; the next decision re-stages */
 	}
 }
 
-// Undo a file's review: clear hunk decisions, the finished/sign-off marker + its hash, and unstage.
 export async function resetReview(path: string): Promise<void> {
 	const state = featureCtx().requireState()
 	for (const change of state.changes)
@@ -148,11 +128,6 @@ export async function resetReview(path: string): Promise<void> {
 	featureCtx().persist()
 }
 
-// Reject a whole file in one action, for the oversized-file card (issue 05): its blocks aren't
-// visible there, so the honest equivalent of per-block reject is to reject every change block
-// through the SAME decisions path. They flow into result.rejected like any rejected hunk - no new
-// verdict kind, no new result semantics. Only meaningful when the file has change blocks (a
-// hunk-less added file has none - the card hides the action there).
 export async function rejectFile(path: string): Promise<void> {
 	const state = featureCtx().requireState()
 	const blocks = state.changes.filter(c => c.path === path)
@@ -169,8 +144,7 @@ export async function rejectFile(path: string): Promise<void> {
 	featureCtx().persist()
 }
 
-// Per-hunk accept/reject is now a pure verdict - staging happens only when the file is approved
-// (so a changes-requested file is never left partially staged).
+// Per-hunk accept/reject is a pure verdict - staging happens only when the file is approved, so a changes-requested file is never left partially staged.
 export async function acceptChange(
 	id: string,
 	status: Decision['status'],
@@ -184,9 +158,6 @@ export async function acceptChange(
 	state.decisionFiles = state.decisionFiles ?? []
 	if (!state.decisionFiles.includes(change.path))
 		state.decisionFiles.push(change.path)
-	// No need to apply the decision to featureCtx().fileDiff() here: renderCenter unconditionally rebuilds
-	// featureCtx().fileDiff() from the raw diff (parse → ensureChanges → replayDecisions) every render, so a
-	// pre-render mutation is thrown away - the replay below picks the new status up from the record.
 	featureCtx().toast(status === 'rejected' ? 'Rejected' : 'Accepted')
 	void render()
 	featureCtx().persist()

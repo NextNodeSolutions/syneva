@@ -1,5 +1,4 @@
 ---
-// Open source: a protocol, an interface, and no model inside.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import Wire from '@shared/ui/drawing/Wire.astro'
@@ -8,7 +7,6 @@ import { shape } from '@shared/ui/drawing/shape.styles'
 import { text } from '@shared/ui/drawing/text.styles'
 import { resourcesArt } from './resources-art.styles'
 
-// Only the first and the last agent send a signal into the desk.
 type Agent = { name: string; signalDelay?: number }
 const AGENTS: readonly Agent[] = [
 	{ name: 'Any agent', signalDelay: 1.6 },

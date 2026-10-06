@@ -1,6 +1,5 @@
 import '@syneva/design-system/fonts.css'
 import './desk.css'
-// The markdown renderers' prose styles (shared/markdown), scoped under [data-prose].
 import '@shared/markdown/prose.css'
 import { createRoot } from 'react-dom/client'
 
@@ -36,24 +35,14 @@ import { App } from './react/app'
 import { persist, requireState, toast } from './store'
 import { S } from './store'
 
-// The tab's bootstrap: store bindings, the React root, the initial fetch, and the few document-level
-// listeners. Everything with real behaviour lives in the modules this wires together.
-
-// Scrolling the diff past its header reveals the floating Approve button.
 const FAB_REVEAL_SCROLL_PX = 140
-// Bind the features' use-case context before any binding that can invoke a feature action.
 bindFeaturePorts()
-// Bind the page/widget render-path context before the React root mounts and before any render or
-// action can run: every desk render pass and diff-island mutation goes through this seam, and it
-// throws until app composition has bound it (see the per-context module).
-// S is bound as the reactive proxy itself (mutations stay observable); D stays the plain
-// holder (@pierre's element-identity checks break on a reactive proxy).
+// Bound before the React root mounts and before any render or action: every desk render pass and diff-island mutation goes through this seam, which throws until app composition has bound it.
+// D stays the plain holder because @pierre's element-identity checks break on a reactive proxy.
 bindDiffCtx({ S, D, requireState, deferRender, persist, toast })
 bindChromeCtx(S)
-// Keyboard shortcuts: a central scope-aware dispatcher (keys.ts) is the single source of truth.
 installKeys()
-// The store methods the chrome call. Installed before the React tree mounts, so the
-// first template evaluation already sees them.
+// Installed before the React tree mounts, so the first template evaluation already sees them.
 installProjectTreeBindings()
 installNavigationBindings()
 installNotesBindings()
@@ -62,28 +51,18 @@ installFileActionBindings()
 installCommentBindings()
 installDialogBindings()
 
-// The React tree: mounted right after the contexts and facade bindings are in place, so
-// the shell (and the engine containers inside DiffArea) exist before the first render pass
-// touches them. The store starts with state=null; the chrome tolerates it
-// and fills in when the initial fetch adopts.
 createRoot($('root')).render(<App />)
 
-// Init
-ensureIcons() // file-tree icon sprite (folder/file/badges/stage)
-// The shared markdown loader is stateless infrastructure: it reads the live theme, repaints
-// through the render funnel, and toasts on failure - all composed here, the only app module.
+ensureIcons()
 configureMarkdownRuntime({
 	getTheme: () => S.settings.theme,
 	onLoaded: () => void render(),
 	onLoadError: () =>
 		toast('Markdown rendering could not load. Reopen the file to retry.'),
-	// The blob route is named only by the review-file API boundary - shared markdown
-	// receives the resolver injected here (repo-relative images rewrite to /blob).
+	// The blob route is named only by the review-file API boundary - shared markdown receives the resolver injected here (repo-relative images rewrite to /blob).
 	repoImageSrc: repoBlobUrl,
 })
-// Boot Pierre's highlight workers as soon as the review is known, so their boot (with the first
-// file's grammar) overlaps the first contents fetch and the diff island's own load; the island
-// adopts the same pool singleton.
+// Boot Pierre's highlight workers as soon as the review is known, so their boot (with the first file's grammar) overlaps the first contents fetch and the diff island's load; the island adopts the same pool singleton.
 async function bootDiffWorkers(firstPaths: string[]): Promise<void> {
 	try {
 		const workers = await import('@widgets/diff-view/diff-workers')
@@ -92,12 +71,10 @@ async function bootDiffWorkers(firstPaths: string[]): Promise<void> {
 			firstPaths,
 		)
 	} catch {
-		// A failed chunk is reported by the diff island's own load path (pages/desk/render.ts).
+		/* a boot failure only delays the first colored paint; the pools error path repaints */
 	}
 }
 
-// Display preferences live in ~/.syneva/settings.json (localStorage is per-origin and the port is
-// random, so it can't hold them). Fold the file over the defaults before first paint.
 const [prefs, state, tree] = await Promise.all([
 	fetchPrefs(),
 	fetchState(),
@@ -115,10 +92,8 @@ void bootDiffWorkers(
 )
 S.projectFiles = tree.files ?? []
 S.lastBaseDiffHash = S.state.baseDiffHash
-// Tab title: name the desk so multiple desks are distinguishable in the browser.
 const name = deskName(S.state)
 if (name) document.title = `Syneva - ${name}`
-// The top bar's progress label prefixes the title with the review % - hand it the base.
 setBaseTitle(document.title)
 S.selected = {
 	side: S.state.changes[0]?.side ?? 'additions',
@@ -126,22 +101,17 @@ S.selected = {
 }
 const firstFile = S.state.files.at(S.fileIndex)
 if (firstFile) S.fileView = defaultFileView(firstFile, S.settings.markdownView)
-// With a guide attached, land on the Overview page (the guided entry point) and open the sidebar on
-// the user's preferred pane (`w` toggles it per-session from there).
 if (hasGuide(guideInputs(S))) {
 	S.overviewOpen = true
 	S.sidebarTab =
 		S.settings.sidebarDefault === 'walkthrough' ? 'walkthrough' : 'tree'
 }
-// The first file renders, then the next one warms (contents + highlight) while it is read.
 async function renderFirstFile(): Promise<void> {
 	await render()
 	warmNextFile()
 }
 void renderFirstFile()
-// Reveal the floating Approve button once the diff scrolls past its (non-sticky) header. #diff is
-// the persistent scroll container (x-ignore), so this listener is attached once and survives every
-// re-render/file switch.
+// #diff is the persistent scroll container (x-ignore), so this listener is attached once and survives every re-render/file switch.
 $('diff').addEventListener('scroll', () => {
 	S.diffScrolled = $('diff').scrollTop > FAB_REVEAL_SCROLL_PX
 })

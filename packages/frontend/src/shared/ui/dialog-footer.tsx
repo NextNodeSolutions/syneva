@@ -4,8 +4,6 @@ import { dialog } from './dialog.styles'
 
 import type { ReactElement, ReactNode } from 'react'
 
-// A dialog's actions under a rule, at the end of the row (the primary action
-// last), at every width.
 export function DialogFooter({
 	children,
 }: {

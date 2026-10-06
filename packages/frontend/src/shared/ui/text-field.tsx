@@ -11,15 +11,9 @@ import type { ComponentPropsWithRef, ReactElement } from 'react'
 import type { FieldText } from './field-text'
 
 type TextFieldProps = FieldText & {
-	// Paths, refs, keys: anything typed that is not prose.
 	mono?: boolean | undefined
 } & Omit<ComponentPropsWithRef<'input'>, 'className' | 'style' | 'id'>
 
-// A labelled text input. Every native input attribute (ref included) reaches
-// the input; the label, the hint or error and their wiring (ids, aria-invalid,
-// aria-describedby) are the field's own. What is typed here is a path or a
-// name, never prose, so spelling, capitalising and autofill stay off unless
-// the caller turns them on.
 export function TextField({
 	label,
 	aside,

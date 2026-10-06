@@ -16,11 +16,6 @@ import type { ReactElement } from 'react'
 import type { Option, OptionGroup } from './select-options'
 import type { NumberSpec, SelectSpec, TextSpec } from './settings-descriptors'
 
-// A table-driven settings pane: each control is a descriptor (label + options +
-// read/write through the store), so the grid renders from data instead of four
-// near-identical JSX blocks. Descriptors read the live store through chromeCtx() at
-// call time - the pane re-renders on every store bump.
-
 function isGrouped(
 	options: Option[] | OptionGroup[],
 ): options is OptionGroup[] {

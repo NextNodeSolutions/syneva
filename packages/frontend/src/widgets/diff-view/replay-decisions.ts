@@ -12,15 +12,12 @@ import type { DecidedPosition, LineMap } from '@shared/diff-renderer/linemap'
 
 export type ChangePosition = { hunkIndex: number; changeIndex: number }
 
-// Resolutions renumber lines but preserve hunk count and per-hunk content-entry count
-// 1:1 (a resolved change becomes a context entry at the same index), so the recorded
-// (hunkIndex, changeIndex) addresses the block in raw AND replayed diffs alike.
+// Resolutions renumber lines but preserve hunk count and per-hunk content-entry count 1:1 (a resolved change becomes a context entry at the same index).
+// So the recorded (hunkIndex, changeIndex) addresses the block in the raw AND replayed diff alike.
 function changePosition(
 	diff: FileDiffMetadata,
 	change: ChangeState,
 ): ChangePosition | null {
-	// The address is only valid where it was recorded; a record without one (or pointing at a
-	// part the diff no longer has) says nothing about this diff - not found.
 	const { hunkIndex, changeIndex } = change
 	if (typeof changeIndex !== 'number') return null
 	const part = diff.hunks[hunkIndex]?.hunkContent[changeIndex]
@@ -28,15 +25,8 @@ function changePosition(
 	return { hunkIndex, changeIndex }
 }
 
-// Every decided block, with its display treatment: accepted shows the band (its additions
-// merged into context), rejected keeps the deletions, and - with the hide-reviewed pref on -
-// a CUT accepted block is distilled out of the rendered diff entirely (see distill.ts). The
-// pref is read here so the replay's line map and the metadata builder derive from ONE
-// decided list computed in ONE pass.
 export function decidedPositions(diff: FileDiffMetadata): DecidedPosition[] {
 	const decided: DecidedPosition[] = []
-	// Resolve every position against the RAW diff up front (the fallback lookup would
-	// mis-match against a partially resolved one), then apply by invariant indexes.
 	for (const change of currentChanges(
 		diffCtx().S.state,
 		currentFileOrNull(
@@ -57,21 +47,15 @@ export function decidedPositions(diff: FileDiffMetadata): DecidedPosition[] {
 
 export type ReplayOutcome = {
 	diff: FileDiffMetadata
-	// The raw↔display line map the rest of the render (annotations, cursor, selections)
-	// converts through; null = identity (nothing decided).
 	lineMap: LineMap | null
 }
 
-// Replay every decided block onto the raw diff and rebuild its line map. Cut blocks replay
-// like any accepted block (they become the context entries the distiller then drops), but
-// their line-map breaks compress the display streams.
 export function replayDecisions(
 	diff: FileDiffMetadata,
 	decided: DecidedPosition[],
 ): ReplayOutcome {
 	let resolved = diff
 	for (const call of planReplayCalls(diff, decided)) {
-		// Cut entries replay too: their context entries are what the distiller drops.
 		try {
 			resolved = diffAcceptRejectHunk(
 				resolved,
@@ -79,7 +63,7 @@ export function replayDecisions(
 				call.options,
 			)
 		} catch {
-			// leave this block unresolved rather than aborting the replay
+			/* a decision whose block is gone after a reload leaves that part unresolved instead of aborting the replay */
 		}
 	}
 	return {

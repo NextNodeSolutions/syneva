@@ -9,12 +9,6 @@ import { Chevron, indentStyle, MovedFrom } from './tree-parts'
 import type { WalkRow } from '@entities/review/guide/walkthrough'
 import type { ReactElement } from 'react'
 
-// The walkthrough pane rows: category headers (with the two trailing fold groups)
-// and per-file rows (status icon leads, +/- flush right). The active highlight comes
-// derived from walkRows(), which reads the active path.
-
-// The +/- glyph pair matches the diff's churn indicators; U+2212 is the minus the
-// width was tuned against, written as an escape to keep comparisons ASCII-safe.
 const REMOVED_GLYPH = '\u2212'
 
 const STATE_ICONS = {
@@ -103,7 +97,6 @@ function WalkFileNode({
 			data-key={node.key}
 			onClick={() => chromeCtx().S.selectFile?.(node.fileIndex)}
 		>
-			{/* File status leads the row (empty circle = to do); ± stay flush right below. */}
 			<WalkStateIcon state={node.state} />
 			<span {...stylex.props(row.name)} title={node.path}>
 				{node.name}

@@ -9,9 +9,6 @@ import {
 
 const fast = `${duration['--duration-fast']} ${ease['--ease-out']}`
 
-// The desk's full-surface status layers: the refresh notice slotted under the
-// top bar (amber: the page is out of date), and the closed-desk cover - a
-// card on the public site's ruled grid field, the tab's terminal state.
 export const covers = stylex.create({
 	notice: {
 		gridRow: '2',
@@ -72,7 +69,6 @@ export const covers = stylex.create({
 		borderStyle: 'solid',
 		borderColor: color['--line'],
 	},
-	// The site's underlined text link.
 	link: {
 		color: { default: color['--ink'], ':hover': color['--accent'] },
 		textDecoration: 'underline',

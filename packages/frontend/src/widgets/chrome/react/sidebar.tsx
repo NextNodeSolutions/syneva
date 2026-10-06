@@ -18,13 +18,7 @@ import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
 
-// The sidebar: Tree / Walkthrough tabs (guide-attached desks only), the file tree,
-// the walkthrough list, and the settings button. Rows render from the store methods
-// (treeRows()/walkthroughRows()); one click handler covers every tree row kind -
-// rowClick() dispatches dir toggles, fold groups, previews and file selection.
-
 function activePath(S: ReturnType<typeof chromeCtx>['S']): string | null {
-	// No file is "active" on the Overview; a previewed file wins over the indexed review file.
 	if (S.overviewOpen) return null
 	return S.preview?.path ?? S.state?.files.at(S.fileIndex)?.path ?? null
 }
@@ -141,7 +135,6 @@ function TreeRowNode({
 	)
 }
 
-// The w hint sits on the INACTIVE tab - the one pressing w switches to.
 function TreeTabs(): ReactElement {
 	const { S } = chromeCtx()
 	const tab = (pane: 'tree' | 'walkthrough', label: string): ReactElement => (
@@ -211,9 +204,6 @@ function TreePane({ active }: { active: string | null }): ReactElement {
 	)
 }
 
-// The sidebar body: tabs (guide only), tree, walkthrough. `sidebarTab` switches the
-// panes; the tree pane also hosts the Files header with expand/collapse-all. A desk
-// without a tree keeps the aside mounted but hidden (its shape can change on reload).
 export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields(

@@ -2,9 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 
 import { color } from './tokens.stylex'
 
-// A point under its own strong rule, an accent square sitting on the rule's
-// start (the site's steps and facts, the hub's register). Each list keeps
-// its own padding.
 export const ruledItem = stylex.create({
 	base: {
 		borderTopWidth: '1px',

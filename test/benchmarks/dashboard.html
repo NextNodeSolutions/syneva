@@ -3263,8 +3263,6 @@
 					'var(--green)',
 				]
 
-				/* ---------- formatting ---------- */
-
 				function fmtNum(v, digits) {
 					if (v == null || typeof v !== 'number' || !isFinite(v))
 						return '—'
@@ -3316,8 +3314,6 @@
 				function shortId(id) {
 					return String(id == null ? '' : id).replace(/-/g, ' ')
 				}
-
-				/* ---------- DOM helpers (no innerHTML for data-driven nodes) ---------- */
 
 				const setAttr = (node, attrs) => {
 					Object.keys(attrs || {}).forEach(k => {
@@ -3375,8 +3371,6 @@
 						h('thead', {}, h('tr', {}, headCells)),
 						h('tbody', {}, bodyRows),
 					)
-
-				/* ---------- run maths ---------- */
 
 				const byFixture = fixture =>
 					runs.filter(r => r.fixture === fixture)
@@ -3562,8 +3556,6 @@
 							? all[all.length - 1].id
 							: null
 				}
-
-				/* ---------- 01 headline KPIs ---------- */
 
 				function kpi(opts) {
 					const foot = []
@@ -3778,8 +3770,6 @@
 					}
 				}
 
-				/* ---------- shared state ---------- */
-
 				let evoScaleMode = 'auto'
 				const state = {
 					runId: null,
@@ -3787,8 +3777,6 @@
 					pinnedStage: null,
 					compare: null,
 				}
-
-				/* ---------- shared tooltip + readout (one fixed tooltip, one rAF) ---------- */
 
 				const tooltip = h('div', {
 					id: 'benchTooltip',
@@ -3895,8 +3883,6 @@
 					return { x: b.left + 8, y: b.top + b.height / 2 }
 				}
 
-				/* ---------- URL hash state ---------- */
-
 				function serializeHash() {
 					const parts = []
 					if (state.runId)
@@ -3967,8 +3953,6 @@
 					renderAll()
 				}
 
-				/* ---------- selection actions ---------- */
-
 				function selectRun(id) {
 					state.runId = id != null && runById[id] ? id : null
 					renderAll()
@@ -4023,8 +4007,6 @@
 					if (el && typeof el.blur === 'function') el.blur()
 					renderAll()
 				}
-
-				/* ---------- cross-linking maps (rebuilt on every render) ---------- */
 
 				let evoCircleByRun = {}
 				let evoPolyByFixture = {}
@@ -4199,8 +4181,6 @@
 						selectRun(r.id)
 					}
 				}
-
-				/* ---------- 02 evolution chart ---------- */
 
 				function renderEvolution() {
 					evoCircleByRun = {}
@@ -4537,8 +4517,6 @@
 					)
 					applyEvoSelected()
 				}
-
-				/* ---------- 03 waterfall ---------- */
 
 				function wfAriaLabel(item, total) {
 					return (
@@ -4996,8 +4974,6 @@
 					applyWfHighlight()
 				}
 
-				/* ---------- 03b compare ---------- */
-
 				const STAGE_ORDER = [
 					'module',
 					'contents',
@@ -5172,8 +5148,6 @@
 					)
 				}
 
-				/* ---------- 04 pool health ---------- */
-
 				function renderPool() {
 					if (!runs.length)
 						return mount('pool', empty('No runs recorded yet.'))
@@ -5250,8 +5224,6 @@
 						),
 					)
 				}
-
-				/* ---------- 05 token windows ---------- */
 
 				function winAriaLabel(i, w) {
 					const line = typeof w.line === 'number' ? w.line : 0
@@ -5698,8 +5670,6 @@
 					)
 				}
 
-				/* ---------- 06 milestones + targets ---------- */
-
 				function renderMilestones() {
 					const list = milestones.length ? milestones : []
 					if (!list.length)
@@ -5808,8 +5778,6 @@
 						}),
 					)
 				}
-
-				/* ---------- 07 runs table ---------- */
 
 				function runRowTooltipNodes(r) {
 					const meta = milestoneById[r.milestone] || {
@@ -5939,8 +5907,6 @@
 					)
 				}
 
-				/* ---------- render orchestration ---------- */
-
 				function syncRunSel() {
 					const sel = document.getElementById('runSel')
 					if (!sel) return
@@ -5976,8 +5942,6 @@
 					syncCompareControls()
 					syncHash()
 				}
-
-				/* ---------- boot ---------- */
 
 				const title = document.getElementById('pageTitle')
 				if (title && DATA.project)

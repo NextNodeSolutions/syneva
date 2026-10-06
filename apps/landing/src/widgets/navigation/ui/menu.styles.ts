@@ -46,8 +46,7 @@ const rowStagger = {
 	opacity: { default: null, [media.motionReduced]: 1 },
 }
 
-// The page you are on sits flat in the petrol wash inside a petrol hairline:
-// a place on the map, not a control lifting toward the pointer.
+// The page you are on sits flat in the petrol wash: a place on the map, not a control lifting toward the pointer.
 const CURRENT_RING = `inset 0 0 0 1px ${color['--accent-line']}`
 const currentPage = {
 	backgroundColor: {
@@ -164,7 +163,6 @@ export const workflowLink = stylex.create({
 		display: 'flex',
 		flexDirection: 'column',
 		padding: LINK_PADDING,
-		// Same title-to-blurb step as the menu link blurb.
 		gap: '4px',
 		borderRadius: '5px',
 		outlineOffset: { default: null, ':focus-visible': '-3px' },
@@ -172,8 +170,7 @@ export const workflowLink = stylex.create({
 		...raisedOnHover,
 		...rowStagger,
 	},
-	// The row rule is its own unrounded line: a border-top on the rounded link
-	// would curl down at both ends.
+	// The row rule is its own unrounded line: a border-top on the rounded link would curl down at both ends.
 	ruled: {
 		'::before': {
 			content: "''",

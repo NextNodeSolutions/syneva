@@ -2,11 +2,6 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The inline composers. A new comment or a reply is a card of the thread's own
-// family (square, ruled, the reviewer's strong left rule turning petrol while
-// it holds the focus), so replying reads as adding the next message rather than
-// summoning a dialog. An edit swaps the message's body for a white field inside
-// the message card itself.
 export const composer = stylex.create({
 	card: {
 		maxWidth: '76ch',
@@ -25,7 +20,6 @@ export const composer = stylex.create({
 			':focus-within': color['--accent'],
 		},
 	},
-	// The card shows the focus, so the text area draws none of its own.
 	input: {
 		display: 'block',
 		width: '100%',
@@ -77,7 +71,6 @@ export const composer = stylex.create({
 		borderTopStyle: 'solid',
 		borderTopColor: color['--line'],
 	},
-	// Inside a message the row needs no rule of its own: the field closes it.
 	editRow: {
 		paddingTop: '6px',
 		borderTopWidth: 0,

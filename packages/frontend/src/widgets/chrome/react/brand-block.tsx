@@ -19,8 +19,6 @@ import { brandMarker } from './top-bar.stylex'
 
 import type { ReactElement } from 'react'
 
-// The brand block: the drawer toggle (tablets), the mark and wordmark linking
-// back to the hub's dashboard, and the desk's name.
 export function BrandBlock(): ReactElement {
 	const { S } = chromeCtx()
 	const name = S.state ? deskName(S.state) : ''

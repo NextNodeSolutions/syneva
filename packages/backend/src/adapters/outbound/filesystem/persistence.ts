@@ -31,17 +31,11 @@ import type { Raw } from './dto.js'
 const JSON_INDENT = 2
 const REVIEW_FILE_SUFFIX = '.json'
 
-// Transport DTO validation for the /save body lives with the inbound HTTP route
-// (parseReviewerSave in the http adapter); this adapter's storage contract lives in
-// review-file-dto.ts and only whole reviews cross it.
-
 function reviewFileName(state: ReviewState): string {
 	return `${state.createdAt.replace(/[:.]/g, '-')}-${state.id}${REVIEW_FILE_SUFFIX}`
 }
 
-// Write via a same-directory temp file + rename so a desk killed mid-write never leaves a truncated
-// review behind: the rename is atomic on one filesystem, so a reader sees either the whole old file
-// or the whole new one, never a half. Same dir keeps source and target on the same filesystem.
+// Same-directory temp file + rename: a desk killed mid-write leaves no truncated review (readers see whole old or whole new).
 export async function writeFileAtomic(
 	file: string,
 	contents: string,
@@ -55,9 +49,7 @@ export async function writeFileAtomic(
 	}
 }
 
-// Write the review to its file and hand back the stamp it carries. The caller adopts the stamp onto
-// its live state - the review object identity is the desk's (its long-poll handlers and poll
-// responses read it), so a persist must not mutate the argument it is given.
+// Hand back the stamp the caller adopts onto its live state; the argument must not be mutated (its identity IS the live state).
 export async function persistReview(
 	state: ReviewState,
 ): Promise<PersistedReview> {
@@ -74,12 +66,7 @@ export async function persistReview(
 	return { file, stamp }
 }
 
-// The on-disk review JSON, mapped field by field - NOT the aggregate spread. Persisting
-// `{...state}` would silently write any field a future desk run adds to the aggregate; this
-// mapping is the explicit contract with the existing file shape (unwrapping the persisted stamp
-// onto updatedAt / persistFile). Nested records go through the storage DTO encoders
-// (review-file-dto.ts) rather than riding by reference, so the disk format only carries
-// what the storage contract lists.
+// Field-by-field on purpose: a spread would silently persist any field a future run adds; nested records go through the storage DTO encoders, so the disk format is exactly the storage contract.
 function serializeReviewState(
 	state: ReviewState,
 	stamp: ReviewStamp,
@@ -128,14 +115,7 @@ export async function loadLatestReview(
 	)
 }
 
-// Read the candidates newest-first, stopping at the first holding a state for THIS root. Lazy on
-// purpose: a session dir can accumulate one file per desk launch, and only the newest matching state
-// is wanted (a state for another root - or a file that is not a review record at all - means keep
-// looking).
-//
-// A CORRUPT review file (invalid JSON) ends the search: it is deleted - retain no copy, per the
-// approved corrupt-review behavior - and the desk initializes from an empty review state, rather
-// than resurrecting an older round the corrupt file superseded.
+// Candidates newest-first, first hit for THIS root wins; a corrupt file is deleted and the desk starts empty rather than resurrecting a superseded older round.
 async function loadNewestFor(
 	candidates: string[],
 	root: string,
@@ -152,12 +132,9 @@ async function loadNewestFor(
 	return await loadNewestFor(older, root)
 }
 
-// One persisted review, decoded through the storage DTO (review-file-dto.ts): the JSON body is
-// never cast to ReviewState. Collections older or partially-written files may lack are padded
-// to the declared ReviewState shape; malformed nested records are dropped rather than fatal,
-// so a file always loads whatever is intact. Returns 'corrupt' when the file isn't valid JSON
-// (the caller deletes it and initializes empty); null when it is no review record at all (the
-// loader skips the candidate).
+// Decoded through the storage DTO (never cast): collections older files lack are padded, malformed
+// records dropped, so a file always loads whatever is intact. 'corrupt' = invalid JSON (deleted or
+// empty file); null = not a review record (skipped).
 async function readReviewFile(
 	file: string,
 ): Promise<ReviewState | null | 'corrupt'> {
@@ -183,10 +160,7 @@ async function readReviewFile(
 	)
 }
 
-// One decoded review body (identity verified by decodeReviewStateFile) mapped onto the
-// declared ReviewState shape, field by field. Collections older or partially-written
-// files may lack are padded to the declared shape; malformed nested records are dropped
-// rather than fatal, so a file always loads whatever is intact.
+// Identity already verified by decodeReviewStateFile; map field by field.
 function decodePersistedState(
 	identity: { id: string; session: string; root: string },
 	body: Raw,
@@ -222,15 +196,12 @@ function decodePersistedState(
 		stagedChangeKeys: decodeArray(body.stagedChangeKeys, asString),
 		decisionFiles: decodeArray(body.decisionFiles, asString),
 		decisions: decodeArray(body.decisions, decodeDecision),
-		// A malformed guide decodes to nothing rather than half a grouping - the desk
-		// then lists files in diff order (the no-guide behavior).
+		// A malformed guide decodes to nothing rather than half a grouping (the desk lists files in diff order).
 		guide: body.guide ? (decodeGuide(body.guide) ?? undefined) : undefined,
 		persistFile,
 	}
 }
 
-// Decode a persisted hash record ({path → contentHash}); absent or malformed → undefined
-// (the field is optional on the declared shape).
 function decodeStringRecord(raw: unknown): Record<string, string> | undefined {
 	if (typeof raw !== 'object' || raw === null) return undefined
 	const record: Record<string, string> = {}
@@ -241,9 +212,7 @@ function decodeStringRecord(raw: unknown): Record<string, string> | undefined {
 	return record
 }
 
-// Decode a persisted array field record-by-record, dropping malformed entries and
-// padding an absent/ malformed field to an empty array (the declared ReviewState shape
-// says these are always present).
+// Absent/malformed become empty arrays (the declared shape always carries them).
 function decodeArray<Decoded>(
 	raw: unknown,
 	decode: (entry: unknown) => Decoded | null,
@@ -257,8 +226,7 @@ function decodeArray<Decoded>(
 	return values
 }
 
-// The node/filesystem implementation of the application's review-store capability
-// object. Frozen: use cases see a readonly port, never this module's internals.
+// The application's review-store capability, frozen: use cases see a readonly port.
 export const nodeReviewStore: ReviewStorePort = Object.freeze({
 	loadLatestReview,
 	persistReview,

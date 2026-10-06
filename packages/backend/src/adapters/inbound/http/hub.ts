@@ -21,9 +21,7 @@ import type { HubDeskRecord } from '../../../domain/hub-registry.js'
 import type { Guide, ReviewState } from '../../../domain/review.js'
 import type { HostedDeskIo, HubDesk } from './hosted-desk.js'
 
-// How long a closed desk lingers after its `closed` event so the event reaches a parked waiter
-// (its HTTP response flushes on the emission, but Node needs a beat to write it to the socket
-// before the desk's routes answer 404). Loopback: a fraction of a second is generous.
+// The linger lets the `closed` event reach a parked waiter: its HTTP response flushes on the emission, but Node needs a beat to write it to the socket before the desk's routes answer 404.
 const CLOSED_EVENT_GRACE_MS = 150
 
 export type HubFailure = { ok: false; code: string; reason: string }
@@ -37,32 +35,23 @@ export type HubIo = HostedDeskIo & {
 	log: (line: string) => void
 }
 
-// The hub: the registry of live desks and the one place a desk is born, reused, restored or
-// closed. Opens are serialized so two agents racing to open the same repo+session get one desk
-// (the second sees the first's and reloads it); everything else reads the map.
+// The one place a desk is born, reused, restored or closed; opens are serialized so two agents racing to open the same repo+session get one desk (the second sees the first's and reloads it).
 export type Hub = {
 	readonly instanceId: string
 	readonly startedAt: string
 	openDesk(query: DeskQuery, guide: Guide | undefined): Promise<OpenOutcome>
 	getDesk(id: string): HubDesk | undefined
 	listDesks(): HubDesk[]
-	// Emit `closed` to the desk's parked waiter, then drop it after the grace. False when there
-	// is no such live desk (already closed is not an error - close is idempotent).
+	// Emit `closed` to the desk's parked waiter, then drop it after the grace; false when there is no such live desk (already closed is not an error - close is idempotent).
 	closeDesk(id: string): boolean
-	// Reopen every desk the registry recorded (a hub restart). Desks whose repo is gone or whose
-	// diff no longer builds are dropped from the registry, with the reason logged.
+	// A hub restart reopens every desk the registry recorded; desks whose repo is gone or whose diff no longer builds are dropped, with the reason logged.
 	restore(): Promise<void>
-	// Settles once the restore under way (if any) has, whatever its outcome: the hub listens
-	// before it restores, and a request that names a desk waits for this rather than reading a
-	// desk still being rebuilt as closed.
+	// Settles once the restore under way has, whatever its outcome: the hub listens before it restores, and a request that names a desk waits for this rather than reading a desk still being rebuilt as closed.
 	restored(): Promise<void>
 	summary(desk: HubDesk): DeskSummary
-	// Write the registry now (also done on every open/close) - the shutdown path's last word.
 	persist(): Promise<void>
 }
 
-// The hub's mutable heart, shared by the operations below: the live desks, the ports, and the
-// serialized registry write.
 type HubState = {
 	desks: Map<string, HubDesk>
 	io: HubIo
@@ -93,7 +82,6 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 			return restoring
 		},
 		async restored(): Promise<void> {
-			// Settled either way: a failed restore is its caller's to report.
 			await Promise.allSettled([restoring])
 		},
 		summary: summarize,
@@ -151,11 +139,9 @@ function registerDesk(
 	return desk
 }
 
-// Refuse a root the hub cannot open (no folder, no repository: a sentence, not git's error),
-// resolve who the query names, then reuse the live desk for that id or build a new one. A
-// desk reviewing a different source under the same id (working vs staged, another path
-// filter, another file or branch under a named session) is replaced instead - its tab
-// refreshes onto the new one.
+// Refuse a root the hub cannot open (a sentence, not git's error), resolve who the query names,
+// then reuse the live desk for that id or build a new one; a desk reviewing a different source
+// under the same id is replaced - its tab refreshes onto the new one.
 async function openOrReuse(
 	state: HubState,
 	query: DeskQuery,
@@ -177,8 +163,6 @@ async function openOrReuse(
 	return createDesk(state, identity, query, guide)
 }
 
-// Reuse a live desk for the same repo+session: rebuild its diff (and swap the guide) into
-// the open tab.
 async function reuseDesk(
 	state: HubState,
 	live: HubDesk,

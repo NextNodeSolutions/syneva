@@ -7,9 +7,6 @@ import type { ButtonLook } from './button-look'
 type ButtonProps = ButtonLook &
 	Omit<ComponentPropsWithRef<'button'>, 'className' | 'style'>
 
-// A button in the apps' control recipe. It defaults to type="button", so
-// only a form's declared submit submits it. While busy it is disabled and
-// says so (aria-busy), its label swapped for busyLabel and its arrow gone.
 export function Button({
 	children,
 	type = 'button',

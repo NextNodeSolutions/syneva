@@ -6,11 +6,7 @@ import { chapterArtMarker } from './chapter-art.stylex'
 const inChapter = (): string =>
 	stylex.when.ancestor(':is(figure)', chapterArtMarker)
 
-// The root <svg> of a drawing fills its figure. On phones a drawing that
-// reframes (data-compact) never scales past ~1.5x its subject; on subpages a
-// chapter's drawing keeps a 640px column from tablets down, which wins over
-// the phone cap. Width queries go widest first: StyleX keeps the last
-// matching one, so the phone block restates the chapter case.
+// Width queries go widest first - StyleX keeps the last matching one - so the phone block restates the chapter case (the 640px column wins over the phone cap).
 export const drawing = stylex.create({
 	root: { width: '100%', height: 'auto' },
 	compact: {

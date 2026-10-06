@@ -21,12 +21,7 @@ import { S } from './store'
 
 import type { Hotkey } from '@app/hotkey-matchers'
 
-// The app-wide keyboard map: moving between files, opening an app surface (overview, sidebar,
-// drawer, settings), and the Esc cascade that closes the topmost one. Split from the diff's own
-// map (hotkeys-diff.ts) only for size; keys.ts concatenates the segments and owns the dispatch
-// order.
-// The modal-layer overlays above the notes panel (confirm dialog, send modal, settings,
-// the Reset dropdown): Esc closes the topmost one, one press each. True when one closed.
+// The Esc cascade closes the topmost overlay one press each.
 function closeTopOverlay(): boolean {
 	if (S.confirmMsg) {
 		S.confirmMsg = ''
@@ -41,7 +36,7 @@ function closeTopOverlay(): boolean {
 		S.settingsOpen = false
 		return true
 	}
-	// The Reset split button's dropdown: the shallowest overlay - nothing behind it closes.
+	// The Reset dropdown is the shallowest overlay - nothing behind it closes.
 	if (S.resetMenuOpen) {
 		S.setResetMenu?.(false)
 		return true
@@ -55,42 +50,32 @@ function escape(): void {
 		return
 	}
 	if (closeTopOverlay()) return
-	// The notes panel's filter: Esc clears the query first, so closing the panel (which
-	// would discard the search with it) stays a deliberate second press.
+	// Esc clears the query first, so closing the panel (which would discard the search with it) stays a deliberate second press.
 	if (S.notesOpen && S.notesQuery) {
 		S.setNotesQuery?.('')
 		return
 	}
-	// The review-notes panel: the topmost app overlay under the modals/composer - it can be
-	// open while a composer sits behind it, so the composer's Esc stays one press deeper.
 	if (S.notesOpen) {
 		S.notesOpen = false
 		return
 	}
-	// The whole-file composer closes without touching the line selection (it has none).
 	if (S.fileComposerOpen) {
 		closeFileComposer()
 		return
 	}
 	if (S.composerOpen || S.editingCommentId) {
-		cursorReset() // also drop the line highlight the composer was anchored to
-		closeComposer() // rebuilds the diff so the inline composer's DOM goes away
+		cursorReset()
+		closeComposer()
 		return
 	}
-	// A lone line selection (keyboard cursor, or a click that left the highlight without an open
-	// surface): Esc clears it. Below the surfaces above so Esc dismisses a composer/modal first.
 	if (cursorSelection()) {
 		cursorReset()
 		return
 	}
-	// Lowest priority: the narrow-width file drawer. Closes only once every transient surface
-	// above it is gone, so Esc dismisses a composer/modal opened over the drawer first.
+	// Closes only once every transient surface above it is gone, so Esc dismisses a composer/modal opened over the drawer first.
 	if (S.treeDrawerOpen) S.treeDrawerOpen = false
 }
 
-// The notes panel's own keys. Ranked above the diff's segment (keys.ts owns the order):
-// with the panel up, its cursor owns the arrows and Enter - the diff behind stays
-// mouse-reachable, and Esc yields the keys back the same way every open surface does.
 export const HOTKEYS_NOTES: Hotkey[] = [
 	{
 		combo: '↑',
@@ -196,8 +181,7 @@ export const HOTKEYS_APP: Hotkey[] = [
 		combo: 'n',
 		desc: 'Review notes (comments & questions)',
 		group: 'View',
-		// Reachable from the Overview and file mode too (the notes span the whole review);
-		// only a live composer keeps it, since 'n' would be text there.
+		// Reachable from the Overview and file mode too (the notes span the whole review); only a live composer keeps it, since 'n' would be text there.
 		when: () => !inComposer(),
 		test: key('n'),
 		run: () => S.toggleNotes?.(),
@@ -208,7 +192,6 @@ export const HOTKEYS_APP: Hotkey[] = [
 		group: 'View',
 		when: navigable,
 		test: shift('B'),
-		// Toggles the off-canvas file tree at narrow widths; inert on desktop (drawer is media-gated).
 		run: () => (S.treeDrawerOpen = !S.treeDrawerOpen),
 	},
 	{
@@ -255,8 +238,7 @@ export const HOTKEYS_APP: Hotkey[] = [
 		combo: '?',
 		desc: 'Keyboard map',
 		group: 'View',
-		// '?' already carries Shift on most layouts, so the bare-key matcher's
-		// !e.shiftKey guard cannot apply here; only modifier chords stay excluded.
+		// '?' already carries Shift on most layouts, so the bare-key matcher's !e.shiftKey guard cannot apply here; only modifier chords stay excluded.
 		test: e => e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey,
 		when: () => !inComposer(),
 		run: () => {
@@ -270,7 +252,7 @@ export const HOTKEYS_APP: Hotkey[] = [
 		group: 'App',
 		test: e => e.key === 'Escape',
 		typing: true,
-		run: escape, // cancels pending goline digits first (see escape()), so no dispatcher pre-cancel
+		run: escape,
 		goline: true,
 	},
 ]

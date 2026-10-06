@@ -1,14 +1,10 @@
 ---
-// The product menu's illustrative side preview: each product link swaps in a
-// tiny, honest scene of what its page is about. The runtime marks the scene
-// of the selected row current, starting on the first.
 import { sx } from '@shared/lib/sx'
 import { twoDigits } from '@shared/lib/two-digits'
 import PreviewScene from './PreviewScene.astro'
 import { motions } from './preview-motion.styles'
 import { preview } from './preview.styles'
 
-// The reading order the guide scene shows, numbered 01, 02, ...
 const GUIDE_STEPS = [
 	{ title: 'Start with the contract', file: 'contracts/review.ts' },
 	{ title: 'Follow the behavior', file: 'auth/session.ts' },

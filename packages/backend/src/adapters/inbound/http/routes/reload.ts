@@ -40,9 +40,7 @@ function invalidGuide(reason: string): ApiFailure {
 	}
 }
 
-// The `guide` field of the reload body, if it carries one. A body that is empty, non-JSON, or has
-// no `guide` key means "keep the guide I have" - legacy callers post nothing and the CLI omits the
-// key. Transport syntax handling stays with the inbound route; the use case validates the guide.
+// Empty, non-JSON, or no `guide` key means "keep the guide I have" (legacy callers post nothing, the CLI omits the key); a present key is validated by the use case.
 function guideSwapOf(rawBody: string): { guide: unknown } | undefined {
 	if (!rawBody) return undefined
 	let parsed: unknown
@@ -53,7 +51,6 @@ function guideSwapOf(rawBody: string): { guide: unknown } | undefined {
 	}
 	if (typeof parsed !== 'object' || parsed === null || !('guide' in parsed))
 		return undefined
-	// A posted `guide: null` IS a posted (invalid) guide, not an absent one - hence the
-	// wrapper object rather than a bare value.
+	// A posted `guide: null` IS a posted (invalid) guide, not an absent one - hence the wrapper object rather than a bare value.
 	return { guide: parsed.guide }
 }

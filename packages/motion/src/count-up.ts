@@ -3,9 +3,7 @@ import { cancelFrame, frame } from './engine'
 
 import type { FrameData } from './engine'
 
-// A product fact counts up from zero the first time its section arrives. It
-// only rewrites text, so it rides Motion's frame loop (batched with every
-// other read and write) rather than a style animation.
+// Rides Motion's frame loop (batched with the other reads and writes) rather than a style animation: it only rewrites text.
 const COUNT_MS = 1100
 const QUART = 4
 const quartOut = (progress: number): number => 1 - (1 - progress) ** QUART

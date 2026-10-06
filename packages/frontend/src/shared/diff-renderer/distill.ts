@@ -1,19 +1,8 @@
 import type { ContextContent, FileDiffMetadata } from '@pierre/diffs'
 import type { DecidedPosition } from '@shared/diff-renderer/linemap'
 
-// ── Distilling accepted bands out of the replayed diff ──────────────────────
-// With the "hide accepted" pref on, a decision that was already ACCEPTED repeats round
-// after round (multi-round reviews): its band replays into a plain context run that just
-// sits in the diff. This transform drops those rows from the rendered structure entirely:
-// each accepted entry becomes a zero-row context placeholder, so positions stay invariant
-// (the same trick @pierre's resolveRegion uses for deleted indexes) and every consumer of
-// the metadata - display anchors, annotations, cursor, windowing - keeps working unchanged.
-//
-// Pure over the metadata: the walk mirrors resolveRegion's cursor mechanics (both sides'
-// line arrays, the per-hunk counters and start numbers, collapsed context regions),
-// minus pushed rows for dropped entries. Accepted bands are EQUAL merged context runs on
-// both sides after replay, so a dropped entry just skips `lines` rows on each side - the
-// two side counters advance in lockstep through the whole walk.
+// With the "hide accepted" pref on, an already-ACCEPTED decision's band replays into a plain context run round after round; this transform drops its rows entirely: each accepted entry becomes a zero-row context placeholder, so positions stay invariant.
+// Every consumer (anchors, annotations, cursor, windowing) keeps working unchanged; accepted bands become EQUAL merged context runs on both sides after replay, so the two side counters advance in lockstep.
 
 type Line = FileDiffMetadata['deletionLines'][number]
 type ContentEntry = FileDiffMetadata['hunks'][number]['hunkContent'][number]
@@ -21,8 +10,6 @@ type ContentEntry = FileDiffMetadata['hunks'][number]['hunkContent'][number]
 const entryKey = (hunkIndex: number, changeIndex: number): string =>
 	`${hunkIndex}:${changeIndex}`
 
-// The kept context rows of one entry: the SAME parsed line object rides both arrays
-// (resolveRegion's pushContentLinesToDiff contract), read back from the source.
 function contextRows(entry: ContextContent, from: FileDiffMetadata): Line[] {
 	const rows: Line[] = []
 	for (let i = 0; i < entry.lines; i++) {
@@ -34,9 +21,6 @@ function contextRows(entry: ContextContent, from: FileDiffMetadata): Line[] {
 	return rows
 }
 
-// A distilled diff is another render target than the replay it came from: derive its cacheKey (as
-// @pierre's resolveRegion does per resolution) so a keyed highlight cache never serves one for the
-// other. An unkeyed diff stays unkeyed.
 function distilledCacheKey(
 	diff: FileDiffMetadata,
 ): { cacheKey: string } | undefined {
@@ -54,8 +38,6 @@ export function distillAccepted(
 	)
 	const deletionRows: Line[] = []
 	const additionRows: Line[] = []
-	// resolveRegion's cursor: the next row's index on each side (also the arrays' lengths)
-	// plus the file-line starts the gutters show. One pass drives both through every hunk.
 	let deletionLength = 0
 	let additionLength = 0
 	let nextDeletionStart = 1
@@ -63,8 +45,6 @@ export function distillAccepted(
 	let splitLineCount = 0
 	let unifiedLineCount = 0
 	const hunks = diff.hunks.map((hunk, hunkIndex) => {
-		// Collapsed context ahead of the hunk (resolveRegion's processCollapsedContext):
-		// the "N unmodified lines" separator rows ride both sides, one line per side.
 		const collapseRows =
 			hunk.collapsedBefore > 0 && !diff.isPartial
 				? hunk.collapsedBefore
@@ -102,9 +82,6 @@ export function distillAccepted(
 		}
 		hunk.hunkContent.forEach((entry, changeIndex) => {
 			if (cutSet.has(entryKey(hunkIndex, changeIndex))) {
-				// Zero-row placeholder: keeps the content slot - and with it every
-				// consumer's (hunkIndex, changeIndex) addressing - while rendering
-				// nothing. Nothing advances.
 				content.push({
 					type: 'context',
 					lines: 0,
@@ -176,8 +153,6 @@ export function distillAccepted(
 			unifiedLineCount: unifiedLineCount - open.unifiedLineStart,
 		}
 	})
-	// Trailing collapsed context after the last hunk (resolveRegion's tail push): display
-	// rows only - the counters are done accounting hunks.
 	const last = diff.hunks.at(-1)
 	if (last && !diff.isPartial) {
 		const deletionEnd = last.deletionLineIndex + last.deletionCount

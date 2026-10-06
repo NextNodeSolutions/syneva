@@ -9,7 +9,6 @@ const footerHover = (): string =>
 const footerCurrent = (): string =>
 	stylex.when.ancestor('[aria-current="page"]', menuFooterMarker)
 
-// Each menu's footer: what the section is for, and its overview link.
 export const menuFooter = stylex.create({
 	base: {
 		display: 'flex',
@@ -39,7 +38,6 @@ export const menuFooter = stylex.create({
 			},
 		},
 	},
-	// Keep the overview link on the right, as in the other menus.
 	productOverview: {
 		marginLeft: { default: null, [media.navToggle]: 'auto' },
 	},

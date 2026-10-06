@@ -1,6 +1,4 @@
 ---
-// A desk's file list: the command that opened it, then each file with a
-// bar for its kind of change.
 import { sx } from '@shared/lib/sx'
 import { anim } from '@shared/ui/drawing/anim'
 import { shape } from '@shared/ui/drawing/shape.styles'
@@ -9,7 +7,6 @@ import type { FileStatus } from './status-bar'
 import { STATUS_BAR } from './status-bar'
 
 type Props = {
-	// Each changed file and its status as git prints it.
 	files: readonly { name: string; status: FileStatus }[]
 	x: number
 	y: number

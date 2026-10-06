@@ -11,8 +11,7 @@ const phone = <T>(onPhones: T): When<T> => ({
 	[media.phone]: onPhones,
 })
 const REGULAR = 400
-// Empty alt text (after the plain fallback) keeps screen readers on the real
-// column headers instead of announcing each label twice.
+// Empty alt text (after the plain fallback) keeps screen readers on the real column headers instead of announcing each label twice.
 const LABEL = (): readonly string[] =>
 	stylex.firstThatWorks('attr(data-label) / ""', 'attr(data-label)')
 const US_LABEL = (): readonly string[] =>
@@ -21,9 +20,7 @@ const US_LABEL = (): readonly string[] =>
 		"'✓ ' attr(data-label)",
 	)
 
-// The comparison against two categories (never a named competitor). On
-// phones the table stacks into one card per aspect, each cell labelled with
-// its column since the head is hidden.
+// Two categories, never a named competitor; stacked per aspect on phones, each cell labelled with its column since the head is hidden.
 export const compare = stylex.create({
 	head: { marginBottom: '52px' },
 	scroll: { overflowX: { default: 'auto', [media.phone]: 'visible' } },
@@ -115,8 +112,7 @@ export const compare = stylex.create({
 				[media.phone]: color['--accent'],
 			},
 			marginRight: { default: '9px', [media.phone]: 0 },
-			// Restated under the phone query so it outranks the label's font
-			// shorthand there.
+			// Restated under the phone query so it outranks the label's font shorthand there.
 			fontWeight: { default: 600, [media.phone]: 600 },
 		},
 	},

@@ -20,17 +20,11 @@ import { toast } from '../store'
 
 import type { ResetScope } from '@syneva/contracts/review'
 
-// The modal bindings: the Send receipt (a glance at what is about to go, one-way), the
-// review-complete prompt, Reset, the browser Close, and the keyboard-help + confirm dialogs.
-
-// Pluralize a count with its noun: plural(1, "file") -> "1 file", plural(3, "file") -> "3 files".
 function plural(count: number, noun: string): string {
 	return `${count} ${noun}${count === 1 ? '' : 's'}`
 }
 
-// Whole-review numbers for the completion prompt - a small receipt of the work done.
-// Files out of the flow - pure renames (issue 01) - stay out of the file and line totals
-// so the numbers match the progress bar and the gate.
+// Files out of the flow - pure renames - stay out of the file and line totals so the numbers match the progress bar and the gate.
 function reviewStats(): {
 	files: number
 	lines: number
@@ -55,8 +49,6 @@ function reviewStats(): {
 	}
 }
 
-// The one-line receipt of a review's scope: files, changed lines, and the comments/rejections that
-// explain why it is not simply "all clean".
 function reviewReceipt(): string {
 	const { files, lines, comments, rejections } = reviewStats()
 	return [
@@ -69,9 +61,7 @@ function reviewReceipt(): string {
 		.join(', ')
 }
 
-// Open the Send modal: a receipt of what is about to go, plus an empty (always fresh) note box. An
-// attached agent picks the review up the instant it is sent, so there is no taking it back - this is
-// the moment to look, and to leave an overall instruction for the whole review.
+// An attached agent picks the review up the instant it is sent, so there is no taking it back - this is the moment to look and to leave an overall instruction for the whole review.
 function openSendModal(message: string): void {
 	S.sendMsg = message
 	S.sendNote = ''
@@ -80,7 +70,6 @@ function openSendModal(message: string): void {
 }
 
 export function installDialogBindings(): void {
-	// The confirm widget's single store writer, bound at composition (see confirm.ts).
 	bindConfirm(message => {
 		S.confirmMsg = message
 	})
@@ -90,8 +79,6 @@ export function installDialogBindings(): void {
 }
 
 function installSendBindings(): void {
-	// Fired after the last file is approved - a small receipt of the work done (files, lines,
-	// comments, rejections) plus the offer to send the finished review back to the agent.
 	S.promptFinish = () => {
 		const { files, lines, comments, rejections } = reviewStats()
 		const extras = [
@@ -104,15 +91,11 @@ function installSendBindings(): void {
 			`You've reviewed ${what} - ${plural(lines, 'changed line')}, ${tail}. Send the review back to the agent?`,
 		)
 	}
-	// Every manual send - the Send button and ⇧S - routes through this receipt-style modal: a glance
-	// at what is about to go before the one-way handoff.
 	S.confirmSend = () => {
 		openSendModal(
 			`You're about to send your review: ${reviewReceipt()}. Send to the agent?`,
 		)
 	}
-	// Confirm the Send modal: the typed note (trimmed; empty -> omitted) rides along as the one-time
-	// overall instruction. Cancel leaves the review untouched.
 	S.sendConfirm = () => {
 		const note = S.sendNote.trim()
 		S.sendOpen = false
@@ -126,9 +109,6 @@ function installSendBindings(): void {
 }
 
 function installResetBinding(): void {
-	// The split button's scopes (see contracts/review.ts): 'review' keeps the notes, 'approved'
-	// resets only the signed-off files, 'all' clears them too. The response replaces the state
-	// wholesale, so the adopted projection must come from THIS desk (instance check as always).
 	S.resetMenuOpen = false
 	S.setResetMenu = open => {
 		S.resetMenuOpen = open
@@ -145,24 +125,18 @@ function installResetBinding(): void {
 	installSendAction()
 }
 
-// Per-scope receipt line - a lookup, not a ternary tree.
 const RESET_TOASTS: Record<ResetScope, string> = {
 	review: 'Reset review - notes kept',
 	approved: 'Approved files reset',
 	all: 'Reset all - review and notes',
 }
 
-// How many ms a Close click may wait for the coalescing saver to drain, and how long until
-// window.close() fires after the desk ACKed the shutdown.
 const CLOSE_SAVE_FLUSH_MS = 800
 const CLOSE_WINDOW_DELAY_MS = 250
 
-// The browser Close: the human ends the whole desk, not just the round. The server tells any
-// parked agent listener ({kind:"closed"}) before exiting, so this is `syneva stop` with its
-// proper paperwork. State is saved continuously; nothing else to hand over.
+// The browser Close ends the whole desk, not just the round; the server tells any parked agent listener ({kind:"closed"}) before exiting - `syneva stop` with its proper paperwork; state is saved continuously, so nothing else to hand over.
 function installCloseBinding(): void {
-	// Confirm-first: one click loses the workspace, so the header button routes through the
-	// same destructive-action dialog the ⇧Q hotkey uses.
+	// One click loses the workspace, so it routes through the same destructive-action dialog the ⇧Q hotkey uses.
 	S.confirmClose = () => {
 		askConfirm(
 			'Close the desk? Syneva stops; the review state is saved and the agent is told the review ended.',
@@ -170,32 +144,27 @@ function installCloseBinding(): void {
 		)
 	}
 	S.closeDesk = async () => {
-		// A trailing save may still carry a not-yet-persisted decision: flush it first so Close
-		// can't drop the freshest review mutations (bounded - a wedged desk must still close).
+		// Flush the trailing save first so Close can't drop the freshest review mutations (bounded - a wedged desk must still close).
 		await saver.drain(CLOSE_SAVE_FLUSH_MS)
-		// Paint the cover first: the desk dies within the request's grace window, and a refused
-		// script-close leaves the cover as the tab's terminal state.
+		// Paint the cover first: the desk dies within the request's grace window, and a refused script-close leaves the cover as the tab's terminal state.
 		S.deskClosed = true
 		try {
 			await shutdownDesk()
 		} catch {
-			// An unreachable desk is a closed desk as far as this tab is concerned; the
-			// poll's miss counter converges on the same state regardless.
+			/* the desk dies within the request grace window either way; the cover already shows */
 		}
 		toast('Desk closed')
-		// The desk opens its tab via the OS opener, so script-close is usually refused.
-		// Harmless where it works, invisible where it doesn't - the cover already shows.
+		// The desk opens its tab via the OS opener, so script-close is usually refused: harmless where it works, invisible where it doesn't - the cover already shows.
 		setTimeout(() => window.close(), CLOSE_WINDOW_DELAY_MS)
 	}
 }
 
-// The one-way handoff: post only the reviewer-owned slice, never the whole (multi-MB) ReviewState.
+// Post only the reviewer-owned slice, never the whole (multi-MB) ReviewState.
 function installSendAction(): void {
 	S.send = sendReviewToAgent
 }
 
 function installHelpBindings(): void {
-	// Keyboard help overlay + destructive-action confirm dialog (keys.ts owns the dialog state).
 	S.helpGroups = helpGroups
 	S.confirmYes = confirmYes
 	S.confirmNo = confirmNo

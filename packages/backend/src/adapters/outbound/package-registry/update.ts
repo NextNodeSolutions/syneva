@@ -8,13 +8,8 @@ import { homeDir, SYNEVA_DIR } from '../filesystem/desk.js'
 
 import type { ChildProcess } from 'node:child_process'
 
-// ── Update check + confirmed auto-update ─────────────────────────────────────
-// Runs once at desk launch (never on the agent subcommands - await/comment/reload
-// run in agent loops with JSON stdout and must never block on a prompt). When npm
-// has a newer version: prompt on a TTY and, on confirm, run the package manager
-// update and re-exec the same command so the desk opens on the new version. Every
-// failure path is silent or a one-line warning - an update check must never break
-// a launch.
+// Runs once at desk launch, never on the agent subcommands (await/comment/reload run in agent loops with JSON stdout, never blocking on a prompt).
+// On a newer npm version: prompt on a TTY and, on confirm, re-exec the same command on the new version. Every failure path is silent or a one-line warning - an update check must never break a launch.
 
 const PKG = 'syneva'
 
@@ -31,7 +26,6 @@ const FETCH_TIMEOUT_MS = 2500
 // Registry used when SYNEVA_REGISTRY_URL is unset (tests point it at a local server).
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org'
 
-// x.y.z is exactly three dot-separated parts.
 const SEMVER_PART_COUNT = 3
 const JSON_INDENT = 2
 
@@ -46,9 +40,7 @@ export function currentVersion(): string {
 	}
 }
 
-// Walk up from this module to the owning package.json. The adapter's depth under
-// src/ changed with the backend split, so a fixed relative hop is fragile - walk
-// until a package.json actually exists (the repo root, or the installed package).
+// Walk up from this module to the owning package.json: the adapter's depth under src/ changed with the backend split, so a fixed relative hop is fragile.
 
 type VersionParts = [number, number, number]
 
@@ -68,13 +60,10 @@ function toVersionPart(rawPart: string): number | null {
 	return Number(rawPart)
 }
 
-// Plain numeric x.y.z compare - no prerelease ordering (a prerelease segment makes the
-// numeric parse fail -> false). Good enough: syneva publishes plain semver.
+// Plain numeric x.y.z compare - no prerelease ordering (a prerelease segment makes the numeric parse fail); good enough: syneva publishes plain semver.
 function parseVersion(rawVersion: string): VersionParts | null {
 	const parts = rawVersion.trim().split('.')
 	if (parts.length !== SEMVER_PART_COUNT) return null
-	// Named parts: destructuring reads the three positions statically, so
-	// noUncheckedIndexedAccess doesn't doubt them and no index stays magic.
 	const [majorPart, minorPart, patchPart] = parts
 	const major = toVersionPart(majorPart ?? '')
 	const minor = toVersionPart(minorPart ?? '')
@@ -87,8 +76,6 @@ export function isNewer(latest: string, current: string): boolean {
 	const next = parseVersion(latest)
 	const installed = parseVersion(current)
 	if (!next || !installed) return false
-	// Fixed-width tuples: destructuring reads the three positions statically,
-	// so noUncheckedIndexedAccess doesn't doubt them the way a loop index does.
 	const [nextMajor, nextMinor, nextPatch] = next
 	const [curMajor, curMinor, curPatch] = installed
 	if (nextMajor !== curMajor) return nextMajor > curMajor
@@ -98,14 +85,11 @@ export function isNewer(latest: string, current: string): boolean {
 
 export type InstallInfo = {
 	kind: 'global' | 'local'
-	// The command that updates this install - run on confirm (global) or shown (local).
 	command: string[]
 }
 
-// Where this CLI lives decides how (and whether) we update it. A path inside the
-// current project's node_modules is a local install (devDependency / npx): never
-// touch the project's package.json/lockfile - suggest the command instead. Anything
-// else is treated as global, with the manager inferred from the install path.
+// A path inside the current project's node_modules is a local install (devDependency / npx): never touch the project's package.json/lockfile - suggest the command instead.
+// Anything else is global, with the manager inferred from the install path.
 export function detectInstall(
 	cliPath: string,
 	cwd = process.cwd(),
@@ -132,7 +116,6 @@ export function detectInstall(
 	return { kind: 'global', command: ['npm', 'i', '-g', `${PKG}@latest`] }
 }
 
-// ── 24h throttle cache (~/.syneva/update-check.json) ─────────────────────────
 function cachePath(): string {
 	return path.join(homeDir(process.cwd()), SYNEVA_DIR, 'update-check.json')
 }
@@ -169,12 +152,11 @@ export async function writeCheckCache(cache: CheckCache): Promise<void> {
 			'utf8',
 		)
 	} catch {
-		/* a failed cache write must not break the launch */
+		// a failed cache write must not break the launch
 	}
 }
 
-// The registry to ask, overridable for tests/local mirrors. An empty SYNEVA_REGISTRY_URL means
-// "unset" (a shell can export it empty), so this is a presence check, not a nullish one.
+// An empty SYNEVA_REGISTRY_URL means "unset" (a shell can export it empty): a presence check, not a nullish one.
 function registryBase(): string {
 	const configured = process.env.SYNEVA_REGISTRY_URL
 	if (configured) return configured
@@ -202,7 +184,6 @@ async function fetchLatestVersion(): Promise<string | null> {
 	}
 }
 
-// Latest published version, via the daily cache; null when unknown.
 async function resolveLatest(): Promise<string | null> {
 	const cache = await readCheckCache()
 	const isFresh =
@@ -251,9 +232,6 @@ function waitForExit(child: ChildProcess): Promise<number> {
 	})
 }
 
-// Check for a newer release and offer to update. Called only from desk starts.
-// On a confirmed global update this re-execs the same command on the new version
-// and never returns (the parent lingers only to forward the child's exit code).
 export async function maybeOfferUpdate(): Promise<void> {
 	if (process.env.SYNEVA_NO_UPDATE_CHECK || process.env.SYNEVA_UPDATE_REEXEC)
 		return
@@ -265,7 +243,7 @@ export async function maybeOfferUpdate(): Promise<void> {
 	try {
 		cliPath = realpathSync(cliPath) // bin shims are symlinks into the package
 	} catch {
-		/* keep the raw path */
+		// keep the raw path
 	}
 	const install = detectInstall(cliPath)
 	const suggestion = install.command.join(' ')
@@ -289,8 +267,7 @@ export async function maybeOfferUpdate(): Promise<void> {
 		warn(`Update failed (exit ${code}) - continuing on ${current}.`)
 		return
 	}
-	// Relaunch the same command on the new version. argv[1] is the bin path, which the
-	// package manager just repointed at the new code; the env flag stops a check loop.
+	// argv[1] is the bin path, which the package manager just repointed at the new code; the env flag stops a check loop.
 	warn(`Updated to ${latest} - relaunching...`)
 	const child = spawn(process.execPath, process.argv.slice(1), {
 		stdio: 'inherit',

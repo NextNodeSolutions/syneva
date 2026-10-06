@@ -31,14 +31,10 @@ import type { Hub } from '../adapters/inbound/http/hub.js'
 import type { HubHandle, HubOptions } from '../adapters/inbound/http/options.js'
 import type { HubJournal } from '../application/journal.js'
 
-// Test seam: TTL for the ephemeral agent-activity line (default 90s).
 const DEFAULT_STATUS_TTL_MS = 90_000
 
-// Start the hub: bind it, wire its collaborators, restore the desks it hosted before, and hand
-// back the URLs the caller prints (one for the reviewer's browser, one for the same-machine agent
-// CLI). The origin guard, the access guard, the desk registry and the per-desk mutation mutexes
-// all live behind this call. Binding a taken port rejects (EADDRINUSE) - the CLI decides what
-// that means (a hub already running there is the normal case).
+// Start the hub: bind, wire the collaborators, restore previously hosted desks, hand back the URLs; origin guard, access guard, desk registry and per-desk mutation mutexes all live behind this call.
+// Binding a taken port rejects (EADDRINUSE) - the CLI decides what that means (a hub already running is the normal case).
 export async function startHub(options: HubOptions): Promise<HubHandle> {
 	const host = options.host ?? DEFAULT_HOST
 	const publicUrl = options.publicUrl ? new URL(options.publicUrl) : undefined
@@ -64,8 +60,7 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 			journal,
 			settings: nodeSettings,
 			guard,
-			// The origin guard re-reads the port per request: server.address() is populated
-			// only once the socket is bound.
+			// The origin guard re-reads the port per request: server.address() is populated only once the socket is bound.
 			authorities: () => authoritiesFor(binding, portOf(server)),
 			deskRoutes: routes,
 			ui: options.ui ?? builtUi,
@@ -87,8 +82,6 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 	}
 }
 
-// The hub over its node collaborators (git, the filesystem stores, the editor launcher) and
-// the journal its desks record into.
 function wireHub(
 	options: HubOptions,
 	journal: HubJournal,
@@ -109,8 +102,7 @@ function wireHub(
 	)
 }
 
-// Stop serving: parked long-polls are cut (an agent's `await` exits non-zero and re-checks the
-// hub), the registry is written one last time so the next start restores the same desks.
+// Parked long-polls are cut (an agent's `await` exits non-zero and re-checks the hub); the registry is written one last time so the next start restores the same desks.
 async function closeHub(server: http.Server, hub: Hub): Promise<void> {
 	server.closeAllConnections()
 	await new Promise<void>(resolve => {
@@ -119,8 +111,6 @@ async function closeHub(server: http.Server, hub: Hub): Promise<void> {
 	await hub.persist()
 }
 
-// The listening port. server.address() is only populated once the socket is bound, and the origin
-// guard re-reads it per request, so it must stay a lookup rather than a captured value.
 function portOf(server: http.Server): number {
 	const address = server.address()
 	return typeof address === 'object' && address ? address.port : 0

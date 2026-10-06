@@ -7,10 +7,6 @@ import { travelSignals } from './circuit-signals'
 
 import type { CircuitPart, LayerKind, SignalName } from './circuit-part'
 
-// The circuit's loop on its clock (circuit-clock.ts): the changeset is
-// dispatched, its layers open, you read and decide, and the signals carry it
-// round. Each layer rests stacked, `rest` px down, and lifts open to its
-// --lift (circuit.styles.ts, the static pose).
 const LAYERS = [
 	{ kind: 'critical', rest: 0, delay: 0 },
 	{ kind: 'important', rest: 10, delay: 0.06 },
@@ -19,8 +15,6 @@ const LAYERS = [
 
 type PartLookup = (name: CircuitPart) => Element
 
-// The changeset is dispatched, then its review layers lift apart and their
-// notes appear.
 function unfold(svg: SVGSVGElement, part: PartLookup): void {
 	loop(
 		part('dispatch'),
@@ -50,7 +44,6 @@ function unfold(svg: SVGSVGElement, part: PartLookup): void {
 	})
 }
 
-// The reader's focus, the sweep across the change, the verdict and its seal.
 function review(part: PartLookup): void {
 	loop(
 		part('focus'),

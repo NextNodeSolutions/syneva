@@ -2,21 +2,15 @@ import { ATTRIBUTE } from './attributes'
 import { inView } from './engine'
 import { reducedMotion } from './preference'
 
-// Offscreen scenes and hidden tabs pause every animation inside a
-// [data-motion-scene]; a scene that comes back resumes each one where it
-// paused. Reduced motion pauses the loops and finishes the entrances.
-// Scenes that start animating later (a reveal, a timeline) sync themselves
-// right after, so new animations are paused before their first frame if
-// their scene is out of view.
+// A [data-motion-scene] pauses its animations while out of view or tab-hidden, and resumes each where it paused on return; reduced motion pauses loops and finishes entrances.
+// A scene that starts animating later (a reveal, a timeline) syncs right after, so new animations pause before their first frame when hidden.
 const SCENE = `[${ATTRIBUTE.scene}]`
 const SCENE_AMOUNT = 0.05
 const visibleScenes = new Set<Element>()
 
-// Entrances play once. Only a running animation is paused, and a paused one
-// is never rewound: play() on an animation sitting at its end restarts it
-// from its first frame (the Web Animations auto-rewind), which shows as a
-// finished element vanishing and entering again. One that waited at its end
-// is finished instead, so Motion commits its final pose.
+// A paused animation is never rewound: play() on one sitting at its end restarts it from frame 0
+// (Web Animations auto-rewind) - a finished element vanishing and re-entering. One past its end is
+// finished instead, so Motion commits the final pose.
 const isPastEnd = (animation: Animation): boolean =>
 	Number(animation.currentTime) >=
 	Number(animation.effect?.getComputedTiming().endTime ?? Infinity)
@@ -26,10 +20,7 @@ function pauseScene(scene: Element): void {
 		if (animation.playState === 'running') animation.pause()
 }
 
-// A loop never ends; an entrance does. Reduced motion lands an entrance on
-// its finished pose (Motion commits it) instead of holding it mid-flight or
-// in its delay, where it would keep the element hidden while the hidden
-// poses are off.
+// An entrance is finished (never held mid-flight or in its delay) or the hidden pose would keep the element invisible once the poses are off.
 const isLoop = (animation: Animation): boolean =>
 	animation.effect?.getComputedTiming().endTime === Infinity
 
@@ -52,7 +43,6 @@ const scenesWithin = (root: Element | Document): Element[] => [
 	...root.querySelectorAll(SCENE),
 ]
 
-// Syncs the scenes under `root` (every scene by default) to their visibility.
 export function syncScenes(root: Element | Document = document): void {
 	const isGloballyPaused = reducedMotion.matches || document.hidden
 	// Stylesheet-driven loops (the menu's preview lines) pause on this flag.
@@ -66,13 +56,11 @@ export function syncScenes(root: Element | Document = document): void {
 		else resumeScene(scene)
 }
 
-// A preference switch or a tab change resyncs every scene; syncScenes itself
-// would take the listener's event for its root.
+// Resync on a preference switch or tab change; calling syncScenes directly would take the listener's event for the root.
 const resyncScenes = (): void => {
 	syncScenes()
 }
 
-// The page's runtime watches the scenes once, at boot.
 export function watchScenes(): void {
 	reducedMotion.addEventListener('change', resyncScenes)
 	document.addEventListener('visibilitychange', resyncScenes)

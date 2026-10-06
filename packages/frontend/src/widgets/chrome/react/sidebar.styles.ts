@@ -10,13 +10,8 @@ import {
 } from '@syneva/design-system/tokens.stylex'
 
 const fast = `${duration['--duration-fast']} ${ease['--ease-out']}`
-// The bleed that carries a strip across the sidebar's own padding.
 const PAD = '8px'
 
-// The sidebar: the Tree / Walkthrough tabs (guided desks), the file tree or
-// the walkthrough, and Settings docked at the foot - on the paper chrome. On
-// tablets it leaves the flow as a drawer over the diff, opening from the hub's
-// rail's edge (phones have no rail: from the screen's).
 export const sidebar = stylex.create({
 	aside: {
 		minWidth: 0,
@@ -47,8 +42,6 @@ export const sidebar = stylex.create({
 		transform: { default: null, [media.tablet]: 'translateX(0)' },
 	},
 	hidden: { display: 'none' },
-	// The tab strip shares the guide bar's height, so the two bottom rules
-	// read as one line across the column seam.
 	tabs: {
 		flexShrink: 0,
 		height: deskSize.subbar,
@@ -57,7 +50,6 @@ export const sidebar = stylex.create({
 		marginBottom: PAD,
 		paddingInline: '6px',
 	},
-	// The FILES caption and its expand / collapse-all toggle.
 	head: {
 		display: 'flex',
 		alignItems: 'center',
@@ -74,7 +66,6 @@ export const sidebar = stylex.create({
 		paddingInline: PAD,
 		paddingBottom: PAD,
 	},
-	// Settings, docked across the sidebar's foot under its own rule.
 	settings: {
 		flexShrink: 0,
 		display: 'flex',
@@ -101,9 +92,6 @@ export const sidebar = stylex.create({
 	settingsKey: { marginLeft: 'auto' },
 })
 
-// One row of the tree or the walkthrough. Indentation steps by depth and the
-// nesting rails (1px, every step) are drawn in the indent as a background, so
-// any depth renders without per-level classes.
 export const row = stylex.create({
 	base: {
 		position: 'relative',
@@ -131,13 +119,11 @@ export const row = stylex.create({
 		userSelect: 'none',
 		outlineOffset: '-2px',
 	},
-	// The indent and its rails for a depth (deskSize.indent per level).
 	indent: (paddingLeft: string, rails: string) => ({
 		paddingLeft,
 		backgroundSize: rails,
 	}),
 	changed: { color: color['--ink'] },
-	// The file on screen: the petrol wash under a petrol rail.
 	active: {
 		color: { default: color['--ink'], ':hover': color['--ink'] },
 		backgroundColor: {
@@ -153,14 +139,12 @@ export const row = stylex.create({
 			backgroundColor: color['--accent'],
 		},
 	},
-	// A test file folded under its source file reads a step quieter.
 	test: { color: color['--muted'] },
 	name: {
 		minWidth: 0,
 		overflow: 'hidden',
 		textOverflow: 'ellipsis',
 	},
-	// A walkthrough category: the caption voice, a jump target.
 	category: {
 		marginTop: { default: '10px', ':first-child': 0 },
 		fontSize: deskText.label,
@@ -169,7 +153,6 @@ export const row = stylex.create({
 		textTransform: 'uppercase',
 		color: { default: color['--muted'], ':hover': color['--ink'] },
 	},
-	// The trailing fold groups (Renamed, Reviewed): quiet, their count right.
 	fold: { color: color['--muted'] },
 	trail: {
 		marginLeft: 'auto',
@@ -185,7 +168,6 @@ export const row = stylex.create({
 		textTransform: 'none',
 		color: color['--muted'],
 	},
-	// "← old/path" on a pure rename.
 	movedFrom: {
 		marginLeft: '6px',
 		minWidth: 0,
@@ -206,8 +188,6 @@ export const row = stylex.create({
 	},
 })
 
-// The row's glyphs: the fold chevron, the folder and the file (tinted by its
-// change: green added, petrol modified, red deleted), and the review state.
 export const glyph = stylex.create({
 	chevron: {
 		width: '12px',
@@ -225,7 +205,6 @@ export const glyph = stylex.create({
 	pending: { color: color['--accent'] },
 	approved: { color: color['--green'] },
 	changes: { color: color['--amber'] },
-	// A walkthrough's to-do circle stays quiet until the file is decided.
 	todo: { color: color['--line-strong'] },
 	testCaret: { display: 'inline-flex', cursor: 'pointer' },
 })

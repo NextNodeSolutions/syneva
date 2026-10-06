@@ -1,7 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// A boxed aside with a coloured square: a lead line and its explanation.
 export const callout = stylex.create({
 	root: {
 		borderWidth: '1px',

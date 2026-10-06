@@ -10,14 +10,11 @@ import {
 import { navMarker, triggerMarker } from './markers.stylex'
 import { navClock, navFrame, phoneBar } from './nav.stylex'
 
-// Without scripts the noscript links are parsed into the header and stand in
-// for the triggers, which would open nothing. With scripts they stay text, so
-// the triggers show from the first paint.
+// Without scripts the noscript links stand in for the triggers; with scripts they stay text, so the triggers show from the first paint.
 const scriptless = (): string =>
 	stylex.when.ancestor(':has(noscript a)', navMarker)
 const mobileOpen = (): string =>
 	stylex.when.ancestor('[data-mobile-open="true"]', navMarker)
-// The bar folding back into the toggle before it hides (phone-bar.ts).
 const mobileFolding = (): string =>
 	stylex.when.ancestor('[data-mobile-open="folding"]', navMarker)
 const expanded = (): string =>
@@ -25,8 +22,6 @@ const expanded = (): string =>
 const triggerExpanded = (): string =>
 	stylex.when.ancestor('[aria-expanded="true"]', triggerMarker)
 
-// The header bar: the wordmark row, the section triggers with their
-// indicator, and the link bar the toggle opens on phones.
 export const nav = stylex.create({
 	shell: {
 		display: 'flex',
@@ -48,15 +43,11 @@ export const nav = stylex.create({
 			[media.narrow]: '12px',
 			[media.tinyPhone]: '8px',
 		},
-		// Once the dock runtime runs (it writes data-docked) the header stays
-		// at the top of the viewport; without it the header scrolls away with
-		// the page, as a plain row.
+		// Once the dock runtime writes data-docked the header stays at the viewport top; without it the header scrolls away with the page.
 		position: { default: 'relative', ':is([data-docked])': 'sticky' },
 		top: { default: null, ':is([data-docked])': 0 },
 		zIndex: 10,
-		// Docked, the header's box keeps its full height around the smaller
-		// sheet: the strips above and below the sheet let the pointer through
-		// to the page, and only the sheet and the controls take it.
+		// Docked, the header's box keeps its full height around the smaller sheet: the strips above and below let the pointer through to the page, and only the sheet and the controls take it.
 		pointerEvents: { default: null, ':is([data-docked="true"])': 'none' },
 		// Closed menus can retain desktop coordinates after a resize.
 		overflowX: 'clip',
@@ -111,7 +102,6 @@ export const nav = stylex.create({
 		justifyContent: 'center',
 		minHeight: '44px',
 		paddingBlock: 0,
-		// The four items fit the link bar down to 320px; below that it scrolls.
 		paddingInline: {
 			default: '13px',
 			[media.narrow]: '8px',
@@ -131,9 +121,7 @@ export const nav = stylex.create({
 		},
 		fontWeight: 450,
 		whiteSpace: 'nowrap',
-		// The link bar scrolls on small phones and clips anything outside its
-		// box, so the focus ring draws inside the item there, as the panel
-		// rows' does.
+		// The link bar scrolls and clips on small phones, so the focus ring draws inside the item there, as the panel rows' does.
 		outlineOffset: {
 			default: null,
 			[media.smallPhone]: { default: null, ':focus-visible': '-3px' },
@@ -153,8 +141,7 @@ export const nav = stylex.create({
 		marginLeft: { default: '5px', [media.navToggle]: 0 },
 		gap: { default: '8px', [media.navToggle]: '4px' },
 	},
-	// Section-aware navigation: the trigger of the section you are in keeps a
-	// quiet accent mark.
+	// Section-aware navigation: the trigger of the section you are in keeps a quiet accent mark.
 	current: { color: color['--accent'] },
 	chevron: {
 		width: {

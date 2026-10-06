@@ -20,8 +20,6 @@ type ChoiceTileProps<T extends string> = {
 	onChoose: (choice: T) => void
 }
 
-// One radio tile: the native radio (drawn as a diamond) beside the choice's
-// title and its mono detail, the whole tile its label.
 export function ChoiceTile<T extends string>({
 	choice,
 	name,

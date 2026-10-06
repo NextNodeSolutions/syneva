@@ -18,17 +18,11 @@ import type { ChangeState, ReviewComment } from '@entities/review/model'
 import type { Row } from '@shared/diff-renderer/cursor-rows'
 import type { Side } from '@shared/diff-renderer/types'
 
-// ── The diff line cursor ─────────────────────────────────────────────────────
-// Keyboard review needs a "current line" the diff doesn't otherwise have. We keep it as a
-// logical {side, line} (stable across re-renders, since line numbers are) and resolve it to a
-// rendered row on demand. The highlight is @pierre's own line selection (setSelectedLines with
-// notify:false - paints without firing the selection callbacks, so no composer popup), so
-// pointer and keyboard share ONE highlight: a click seeds the cursor (cursorSyncTo) and the
-// arrows move the same selection from there.
+// The cursor is a logical {side, line} (stable across re-renders, line numbers are), resolved to a rendered row on demand.
+// The highlight is Pierre's own line selection (notify:false - paints without firing the selection callbacks, so no composer popup), so pointer and keyboard share ONE highlight.
 
 let cur: { side: Side; line: number } | null = null
 
-// The side a gutter cell belongs to: its line type first, else which split column holds it.
 function lineSide(type: string, column: Element | null): Side {
 	if (type.includes('deletion')) return 'deletions'
 	if (type.includes('addition')) return 'additions'
@@ -36,10 +30,6 @@ function lineSide(type: string, column: Element | null): Side {
 	return 'additions'
 }
 
-// Every navigable code line in visual (top-to-bottom) order. @pierre tags each line's gutter with
-// a [data-line-number-content] span inside a [data-line-type] cell, within a [data-additions] /
-// [data-deletions] column (split) - that gives us side + number + row element. Context lines show
-// in both split columns at the same y; mergeRows() folds those twins into one row.
 function rows(): Row[] {
 	const shadow = diffShadowRoot()
 	if (!shadow) return []
@@ -72,7 +62,6 @@ function rows(): Row[] {
 	return mergeRows(out)
 }
 
-// A row matches on its primary coordinates or its split-view twin (`alt`).
 function matches(row: Row, side: Side, line: number): boolean {
 	if (row.side === side && row.line === line) return true
 	return !!row.alt && row.alt.side === side && row.alt.line === line
@@ -85,8 +74,6 @@ function indexOfCur(list: Row[]): number {
 		: -1
 }
 
-// Paint the cursor as @pierre's native line selection. notify:false keeps the selection
-// callbacks (which open the comment composer) from firing on keyboard movement.
 function paint(r: Row): void {
 	D.instance?.setSelectedLines(
 		{ start: r.line, end: r.line, side: r.side },
@@ -106,16 +93,10 @@ function landOn(r: Row | undefined, shouldScroll = true): void {
 	r.el?.scrollIntoView({ block: 'nearest' })
 }
 
-// Adopt a pointer-made selection as the cursor position, so the arrows continue from the
-// clicked line instead of restarting at the first change. @pierre already painted the
-// selection itself - no repaint, no scroll.
 export function cursorSyncTo(side: Side, line: number): void {
 	cur = { side, line }
 }
 
-// Re-resolve the cursor after a render: keep the same logical line, just repaint. The cursor
-// is hidden until the reviewer navigates or clicks (no auto-highlighted first line), so when
-// there's no active cursor we clear the selection instead.
 export function cursorResync(): void {
 	const cursor = cur
 	if (!cursor) {
@@ -127,7 +108,6 @@ export function cursorResync(): void {
 	else hide()
 }
 
-// Drop the cursor (file switch, overview, markdown view) - clears the highlight entirely.
 export function cursorReset(): void {
 	cur = null
 	hide()
@@ -138,7 +118,6 @@ export function cursorSelection(): { side: Side; lineNumber: number } | null {
 	return { side: cur.side, lineNumber: cur.line }
 }
 
-// Reveal the cursor on first use: land on the first change (else the first line). Returns the row.
 function ensureCursor(): Row | undefined {
 	const cursor = cur
 	if (cursor) return rows().find(x => matches(x, cursor.side, cursor.line))
@@ -149,9 +128,6 @@ function ensureCursor(): Row | undefined {
 	return r
 }
 
-// Land the cursor on a specific rendered line (display space) and center it. Context rows merge
-// to a single entry (additions primary, deletions twin in `alt`), so fall back to a line-only
-// match before giving up.
 export function landAt(side: Side, line: number): boolean {
 	const list = rows()
 	const r =
@@ -164,9 +140,6 @@ export function landAt(side: Side, line: number): boolean {
 	return true
 }
 
-// Jump used by the blockers list and comment jumps. Retries across a few frames so a
-// just-triggered collapsed-region expansion (which rerenders) - or, on a virtualized diff, the
-// scroll that mounts a far line (virtual-nav.ts) - has laid out its rows.
 const JUMP_RETRY_FRAMES = 8
 
 function landWithin(side: Side, line: number, framesLeft: number): void {
@@ -188,7 +161,7 @@ export function cursorMoveLine(dir: 1 | -1): void {
 	if (!cur) {
 		ensureCursor()
 		return
-	} // first press just reveals the cursor
+	}
 	const i = indexOfCur(list)
 	if (i < 0) {
 		landOn(dir === 1 ? list[0] : list[list.length - 1])
@@ -197,14 +170,13 @@ export function cursorMoveLine(dir: 1 | -1): void {
 	landOn(list[Math.max(0, Math.min(list.length - 1, i + dir))])
 }
 
-// Jump to the first line of the next/previous change run (a contiguous block of change rows).
 export function cursorMoveHunk(dir: 1 | -1): void {
 	const list = rows()
 	if (!list.length) return
 	if (!cur) {
 		ensureCursor()
 		return
-	} // first press just reveals the cursor (on the first change)
+	}
 	const isStart = (j: number): boolean => {
 		const row = list[j]
 		const before = list[j - 1]
@@ -217,7 +189,6 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 			return
 		}
 	}
-	// A virtualized diff may hold the next block outside its mounted rows.
 	const far = D.virtual?.farChangeStart(cur, dir)
 	if (far) {
 		cursorJumpTo(far.side, far.line)
@@ -226,8 +197,6 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 	diffCtx().toast(dir === 1 ? 'No more changes' : 'No previous changes')
 }
 
-// The change (hunk) whose range covers the cursor line on its side. The cursor reads
-// rendered gutter numbers (display space), so compare against the display anchors.
 function cursorChange(): ChangeState | null {
 	const cursor = cur
 	if (!cursor) return null
@@ -248,8 +217,6 @@ function cursorChange(): ChangeState | null {
 	)
 }
 
-// Open the comment composer anchored to the cursor line (keyboard equivalent of clicking a
-// line). The composer renders inline at diffCtx().S.selected, so there's nothing to position.
 export function cursorComment(): void {
 	if (!cur) ensureCursor()
 	if (!cur) return
@@ -257,7 +224,6 @@ export function cursorComment(): void {
 	openCommentComposer()
 }
 
-// Accept (Keep) / reject (Undo) the change under the cursor.
 export function cursorVerdict(status: 'accepted' | 'rejected'): void {
 	if (!cur) ensureCursor()
 	const change = cursorChange()
@@ -271,7 +237,7 @@ export function cursorVerdict(status: 'accepted' | 'rejected'): void {
 function threadComments(): ReviewComment[] {
 	const cursor = cur
 	if (!cursor) return []
-	const raw = fromDisplayLine(cursor.side, cursor.line, D.lineMap) // comments persist raw lines
+	const raw = fromDisplayLine(cursor.side, cursor.line, D.lineMap)
 	return (diffCtx().S.state?.comments ?? []).filter(
 		c =>
 			c.path ===
@@ -282,7 +248,6 @@ function threadComments(): ReviewComment[] {
 	)
 }
 
-// Toggle resolve/reopen on the cursor line's thread.
 export function cursorResolve(): void {
 	const thread = threadComments()
 	if (!thread.length) {
@@ -291,8 +256,6 @@ export function cursorResolve(): void {
 	}
 	const isOpen = thread.some(c => c.status === 'open')
 	for (const c of thread) c.status = isOpen ? 'resolved' : 'open'
-	// The thread's elements are raw (bound-raw array filter - see notifyStateMutation), so
-	// the status writes never bump the store themselves.
 	notifyStateMutation()
 	void render()
 	diffCtx().persist()

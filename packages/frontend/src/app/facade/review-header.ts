@@ -15,9 +15,6 @@ import { render } from '@shared/lib/render-scheduler'
 import { setMarkdownTheme } from '@shared/markdown'
 import { D } from '@widgets/diff-view/runtime'
 
-// The bindings for the current file's view and its sign-off affordances: layout (Split/Stacked,
-// rendered/source), the settings panel, the "open in editor" jump, and the floating Approve button.
-
 export function installFileActionBindings(): void {
 	installLayoutBindings()
 	installSignOffBindings()
@@ -34,8 +31,6 @@ function installLayoutBindings(): void {
 		D.fileDiff = null
 		void render()
 	}
-	// Apply + persist all settings: CSS vars (font/size), comment-code theme, and a re-render (the
-	// diff reads S.settings.* in render()). Bound to every control's @change.
 	S.applySettings = () => {
 		void persistSettings({ settings: S.settings, diffStyle: S.diffStyle })
 		applyAppearance(S.settings)
@@ -51,12 +46,8 @@ function installLayoutBindings(): void {
 }
 
 function installSignOffBindings(): void {
-	// Floating sign-off button (mirrors the header's ⇧A action): shown only once the diff is
-	// scrolled past its header, and only for a pending changed file - not the Overview, a preview
-	// (unchanged, not approvable), or an already-finished file (which offers Reset, not Approve).
 	S.approveFile = () => {
-		// fabState() hides the button without a current file; keeping the action itself a no-op
-		// means it can never reach currentFile(S.state?.files, S.preview, S.fileIndex)'s throw (same contract as openInEditor below).
+		// fabState() hides the button without a current file; keeping the action a no-op means it can never reach currentFile(S.state?.files, S.preview, S.fileIndex)'s throw (same contract as openInEditor).
 		if (!currentFileOrNull(S.state?.files, S.preview, S.fileIndex)) return
 		void approveCurrentFile()
 	}
@@ -72,8 +63,6 @@ function installSignOffBindings(): void {
 			state?.mode === 'file' ? state.files[S.fileIndex] : undefined
 		return !!file && isMarkdownPath(file.path)
 	}
-	// The hide-reviewed lens bindings: the header toggle + its visibility gate. Both are
-	// stateless helpers in reviewed.ts (persist + repaint live there).
 	S.hasReviewed = () => hasReviewedMaterial(S.state)
 	S.toggleHideReviewed = () => {
 		S.settings = { ...S.settings, hideReviewed: !S.settings.hideReviewed }
@@ -87,8 +76,6 @@ function installSignOffBindings(): void {
 	}
 	S.splitApplies = () =>
 		currentSplittable(S.preview ?? S.state?.files[S.fileIndex])
-	// Jump from the desk into the local editor at the cursor's line. The cursor (and S.selected)
-	// hold DISPLAY coordinates - replayed decisions renumber the rendered diff - so convert to the
-	// real file line before handing it to an external process.
+	// The cursor (and S.selected) hold DISPLAY coordinates - replayed decisions renumber the rendered diff - so convert to the real file line before handing it to an external process.
 	S.openInEditor = () => openInEditor()
 }

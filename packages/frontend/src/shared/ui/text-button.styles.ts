@@ -1,10 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// A native button stripped to the text link it reads as: no tile, no padding, no rule (the
-// three border longhands, since `border: 0` would reset the style and colour too). Merged
-// after textLink, so the colour restates its hover, and its ink is set: a button does not take
-// its sentence's colour the way a link does. Disabled, it keeps its place but takes no hover.
 export const textButton = stylex.create({
 	base: {
 		appearance: 'none',

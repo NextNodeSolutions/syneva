@@ -1,6 +1,4 @@
 ---
-// The verdict column: every changed file and your verdict on it, the
-// progress strip, and Send.
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import Check from '@shared/ui/drawing/Check.astro'
 import Pending from '@shared/ui/drawing/Pending.astro'
@@ -16,8 +14,6 @@ import { heroStage } from './hero-stage.styles'
 const ROW = 34
 const FIRST = 72
 const TOTAL = HERO_FILES.length
-// Every row starts pending; the verdict lands on top of it, in the glyph
-// box at the row's right end.
 const GLYPH = { x: 715, rise: 10, size: 14 }
 const VERDICT_GLYPH = { yes: Check, no: Undone }
 const rows = HERO_FILES.map((file, index) => ({

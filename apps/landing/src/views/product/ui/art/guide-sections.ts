@@ -1,5 +1,3 @@
-// The guide's sections, then the trailing Other section for the files the
-// guide never mentions; each file sits on its row's y.
 export const GUIDE_SECTIONS = [
 	{
 		label: '01 · CONTRACTS',
@@ -33,8 +31,6 @@ export const GUIDE_SECTIONS = [
 	},
 ] as const
 
-// How many files the drawing sorts, and how many of them the guide never
-// mentions: the walkthrough's copy counts them from here.
 export const GUIDE_FILE_COUNT = GUIDE_SECTIONS.reduce(
 	(count, { rows }) => count + rows.length,
 	0,

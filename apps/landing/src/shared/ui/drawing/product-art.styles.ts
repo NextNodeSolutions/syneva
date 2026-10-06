@@ -6,9 +6,6 @@ const box = (
 	stroke: string,
 ): { fill: string; stroke: string } => ({ fill, stroke })
 
-// The marks of the product drawings (the exploded desk layers as isometric
-// sheets, the desk's anatomy, the guide sort, the question sequence and the
-// plan queue), which the resources drawings reuse: part of the kit.
 export const productArt = stylex.create({
 	isoFace: {
 		fill: color['--white'],

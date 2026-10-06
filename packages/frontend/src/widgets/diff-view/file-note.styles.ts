@@ -2,10 +2,6 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The strip standing in for a diff the desk cannot show: a pure rename
-// (nothing to show), a file whose contents failed to load, a diff gone stale
-// under the review. A static note on a white sheet, not a control: no hover,
-// no pointer. The stale one speaks amber, the stale-notice tone.
 export const fileNote = stylex.create({
 	wrap: { padding: '12px' },
 	strip: {

@@ -6,9 +6,8 @@ import { ease } from './tokens.stylex'
 
 const linkHover = (): string => stylex.when.ancestor(':hover', brandMarker)
 
-// The wordmark every front sets in its header (geometry in brand.ts): the mark, then the name
-// in 600 (the one place that weight appears), a step smaller on phones; the mark keeps its
-// 26px. The link carries brandMarker, so the mark turns a quarter-diamond under the pointer.
+// The wordmark in 600 (the only place that weight appears); the link carries brandMarker,
+// so the mark turns a quarter-diamond under the pointer.
 export const brand = stylex.create({
 	link: {
 		display: 'flex',

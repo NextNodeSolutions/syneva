@@ -1,5 +1,4 @@
 ---
-// A product or resource menu row: icon, title (and badge), blurb, arrow.
 import type { Page } from '@entities/site/model/site-map'
 import { badgeOf } from '@entities/site/model/routes'
 import { sx } from '@shared/lib/sx'
@@ -13,7 +12,6 @@ import { menuOrder } from './menu-order'
 type Props = { page: Page; index: number }
 
 const { page, index } = Astro.props
-// Product pages carry a preview scene; the others take a hover wash instead.
 const preview = 'preview' in page ? page.preview : undefined
 const hasPreview = Boolean(preview)
 const badge = badgeOf(page)

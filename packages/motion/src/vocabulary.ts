@@ -6,11 +6,8 @@ import { steps } from './steps'
 import type { Easing } from './easing'
 import type { Keyframes } from './engine'
 
-// The drawing vocabulary. An element opts in with data-anim="<kind>" and an
-// optional data-delay (seconds); its hidden pose is the matching poses.* style.
-// Entrances play once, a beat after their section arrives; loops repeat
-// while their scene is in view. Every drawing on the site plays these
-// timings.
+// The drawing vocabulary: an element opts in with data-anim="<kind>" (optional data-delay, in seconds); its hidden pose is the matching poses.* style.
+// Entrances play once a beat after their section arrives; loops repeat in view.
 const LAG_S = 0.25
 const TYPE_STEPS = 28
 const PERCENT = 100
@@ -18,7 +15,6 @@ const HALF = 0.5
 
 const { out, spring, settle } = EASE
 
-// How long each entrance plays, in seconds.
 const ENTRANCE_S = {
 	draw: 1.1,
 	fade: 0.7,
@@ -28,9 +24,7 @@ const ENTRANCE_S = {
 	type: 0.9,
 } as const
 const MOVE = { duration: 1.1, fadeEnd: 0.25 } as const
-// A signal loops over its cycle (seconds): it shows at `on`, arrives at
-// `arrive` and hides at `off` (fractions of the cycle), drawn as one dash of
-// `dash` hundredths of its path that travels the whole path.
+// Signal cycle (s): shows at `on`, arrives at `arrive`, hides at `off` (fractions); drawn as one dash of `dash`/100 of its path, travelling it whole.
 const SIGNAL = {
 	cycle: 3.2,
 	on: 0.04,
@@ -39,15 +33,12 @@ const SIGNAL = {
 	dash: 7,
 	travel: -PATH_LENGTH.signal,
 } as const
-// A pulse dims to `low` opacity and back over its cycle (seconds), starting
-// `lag` seconds after its section arrives.
+// Dims to `low` and back over `cycle` (s), starting `lag` s after the section arrives.
 const PULSE = { cycle: 2.4, low: 0.35, lag: 1.2 } as const
 const BLINK_S = 1.1
 const SPIN_S = 1
 
-// The typed line uncovers its clip-path one character-width at a time.
-// Both ends are the pose's own values; the steps between interpolate the
-// right inset the way CSS does.
+// Uncovers the clip-path one character-width at a time; the ends are the pose's own values, steps interpolate the inset like CSS.
 const typed = steps(TYPE_STEPS, progress => {
 	if (progress === 0) return POSE_VALUES.typeClipped
 	if (progress === 1) return POSE_VALUES.typeUncovered
@@ -56,18 +47,13 @@ const typed = steps(TYPE_STEPS, progress => {
 	return `inset(-${outset}px calc(${right}% - ${progress * outset}px) -${outset}px 0)`
 })
 
-// Starters receive the element's data-delay; entrances and signals wait a
-// beat (LAG_S) after the section arrives, pulses a longer one. An entrance
-// plays once and hands back its playback (reveal.ts can complete it at once);
-// Motion commits its finished pose and releases the animation.
+// An entrance plays once and hands back its playback (reveal.ts can complete it at once); Motion commits the finished pose and releases the animation.
 type Target = HTMLElement | SVGElement
 type Entrance = (element: Target, delay: number) => ReturnType<typeof animate>
 type Loop = (element: Target, delay: number) => void
 const lag = (delay: number): number => delay + LAG_S
 
-// An entrance from the hidden pose to the markup's, eased as one segment.
-// Motion resolves the keyframes it is given in place, so every element
-// animates its own copy.
+// Motion resolves given keyframes in place: copy them per element so each animates its own.
 const entrance =
 	(keyframes: Keyframes, duration: number, ease: Easing): Entrance =>
 	(element, delay) =>

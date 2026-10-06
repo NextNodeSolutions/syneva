@@ -2,7 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// Key/value rows in mono, for flags, events and fields.
 export const specTable = stylex.create({
 	root: {
 		borderTopWidth: '1px',

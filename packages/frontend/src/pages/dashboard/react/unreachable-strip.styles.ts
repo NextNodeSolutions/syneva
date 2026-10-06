@@ -1,8 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { color, layout } from '@syneva/design-system/tokens.stylex'
 
-// A frame-wide red band under the header: the page's one error surface, a red square, the
-// lead in ink and what to do in muted.
 export const unreachableStrip = stylex.create({
 	root: {
 		display: 'grid',

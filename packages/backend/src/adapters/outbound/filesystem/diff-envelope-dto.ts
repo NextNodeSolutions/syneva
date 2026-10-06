@@ -8,10 +8,7 @@ import type {
 } from '../../../domain/review.js'
 import type { Raw } from './dto.js'
 
-// The persisted diff envelope: one ReviewFile per diff entry - the parsed hunks/lines
-// plus the builder's lean stamps - decoded field by field (no JSON.parse output is ever
-// trusted as a domain record without it) and encoded back through the same allowlist.
-// Review-level records (comments/decisions/changes/guide) live in review-file-dto.ts.
+// One ReviewFile per diff entry, decoded field by field (no JSON.parse output is ever trusted as a domain record without it) and encoded back through the same allowlist; review-level records live in review-file-dto.ts.
 
 export function decodeReviewFile(raw: unknown): ReviewFile | null {
 	if (!isObject(raw)) return null

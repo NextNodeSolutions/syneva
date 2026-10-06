@@ -54,18 +54,12 @@ function noticeCopy(outcome: CloseOutcome): NoticeCopy {
 	}
 }
 
-// Dismissing from the keyboard (a click a key made: detail 0) takes away the button that held
-// focus: focus goes to New review (the header's one action) rather than falling to the page.
-// A press leaves focus alone - a mouse user's focus is not their place on the page, and
-// moving it to the header would scroll a long listing back to its top.
+// Dismissing from the keyboard (a click a key made: detail 0) moves focus to New review rather than falling to the page; a mouse press leaves focus alone - moving it to the header would scroll a long listing back to its top.
 function moveFocusOut(event: MouseEvent<HTMLButtonElement>): void {
 	if (event.detail !== 0) return
 	focusTarget(NEW_REVIEW_ID)
 }
 
-// The toast after a close. Its container is always mounted as the status region, so a new
-// notice is announced; only the notice inside it changes. The ink rule marks it as the
-// site's focus object, over the page.
 export function CloseNotice({
 	toast,
 }: {

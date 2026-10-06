@@ -2,8 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The product menu's side preview: each link swaps in a tiny scene of what
-// its page is about (its lines' motion: preview-motion.styles.ts).
 const caption = { font: `9px/1.5 ${font['--mono']}`, color: color['--muted'] }
 
 export const preview = stylex.create({

@@ -17,8 +17,7 @@ type DeskStageProps = {
 	isLive: boolean
 }
 
-// Where the desk's round stands (entities/hub/stage.ts): a square, a label and how long the
-// turn has lasted, then the agent's own last line in quotes or a note of what the label means.
+// Where the desk's round stands (entities/hub/stage.ts): a square, a label, the turn's length, then the agent's own last line in quotes or a note of what the label means.
 export function DeskStage({ copy, age, isLive }: DeskStageProps): ReactElement {
 	const { detail } = copy
 	return (

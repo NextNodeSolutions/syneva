@@ -12,10 +12,6 @@ import { guideBar } from './guide-bar.styles'
 
 import type { ReactElement } from 'react'
 
-// The guide bar under the top bar (guide-attached desks): overview home, the
-// whole-file comment toggle, guide prev/next, and the stale-guide notice.
-
-// The bar's 26px tiles: outlined squares, like every stepper on the desk.
 const square = [
 	press.control,
 	control.base,

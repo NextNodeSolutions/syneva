@@ -2,8 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// Under the headline: the pitch and its actions beside the review-round
-// figure; on tablets the copy spreads over two columns above the figure.
 export const heroBody = stylex.create({
 	body: {
 		display: 'grid',
@@ -50,8 +48,6 @@ export const heroBody = stylex.create({
 		maxWidth: '380px',
 		gridColumn: { default: null, [media.tablet]: 2 },
 	},
-	// Before launch the signup takes the actions' place, and the actions row
-	// (the way down to #how) follows it, closer than the command would.
 	signup: {
 		marginTop: {
 			default: '30px',

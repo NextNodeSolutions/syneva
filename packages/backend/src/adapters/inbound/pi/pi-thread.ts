@@ -4,7 +4,7 @@ import path from 'node:path'
 import type { ChildProcess } from 'node:child_process'
 import type { DeskConnection } from './desk-connection.js'
 
-/** Answer size cap: prose, but a runaway reply must not reach the parser unbounded. */
+// Answer size cap: prose, but a runaway reply must not reach the parser unbounded.
 const MAX_REPLY_CHARS = 100_000
 
 const CORRESPONDENT_TIMEOUT_MS = 240_000
@@ -12,16 +12,13 @@ const CORRESPONDENT_MAX_OUTPUT_BYTES = 16_777_216
 const STDERR_IN_ERROR_CHARS = 300
 
 type ThreadStreams = { stdout: string; stderr: string }
-// One thread per desk session: the session FILE is the agent. Each answer materializes it
-// with `pi -p` in the repo cwd and resumes that conversation - warm context across
-// questions (and desk restarts) without ever turning the owning session into a router,
-// and without per-answer children. This is the deterministic parallel agent.
+// One thread per desk session: the session FILE is the agent - each answer materializes it with `pi -p` in the repo cwd and resumes the conversation (warm context across questions and desk restarts).
+// No per-answer children or a router session.
 export function correspondentSessionFile(connection: DeskConnection): string {
 	return path.join(connection.directory, 'correspondent-session.jsonl')
 }
 
-// Prefer the exact pi entry this extension runs inside (deterministic version), falling
-// back to PATH when the host argv is not a recognizable pi CLI entry.
+// Prefer the exact pi entry this extension runs inside (deterministic version), falling back to PATH when the host argv is not a recognizable pi CLI entry.
 export function resolvePiEntry(): { command: string; prefixArgs: string[] } {
 	const [, entry] = process.argv
 	if (entry && /cli\.[cm]?js$/.test(entry))
@@ -43,12 +40,8 @@ export function buildPiArgs(sessionFile: string, prompt: string): string[] {
 	return ['-p', ...ISOLATION_FLAGS, '--session', sessionFile, prompt]
 }
 
-// The thread must be its OWN pi process, never an embedded one. The owning session
-// exports its identity and embedding markers to every child it spawns, and a `pi -p`
-// that inherits them attaches to the parent's session protocol instead of running its
-// prompt - it blocks forever with no output. Credential variables are kept. Pi selects
-// this thread's saved model or its configured startup default, not the owner's model
-// or the separately invocable syneva-answer subagent profile.
+// The thread must be its OWN pi process, never embedded: the owning session exports identity and embedding markers to every child, and a `pi -p` that inherits them attaches to the parent's session protocol instead of running its prompt - it blocks forever with no output.
+// Credential variables are kept; the thread gets its saved model or the configured startup default.
 export function correspondentEnv(
 	source: Record<string, string | undefined> = process.env,
 ): Record<string, string | undefined> {
@@ -65,9 +58,7 @@ export function correspondentEnv(
 	return env
 }
 
-// `pi -p` treats an OPEN stdin as piped prompt input and waits for its EOF forever;
-// execFile's default stdin pipe is exactly that, and the thread then hangs with no
-// output - which is why this is spawn with stdio[0] 'ignore' rather than execFile.
+// `pi -p` treats an OPEN stdin as piped prompt input and waits for its EOF forever: execFile's default stdin pipe is exactly that, which is why this is spawn with stdio[0] 'ignore'.
 export function runPiProcess(
 	command: string,
 	args: string[],
@@ -77,8 +68,7 @@ export function runPiProcess(
 		signal: AbortSignal
 	},
 ): Promise<string> {
-	// A signal that aborted before the spawn never fires the listener below; catch it here so
-	// an attachment torn down mid-event cannot leave a process running.
+	// A signal that aborted before the spawn never fires the listener below: catch it here so an attachment torn down mid-event cannot leave a process running.
 	if (options.signal.aborted)
 		return Promise.reject(new Error('the desk correspondent was aborted'))
 	return new Promise((resolve, reject) => {

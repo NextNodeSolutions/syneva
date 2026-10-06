@@ -1,5 +1,4 @@
 ---
-// Product overview: the desk, exploded into the layers it is made of.
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
 import { anim } from '@shared/ui/drawing/anim'
@@ -12,7 +11,6 @@ import ExplodedLayer from './ExplodedLayer.astro'
 import { LAYER, LAYERS } from './desk-layers'
 import type { Layer } from './desk-layers'
 
-// The sheets arrive a beat apart, and their legends follow at the same pace.
 const BEAT = 0.12
 const beatOf = (layer: Layer): number => LAYERS.indexOf(layer) * BEAT
 const sheetDelay = (layer: Layer): number => 0.1 + beatOf(layer)

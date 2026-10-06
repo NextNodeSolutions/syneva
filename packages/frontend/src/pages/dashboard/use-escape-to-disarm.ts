@@ -7,10 +7,6 @@ function isDisarmKey(event: KeyboardEvent): boolean {
 	return event.key === 'Escape' && !isDialogOpen()
 }
 
-// While a close is armed, Escape disarms it from anywhere on the page - not only from inside
-// the armed pair: a click on bare page leaves the close armed with focus on the body, and the
-// listing's order held. A document listener is an external subscription: the effect adds it
-// while `armedId` names a desk and takes it away after.
 export function useEscapeToDisarm(
 	armedId: string | null,
 	disarm: (deskId: string) => void,

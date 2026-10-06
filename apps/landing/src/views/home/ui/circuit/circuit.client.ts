@@ -10,19 +10,15 @@ import { placeLoopLabel, routeCircuit } from './circuit-wires'
 
 import type { SignalName } from './circuit-part'
 
-// The review circuit's runtime: route the wires now, again when the phone
-// layout moves the stations (frames.ts swaps the viewBox) and once the fonts
-// settled (they can shift a port by a pixel), then run the loop unless the
-// visitor prefers reduced motion. The loop runs once: a preference switch
-// during the boot wait starts it early, and the boot then leaves it running.
+// Route the wires now, again when the phone layout swaps the viewBox and once the fonts settled (they can shift a port by a pixel).
+// Then run the loop unless reduced motion; the loop runs once: a preference switch during the boot wait starts it early, and the boot leaves it running.
 const phone = matchMedia(queries.phone)
 const svg = document.querySelector<SVGSVGElement>('svg[data-circuit]')
 
 let lengths = new Map<SignalName, number>()
 let isRunning = false
 
-// A running loop keeps its place on the clock; only its signals' travel
-// follows the new routes.
+// A running loop keeps its place on the clock; only its signals' travel follows the new routes.
 function route(circuit: SVGSVGElement): void {
 	lengths = routeCircuit(circuit)
 	placeLoopLabel(circuit)

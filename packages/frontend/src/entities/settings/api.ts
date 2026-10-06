@@ -15,11 +15,6 @@ import { isCodeTheme } from './code-themes'
 import type { DiffStyle } from '@shared/diff-renderer/types'
 import type { Settings } from './model'
 
-// The settings entity's API boundary: display preferences persist to the global
-// ~/.syneva/settings.json (NOT localStorage - a file follows the reviewer across browsers and hosts).
-
-// One Settings key's decode+assign step: the generic write keeps the key and the
-// decoded value correlated, so the wire→model mapping needs no assertion.
 type SettingsPut = <K extends keyof Settings>(
 	key: K,
 	decoded: Settings[K] | undefined,
@@ -64,24 +59,18 @@ function decodeScalarSettings(
 	for (const key of numbers) put(key, optNumber(wire, key, endpoint))
 	const strings: (keyof Settings)[] = ['font', 'uiFont', 'editorCommand']
 	for (const key of strings) put(key, optString(wire, key, endpoint))
-	// A theme the picker doesn't offer (a hand-edited file, a theme a later Syneva dropped) may be
-	// one @pierre/diffs can't resolve, which blanks the diff: keep the default instead.
+	// A theme the picker doesn't offer (a hand-edited file, one a later Syneva dropped) may be one @pierre/diffs can't resolve, which blanks the diff: keep the default instead.
 	const theme = optString(wire, 'theme', endpoint)
 	put('theme', theme && isCodeTheme(theme) ? theme : undefined)
 }
 
-// Map only the known Settings keys: each is validated (enum membership, boolean,
-// string, finite number); absent or unknown settings are ignored so the desk's
-// defaults and forward compatibility stay intact.
 export function decodeSettings(
 	raw: unknown,
 	endpoint: string,
 ): Partial<Settings> {
 	const wire = assertObject(raw, endpoint, 'settings')
 	const out: Partial<Settings> = {}
-	// A nullish decoded value is an absent/invalid setting: write nothing, so the key stays
-	// absent and the caller's `{ ...DEFAULT_SETTINGS, ...settings }` keeps the default (an
-	// own `undefined` would overwrite it). `?? null` lets legitimate false/0/'' settings land.
+	// A nullish decoded value writes nothing, so the key stays absent and the caller's {...DEFAULT_SETTINGS, ...settings} keeps the default (an own `undefined` would overwrite it); `?? null` lets legitimate false/0/'' settings land.
 	const put: SettingsPut = <K extends keyof Settings>(
 		key: K,
 		decoded: Settings[K] | undefined,
@@ -100,8 +89,7 @@ export type DisplayPrefs = {
 	diffStyle?: DiffStyle | undefined
 }
 
-// The preferences body, read from either route (a desk's /settings, the hub's own for the
-// dashboard): both read and write the same ~/.syneva/settings.json.
+// The preferences body, read from either route (a desk's /settings, the hub's own for the dashboard): both read and write the same ~/.syneva/settings.json.
 function decodePrefs(raw: unknown, endpoint: string): DisplayPrefs {
 	const o = assertObject(raw, endpoint)
 	return {
@@ -137,7 +125,7 @@ export const persistSettings = async (prefs: SavedPrefs): Promise<void> => {
 			API_PATHS.settings,
 		)
 	} catch {
-		// Preferences are best-effort: an unreachable desk must not break the settings UI.
+		/* best-effort persist: an unreachable desk must not break the settings UI */
 	}
 }
 

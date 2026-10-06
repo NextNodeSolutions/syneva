@@ -1,5 +1,4 @@
 ---
-// A verdict you undid: a wash box with an accent cross on its centre.
 import { sx } from '../../lib/sx'
 import { MARK_SIZE } from './mark-size'
 import { shape } from './shape.styles'
@@ -7,7 +6,6 @@ import { shape } from './shape.styles'
 type Props = { x: number; y: number; size?: number }
 
 const { x, y, size = MARK_SIZE } = Astro.props
-// The cross spans three sevenths of the box.
 const arm = (size * 3) / 7
 const corner = { x: x + (size - arm) / 2, y: y + (size - arm) / 2 }
 const cross = `m${corner.x} ${corner.y} ${arm} ${arm}m0-${arm}-${arm} ${arm}`

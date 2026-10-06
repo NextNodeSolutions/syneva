@@ -23,20 +23,6 @@ import { notes as styles } from './notes-panel.styles'
 import type { NotesLens, ReviewNote } from '@entities/review/notes'
 import type { KeyboardEvent, ReactElement, RefObject } from 'react'
 
-// The review-notes panel: every comment and question thread of the WHOLE review, one
-// click from any file. Two sections - Questions first (the live conversation with the
-// agent), then Comments - each grouped by file in review order (the row layer lives in
-// notes-panel-rows). A row click jumps to the thread's exact spot, switching files when
-// it has to (S.jumpToNote); the panel stays open so notes can be hopped one after
-// another.
-//
-// The pane is also drivable: a filter box (query against path/body/line), a status lens
-// (All / Open / Resolved), and a keyboard cursor over the flat visible rows - ↑/↓ move,
-// ↵ jumps, '/' focuses the filter (HOTKEYS_NOTES; Esc clears the query before it closes
-// the panel). What is visible comes from notesPanelView alone, so the cursor, the
-// facade's moves and this render can never disagree. All of it is per-session state on
-// the store (notesQuery/notesLens/notesCursor), never persisted.
-
 const LENSES: { value: NotesLens; label: string }[] = [
 	{ value: 'open', label: 'Open' },
 	{ value: 'resolved', label: 'Resolved' },
@@ -45,8 +31,6 @@ const LENSES: { value: NotesLens; label: string }[] = [
 
 type StoreView = ReturnType<typeof chromeCtx>['S']
 
-// The file the desk is on right now (preview wins over the indexed review file, like
-// the tree's active row; none on the Overview) - the panel marks its rows with a rail.
 function activePath(S: StoreView): string | null {
 	if (S.overviewOpen) return null
 	return (
@@ -54,8 +38,6 @@ function activePath(S: StoreView): string | null {
 	)
 }
 
-// Arrow/Enter handling while typing in the filter: the global map's typing gate keeps
-// those keys away from the panel's cursor bindings, so the field drives them directly.
 function searchKeys(
 	S: StoreView,
 ): (event: KeyboardEvent<HTMLInputElement>) => void {
@@ -215,13 +197,11 @@ export function NotesPanel(): ReactElement {
 	const cursor = S.notesCursor
 	const filtered = Boolean(S.notesQuery.trim()) || S.notesLens !== 'all'
 
-	// The '/' pulse: focus the filter box. Tick 0 is the mount - only bumps focus.
 	useEffect(() => {
 		if (searchTick > 0) inputRef.current?.focus()
 	}, [searchTick])
 
-	// Keyboard cursor: keep the row it lands on in view (block:'nearest' scrolls the
-	// least; a cursor already visible is a no-op).
+	// Open state lives in the store so the Esc cascade can close it (hotkeys-app) and a store bump mid-menu can't strand a closed-over local flag.
 	const bodyRef = useRef<HTMLDivElement | null>(null)
 	useEffect(() => {
 		if (cursor > 0)

@@ -3,13 +3,10 @@ import { color, duration, ease } from '@syneva/design-system/tokens.stylex'
 
 import { disclosureMarker } from './disclosure.stylex'
 
-// Open and not folding away; .is-closing turns the chevron back early.
 const opened = (): string =>
 	stylex.when.ancestor(':not(.is-closing)[open]', disclosureMarker)
 
-// Native <details> rows: a question that eases open onto its answer.
 export const disclosure = stylex.create({
-	// Ruled between rows, and above the first.
 	row: {
 		borderTopWidth: { default: null, ':first-child': '1px' },
 		borderTopStyle: { default: null, ':first-child': 'solid' },

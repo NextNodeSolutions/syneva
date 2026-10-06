@@ -12,15 +12,12 @@ const veil = stylex.keyframes({
 	to: { opacity: 1 },
 })
 
-// The sheet hangs from a fixed line near the top, never from the centre: when it grows (a
-// field joins it), it grows downwards and what is under the pointer stays where it was.
+// The sheet hangs from a fixed line near the top, never the centre: when it grows, it grows downwards and what is under the pointer stays where it was.
 const TOP = 'min(10dvh, 80px)'
 const ROOM = `calc(100dvh - ${TOP} - 16px)`
 
-// The site's focus object: a white sheet under an ink rule, no radius and no
-// shadow, over a paper scrim. `display` is never set on the dialog itself: it
-// would override the platform's display:none for a closed one, so the column
-// lives on `inner`.
+// The site's focus object: a white sheet under an ink rule, no radius and no shadow, over a paper scrim.
+// `display` is never set on the dialog itself: it would override the platform's display:none for a closed one, so the column lives on `inner`.
 export const dialog = stylex.create({
 	root: {
 		paddingBlock: 0,
@@ -66,7 +63,6 @@ export const dialog = stylex.create({
 		justifyContent: 'space-between',
 		gap: '16px',
 		minHeight: '44px',
-		// Level with the body's text below it.
 		paddingLeft: { default: '24px', [media.phone]: '20px' },
 		paddingRight: '7px',
 		borderBottomWidth: '1px',
@@ -80,7 +76,6 @@ export const dialog = stylex.create({
 	},
 	caption: { display: 'flex', alignItems: 'center', minWidth: 0 },
 	captionDot: { marginRight: '10px' },
-	// The one part that scrolls when the sheet is taller than the viewport.
 	body: {
 		flex: '1 1 auto',
 		minHeight: 0,
@@ -89,9 +84,6 @@ export const dialog = stylex.create({
 		paddingInline: { default: '24px', [media.phone]: '20px' },
 		paddingBottom: '8px',
 	},
-	// The actions row, at its end with the primary last, at every width: the
-	// secondary is a text link, which keeps its own width beside the primary
-	// (a phone's row holds both) rather than floating in a share of the row.
 	footer: {
 		display: 'flex',
 		flexShrink: 0,

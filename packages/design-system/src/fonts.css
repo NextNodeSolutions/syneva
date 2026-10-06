@@ -1,6 +1,4 @@
-/* Geist and Geist Mono, the two voices of every Syneva front (fonts/SOURCE.md).
-   Each app imports this one file: its bundler emits the faces next to its own
-   assets and rewrites the URLs, so no front requests a third-party font host. */
+/* Each app imports this one file: its bundler emits the faces next to its own assets and rewrites the URLs, so no front requests a third-party font host. */
 @font-face {
 	font-family: Geist;
 	src: url('../fonts/geist.woff2') format('woff2');

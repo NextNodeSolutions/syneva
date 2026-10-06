@@ -6,11 +6,7 @@ import { sx } from '../../lib/sx'
 import type { LoopKind, VocabularyKind } from '@syneva/motion/vocabulary'
 import type { Attributes, Part } from '../../lib/sx'
 
-// The drawing vocabulary (see @syneva/motion/vocabulary): `kind` enters once
-// when its section arrives, `delay` (seconds) staggers it, and the element's
-// own styles come after the hidden pose so they can restate any property the
-// pose also sets. The markup position is always the finished pose. A moving
-// element takes its offset too, so it has its own builder, move().
+// `kind` enters once when its section arrives; `delay` (seconds) staggers it; element styles come after the hidden pose so they can restate any posed property; the markup position is always the finished pose (move() adds the offset).
 type Kind = Exclude<VocabularyKind, 'move'>
 
 // A kind's hidden pose shares its name; pulse and blink have none.
@@ -52,13 +48,11 @@ export function anim(
 	}
 }
 
-// A loop without a delay of its own keeps time with the nearest delayed
-// ancestor (a pulse inside a rising card).
+// A loop without a delay of its own keeps time with the nearest delayed ancestor (a pulse inside a rising card).
 export function loop(kind: LoopKind, ...styles: Part[]): AnimAttributes {
 	return { ...optIn(kind, styles), ...lengthOf(kind) }
 }
 
-// Travels in from (x, y) px to its markup position.
 export function move(
 	delay: number,
 	x: number,

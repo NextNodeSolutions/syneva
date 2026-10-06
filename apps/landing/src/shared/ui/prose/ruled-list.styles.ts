@@ -1,6 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
 
-// Numbered points, each under its own rule with an accent square.
 export const ruledList = stylex.create({
 	root: {
 		listStyle: 'none',

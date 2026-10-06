@@ -1,20 +1,10 @@
 import { HUB_PATHS, STATIC_PATHS } from '@syneva/contracts/routes'
 
-// The hub's server-rendered pages: the sign-in form (hosted mode) and the not-found page. Tiny
-// and dependency-free on purpose - they must render even when the UI bundle is missing, so no
-// JS and one inline sheet - and they speak the public site's language (apps/landing/DESIGN.md:
-// the ruled light frame, the page hero, the field-ground drawing) like the dashboard they lead
-// to, so a sign-in never looks like a foreign service.
+// Tiny and dependency-free on purpose - they must render even when the UI bundle is missing (no JS, one inline sheet).
+// They speak the public site's language like the dashboard they lead to, so a sign-in never looks like a foreign service.
 
-// The sheet sets the dashboard's own scale (pages/dashboard: its h1, lede, 40px field and 44px
-// action), so a sign-in hands off to the dashboard at one size; buttons keep their natural
-// width on phones, as the site's and the dashboard's do.
-// The :root values mirror @syneva/design-system's tokens (packages/design-system/src/
-// tokens.stylex.ts): keep them in sync by hand. StyleX variables only exist in a StyleX build,
-// and these pages must not depend on the built /styles.css. The faces load from the hub's font
-// route, which answers before the access guard (router.ts) so a keyed hub's sign-in still sets
-// in Geist; without a built UI they fall back to the system stacks. The file names are the
-// design system's own (packages/design-system/fonts/), which the UI build keeps.
+// The :root values mirror @syneva/design-system's tokens - hand-kept in sync, since StyleX variables only exist in a StyleX build and these pages must not depend on the built stylesheet.
+// The faces load from the hub's font route (answered before the access guard), so a keyed hub's sign-in still sets in Geist.
 const STYLES = `
 :root{color-scheme:light;--paper:#f6f6f0;--white:#ffffff;--ink:#191b18;--muted:#60635c;--accent:#0e6582;--accent-deep:#0b506a;--wash:#dcedf4;--wash-tint:#eff7fa;--mint:#e0eddf;--green:#35633f;--red:#a8322d;--red-tint:#f8e7e3;--line:#dcdfd4;--line-strong:#a8afa1;--grid:#e4e7dc;--wordmark:#dfe3d6;--field:#eef0e7;--sans:Geist,system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,monospace;--out:cubic-bezier(.2,0,0,1);--spring:cubic-bezier(.34,1.36,.5,1);--g:48px}
 @font-face{font-family:Geist;src:url(${STATIC_PATHS.fontsPrefix}geist.woff2) format('woff2');font-weight:100 900;font-display:swap}
@@ -70,34 +60,22 @@ pre{padding:18px 20px;font:12.5px/1.9 var(--mono);white-space:pre-wrap;overflow-
 @media (max-width:600px){:root{--g:20px}.top{min-height:64px}.brand{font-size:24px}.page{padding:40px var(--g) 56px}h1{font-size:34px}.lede{font-size:15px}.row{flex-direction:column}.row .btn{align-self:flex-start}.art{padding:36px 16px}.ask{margin-right:16px}.bar{flex-direction:column;gap:6px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}`
 
-// The dashboard shell's favicon (packages/frontend/src/app/dashboard.html): the petrol mark on
-// paper, the same tab icon on every hub page.
 const FAVICON =
 	'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23f6f6f0%27/%3E%3Cg stroke=%27%230e6582%27 stroke-width=%272%27 fill=%27none%27%3E%3Cpath d=%27M16 3v7m0 12v7M3 16h7m12 0h7M7 7l5 5m8 8 5 5M7 25l5-5m8-8 5-5%27/%3E%3Cpath d=%27m10 16 6-6 6 6-6 6Z%27/%3E%3C/g%3E%3C/svg%3E'
 
-// The mark's rays and diamond, and the arrow of actions, as the design system draws them
-// (packages/design-system/src/brand.ts, src/icons.ts): copied, since the backend never imports
-// a front's design source.
+// Rays, diamond and action arrow drawn as the design system draws them: copied, since the backend never imports a front's design source.
 const MARK =
 	'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v5m0 10v5M2 12h5m10 0h5M5 5l4 4m6 6 4 4M5 19l4-4m6-6 4-4"/><path d="M8 12l4-4 4 4-4 4Z"/></svg>'
 const ARROW =
 	'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5"/></svg>'
 
-// A drawing's four corner ticks on its field ground.
 const CORNERS =
 	'<i class="mk tl"></i><i class="mk tr"></i><i class="mk bl"></i><i class="mk br"></i>'
 
-// One command of the terminal: its prompt, then the command in a box of its own, so a line
-// that wraps on a phone stays indented under the command instead of reading as a new one (a
-// comment hangs after its "# " the same way, in the sheet).
 function command(text: string): string {
 	return `<span class="cmd"><span class="p" aria-hidden="true">$</span><span>${text}</span></span>`
 }
 
-// The supported setup: the hub sits next to the repositories (it runs git on them in its own
-// filesystem), the agents run there too, and only the reviewer's browser is elsewhere. Remote
-// runners do not exist yet. Every line is a block, with no whitespace between them, so the
-// pre adds no empty line.
 const KEY_FIGURE = `<figure class="art" aria-label="Where the key comes from">${CORNERS}
 <div class="term"><div class="tbar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>where the key comes from</span></div>
 <pre><span class="c"># on the hub's machine, next to the repos</span>${command('syneva start --host 0.0.0.0 --key &lt;secret&gt;')}<span class="c"># an agent on that same machine</span>${command('SYNEVA_KEY=&lt;secret&gt; syneva open')}</pre></div>
@@ -105,13 +83,11 @@ const KEY_FIGURE = `<figure class="art" aria-label="Where the key comes from">${
 
 type ShellInput = {
 	title: string
-	// False where the hub root would only bounce back to the same page (the sign-in).
 	brandLink: boolean
 	body: string
 }
 
-// Every interpolation into markup goes through here: titles, messages, paths and the sign-in's
-// destination all carry request-derived text.
+// Every interpolation into markup goes through here: titles, messages, paths and the sign-in's destination all carry request-derived text.
 function escapeHtml(text: string): string {
 	return text
 		.replaceAll('&', '&amp;')
@@ -121,14 +97,12 @@ function escapeHtml(text: string): string {
 		.replaceAll("'", '&#39;')
 }
 
-// A message's `command` spans become <code>, after escaping so the spans can carry no markup.
 function proseHtml(message: string): string {
 	return escapeHtml(message).replaceAll(/`([^`]+)`/g, '<code>$1</code>')
 }
 
 const BRAND_CONTENT = `${MARK}syneva<i aria-hidden="true"></i><small>hub</small>`
 
-// The wordmark as the link home, or standing alone where home would bounce back here.
 const BRAND = {
 	link: `<a class="brand" href="${STATIC_PATHS.index}" aria-label="Syneva hub, all desks">${BRAND_CONTENT}</a>`,
 	plain: `<div class="brand">${BRAND_CONTENT}</div>`,
@@ -169,9 +143,6 @@ ${KEY_FIGURE}`,
 	})
 }
 
-// What a not-found page says: its tab title and crumb, the statement and its lede, a line of
-// help under the actions (backtick spans set as code), and the question and answer of its
-// figure's thread.
 export type NotFoundCopy = {
 	title: string
 	crumb: string
@@ -182,9 +153,7 @@ export type NotFoundCopy = {
 	answer: string
 }
 
-// An unknown desk id. True of every one: the desk id hashes the repository root and the
-// session, so reopening that session there brings the desk back at this same address - with
-// its review when the open is the same one (the same mode and target).
+// True of every unknown desk id: the id hashes the repository root and the session, so reopening that session there brings the desk back at this same address - with its review when the open is the same one.
 export const DESK_NOT_OPEN: NotFoundCopy = {
 	title: 'Desk not open · Syneva hub',
 	crumb: 'Desk',
@@ -195,7 +164,6 @@ export const DESK_NOT_OPEN: NotFoundCopy = {
 	answer: 'It isn\u2019t open on this hub. A closed desk keeps its review on the hub\u2019s machine.',
 }
 
-// Any other address a browser asks for (a mistyped or cut-off desk address, an old link).
 export const NOTHING_HERE: NotFoundCopy = {
 	title: 'Not found · Syneva hub',
 	crumb: 'Not found',
@@ -205,11 +173,8 @@ export const NOTHING_HERE: NotFoundCopy = {
 	answer: 'Nothing this hub serves. Its dashboard lists every open desk.',
 }
 
-// The site's setup guide: the not-found page's secondary action, as on the site's own 404.
 const SETUP_GUIDE = 'https://syneva.dev/get-started/'
 
-// The site's own not-found idiom: the address asked for struck out as a removed line, the hub
-// root added in its place, then a "you · ask" thread anchored under the change.
 function undoneAddressFigure(copy: NotFoundCopy, path: string): string {
 	return `<figure class="art" aria-hidden="true">${CORNERS}
 <div class="card"><div class="chead"><span>hub · open desks</span><span>+1 &minus;1</span></div>

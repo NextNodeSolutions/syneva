@@ -32,10 +32,8 @@ function registerAttachmentTool(
 			'After opening a Syneva desk, use syneva_agent to attach the owning persistent session before returning control to the human. Do not delegate waiting to a one-shot subagent.',
 		],
 		parameters,
-		// registerTool's callback is positional, one parameter past the preset's cap; the signal and ctx
-		// ride the tail of the rest list (signal, onUpdate, ctx) instead of a silent disable. The signal
-		// is forwarded to detach: an interrupted tool call is a human asking the wait to stop, and the
-		// teardown races the abort instead of ignoring it.
+		// registerTool's callback is positional, one parameter past the preset's cap: the signal and ctx ride the tail of the rest list (signal, onUpdate, ctx) instead of a silent disable.
+		// The signal forwards to detach - an interrupted tool call is the human asking the wait to stop, and the teardown races the abort rather than ignoring it.
 		async execute(_id, args, ...tail) {
 			const [signal, , ctx] = tail
 			const action = args.action ?? 'attach'

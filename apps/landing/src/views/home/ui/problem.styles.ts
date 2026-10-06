@@ -2,7 +2,6 @@ import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The problem: its copy paired with the gap chart.
 export const problem = stylex.create({
 	section: {
 		display: 'grid',

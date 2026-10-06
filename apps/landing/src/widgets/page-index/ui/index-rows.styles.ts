@@ -12,8 +12,6 @@ import { indexRowMarker } from './page-index.stylex'
 const rowHover = (): string => stylex.when.ancestor(':hover', indexRowMarker)
 const LINE = color['--line']
 
-// Overview pages list their pages as linked rows: number, icon drawing,
-// title and blurb, an optional command, an arrow that steps on hover.
 export const indexRows = stylex.create({
 	root: {
 		borderTopWidth: '1px',

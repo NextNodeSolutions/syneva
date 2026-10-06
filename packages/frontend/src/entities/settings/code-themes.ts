@@ -1,6 +1,4 @@
-// The code themes Syneva offers, grouped the way the settings select renders them. Every name is
-// one @pierre/diffs resolves, and the settings decoder accepts nothing else: a theme name Pierre
-// can't resolve blanks the diff.
+// Every name is one @pierre/diffs resolves, and the settings decoder accepts nothing else: a theme name Pierre can't resolve blanks the diff.
 export type CodeThemeGroup = {
 	group: string
 	options: { value: string; name: string }[]

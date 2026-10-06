@@ -9,10 +9,8 @@ import { useCopyCommand } from './use-copy-command'
 import type { ReactElement } from 'react'
 import type { CopyState } from './use-copy-command'
 
-// The keyboard copy a reader is told to press when the page cannot copy.
 const COPY_KEYS = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘C' : 'Ctrl+C'
 
-// What the status line says in each state (a polite live region).
 const STATUS_TEXT: Record<CopyState, string> = {
 	idle: '',
 	copied: 'Copied.',
@@ -21,15 +19,11 @@ const STATUS_TEXT: Record<CopyState, string> = {
 
 type CommandChipProps = {
 	command: string
-	// The field's accessible name: what the command is for.
 	label: string
 	onWash?: boolean | undefined
-	// Fill the column it sits in, as the commands do in a band's install column.
 	block?: boolean | undefined
 }
 
-// The site's command box: the command in a read-only field (a click selects
-// all of it) and a button that copies it, the outcome said under the box.
 export function CommandChip({
 	command,
 	label,

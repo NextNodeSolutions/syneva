@@ -10,10 +10,7 @@ import type { GitPort } from '../../../application/ports.js'
 
 export { gitStats }
 
-// The node/git implementation of the application's git capability object. Frozen:
-// use cases see a readonly port, never this module's mutable surface. The workspace
-// facet rides along (the working tree is this adapter's domain - fileAt already reads
-// it), so a use case takes one capability object and imports no node:fs itself.
+// The workspace facet rides along (the working tree is this adapter's domain - fileAt already reads it), so a use case takes one capability object and imports no node:fs itself.
 export const nodeGit: GitPort = Object.freeze({
 	run: git,
 	fileAt,
@@ -49,11 +46,9 @@ export async function getBranch(cwd: string): Promise<string> {
 	}
 }
 
-// One reviewed file's contents at a ref (git blob) or from the working tree. By default a missing
-// object/file swallows to "" - for the diff a vanished side degrades to an add/delete rather than
-// crashing. `strict` (used by on-demand content resolution for a side the diff says MUST exist)
-// rethrows instead, so /file-contents can 404 with a reload hint when a rebase drops the object
-// mid-session, instead of silently serving an empty file.
+// By default a missing object/file degrades to "" - a vanished side becomes an add/delete rather
+// than crashing; `strict` (on-demand content for a side the diff says MUST exist) rethrows so
+// /file-contents can 404 with a reload hint when a rebase drops the object mid-session.
 export async function fileAt(
 	root: string,
 	rel: string | undefined,
@@ -68,9 +63,7 @@ export async function fileAt(
 		gitStats.readsInFlight,
 	)
 	try {
-		// Raw exec (not git()) so the trailing newline is preserved - otherwise the file
-		// looks like it has "no newline at end of file" and the last line renders as a
-		// spurious diff.
+		// Raw exec, not git(), so the trailing newline is preserved: otherwise the file looks like it has no final newline and the last line renders as a spurious diff.
 		if (ref) return await runGitRaw(['show', `${ref}:${rel}`], root)
 		return await fs.readFile(path.join(root, rel), 'utf8')
 	} catch (error) {
@@ -81,8 +74,7 @@ export async function fileAt(
 	}
 }
 
-// A blob OID git reports as all-zeros - the working-tree side of a dirty/untracked file, which has
-// no stored object yet. Signals "hash the working copy locally" (blobOid) rather than harvest.
+// A blob OID git reports as all-zeros is the working-tree side of a dirty/untracked file (no stored object yet): hash the working copy locally rather than harvest.
 function isZeroOid(oid: string): boolean {
 	return /^0+$/.test(oid)
 }

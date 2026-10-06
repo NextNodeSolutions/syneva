@@ -13,8 +13,6 @@ import type { AstroIntegration } from 'astro'
 
 type Link = { path: string; route: string }
 
-// Where the built pages reference a URL: an href or src attribute, and the
-// share image's og:image meta (every other content attribute holds text).
 const REFERENCES = [
 	/\s(?:href|src)="([^"]*)"/g,
 	/<meta property="og:image" content="([^"]*)"/g,
@@ -26,12 +24,9 @@ const htmlFiles = (root: string): string[] =>
 		file.endsWith('.html'),
 	)
 
-// The address a built file answers: dist/product/index.html is /product/.
 const routeOf = (file: string): string =>
 	`/${file.split(sep).join('/')}`.replace(/index\.html$/, '')
 
-// A reference on the site itself, as a decoded path; links elsewhere and
-// in-page fragments resolve to another origin or to the page's own path.
 function internalPath(reference: string, route: string): string | undefined {
 	const url = new URL(reference, `${SITE_URL}${route}`)
 	if (url.origin !== SITE_ORIGIN) return undefined
@@ -50,8 +45,6 @@ function linksOf(root: string, file: string): Link[] {
 	})
 }
 
-// A directory address serves its index.html; any other path is a file the
-// build wrote, from a page or from public/.
 const resolves = (root: string, path: string): boolean =>
 	existsSync(join(root, path.endsWith('/') ? `${path}index.html` : path))
 
@@ -62,10 +55,6 @@ const siteMapLinks = (): Link[] =>
 		...Object.values(PAGES).map(page => page.href),
 	].map(path => ({ path, route: 'the site map' }))
 
-// Every internal reference must reach a file the build wrote: a page or a
-// public asset. The site map's entries count too, linked or not. A
-// hardcoded href, a link inside copy or a moved asset fails the build
-// instead of shipping a dead link.
 export function linkedPages(): AstroIntegration {
 	return {
 		name: 'syneva:linked-pages',

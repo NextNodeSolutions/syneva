@@ -7,8 +7,6 @@ import { navBounds, navClock, navFrame } from './nav.stylex'
 const keyboard = (): string =>
 	stylex.when.ancestor('[data-input="keyboard"]', navMarker)
 
-// The morphing dropdown: one floating shell whose size, place and reveal the
-// runtime animates on the menu clock, holding every section's panel.
 export const dropdown = stylex.create({
 	base: {
 		position: 'absolute',
@@ -31,8 +29,7 @@ export const dropdown = stylex.create({
 		opacity: 'clamp(0, calc(var(--reveal, 0) * 4), 1)',
 		visibility: { default: 'hidden', ':is([data-open="true"])': 'visible' },
 		pointerEvents: { default: 'none', ':is([data-open="true"])': 'auto' },
-		// Hidden only once the close morph is over. These longhands carry their
-		// own keyboard override: merging instant.transitions would replace them.
+		// These longhands carry their own keyboard override: merging instant.transitions would replace them.
 		transitionProperty: 'visibility',
 		transitionDuration: { default: '0s', [keyboard()]: '0s !important' },
 		transitionTimingFunction: 'ease',

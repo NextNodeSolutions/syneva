@@ -1,8 +1,5 @@
-// Copy buttons: every [data-command] carries its own field and status. A
-// failed copy (no clipboard permission) selects the command for a manual copy.
 const FEEDBACK_MS = 1800
 
-// Command.astro renders all three parts, so a missing one is a broken box.
 const missing = (part: string): Error =>
 	new Error(
 		`A [data-command] box has no ${part}: render it with Command.astro.`,
@@ -44,12 +41,9 @@ function bindCommand(box: Element): void {
 	button.addEventListener('click', () => {
 		void copy()
 	})
-	// A success clears itself; a failure stays until the visitor leaves the
-	// selected command, so it can be read however long that takes.
 	field.addEventListener('blur', () => {
 		if (isFailing) clear()
 	})
-	// A click into the field selects the whole command, ready to copy.
 	field.addEventListener('focus', () => field.select())
 }
 

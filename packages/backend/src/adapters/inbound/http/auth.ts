@@ -14,24 +14,19 @@ import { loginPage } from './pages.js'
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-// Cookie name of the signed-in browser session; the value is a digest of the key, never the key.
+// The value is a digest of the key, never the key.
 const COOKIE_NAME = 'syneva_key'
 const SECONDS_PER_DAY = 86_400
 const COOKIE_DAYS = 365
 const COOKIE_MAX_AGE_SECONDS = COOKIE_DAYS * SECONDS_PER_DAY
 const BEARER_PREFIX = 'Bearer '
 
-// The hub's access gate (hosted mode). With a key configured, every request must prove it holds
-// the key: the CLI and the pi listener send `Authorization: Bearer <key>`, a browser signs in once
-// at /login and carries the HttpOnly cookie from then on. Without a key (a loopback-only hub) the
-// gate is open and the same-origin guard alone protects the hub, exactly as before.
+// With a key configured, every request must prove it: `Authorization: Bearer <key>` (CLI and pi listener) or the HttpOnly cookie a browser carries after signing in once at /login.
+// Without a key (a loopback-only hub) the gate is open and the same-origin guard alone protects the hub.
 export type AccessGuard = {
 	readonly keyRequired: boolean
-	// True when the request may proceed; false once the guard has answered it (401 for an API
-	// caller, the sign-in page for a browser navigation).
+	// True when the request may proceed; false once the guard has answered it (401 for an API caller, the sign-in page for a browser navigation).
 	allows(req: IncomingMessage, res: ServerResponse, url: URL): boolean
-	// GET /login renders the form (or redirects a signed-in browser home); POST /login (form or
-	// JSON `key`) and GET /login?key=… sign the browser in and redirect to `next` or the dashboard.
 	handleLogin(
 		req: IncomingMessage,
 		res: ServerResponse,
@@ -40,8 +35,7 @@ export type AccessGuard = {
 	handleLogout(res: ServerResponse): void
 }
 
-// The two secrets derived from the key: what a Bearer header must hash to, and what the
-// signed-in cookie carries (so a leaked cookie is not the key itself).
+// Two secrets derived from the key: what a Bearer header must hash to, and what the signed-in cookie carries (a leaked cookie is not the key itself).
 type KeyDigests = { bearer: string; cookie: string }
 
 export function createAccessGuard(
@@ -142,8 +136,7 @@ function hashOf(text: string): string {
 	return crypto.createHash('sha256').update(text).digest('hex')
 }
 
-// Constant-time compare of a presented secret against the stored digest. Hashing the candidate
-// first makes both sides the same length, so timingSafeEqual never short-circuits on length.
+// Constant-time compare: hashing the candidate first makes both sides the same length, so timingSafeEqual never short-circuits on length.
 function matches(
 	candidate: string | undefined,
 	digest: string,
@@ -171,15 +164,13 @@ function cookieOf(req: IncomingMessage): string | undefined {
 	return undefined
 }
 
-// A browser landing on a page gets the sign-in form; API callers (fetch, the CLI) get a 401 they
-// can act on. Pages are the dashboard, the desk pages and anything asking for HTML.
+// A browser landing on a page gets the sign-in form; API callers (fetch, the CLI) get a 401 they can act on.
 function isBrowserNavigation(req: IncomingMessage, url: URL): boolean {
 	if (req.method !== 'GET') return false
 	const accept = req.headers.accept ?? ''
 	return accept.includes('text/html') || url.pathname === '/'
 }
 
-// The key a sign-in presents: the `key` query (one-click links), a form field, or a JSON body.
 async function presentedLoginKey(
 	req: IncomingMessage,
 	url: URL,
@@ -207,10 +198,10 @@ function keyFromJson(body: string): string | undefined {
 }
 
 // Only a path on this hub may be the post-login destination: an absolute URL or a
-// protocol-relative `//host` would turn the sign-in into an open redirect. A prefix test is not
-// enough - a browser reads "/\\evil.com" or "/<tab>/evil.com" as "//evil.com" - so the value is
-// resolved against a placeholder origin, kept only if it stays there, and rebuilt from its
-// parsed path; a path that resolves to "//..." ("/..//evil.com") is refused too.
+// protocol-relative //host would be an open redirect, and a prefix test is not enough (a browser
+// reads "/\evil.com" and "/<tab>/evil.com" as //evil.com), so the value resolves against a
+// placeholder origin, survives only if it stays there, is rebuilt from its parsed path, and one
+// resolving to "//..." is refused.
 const NEXT_BASE = new URL('http://hub.invalid/')
 
 function safeNext(next: string | null): string {

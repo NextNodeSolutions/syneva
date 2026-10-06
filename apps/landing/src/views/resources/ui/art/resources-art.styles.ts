@@ -1,7 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// Resources and open source drawings.
 export const resourcesArt = stylex.create({
 	tocLeader: {
 		stroke: color['--line-strong'],

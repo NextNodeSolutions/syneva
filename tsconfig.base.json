@@ -1,9 +1,4 @@
 {
-	// Single inheritance hop to the shared preset for every workspace package:
-	// the preset owns the compiler contract (ES2024 target, maximum strictness,
-	// ESM-ready isolatedModules/verbatimModuleSyntax). Per-world settings stay
-	// per-package: the NodeNext emit worlds (contracts, backend) and the app's
-	// extension module override module/resolution/emit, the browser world
-	// (frontend) keeps the preset's ESNext/bundler defaults.
+	// One hop to the shared preset (compiler contract: ES2024, max strictness, ESM-ready); per-world settings stay per-package.
 	"extends": "@nextnode-solutions/standards/typescript/library"
 }

@@ -7,9 +7,6 @@ import { fileNote } from './file-note.styles'
 
 import type { ReviewFile } from '@entities/review/model'
 
-// The muted one-line note for a pure rename. render() calls this instead of the @pierre
-// diff when a moved-pure file is opened. The caller passes the file and its old path
-// (see file/renames.ts movedFrom).
 export function renderMovedPure(file: ReviewFile, from: string): void {
 	const name = cx(fileNote.name)
 	$('diff').innerHTML =

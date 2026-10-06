@@ -1,5 +1,4 @@
 ---
-// Review desk: an annotated wireframe of the desk.
 import { HOTKEYS } from '@entities/desk/model/hotkeys'
 import { sx } from '@shared/lib/sx'
 import { homeArt } from '@shared/ui/drawing/home-art.styles'
@@ -15,7 +14,6 @@ import { productArt } from '@shared/ui/drawing/product-art.styles'
 import { countWord } from '@shared/lib/count-word'
 import AnatomyMarker from './AnatomyMarker.astro'
 
-// The walkthrough sidebar: section heads, and files with their verdict.
 const FILES = [
 	{ name: 'CONTRACTS', y: 110, kind: 'section' },
 	{ name: 'contracts/review.ts', y: 130, kind: 'yes' },
@@ -27,14 +25,11 @@ const FILES = [
 	{ name: 'OTHER', y: 276, kind: 'section' },
 	{ name: 'README.md', y: 296, kind: 'yes' },
 ] as const
-// The progress strip across the top fills by the files you settled, and the
-// sidebar counts them.
 const TRACK_WIDTH = 552
 const reviewedFiles = FILES.filter(({ kind }) => kind !== 'section')
 const settled = reviewedFiles.filter(({ kind }) => kind === 'yes').length
 const fillWidth = (TRACK_WIDTH * settled) / reviewedFiles.length
 const progress = `${settled} OF ${reviewedFiles.length} FILES SETTLED`
-// The numbered parts: where each marker pops in, and its name in the legend.
 const MARKERS = [
 	{ step: 1, x: 150, y: 72, delay: 1.9, label: 'WALKTHROUGH' },
 	{ step: 2, x: 474, y: 115, delay: 2, label: 'KEEP / UNDO' },

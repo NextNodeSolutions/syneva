@@ -14,8 +14,6 @@ const rule = {
 	borderTopColor: color['--line'],
 }
 
-// Footer: pitch and primary action, a sitemap generated from the site map,
-// and the wordmark sized from its container so it spans the frame.
 export const footer = stylex.create({
 	root: rule,
 	top: {
@@ -27,7 +25,6 @@ export const footer = stylex.create({
 		paddingInline: layout['--gutter'],
 	},
 	pitch: { margin: '18px 0 26px', fontSize: '15px', maxWidth: '320px' },
-	// A compact primary action under the pitch.
 	action: {
 		minHeight: '44px',
 		fontSize: '14px',
@@ -69,8 +66,6 @@ export const footer = stylex.create({
 		...rule,
 		paddingInline: `calc(${layout['--gutter']} - 8px)`,
 	},
-	// The wordmark spans the frame: sized from the container, trimmed to its
-	// x-height.
 	wordmark: {
 		display: 'block',
 		fontWeight: 500,

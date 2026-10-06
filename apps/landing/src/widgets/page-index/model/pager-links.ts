@@ -4,12 +4,9 @@ import type { Page, Section } from '@entities/site/model/site-map'
 
 type Side = 'previous' | 'next'
 
-// One side of the pager: the neighbouring page, or at that end of the
-// section the way back to its overview, which has no icon.
 export type PagerLink = Pick<Page, 'href' | 'title' | 'blurb'> &
 	Partial<Pick<Page, 'icon'>> & { side: Side; direction: string }
 
-// The words pointing each way, to a page or back to the overview.
 const DIRECTION: Record<Side, { toPage: string; toOverview: string }> = {
 	previous: { toPage: '← Previous', toOverview: '← Back to' },
 	next: { toPage: 'Next →', toOverview: 'Back to →' },
@@ -33,8 +30,6 @@ function linkOf(
 	return { side, direction: toPage, href, title, blurb, icon }
 }
 
-// The previous and next sides of the route's section pager; none outside a
-// section.
 export function pagerLinks(route: string): PagerLink[] {
 	const siblings = siblingsOf(route)
 	if (!siblings) return []

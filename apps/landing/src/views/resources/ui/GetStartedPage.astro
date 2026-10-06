@@ -21,7 +21,6 @@ const REQUIREMENTS = [
 	['Your coding agent', 'Codex, Cursor, pi, or anything that runs a shell command.'],
 	['gh (optional)', 'Only to review pull requests by number or URL.'],
 ] as const
-// pi installs from the repository's git source: its host and path.
 const { host, pathname } = new URL(REPO_URL)
 const INSTALL = ['# with pi: pin a tag or commit', `$ pi install git:${host}${pathname}@<ref>`, '', '# anywhere else', `$ ${INSTALL_COMMAND}`]
 const OPEN = ['$ cd your-repository', `$ ${START_COMMAND}`, '# desk ready, open in your browser']

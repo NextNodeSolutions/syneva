@@ -3,29 +3,20 @@ import { logFailure } from './log-failure.server'
 
 import type { Outcome } from './outcome'
 
-// What a signup writes to, counts against and sends with: the list (D1), the
-// per-client limiter and the welcome email, all wired by the route from the
-// Worker's bindings.
 export type SignupBindings = {
 	list: D1Database
 	limiter: RateLimit
 	welcome: (email: string) => Promise<void>
 }
 
-// Two short fields; a body any longer is not this form's.
 const MAX_BODY_BYTES = 2048
-// Something@something.something: the browser's own check, repeated for
-// clients that skip it. Whether the address receives mail is for the welcome
-// email to find out.
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-// The address keeps the case it was typed in; the column's NOCASE collation
-// makes it unique regardless (migrations/0001_subscribers.sql).
+// The address keeps the case it was typed in; the column's NOCASE collation makes it unique regardless (migrations/0001_subscribers.sql).
 const INSERT_SUBSCRIBER =
 	'INSERT INTO subscribers (email) VALUES (?1) ON CONFLICT (email) DO NOTHING'
 
-// The body as it streams in, failing once it outgrows the cap. Measured on
-// the bytes themselves: a Content-Length header is optional, and a client can
-// leave it out.
+// The body as it streams in, failing once it outgrows the cap.
+// Measured on the bytes themselves: a Content-Length header is optional, and a client can leave it out.
 function capped(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
 	let received = 0
 	return body.pipeThrough(
@@ -40,8 +31,6 @@ function capped(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
 	)
 }
 
-// The posted form, or nothing for a body that is missing, too long, or not a
-// form (urlencoded or multipart, as the content type says).
 async function readForm(request: Request): Promise<FormData | undefined> {
 	if (!request.body) return undefined
 	const contentType = request.headers.get('content-type') ?? ''
@@ -65,7 +54,6 @@ function emailOf(form: FormData): string | undefined {
 
 const isTrapped = (form: FormData): boolean => Boolean(form.get(TRAP_FIELD))
 
-// Whether the address joined the list now (it was not on it already).
 async function addSubscriber(
 	list: D1Database,
 	email: string,
@@ -74,10 +62,7 @@ async function addSubscriber(
 	return meta.changes > 0
 }
 
-// One signup from a posted form. Every try counts against the client's limit,
-// a valid one included, before the body is read. Only a new address is
-// welcomed, and a welcome that fails leaves the signup standing: the address
-// is on the list.
+// Every try counts against the client's limit, a valid one included, before the body is read; only a new address is welcomed, and a failed welcome leaves the signup standing.
 export async function subscribe(
 	request: Request,
 	client: string,

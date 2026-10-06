@@ -17,11 +17,6 @@ import type { Frame } from '@syneva/motion/loop-timeline'
 import type { Palette } from './hero-palette'
 import type { Scope } from './hero-timeline'
 
-// The review round, phase by phase: files settle into a reading order, one
-// change opens on the desk, you ask, the agent answers, you accept, the
-// ledger fills, Send goes back to the agent and only the rejected file
-// returns pending.
-// 0.0 - 2.4  The agent's files arrive scattered, then settle in order.
 function arrive({ one, all }: Scope): void {
 	const scattered = [
 		'translate(34px, 52px) rotate(-8deg)',
@@ -61,8 +56,6 @@ function arrive({ one, all }: Scope): void {
 	})
 }
 
-// Each card's code lines write in; the rejected file's lines are rewritten
-// after the verdict comes back.
 function writeBars({ all }: Scope): void {
 	all('bar').forEach(bar => {
 		const { card, row } = placeOfBar(bar)
@@ -83,15 +76,12 @@ function writeBars({ all }: Scope): void {
 	})
 }
 
-// The waiting caret shows at `time` and hides a quarter second later.
 const caretBlink = (time: number): readonly [Frame, Frame] => [
 	{ time: time, props: { opacity: 1 }, easing: 'hold' },
 	{ time: time + 0.25, props: { opacity: 0 }, easing: 'hold' },
 ]
 
-// Until a change opens, the desk says what it is waiting for. The caption
-// stays hidden from then to the end of the round, so the loop wraps onto its
-// fade-in without a flash.
+// The caption stays hidden from the change opening to the end of the round, so the loop wraps onto its fade-in without a flash.
 function wait({ one }: Scope): void {
 	loop(one('idle'), [
 		{ time: 0, props: { opacity: 0 } },
@@ -105,7 +95,6 @@ function wait({ one }: Scope): void {
 	])
 }
 
-// 2.7 - 5.0  The change opens on the desk and you read it.
 function read({ one, all }: Scope, color: Palette): void {
 	travel(one('signal-in'), 2.75, 0.55, 8)
 	present(one('head'), 3.05, { length: 0.3 })
@@ -137,7 +126,6 @@ function read({ one, all }: Scope, color: Palette): void {
 	])
 }
 
-// 5.0 - 7.7  You ask on line 14; your agent answers on the same line.
 function ask({ one, all }: Scope): void {
 	pop(one('chip'), 5.05)
 	draw(one('leader'), 5.3, 0.3)

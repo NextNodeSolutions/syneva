@@ -1,19 +1,4 @@
-/**
- * Syneva pi extension.
- *
- * Makes this package's `syneva` CLI available to agent sessions with zero
- * global package-manager state:
- * - verifies `dist/cli.js` exists (runs a one-shot build if missing),
- * - keeps a `syneva` shim in `~/.pi/agent/bin` (first directory on PATH)
- *   pointing at this checkout, so prompts, skills, shells, and terminals
- *   can all invoke plain `syneva`.
- * - registers a `/syneva` status command for quick health checks,
- * - registers syneva_agent: a session-owned listener that wakes this Pi session
- *   for questions and completed reviews without a one-shot waiting child.
- *
- * Desks open on the hub via the CLI. Listener resources start only on explicit
- * attachment or restoration and close on session_shutdown, never agent_end.
- */
+/** Listener resources start only on explicit attachment/restoration and close on session_shutdown, never agent_end. */
 import { execFileSync } from 'node:child_process'
 import {
 	mkdirSync,
@@ -27,17 +12,14 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
-// The bridge consumes the built dist artifact: the published package ships only
-// dist/ and extension/, so a source-tree import could never resolve once installed.
-// Its import must stay dynamic and follow ensureCli(): even a type-only source reference
-// would make a clean checkout depend on generated output during type-checking.
+// The bridge imports the built dist/ artifact (installed packages ship only dist/ + extension/; a source import could never resolve)
+// and stays dynamic after ensureCli(): a type-only reference would make a clean checkout depend on generated output while checking.
 
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const CLI = join(PACKAGE_ROOT, 'dist', 'cli.js')
 const BRIDGE = join(PACKAGE_ROOT, 'dist', 'pi-bridge.js')
 const BIN_DIR = join(homedir(), '.pi', 'agent', 'bin')
 const SHIM = join(BIN_DIR, 'syneva')
-// Both the create mode and the explicit chmod need the shim to stay executable.
 const SHIM_MODE = 0o755
 
 function shimBody(): string {
@@ -66,8 +48,7 @@ function writeShim(): 'created' | 'updated' | 'current' {
 
 function ensureCli(): void {
 	if (existsSync(CLI)) return
-	// One-shot, bounded: the package was cloned/updated without a build step
-	// (e.g. scripts disabled during install). Rebuild with the pinned pnpm.
+	// One-shot: the package was cloned/updated without a build step (scripts disabled during install); rebuild with the pinned pnpm.
 	execFileSync('pnpm', ['build'], { cwd: PACKAGE_ROOT, stdio: 'ignore' })
 	if (!existsSync(CLI))
 		throw new Error(`build ran but ${CLI} is still missing`)
@@ -122,7 +103,7 @@ async function registerBridge(pi: ExtensionAPI): Promise<void> {
 export default async function registerSynevaExtension(
 	pi: ExtensionAPI,
 ): Promise<void> {
-	// Pi awaits async factories, so setup can build the CLI before the bridge loads.
+	// Pi awaits async factories: setup can build the CLI before the bridge loads.
 	let report: Report | undefined
 	try {
 		report = setup()

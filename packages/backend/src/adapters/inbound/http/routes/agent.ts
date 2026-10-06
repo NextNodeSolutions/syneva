@@ -19,8 +19,7 @@ const SECONDS_PER_MINUTE = 60
 const MINUTES_PER_HOUR = 60
 const MS_PER_SECOND = 1000
 
-// A long-poll with no --timeout holds for the reviewer's whole round; a harness that wants a
-// bounded wait passes ?timeout=<seconds>.
+// A long-poll with no --timeout holds for the reviewer's whole round; a harness wanting a bounded wait passes ?timeout=<seconds>.
 const HOLD_DEFAULT_MS = MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND
 
 export async function askQuestion({
@@ -28,7 +27,6 @@ export async function askQuestion({
 	req,
 	res,
 }: RouteRequest): Promise<void> {
-	// Reviewer clicked Ask: push a question to the agent now, out of band from Send.
 	const body: unknown = await readJsonBody(req)
 	const request = parseCommentRequest(body)
 	if (!request)
@@ -38,8 +36,7 @@ export async function askQuestion({
 			error: 'ask requires path and body',
 			fix: 'Send { path, lineNumber, side, body } as JSON.',
 		})
-	// Bake the singular into a one-element `questions` here so a question handed straight to a parked
-	// waiter already carries the array - batching only has to merge on drain.
+	// Bake the singular into a one-element `questions` here, so a question handed straight to a parked waiter already carries the array (batching only merges on drain).
 	const question = questionPayload(ctx.state, request)
 	const questions = [question]
 	ctx.events.emit({ kind: 'question', question, questions })
@@ -53,9 +50,6 @@ export async function awaitEvent({
 	res,
 	url,
 }: RouteRequest): Promise<void> {
-	// Long-poll the tagged event stream: resolves with the next queued event
-	// ({kind:"question"|"review"}), letting the agent learn of questions and Sends without the desk
-	// process exiting. createEventStream owns the queue's batching/flush rules.
 	const queued = ctx.events.takeNext()
 	if (queued) return deliver(ctx, res, queued)
 	let isSettled = false
@@ -72,8 +66,7 @@ export async function awaitEvent({
 		res.writeHead(HTTP_NO_CONTENT)
 		res.end()
 	}, holdMs(url))
-	// A caller that hangs up (ctrl-C on `syneva await`) unparks its waiter: the event must stay
-	// queued for the next await rather than vanish into a dead socket.
+	// A caller that hangs up (ctrl-C on `syneva await`) unparks its waiter: the event stays queued for the next await rather than vanishing into a dead socket.
 	req.on('close', (): void => {
 		if (isSettled) return
 		isSettled = true
@@ -100,8 +93,7 @@ export async function postStatus({
 	req,
 	res,
 }: RouteRequest): Promise<void> {
-	// Ephemeral agent activity (`syneva status`): a one-line "what I'm doing now" while the agent
-	// works on a question or review. Never persisted.
+	// Ephemeral agent activity (`syneva status`); never persisted.
 	const body: unknown = await readJsonBody(req)
 	const text = parseStatusRequest(body)
 	if (!text)
@@ -116,10 +108,8 @@ export async function postStatus({
 }
 
 export async function stopDesk({ ctx, res }: RouteRequest): Promise<void> {
-	// `syneva close`, or the browser's Close action: close the desk on the hub once the response
-	// has flushed. The hub tells any parked waiter WHY the desk is going (a `closed` event) before
-	// dropping it, so an agent's loop learns the human ended the review instead of watching the
-	// socket die. The hub itself keeps running; the review state stays saved.
+	// Close the desk on the hub once the response has flushed; the hub tells any parked waiter WHY (a `closed` event) before dropping it, so an agent's loop learns the human ended the review rather than watching the socket die.
+	// The hub keeps running; the review stays saved.
 	res.on('finish', () => ctx.close())
 	json(res, HTTP_OK, { ok: true, stopping: true })
 }

@@ -3,10 +3,6 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 
 import { deskText } from './desk.stylex'
 
-// The fast tooltip: the native title waits ~1.5s, so a control names itself
-// in its data-tip attribute and carries this style, which draws the label
-// just under it after a short hover. Ink on paper, inverted, square: a label,
-// not a card. `end` right-anchors it for controls near the right edge.
 export const tip = stylex.create({
 	host: {
 		position: 'relative',

@@ -1,5 +1,4 @@
 ---
-// Working tree: modified and untracked files, and --path as a lens.
 import { PAGES } from '@entities/site/model/site-map'
 import { sx } from '@shared/lib/sx'
 import Drawing from '@shared/ui/drawing/Drawing.astro'
@@ -14,7 +13,6 @@ import FileList from './FileList.astro'
 type ChangedFile = ComponentProps<typeof FileList>['files'][number]
 type Row = { name: string; y: number; status?: ChangedFile['status'] }
 
-// The repository's files; the changed ones carry their status.
 const ROWS: readonly Row[] = [
 	{ name: 'src/auth/session.ts', status: 'M', y: 92 },
 	{ name: 'src/auth/token.ts', status: 'M', y: 120 },
@@ -25,7 +23,6 @@ const ROWS: readonly Row[] = [
 ]
 const BADGE = { M: shape.no, A: shape.yes } as const
 const BADGE_TEXT = { M: text.accent, A: text.green } as const
-// syneva reviews every changed file; --path narrows the desk to one directory.
 const LENS = 'src/auth'
 const PATH_FLAG = `--path ${LENS}`
 const ALL = ROWS.flatMap(({ name, status }): ChangedFile[] => (status ? [{ name, status }] : []))

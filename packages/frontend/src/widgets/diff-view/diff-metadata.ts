@@ -19,13 +19,8 @@ import type { DiffView } from './types'
 
 type ReviewFile = ReviewState['files'][number]
 
-// Pierre keeps an instance's highlighted render while the diff it is handed is the same target
-// (areDiffTargetsEqual), so a pass whose inputs did not change must hand back the SAME metadata -
-// a fresh object re-tokenizes the whole file. Both steps memoize on their inputs: the parse on the
-// two named file versions, the replay on the parse and the decided list. Each file version also
-// carries a content cacheKey: Pierre derives the diff's key from both (and a new one per
-// accept/reject resolution), which is what its worker pool caches highlighted results under -
-// across instances, so a revisited file colors from the cache.
+// Pierre keeps an instance's highlighted render while the diff it is handed is the same target, so a pass whose inputs did not change must hand back the SAME metadata - a fresh object re-tokenizes the whole file.
+// Both steps memoize on their inputs (parse on the two file versions, replay on parse + decided list); each carries a cacheKey, which the worker pool caches highlighted results under across instances, so a revisited file colors from the cache.
 type ParsedDiff = {
 	oldName: string
 	newName: string
@@ -49,8 +44,6 @@ function keyedFile(file: FileVersion): FileVersion & { cacheKey: string } {
 	return { ...file, cacheKey: `${file.name}@${fingerprint(file.contents)}` }
 }
 
-// A view-only file (a preview, or a file-mode review of a new or unchanged file) renders
-// one-sided: its old side is empty.
 function isViewOnlyDiff(
 	contents: FileContents,
 	isPreviewing: boolean,
@@ -77,8 +70,6 @@ function fileVersions(
 	]
 }
 
-// A file's keyed raw diff, built fresh: for priming a file other than the one on screen (the
-// memoized parse below belongs to the visible file).
 export function rawFileDiff(
 	file: ReviewFile,
 	contents: FileContents,

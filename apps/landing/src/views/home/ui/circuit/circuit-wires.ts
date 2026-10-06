@@ -4,10 +4,7 @@ import { loopLabelAt, routeWire } from './circuit-routing'
 
 import type { SignalName } from './circuit-part'
 
-// The circuit's wires are re-routed from the ports' live positions: ports
-// include their responsive station transforms, and each signal references
-// its wire through <use>, so the two can never disagree. Routes are measured
-// once per layout (frame swap, fonts), never per animation frame.
+// Ports include their responsive station transforms, and each signal references its wire through <use>, so the two can never disagree. Routes are measured once per layout (frame swap, fonts), never per animation frame.
 function portPosition(svg: SVGSVGElement, id: string): DOMPoint {
 	const port = svg.querySelector(`#${id}`)
 	if (!(port instanceof SVGCircleElement))
@@ -33,7 +30,6 @@ function wirePath(svg: SVGSVGElement, id: string): SVGPathElement {
 	return path
 }
 
-// Returns each route's length, keyed by the signal that travels it.
 export function routeCircuit(svg: SVGSVGElement): Map<SignalName, number> {
 	const lengths = new Map<SignalName, number>()
 	for (const { id, from, to, route, signal } of WIRES) {
@@ -54,7 +50,6 @@ export function routeCircuit(svg: SVGSVGElement): Map<SignalName, number> {
 	return lengths
 }
 
-// The loop label follows the return wire's live ports.
 export function placeLoopLabel(svg: SVGSVGElement): void {
 	const label = svg.querySelector('[data-loop-label]')
 	if (!label)

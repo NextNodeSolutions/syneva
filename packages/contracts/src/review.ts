@@ -1,15 +1,4 @@
-// Shared review wire records - the records both the desk's persisted review and
-// the browser/agent DTOs carry over the wire. A neutral dependency sink like the
-// rest of packages/contracts/src: no backend/frontend imports, no platform API.
-//
-// Domain ownership: the backend's persisted/derived shapes (ReviewState, Diff*,
-// ReviewFile) live in packages/backend/src/domain/review.ts, which mirrors the records
-// below structurally (domain may not import contracts). Keep the mirrored shapes
-// in structural sync when editing either side.
-//
-// Optional props are explicitly `T | undefined` (not bare `?`): these shapes are
-// JSON-round-tripped DTOs assembled in memory with explicit undefined keys, and the
-// repo checks under exactOptionalPropertyTypes.
+// The backend domain mirrors these shapes but cannot import contracts - keep both sides in sync.
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
@@ -23,23 +12,13 @@ export type ReviewComment = {
 	createdAt: string
 	updatedAt: string
 	status: 'open' | 'resolved' | 'stale'
-	// "action" = a change request (goes back to the agent on Send); "question" = a
-	// just-in-time question answered live via the await stream; "note" = plain note.
 	intent?: 'note' | 'action' | 'question' | undefined
-	// "user" comments are the reviewer's; "agent" comments are replies posted
-	// back by the coding agent via `syneva comment` between sessions.
 	role?: 'user' | 'agent' | undefined
-	// Exact text of the anchored line at creation time. Lets reload re-anchor the thread
-	// when the agent's edits shift the line (see reanchorComments).
+	// Line at creation; reload re-anchors when edits shift the line (reanchorComments).
 	anchorText?: string | undefined
-	// Set by re-anchoring when the anchor can't be recovered (line gone or ambiguous);
-	// the desk shows these threads in a file-level strip instead of on a diff row.
+	// Re-anchoring failed (line gone/ambiguous): shown in a file-level strip, not on a row.
 	unanchored?: boolean | undefined
-	// "file" = a whole-file comment (addressed to the file, not a diff line; the desk hosts it
-	// from the file header). File comments carry lineNumber 0 and side 'additions' as placeholders
-	// - side/line are meaningless there, real lines are 1-based, so no line-keyed grouping can ever
-	// match them. Omitted on line comments; every construction derives it from lineNumber
-	// (commentAnchor in backend/domain/comments.ts), so the field can't disagree with lineNumber 0.
+	// 'file': whole-file comment (lineNumber 0 + 'additions' placeholders; real lines are 1-based), derived from lineNumber.
 	anchor?: 'file' | undefined
 }
 
@@ -47,41 +26,29 @@ export type ChangeState = {
 	id: string
 	path: string
 	hunkIndex: number
-	// Index of this change block within its hunk's content segments.
 	changeIndex?: number | undefined
 	side: 'additions' | 'deletions'
 	lineNumber: number
-	// Last line of the change block (multi-line blocks); anchors the Undo/Keep annotation.
 	endLine?: number | undefined
 	title: string
 	stableKey?: string | undefined
 	status: 'pending' | 'accepted' | 'rejected'
-	// Whether accepting this change stages it to the git index. True only for
-	// uncommitted modifications of tracked files (repo mode; file mode when the
-	// file is tracked + changed). PR mode and untracked files are verdict-only.
+	// Uncommitted tracked-file modifications only (repo mode; file mode when tracked); PR mode and untracked are verdict-only.
 	stageable?: boolean | undefined
-	// Hash of the change block's content, computed when the diff is parsed.
 	contentHash?: string | undefined
-	// contentHash captured at the moment a decision was made; lets a reload
-	// detect that the underlying code changed and the prior decision is stale.
+	// contentHash at decision time; a mismatch on reload drops the record as stale.
 	reviewedHash?: string | undefined
-	// Where this block sits in the RENDERED (decision-replayed) diff - @pierre renumbers
-	// lines on every resolution, so these drift from lineNumber/endLine (the raw file
-	// lines, which stay canonical). Derived per render (syncDisplayAnchors), never trusted
-	// from persisted state.
+	// Rendered-diff position: @pierre renumbers per render, derived per render (syncDisplayAnchors), never persisted; raw lineNumber/endLine stay canonical.
 	displayLineNumber?: number | undefined
 	displayEndLine?: number | undefined
 }
 
-// An explicit, durable record of a user's accept/reject on a change block, keyed
-// by stable identity (`path:stableKey`). This - not git staging - is the source
-// of truth for decisions, so a decision survives a reload even when accepting it
-// staged the hunk out of the working-tree diff (where it would otherwise vanish).
+// Decision record is the source of truth, not git staging: survives a reload even when
+// accepting staged the hunk out of the diff.
 export type Decision = {
-	key: string // `${path}:${stableKey}`
+	key: string
 	status: 'accepted' | 'rejected'
-	// contentHash the decision was made against; lets reconciliation drop a decision
-	// as stale if the agent rewrote that block since it was reviewed.
+	// contentHash at decision time; a mismatch on reload drops the decision as stale.
 	reviewedHash?: string | undefined
 	path: string
 	lineNumber: number
@@ -89,30 +56,19 @@ export type Decision = {
 	title: string
 }
 
-// A per-file entry in the agent-supplied grouping. `order` drives Next/Prev (general →
-// specific); `category` is the Walkthrough section the file is listed under (e.g.
-// Config/Core/Wiring - semantic, distinct from the folder). That is the whole entry: the desk is
-// the review surface, so it carries no agent-written prose. Both fields are normalized on attach
-// (validateGuide in backend/domain/guide.ts defaults them from the array position / "Changes"),
-// so this is the shape the desk stores and reads - not the shape an agent has to write.
+// order drives Next/Prev; category is the Walkthrough section (semantic, not the folder). Normalized on attach (validateGuide): the desk's stored shape, not what agents write.
 export type GuideFile = {
 	path: string
 	order: number
 	category: string
 }
 
-// How much of the review POST /reset drops. 'review' clears every decision and sign-off
-// but keeps the notes (comments/questions); 'approved' clears only the signed-off files;
-// 'all' is the whole review, notes included. A bodyless POST resets 'all' - the documented
-// pre-scope behavior.
+// review: decisions + sign-off, notes kept; approved: signed-off files only; all also clears notes (and the default for a bodyless POST).
 export type ResetScope = 'review' | 'approved' | 'all'
 
-// The grouping the coding agent attaches with --guide: which files to review, in which order,
-// under which headings. Absent on a review state → the desk lists files in diff order and every
-// guide surface stays off. A guide is a grouping only - order and labels; it holds no prose.
+// Review grouping attached with --guide; absent = files in diff order and every guide surface off. A grouping only - no agent prose.
 export type Guide = {
 	files: GuideFile[]
-	// baseDiffHash the grouping was generated against - set on attach; the desk notes the
-	// grouping may be out of date once a reload advances the diff past it.
+	// Diff the grouping was generated against; a reload advancing past it marks it out of date.
 	baseDiffHash?: string | undefined
 }

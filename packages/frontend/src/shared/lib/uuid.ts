@@ -1,9 +1,6 @@
-// crypto.randomUUID() is secure-context-gated: on a plain-HTTP non-localhost origin
-// (SYNEVA_HOST/tailnet desks, e.g. http://devbox:41443/) it's undefined and comment creation
-// would throw. crypto.getRandomValues() has no such gate, so build an RFC-4122 v4 UUID from it
-// when the native call isn't available - same shape as native, no Math.random fallback.
+// crypto.randomUUID() is secure-context-gated: on a plain-HTTP non-localhost origin (e.g. http://devbox:41443/) it is undefined and comment creation would throw; crypto.getRandomValues() has no such gate.
+// So build an RFC-4122 v4 UUID from it when the native call is missing - no Math.random fallback.
 
-// RFC 4122 layout: 16 random bytes rendered as 8-4-4-4-12 lowercase hex digits.
 const UUID_BYTE_COUNT = 16
 const VERSION_BYTE_INDEX = 6
 const VARIANT_BYTE_INDEX = 8

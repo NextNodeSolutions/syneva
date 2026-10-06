@@ -27,8 +27,7 @@ const COMMANDS = [
 	[commandOf('desks'), 'The live desks of this repo, with their URLs.'],
 	[commandOf('close'), 'Close the desk. The hub keeps running; your review state stays saved.'],
 ] as const
-// The round's subcommands: strictly after the desk is up, what the agent calls per review round. The
-// table above lists the desk's lifecycle (open, desks, close), not part of the round.
+// The round's subcommands, strictly after the desk is up; the table above lists the desk's lifecycle, not the round.
 const ROUND_COMMAND_PARTS = listFormat.formatToParts(SUBCOMMANDS.map(({ name }) => name))
 ---
 
@@ -49,6 +48,6 @@ const ROUND_COMMAND_PARTS = listFormat.formatToParts(SUBCOMMANDS.map(({ name }) 
 </Prose>
 <Prose id="remote" title="Reviewing from<br>another machine?">
 	<ProseText>The hub binds to <code>127.0.0.1</code> by default. For a remote-dev setup, <code>--host</code> must pair with an access key (<code>--key</code>): you sign in once in the browser, your agents send the key.</ProseText>
-	<Callout lead="No key, no bind.">Without a key the hub refuses to bind beyond loopback unless you pass <code>--insecure</code> — which belongs only on a network you fully trust, like a personal tailnet. A coffee-shop Wi-Fi is not.</Callout>
+	<Callout lead="No key, no bind.">Without a key the hub refuses to bind beyond loopback unless you pass <code>--insecure</code> - which belongs only on a network you fully trust, like a personal tailnet. A coffee-shop Wi-Fi is not.</Callout>
 </Prose>
 <CtaBand />

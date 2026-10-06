@@ -3,31 +3,16 @@ import { isFileComment } from './changes'
 import type { Side } from '@shared/diff-renderer/types'
 import type { ReviewComment, ReviewState } from './model'
 
-// ── Review notes: every comment/question thread as one navigable entry ──────
-// The notes panel needs the whole review's threads (not just the current file's),
-// grouped the way the diff groups them (same path + side:line, file comments apart)
-// so a click can land exactly where the thread renders. Pure derivation off the live
-// state - no IO, no DOM - so the panel and any future consumer share one shape.
-
 export type ReviewNote = {
-	// "question" when any member carries the question intent (the Ask composer stamps
-	// it; agent replies ride the same thread group), "comment" otherwise.
 	kind: 'question' | 'comment'
 	path: string
 	side: Side
 	lineNumber: number
 	endLine?: number
-	// The thread anchors to the file header (whole-file comment), not a diff row.
 	fileLevel: boolean
-	// The thread's anchor moved out of the diff (server re-anchoring stamped it); it
-	// renders in the strip above the diff instead of on a row.
 	unanchored: boolean
-	// open: some member still open (unanswered for a question); answered: open
-	// question with an agent reply in the thread; resolved: every member resolved.
 	status: 'open' | 'answered' | 'resolved'
-	// First message, single-lined and capped - the row's body.
 	preview: string
-	// Newest message (the agent's answer, on an answered question thread).
 	latest: string
 	updatedAt: string
 	comments: ReviewComment[]
@@ -41,9 +26,7 @@ function oneline(body: string): string {
 	return text.length > PREVIEW_MAX ? `${text.slice(0, PREVIEW_HEAD)}…` : text
 }
 
-// An open question is answered once an agent reply lands in its thread after the
-// question - the same heuristic the diff's thread UI and the Send handoff
-// (computeOpenQuestions) use, kept in one place here for the panel.
+// An open question is answered once an agent reply lands in its thread after the question - the same heuristic the diff's thread UI and the Send handoff (computeOpenQuestions) use, kept in one place here for the panel.
 function isAnswered(group: ReviewComment[]): boolean {
 	const question = group.find(c => c.intent === 'question')
 	if (!question) return false
@@ -54,7 +37,6 @@ function isAnswered(group: ReviewComment[]): boolean {
 	)
 }
 
-// Thread status: open wins over its answered refinement; no open member means resolved.
 function threadStatus(
 	group: ReviewComment[],
 	kind: ReviewNote['kind'],
@@ -65,8 +47,6 @@ function threadStatus(
 }
 
 function toNote(group: [ReviewComment, ...ReviewComment[]]): ReviewNote {
-	// Group members arrive oldest-first (see reviewNotes), so first is the anchor
-	// message and last is the newest word in the conversation.
 	const [first] = group
 	const last = group[group.length - 1] ?? first
 	const kind = group.some(c => c.intent === 'question')
@@ -89,9 +69,6 @@ function toNote(group: [ReviewComment, ...ReviewComment[]]): ReviewNote {
 	return note
 }
 
-// Every thread in the review as navigable notes, ordered for a top-to-bottom read:
-// by file (review order), then line, then the thread's own chronology. Resolved
-// threads stay in the list (a click still scrolls to their collapsed summary).
 export function reviewNotes(state: ReviewState | null): ReviewNote[] {
 	if (!state) return []
 	const groups = new Map<string, ReviewComment[]>()
@@ -127,11 +104,6 @@ export function reviewNotes(state: ReviewState | null): ReviewNote[] {
 		})
 }
 
-// ── The panel's view: filter query + status lens ─────────────────────────────
-// What the notes panel shows is one pure derivation, shared by the component and the
-// cursor logic in the facade - so the keyboard cursor can never disagree with the rows
-// actually on screen.
-
 export type NotesLens = 'all' | 'open' | 'resolved'
 
 export type NotesView = { query: string; lens: NotesLens }
@@ -160,9 +132,6 @@ export function filterNotes(
 	})
 }
 
-// The panel's exact render order: questions first (the live conversation), then comments.
-// `flat` is that order as one list - the keyboard cursor's index space - so a facade cursor
-// move and the component's highlight always read the same row.
 export function notesPanelView(
 	state: ReviewState | null,
 	view: NotesView,
@@ -173,14 +142,10 @@ export function notesPanelView(
 	return { questions, comments, flat: [...questions, ...comments] }
 }
 
-// Threads still wanting the reviewer: everything short of resolved. A waiting question
-// and an open comment both count; an answered question keeps counting until resolved.
 export function unresolvedNoteCount(notes: ReviewNote[]): number {
 	return notes.filter(note => note.status !== 'resolved').length
 }
 
-// The resolve-advance flow's thread reference: just the anchor identity the panel needs
-// to find a thread back in its list (the resolve entry points hand this up pre-flip).
 export type NoteThreadRef = Pick<
 	ReviewNote,
 	'path' | 'side' | 'lineNumber' | 'fileLevel'

@@ -31,13 +31,9 @@ import type { HubHandle, HubOptions } from '../http/options.js'
 import type { UiServer } from '../http/routes/static.js'
 import type { CliArgs } from './args.js'
 
-// The exit status of a hub stopped by a signal (128 + SIGINT).
 export const SIGNAL_EXIT_CODE = 130
 
-// `syneva start` - run the hub: one long-lived process per machine that hosts every desk and
-// serves the dashboard. Idempotent: a hub already answering on the port means "already
-// running" (exit 0 with its URL), never a second hub. `ui` is the dev loop's seam (the UI
-// from source instead of the built bundle); the CLI never passes it.
+// Idempotent: a hub already answering on the port means already running (exit 0 with its URL), never a second hub. `ui` is the dev loop's seam; the CLI never passes it.
 export async function runStart(args: CliArgs, ui?: UiServer): Promise<void> {
 	const host =
 		flagText(args, 'host') ?? process.env.SYNEVA_HOST ?? DEFAULT_HOST
@@ -50,8 +46,7 @@ export async function runStart(args: CliArgs, ui?: UiServer): Promise<void> {
 		return
 	}
 	if (args.detach === true) return startInBackground(args)
-	// Hub starts only - the agent subcommands must never block on a prompt. On a confirmed
-	// update this re-execs the new version with the same args and never returns.
+	// Hub starts only - the agent subcommands must never block on a prompt. On a confirmed update this re-execs the new version with the same args and never returns.
 	await maybeOfferUpdate()
 	const handle = await bindHub(args, { host, key, ui })
 	if (!handle) return
@@ -64,7 +59,6 @@ export async function runStart(args: CliArgs, ui?: UiServer): Promise<void> {
 	installExitHandlers(handle)
 	announce(handle, host, key)
 	if (args.open !== false) await openBrowser(handle.url)
-	// The hub is persistent: keep serving until interrupted or asked to stop.
 	await new Promise<never>(() => {})
 }
 
@@ -96,8 +90,7 @@ async function bindHub(
 	}
 }
 
-// A taken port is normal when a hub already runs there: say so and exit 0, so a second
-// `syneva start` (or the CLI's background auto-start racing another) converges on one hub.
+// A taken port is normal when a hub already runs there: say so and exit 0, so a second `syneva start` (or a background auto-start racing another) converges on one hub.
 async function explainBindFailure(
 	error: unknown,
 	port: number,
@@ -132,9 +125,7 @@ function readAllowedHosts(): string[] {
 let handleToClose: HubHandle | undefined
 let stopping: Promise<void> | undefined
 
-// One teardown, however often it is asked for. A terminal's Ctrl-C reaches the hub once from
-// the tty and once more from every wrapper that relays signals (a script runner, a watcher),
-// and a second teardown would exit before the first has persisted the registry.
+// One teardown, however often it is asked for: a terminal's Ctrl-C reaches the hub once from the tty and once more from every wrapper that relays signals, and a second teardown would exit before the first has persisted the registry.
 function stopProcess(code: number): Promise<void> {
 	stopping ??= closeAndExit(code)
 	return stopping
@@ -168,8 +159,7 @@ function announce(
 		warn(
 			'Access key required - browsers sign in at /login, the CLI reads SYNEVA_KEY.',
 		)
-	// Bound beyond loopback: the hub runs editor commands and mutates git, so anyone who can
-	// reach this address AND holds the key controls it. Say so every launch.
+	// Bound beyond loopback: the hub runs editor commands and mutates git, so anyone who can reach this address AND holds the key controls it. Say so every launch.
 	if (!isLoopbackHost(host))
 		warn(
 			key
@@ -181,7 +171,6 @@ function announce(
 	)
 }
 
-// `syneva start --detach` - fork the hub into the background and return once it answers.
 async function startInBackground(args: CliArgs): Promise<void> {
 	const url = await resolveHubUrl(args)
 	const key = hubKey(args)
@@ -202,7 +191,6 @@ async function startInBackground(args: CliArgs): Promise<void> {
 	printJson({ ok: true, url, started: true })
 }
 
-// `syneva hub` - the running hub's health as JSON (exit 1 when none answers).
 export async function runHubStatus(args: CliArgs): Promise<void> {
 	const hub = await connectHub(args, { autostart: false })
 	if (!hub) {
@@ -213,8 +201,7 @@ export async function runHubStatus(args: CliArgs): Promise<void> {
 	printJson({ url: hub.url, ...hub.health })
 }
 
-// `syneva hub stop` - ask the hub to exit. Desks stay in the registry; the next start restores
-// them. Idempotent: no hub is already the asked-for state.
+// Desks stay in the registry; the next start restores them. Idempotent: no hub is already the asked-for state.
 export async function runHubStop(args: CliArgs): Promise<void> {
 	const hub = await connectHub(args, { autostart: false })
 	if (!hub) {

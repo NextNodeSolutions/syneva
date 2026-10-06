@@ -14,8 +14,7 @@ import type { HubDesk, HubHealth } from './model'
 // too).
 export const MODES = ['repo', 'file', 'pr'] as const
 
-// The hub listing's wire→model mapper: required fields fail loudly with a named boundary
-// error; unknown response properties are ignored by construction, so a newer hub stays usable.
+// Required fields fail loudly with a named boundary error; unknown response properties are ignored by construction, so a newer hub stays usable.
 export function decodeHubDesk(raw: unknown, endpoint: string): HubDesk {
 	const o = assertObject(raw, endpoint, 'desk')
 	return {

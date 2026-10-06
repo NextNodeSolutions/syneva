@@ -18,9 +18,6 @@ const pulse = stylex.keyframes({
 	'100%': { filter: 'brightness(1)' },
 })
 
-// The top bar: the brand on the left, the view lenses in the middle, the
-// desk's actions on the right, on the paper chrome under one rule. Review
-// progress rides that rule as a green strip.
 export const topBar = stylex.create({
 	bar: {
 		position: 'relative',
@@ -42,9 +39,6 @@ export const topBar = stylex.create({
 		gap: '10px',
 		minWidth: 0,
 	},
-	// The mark and the name, linking back to the hub's dashboard; the mark
-	// turns on hover as it does on the public site.
-	// The rail at the desk's edge carries the mark home on every screen but a phone's.
 	home: {
 		display: { default: 'none', [media.stacked]: 'inline-flex' },
 		alignItems: 'center',
@@ -67,10 +61,6 @@ export const topBar = stylex.create({
 		transition: `transform .6s ${ease['--ease-spring']}`,
 		transform: { default: null, [brandHover()]: 'rotate(45deg)' },
 	},
-	// The desk's name (repo, file or ref) after the wordmark, in the mono
-	// caption voice.
-	// Beside the rail the desk's name opens the bar; on phones it follows the wordmark, after a
-	// rule.
 	desk: {
 		minWidth: 0,
 		overflow: 'hidden',
@@ -84,8 +74,6 @@ export const topBar = stylex.create({
 		fontSize: deskText.small,
 		color: color['--muted'],
 	},
-	// Tablets: the hamburger that opens the file drawer. Hidden on desktop
-	// and on a desk without a tree.
 	navToggle: {
 		display: { default: 'none', [media.tablet]: 'inline-flex' },
 		marginLeft: '-6px',
@@ -103,7 +91,6 @@ export const topBar = stylex.create({
 		alignItems: 'center',
 		gap: '8px',
 	},
-	// The agent's live line: what it is doing, or that no agent is attached.
 	agent: {
 		display: 'inline-flex',
 		alignItems: 'center',
@@ -123,7 +110,6 @@ export const topBar = stylex.create({
 		color: color['--muted'],
 		whiteSpace: 'nowrap',
 	},
-	// The progress strip covers the bar's rule as the review advances.
 	progress: {
 		position: 'absolute',
 		insetInline: 0,
@@ -143,7 +129,6 @@ export const topBar = stylex.create({
 		animationDuration: '.8s',
 		animationTimingFunction: ease['--ease-out'],
 	},
-	// The labelled half of a split button and its caret half share one rule.
 	splitStart: { borderRightWidth: 0 },
 	caret: {
 		transition: `transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
@@ -152,8 +137,6 @@ export const topBar = stylex.create({
 	caretOpen: { transform: 'rotate(-90deg)' },
 })
 
-// The Reset dropdown: hung under the split button, ruled and lifted like
-// every floating layer of the desk; a fixed backdrop catches outside clicks.
 export const resetMenu = stylex.create({
 	split: { position: 'relative', display: 'inline-flex' },
 	backdrop: { position: 'fixed', inset: 0, zIndex: 90 },

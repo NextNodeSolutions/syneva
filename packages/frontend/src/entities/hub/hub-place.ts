@@ -1,7 +1,4 @@
-// Where the hub that served this page runs, as the browser reached it: on this machine's
-// loopback, or over the network. Only a loopback hub restarts with a plain `syneva start`: one
-// reached over the network was started with its --host and --key, and a plain start (or an
-// agent's auto-start) would bind loopback only, out of this browser's reach.
+// Only a loopback hub restarts with a plain `syneva start`: one reached over the network was started with --host and --key, and a plain start (or an agent's auto-start) would bind loopback only, out of this browser's reach.
 export type HubPlace = 'loopback' | 'network'
 
 const LOOPBACK_HOSTS: ReadonlySet<string> = new Set([

@@ -2,9 +2,6 @@ import { deskSize, deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
-// The guide bar under the top bar on guided desks: the Overview home, the
-// whole-file comment trigger and the file stepper, on the paper chrome. It
-// shares the sidebar tabs' height so their bottom rules meet in one line.
 export const guideBar = stylex.create({
 	bar: {
 		flexShrink: 0,
@@ -24,7 +21,6 @@ export const guideBar = stylex.create({
 		alignItems: 'center',
 		gap: '4px',
 	},
-	// The trigger carries its open-thread count on its corner.
 	trigger: { position: 'relative' },
 	stale: {
 		display: 'inline-flex',

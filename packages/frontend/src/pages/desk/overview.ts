@@ -12,17 +12,9 @@ import { diffCtx } from '@widgets/diff-view/context'
 
 import { overview } from './overview.styles'
 
-// The Overview page: the guided review's landing card. It takes over #diff until a file is
-// selected (see pages/desk/render.ts's renderGuideOverview). No file list - the sidebar
-// (tree/walkthrough) already lists every file, so repeating them here was redundant - and no
-// agent prose: a grouping is labels and order only.
-
-// Render the landing card into #diff: what this review is, a note when the grouping predates
-// the current diff, and Start.
 export function renderOverview(): void {
 	const { S, requireState } = diffCtx()
 	const state = requireState()
-	// '' counts as absent: fall back to a plain heading when the desk has no target ref.
 	const title = state.target?.trim() ? state.target : 'Review'
 	const stale = guideStale(guideInputs(S))
 		? `<div class="${cx(overview.stale)}">${iconHtml('gly-warn')} This grouping was made for an earlier version of the diff - regenerate it and reload with <code class="${cx(overview.staleCode)}">--guide</code> to refresh the sections.</div>`
@@ -41,6 +33,5 @@ export function renderOverview(): void {
     <div class="${cx(overview.actions)}"><button class="${startClass}" id="guideStart">Start review${kbdHtml('↵', kbd.onFill)}</button></div>
   </div></div>`
 	const start = $('diff').querySelector<HTMLButtonElement>('#guideStart')
-	// The landing markup is rebuilt on every render, so this cannot stack listeners.
 	start?.addEventListener('click', () => S.startGuided?.())
 }

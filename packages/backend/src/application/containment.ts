@@ -2,8 +2,7 @@ import path from 'node:path'
 
 import type { WorkspacePort } from './ports.js'
 
-// Repo-relative path → absolute, or null if it is absolute or escapes the repo.
-// /open-editor hands this to a local process, so the boundary must be strict.
+// Repo-relative path → absolute, or null if absolute or escaping the repo; /open-editor hands this to a local process, so the boundary must be strict.
 export function repoPath(root: string, rel: string): string | null {
 	if (path.isAbsolute(rel)) return null
 	const resolvedRoot = path.resolve(root)
@@ -15,14 +14,9 @@ export function repoPath(root: string, rel: string): string | null {
 
 export type ContainedPath = { abs: string } | { error: 'escape' | 'missing' }
 
-// Resolve a repo-relative path to an absolute one that provably stays inside the repo
-// AFTER symlinks are followed. The plain startsWith check runs on the UNRESOLVED path,
-// so an in-repo symlink pointing outside the repo passes it and a read then follows
-// the link off-tree. Realpath both the target and the root, then re-check containment
-// (mirrors the working-tree read in contents.ts). "missing" (realpath ENOENT) stays
-// distinct from "escape" so a route can 404 a nonexistent file while /file-contents
-// still serves a file whose bytes come from git (deleted / index-only), not the working
-// tree. The symlink resolution itself is the workspace port's - no fs in the application.
+// Realpath both the target and the root; re-check containment AFTER symlinks (the plain startsWith runs on the UNRESOLVED path, so an in-repo symlink escaping the repo passes).
+// "missing" (ENOENT) stays distinct from "escape": /file 404s a nonexistent file while /file-contents still serves one whose bytes come from git.
+// The resolution itself is the workspace port's - no fs in the application.
 export async function resolveContained(
 	root: string,
 	rel: string,

@@ -11,10 +11,8 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
 import type { CorrespondentIo } from './correspondent.js'
 import type { DeskConnection, DeskTarget } from './desk-connection.js'
 
-// Only review and closed events (plus rare correspondent failures) reach the owning
-// session. Questions are answered by the desk correspondent instead - answering in the
-// owner would re-send every read on all later turns of the round, and routing it there
-// makes the session a router instead of a reviewer. wakeDeskOwner is the ONE owner wake.
+// Only review and closed events (plus rare correspondent failures) reach the owning session; questions are answered by the desk correspondent - answering in the owner would re-send every read on later turns and make the session a router.
+// wakeDeskOwner is the ONE owner wake.
 export function wakeDeskOwner(
 	pi: Pick<ExtensionAPI, 'sendMessage'>,
 	target: DeskTarget,
@@ -45,11 +43,10 @@ export function wakeDeskOwner(
 	)
 }
 
-// The answer pipeline for ONE question event: run the single desk correspondent thread,
-// parse its block replies, and post them at the envelope's own anchors. One corrective
-// turn rescues a format slip; anything else falls back to one owner wake carrying the
-// failure, so a dead correspondent degrades to the ask-the-owner flow instead of
-// dropping the question. Aborted attachments stay silent.
+// One question event: run the single correspondent thread, parse its block replies, post them at
+// the envelope's own anchors; one corrective turn rescues a format slip, anything else falls back
+// to one owner wake carrying the failure (a dead correspondent degrades to the ask-the-owner flow,
+// never drops the question). Aborted attachments stay silent.
 export async function handleQuestionEvent(input: {
 	pi: Pick<ExtensionAPI, 'sendMessage'>
 	desk: DeskConnection

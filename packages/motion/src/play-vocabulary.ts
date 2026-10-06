@@ -1,7 +1,6 @@
 import { ATTRIBUTE } from './attributes'
 
-// Places the drawing vocabulary (see vocabulary.ts) when a reveal group
-// arrives: each of the group's elements starts its kind with its delay.
+// Starts each of the group's elements when its kind is named, with its delay.
 const isAnimatable = (node: Element): node is HTMLElement | SVGElement =>
 	node instanceof HTMLElement || node instanceof SVGElement
 const isKindOf = <Kind extends string>(
@@ -14,18 +13,13 @@ type Starter<Started> = (
 	delay: number,
 ) => Started
 
-// A delay is inherited: a loop nested in a staggered group (a pulse inside a
-// rising card) keeps time with that group, so the nearest data-delay, its own
-// or an ancestor's, applies.
+// data-delay is inherited: the nearest ancestor's (or own) applies.
 function delayOf(element: Element): number {
 	const owner = element.closest(`[${ATTRIBUTE.delay}]`)
 	return owner ? Number(owner.getAttribute(ATTRIBUTE.delay)) : 0
 }
 
-// Starts every vocabulary element of this reveal group (not of a nested one)
-// whose kind `starters` holds, and returns what each started. An element
-// without a box (a drawing's secondary words on phones) plays unseen and
-// shows its finished pose if it gets one.
+// Starts only this group's own vocabulary elements (not a nested group's). An element without a box plays unseen and shows its finished pose if one arrives.
 export function playVocabulary<Kind extends string, Started>(
 	group: Element,
 	starters: Readonly<Record<Kind, Starter<Started>>>,

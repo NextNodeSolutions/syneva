@@ -4,16 +4,13 @@ import type { Channel, ChannelValues, ContentName } from './navigation-channels'
 
 type Reveal = {
 	channels: readonly Channel<ContentName>[]
-	// The clock's current target, which says what is shown now.
 	target: ChannelValues
 	selected: number
 	travel: number
 	styles: CSSStyleDeclaration
 }
 
-// The selected channel comes in and the others go, sliding by `travel` px in
-// the direction of the move. One entering from fully hidden is seeded on the
-// far side, so it slides in rather than from wherever it last rested.
+// One entering from fully hidden is seeded on the far side, so it slides in rather than from wherever it last rested.
 export function revealChannels({
 	channels,
 	target,

@@ -1,10 +1,6 @@
 import type { Activity, DeskStage } from '@entities/hub/stage'
 import type { DotTone } from '@shared/ui/live-dot'
 
-// How a stage reads in its row: the square before it, the label (in ink, petrol or muted; as
-// the site's index badge when the turn is the reviewer's, the one tinted mark in the list),
-// the time of the agent's last line when the label leans on it, and the line under it - the
-// agent's own words, quoted, or a note of ours.
 export type StageCopy = {
 	dot: { tone: DotTone; hollow?: boolean; live?: boolean }
 	label: string
@@ -18,7 +14,6 @@ const note = (text: string): StageCopy['detail'] => ({ kind: 'note', text })
 
 const UNCLAIMED = note('No agent has picked it up yet.')
 
-// Sent work waits for an agent to claim it: a hollow petrol square, ink words.
 const sent = (label: string): StageCopy => ({
 	dot: { tone: 'petrol', hollow: true },
 	label,
@@ -34,7 +29,6 @@ const working = (activity: Activity): StageCopy => ({
 	detail: { kind: 'words', body: activity.body },
 })
 
-// An empty desk waits for the agent's reload, whether or not an agent is listening yet.
 const waiting = (text: string): StageCopy => ({
 	dot: { tone: 'neutral', hollow: true },
 	label: 'Waiting for changes',
@@ -65,8 +59,7 @@ const IDLE: StageCopy = {
 	detail: note('Review any time. Send waits for an agent.'),
 }
 
-// One reading per stage, in the truth model's terms (entities/hub/stage.ts): every word
-// restates a field the hub reported, nothing is inferred.
+// One reading per stage: every word restates a field the hub reported, nothing is inferred (the truth model is entities/hub/stage.ts).
 export function stageCopy(stage: DeskStage): StageCopy {
 	if (stage.kind === 'sent') return sent('Review sent')
 	if (stage.kind === 'asked')

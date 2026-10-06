@@ -21,26 +21,20 @@ import {
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-// The static routes carry no desk: the hub serves one UI bundle for every desk page and the
-// dashboard page at its root.
 export type StaticRequest = {
 	req: IncomingMessage
 	res: ServerResponse
 	url: URL
 }
 
-// What answers the browser UI's requests: the two page shells and the assets they load. An
-// install serves the built bundle (builtUi below); the dev loop passes a Vite dev server in its
-// place (apps/syneva/scripts/dev.ts), so the same pages load from source on the hub's origin.
+// An install serves the built bundle; the dev loop passes a Vite dev server in its place (apps/syneva/scripts/dev.ts), so the same pages load from source on the hub's origin.
 export type UiServer = {
 	dashboardPage(request: StaticRequest): Promise<void>
 	deskPage(request: StaticRequest): Promise<void>
-	// True once the request has been answered, false when the path is none of the UI's assets.
 	asset(request: StaticRequest): Promise<boolean>
 }
 
-// The desk page. The bundle derives the desk id from its own URL (/d/<id>/), so the same
-// index.html serves every desk and the hub injects nothing into it.
+// The bundle derives the desk id from its own URL (/d/<id>/), so the same index.html serves every desk and the hub injects nothing into it.
 async function serveDeskPage({ res }: StaticRequest): Promise<void> {
 	html(res, HTTP_OK, await fs.readFile(indexHtmlPath(), 'utf8'))
 }
@@ -53,12 +47,10 @@ const JS_TYPE = 'text/javascript; charset=utf-8'
 const CSS_TYPE = 'text/css; charset=utf-8'
 const FONT_TYPE = 'font/woff2'
 
-// A font file's name under the fonts prefix: one segment, no traversal, a woff2. The router
-// lets exactly this shape through before the access guard, whatever UI server answers it.
+// One segment, no traversal, a woff2: the router lets exactly this shape through before the access guard, whatever UI server answers it.
 export const FONT_FILE = /^[\w-]+\.woff2$/
 
-// An etag'd asset server. Assets change only on a rebuild, so they carry an etag derived
-// from size+mtime: the tab revalidates cheaply and a 304 skips the body entirely.
+// Assets change only on a rebuild, so they carry an etag derived from size+mtime: the tab revalidates cheaply and a 304 skips the body entirely.
 async function serveAsset(
 	file: string,
 	contentType: string,
@@ -132,8 +124,7 @@ async function serveBuiltAsset(request: StaticRequest): Promise<boolean> {
 	return true
 }
 
-// The UI of an install: the built bundle next to the server. Frozen: the router sees a
-// readonly port, never this module's internals.
+// Frozen: the router sees a readonly port, never this module's internals.
 export const builtUi: UiServer = Object.freeze({
 	dashboardPage: serveDashboardPage,
 	deskPage: serveDeskPage,
