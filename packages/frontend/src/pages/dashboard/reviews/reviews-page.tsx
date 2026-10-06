@@ -3,59 +3,19 @@ import { useRef } from 'react'
 import { useEntrance } from '@shared/lib/use-entrance'
 import * as stylex from '@stylexjs/stylex'
 
-import { closedDesks } from '../closed'
 import { plural } from '../format'
-import { ledgerContext } from '../ledger-context'
 import { applyFilter, passes } from '../overview/display'
 import { groupsByProject } from '../overview/groups'
 import { FilterChips } from '../overview/react/filter-chips'
 import { FilterMenu } from '../overview/react/filter-menu'
 import { useOverviewView } from '../overview/use-overview-view'
-import { ClosedDesks } from '../react/closed-desks'
-import { DeskLedger } from '../react/desk-ledger'
-import { HoldList } from '../react/hold-list'
 import { listPage } from '../react/list-page.styles'
+import { LiveAndClosed } from '../react/live-and-closed'
 import { PageHead } from '../react/page-head'
 import { PhasePage } from '../react/phase-page'
-import { useHeldOrder } from '../use-held-order'
 
 import type { ReactElement } from 'react'
-import type { DeskFilter } from '../overview/display'
 import type { DashboardState, Listed } from '../use-dashboard'
-
-function ReviewsBody({
-	dashboard,
-	listed,
-	filter,
-}: {
-	dashboard: DashboardState
-	listed: Listed
-	filter: DeskFilter
-}): ReactElement {
-	const desks = applyFilter(listed.desks, filter)
-	const groups = useHeldOrder(groupsByProject(desks, dashboard.since), {
-		isHeld: dashboard.isListHeld,
-	})
-	const liveIds = new Set(listed.desks.map(desk => desk.id))
-	const closed = closedDesks(dashboard.journal.events, liveIds).filter(
-		event => passes(event, filter),
-	)
-	return (
-		<HoldList hold={dashboard.hold} css={listPage.body}>
-			<DeskLedger
-				groups={groups}
-				context={ledgerContext(dashboard)}
-				emptyText="No live desk under these filters."
-			/>
-			<ClosedDesks
-				closed={closed}
-				events={dashboard.journal.events}
-				now={dashboard.hub.now}
-				title="Closed"
-			/>
-		</HoldList>
-	)
-}
 
 function ReviewsListed({
 	dashboard,
@@ -83,10 +43,18 @@ function ReviewsListed({
 				projects={dashboard.projects}
 				onFilter={filter => view.change({ filter })}
 			/>
-			<ReviewsBody
+			<LiveAndClosed
 				dashboard={dashboard}
-				listed={listed}
-				filter={view.filter}
+				groups={groupsByProject(
+					applyFilter(listed.desks, view.filter),
+					dashboard.since,
+				)}
+				texts={{
+					empty: 'No live desk under these filters.',
+					closed: 'Closed',
+				}}
+				isKept={closed => passes(closed, view.filter)}
+				css={listPage.body}
 			/>
 		</div>
 	)
