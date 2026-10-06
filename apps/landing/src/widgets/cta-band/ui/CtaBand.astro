@@ -8,7 +8,7 @@ import Command from '@features/copy-command/ui/Command.astro'
 import { command } from '@features/copy-command/ui/command.styles'
 import { SUBSCRIBED_ID } from '@features/subscribe/model/endpoint'
 import { OUTCOME_MESSAGE } from '@features/subscribe/model/outcome'
-import SignupForm from '@features/subscribe/ui/SignupForm.astro'
+import LaunchListSignup from '@features/subscribe/ui/LaunchListSignup.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { section } from '@shared/ui/section.styles'
 import { band } from './cta-band.styles'
@@ -23,7 +23,7 @@ const isLive = LAUNCH_STAGE === 'live'
 			isLive ? (
 				<p {...revealItem(band.text)}>Two commands to your first desk. Bring the agent you already use.</p>
 			) : (
-				<p {...revealItem(band.text)}>Syneva isn’t ready to install yet. Leave your email and I’ll write when it is, then now and then about what ships.</p>
+				<p {...revealItem(band.text)}>Syneva isn’t ready to install yet. Join the launch list and I’ll write once, the day it is.</p>
 			)
 		}
 		<div {...revealItem(band.links)}>
@@ -41,8 +41,7 @@ const isLive = LAUNCH_STAGE === 'live'
 			</div>
 		) : (
 			<div {...revealItem(band.install)}>
-				<p {...sx(band.label)}>Your email · only for news about Syneva</p>
-				<SignupForm surface="wash" />
+				<LaunchListSignup />
 				<p {...sx(band.subscribed)} id={SUBSCRIBED_ID}>{OUTCOME_MESSAGE.subscribed}</p>
 			</div>
 		)

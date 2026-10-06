@@ -1,0 +1,30 @@
+---
+import Icon from '@entities/site/ui/Icon.astro'
+import { sx } from '@shared/lib/sx'
+import { COMING } from '../model/coming'
+import { comingRows } from './coming-rows.styles'
+import { launchVerdict } from './launch-verdict.styles'
+import { comingMarker } from './signup.stylex'
+
+// What will be waiting, under the verdict: static, so the band's island takes it as a slot and shows it once joined.
+---
+
+<div {...sx(launchVerdict.day)}>
+	<p {...sx(launchVerdict.lede)}>Until then, here’s what will be waiting:</p>
+	<ul {...sx(comingRows.list)}>
+		{
+			COMING.map(page => (
+				<li>
+					<a {...sx(comingRows.row, comingMarker)} href={page.href}>
+						<Icon name={page.icon} css={comingRows.icon} />
+						<span>
+							<span {...sx(comingRows.title)}>{page.title}</span>
+							<span {...sx(comingRows.blurb)}>{page.blurb}</span>
+						</span>
+						<span {...sx(comingRows.arrow)} aria-hidden="true">→</span>
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</div>

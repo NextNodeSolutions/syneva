@@ -7,7 +7,7 @@ export const isOutcome = (answered: unknown): answered is Outcome =>
 
 export const OUTCOME_MESSAGE: Record<Outcome, string> = {
 	subscribed:
-		'You\u2019re on the list. I\u2019ll write when Syneva is ready.',
+		'You\u2019re on the launch list. One email, the day Syneva installs.',
 	invalid: 'That doesn\u2019t look like an email address.',
 	limited: 'Too many tries from here. Give it a minute.',
 	failed: 'That didn\u2019t go through. Try again in a moment.',

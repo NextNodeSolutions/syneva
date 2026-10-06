@@ -1,0 +1,18 @@
+---
+import { sx } from '@shared/lib/sx'
+import { LIST_ADDRESS } from '../model/list-address'
+import { launchTerms } from './launch-terms.styles'
+
+const TERMS = [`From ${LIST_ADDRESS}`, 'Reply to leave', 'Used for nothing else']
+---
+
+<ul {...sx(launchTerms.list)}>
+	{
+		TERMS.map(term => (
+			<li {...sx(launchTerms.term)}>
+				<span {...sx(launchTerms.square)} aria-hidden="true"></span>
+				{term}
+			</li>
+		))
+	}
+</ul>

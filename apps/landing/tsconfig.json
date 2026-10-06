@@ -2,6 +2,9 @@
 	// The shared Astro preset (astro/tsconfigs/strict plus NextNode's strictness).
 	"extends": "@nextnode-solutions/standards/typescript/astro",
 	"compilerOptions": {
+		// The signup's islands are React (@astrojs/react).
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
 		// The FSD layer aliases (Astro applies tsconfig paths to its Vite build):
 		// app -> views -> widgets -> features -> entities -> shared, strictly
 		// downward; src/pages holds the routes, which compose app and views.

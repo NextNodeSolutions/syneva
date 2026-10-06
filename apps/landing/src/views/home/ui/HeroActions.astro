@@ -3,7 +3,7 @@ import { INSTALL_COMMAND, LAUNCH_STAGE } from '@entities/site/model/project'
 import { PAGES } from '@entities/site/model/site-map'
 import Button from '@shared/ui/Button.astro'
 import Command from '@features/copy-command/ui/Command.astro'
-import SignupForm from '@features/subscribe/ui/SignupForm.astro'
+import HeroSignup from '@features/subscribe/ui/HeroSignup.astro'
 import TextLink from '@shared/ui/TextLink.astro'
 import { sx } from '@shared/lib/sx'
 import { heroBody } from './hero-body.styles'
@@ -20,7 +20,7 @@ import { heroBody } from './hero-body.styles'
 		</Fragment>
 	) : (
 		<Fragment>
-			<SignupForm css={heroBody.signup} />
+			<div {...sx(heroBody.signup)}><HeroSignup /></div>
 			<div {...sx(heroBody.actions, heroBody.afterSignup)}>
 				<TextLink href="#how" label="See how it works" arrow="↓" />
 			</div>

@@ -15,7 +15,7 @@ const relativeLayerEscapes = (...targets: string[]): string[] =>
 		`../../../../${target}/**`,
 	])
 
-// Layers run in layers.json order; sliced layers also ban their own alias (intra-slice imports are relative); the rules cover .astro frontmatter/scripts too.
+// Layers run in layers.json order; sliced layers also ban their own alias (intra-slice imports are relative); the rules cover .astro frontmatter/scripts and the React islands (.tsx) too.
 const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
 const LANDING_MOTION_BAN = {
 	group: ['motion', 'motion/**'],
@@ -26,7 +26,7 @@ const landingLayer = (layer: string): OxlintOverride => {
 	const above = LANDING_LAYERS.slice(0, LANDING_LAYERS.indexOf(layer))
 	const others = LANDING_LAYERS.filter(other => other !== layer)
 	return {
-		files: [`apps/landing/src/${layer}/**/*.{ts,astro}`],
+		files: [`apps/landing/src/${layer}/**/*.{ts,tsx,astro}`],
 		rules: {
 			'eslint/no-restricted-imports': [
 				'error',
@@ -96,9 +96,10 @@ export default defineConfig({
 			rules: { 'eslint/no-magic-numbers': 'off' },
 		},
 		{
-			// The landing's copy typesets intended glyphs a visitor reads (never compared as strings).
+			// The landing's copy typesets intended glyphs a visitor reads (never compared as strings): its components, Astro and React (the signup's islands), and these copy modules.
 			files: [
 				'apps/landing/src/**/*.astro',
+				'apps/landing/src/**/*.tsx',
 				'apps/landing/src/entities/desk/model/agent-contract.ts',
 				'apps/landing/src/views/*/ui/art/*.ts',
 			],

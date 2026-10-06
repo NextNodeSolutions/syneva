@@ -1,0 +1,18 @@
+---
+import LaunchDay from './LaunchDay.astro'
+import { LaunchList } from './LaunchList'
+import LaunchSheet from './LaunchSheet.astro'
+import LaunchTerms from './LaunchTerms.astro'
+import TrapField from './TrapField.astro'
+
+// The start band's signup: Astro draws what never changes (the sheet, the terms, the trap, what launch day brings) and hands the island the parts it places, as slots; React keeps what follows the visitor's signup.
+// A slot's name reaches React as its prop name: @astrojs/react camel-cases it on the server but not on the client, so it is camel-cased here.
+---
+
+<LaunchSheet>
+	<LaunchList client:visible>
+		<TrapField />
+		<LaunchDay slot="launchDay" />
+	</LaunchList>
+	<LaunchTerms />
+</LaunchSheet>
