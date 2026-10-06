@@ -35,7 +35,7 @@ name = "subscribe"
 limit = 5
 period = 60
 
-# Newsletter list DB (env.DB); the pipeline applies the migrations on every deploy.
+# Launch list DB (env.DB); the pipeline applies the migrations on every deploy.
 [services.d1]
 migrations_folder = "apps/landing/migrations"
 
