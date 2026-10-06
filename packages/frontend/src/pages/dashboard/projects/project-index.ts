@@ -1,4 +1,5 @@
-import { DAY_MS, roundsSince, WEEK_DAYS } from '@entities/hub/journal-stats'
+import { isRoundSent } from '@entities/hub/journal'
+import { DAY_MS, WEEK_DAYS } from '@entities/hub/journal-stats'
 import { turnCounts } from '@entities/hub/turn'
 
 import type { JournalEvent } from '@entities/hub/journal'
@@ -17,11 +18,64 @@ export type ProjectEntry = {
 	lastAt: string | null
 }
 
-function lastEventAt(
+// What the journal says about one repository: its name and root as its newest event names
+// them, when that event happened, and the rounds sent there this week.
+type Remembered = {
+	name: string
+	root: string
+	lastAt: string
+	roundsThisWeek: number
+}
+
+// Every repository the journal names, in one pass, in the order each first appears.
+function remembered(
 	events: readonly JournalEvent[],
-	id: string,
-): string | null {
-	return events.findLast(event => event.projectId === id)?.at ?? null
+	weekAgo: number,
+): Map<string, Remembered> {
+	const projects = new Map<string, Remembered>()
+	for (const event of events) {
+		const project = projects.get(event.projectId) ?? {
+			name: event.project,
+			root: event.root,
+			lastAt: event.at,
+			roundsThisWeek: 0,
+		}
+		project.name = event.project
+		project.root = event.root
+		project.lastAt = event.at
+		if (isRoundSent(event) && Date.parse(event.at) >= weekAgo)
+			project.roundsThisWeek += 1
+		projects.set(event.projectId, project)
+	}
+	return projects
+}
+
+function liveEntry(
+	project: HubProject,
+	journal: Remembered | undefined,
+): ProjectEntry {
+	return {
+		id: project.id,
+		name: project.name,
+		root: project.root,
+		desks: project.desks,
+		yours: turnCounts(project.desks).yours,
+		roundsThisWeek: journal?.roundsThisWeek ?? 0,
+		lastAt: journal?.lastAt ?? project.desks[0]?.lastActivityAt ?? null,
+	}
+}
+
+// A repository with no desk open now: its history still reads.
+function goneEntry(id: string, project: Remembered): ProjectEntry {
+	return {
+		id,
+		name: project.name,
+		root: project.root,
+		desks: [],
+		yours: 0,
+		roundsThisWeek: project.roundsThisWeek,
+		lastAt: project.lastAt,
+	}
 }
 
 export function projectIndex(
@@ -29,31 +83,13 @@ export function projectIndex(
 	events: readonly JournalEvent[],
 	now: number,
 ): ProjectEntry[] {
-	const week = roundsSince(events, now - WEEK_DAYS * DAY_MS)
-	const entry = (
-		id: string,
-		name: string,
-		root: string,
-		desks: readonly HubDesk[],
-	): ProjectEntry => ({
-		id,
-		name,
-		root,
-		desks,
-		yours: turnCounts(desks).yours,
-		roundsThisWeek: week.filter(round => round.projectId === id).length,
-		lastAt: lastEventAt(events, id) ?? desks[0]?.lastActivityAt ?? null,
-	})
+	const journal = remembered(events, now - WEEK_DAYS * DAY_MS)
 	const live = projects.map(project =>
-		entry(project.id, project.name, project.root, project.desks),
+		liveEntry(project, journal.get(project.id)),
 	)
-	const liveIds = new Set(live.map(project => project.id))
-	const remembered = new Map<string, ProjectEntry>()
-	for (const event of events)
-		if (!liveIds.has(event.projectId))
-			remembered.set(
-				event.projectId,
-				entry(event.projectId, event.project, event.root, []),
-			)
-	return [...live, ...[...remembered.values()].toReversed()]
+	const liveIds = new Set(projects.map(project => project.id))
+	const gone = [...journal]
+		.filter(([id]) => !liveIds.has(id))
+		.map(([id, project]) => goneEntry(id, project))
+	return [...live, ...gone.toReversed()]
 }

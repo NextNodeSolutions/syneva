@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-import { roundsOf } from '@entities/hub/journal-stats'
+import { latestRounds } from '@entities/hub/journal-stats'
 import { AppLink } from '@shared/ui/app-link'
 import { ArrowRight } from '@shared/ui/arrow-right'
 import { Button } from '@shared/ui/button'
@@ -31,7 +31,7 @@ const RECENT_ID = 'recently-closed'
 // What every closed row reads besides its desk: the rounds it went through, the clock, the one
 // reopen in flight, and where the events that just arrived begin.
 type RowContext = {
-	events: readonly JournalEvent[]
+	rounds: ReadonlyMap<string, number>
 	now: number
 	reopen: Reopen
 	freshAfter: number
@@ -102,7 +102,7 @@ function ResumeGroupSection({
 					<ClosedRow
 						key={desk.deskId}
 						closed={desk}
-						rounds={roundsOf(context.events, desk.deskId)}
+						rounds={context.rounds.get(desk.deskId) ?? 0}
 						now={context.now}
 						reopen={context.reopen}
 						look={{ isFresh: desk.seq > context.freshAfter }}
@@ -144,7 +144,12 @@ export function ResumeLedger({
 }): ReactElement {
 	// One reopen state for the ledger: a single desk reopens at a time.
 	const reopen = useReopen()
-	const context: RowContext = { events, now, reopen, freshAfter }
+	const context: RowContext = {
+		rounds: latestRounds(events),
+		now,
+		reopen,
+		freshAfter,
+	}
 	return (
 		<section
 			aria-labelledby={RECENT_ID}

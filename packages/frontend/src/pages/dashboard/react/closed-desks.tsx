@@ -1,4 +1,4 @@
-import { roundsOf } from '@entities/hub/journal-stats'
+import { latestRounds } from '@entities/hub/journal-stats'
 import { Button } from '@shared/ui/button'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
@@ -114,6 +114,7 @@ export function ClosedDesks({
 }: ClosedDesksProps): ReactElement {
 	// One reopen state for the list: a single desk reopens at a time.
 	const reopen = useReopen()
+	const rounds = latestRounds(events)
 	return (
 		<section
 			{...stylex.props(closedList.root)}
@@ -137,7 +138,7 @@ export function ClosedDesks({
 					<ClosedRow
 						key={entry.deskId}
 						closed={entry}
-						rounds={roundsOf(events, entry.deskId)}
+						rounds={rounds.get(entry.deskId) ?? 0}
 						now={now}
 						reopen={reopen}
 					/>

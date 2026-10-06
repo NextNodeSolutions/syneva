@@ -95,15 +95,15 @@ export function verdictTotals(rounds: readonly RoundSent[]): VerdictTotals {
 	return totals
 }
 
-// The rounds a desk has been through, as its latest Send numbered it (0 before its first).
-export function roundsOf(
+// The rounds each desk has been through, as its latest Send numbered it, in one pass: a desk
+// with no Send yet has none (0 rounds).
+export function latestRounds(
 	events: readonly JournalEvent[],
-	deskId: string,
-): number {
-	let round = 0
+): ReadonlyMap<string, number> {
+	const rounds = new Map<string, number>()
 	for (const event of events)
-		if (isRoundSent(event) && event.deskId === deskId) round = event.round
-	return round
+		if (isRoundSent(event)) rounds.set(event.deskId, event.round)
+	return rounds
 }
 
 // When each desk's turns last began, from the journal: its diff landing (it opened, or the agent
