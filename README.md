@@ -45,7 +45,7 @@ I'm not saying this is *the* review surface. I built it in a week and I'm still 
    syneva open pr feature-branch     # a branch's commits vs its merge-base
    ```
 
-   The desk opens in your browser at its own stable URL (`/d/<id>/` on the hub) and stays open until you close it, from the tab or from the dashboard. You review and click **Send to Agent**; the agent attaches, acts on each send, and replies in the same tab. Every project and every desk shows on the dashboard: how far each review is, whether an agent is listening, what is waiting. The full agent contract — the hub, modes, the event loop, all flags (`--repo`, `--path`, `--port`, `--no-open`, `--guide`, …), `ReviewResult`, and the guide's grouping schema — is printed by **`syneva spec`**.
+   The desk opens in your browser at its own stable URL (`/d/<id>/` on the hub) and stays open until you close it, from the tab or from the dashboard. You review and click **Send to Agent**; the agent attaches, acts on each send, and replies in the same tab. The dashboard is the hub's control center: whose turn it is on every desk (drawn as the review circuit, or as a board, or as a cockpit with the numbers), how far each review is, what your agents are doing, and the hub's journal of rounds, by project and for your plans. From a desk, the hub's rail opens over the review and takes you to the next desk waiting on you. The full agent contract — the hub, modes, the event loop, all flags (`--repo`, `--path`, `--port`, `--no-open`, `--guide`, …), `ReviewResult`, and the guide's grouping schema — is printed by **`syneva spec`**.
 
 ### Reviewing from another machine (a hosted hub)
 
@@ -89,7 +89,7 @@ Syneva is opinionated about exactly one thing: the review surface. It's a protoc
 Immediate to-dos, in rough priority order.
 
 - [ ] **Remote runners**: let an agent on another machine feed a hosted hub (the hub holds the review, the runner holds the repo), so the hub no longer has to sit next to the repositories.
-- [ ] **Control center**: a dynamic Astro app over the hub API (`/api/hub/*`) with statistics across projects and hubs; the hub's built-in dashboard stays the lightweight local view.
+- [ ] **Hosted hub**: the hub's dashboard (now the control center: where every round stands, your reviews, projects and plans, the hub's journal) as a service you sign in to from syneva.dev, with the same features as the local hub; the local hub never needs an account.
 - [ ] **Desktop app**: a macOS/Linux/Windows shell that runs the hub and opens the dashboard without a terminal.
 
 - [ ] **Command palette**: add a discoverable Cmd/Ctrl+Shift+P palette for common review actions: file filter, find in diffs, next/previous file or change, accept/reject/request change, approve file, toggle layout/settings/sidebar, open in editor, reload, and Send to Agent. Keep keyboard shortcuts as the fast path, but make every major action searchable.
