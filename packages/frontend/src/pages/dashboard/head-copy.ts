@@ -1,7 +1,6 @@
-import { numberWord, relativeTime } from './format'
+import { numberWord } from './format'
 
 import type { HubPlace } from '@entities/hub/hub-place'
-import type { DeskClosed } from '@entities/hub/journal'
 import type { HubPhase } from './hub-phase'
 
 // What the head says for a phase: the statement (the page's h1), the lede under it, and the
@@ -45,9 +44,10 @@ const UNREACHABLE: Record<HubPlace, HeadCopy> = {
 	},
 }
 
-const EMPTY_LEDE = 'The hub is running. Nothing is under review yet.'
-
-const EMPTY: HeadCopy = { title: 'No desks open.', lede: EMPTY_LEDE }
+const EMPTY: HeadCopy = {
+	title: 'No desks open.',
+	lede: 'The hub is running. Nothing is under review yet.',
+}
 
 export function headCopy(phase: HubPhase, place: HubPlace): HeadCopy {
 	if (phase.kind === 'loading') return LOADING
@@ -55,11 +55,4 @@ export function headCopy(phase: HubPhase, place: HubPlace): HeadCopy {
 	if (phase.kind === 'unreachable') return UNREACHABLE[place]
 	if (!phase.desks.length) return EMPTY
 	return { title: statement(phase.counts.yours), lede: LISTING_LEDE }
-}
-
-// The empty overview's lede: what a fresh hub says, or when the last desk closed (a closed
-// desk is one click from back, its verdicts with it).
-export function emptyLede(lastClosed: DeskClosed | null, now: number): string {
-	if (!lastClosed) return EMPTY_LEDE
-	return `The last desk closed ${relativeTime(lastClosed.at, now)}. A closed desk reopens with its verdicts.`
 }

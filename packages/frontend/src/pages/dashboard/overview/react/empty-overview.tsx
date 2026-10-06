@@ -7,23 +7,45 @@ import * as stylex from '@stylexjs/stylex'
 import { HUB_MAIN_ID } from '@widgets/hub-shell/react/hub-shell'
 
 import { closedDesks } from '../../closed'
-import { emptyLede, headCopy } from '../../head-copy'
-import { PageHead } from '../../react/page-head'
+import { headCopy } from '../../head-copy'
+import { heroLede } from '../open-copy'
 import { resumeOf } from '../resume'
 
+import { EmptyHero } from './empty-hero'
 import { emptyOverview } from './empty-overview.styles'
-import { OpenDesk } from './open-desk'
 import { ResumeLedger } from './resume-ledger'
 
+import type { DeskClosed } from '@entities/hub/journal'
 import type { ReactElement } from 'react'
 import type { DashboardState } from '../../use-dashboard'
+import type { HeroCopy } from './empty-hero'
 
 // With no desk live, every closed one counts.
 const NO_LIVE_IDS: ReadonlySet<string> = new Set()
 
-// The overview with no desk live: the way to open one, then the desks closed before, by
-// repository. It mounts once the journal's first read has settled (overview-page.tsx), so it
-// shows its history from its first frame.
+// What the hero says: the page's statement, the line under it, and whether the hub asks for
+// its access key.
+function heroCopy(
+	dashboard: DashboardState,
+	lastClosed: DeskClosed | null,
+): HeroCopy {
+	const { hub } = dashboard
+	return {
+		title: headCopy(dashboard.phase, hubPlace()).title,
+		...heroLede({
+			place: hubPlace(),
+			lastClosed,
+			now: hub.now,
+			isStale: dashboard.listed?.isStale === true,
+		}),
+		isKeyed: hub.health?.keyRequired === true,
+	}
+}
+
+// The overview with no desk live, as one centred composition: the review loop at rest, the
+// statement and the ways to open a desk, then the desks closed before, by repository, each one
+// a Reopen from back. It mounts once the journal's first read has settled (overview-page.tsx),
+// so it shows its history from its first frame.
 export function EmptyOverview({
 	dashboard,
 }: {
@@ -37,34 +59,26 @@ export function EmptyOverview({
 	// washes only what closes after it.
 	const [mountedAfter] = useState(() => journal.events.at(-1)?.seq ?? 0)
 	const resume = resumeOf(closedDesks(journal.events, NO_LIVE_IDS))
+	const hasHistory = resume.groups.length > 0
 	return (
 		<div ref={root} {...stylex.props(emptyOverview.page)}>
-			<PageHead
-				title={headCopy(dashboard.phase, hubPlace()).title}
-				lede={emptyLede(resume.last, hub.now)}
+			<EmptyHero
+				copy={heroCopy(dashboard, resume.last)}
+				isAlone={!hasHistory}
+				onNewReview={newReview.offer}
 			/>
-			<div {...stylex.props(emptyOverview.body)}>
-				<div {...stylex.props(emptyOverview.column)}>
-					<OpenDesk
-						place={hubPlace()}
-						isKeyed={hub.health?.keyRequired === true}
-						isStale={dashboard.listed?.isStale === true}
-						onNewReview={newReview.offer}
-					/>
-					{resume.groups.length > 0 && (
-						<ResumeLedger
-							resume={resume}
-							events={journal.events}
-							freshAfter={Math.max(
-								journal.freshAfter ?? Number.POSITIVE_INFINITY,
-								mountedAfter,
-							)}
-							now={hub.now}
-							onNewReviewIn={newReview.offerIn}
-						/>
+			{hasHistory && (
+				<ResumeLedger
+					resume={resume}
+					events={journal.events}
+					freshAfter={Math.max(
+						journal.freshAfter ?? Number.POSITIVE_INFINITY,
+						mountedAfter,
 					)}
-				</div>
-			</div>
+					now={hub.now}
+					onNewReviewIn={newReview.offerIn}
+				/>
+			)}
 		</div>
 	)
 }

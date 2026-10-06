@@ -26,6 +26,8 @@ import type { Resume, ResumeGroup } from '../resume'
 
 type OfferIn = ((root: string) => void) | null
 
+const RECENT_ID = 'recently-closed'
+
 // What every closed row reads besides its desk: the rounds it went through, the clock, the one
 // reopen in flight, and where the events that just arrived begin.
 type RowContext = {
@@ -46,9 +48,9 @@ function GroupHead({
 }): ReactElement {
 	return (
 		<div {...stylex.props(deskLedger.head)}>
-			<h2 id={headingId} {...stylex.props(deskLedger.title)}>
+			<h3 id={headingId} {...stylex.props(deskLedger.title)}>
 				{group.project}
-			</h2>
+			</h3>
 			<span {...stylex.props(deskLedger.count)}>
 				{`${group.total} closed`}
 			</span>
@@ -111,23 +113,16 @@ function ResumeGroupSection({
 	)
 }
 
-// Past the rows kept here, every closed desk is on Reviews.
+// Every closed desk is on Reviews, past the rows kept here.
 function AllClosed({ total }: { total: number }): ReactElement {
 	return (
-		<p data-enter="fade" {...stylex.props(resumeLedger.foot)}>
-			<AppLink
-				href={DASHBOARD_PATHS.reviews}
-				css={[
-					focus.ring,
-					textLink.base,
-					textLink.small,
-					textLinkMarker,
-				]}
-			>
-				{`All ${total} closed desks`}
-				<ArrowRight css={[textLink.arrow, resumeLedger.allArrow]} />
-			</AppLink>
-		</p>
+		<AppLink
+			href={DASHBOARD_PATHS.reviews}
+			css={[focus.ring, textLink.base, textLink.small, textLinkMarker]}
+		>
+			{`All ${total} closed desks`}
+			<ArrowRight css={[textLink.arrow, resumeLedger.allArrow]} />
+		</AppLink>
 	)
 }
 
@@ -152,9 +147,17 @@ export function ResumeLedger({
 	const context: RowContext = { events, now, reopen, freshAfter }
 	return (
 		<section
-			aria-label="Recently closed"
+			aria-labelledby={RECENT_ID}
 			{...stylex.props(resumeLedger.root)}
 		>
+			<div {...stylex.props(resumeLedger.head)} data-enter="fade">
+				<h2 id={RECENT_ID} {...stylex.props(resumeLedger.heading)}>
+					Recently closed
+				</h2>
+				{resume.total > resume.shown && (
+					<AllClosed total={resume.total} />
+				)}
+			</div>
 			{resume.groups.map(group => (
 				<ResumeGroupSection
 					key={group.projectId}
@@ -163,7 +166,6 @@ export function ResumeLedger({
 					onNewReviewIn={onNewReviewIn}
 				/>
 			))}
-			{resume.total > resume.shown && <AllClosed total={resume.total} />}
 		</section>
 	)
 }
