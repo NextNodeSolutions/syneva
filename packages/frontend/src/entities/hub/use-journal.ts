@@ -4,7 +4,7 @@ import { fetchHubJournal } from './api'
 import { EMPTY_JOURNAL } from './journal'
 import { HUB_POLL_MS } from './use-hub'
 
-import type { Journal } from './journal'
+import type { Journal, JournalRead } from './journal'
 
 // How much of the journal the page keeps: weeks of a busy hub, bounded so a long-open tab
 // never grows without end. The hub keeps more; the page reads what its views count.
@@ -17,19 +17,17 @@ const READ_TIMEOUT_MS = READ_TIMEOUT_CADENCES * HUB_POLL_MS
 // first read is the journal as it stood: none of it counts as arrived.
 function appended(
 	held: Journal,
-	read: Journal,
+	read: JournalRead,
 	{ isFirst }: { isFirst: boolean },
 ): Journal {
 	const newest = held.events.at(-1)?.seq ?? 0
 	const fresh = read.events.filter(event => event.seq > newest)
 	// Nothing new: the journal held stays the same object, so the page does not render again.
-	if (!fresh.length && held.isRead && held.latest === read.latest) return held
-	if (!fresh.length) return { ...held, latest: read.latest, isRead: true }
+	if (!fresh.length) return held.isRead ? held : { ...held, isRead: true }
 	let freshAfter: number | null = null
 	if (!isFirst) freshAfter = newest
 	return {
 		events: [...held.events, ...fresh].slice(-KEPT_EVENTS),
-		latest: read.latest,
 		freshAfter,
 		isRead: true,
 	}

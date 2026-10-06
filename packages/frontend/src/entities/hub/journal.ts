@@ -48,13 +48,19 @@ export type JournalKind = JournalEvent['kind']
 export type RoundSent = Extract<JournalEvent, { kind: 'round-sent' }>
 export type DeskClosed = Extract<JournalEvent, { kind: 'desk-closed' }>
 
-// The journal as the dashboard holds it: the events it has read, oldest first, the newest seq
-// the hub holds (what the next read asks to follow), and where the events that just arrived
-// begin: the newest seq held before the last read that brought any, null while nothing has
-// arrived since the first read (a page load never reads as a wave of arrivals).
-export type Journal = {
+// One read of the journal: the events after the seq it asked to follow, oldest first, and the
+// newest seq the hub holds (what the next read asks to follow).
+export type JournalRead = {
 	events: readonly JournalEvent[]
 	latest: number
+}
+
+// The journal as the dashboard holds it: the events it has read, oldest first, and where the
+// events that just arrived begin: the newest seq held before the last read that brought any,
+// null while nothing has arrived since the first read (a page load never reads as a wave of
+// arrivals).
+export type Journal = {
+	events: readonly JournalEvent[]
 	freshAfter: number | null
 	// Whether the first read has settled, answered or not; until then an empty journal says
 	// nothing about the hub's history.
@@ -63,7 +69,6 @@ export type Journal = {
 
 export const EMPTY_JOURNAL: Journal = {
 	events: [],
-	latest: 0,
 	freshAfter: null,
 	isRead: false,
 }

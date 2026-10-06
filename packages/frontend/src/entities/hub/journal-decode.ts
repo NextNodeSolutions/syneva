@@ -9,8 +9,8 @@ import {
 } from '@shared/api/decode'
 
 import type {
-	Journal,
 	JournalEvent,
+	JournalRead,
 	JournalScope,
 	JournalSubject,
 	RoundVerdicts,
@@ -95,14 +95,12 @@ function decodeEvent(raw: unknown, endpoint: string): JournalEvent {
 	}
 }
 
-export function decodeJournal(raw: unknown, endpoint: string): Journal {
+export function decodeJournal(raw: unknown, endpoint: string): JournalRead {
 	const o = assertObject(raw, endpoint, 'journal')
 	return {
 		events: requiredArray(o, 'events', endpoint).map(entry =>
 			decodeEvent(entry, endpoint),
 		),
 		latest: requiredNumber(o, 'latest', endpoint),
-		freshAfter: null,
-		isRead: true,
 	}
 }

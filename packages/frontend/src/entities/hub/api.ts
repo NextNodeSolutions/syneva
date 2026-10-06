@@ -5,7 +5,7 @@ import { HUB_PATHS, hubDeskPath, STATIC_PATHS } from '@syneva/contracts/routes'
 import { decodeHubDesk, decodeHubDesks, decodeHubHealth } from './decode'
 import { decodeJournal } from './journal-decode'
 
-import type { Journal } from './journal'
+import type { JournalRead } from './journal'
 import type { HubDesk, HubHealth, NewDeskInput } from './model'
 
 // The hub entity's API boundary: the only place the hub routes are named. Paths come from
@@ -41,7 +41,7 @@ export const fetchHubHealth = async (
 export const fetchHubJournal = async (
 	after: number | null,
 	signal?: AbortSignal,
-): Promise<Journal> => {
+): Promise<JournalRead> => {
 	const query = after === null ? '' : `?after=${after}`
 	return decodeJournal(
 		await hubApi(`${HUB_PATHS.journal}${query}`, {
