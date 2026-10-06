@@ -82,11 +82,6 @@ export const circuit = stylex.create({
 		display: 'flex',
 		alignItems: 'center',
 		gap: '8px',
-		fontFamily: font['--mono'],
-		fontSize: '10.5px',
-		letterSpacing: '.08em',
-		textTransform: 'uppercase',
-		color: color['--muted'],
 		whiteSpace: 'nowrap',
 	},
 	countRow: {

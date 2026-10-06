@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import { TURNS, turnOf } from '@entities/hub/turn'
 import { useFlip } from '@shared/lib/use-flip'
 import { LiveDot } from '@shared/ui/live-dot'
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 
 import { HoldList } from '../../react/hold-list'
@@ -50,7 +51,7 @@ function BoardColumn({
 				turn === 'yours' && board.columnYours,
 			)}
 		>
-			<h2 {...stylex.props(board.head)}>
+			<h2 {...stylex.props(sectionLabel.base, board.head)}>
 				<LiveDot
 					tone={copy.dot.tone}
 					hollow={copy.dot.isHollow}

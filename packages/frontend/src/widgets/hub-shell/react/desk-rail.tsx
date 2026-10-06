@@ -4,6 +4,7 @@ import { desksOfTurn } from '@entities/hub/turn'
 import { useHub } from '@entities/hub/use-hub'
 import { useDismiss } from '@shared/lib/use-dismiss'
 import { LiveDot } from '@shared/ui/live-dot'
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 import { focus } from '@syneva/design-system/controls.styles'
 
@@ -38,7 +39,10 @@ function WaitingDesks({
 				!isShown && sidebar.labelFolded,
 			)}
 		>
-			<p id="rail-waiting" {...stylex.props(deskRail.waitingLabel)}>
+			<p
+				id="rail-waiting"
+				{...stylex.props(sectionLabel.base, deskRail.waitingLabel)}
+			>
 				Also waiting on you
 			</p>
 			<ul {...stylex.props(deskRail.waitingList)}>

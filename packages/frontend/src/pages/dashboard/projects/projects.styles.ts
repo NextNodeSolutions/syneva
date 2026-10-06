@@ -22,11 +22,6 @@ export const projectsList = stylex.create({
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line-strong'],
-		fontFamily: font['--mono'],
-		fontSize: '10.5px',
-		letterSpacing: '.08em',
-		textTransform: 'uppercase',
-		color: color['--muted'],
 	},
 	row: {
 		display: 'grid',

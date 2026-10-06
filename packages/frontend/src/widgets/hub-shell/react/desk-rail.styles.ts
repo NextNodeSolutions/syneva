@@ -52,11 +52,6 @@ export const deskRail = stylex.create({
 		paddingInline: '12px',
 		paddingTop: '10px',
 		boxSizing: 'border-box',
-		fontFamily: font['--mono'],
-		fontSize: '10.5px',
-		letterSpacing: '.08em',
-		textTransform: 'uppercase',
-		color: color['--muted'],
 		whiteSpace: 'nowrap',
 	},
 	waitingLink: {

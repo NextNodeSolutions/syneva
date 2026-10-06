@@ -1,5 +1,6 @@
 import { useCountUp } from '@shared/lib/use-count-up'
 import { LiveDot } from '@shared/ui/live-dot'
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 import { focus } from '@syneva/design-system/controls.styles'
 
@@ -85,7 +86,7 @@ export function Station({
 				isSelected && circuit.stationOn,
 			)}
 		>
-			<span {...stylex.props(circuit.label)}>
+			<span {...stylex.props(sectionLabel.base, circuit.label)}>
 				<LiveDot
 					tone={copy.dot.tone}
 					hollow={copy.dot.isHollow}

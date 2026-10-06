@@ -1,4 +1,5 @@
 import { Popover } from '@shared/ui/popover'
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 import { focus } from '@syneva/design-system/controls.styles'
 import { ShellIcon } from '@widgets/hub-shell/react/shell-icon'
@@ -36,7 +37,7 @@ function FilterLists({
 	return (
 		<>
 			<div {...stylex.props(menu.section)}>
-				<p {...stylex.props(menu.label)}>Project</p>
+				<p {...stylex.props(sectionLabel.base, menu.label)}>Project</p>
 				{projects.map(project => (
 					<MenuCheck
 						key={project.id}
@@ -53,7 +54,7 @@ function FilterLists({
 				))}
 			</div>
 			<div {...stylex.props(menu.section)}>
-				<p {...stylex.props(menu.label)}>Review</p>
+				<p {...stylex.props(sectionLabel.base, menu.label)}>Review</p>
 				{MODE_KEYS.map(mode => (
 					<MenuCheck
 						key={mode}

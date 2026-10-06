@@ -16,11 +16,6 @@ export const menu = stylex.create({
 	sectionLast: { borderBottomWidth: 0 },
 	label: {
 		marginBottom: '8px',
-		fontFamily: font['--mono'],
-		fontSize: '10.5px',
-		letterSpacing: '.08em',
-		textTransform: 'uppercase',
-		color: color['--muted'],
 	},
 	tiles: {
 		display: 'grid',

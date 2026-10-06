@@ -1,3 +1,4 @@
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 
 import { currentNav, HUB_NAV, WORK_NAV } from '../nav'
@@ -28,6 +29,7 @@ function HubNav({
 				id="hub-nav-label"
 				data-enter="slide"
 				{...stylex.props(
+					sectionLabel.base,
 					sidebar.group,
 					sidebar.label,
 					isFolded && sidebar.labelFolded,

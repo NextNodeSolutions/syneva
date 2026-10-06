@@ -1,4 +1,5 @@
 import { useCountUp } from '@shared/lib/use-count-up'
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 
 import { cockpit } from './cockpit.styles'
@@ -27,7 +28,7 @@ export function StatTile({
 			data-enter="rise"
 			{...stylex.props(cockpit.tile, isYours && cockpit.tileYours)}
 		>
-			<p {...stylex.props(cockpit.tileLabel)}>{label}</p>
+			<p {...stylex.props(sectionLabel.base)}>{label}</p>
 			{stat ? (
 				<p {...stylex.props(cockpit.figure)}>
 					{shown}

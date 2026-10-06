@@ -1,4 +1,5 @@
 import { Popover } from '@shared/ui/popover'
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 import { focus } from '@syneva/design-system/controls.styles'
 import { ShellIcon } from '@widgets/hub-shell/react/shell-icon'
@@ -102,15 +103,17 @@ export function DisplayMenu({
 	return (
 		<Popover trigger={{ face: FACE, isActive: false }} label="Display">
 			<div {...stylex.props(menu.section)}>
-				<p {...stylex.props(menu.label)}>Layout</p>
+				<p {...stylex.props(sectionLabel.base, menu.label)}>Layout</p>
 				<LayoutTiles layout={layout} onLayout={onLayout} />
 			</div>
 			<div {...stylex.props(menu.section)}>
-				<p {...stylex.props(menu.label)}>Group the list</p>
+				<p {...stylex.props(sectionLabel.base, menu.label)}>
+					Group the list
+				</p>
 				<GroupingChoice prefs={prefs} />
 			</div>
 			<div {...stylex.props(menu.section, menu.sectionLast)}>
-				<p {...stylex.props(menu.label)}>Show</p>
+				<p {...stylex.props(sectionLabel.base, menu.label)}>Show</p>
 				<MenuCheck
 					label="Idle desks"
 					isChecked={prefs.showsIdle}

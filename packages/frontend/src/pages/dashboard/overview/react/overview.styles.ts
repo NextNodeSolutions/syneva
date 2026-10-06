@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color } from '@syneva/design-system/tokens.stylex'
 import { transition } from '@syneva/design-system/transitions.stylex'
 
 import { pageInset } from '../../react/page.stylex'
@@ -46,13 +46,6 @@ export const overview = stylex.create({
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line-strong'],
-	},
-	journalTitle: {
-		fontFamily: font['--mono'],
-		fontSize: '10.5px',
-		letterSpacing: '.08em',
-		textTransform: 'uppercase',
-		color: color['--muted'],
 	},
 	journalLink: {
 		fontSize: '12px',

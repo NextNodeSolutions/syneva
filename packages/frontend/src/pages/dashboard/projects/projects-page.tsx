@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import { useEntrance } from '@shared/lib/use-entrance'
 import { AppLink } from '@shared/ui/app-link'
 import { ArrowRight } from '@shared/ui/arrow-right'
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 import { projectPagePath } from '@syneva/contracts/routes'
 import { focus } from '@syneva/design-system/controls.styles'
@@ -116,7 +117,10 @@ export function ProjectsPage({
 				lede={`${plural(entries.length, 'repository', 'repositories')} this hub has reviewed, with their desks and their rounds.`}
 			/>
 			<div {...stylex.props(listPage.body, projectsList.root)}>
-				<p {...stylex.props(projectsList.head)} aria-hidden="true">
+				<p
+					{...stylex.props(sectionLabel.base, projectsList.head)}
+					aria-hidden="true"
+				>
 					<span>Repository</span>
 					<span>Live desks</span>
 					<span>Wait on you</span>

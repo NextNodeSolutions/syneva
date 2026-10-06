@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color } from '@syneva/design-system/tokens.stylex'
 
 // The board: a column per turn, in the order the round runs, the reviewer's own first. Columns
 // part on hairlines; a column's head carries its square, its name and its count. Narrower than
@@ -47,11 +47,6 @@ export const board = stylex.create({
 		gap: '8px',
 		height: '46px',
 		flexShrink: 0,
-		fontFamily: font['--mono'],
-		fontSize: '10.5px',
-		letterSpacing: '.08em',
-		textTransform: 'uppercase',
-		color: color['--muted'],
 	},
 	count: { marginLeft: 'auto', fontSize: '12px', color: color['--ink'] },
 	empty: {

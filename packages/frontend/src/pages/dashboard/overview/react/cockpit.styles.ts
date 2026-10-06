@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { color } from '@syneva/design-system/tokens.stylex'
 
 // The cockpit: the hub's numbers over the same ledger. Four ruled tiles, then two figures (the
 // rounds of the last two weeks, this week's verdicts), each in a white cell parted by
@@ -34,13 +34,6 @@ export const cockpit = stylex.create({
 	// The reviewer's own count: its tile is the one with a petrol rule on top.
 	tileYours: {
 		boxShadow: `inset 0 2px 0 ${color['--accent']}, inset -1px -1px 0 ${color['--line']}`,
-	},
-	tileLabel: {
-		fontFamily: font['--mono'],
-		fontSize: '10.5px',
-		letterSpacing: '.08em',
-		textTransform: 'uppercase',
-		color: color['--muted'],
 	},
 	figure: {
 		display: 'flex',

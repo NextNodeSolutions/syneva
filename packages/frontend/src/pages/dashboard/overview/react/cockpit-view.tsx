@@ -1,3 +1,4 @@
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 
 import { plural } from '../../format'
@@ -71,7 +72,7 @@ function FigureCell({
 			data-enter="fade"
 		>
 			<div {...stylex.props(cockpit.cellHead)}>
-				<h2 id={id} {...stylex.props(cockpit.tileLabel)}>
+				<h2 id={id} {...stylex.props(sectionLabel.base)}>
 					{title}
 				</h2>
 				<p {...stylex.props(cockpit.cellNote)}>{note}</p>

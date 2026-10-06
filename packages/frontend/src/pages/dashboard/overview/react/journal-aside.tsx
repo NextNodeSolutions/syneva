@@ -1,4 +1,5 @@
 import { AppLink } from '@shared/ui/app-link'
+import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 import { DASHBOARD_PATHS } from '@syneva/contracts/routes'
 import { focus } from '@syneva/design-system/controls.styles'
@@ -33,7 +34,7 @@ export function JournalAside({
 			data-enter="fade"
 		>
 			<div {...stylex.props(overview.journalHead)}>
-				<h2 id="journal-title" {...stylex.props(overview.journalTitle)}>
+				<h2 id="journal-title" {...stylex.props(sectionLabel.base)}>
 					Journal
 				</h2>
 				<AppLink

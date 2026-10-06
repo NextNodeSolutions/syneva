@@ -71,11 +71,6 @@ export const sidebar = stylex.create({
 		height: '28px',
 		paddingInline: '12px',
 		paddingTop: '10px',
-		fontFamily: font['--mono'],
-		fontSize: '10.5px',
-		letterSpacing: '.08em',
-		textTransform: 'uppercase',
-		color: color['--muted'],
 	},
 	// The fold control keeps to the foot's end, 12px in from the rail's edge (11px inside the
 	// sidebar's right rule), so its icon sits on the rail's centre line folded and follows the moving edge while the sidebar folds (never re-centred, which
