@@ -11,10 +11,14 @@ function eased(progress: number): number {
 
 // A number that ticks from what it showed to what it is now, on a frame clock, so a count that
 // changes under the reviewer's eyes is seen changing. The first value shows at once unless
-// `isFromZero` asks it to count up from nothing (an entrance). Reduced motion jumps.
+// `isFromZero` asks it to count up from nothing (an entrance); a count runs `durationMs`.
+// Reduced motion jumps.
 export function useCountUp(
 	target: number,
-	{ isFromZero = false }: { isFromZero?: boolean } = {},
+	{
+		isFromZero = false,
+		durationMs = MOTION_MS.count,
+	}: { isFromZero?: boolean; durationMs?: number } = {},
 ): number {
 	const [shown, setShown] = useState(isFromZero ? 0 : target)
 	// What the last frame showed: the next count starts from there, even mid-count.
@@ -37,13 +41,13 @@ export function useCountUp(
 			// ease past `from` and show a figure the count never holds.
 			const progress = Math.min(
 				1,
-				Math.max(0, (time - start) / MOTION_MS.count),
+				Math.max(0, (time - start) / durationMs),
 			)
 			show(Math.round(from + (target - from) * eased(progress)))
 			if (progress < 1) frame = requestAnimationFrame(tick)
 		}
 		frame = requestAnimationFrame(tick)
 		return (): void => cancelAnimationFrame(frame)
-	}, [target])
+	}, [target, durationMs])
 	return shown
 }
