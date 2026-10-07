@@ -12,8 +12,16 @@ import { applyAppearance } from '@entities/settings/settings'
 import { approveCurrentFile } from '@features/decide-change/decisions'
 import { openInEditor } from '@features/open-editor/open-editor'
 import { render } from '@shared/lib/render-scheduler'
+import { createSaver } from '@shared/lib/saver'
 import { setMarkdownTheme } from '@shared/markdown'
 import { D } from '@widgets/diff-view/runtime'
+
+// Each write replaces the whole preferences file, so two in flight could land out of order: one
+// write at a time, then one trailing write of the newest preferences, keeps the last choice on disk.
+const prefsSaver = createSaver(
+	() => ({ settings: S.settings, diffStyle: S.diffStyle }),
+	persistSettings,
+)
 
 export function installFileActionBindings(): void {
 	installLayoutBindings()
@@ -23,7 +31,7 @@ export function installFileActionBindings(): void {
 function installLayoutBindings(): void {
 	S.setStyle = style => {
 		S.diffStyle = style
-		void persistSettings({ settings: S.settings, diffStyle: S.diffStyle })
+		prefsSaver.trigger()
 		void render()
 	}
 	S.setFileView = view => {
@@ -32,7 +40,7 @@ function installLayoutBindings(): void {
 		void render()
 	}
 	S.applySettings = () => {
-		void persistSettings({ settings: S.settings, diffStyle: S.diffStyle })
+		prefsSaver.trigger()
 		applyAppearance(S.settings)
 		setMarkdownTheme(S.settings.theme)
 		void render()
@@ -66,7 +74,7 @@ function installSignOffBindings(): void {
 	S.hasReviewed = () => hasReviewedMaterial(S.state)
 	S.toggleHideReviewed = () => {
 		S.settings = { ...S.settings, hideReviewed: !S.settings.hideReviewed }
-		void persistSettings({ settings: S.settings, diffStyle: S.diffStyle })
+		prefsSaver.trigger()
 		void render()
 		toast(
 			S.settings.hideReviewed
