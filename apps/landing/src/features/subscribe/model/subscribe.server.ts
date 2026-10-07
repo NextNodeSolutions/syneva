@@ -1,13 +1,14 @@
 import { logFailure } from './log-failure.server'
 import { isTrapped, readForm, signupOf } from './read-signup.server'
 
+import type { ListEmail } from './list-email'
 import type { Outcome } from './outcome'
 import type { Signup } from './signup'
 
 export type SignupBindings = {
 	list: D1Database
 	limiter: RateLimit
-	welcome: (email: string) => Promise<void>
+	send: (to: string, kind: ListEmail) => Promise<void>
 	// Keeps work running after the response is sent (the Worker's waitUntil).
 	defer: (work: Promise<void>) => void
 }
@@ -32,16 +33,20 @@ async function addSubscriber(
 	return meta.changes > 0
 }
 
-// A failed welcome is logged, never thrown: the signup it follows already stands.
-async function welcome(bindings: SignupBindings, email: string): Promise<void> {
+// A failed email is logged, never thrown: the signup it follows already stands.
+async function notify(
+	bindings: SignupBindings,
+	email: string,
+	kind: ListEmail,
+): Promise<void> {
 	try {
-		await bindings.welcome(email)
+		await bindings.send(email, kind)
 	} catch (error) {
-		logFailure('subscribe.welcome-failed', error)
+		logFailure(`subscribe.${kind}-failed`, error)
 	}
 }
 
-// Every try counts against the client's limit, a valid one included, before the body is read; only a new address is welcomed, after the answer is sent (the welcome never changes it), and a failed welcome leaves the signup standing.
+// Every try counts against the client's limit, a valid one included, before the body is read. A new address is welcomed and one already on the list is told so, both after the answer is sent (the email never changes it), and a failed email leaves the signup standing.
 export async function subscribe(
 	request: Request,
 	client: string,
@@ -54,12 +59,14 @@ export async function subscribe(
 	if (isTrapped(form)) return 'subscribed'
 	const signup = signupOf(form)
 	if (!signup) return 'invalid'
+	let isNew: boolean
 	try {
-		if (!(await addSubscriber(bindings.list, signup))) return 'subscribed'
+		isNew = await addSubscriber(bindings.list, signup)
 	} catch (error) {
 		logFailure('subscribe.failed', error)
 		return 'failed'
 	}
-	bindings.defer(welcome(bindings, signup.email))
+	const kind: ListEmail = isNew ? 'welcome' : 'already-listed'
+	bindings.defer(notify(bindings, signup.email, kind))
 	return 'subscribed'
 }

@@ -101,6 +101,7 @@ export default defineConfig({
 				'apps/landing/src/**/*.astro',
 				'apps/landing/src/**/*.tsx',
 				'apps/landing/src/features/subscribe/email/welcome-copy.ts',
+				'apps/landing/src/features/subscribe/email/already-listed-copy.ts',
 				'apps/landing/src/entities/desk/model/agent-contract.ts',
 				'apps/landing/src/views/*/ui/art/*.ts',
 			],

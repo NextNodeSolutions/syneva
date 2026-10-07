@@ -1,4 +1,4 @@
-// An address already on the list ends `subscribed` too, so the answer never reveals who signed up.
+// An address already on the list ends `subscribed` too: the form answers the same, and the email it gets says it was already there.
 const OUTCOMES = ['subscribed', 'invalid', 'limited', 'failed'] as const
 export type Outcome = (typeof OUTCOMES)[number]
 
