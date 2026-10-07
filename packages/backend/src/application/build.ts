@@ -119,10 +119,20 @@ async function resolveScope(
 	const requested = path.isAbsolute(diffPath)
 		? diffPath
 		: path.resolve(cwd, diffPath)
-	const isDir = await git.workspace.isDirectory(requested)
-	const discovery = isDir ? requested : path.dirname(requested)
-	const root = await git.getGitRoot(discovery)
+	const root = await git.getGitRoot(await discoveryDir(cwd, requested, git))
 	return { root, relative: path.relative(root, requested) }
+}
+
+// Git is found from the scoped folder (a scoped file's own folder); once that folder is deleted or renamed, from cwd instead, so the scope still diffs - showing the deletion - rather than git failing to start in a folder that is gone.
+async function discoveryDir(
+	cwd: string,
+	requested: string,
+	git: GitPort,
+): Promise<string> {
+	if (await git.workspace.isDirectory(requested)) return requested
+	const parent = path.dirname(requested)
+	if (await git.workspace.isDirectory(parent)) return parent
+	return cwd
 }
 
 // A desk with nothing to review yet, over an empty diff: the hub keeps such a desk open (the agent's next reload fills it) instead of refusing it, so a review can be set up before the changes exist.
