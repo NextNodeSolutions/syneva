@@ -30,14 +30,11 @@ export async function reloadDesk(
 		validatedGuide = validation.guide
 	}
 	const base = await rebuildBase(state, pathFilter, io.git)
-	if (!base) return await reloadEmpty(state, io)
-	let merged = await mergeReviewState(base, state, io.git)
-	// A posted guide replaces the carried one, stamped with the diff it describes as of now so it is not born stale; a reload without one leaves the carried guide alone.
-	if (validatedGuide)
-		merged = {
-			...merged,
-			guide: { ...validatedGuide, baseDiffHash: merged.baseDiffHash },
-		}
+	if (!base) return await reloadEmpty(state, validatedGuide, io)
+	const merged = withPostedGuide(
+		await mergeReviewState(base, state, io.git),
+		validatedGuide,
+	)
 	const snapshot = await readStagedSnapshot(merged, io.git)
 	const persisted = await io.store.persistReview({ ...merged, ...snapshot })
 	return {
@@ -76,18 +73,32 @@ function rebuildPathOf(
 	return undefined
 }
 
+// A posted guide replaces the carried one, stamped with the diff it describes as of now so it is not born stale; a reload without one leaves the carried guide alone.
+function withPostedGuide(
+	state: ReviewState,
+	guide: Guide | undefined,
+): ReviewState {
+	if (!guide) return state
+	return { ...state, guide: { ...guide, baseDiffHash: state.baseDiffHash } }
+}
+
 // Keeps the desk up with an empty diff; deliberately does NOT run mergeReviewState/readStagedSnapshot reconciliation - that divergence predates this cleanup and is preserved here.
+// A guide posted with this reload is kept like on a non-empty one: an open over an empty diff keeps its guide too.
 async function reloadEmpty(
 	state: ReviewState,
+	guide: Guide | undefined,
 	io: ReloadIo,
 ): Promise<ReloadOutcome> {
-	const emptied: ReviewState = {
-		...state,
-		files: [],
-		changes: [],
-		rawDiff: '',
-		baseDiffHash: hash(''),
-	}
+	const emptied = withPostedGuide(
+		{
+			...state,
+			files: [],
+			changes: [],
+			rawDiff: '',
+			baseDiffHash: hash(''),
+		},
+		guide,
+	)
 	const persisted = await io.store.persistReview(emptied)
 	return {
 		kind: 'empty',
