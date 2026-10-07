@@ -13,13 +13,13 @@ export const agentPicker = stylex.create({
 	},
 	// A legend takes no flex layout of its own in older engines: it floats over the fieldset's own box instead.
 	legend: { float: 'left', width: '100%', paddingInline: 0 },
-	// Six agents, three to a line: the grid keeps every chip the same width, so none sits alone on a wrapped line.
+	// Six agents, three to a line; two on phones, where the sheet's field column (44px gutter, narrow pads) clips the widest label: the same width keeps every chip equal, so none sits alone on a wrapped line.
 	chips: {
 		clear: 'both',
 		display: 'grid',
 		gridTemplateColumns: {
 			default: 'repeat(3, minmax(0, 1fr))',
-			[media.smallPhone]: 'repeat(2, minmax(0, 1fr))',
+			[media.phone]: 'repeat(2, minmax(0, 1fr))',
 		},
 		gap: '8px',
 		paddingTop: '12px',
