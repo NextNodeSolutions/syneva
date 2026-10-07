@@ -8,18 +8,18 @@ import type { RefObject, SubmitEvent } from 'react'
 import type { Outcome } from './outcome'
 import type { Signup } from './signup'
 
-type Refusal = Exclude<Outcome, 'subscribed'>
+type Answer = Exclude<Outcome, 'subscribed'>
 type Attempt =
 	| { phase: 'editing' }
 	| { phase: 'sending' }
-	| { phase: 'refused'; outcome: Refusal }
+	| { phase: 'answered'; outcome: Answer }
 
 const EDITING: Attempt = { phase: 'editing' }
 const MISSING_EMAIL = 'Your email address, so I know where to write.'
 const SENDING: Notice = { tone: 'sending', text: 'Sending\u2026' }
 
-// The form's status line: the round trip under way, or a refusal the field cannot fix (too many tries, a failed send).
-export type Notice = { tone: 'sending' | 'refused'; text: string }
+// The form's status line: the round trip under way, a refusal the field cannot fix (too many tries, a failed send), or word that the address already signed up today, which faults nothing.
+export type Notice = { tone: 'sending' | 'refused' | 'info'; text: string }
 
 export type SignupForm = {
 	draft: Signup
@@ -42,21 +42,25 @@ function noticeOf(attempt: Attempt): Notice | undefined {
 	if (attempt.phase === 'sending') return SENDING
 	if (attempt.phase === 'editing' || attempt.outcome === 'invalid')
 		return undefined
-	return { tone: 'refused', text: OUTCOME_MESSAGE[attempt.outcome] }
+	const { outcome } = attempt
+	return {
+		tone: outcome === 'signed-up-today' ? 'info' : 'refused',
+		text: OUTCOME_MESSAGE[outcome],
+	}
 }
 
 // The endpoint's word on the address outranks the form's own check.
 function emailProblemOf(
 	email: string,
 	isChecked: boolean,
-	refusal: Refusal | undefined,
+	answer: Answer | undefined,
 ): string | undefined {
-	if (refusal === 'invalid') return OUTCOME_MESSAGE.invalid
+	if (answer === 'invalid') return OUTCOME_MESSAGE.invalid
 	if (!isChecked) return undefined
 	return problemWith(email)
 }
 
-// One form's draft, its checks and its round trip. A signup the endpoint takes goes to `onJoined`; a refusal keeps everything typed, so a retry is one press, and puts the caret back in `emailField`.
+// One form's draft, its checks and its round trip. A signup the endpoint takes goes to `onJoined`; any other answer (a refusal, or word that the address already signed up today) keeps everything typed, so a retry is one press, and puts the caret back in `emailField`.
 export function useSignupForm(
 	onJoined: (signup: Signup) => void,
 	emailField: RefObject<HTMLInputElement | null>,
@@ -65,7 +69,7 @@ export function useSignupForm(
 	const [isChecked, setIsChecked] = useState(false)
 	const [attempt, setAttempt] = useState<Attempt>(EDITING)
 	const email = draft.email.trim()
-	const refusal = attempt.phase === 'refused' ? attempt.outcome : undefined
+	const answer = attempt.phase === 'answered' ? attempt.outcome : undefined
 
 	const send = async (form: HTMLFormElement): Promise<void> => {
 		setAttempt({ phase: 'sending' })
@@ -75,7 +79,7 @@ export function useSignupForm(
 			onJoined({ ...draft, email, name: cleanName(draft.name) })
 			return
 		}
-		setAttempt({ phase: 'refused', outcome })
+		setAttempt({ phase: 'answered', outcome })
 		emailField.current?.focus()
 	}
 
@@ -85,9 +89,9 @@ export function useSignupForm(
 		edit: change => {
 			if (attempt.phase === 'sending') return
 			setDraft(current => ({ ...current, ...change }))
-			if (refusal) setAttempt(EDITING)
+			if (answer) setAttempt(EDITING)
 		},
-		emailProblem: emailProblemOf(email, isChecked, refusal),
+		emailProblem: emailProblemOf(email, isChecked, answer),
 		notice: noticeOf(attempt),
 		isSending: attempt.phase === 'sending',
 		checkEmail: () => {

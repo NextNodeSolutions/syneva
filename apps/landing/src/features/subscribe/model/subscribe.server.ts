@@ -52,7 +52,7 @@ async function notify(
 	}
 }
 
-// Every try counts against the client's limit, a valid one included, before the body is read. A new address is welcomed and one already on the list is told so (once a day at most), both after the answer is sent (the email never changes it), and a failed email leaves the signup standing.
+// Every try counts against the client's limit, a valid one included, before the body is read. A new address is welcomed and one already on the list is told so, both after the answer is sent (the email never changes it), and a failed email leaves the signup standing. Within a day of the address's last email, nothing is sent and the answer says so.
 export async function subscribe(
 	request: Request,
 	client: string,
@@ -72,6 +72,7 @@ export async function subscribe(
 		logFailure('subscribe.failed', error)
 		return 'failed'
 	}
-	if (kind) bindings.defer(notify(bindings, signup.email, kind))
+	if (!kind) return 'signed-up-today'
+	bindings.defer(notify(bindings, signup.email, kind))
 	return 'subscribed'
 }
