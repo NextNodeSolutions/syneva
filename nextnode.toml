@@ -25,7 +25,7 @@ url = "syneva.dev"
 # along for the smoke check.
 entry = "apps/landing/dist/server/entry.mjs"
 needs = ["d1"]
-# Welcome email via Resend from hello@syneva.dev (GitHub env-secret in dev and prod).
+# Launch list emails (the welcome, the already-on-the-list note) via Resend from hello@syneva.dev (GitHub env-secret in dev and prod).
 secrets = ["RESEND_API_KEY"]
 
 # Signup abuse guard per client address (env.RL_SUBSCRIBE): a few tries a
