@@ -1,12 +1,13 @@
 import { countLines, SAMPLE_CHANGE } from '@entities/desk/model/sample-round'
-import { PRINCIPLES, TAGLINE } from '@entities/site/model/project'
+import { PRINCIPLES } from '@entities/site/model/project'
 import { twoDigits } from '@shared/lib/two-digits'
 
 import { COMING } from '../model/coming'
 
-import { followLinks, footerReason, WELCOME_COPY } from './welcome-copy'
+import { frameText } from './frame-text'
+import { WELCOME_COPY } from './welcome-copy'
 
-import type { WelcomeEmailProps } from './WelcomeEmail'
+import type { ListEmailProps } from '../model/list-email'
 
 const SIGN = { context: ' ', added: '+', removed: '-' } as const
 
@@ -25,14 +26,13 @@ const roundText = (): string[] => {
 }
 
 // The plain-text body, laid out for a text reader rather than derived from the HTML's tables.
-export function welcomeText({ recipient, origin }: WelcomeEmailProps): string {
-	const { added, verdict, body, coming, follow } = WELCOME_COPY
+export function welcomeText(props: ListEmailProps): string {
+	const { added, verdict, body, coming } = WELCOME_COPY
 	const pages = COMING.flatMap((page, index) => [
 		`${twoDigits(index + 1)} ${page.title}: ${page.blurb}`,
-		`   ${origin}${page.href}`,
+		`   ${props.origin}${page.href}`,
 	])
-	const links = followLinks(origin).map(link => `${link.label}: ${link.href}`)
-	return [
+	return frameText(props, [
 		added,
 		`${verdict.before} ${verdict.decided} ${verdict.after}`,
 		'',
@@ -44,13 +44,5 @@ export function welcomeText({ recipient, origin }: WelcomeEmailProps): string {
 		...pages,
 		'',
 		PRINCIPLES.join(' / '),
-		'',
-		'--',
-		`${follow}:`,
-		...links,
-		'',
-		footerReason(recipient, new URL(origin).host),
-		TAGLINE,
-		'',
-	].join('\n')
+	])
 }
