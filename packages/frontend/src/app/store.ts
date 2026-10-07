@@ -1,10 +1,12 @@
 import { saveReview } from '@entities/review/api'
 import { reviewerSlice } from '@entities/review/save'
+import { persistSettings } from '@entities/settings/api'
 import { loadSettings } from '@entities/settings/settings'
 import { reactive } from '@shared/lib/reactive'
 import { createSaver } from '@shared/lib/saver'
 
 import type { ReviewState } from '@entities/review/model'
+import type { SavedPrefs } from '@entities/settings/api'
 import type { Store } from './store-state'
 
 const TOAST_MS = 2800
@@ -85,3 +87,20 @@ export const saver = createSaver(
 // approval) MUST call persist() to write the review to ~/.syneva/<repoHash>/<session>/; saves
 // coalesce: at most one in flight, rapid triggers collapse into a single trailing save.
 export const persist = (): void => saver.trigger()
+
+const currentPrefs = (): SavedPrefs => ({
+	settings: S.settings,
+	diffStyle: S.diffStyle,
+})
+// Each preferences write replaces the whole ~/.syneva/settings.json, so they share one saver
+// too: one write in flight, then one trailing write of the newest choice, which lands last.
+export const prefsSaver = createSaver(currentPrefs, prefs =>
+	persistSettings(prefs),
+)
+export const persistPrefs = (): void => prefsSaver.trigger()
+// A page that unloads never runs the trailing write: a choice still queued leaves at once, on
+// a request that outlives the page. Nothing queued, nothing written.
+export function flushPrefsOnLeave(): void {
+	if (prefsSaver.isPending())
+		void persistSettings(currentPrefs(), { keepalive: true })
+}
