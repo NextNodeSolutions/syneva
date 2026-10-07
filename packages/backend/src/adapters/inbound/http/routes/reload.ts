@@ -13,6 +13,7 @@ export async function reloadDeskFromRequest({
 	await ctx.serialize(async (): Promise<void> => {
 		const outcome = await reloadDesk(
 			ctx.state,
+			ctx.pathFilter,
 			{ git: ctx.git, store: ctx.store },
 			guideSwapOf(await readBody(req)),
 		)

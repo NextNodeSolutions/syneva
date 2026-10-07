@@ -55,7 +55,7 @@ export function hostDesk(
 		liveness,
 		record,
 		closing: false,
-		ctx: createDeskContext(review, {
+		ctx: createDeskContext(review, record.pathFilter, {
 			events: createEventStream(),
 			activity: createActivity(io.statusTtlMs),
 			liveness,

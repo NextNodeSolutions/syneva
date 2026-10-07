@@ -34,6 +34,9 @@ export type DeskContext = {
 	// Monotonic, advanced only when a mutation commits a different root (a same root is a no-op);
 	// the /state body cache keys on it.
 	readonly revision: number
+	// The repo-mode `--path` limit the desk was opened with (its registry record): the review state
+	// does not carry it, so a reload passes it on to re-diff within the same paths.
+	readonly pathFilter: string | undefined
 	events: EventStream
 	activity: DeskActivity
 	liveness: DeskLiveness
@@ -67,6 +70,7 @@ export type DeskContext = {
 
 export function createDeskContext(
 	state: ReviewState,
+	pathFilter: string | undefined,
 	collaborators: {
 		events: EventStream
 		activity: DeskActivity
@@ -86,6 +90,7 @@ export function createDeskContext(
 	return {
 		...collaborators,
 		instanceId: randomUUID(),
+		pathFilter,
 		stateBodyCache,
 		get state(): ReviewState {
 			return owner.state
