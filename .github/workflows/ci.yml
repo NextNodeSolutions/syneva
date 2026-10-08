@@ -1,4 +1,4 @@
-name: Factory PR checks
+name: CI
 
 on:
     pull_request:
@@ -8,12 +8,12 @@ permissions:
     contents: read
 
 concurrency:
-    group: factory-pr-${{ github.event.pull_request.number }}
+    group: ci-pr-${{ github.event.pull_request.number }}
     cancel-in-progress: true
 
 jobs:
     checks:
-        name: Factory PR checks
+        name: CI
         runs-on: ubuntu-latest
         timeout-minutes: 20
         steps:
