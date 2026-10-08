@@ -22,6 +22,7 @@ import {
 import { clearOverviewRuler } from '@widgets/diff-view/overview-ruler'
 import { releaseDiffInstance } from '@widgets/diff-view/runtime'
 
+import { renderEmptyDesk } from './empty'
 import { renderOverview } from './overview'
 
 import type { ReviewState } from '@entities/review/model'
@@ -140,7 +141,9 @@ async function renderCenter(sequence: number): Promise<void> {
 	if (!file) {
 		cursorReset()
 		detachDiffInstance()
-		$('diff').replaceChildren()
+		const { state } = diffCtx().S
+		if (state && !state.files.length) renderEmptyDesk()
+		else $('diff').replaceChildren()
 		return
 	}
 	const isPreviewing = !!diffCtx().S.preview
