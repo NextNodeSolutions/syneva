@@ -20,6 +20,9 @@ export const app = stylex.create({
 			default: `${shell.railWidth} minmax(0, 1fr)`,
 			[media.stacked]: 'minmax(0, 1fr)',
 		},
+		// One viewport-height row: an auto row would size the desk to its content, so every
+		// column would grow instead of clipping and no pane would ever have a scroll range.
+		gridTemplateRows: '100%',
 	},
 	// The rail's placeholder while its code loads: the folded rail's own rules (its right edge, the top bar's bottom rule level with the desk's), so nothing redraws when it lands.
 	railSpace: {
