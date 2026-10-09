@@ -2,6 +2,11 @@
 
 export type Parsed<T> = { ok: true; value: T } | { ok: false; reason: string }
 
+// `where[index]`: the field name of one entry of a list, as every validation message spells it.
+export function indexed(where: string, index: number): string {
+	return `${where}[${String(index)}]`
+}
+
 export function fail(reason: string): { ok: false; reason: string } {
 	return { ok: false, reason }
 }
