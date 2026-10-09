@@ -172,6 +172,7 @@ async function reuseDesk(
 	const outcome = await live.ctx.serialize(() =>
 		reloadDesk(
 			live.ctx.state,
+			live.ctx.pathFilter,
 			{ git: state.io.git, store: state.io.store },
 			guideSwap,
 		),
