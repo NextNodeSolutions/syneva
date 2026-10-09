@@ -1,3 +1,5 @@
+import { lazy, Suspense } from 'react'
+
 import { useStoreFields } from '@shared/lib/use-store-version'
 import { deskControl, tabs } from '@shared/ui/desk-control.styles'
 import { Icon } from '@shared/ui/icon'
@@ -12,11 +14,16 @@ import { chromeCtx } from '../context'
 import { glyph, row, sidebar } from './sidebar.styles'
 import { ChangedIcon, StateBadge } from './tree-badges'
 import { Chevron, indentStyle, MovedFrom } from './tree-parts'
-import { WalkNode } from './walkthrough-rows'
 
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { Style } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
+
+// The Guide tab's navigator rides the guided review's chunk: a desk without a guide never loads it.
+const DomainNavigator = lazy(async () => {
+	const module = await import('./domain-navigator')
+	return { default: module.DomainNavigator }
+})
 
 function activePath(S: ReturnType<typeof chromeCtx>['S']): string | null {
 	if (S.overviewOpen) return null
@@ -153,7 +160,7 @@ function TreeTabs(): ReactElement {
 	return (
 		<div {...stylex.props(tabs.strip, sidebar.tabs)} role="tablist">
 			{tab('tree', 'Tree')}
-			{tab('walkthrough', 'Walkthrough')}
+			{tab('walkthrough', 'Guide')}
 		</div>
 	)
 }
@@ -211,6 +218,7 @@ export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 		'fileIndex',
 		'preview',
 		'overviewOpen',
+		'domainId',
 		'sidebarTab',
 		'treeDrawerOpen',
 		'foldExpanded',
@@ -233,9 +241,9 @@ export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 			{showTree && <TreePane active={activePath(S)} />}
 			{guided && S.sidebarTab === 'walkthrough' && (
 				<div {...stylex.props(sidebar.pane)}>
-					{(S.walkthroughRows?.() ?? []).map(node => (
-						<WalkNode key={node.key} node={node} />
-					))}
+					<Suspense fallback={null}>
+						<DomainNavigator />
+					</Suspense>
 				</div>
 			)}
 			<button

@@ -57,6 +57,11 @@ export const S: Store = reactive<Store>({
 	notesSearchTick: 0,
 	notesAdvanceAfter: null,
 	resetMenuOpen: false,
+	domainId: null,
+	guidePaneOpen: true,
+	guideExpanded: new Set<string>(),
+	guideReturn: [],
+	markdownTick: 0,
 })
 
 export function requireState(): ReviewState {

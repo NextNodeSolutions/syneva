@@ -1,38 +1,32 @@
 import { flowIndex } from '../changes'
-import { isRenamedGroupExpanded } from '../file/renames'
-import { isReviewedGroupExpanded } from '../file/reviewed'
 
 import { domainsOwningPath, guideFileEntries } from './domains'
 import { isGuideBaseStale } from './guide-derive'
 import { anyDomainStale } from './resolution'
 import { navFileOrder, wrapNextTarget, wrapPrevTarget } from './seek'
-import { lineStats, walkthroughGroups, walkRows } from './walkthrough'
+import { lineStats } from './walkthrough'
 
 import type { FlowIndex } from '../change/flow-index'
 import type { ReviewState } from '../model'
 import type { GuideDomain } from './model'
-import type { WalkGroup, WalkRow } from './walkthrough'
 
 export type GuideInputs = {
 	state: ReviewState | null
 	fileIndex: number
 	hideReviewed: boolean
 	progressBy: 'lines' | 'files'
-	foldExpanded: Set<string>
 }
 
 export function guideInputs(S: {
 	state: ReviewState | null
 	fileIndex: number
 	settings: { hideReviewed: boolean; progressBy: 'lines' | 'files' }
-	foldExpanded: Set<string>
 }): GuideInputs {
 	return {
 		state: S.state,
 		fileIndex: S.fileIndex,
 		hideReviewed: S.settings.hideReviewed,
 		progressBy: S.settings.progressBy,
-		foldExpanded: S.foldExpanded,
 	}
 }
 
@@ -170,32 +164,6 @@ function locByPath(state: ReviewState): Map<string, number> {
 	for (const [path, s] of lineStats(state.files))
 		m.set(path, Math.max(s.added + s.removed, 1))
 	return m
-}
-
-export function walkGroups(g: GuideInputs): WalkGroup[] {
-	const { state } = g
-	if (!state?.guide?.domains.length) return []
-	const ix = flowIndexOf(g)
-	return walkthroughGroups(
-		guideFileEntries(state.guide),
-		state.files,
-		p => ix.reviewState(p),
-		{
-			renamed: p => ix.outOfFlow.has(p),
-			distilled: p => ix.distilled.has(p),
-		},
-	)
-}
-
-export function walkthroughRows(g: GuideInputs): WalkRow[] {
-	const activePath =
-		g.state && typeof g.fileIndex === 'number'
-			? (g.state.files[g.fileIndex]?.path ?? null)
-			: null
-	return walkRows(walkGroups(g), activePath, {
-		renamed: isRenamedGroupExpanded(g.foldExpanded),
-		reviewed: isReviewedGroupExpanded(g.foldExpanded),
-	})
 }
 
 export function guideProgress(g: GuideInputs): {

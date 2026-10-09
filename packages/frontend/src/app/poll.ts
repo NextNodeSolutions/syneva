@@ -124,6 +124,12 @@ function adoptReloadedState(server: ReviewState): void {
 		: -1
 	if (remapped >= 0) S.fileIndex = remapped
 	else if (S.fileIndex >= server.files.length) S.fileIndex = 0
+	// The selected domain survives a reload while the guide keeps it; a swap that dropped it clears the selection rather than pointing at another domain by position.
+	if (
+		S.domainId &&
+		!server.guide?.domains.some(domain => domain.id === S.domainId)
+	)
+		S.domainId = null
 }
 
 async function refreshProjectFiles(): Promise<void> {
