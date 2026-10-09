@@ -1,8 +1,10 @@
 // The three diagram blocks: nodes declared once, every edge end naming a declared node, so a diagram never draws an arrow into nothing; refs resolve through the domain's references like any block's.
 import { EDGE_BOUNDS, parseEdges, STEP_BOUNDS } from './guide-diagram-edges.js'
+import { GUIDE_KEYS } from './guide-keys.js'
 import {
 	identifier,
 	list,
+	onlyKeys,
 	optionalBoolean,
 	optionalText,
 	record,
@@ -27,13 +29,19 @@ type Node = {
 	record: Record<string, unknown>
 }
 
+// Each kind declares its node's fields (a participant has no ref, a flow node has a note): the shared reader checks them so a stray key is named.
+type NodeShape = { scope: BlockScope; keys: readonly string[] }
+
 function parseNode(
 	raw: unknown,
 	where: string,
-	scope: BlockScope,
+	shape: NodeShape,
 ): Parsed<Node> {
 	const node = record(raw, where)
 	if (!node.ok) return node
+	const keys = onlyKeys(node.value, where, shape.keys)
+	if (!keys.ok) return keys
+	const { scope } = shape
 	const id = identifier(node.value.id, `${where}.id`, GUIDE_LIMITS.idChars)
 	if (!id.ok) return id
 	const label = text(
@@ -58,10 +66,10 @@ function parseNode(
 function parseNodes(
 	raw: unknown,
 	where: string,
-	scope: BlockScope,
+	shape: NodeShape,
 ): Parsed<{ nodes: Node[]; ids: ReadonlySet<string> }> {
 	const nodes = list(raw, where, NODE_BOUNDS, (entry, entryWhere) =>
-		parseNode(entry, entryWhere, scope),
+		parseNode(entry, entryWhere, shape),
 	)
 	if (!nodes.ok) return nodes
 	const ids = nodes.value.map(node => node.id)
@@ -70,17 +78,16 @@ function parseNodes(
 	return { ok: true, value: { nodes: nodes.value, ids: new Set(ids) } }
 }
 
-export function parseState({
-	block,
-	where,
-	scope,
-	base,
-}: BlockInput): Parsed<ExplanationBlock> {
-	const declared = parseNodes(block.states, `${where}.states`, scope)
-	if (!declared.ok) return declared
-	const states = []
-	for (const [index, node] of declared.value.nodes.entries()) {
-		const nodeWhere = `${where}.states[${index}]`
+type StateNode = Extract<ExplanationBlock, { kind: 'state' }>['states'][number]
+
+// A state's own flags on top of the shared node fields.
+function parseStateFlags(
+	nodes: readonly Node[],
+	where: string,
+): Parsed<StateNode[]> {
+	const states: StateNode[] = []
+	for (const [index, node] of nodes.entries()) {
+		const nodeWhere = `${where}[${index}]`
 		const isInitial = optionalBoolean(
 			node.record.isInitial,
 			`${nodeWhere}.isInitial`,
@@ -99,6 +106,22 @@ export function parseState({
 			isFinal: isFinal.value,
 		})
 	}
+	return { ok: true, value: states }
+}
+
+export function parseState({
+	block,
+	where,
+	scope,
+	base,
+}: BlockInput): Parsed<ExplanationBlock> {
+	const declared = parseNodes(block.states, `${where}.states`, {
+		scope,
+		keys: GUIDE_KEYS.stateNode,
+	})
+	if (!declared.ok) return declared
+	const states = parseStateFlags(declared.value.nodes, `${where}.states`)
+	if (!states.ok) return states
 	const transitions = parseEdges(
 		block.transitions,
 		`${where}.transitions`,
@@ -107,6 +130,7 @@ export function parseState({
 			scope,
 			ids: declared.value.ids,
 			isLabelRequired: false,
+			keys: GUIDE_KEYS.transition,
 		},
 	)
 	if (!transitions.ok) return transitions
@@ -115,7 +139,7 @@ export function parseState({
 		value: {
 			...base,
 			kind: 'state',
-			states,
+			states: states.value,
 			transitions: transitions.value,
 		},
 	}
@@ -127,16 +151,16 @@ export function parseSequence({
 	scope,
 	base,
 }: BlockInput): Parsed<ExplanationBlock> {
-	const declared = parseNodes(
-		block.participants,
-		`${where}.participants`,
+	const declared = parseNodes(block.participants, `${where}.participants`, {
 		scope,
-	)
+		keys: GUIDE_KEYS.participant,
+	})
 	if (!declared.ok) return declared
 	const steps = parseEdges(block.steps, `${where}.steps`, STEP_BOUNDS, {
 		scope,
 		ids: declared.value.ids,
 		isLabelRequired: true,
+		keys: GUIDE_KEYS.step,
 	})
 	if (!steps.ok) return steps
 	return {
@@ -164,7 +188,10 @@ export function parseFlow({
 	scope,
 	base,
 }: BlockInput): Parsed<ExplanationBlock> {
-	const declared = parseNodes(block.nodes, `${where}.nodes`, scope)
+	const declared = parseNodes(block.nodes, `${where}.nodes`, {
+		scope,
+		keys: GUIDE_KEYS.flowNode,
+	})
 	if (!declared.ok) return declared
 	const nodes = []
 	for (const [index, node] of declared.value.nodes.entries()) {
@@ -185,6 +212,7 @@ export function parseFlow({
 		scope,
 		ids: declared.value.ids,
 		isLabelRequired: false,
+		keys: GUIDE_KEYS.flowEdge,
 	})
 	if (!edges.ok) return edges
 	return {

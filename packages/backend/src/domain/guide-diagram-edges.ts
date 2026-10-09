@@ -3,6 +3,7 @@ import {
 	fail,
 	identifier,
 	list,
+	onlyKeys,
 	optionalText,
 	record,
 	text,
@@ -34,6 +35,8 @@ export type EdgeScope = {
 	ids: ReadonlySet<string>
 	// A sequence step is nothing without its message; a transition or a flow edge may go unlabelled.
 	isLabelRequired: boolean
+	// The edge's fields for this kind (a flow edge carries no ref).
+	keys: readonly string[]
 }
 
 function endpoint(
@@ -57,6 +60,8 @@ function parseEdge(
 ): Parsed<Edge> {
 	const edge = record(raw, where)
 	if (!edge.ok) return edge
+	const keys = onlyKeys(edge.value, where, edgeScope.keys)
+	if (!keys.ok) return keys
 	const from = endpoint(edge.value.from, `${where}.from`, edgeScope.ids)
 	if (!from.ok) return from
 	const to = endpoint(edge.value.to, `${where}.to`, edgeScope.ids)
