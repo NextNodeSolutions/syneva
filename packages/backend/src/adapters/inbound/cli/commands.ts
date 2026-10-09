@@ -19,8 +19,8 @@ import {
 	NO_CONTENT,
 } from './hub-client.js'
 
+import type { Guide } from '@syneva/contracts/guide'
 import type { DeskSummary } from '@syneva/contracts/hub'
-import type { Guide } from '@syneva/contracts/review'
 import type { CliArgs } from './args.js'
 import type { HubConnection } from './hub-client.js'
 

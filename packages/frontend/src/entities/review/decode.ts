@@ -13,6 +13,9 @@ import {
 } from '@shared/api/decode'
 import { DecodeError } from '@shared/api/decode'
 
+import { decodeGuide } from './guide/decode'
+
+import type { Guide } from './guide/model'
 import type {
 	ChangeState,
 	Decision,
@@ -20,7 +23,6 @@ import type {
 	DeskRefreshEvent,
 	DeskStateSnapshot,
 	DeskStatus,
-	Guide,
 	ReviewComment,
 	ReviewFile,
 	ReviewState,
@@ -103,22 +105,6 @@ export function decodeDecision(raw: unknown, ctx: Ctx): Decision {
 		lineNumber: requiredNumber(o, 'lineNumber', ctx.endpoint),
 		side: enumValue(o.side, ctx.endpoint, SIDES, 'decision.side'),
 		title: requiredString(o, 'title', ctx.endpoint),
-	}
-}
-
-function decodeGuide(raw: unknown, ctx: Ctx): Guide {
-	const o = assertObject(raw, ctx.endpoint, 'guide')
-	const files = requiredArray(o, 'files', ctx.endpoint, 'guide.files')
-	return {
-		files: files.map(f => {
-			const g = assertObject(f, ctx.endpoint, 'guide file')
-			return {
-				path: requiredString(g, 'path', ctx.endpoint),
-				order: requiredNumber(g, 'order', ctx.endpoint),
-				category: requiredString(g, 'category', ctx.endpoint),
-			}
-		}),
-		baseDiffHash: optString(o, 'baseDiffHash', ctx.endpoint),
 	}
 }
 

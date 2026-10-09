@@ -1,9 +1,11 @@
+import { validateGuide } from '../../../domain/guide.js'
+
 import { asBoolean, asNumber, asOneOf, asString, isObject } from './dto.js'
 
+import type { Guide } from '../../../domain/guide-shapes.js'
 import type {
 	ChangeState,
 	Decision,
-	Guide,
 	ReviewComment,
 } from '../../../domain/review.js'
 import type { Raw } from './dto.js'
@@ -145,19 +147,11 @@ export function decodeDecision(raw: unknown): Decision | null {
 	}
 }
 
+// The guide is decoded by the same validator that admitted it (field by field, bounded, identities checked); a file holding a guide the current schema refuses decodes to nothing rather than half a guide.
 export function decodeGuide(raw: unknown): Guide | null {
-	if (!isObject(raw)) return null
-	if (!Array.isArray(raw.files)) return null
-	const files: Guide['files'] = []
-	for (const entry of raw.files) {
-		if (!isObject(entry)) return null
-		const path = asString(entry.path)
-		const order = asNumber(entry.order)
-		const category = asString(entry.category)
-		if (path === null || order === null || category === null) return null
-		files.push({ path, order, category })
-	}
-	return { files, baseDiffHash: asString(raw.baseDiffHash) ?? undefined }
+	const validation = validateGuide(raw)
+	if (!validation.ok) return null
+	return validation.guide
 }
 
 // Field-wise allowlists, so a future domain field stays private to the process until added to the storage contract here.
@@ -212,13 +206,7 @@ export function encodeDecision(decision: Decision): Raw {
 	}
 }
 
+// The validated record is already exactly the storage shape (the validator builds it field by field and keeps nothing else), so it is written whole; JSON.stringify drops undefined-valued keys.
 export function encodeGuide(guide: Guide): Raw {
-	return {
-		files: guide.files.map(file => ({
-			path: file.path,
-			order: file.order,
-			category: file.category,
-		})),
-		baseDiffHash: guide.baseDiffHash,
-	}
+	return { ...guide }
 }

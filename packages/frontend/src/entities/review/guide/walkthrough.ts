@@ -1,6 +1,5 @@
-import type { ReviewFile } from '../model'
-import type { GuideFile } from '../model'
-import type { FileReviewState } from '../model'
+import type { FileReviewState, ReviewFile } from '../model'
+import type { GuideFileEntry } from './domains'
 
 export type LineStat = { added: number; removed: number }
 type FileLike = Pick<
@@ -140,7 +139,7 @@ function foldBuckets(
 }
 
 export function walkthroughGroups(
-	guideFiles: GuideFile[],
+	guideFiles: GuideFileEntry[],
 	files: FileLike[],
 	stateOf: (path: string) => FileReviewState,
 	folds: {

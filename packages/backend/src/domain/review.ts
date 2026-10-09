@@ -1,6 +1,8 @@
 // The persisted/derived review shapes - never imported into packages/contracts: the browser sees only its allowlisted projection there.
 // Records are immutable (reload/reconciliation REPLACE them, never edit), so fields are readonly; application mutations copy-on-write; the diff parser assembles incrementally before publish.
-// ReviewComment/ChangeState/Decision/GuideFile/Guide structurally mirror packages/contracts/review.ts (domain may not import contracts) - keep both sides in sync.
+// ReviewComment/ChangeState/Decision structurally mirror packages/contracts/review.ts (domain may not import contracts) - keep both sides in sync; the guide's mirror is guide-shapes.ts.
+
+import type { Guide } from './guide-shapes.js'
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
@@ -81,17 +83,6 @@ export type Decision = {
 	readonly lineNumber: number
 	readonly side: 'additions' | 'deletions'
 	readonly title: string
-}
-
-export type GuideFile = {
-	readonly path: string
-	readonly order: number
-	readonly category: string
-}
-
-export type Guide = {
-	readonly files: GuideFile[]
-	readonly baseDiffHash?: string | undefined
 }
 
 export type ReviewFile = DiffFile & {

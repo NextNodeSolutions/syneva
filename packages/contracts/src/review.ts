@@ -56,19 +56,5 @@ export type Decision = {
 	title: string
 }
 
-// order drives Next/Prev; category is the Walkthrough section (semantic, not the folder). Normalized on attach (validateGuide): the desk's stored shape, not what agents write.
-export type GuideFile = {
-	path: string
-	order: number
-	category: string
-}
-
 // review: decisions + sign-off, notes kept; approved: signed-off files only; all also clears notes (and the default for a bodyless POST).
 export type ResetScope = 'review' | 'approved' | 'all'
-
-// Review grouping attached with --guide; absent = files in diff order and every guide surface off. A grouping only - no agent prose.
-export type Guide = {
-	files: GuideFile[]
-	// Diff the grouping was generated against; a reload advancing past it marks it out of date.
-	baseDiffHash?: string | undefined
-}

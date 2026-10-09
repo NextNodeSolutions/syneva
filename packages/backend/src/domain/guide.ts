@@ -1,21 +1,28 @@
-import type { Guide, GuideFile } from './review.js'
+import { parseDomain } from './guide-domain.js'
+import {
+	fail,
+	isRecord,
+	list,
+	oneOf,
+	optionalBoolean,
+	optionalText,
+	record,
+	text,
+	uniqueIds,
+} from './guide-parse.js'
+import { GUIDE_FORMAT, GUIDE_LIMITS } from './guide-shapes.js'
+
+import type { Parsed } from './guide-parse.js'
+import type { Guide, GuideDomain, GuideSource } from './guide-shapes.js'
 
 export type GuideValidation =
 	| { ok: true; guide: Guide }
 	| { ok: false; reason: string }
 
-type Parsed<T> = { ok: true; value: T } | { ok: false; reason: string }
+const MODES = ['repo', 'file', 'pr'] as const
 
-const DEFAULT_CATEGORY = 'Changes'
-const FILES_REASON =
-	'guide.files must be a non-empty array of { path, category?, order? }'
-
-function fail(reason: string): { ok: false; reason: string } {
-	return { ok: false, reason }
-}
-
-// Required: a non-empty `files` array whose every entry carries a `path`; `order`/`category` optional with defaults; every other key ignored, so a guide against the older guided-review schema still attaches and just groups.
-// Pure - the same check server-side and in the CLI.
+// The schema check alone: the shape, its bounds and its internal identities. Membership, coverage and reference targets are resolved against the review's inventory by the lifecycle (guide-resolve.ts), which needs the diff.
+// Pure - the same check server-side and in the CLI; the reason names the field it refused and what it wanted.
 export function validateGuide(input: unknown): GuideValidation {
 	const parsed = parseGuide(input)
 	if (!parsed.ok) return { ok: false, reason: parsed.reason }
@@ -23,68 +30,126 @@ export function validateGuide(input: unknown): GuideValidation {
 }
 
 function parseGuide(input: unknown): Parsed<Guide> {
-	if (typeof input !== 'object' || input === null)
-		return fail('guide must be an object')
-	if (!('files' in input) || !Array.isArray(input.files))
-		return fail(FILES_REASON)
-	if (!input.files.length) return fail(FILES_REASON)
-	const files = parseGuideFiles(input.files)
-	if (!files.ok) return files
-	const extras = parseGuideExtras(input)
-	if (!extras.ok) return extras
-	return {
-		ok: true,
-		value: {
-			files: files.value.toSorted((a, b) => a.order - b.order),
-			...extras.value,
-		},
-	}
-}
-
-// baseDiffHash is stamped by the desk on attach, but a value already in the file (a round-tripped guide) is honored so it isn't silently refreshed.
-function parseGuideExtras(input: object): Parsed<Partial<Guide>> {
-	// Guide is immutable domain data: the optional stamp is built as a literal instead of mutating a Partial record field by field.
-	if (
-		'baseDiffHash' in input &&
-		typeof input.baseDiffHash === 'string' &&
-		input.baseDiffHash.trim()
+	if (!isRecord(input)) return fail('guide must be a JSON object')
+	if (input.format !== GUIDE_FORMAT)
+		return fail(
+			`guide.format must be "${GUIDE_FORMAT}" (the file-grouping guide format is no longer accepted)`,
+		)
+	const source = parseSource(input.source)
+	if (!source.ok) return source
+	const overview = text(
+		input.overview,
+		'guide.overview',
+		GUIDE_LIMITS.overviewChars,
 	)
-		return { ok: true, value: { baseDiffHash: input.baseDiffHash } }
-	return { ok: true, value: {} }
-}
-
-function parseGuideFiles(rawFiles: unknown[]): Parsed<GuideFile[]> {
-	const files: GuideFile[] = []
-	for (let index = 0; index < rawFiles.length; index++) {
-		const file = parseGuideFile(rawFiles[index], index)
-		if (!file.ok) return file
-		files.push(file.value)
-	}
-	return { ok: true, value: files }
-}
-
-function parseGuideFile(raw: unknown, index: number): Parsed<GuideFile> {
-	const where = `guide.files[${index}]`
-	if (typeof raw !== 'object' || raw === null)
-		return fail(`${where} must be an object`)
-	if (!('path' in raw) || typeof raw.path !== 'string' || !raw.path.trim())
-		return fail(`${where}.path must be a non-empty string`)
+	if (!overview.ok) return overview
+	const domains = list(
+		input.domains,
+		'guide.domains',
+		{ min: 0, max: GUIDE_LIMITS.domains },
+		parseDomain,
+	)
+	if (!domains.ok) return domains
+	const links = checkDomainLinks(domains.value)
+	if (!links.ok) return links
+	const baseDiffHash = optionalText(
+		input.baseDiffHash,
+		'guide.baseDiffHash',
+		GUIDE_LIMITS.idChars,
+	)
+	if (!baseDiffHash.ok) return baseDiffHash
 	return {
 		ok: true,
 		value: {
-			path: raw.path,
-			order:
-				'order' in raw &&
-				typeof raw.order === 'number' &&
-				Number.isFinite(raw.order)
-					? raw.order
-					: index,
-			category:
-				'category' in raw &&
-				typeof raw.category === 'string' &&
-				raw.category.trim()
-					? raw.category
-					: DEFAULT_CATEGORY,
+			format: GUIDE_FORMAT,
+			source: source.value,
+			overview: overview.value,
+			domains: domains.value,
+			baseDiffHash: baseDiffHash.value,
 		},
 	}
+}
+
+function parseSource(raw: unknown): Parsed<GuideSource> {
+	const source = record(raw, 'guide.source')
+	if (!source.ok) return source
+	const mode = oneOf(source.value.mode, 'guide.source.mode', MODES)
+	if (!mode.ok) return mode
+	const fingerprint = text(
+		source.value.fingerprint,
+		'guide.source.fingerprint',
+		GUIDE_LIMITS.idChars,
+	)
+	if (!fingerprint.ok) return fingerprint
+	const head = optionalText(
+		source.value.head,
+		'guide.source.head',
+		GUIDE_LIMITS.idChars,
+	)
+	if (!head.ok) return head
+	const base = optionalText(
+		source.value.base,
+		'guide.source.base',
+		GUIDE_LIMITS.textChars,
+	)
+	if (!base.ok) return base
+	const staged = optionalBoolean(source.value.staged, 'guide.source.staged')
+	if (!staged.ok) return staged
+	const path = optionalText(
+		source.value.path,
+		'guide.source.path',
+		GUIDE_LIMITS.textChars,
+	)
+	if (!path.ok) return path
+	return {
+		ok: true,
+		value: {
+			mode: mode.value,
+			fingerprint: fingerprint.value,
+			head: head.value,
+			base: base.value,
+			staged: staged.value,
+			path: path.value,
+		},
+	}
+}
+
+// Domain ids are the identities feedback and review position key on, so they are unique; prerequisites and related entries name domains in this guide, never themselves.
+function checkDomainLinks(domains: readonly GuideDomain[]): Parsed<true> {
+	const unique = uniqueIds(
+		domains.map(domain => domain.id),
+		'guide.domains',
+	)
+	if (!unique.ok) return unique
+	const ids = new Set(domains.map(domain => domain.id))
+	for (const [index, domain] of domains.entries()) {
+		const links = checkDomainLinksOf(domain, `guide.domains[${index}]`, ids)
+		if (!links.ok) return links
+	}
+	return { ok: true, value: true }
+}
+
+function checkDomainLinksOf(
+	domain: GuideDomain,
+	where: string,
+	ids: ReadonlySet<string>,
+): Parsed<true> {
+	const named = [
+		...(domain.prerequisites ?? []).map((id, position) => ({
+			id,
+			field: `${where}.prerequisites[${position}]`,
+		})),
+		...(domain.related ?? []).map((link, position) => ({
+			id: link.domainId,
+			field: `${where}.related[${position}].domainId`,
+		})),
+	]
+	for (const { id, field } of named) {
+		if (id === domain.id) return fail(`${field} names the domain itself`)
+		if (!ids.has(id))
+			return fail(
+				`${field} names "${id}", which is not a domain of this guide`,
+			)
+	}
+	return { ok: true, value: true }
 }

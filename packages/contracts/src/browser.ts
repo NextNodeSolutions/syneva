@@ -1,8 +1,8 @@
 // Explicit allowlist: new backend fields stay private until picked here; hunks are built client-side from /file-contents.
+import type { Guide } from './guide.js'
 import type {
 	ChangeState,
 	Decision,
-	Guide,
 	ReviewComment,
 	ReviewMode,
 } from './review.js'

@@ -6,7 +6,8 @@ import { buildReviewState, emptyReviewState } from './build.js'
 import { resolvePrTarget } from './pr-target.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
-import type { Guide, ReviewMode, ReviewState } from '../domain/review.js'
+import type { Guide } from '../domain/guide-shapes.js'
+import type { ReviewMode, ReviewState } from '../domain/review.js'
 import type { BuildQuery } from './build.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
 
