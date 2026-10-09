@@ -1,4 +1,8 @@
-import { questionPayload } from '../../../../application/review-result.js'
+import {
+	domainQuestionPayload,
+	questionPayload,
+} from '../../../../application/review-result.js'
+import { domainTarget } from '../../../../domain/domain-comments.js'
 import {
 	HTTP_NO_CONTENT,
 	HTTP_OK,
@@ -8,10 +12,14 @@ import {
 	fail,
 } from '../http.js'
 
-import { parseCommentRequest } from './comment-body.js'
+import {
+	isDomainCommentBody,
+	parseCommentRequest,
+	parseDomainCommentRequest,
+} from './comment-body.js'
 
 import type { ServerResponse } from 'node:http'
-import type { AwaitEvent } from '@syneva/contracts/agent'
+import type { AwaitEvent, QuestionPayload } from '@syneva/contracts/agent'
 import type { DeskContext } from '../context.js'
 import type { RouteRequest } from '../router.js'
 
@@ -28,19 +36,54 @@ export async function askQuestion({
 	res,
 }: RouteRequest): Promise<void> {
 	const body: unknown = await readJsonBody(req)
+	if (isDomainCommentBody(body)) return askDomainQuestion(ctx, res, body)
 	const request = parseCommentRequest(body)
 	if (!request)
 		return fail(res, {
 			status: HTTP_UNPROCESSABLE,
 			code: 'INVALID_QUESTION',
 			error: 'ask requires path and body',
-			fix: 'Send { path, lineNumber, side, body } as JSON.',
+			fix: 'Send { path, lineNumber, side, body } as JSON, or { domainId, blockId?, body } for a guide question.',
 		})
-	// Bake the singular into a one-element `questions` here, so a question handed straight to a parked waiter already carries the array (batching only merges on drain).
-	const question = questionPayload(ctx.state, request)
+	emitQuestion(ctx, questionPayload(ctx.state, request))
+	json(res, HTTP_OK, { ok: true })
+}
+
+// Bake the singular into a one-element `questions` here, so a question handed straight to a parked waiter already carries the array (batching only merges on drain). Recorded as it happens.
+function emitQuestion(ctx: DeskContext, question: QuestionPayload): void {
 	const questions = [question]
 	ctx.events.emit({ kind: 'question', question, questions })
 	ctx.recordEvent({ kind: 'question-asked', questions: questions.length })
+}
+
+// A question on the guide: the reviewer's own copy rides /save like a line question's; the event carries the target's context so the agent reads the right explanation and code.
+function askDomainQuestion(
+	ctx: DeskContext,
+	res: ServerResponse,
+	body: unknown,
+): void {
+	const request = parseDomainCommentRequest(body)
+	if (!request)
+		return fail(res, {
+			status: HTTP_UNPROCESSABLE,
+			code: 'INVALID_QUESTION',
+			error: 'a domain question requires domainId and body',
+			fix: 'Send { domainId, blockId?, body } as JSON.',
+		})
+	const target = ctx.state.guide
+		? domainTarget(ctx.state.guide, request)
+		: null
+	if (!target)
+		return fail(res, {
+			status: HTTP_UNPROCESSABLE,
+			code: 'UNKNOWN_DOMAIN',
+			error: `The attached guide has no such domain${request.blockId ? ' or block' : ''}.`,
+			fix: 'Name a domain id (and block id) of the attached guide.',
+		})
+	emitQuestion(
+		ctx,
+		domainQuestionPayload(ctx.state, { target, body: request.body }),
+	)
 	json(res, HTTP_OK, { ok: true })
 }
 

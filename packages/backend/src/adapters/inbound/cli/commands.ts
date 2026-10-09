@@ -1,5 +1,6 @@
 import { API_PATHS, hubDeskPath } from '@syneva/contracts/routes'
 
+import { appendDomainComment } from '../../../application/add-domain-comment.js'
 import { appendComment } from '../../../application/comments.js'
 import { parseLineNumber } from '../../../domain/comments.js'
 import { sanitizeSession } from '../../../domain/identity.js'
@@ -21,10 +22,11 @@ import {
 import { noDeskHint, targetDesk } from './target-desk.js'
 
 import type { DeskSummary } from '@syneva/contracts/hub'
+import type { DomainCommentInput } from '../../../domain/domain-comments.js'
 import type { CliArgs } from './args.js'
 import type { HubConnection } from './hub-client.js'
 
-type CommentPayload = {
+type LinePayload = {
 	path: string
 	side: 'additions' | 'deletions'
 	lineNumber: number
@@ -32,10 +34,13 @@ type CommentPayload = {
 	role: 'agent'
 }
 
+type CommentPayload = LinePayload | DomainCommentInput
+
 const HTTP_OK = 200
 const COMMENT_USAGE =
 	'Usage: syneva comment --path <file> --line <n> [--side additions|deletions] --body "..."\n' +
-	'       (--line 0 replies into the file header thread; omit --side there) [--session <id>] [--repo <path>]'
+	'       (--line 0 replies into the file header thread; omit --side there) [--session <id>] [--repo <path>]\n' +
+	'       syneva comment --domain <id> [--block <id>] --body "..."   (a reply in a guide thread: a domain, or one of its blocks)'
 const STATUS_USAGE =
 	'Usage: syneva status --body "..." [--session <id>] [--repo <path>]'
 
@@ -71,16 +76,28 @@ export async function runComment(args: CliArgs): Promise<void> {
 	const session = sanitizeSession(
 		flagText(args, 'session') ?? (await getBranch(root)),
 	)
-	const comment = await appendComment(root, session, payload, {
-		store: nodeReviewStore,
-		git: nodeGit,
-	})
+	const comment =
+		'domainId' in payload
+			? await appendDomainComment(root, session, payload, nodeReviewStore)
+			: await appendComment(root, session, payload, {
+					store: nodeReviewStore,
+					git: nodeGit,
+				})
 	printJson({ ok: true, live: false, session, commentId: comment.id })
 }
 
+// --domain names a guide thread instead of a line; the hub resolves the target against the attached guide.
 function parseCommentPayload(args: CliArgs): CommentPayload | null {
-	const path = flagText(args, 'path') ?? ''
 	const body = flagText(args, 'body')?.trim() ?? ''
+	const domainId = flagText(args, 'domain')
+	if (domainId && body)
+		return {
+			domainId,
+			blockId: flagText(args, 'block'),
+			body,
+			role: 'agent',
+		}
+	const path = flagText(args, 'path') ?? ''
 	if (!path || !body) return null
 	const side: 'additions' | 'deletions' =
 		args.side === 'deletions' ? 'deletions' : 'additions'
