@@ -1,6 +1,9 @@
+import { reconcileGuide } from '../domain/guide-reconcile.js'
 import { validateGuide } from '../domain/guide.js'
 import { hash } from '../domain/identity.js'
+import { buildInventory } from '../domain/inventory.js'
 
+import { attachGuide } from './attach-guide.js'
 import { buildReviewState } from './build.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
@@ -31,17 +34,23 @@ export async function reloadDesk(
 		validatedGuide = validation.guide
 	}
 	const base = await rebuildBase(state, pathFilter, io.git)
-	if (!base) return await reloadEmpty(state, validatedGuide, io)
-	const merged = withPostedGuide(
+	if (!base) return await reloadEmpty(state, pathFilter, validatedGuide, io)
+	const merged = await withPostedGuide(
 		await mergeReviewState(base, state, io.git),
+		pathFilter,
 		validatedGuide,
+		io.git,
 	)
-	const snapshot = await readStagedSnapshot(merged, io.git)
-	const persisted = await io.store.persistReview({ ...merged, ...snapshot })
+	if (!merged.ok) return { kind: 'invalid-guide', reason: merged.reason }
+	const snapshot = await readStagedSnapshot(merged.state, io.git)
+	const persisted = await io.store.persistReview({
+		...merged.state,
+		...snapshot,
+	})
 	return {
 		kind: 'reloaded',
-		state: { ...merged, ...snapshot, ...persisted.stamp },
-		baseDiffHash: merged.baseDiffHash,
+		state: { ...merged.state, ...snapshot, ...persisted.stamp },
+		baseDiffHash: merged.state.baseDiffHash,
 	}
 }
 
@@ -74,36 +83,61 @@ function rebuildPathOf(
 	return undefined
 }
 
-// A posted guide replaces the carried one, stamped with the diff it describes as of now so it is not born stale; a reload without one leaves the carried guide alone.
-function withPostedGuide(
+type GuidedState =
+	| { ok: true; state: ReviewState }
+	| { ok: false; reason: string }
+
+// A posted guide replaces the carried one only once it resolves against the rebuilt diff (same source, full coverage, every reference landing); a refused one leaves the live desk, its guide and its verdicts as they were. A reload without one keeps the carried guide, reconciled by the merge.
+async function withPostedGuide(
 	state: ReviewState,
+	pathFilter: string | undefined,
 	guide: Guide | undefined,
-): ReviewState {
-	if (!guide) return state
-	return { ...state, guide: { ...guide, baseDiffHash: state.baseDiffHash } }
+	git: GitPort,
+): Promise<GuidedState> {
+	if (!guide) return { ok: true, state }
+	const attached = await attachGuide(state, pathFilter, guide, git)
+	if (!attached.ok) return attached
+	return { ok: true, state: { ...state, ...attached.attachment } }
 }
 
 // Keeps the desk up with an empty diff; deliberately does NOT run mergeReviewState/readStagedSnapshot reconciliation - that divergence predates this cleanup and is preserved here.
-// A guide posted with this reload is kept like on a non-empty one: an open over an empty diff keeps its guide too.
+// A guide posted with this reload must be the empty guide (no domains); a carried one is reconciled against the empty inventory, so every domain reads stale rather than current.
 async function reloadEmpty(
 	state: ReviewState,
+	pathFilter: string | undefined,
 	guide: Guide | undefined,
 	io: ReloadIo,
 ): Promise<ReloadOutcome> {
-	const emptied = withPostedGuide(
-		{
-			...state,
-			files: [],
-			changes: [],
-			rawDiff: '',
-			baseDiffHash: hash(''),
-		},
+	const cleared: ReviewState = {
+		...state,
+		files: [],
+		changes: [],
+		rawDiff: '',
+		baseDiffHash: hash(''),
+	}
+	const emptied = await withPostedGuide(
+		{ ...cleared, guideResolution: reconciledOnEmpty(cleared) },
+		pathFilter,
 		guide,
+		io.git,
 	)
-	const persisted = await io.store.persistReview(emptied)
+	if (!emptied.ok) return { kind: 'invalid-guide', reason: emptied.reason }
+	const persisted = await io.store.persistReview(emptied.state)
 	return {
 		kind: 'empty',
-		state: { ...emptied, ...persisted.stamp },
-		baseDiffHash: emptied.baseDiffHash,
+		state: { ...emptied.state, ...persisted.stamp },
+		baseDiffHash: emptied.state.baseDiffHash,
 	}
+}
+
+function reconciledOnEmpty(
+	cleared: ReviewState,
+): ReviewState['guideResolution'] {
+	if (!cleared.guide || !cleared.guideResolution) return undefined
+	return reconcileGuide(
+		cleared.guide,
+		cleared.guideResolution,
+		buildInventory(cleared, undefined),
+		new Map(),
+	)
 }

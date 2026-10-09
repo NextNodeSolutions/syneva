@@ -164,3 +164,34 @@ export const GUIDE_LIMITS = {
 	labelChars: 120,
 	idChars: 80,
 } as const
+
+// ── Resolution (mirror of the contract's) ──────────────────────────────────────────────────
+
+export type ReferenceStatus = 'resolved' | 'stale' | 'unresolved'
+
+export type ResolvedReference = {
+	status: ReferenceStatus
+	contentHash?: string | undefined
+	reason?: string | undefined
+}
+
+export type OwnedUnit = { key: string; contentHash: string }
+
+export type DomainResolution = {
+	units: OwnedUnit[]
+	files: string[]
+	refs: Record<string, ResolvedReference>
+	stale?: { reasons: string[] } | undefined
+}
+
+export type GuideResolution = {
+	fingerprint: string
+	domains: Record<string, DomainResolution>
+	unassigned: { units: string[]; files: string[] }
+}
+
+export type GuideIssue = {
+	field: string
+	target?: string | undefined
+	reason: string
+}

@@ -1,11 +1,15 @@
 import { changeKey } from '../domain/change-blocks.js'
 import { reanchorComments } from '../domain/comments.js'
 import { effectiveDecisions } from '../domain/decisions.js'
+import { reconcileGuide } from '../domain/guide-reconcile.js'
+import { buildInventory } from '../domain/inventory.js'
 
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
+import { readContextHashes } from './guide-context.js'
 
 import type { FileContents } from '../domain/contents.js'
+import type { GuideResolution } from '../domain/guide-shapes.js'
 import type {
 	ChangeState,
 	Decision,
@@ -45,8 +49,24 @@ export async function mergeReviewState(
 		changes: decisions.changes,
 		decisions: decisions.decisions,
 		guide: saved.guide ?? base.guide,
+		guideResolution: await reconcileCarriedGuide(base, saved, git),
 		persistFile: saved.persistFile,
 	} satisfies ReviewState
+}
+
+// The carried guide is never rewritten: its attach-time identities stay and the reload marks what no longer holds (stale domains, reference statuses, changes no domain owns) against the rebuilt diff.
+async function reconcileCarriedGuide(
+	base: ReviewState,
+	saved: ReviewState,
+	git: GitPort,
+): Promise<GuideResolution | undefined> {
+	if (!saved.guide || !saved.guideResolution) return undefined
+	return reconcileGuide(
+		saved.guide,
+		saved.guideResolution,
+		buildInventory(base, undefined),
+		await readContextHashes(base, saved.guide, git),
+	)
 }
 
 // A git-native rename remaps reviewer records old→new up front: without it, records silently drop (path miss) or reset (key miss); content checks judge staleness as usual.

@@ -4,12 +4,14 @@ import { deskClosed } from '../../../application/journal.js'
 import { createSerializer } from '../../../application/mutex.js'
 import {
 	buildDeskState,
+	buildSourceState,
 	resolveDeskIdentity,
 	rootProblem,
 	restoredDeskIdentity,
 } from '../../../application/open-desk.js'
 import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
+import { buildInventory } from '../../../domain/inventory.js'
 
 import { hostDesk, summarize } from './hosted-desk.js'
 import { queryOf, recordOf, sameSource } from './hub-records.js'
@@ -19,6 +21,7 @@ import type { DeskIdentity, DeskQuery } from '../../../application/open-desk.js'
 import type { HubRegistryPort } from '../../../application/ports.js'
 import type { Guide } from '../../../domain/guide-shapes.js'
 import type { HubDeskRecord } from '../../../domain/hub-registry.js'
+import type { ReviewInventory } from '../../../domain/inventory.js'
 import type { ReviewState } from '../../../domain/review.js'
 import type { HostedDeskIo, HubDesk } from './hosted-desk.js'
 
@@ -31,6 +34,10 @@ export type OpenOutcome =
 	| { ok: true; desk: HubDesk; outcome: OpenDeskOutcome }
 	| HubFailure
 
+export type InventoryOutcome =
+	| { ok: true; inventory: ReviewInventory }
+	| HubFailure
+
 export type HubIo = HostedDeskIo & {
 	registry: HubRegistryPort
 	log: (line: string) => void
@@ -41,6 +48,8 @@ export type Hub = {
 	readonly instanceId: string
 	readonly startedAt: string
 	openDesk(query: DeskQuery, guide: Guide | undefined): Promise<OpenOutcome>
+	// The review source as a guide is authored against it: the live desk's when one reviews that source, else built from the repo without registering, persisting or journaling anything.
+	inventory(query: DeskQuery): Promise<InventoryOutcome>
 	getDesk(id: string): HubDesk | undefined
 	listDesks(): HubDesk[]
 	// Emit `closed` to the desk's parked waiter, then drop it after the grace; false when there is no such live desk (already closed is not an error - close is idempotent).
@@ -75,6 +84,7 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 		startedAt: nowIso(),
 		openDesk: (query, guide) =>
 			serializeOpen(() => openOrReuse(state, query, guide)),
+		inventory: query => serializeOpen(() => inventoryOf(state, query)),
 		getDesk: id => liveDesk(desks, id),
 		listDesks: () => [...desks.values()].filter(desk => !desk.closing),
 		closeDesk: id => closeDesk(state, id),
@@ -164,6 +174,31 @@ async function openOrReuse(
 	return createDesk(state, identity, query, guide)
 }
 
+// Same resolution as an open (a PR target is checked out the same way), then the inventory of the live desk's state or of a state built on the spot.
+async function inventoryOf(
+	state: HubState,
+	query: DeskQuery,
+): Promise<InventoryOutcome> {
+	const problem = await rootProblem(query, state.io.git)
+	if (problem) return { ok: false, code: 'NO_REPOSITORY', reason: problem }
+	const resolved = await resolveDeskIdentity(query, state.io.git)
+	if (!resolved.ok)
+		return { ok: false, code: 'PR_TARGET', reason: resolved.reason }
+	const { identity } = resolved
+	const live = liveDesk(state.desks, identity.id)
+	if (live && sameSource(live.record, query, identity))
+		return {
+			ok: true,
+			inventory: buildInventory(live.ctx.state, live.ctx.pathFilter),
+		}
+	const built = await buildSourceState(identity, query, state.io.git)
+	if (!built.ok) return { ok: false, code: 'NO_REVIEW', reason: built.reason }
+	return {
+		ok: true,
+		inventory: buildInventory(built.state, query.pathFilter),
+	}
+}
+
 async function reuseDesk(
 	state: HubState,
 	live: HubDesk,
@@ -196,7 +231,12 @@ async function createDesk(
 	guide: Guide | undefined,
 ): Promise<OpenOutcome> {
 	const built = await buildDeskState(identity, query, guide, state.io)
-	if (!built.ok) return { ok: false, code: 'NO_REVIEW', reason: built.reason }
+	if (!built.ok)
+		return {
+			ok: false,
+			code: built.code ?? 'NO_REVIEW',
+			reason: built.reason,
+		}
 	const desk = registerDesk(state, built.state, recordOf(identity, query))
 	desk.ctx.recordEvent({ kind: 'desk-opened', ...reviewScope(built.state) })
 	state.io.log(

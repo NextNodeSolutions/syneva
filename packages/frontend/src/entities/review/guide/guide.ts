@@ -4,6 +4,7 @@ import { isReviewedGroupExpanded } from '../file/reviewed'
 
 import { domainsOwningPath, guideFileEntries } from './domains'
 import { isGuideBaseStale } from './guide-derive'
+import { anyDomainStale } from './resolution'
 import { navFileOrder, wrapNextTarget, wrapPrevTarget } from './seek'
 import { lineStats, walkthroughGroups, walkRows } from './walkthrough'
 
@@ -244,8 +245,10 @@ export function showGuideBar(g: GuideInputs): boolean {
 	return hasGuide(g)
 }
 
+// Stale once a reload marked any domain so, or moved the diff past the guide's stamp without a resolution to say which domain it touched.
 export function guideStale(g: GuideInputs): boolean {
 	const { state } = g
 	if (!state?.guide) return false
+	if (state.guideResolution) return anyDomainStale(state)
 	return isGuideBaseStale(state.baseDiffHash, state.guide.baseDiffHash)
 }

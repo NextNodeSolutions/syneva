@@ -208,3 +208,53 @@ export function sortDomains<D extends Pick<GuideDomain, 'risk' | 'order'>>(
 		})
 		.map(entry => entry.domain)
 }
+
+// ── Resolution: the guide against the real diff ────────────────────────────────────────────
+// Computed by the desk when a guide attaches and refreshed on every reload; the guide itself is never edited.
+
+export type ReferenceStatus = 'resolved' | 'stale' | 'unresolved'
+
+export type ResolvedReference = {
+	status: ReferenceStatus
+	// The target's content identity when the guide attached: the changed block's contentHash, or the hash of the cited unchanged lines.
+	contentHash?: string | undefined
+	// What happened to a target that is no longer `resolved`.
+	reason?: string | undefined
+}
+
+export type OwnedUnit = { key: string; contentHash: string }
+
+export type DomainResolution = {
+	// The changed blocks the domain owned when the guide attached, with their identities then.
+	units: OwnedUnit[]
+	// The hunk-less file operations it owned.
+	files: string[]
+	refs: Record<string, ResolvedReference>
+	// Set on reload when the owned code, the cited context or a prerequisite changed since the guide was written.
+	stale?: { reasons: string[] } | undefined
+}
+
+export type GuideResolution = {
+	// The inventory fingerprint the guide was attached against.
+	fingerprint: string
+	domains: Record<string, DomainResolution>
+	// Changed units and file operations no domain owns now (empty when the guide attached; a reload can grow it).
+	unassigned: { units: string[]; files: string[] }
+}
+
+// One thing wrong with a guide against its inventory, named by the field and the target it concerns.
+export type GuideIssue = {
+	field: string
+	target?: string | undefined
+	reason: string
+}
+
+// Overlap on the same file and side: the rule membership and references resolve by, shared by the hub and the desk.
+export function spanOverlaps(
+	span: { lineNumber: number; endLine?: number | undefined },
+	unit: { lineNumber: number; endLine?: number | undefined },
+): boolean {
+	const spanEnd = span.endLine ?? span.lineNumber
+	const unitEnd = unit.endLine ?? unit.lineNumber
+	return span.lineNumber <= unitEnd && unit.lineNumber <= spanEnd
+}

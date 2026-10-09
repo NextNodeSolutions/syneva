@@ -13,6 +13,7 @@ import {
 	decodePollPayload,
 	decodeReviewState,
 } from './decode'
+import { ensureGuideDecoders } from './guide/decode-lazy'
 
 import type { ResetScope } from '@syneva/contracts/review'
 import type {
@@ -124,6 +125,7 @@ export const resetReview = async (scope: ResetScope): Promise<ResetResult> => {
 	// The reset endpoint answers { ok, state, serverInstanceId } - the rebuilt review lives under `state`, not at the top level.
 	if (!requiredBoolean(o, 'ok', API_PATHS.reset))
 		throw new DecodeError('acknowledgement ok is false', API_PATHS.reset)
+	await ensureGuideDecoders(o.state)
 	return {
 		state: decodeReviewState(o.state, API_PATHS.reset),
 		serverInstanceId: optString(o, 'serverInstanceId', API_PATHS.reset),
@@ -143,10 +145,12 @@ export const fetchPoll = async (
 ): Promise<(DeskPollSnapshot & DeskStatus) | DeskRefreshEvent> => {
 	const endpoint = `${API_PATHS.poll}${query}`
 	const raw = await api(endpoint)
+	await ensureGuideDecoders(raw)
 	return decodePollPayload(raw, endpoint)
 }
 
 export const fetchState = async (): Promise<DeskStateSnapshot> => {
 	const raw = await api(API_PATHS.state)
+	await ensureGuideDecoders(raw)
 	return decodeDeskStateSnapshot(raw, API_PATHS.state)
 }
