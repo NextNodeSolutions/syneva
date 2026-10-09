@@ -86,7 +86,10 @@ export async function openDeskRoute(
 			status: HTTP_UNPROCESSABLE,
 			code: outcome.code,
 			error: outcome.reason,
-			fix: 'Fix the repo state named above, then open the desk again.',
+			fix:
+				outcome.code === 'INVALID_GUIDE'
+					? 'Fix the guide fields named above (`syneva spec`, The guide), then open again.'
+					: 'Fix the repo state named above, then open the desk again.',
 		})
 	const response: OpenDeskResponse = {
 		ok: true,

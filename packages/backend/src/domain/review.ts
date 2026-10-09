@@ -2,7 +2,7 @@
 // Records are immutable (reload/reconciliation REPLACE them, never edit), so fields are readonly; application mutations copy-on-write; the diff parser assembles incrementally before publish.
 // ReviewComment/ChangeState/Decision structurally mirror packages/contracts/review.ts (domain may not import contracts) - keep both sides in sync; the guide's mirror is guide-shapes.ts.
 
-import type { Guide } from './guide-shapes.js'
+import type { Guide, GuideResolution } from './guide-shapes.js'
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
@@ -134,5 +134,7 @@ export type ReviewState = {
 	readonly decisionFiles?: readonly string[] | undefined
 	readonly decisions?: readonly Decision[] | undefined
 	readonly guide?: Guide | undefined
+	// Where the guide stands against this diff (attach-time identities, reload-time staleness); absent without a guide.
+	readonly guideResolution?: GuideResolution | undefined
 	readonly persistFile?: string | undefined
 }

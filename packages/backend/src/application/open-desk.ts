@@ -2,6 +2,7 @@ import path from 'node:path'
 
 import { deskId, deskSession } from '../domain/identity.js'
 
+import { attachGuide } from './attach-guide.js'
 import { buildReviewState, emptyReviewState } from './build.js'
 import { resolvePrTarget } from './pr-target.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
@@ -39,7 +40,7 @@ export type DeskIo = { git: GitPort; store: ReviewStorePort }
 
 export type DeskBuildOutcome =
 	| { ok: true; state: ReviewState }
-	| { ok: false; reason: string }
+	| { ok: false; reason: string; code?: 'INVALID_GUIDE' | undefined }
 
 // Checked before git runs there, so a mistyped path answers with a sentence instead of a spawn error or git's own stderr.
 export async function rootProblem(
@@ -132,7 +133,7 @@ export async function buildSourceState(
 	}
 }
 
-// The fresh diff merges with the saved review (decisions/comments/sign-offs survive by content hash), the guide stamped to the diff it describes, the staged snapshot folded in, then persisted - the stamped root is what the desk publishes.
+// The fresh diff merges with the saved review (decisions/comments/sign-offs survive by content hash; a carried guide is reconciled), a posted guide is attached against the diff, the staged snapshot folded in, then persisted - the stamped root is what the desk publishes.
 // An empty diff still yields a desk (waiting for the next reload); only an unreadable file is an error.
 export async function buildDeskState(
 	identity: DeskIdentity,
@@ -148,12 +149,18 @@ export async function buildDeskState(
 		built ?? (await emptyReviewState(identity.root, buildQuery, io.git))
 	const saved = await io.store.loadLatestReview(base.root, identity.session)
 	let state = await mergeReviewState(base, saved, io.git)
-	// Stamp the diff the grouping was generated against: once a reload advances past it the desk notes the grouping may be out of date (Guide.baseDiffHash).
-	if (guide)
-		state = {
-			...state,
-			guide: { ...guide, baseDiffHash: state.baseDiffHash },
-		}
+	// A posted guide is resolved against this very diff before anything is persisted: a refused guide leaves no desk behind.
+	if (guide) {
+		const attached = await attachGuide(
+			state,
+			query.pathFilter,
+			guide,
+			io.git,
+		)
+		if (!attached.ok)
+			return { ok: false, reason: attached.reason, code: 'INVALID_GUIDE' }
+		state = { ...state, ...attached.attachment }
+	}
 	if (query.mode === 'repo')
 		state = { ...state, ...(await readStagedSnapshot(state, io.git)) }
 	const persisted = await io.store.persistReview(state)

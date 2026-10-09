@@ -231,7 +231,12 @@ async function createDesk(
 	guide: Guide | undefined,
 ): Promise<OpenOutcome> {
 	const built = await buildDeskState(identity, query, guide, state.io)
-	if (!built.ok) return { ok: false, code: 'NO_REVIEW', reason: built.reason }
+	if (!built.ok)
+		return {
+			ok: false,
+			code: built.code ?? 'NO_REVIEW',
+			reason: built.reason,
+		}
 	const desk = registerDesk(state, built.state, recordOf(identity, query))
 	desk.ctx.recordEvent({ kind: 'desk-opened', ...reviewScope(built.state) })
 	state.io.log(
