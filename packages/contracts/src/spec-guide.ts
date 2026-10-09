@@ -102,6 +102,15 @@ pending); a stale explanation changes no verdict. Supply a fresh guide (\`syneva
 authored against the new inventory to clear it: a replacement is validated the same way and, when
 refused, leaves the desk, its guide and every verdict as they were.
 
+### Feedback on domains
+From the explanation pane the reviewer asks and requests changes on a domain, or on one of its
+blocks, without leaving it. A question reaches you as a question event with anchor "domain" (answer
+it with \`syneva comment --domain <id> [--block <id>]\`; the correspondent does on a Pi attachment),
+a change request rides the Send as \`domainRequests\`, both carrying the target's title and the code
+it pointed at when written. Threads stay with their domain and block ids across guide replacements
+(keep the ids when you regenerate); a target a new guide drops is marked unanchored with its
+context kept, never re-pointed. Resolving a thread or reading an explanation approves nothing.
+
 ### Authoring a guide - the workflow
 1. Take the inventory of exactly the source you will open - same mode, target and flags
    (\`syneva inventory …\`). It is the input: its files and units are the changed code, its
