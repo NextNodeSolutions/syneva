@@ -4,10 +4,13 @@ A guide is the review's reading order AND its explanation: the coherent behavior
 changes ("domains"), highest risk first, each owning its changed code across files and explaining
 itself in the form that fits it. You write it (Syneva runs no model), Syneva validates it, resolves
 it against the real diff and renders it beside the real code; the reviewer's decisions, comments
-and Send are never affected by it. Attach it with \`syneva open … --guide <file>\` and swap it
-with \`syneva reload --guide <new>\` after your edits (one desk only - see Between rounds). Write
-the file OUTSIDE the working tree (temp or gitignored): working mode surfaces untracked files, so
-an in-repo guide shows as a stray addition. Validation refuses a guide naming the field and what it
+and Send are never affected by it. A repo or pr desk is guided by default: open it with the guide
+(\`syneva open … --guide <file>\`), or open first and attach it with \`syneva reload --guide <file>\`
+- the desk waits for it in file order meanwhile; \`--no-guide\` opens a plain review on purpose. A
+file desk takes one optionally. Swap it with
+\`syneva reload --guide <new>\` after your edits (one desk only - see Between rounds). Write the
+file OUTSIDE the working tree (temp or gitignored): working mode surfaces untracked files, so an
+in-repo guide shows as a stray addition. Validation refuses a guide naming the field and what it
 wanted - fix the field, never pad the guide.
 
 ### Guide JSON schema (format "syneva-guide/2")
@@ -69,7 +72,8 @@ controls, nothing else.
 ### The inventory - what to author against
 \`syneva inventory [file <path> | pr <ref>] [--diff staged] [--path <p>] [--session <id>]\` prints the
 review source as JSON (ReviewInventory), for the same flags an open takes - no desk opens, nothing
-is persisted (a hub starts when none runs; a PR ref is checked out as an open would):
+is persisted, nothing is checked out (a hub starts when none runs; a PR head is fetched and read
+by ref):
 - format "syneva-inventory/1", mode, root, session, head, base?, staged, path?
 - fingerprint - hash of the mode, the source and every file's and unit's content identity: copy it
   into guide.source.fingerprint. Two inventories with the same fingerprint are the same review.
@@ -97,6 +101,47 @@ visible in Other, never hidden. Verdicts keep their own hash-based rule (a rewri
 pending); a stale explanation changes no verdict. Supply a fresh guide (\`syneva reload --guide\`)
 authored against the new inventory to clear it: a replacement is validated the same way and, when
 refused, leaves the desk, its guide and every verdict as they were.
+
+### Authoring a guide - the workflow
+1. Take the inventory of exactly the source you will open - same mode, target and flags
+   (\`syneva inventory …\`). It is the input: its files and units are the changed code, its
+   fingerprint goes into \`source\`. Never author from another diff (a working-tree diff for a pr
+   open, another base, another revision): references would land on other lines, and the open
+   refuses a fingerprint that is not the desk's.
+2. Write the guide outside the working tree, then open with it (\`syneva open … --guide <file>\`).
+   A refusal names the field and what it wanted: fix that field.
+3. Read the reviewer's feedback through the review loop (verdicts and comments land on the code the
+   domain owns; a question about a domain reaches you like any question).
+4. After you change code a domain owns or context it cites, take the inventory again and reload
+   with an updated guide (\`syneva reload --guide <new>\`, same domain ids): nothing refreshes a
+   guide for you - a plain reload only marks what went stale. Nothing here runs a model or a
+   worker; every step is yours.
+
+### Authoring a guide - the rules
+- Group by changed behavior, across files: one domain per coherent behavior the changeset changes,
+  never per folder or file; two independent behaviors in one file are two domains. Every changed
+  unit has exactly one owning domain - shared context is a "context" reference or a \`related\`
+  entry, never a second owner. Own the operations without text too (a rename, an untracked
+  addition, a hunk-less deletion) as \`file\` members.
+- Rank by risk from consequences: say what breaks and for whom (which users, data, money,
+  availability), how far the change reaches (one path, every request, every worker) and cite the
+  code that shows it (\`evidence\` with refs). Keep impact and uncertainty apart: what you could not
+  establish goes in \`unknowns\`, never into a lower risk; no numbers you cannot back (no
+  "95% safe", no severity scores). Highest risk first; a domain the reviewer needs another read
+  for names it in \`prerequisites\` - that one is summarized beside it, so keep the dependency to
+  what the reviewer must know.
+- Choose the form by what it explains: "state" for transitions, "sequence" for the order of
+  exchanges between participants, "flow" for dependencies and data movement, "before-after" for a
+  behavioral difference, "prose" when a paragraph says it best. No form is required, a diagram is
+  not expected everywhere, and the same long template in every domain is wrong: a one-line change
+  gets a sentence.
+- Reference the facts: the key claims of an explanation and every diagram element that stands for
+  code carry a \`ref\` the reviewer can click; a claim without one reads as your word. Keep the
+  first read short (summary, consequence, a block or two) and put the long reasoning in
+  \`detail\`. Separate facts (what the code does, cited), assumptions (what you believe without a
+  citation - say so) and rationale (why the change is right). Always say what the reviewer should
+  verify. Never write that code is approved, tested or checked unless the guide cites the evidence
+  (the test, the run): the reviewer approves, the guide explains.
 
 ### Examples
 A domain spanning two files, pointing at supporting context:
