@@ -41,7 +41,10 @@ export async function runOpen(
 		process.exitCode = 1
 		return
 	}
-	const request = openRequest(mode, target, args, guide)
+	const request: OpenDeskRequest = {
+		...deskRequest(mode, target, args),
+		...guideField(guide),
+	}
 	const response = await hubSend(
 		hub,
 		'POST',
@@ -57,12 +60,12 @@ export async function runOpen(
 	await report(hub, desk, args)
 }
 
-function openRequest(
+// The review source as the CLI names it for the hub, shared by `open` and `inventory` so the two always name the same desk.
+export function deskRequest(
 	mode: ReviewMode,
 	target: string | undefined,
 	args: CliArgs,
-	guide: OpenDeskRequest['guide'],
-): OpenDeskRequest {
+): Omit<OpenDeskRequest, 'guide'> {
 	const repo = resolveRepo(args)
 	const pathFilter = flagText(args, 'path')
 	return {
@@ -75,7 +78,6 @@ function openRequest(
 		staged:
 			mode === 'repo' && (args.diff === 'staged' || args.staged === true),
 		path: pathFilter ? path.resolve(repo, pathFilter) : undefined,
-		...guideField(guide),
 	}
 }
 

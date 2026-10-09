@@ -115,6 +115,23 @@ export async function restoredDeskIdentity(
 	}
 }
 
+// The review source alone - the diff as an open would build it, with no saved review merged, nothing persisted: what an inventory is taken over.
+export async function buildSourceState(
+	identity: DeskIdentity,
+	query: DeskQuery,
+	git: GitPort,
+): Promise<DeskBuildOutcome> {
+	const buildQuery = toBuildQuery(identity, query)
+	const built = await buildReviewState(identity.root, buildQuery, git)
+	if (!built && query.mode === 'file')
+		return { ok: false, reason: 'File not found or unreadable.' }
+	return {
+		ok: true,
+		state:
+			built ?? (await emptyReviewState(identity.root, buildQuery, git)),
+	}
+}
+
 // The fresh diff merges with the saved review (decisions/comments/sign-offs survive by content hash), the guide stamped to the diff it describes, the staged snapshot folded in, then persisted - the stamped root is what the desk publishes.
 // An empty diff still yields a desk (waiting for the next reload); only an unreadable file is an error.
 export async function buildDeskState(

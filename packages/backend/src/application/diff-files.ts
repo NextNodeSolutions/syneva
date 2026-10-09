@@ -165,13 +165,16 @@ function changeForBlock(input: {
 	const stableKey = changeStableKeyFromBlock(input.block)
 	const removed = input.block.filter(line => line.kind === 'delete').length
 	const added = input.block.filter(line => line.kind === 'add').length
+	const lineNumber =
+		firstAdd?.newLine ?? firstDelete?.oldLine ?? input.hunk.newStart
 	return {
 		id: `${input.filePath}:${stableKey}`,
 		path: input.filePath,
 		hunkIndex: input.hunkIndex,
 		side: firstAdd ? 'additions' : 'deletions',
-		lineNumber:
-			firstAdd?.newLine ?? firstDelete?.oldLine ?? input.hunk.newStart,
+		lineNumber,
+		// The block's last line on its side: what a guide's member or reference overlaps.
+		endLine: lineNumber + Math.max(firstAdd ? added : removed, 1) - 1,
 		stableKey,
 		stageable: input.isStageable,
 		contentHash: hash(changeBlockContent(input.block)),
