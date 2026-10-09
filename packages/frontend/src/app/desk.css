@@ -1,5 +1,10 @@
 /* All scoped under the desk root's data-desk marker and zero-specificity :where(), because one styles.css serves desk and dashboard: nothing touches a bare element and every component's StyleX styles stay in charge. */
 
+/* The desk fills the viewport and every column scrolls on its own: the document itself never does, so a jump that scrolls a row into view cannot drag the page by the few pixels a column overflows. */
+:where(html:has([data-desk]), body:has([data-desk])) {
+	overflow: hidden;
+}
+
 :where([data-desk]) :where(*, *::before, *::after) {
 	box-sizing: border-box;
 }
