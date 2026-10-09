@@ -1,6 +1,7 @@
 import { cmd, enter } from '@app/hotkey-matchers'
 import { HOTKEYS_APP, HOTKEYS_NOTES } from '@app/hotkeys-app'
 import { HOTKEYS_DIFF } from '@app/hotkeys-diff'
+import { HOTKEYS_GUIDE } from '@app/hotkeys-guide'
 import { confirmYes } from '@widgets/dialogs/confirm'
 import { golineCancel } from '@widgets/diff-view/cursor-goline'
 import { isInRail } from '@widgets/hub-shell/rail-hook'
@@ -37,6 +38,7 @@ const HOTKEYS: Hotkey[] = [
 	...HOTKEYS_MODAL,
 	...HOTKEYS_NOTES,
 	...HOTKEYS_DIFF,
+	...HOTKEYS_GUIDE,
 	...HOTKEYS_APP,
 ]
 

@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { installCommentBindings } from '@app/facade/comment-thread'
 import { installDialogBindings } from '@app/facade/dialogs'
 import { installGuideBindings } from '@app/facade/guide-bar'
+import { installGuideDomainBindings } from '@app/facade/guide-domain'
 import { installNavigationBindings, warmNextFile } from '@app/facade/navigate'
 import { installNotesBindings } from '@app/facade/notes'
 import { installProjectTreeBindings } from '@app/facade/project-tree'
@@ -47,6 +48,7 @@ installProjectTreeBindings()
 installNavigationBindings()
 installNotesBindings()
 installGuideBindings()
+installGuideDomainBindings()
 installFileActionBindings()
 installCommentBindings()
 installDialogBindings()
@@ -56,7 +58,11 @@ createRoot($('root')).render(<App />)
 ensureIcons()
 configureMarkdownRuntime({
 	getTheme: () => S.settings.theme,
-	onLoaded: () => void render(),
+	// The imperative surfaces repaint through the funnel; the React prose (the guide pane) re-renders on the tick.
+	onLoaded: () => {
+		S.markdownTick++
+		void render()
+	},
 	onLoadError: () =>
 		toast('Markdown rendering could not load. Reopen the file to retry.'),
 	// The blob route is named only by the review-file API boundary - shared markdown receives the resolver injected here (repo-relative images rewrite to /blob).
