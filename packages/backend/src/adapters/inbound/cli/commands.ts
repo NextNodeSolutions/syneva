@@ -7,7 +7,7 @@ import { printJson, warn } from '../../outbound/console.js'
 import { nodeReviewStore } from '../../outbound/filesystem/persistence.js'
 import { getBranch, nodeGit } from '../../outbound/git/repo.js'
 
-import { flagText, loadGuideArg, resolveRoot } from './args.js'
+import { flagText, resolveRoot } from './args.js'
 import {
 	connectHub,
 	deskEndpoint,
@@ -18,8 +18,8 @@ import {
 	listDesks,
 	NO_CONTENT,
 } from './hub-client.js'
+import { noDeskHint, targetDesk } from './target-desk.js'
 
-import type { Guide } from '@syneva/contracts/guide'
 import type { DeskSummary } from '@syneva/contracts/hub'
 import type { CliArgs } from './args.js'
 import type { HubConnection } from './hub-client.js'
@@ -38,28 +38,6 @@ const COMMENT_USAGE =
 	'       (--line 0 replies into the file header thread; omit --side there) [--session <id>] [--repo <path>]'
 const STATUS_USAGE =
 	'Usage: syneva status --body "..." [--session <id>] [--repo <path>]'
-
-// The desk an agent command targets: --session names it, else the lone live desk; null when there is no hub or no such desk.
-async function targetDesk(
-	args: CliArgs,
-): Promise<{ hub: HubConnection; desk: DeskSummary } | null> {
-	const hub = await connectHub(args, { autostart: false })
-	if (!hub) return null
-	const desk = await findDesk(
-		hub,
-		await resolveRoot(args),
-		flagText(args, 'session'),
-	)
-	if (!desk) return null
-	return { hub, desk }
-}
-
-function noDeskHint(args: CliArgs): string {
-	const session = flagText(args, 'session')
-	return session
-		? `No live desk for session "${sanitizeSession(session)}". Open it with: syneva open --session ${sanitizeSession(session)}`
-		: 'No live desk for this repo. Open one with: syneva open'
-}
 
 // Post an agent reply; over HTTP when a live desk hosts the session so the open tab updates
 // immediately, else appended to the saved review for the desk's next open.
@@ -179,56 +157,6 @@ function awaitUrl(
 	const base = deskEndpoint(live.hub.url, live.desk.id, API_PATHS.awaitSend)
 	const timeout = Number(flagText(args, 'timeout') ?? 0)
 	return timeout > 0 ? `${base}?timeout=${timeout}` : base
-}
-
-export async function runReload(args: CliArgs): Promise<void> {
-	const guide = loadGuideArg(args.guide)
-	if (guide === null) {
-		process.exitCode = 1
-		return
-	}
-	const live = await targetDesk(args)
-	if (!live) {
-		warn(`${noDeskHint(args)} (nothing to reload).`)
-		process.exitCode = 1
-		return
-	}
-	const response = await hubSend(
-		live.hub,
-		'POST',
-		deskEndpoint(live.hub.url, live.desk.id, API_PATHS.reload),
-		reloadBody(guide),
-	)
-	if (response.status !== HTTP_OK) {
-		warn('Reload failed - is the desk still open on the hub?')
-		process.exitCode = 1
-		return
-	}
-	printJson({
-		ok: true,
-		live: true,
-		session: live.desk.session,
-		...readReloadResult(response.body),
-	})
-}
-
-// A body that is always an object so an absent guide posts {} (re-diff only) rather than an empty body the hub would have to special-case.
-function reloadBody(guide: Guide | undefined): { guide?: Guide } {
-	if (!guide) return {}
-	return { guide }
-}
-
-function readReloadResult(body: unknown): {
-	baseDiffHash?: string
-	empty?: boolean
-} {
-	const outcome: { baseDiffHash?: string; empty?: boolean } = {}
-	if (typeof body !== 'object' || body === null) return outcome
-	if ('baseDiffHash' in body && typeof body.baseDiffHash === 'string')
-		outcome.baseDiffHash = body.baseDiffHash
-	if ('empty' in body && typeof body.empty === 'boolean')
-		outcome.empty = body.empty
-	return outcome
 }
 
 // Idempotent: exit 0 whether or not anything was open, so agents call it unconditionally when a
