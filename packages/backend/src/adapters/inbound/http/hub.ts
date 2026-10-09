@@ -8,6 +8,10 @@ import {
 	rootProblem,
 	restoredDeskIdentity,
 } from '../../../application/open-desk.js'
+import {
+	admitOpen,
+	guideExpectation,
+} from '../../../application/open-policy.js'
 import { checkoutPrTarget } from '../../../application/pr-target.js'
 import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
@@ -139,6 +143,7 @@ function registerDesk(
 // Refuse a root the hub cannot open (a sentence, not git's error), resolve who the query names,
 // then reuse the live desk for that id or build a new one; a desk reviewing a different source
 // under the same id is replaced - its tab refreshes onto the new one.
+// A new desk is admitted (the open policy) on the source as it will be reviewed, before the desk it replaces is closed and before a PR head is checked out: a refusal leaves the live desk, the review file and HEAD untouched.
 async function openOrReuse(
 	state: HubState,
 	query: DeskQuery,
@@ -152,7 +157,9 @@ async function openOrReuse(
 	const { identity } = resolved
 	const live = liveDesk(state.desks, identity.id)
 	if (live && sameSource(live.record, query, identity))
-		return reuseDesk(state, live, guide)
+		return reuseDesk(state, live, guide, query)
+	const admission = await admitOpen(identity, query, guide, state.io)
+	if (!admission.ok) return admission
 	if (live) {
 		closeDesk(state, identity.id)
 		state.desks.delete(identity.id)
@@ -160,15 +167,17 @@ async function openOrReuse(
 	return createDesk(state, identity, query, guide)
 }
 
+// A reopen is a reload that may also change what the desk expects of its guide (--no-guide, or back to the default).
 async function reuseDesk(
 	state: HubState,
 	live: HubDesk,
 	guide: Guide | undefined,
+	query: DeskQuery,
 ): Promise<OpenOutcome> {
 	const guideSwap = guide ? { guide } : undefined
 	const outcome = await live.ctx.serialize(() =>
 		reloadDesk(
-			live.ctx.state,
+			{ ...live.ctx.state, guideExpected: guideExpectation(query) },
 			live.ctx.pathFilter,
 			{ git: state.io.git, store: state.io.store },
 			guideSwap,
@@ -185,7 +194,7 @@ async function reuseDesk(
 	return { ok: true, desk: live, outcome: 'reloaded' }
 }
 
-// The checkout a pr open ends with happens here, right before the desk is built; the desk then builds at HEAD like a restore does.
+// The checkout a pr open ends with happens here, once admitted; the desk then builds at HEAD like a restore does.
 async function createDesk(
 	state: HubState,
 	identity: DeskIdentity,

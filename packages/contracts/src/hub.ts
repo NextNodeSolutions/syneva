@@ -54,6 +54,8 @@ export type OpenDeskRequest = {
 	staged?: boolean | undefined
 	path?: string | undefined
 	guide?: unknown
+	// A repo or pr desk reviewed without a guide on purpose; otherwise such a desk expects one and says so until it is attached.
+	noGuide?: boolean | undefined
 }
 
 // created: a new desk; reloaded: the live desk for that repo+session reused and re-diffed (its open tab updates by itself).

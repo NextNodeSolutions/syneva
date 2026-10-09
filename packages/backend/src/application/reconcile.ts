@@ -49,6 +49,7 @@ export async function mergeReviewState(
 		changes: decisions.changes,
 		decisions: decisions.decisions,
 		guide: saved.guide ?? base.guide,
+		guideExpected: saved.guideExpected,
 		guideResolution: await reconcileCarriedGuide(base, saved, git),
 		persistFile: saved.persistFile,
 	} satisfies ReviewState
