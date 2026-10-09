@@ -31,6 +31,14 @@ export type HubRouteDeps = {
 	onShutdown: () => void
 }
 
+// What an agent does next, by refusal; a code without its own line gets the generic repo-state fix.
+const OPEN_FIXES: Record<string, string> = {
+	INVALID_GUIDE:
+		'Fix the guide fields named above (`syneva spec`, The guide), then open again.',
+	GUIDE_REQUIRED:
+		'Take the inventory of this very source (`syneva inventory` with the same target and flags), author the guide against it (`syneva spec`, The guide), then open again with --guide <file>. A file desk opens without one.',
+}
+
 export const DESK_NOT_FOUND: ApiFailure = {
 	status: HTTP_NOT_FOUND,
 	code: 'DESK_NOT_FOUND',
@@ -87,9 +95,8 @@ export async function openDeskRoute(
 			code: outcome.code,
 			error: outcome.reason,
 			fix:
-				outcome.code === 'INVALID_GUIDE'
-					? 'Fix the guide fields named above (`syneva spec`, The guide), then open again.'
-					: 'Fix the repo state named above, then open the desk again.',
+				OPEN_FIXES[outcome.code] ??
+				'Fix the repo state named above, then open the desk again.',
 		})
 	const response: OpenDeskResponse = {
 		ok: true,

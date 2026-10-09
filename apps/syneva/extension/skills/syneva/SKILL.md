@@ -17,7 +17,7 @@ The review is the human's; the agent acts on the decisions and answers questions
 
 ## When to use it
 
-Reach for Syneva when the user should review something turn-by-turn: **code changes you made** (the working tree or staged diff), **a markdown plan or single artifact**, or **a branch / PR**. Use it when the user asks to "open the Syneva", or whenever a diff is better reviewed interactively than pasted into chat. Attach a guide (`--guide <file>`) so the reviewer reads the changeset one coherent behavior at a time, highest risk first, with your explanation beside the real code; `syneva spec` documents the guide schema and how to author one.
+Reach for Syneva when the user should review something turn-by-turn: **code changes you made** (the working tree or staged diff), **a markdown plan or single artifact**, or **a branch / PR**. Use it when the user asks to "open the Syneva", or whenever a diff is better reviewed interactively than pasted into chat. A repo or PR desk opens with a guide (`--guide <file>`) you author against `syneva inventory`, so the reviewer reads the changeset one coherent behavior at a time, highest risk first, with your explanation beside the real code; a file desk needs none. `syneva spec` holds the schema and the authoring workflow - follow it there rather than from memory.
 
 ## Getting the tool
 
@@ -27,9 +27,9 @@ Reach for Syneva when the user should review something turn-by-turn: **code chan
 
 Three ways to open a review desk (each returns at once with the desk's URL; the desk stays alive on the hub across rounds):
 
-- **Changes you made** → `syneva open --session <id>` (working tree; `--diff staged` for staged only).
+- **Changes you made** → `syneva open --session <id> --guide <file>` (working tree; `--diff staged` for staged only).
 - **A markdown plan / single artifact** → `syneva open file <path>`.
-- **A branch / PR** → `syneva open pr <ref>`.
+- **A branch / PR** → `syneva open pr <ref> --guide <file>`.
 
 `open` is idempotent: a second open of the same repo+session reloads the live desk into its tab instead of opening another. `syneva desks` lists the repo's live desks (the human may have opened one from the dashboard before you had changes).
 

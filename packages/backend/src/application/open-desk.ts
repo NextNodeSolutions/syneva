@@ -11,6 +11,7 @@ import type { Guide } from '../domain/guide-shapes.js'
 import type { ReviewMode, ReviewState } from '../domain/review.js'
 import type { BuildQuery } from './build.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
+import type { PrCheckout } from './pr-target.js'
 
 // The CLI resolves its paths against its own cwd before posting, because the hub's cwd is never the agent's; a relative file target reads from the root, as the CLI would from there.
 export type DeskQuery = {
@@ -23,6 +24,7 @@ export type DeskQuery = {
 	pathFilter?: string | undefined
 }
 
+// A pr identity also carries the resolved head (the commit its diff is read from before any checkout) and the checkout an admitted open then runs.
 export type DeskIdentity = {
 	id: string
 	root: string
@@ -30,6 +32,8 @@ export type DeskIdentity = {
 	branch: string
 	target: string | undefined
 	base: string | undefined
+	head?: string | undefined
+	checkout?: PrCheckout | undefined
 }
 
 export type DeskIdentityOutcome =
@@ -64,7 +68,7 @@ export function fileTarget(query: DeskQuery): string | undefined {
 	return path.resolve(query.root, query.target)
 }
 
-// Resolve BEFORE anything is built (a PR target may check out a branch); the hub looks the id up first, so a second open of a live desk reloads it instead of building a twin.
+// Resolve BEFORE anything is built: a PR head is fetched and named here, never checked out (that follows an admitted open); the hub looks the id up first, so a second open of a live desk reloads it instead of building a twin.
 export async function resolveDeskIdentity(
 	query: DeskQuery,
 	git: GitPort,
@@ -91,6 +95,8 @@ export async function resolveDeskIdentity(
 			branch,
 			target: pr.target.target,
 			base: pr.target.base,
+			head: pr.target.head,
+			checkout: pr.target.checkout,
 		},
 	}
 }
@@ -116,13 +122,13 @@ export async function restoredDeskIdentity(
 	}
 }
 
-// The review source alone - the diff as an open would build it, with no saved review merged, nothing persisted: what an inventory is taken over.
+// The review source alone - the diff as an open would build it, with no saved review merged, nothing persisted: what an inventory is taken over and what an open is admitted on. A pr source is read at its resolved head, so it needs no checkout.
 export async function buildSourceState(
 	identity: DeskIdentity,
 	query: DeskQuery,
 	git: GitPort,
 ): Promise<DeskBuildOutcome> {
-	const buildQuery = toBuildQuery(identity, query)
+	const buildQuery = { ...toBuildQuery(identity, query), head: identity.head }
 	const built = await buildReviewState(identity.root, buildQuery, git)
 	if (!built && query.mode === 'file')
 		return { ok: false, reason: 'File not found or unreadable.' }

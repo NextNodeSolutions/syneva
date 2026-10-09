@@ -14,7 +14,12 @@ export type DiffSource = AssembledDiff & {
 }
 
 export type DiffSourceQuery =
-	| { mode: 'pr'; root: string; base?: string | undefined }
+	| {
+			mode: 'pr'
+			root: string
+			base?: string | undefined
+			head?: string | undefined
+	  }
 	| { mode: 'file'; root: string; path: string }
 	| {
 			mode: 'repo'
@@ -66,22 +71,23 @@ export async function buildDiffSource(
 	return await buildRepoSource(query, git)
 }
 
-// pr is committed on both sides, so the file-level keys come from `git diff --raw` and assembleDiff reads no blob contents at all.
+// pr is committed on both sides, so the file-level keys come from `git diff --raw` and assembleDiff reads no blob contents at all. The new side is `head` when given (a branch read before its checkout), else HEAD.
 async function buildPrSource(
 	query: PrQuery,
 	git: GitPort,
 ): Promise<DiffSource | null> {
 	const base = query.base ?? 'HEAD'
+	const head = query.head ?? 'HEAD'
 	const rawDiff = await git.run(
-		['diff', '--no-ext-diff', '-M', `${base}..HEAD`],
+		['diff', '--no-ext-diff', '-M', `${base}..${head}`],
 		query.root,
 	)
 	if (!rawDiff.trim()) return null
 	const parsedDiff = parseUnifiedDiff(rawDiff)
 	const assembled = await assembleDiff(parsedDiff, {
-		fetchNew: p => git.fileAt(query.root, p, 'HEAD'),
+		fetchNew: p => git.fileAt(query.root, p, head),
 		isStageable: false, // verdict-only: a commit can't be staged
-		newOids: await git.rawBlobOids(query.root, { base }),
+		newOids: await git.rawBlobOids(query.root, { base, head: query.head }),
 	})
 	return { ...assembled, rawDiff }
 }
