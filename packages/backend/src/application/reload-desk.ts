@@ -1,3 +1,4 @@
+import { reanchorDomainComments } from '../domain/domain-comments.js'
 import { reconcileGuide } from '../domain/guide-reconcile.js'
 import { validateGuide } from '../domain/guide.js'
 import { hash } from '../domain/identity.js'
@@ -97,7 +98,17 @@ async function withPostedGuide(
 	if (!guide) return { ok: true, state }
 	const attached = await attachGuide(state, pathFilter, guide, git)
 	if (!attached.ok) return attached
-	return { ok: true, state: { ...state, ...attached.attachment } }
+	return {
+		ok: true,
+		state: {
+			...state,
+			...attached.attachment,
+			domainComments: reanchorDomainComments(
+				state.domainComments ?? [],
+				attached.attachment.guide,
+			),
+		},
+	}
 }
 
 // Keeps the desk up with an empty diff; deliberately does NOT run mergeReviewState/readStagedSnapshot reconciliation - that divergence predates this cleanup and is preserved here.

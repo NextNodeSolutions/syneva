@@ -13,6 +13,7 @@ import { chromeCtx } from '../../chrome/context'
 
 import { ExplanationBlockView } from './blocks/explanation-block'
 import { CoverageList } from './coverage-list'
+import { BlockFeedback, Discussion, DomainComposer } from './discussion'
 import { DomainHead } from './domain-head'
 import { pane } from './guide-pane.styles'
 import {
@@ -51,7 +52,7 @@ function DomainBody({
 				<CoverageList domain={domain} state={state} />
 			</Section>
 			{domain.blocks.map(block => (
-				<ExplanationBlockView
+				<BlockWithFeedback
 					key={block.id}
 					domain={domain}
 					block={block}
@@ -60,7 +61,36 @@ function DomainBody({
 			<Evidence domain={domain} />
 			<Unknowns domain={domain} />
 			<Related domain={domain} state={state} />
+			<Discussion domain={domain} state={state} />
 		</div>
+	)
+}
+
+// A block with its feedback hook; the composer opens right under the block it is about.
+function BlockWithFeedback({
+	domain,
+	block,
+}: {
+	domain: GuideDomain
+	block: GuideDomain['blocks'][number]
+}): ReactElement {
+	const { S } = chromeCtx()
+	const composer = S.domainComposer
+	const isOnBlock =
+		composer?.domainId === domain.id && composer.blockId === block.id
+	return (
+		<>
+			<ExplanationBlockView
+				domain={domain}
+				block={block}
+				actions={<BlockFeedback domain={domain} block={block} />}
+			/>
+			{isOnBlock && (
+				<DomainComposer
+					target={{ blockId: block.id, blockTitle: block.title }}
+				/>
+			)}
+		</>
 	)
 }
 
@@ -83,6 +113,8 @@ export function GuidePane(): ReactElement {
 		'fileIndex',
 		'preview',
 		'markdownTick',
+		'domainComposer',
+		'domainComposerBody',
 	)
 	const { state } = S
 	const domain = selectedDomain(state, S.domainId)

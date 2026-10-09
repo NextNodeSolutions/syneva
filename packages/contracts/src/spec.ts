@@ -1,6 +1,7 @@
 // Second line of the agent contract (BOOT/.../spec), printed by `syneva spec` so skills fetch
 // it instead of hardcoding a drifting copy; boot principles live in the skill/AGENTS.md.
-// The guide's section is its own module (spec-guide.ts): one contract text, printed as one.
+// The events, the ReviewResult and how to act on it (spec-events.ts) and the guide's section (spec-guide.ts) are their own modules: one contract text, printed as one.
+import { EVENTS_SPEC } from './spec-events.js'
 import { GUIDE_SPEC } from './spec-guide.js'
 
 export const SPEC = `syneva agent contract
@@ -102,8 +103,12 @@ while ev=$(syneva await); do
     question)  # answer EACH - READ-ONLY (see Events); thread under each question's path/line/side
       jq -c '.questions[]' <<<"$ev" | while IFS= read -r q; do   # one object per line - space-safe
         syneva status --body "Reading X to answer…"        # live progress
-        syneva comment --path "$(jq -r .path<<<"$q")" \\
-          --line "$(jq -r .lineNumber<<<"$q")" --side "$(jq -r .side<<<"$q")" --body "…"
+        if [ "$(jq -r .anchor<<<"$q")" = domain ]; then     # a question on the guide: reply in its thread
+          syneva comment --domain "$(jq -r .domainId<<<"$q")" --body "…"   # add --block "$(jq -r .blockId<<<"$q")" when set
+        else
+          syneva comment --path "$(jq -r .path<<<"$q")" \\
+            --line "$(jq -r .lineNumber<<<"$q")" --side "$(jq -r .side<<<"$q")" --body "…"
+        fi
       done ;;
     review)    # act on the ReviewResult, then \`syneva reload\` to show your edits
       r=$(jq .result <<<"$ev") ;;
@@ -120,7 +125,9 @@ done
 - \`syneva comment --path <f> --line <n> [--side additions|deletions] --body "…"\` - agent reply.
   Live desk → posts over HTTP, threaded under the matching human comment; no live desk →
   appended to the saved review. Match path/line/side. Agent comments are never echoed back as
-  requestedChanges.
+  requestedChanges. \`syneva comment --domain <id> [--block <id>] --body "…"\` replies in a guide
+  thread instead (a domain of the guide, or one of its explanation blocks - see The guide: Feedback);
+  a domain or block the attached guide does not have is refused (422 UNKNOWN_DOMAIN).
 - \`syneva status --body "…"\` - ephemeral one-line "doing X now" beside the reviewer's spinner.
   Cleared by your next comment; stale after ~90s (keep posting through long work); never
   persisted; exits 0 even with no desk.
@@ -135,65 +142,7 @@ done
   whole LLM round-trip. The human's browser Close (and the dashboard's Close) is the same closure,
   delivered to you as a closed event. All review state is persisted; a later open restores it.
 
-## Events
-await yields exactly one:
-- {"kind":"question","question":{path,lineNumber,side,body,mode,session},"questions":[…]} -
-  reviewer wants an answer NOW. \`questions\` holds every question batched into this delivery
-  (arrival order; \`question\` is the oldest, kept for compatibility). On a Pi attachment, the
-  desk correspondent answers the batch (see Question routing); do not duplicate its work in
-  the owner session. A question wants
-  an ANSWER, not a code change: answering is READ-ONLY - read for context, reply with \`syneva
-  comment\` at path/lineNumber/side, and NEVER edit tracked files (the "Between rounds" rule) unless
-  the question's own text asks for a change (then edit + \`syneva reload\`). lineNumber 0 (anchor
-  "file") = a whole-file question asked from the file header - reply with \`syneva comment --path
-  <f> --line 0 --body "…"\`. Questions are a live side-channel - never in a Send/ReviewResult
-  except openQuestions below. Slow answer → post \`syneva status\` lines so the human sees progress.
-- {"kind":"review","result":{…ReviewResult…}} - reviewer clicked Send. Act on result.
-- {"kind":"closed","session":...} - the reviewer ended the review (the desk's Close, ⇧Q, or the
-  dashboard's Close). The desk leaves the hub right after emitting it, so no await will ever
-  answer again: end your round and DON'T reopen the desk yourself (reopen/reattach only when the
-  human asks). A Send queued but never picked up live still left artifacts.resultJson (file-poll
-  fallback); all review state is saved, and a later \`syneva open --session\` restores it. A Pi
-  attachment deals with closed internally - it auto-detaches and notifies the session.
-
-## ReviewResult
-The \`result\` field of a review event:
-- session, repoRoot, mode, staged, head (sha|null), baseDiffHash (hash of the reviewed diff)
-- accepted[], rejected[]: {path, lineNumber, side, title}
-- requestedChanges[]: {path, lineNumber, side, body} - the edit to make per request (lineNumber 0
-  + anchor "file" = a whole-file request from the file header: apply it to that file as a whole).
-- overallNote? - optional note about the WHOLE review (absent if blank): an overall remark, or an
-  afterthought instruction for after applying (e.g. "run the formatter"). Not tied to any line.
-- stagedFiles[], approvedFiles[]
-- openQuestions[]: {path,lineNumber,side,body,mode,session} - questions you never answered, folded
-  into this Send (superseding queued live question events). Answer each with \`syneva comment\`
-  (READ-ONLY, as a live question) while acting on the round.
-- artifacts: {resultJson, sessionDir} under ~/.syneva/<repoHash>/<session>/ (repoHash =
-  sha256(abs repo root)[:16])
-The arrays above ARE the review - act on them directly; there's no prose summary to parse.
-Each changed file ends pending | approved (no objections → listed in approvedFiles) |
-changes-requested (a rejected hunk and/or a requested change).
-File-poll fallback (can't hold a long-poll): every Send (over)writes the same ReviewResult to
-artifacts.resultJson - watch sessionDir, read the newest *-result.json (new mtime = new Send).
-Live questions arrive only via await, so a file-poller sees Sends but not Asks.
-
-## How to act on a review - one path per item, don't mix
-- rejected → revert that change; the reviewer doesn't want it.
-- requestedChanges (a comment) → make the edit at path:lineNumber; lineNumber 0 (anchor "file")
-  = a whole-file request - apply it to that file as a whole, wherever it belongs.
-- accepted → leave it; don't re-touch.
-- approvedFiles → signed off as-is; leave the whole file unless a requested change forces a touch
-  (which re-opens it for re-review).
-- stagedFiles → already staged by the reviewer; don't touch unless a requested change requires it.
-In pr mode the diff is committed changes: amend the branch/commits to apply the review, leaving
-approved hunks as-is (rather than editing the working tree).
-Then \`syneva reload\` to surface your edits. With the Pi attachment, return control; otherwise
-run \`syneva await\` for the next round. When the round is fully handled and nothing needs the
-reviewer's eyes anymore (no edits awaiting re-review, no open questions - e.g. a clean
-all-approved send already committed to an empty diff), call \`syneva close\` in the same turn:
-never end a round by asking the human "say done to close" - that buys an idle desk with one
-whole LLM round-trip for nothing.
-
+${EVENTS_SPEC}
 ${GUIDE_SPEC}
 ## Between rounds - reload vs reopen, and the hub
 - Don't edit tracked files mid-round: the reviewer wouldn't see the edits and their in-flight

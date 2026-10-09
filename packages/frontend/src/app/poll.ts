@@ -11,6 +11,7 @@ import type {
 	DeskRefreshEvent,
 	DeskStateSnapshot,
 	DeskStatus,
+	DomainComment,
 	ReviewComment,
 	ReviewState,
 } from '@entities/review/model'
@@ -174,6 +175,37 @@ function adoptIncomingComments(comments: ReviewComment[]): boolean {
 	return true
 }
 
+function adoptNewDomainComment(
+	state: ReviewState,
+	incoming: DomainComment,
+): void {
+	state.domainComments.push(incoming)
+	if (incoming.role !== 'agent') return
+	S.awaitingAgent = false
+	toast('Agent replied')
+}
+
+// Agent replies in guide threads arrive the same way; whether a known thread still has its target is the hub's call (a guide swap on another tick), so that flag is taken as given.
+function adoptIncomingDomainComments(comments: DomainComment[]): boolean {
+	const { state } = S
+	if (!state) return false
+	const known = new Map(state.domainComments.map(c => [c.id, c]))
+	let hasChanged = false
+	for (const incoming of comments) {
+		const local = known.get(incoming.id)
+		if (!local) {
+			adoptNewDomainComment(state, incoming)
+			hasChanged = true
+			continue
+		}
+		if ((local.unanchored ?? false) === (incoming.unanchored ?? false))
+			continue
+		local.unanchored = incoming.unanchored
+		hasChanged = true
+	}
+	return hasChanged
+}
+
 async function adoptReload(): Promise<void> {
 	const server = await loadReviewState()
 	if (!server) return
@@ -206,7 +238,8 @@ export async function pollState(): Promise<void> {
 	}
 	const guideChanged = adoptGuide(lite)
 	const commentsChanged = adoptIncomingComments(lite.comments)
+	const threadsChanged = adoptIncomingDomainComments(lite.domainComments)
 	if (guideChanged) toast('Guide updated')
 	// These arrive on a background tick while the reviewer may be mid-scroll or mid-compose: they must not stack a synchronous full rebuild on top of their interaction.
-	if (guideChanged || commentsChanged) deferRender()
+	if (guideChanged || commentsChanged || threadsChanged) deferRender()
 }

@@ -5,7 +5,12 @@ import { buildReviewResult } from './review-result.js'
 
 import type { ReviewResult } from '@syneva/contracts/agent'
 import type { ReviewerSave } from '@syneva/contracts/browser'
-import type { Decision, ReviewComment, ReviewState } from '../domain/review.js'
+import type {
+	Decision,
+	DomainComment,
+	ReviewComment,
+	ReviewState,
+} from '../domain/review.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
 
 const JSON_INDENT = 2
@@ -21,6 +26,7 @@ export type SentReview = {
 export type ReviewerSavePatch = {
 	decisions?: Decision[] | undefined
 	comments?: ReviewComment[] | undefined
+	domainComments?: DomainComment[] | undefined
 	reviewedFiles?: string[] | undefined
 	reviewedFileHashes?: Record<string, string> | undefined
 	decisionFiles?: string[] | undefined
@@ -31,6 +37,7 @@ export type ReviewerSavePatch = {
 const REVIEWER_SAVE_KEYS = [
 	'decisions',
 	'comments',
+	'domainComments',
 	'reviewedFiles',
 	'reviewedFileHashes',
 	'decisionFiles',
@@ -57,6 +64,7 @@ export function applyReviewerSave(
 		...state,
 		decisions: patch.decisions ?? state.decisions,
 		comments: patch.comments ?? state.comments,
+		domainComments: patch.domainComments ?? state.domainComments,
 		reviewedFiles: patch.reviewedFiles ?? state.reviewedFiles,
 		reviewedFileHashes:
 			patch.reviewedFileHashes ?? state.reviewedFileHashes,

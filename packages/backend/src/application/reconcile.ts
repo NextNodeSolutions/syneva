@@ -1,6 +1,7 @@
 import { changeKey } from '../domain/change-blocks.js'
 import { reanchorComments } from '../domain/comments.js'
 import { effectiveDecisions } from '../domain/decisions.js'
+import { reanchorDomainComments } from '../domain/domain-comments.js'
 import { reconcileGuide } from '../domain/guide-reconcile.js'
 import { buildInventory } from '../domain/inventory.js'
 
@@ -50,6 +51,11 @@ export async function mergeReviewState(
 		decisions: decisions.decisions,
 		guide: saved.guide ?? base.guide,
 		guideResolution: await reconcileCarriedGuide(base, saved, git),
+		// The threads on the guide follow the carried guide: a target it still has keeps its thread anchored.
+		domainComments: reanchorDomainComments(
+			saved.domainComments ?? [],
+			saved.guide ?? base.guide,
+		),
 		persistFile: saved.persistFile,
 	} satisfies ReviewState
 }

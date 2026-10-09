@@ -3,9 +3,20 @@ import {
 	computeApprovedFiles,
 	effectiveDecisions,
 } from '../domain/decisions.js'
+import { domainThreadKey, isDomainRequest } from '../domain/domain-comments.js'
 
-import type { QuestionPayload, ReviewResult } from '@syneva/contracts/agent'
-import type { Decision, ReviewComment, ReviewState } from '../domain/review.js'
+import type {
+	DomainQuestionPayload,
+	LineQuestionPayload,
+	QuestionPayload,
+	ReviewResult,
+} from '@syneva/contracts/agent'
+import type {
+	Decision,
+	DomainComment,
+	ReviewComment,
+	ReviewState,
+} from '../domain/review.js'
 
 // Shared by /ask (live question event) and computeOpenQuestions (questions folded into a Send) so the two payload shapes can't drift; lineNumber 0 (whole-file) stamps anchor - the agent reads "file" instead of inferring it.
 export function questionPayload(
@@ -16,7 +27,7 @@ export function questionPayload(
 		side: 'additions' | 'deletions'
 		body: string
 	},
-): QuestionPayload {
+): LineQuestionPayload {
 	return {
 		path: question.path,
 		lineNumber: question.lineNumber,
@@ -28,36 +39,79 @@ export function questionPayload(
 	}
 }
 
+// A question on the guide: the target's context rides with it, so the agent reads the right explanation and code without the desk.
+export function domainQuestionPayload(
+	state: Pick<ReviewState, 'mode' | 'session'>,
+	question: Pick<DomainComment, 'target' | 'body'>,
+): DomainQuestionPayload {
+	const { target } = question
+	return {
+		anchor: 'domain',
+		domainId: target.domainId,
+		blockId: target.blockId,
+		domainTitle: target.domainTitle,
+		blockTitle: target.blockTitle,
+		guideFingerprint: target.guideFingerprint,
+		refs: [...target.refs],
+		body: question.body,
+		mode: state.mode,
+		session: state.session,
+	}
+}
+
 // A path may contain any character, so a plain joined string could collide - the JSON tuple cannot.
 const threadKey = (comment: ReviewComment): string =>
 	JSON.stringify([comment.path, comment.side, comment.lineNumber])
 
-// Mirrors the UI's "answered" heuristic (frontend diff-view/annotations.ts): an open question stays unanswered until a later agent reply lands in the same thread (same path/side/line).
-// They ride out on the Send's ReviewResult so an agent without the live await still owes each an answer.
-export function computeOpenQuestions(state: ReviewState): QuestionPayload[] {
+type Threaded = Pick<ReviewComment, 'role' | 'intent' | 'status' | 'createdAt'>
+
+// Mirrors the UI's "answered" heuristic (frontend diff-view/annotations.ts, entities/review/notes.ts): an open question stays unanswered until a later agent reply lands in the same thread - a line thread (path/side/line) or a domain thread (domain/block).
+function unanswered<Item extends Threaded>(
+	items: readonly Item[],
+	keyOf: (item: Item) => string,
+): Item[] {
 	const latestReplies = new Map<string, number>()
-	for (const reply of state.comments) {
+	for (const reply of items) {
 		if (reply.role !== 'agent') continue
 		const repliedAt = +new Date(reply.createdAt)
 		if (Number.isNaN(repliedAt)) continue
-		const key = threadKey(reply)
+		const key = keyOf(reply)
 		const latest = latestReplies.get(key)
 		if (!latest || repliedAt > latest) latestReplies.set(key, repliedAt)
 	}
-	const isAnswered = (question: ReviewComment): boolean => {
-		const askedAt = +new Date(question.createdAt)
-		const latest = latestReplies.get(threadKey(question))
-		return latest ? latest > askedAt : false
-	}
-	return state.comments
-		.filter(
-			comment =>
-				comment.intent === 'question' &&
-				comment.status === 'open' &&
-				comment.role !== 'agent' &&
-				!isAnswered(comment),
-		)
-		.map(comment => questionPayload(state, comment))
+	return items.filter(message => {
+		if (message.intent !== 'question' || message.status !== 'open')
+			return false
+		if (message.role === 'agent') return false
+		const latest = latestReplies.get(keyOf(message)) ?? 0
+		return !(latest > +new Date(message.createdAt))
+	})
+}
+
+// They ride out on the Send's ReviewResult so an agent without the live await still owes each an answer.
+export function computeOpenQuestions(state: ReviewState): QuestionPayload[] {
+	return [
+		...unanswered(state.comments, threadKey).map(comment =>
+			questionPayload(state, comment),
+		),
+		...unanswered(state.domainComments ?? [], comment =>
+			domainThreadKey(comment.target),
+		).map(comment => domainQuestionPayload(state, comment)),
+	]
+}
+
+function domainRequests(state: ReviewState): ReviewResult['domainRequests'] {
+	return (state.domainComments ?? [])
+		.filter(isDomainRequest)
+		.map(({ target, body }) => ({
+			domainId: target.domainId,
+			blockId: target.blockId,
+			domainTitle: target.domainTitle,
+			blockTitle: target.blockTitle,
+			guideFingerprint: target.guideFingerprint,
+			refs: [...target.refs],
+			body,
+		}))
 }
 
 export function buildReviewResult(
@@ -77,6 +131,7 @@ export function buildReviewResult(
 		accepted: decisionSummaries(state, 'accepted'),
 		rejected: decisionSummaries(state, 'rejected'),
 		requestedChanges: requestedChanges(state),
+		domainRequests: domainRequests(state),
 		...noteStamp(overallNote?.trim()),
 		stagedFiles: state.stagedFiles,
 		approvedFiles: computeApprovedFiles(state),

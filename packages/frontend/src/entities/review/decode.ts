@@ -13,6 +13,7 @@ import {
 } from '@shared/api/decode'
 import { DecodeError } from '@shared/api/decode'
 
+import { decodeDomainComments } from './decode-domain-comments'
 import { guideDecoders } from './guide/decode-lazy'
 
 import type { Guide, GuideResolution } from './guide/model'
@@ -157,6 +158,7 @@ export function decodeReviewState(raw: unknown, endpoint: string): ReviewState {
 		comments: requiredArray(o, 'comments', endpoint, 'comments').map(c =>
 			decodeComment(c, ctx),
 		),
+		domainComments: decodeDomainComments(o, ctx),
 		decisions: o.decisions
 			? requiredArray(o, 'decisions', endpoint, 'decisions').map(d =>
 					decodeDecision(d, ctx),
@@ -248,6 +250,7 @@ export function decodePollPayload(
 		comments: requiredArray(o, 'comments', endpoint, 'comments').map(c =>
 			decodeComment(c, ctx),
 		),
+		domainComments: decodeDomainComments(o, ctx),
 		...decodeDeskStatus(o, endpoint),
 	}
 }

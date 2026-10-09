@@ -1,4 +1,4 @@
-import type { ReviewMode } from './review.js'
+import type { DomainCodeRef, ReviewMode } from './review.js'
 
 export type ReviewResult = {
 	session: string
@@ -29,6 +29,16 @@ export type ReviewResult = {
 		// 'file': whole-file remark (no line to edit); absent means line-anchored.
 		anchor?: 'file' | undefined
 	}>
+	// Change requests on the guide's domains and blocks (the reviewer challenged an explanation or asked for a behavior change): act on the behavior, refresh the guide if the explanation was wrong, then answer in the thread with `syneva comment --domain`; `refs` is the code the target pointed at when it was written.
+	domainRequests: Array<{
+		domainId: string
+		blockId?: string | undefined
+		domainTitle: string
+		blockTitle?: string | undefined
+		guideFingerprint: string
+		refs: DomainCodeRef[]
+		body: string
+	}>
 	// Ephemeral per Send - never persisted into the review state, so it cannot silently re-send.
 	overallNote?: string | undefined
 	stagedFiles: readonly string[]
@@ -39,7 +49,7 @@ export type ReviewResult = {
 	artifacts: { resultJson: string; sessionDir: string }
 }
 
-export type QuestionPayload = {
+export type LineQuestionPayload = {
 	path: string
 	lineNumber: number
 	side: 'additions' | 'deletions'
@@ -49,6 +59,22 @@ export type QuestionPayload = {
 	mode: ReviewMode
 	session: string
 }
+
+// A question on a domain of the guide or on one of its blocks: no path or line. Answer from the code `refs` name and the explanation, with `syneva comment --domain <id> [--block <id>]`.
+export type DomainQuestionPayload = {
+	anchor: 'domain'
+	domainId: string
+	blockId?: string | undefined
+	domainTitle: string
+	blockTitle?: string | undefined
+	guideFingerprint: string
+	refs: DomainCodeRef[]
+	body: string
+	mode: ReviewMode
+	session: string
+}
+
+export type QuestionPayload = LineQuestionPayload | DomainQuestionPayload
 
 // Question: answer now via `syneva comment`; review: act on the Send; closed: the human ended the review.
 export type AwaitEvent =

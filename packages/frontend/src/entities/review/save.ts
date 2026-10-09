@@ -5,6 +5,7 @@ export function reviewerSlice(state: ReviewerSave): ReviewerSave {
 	return {
 		decisions: state.decisions,
 		comments: state.comments,
+		domainComments: state.domainComments,
 		reviewedFiles: state.reviewedFiles,
 		reviewedFileHashes: state.reviewedFileHashes,
 		decisionFiles: state.decisionFiles,

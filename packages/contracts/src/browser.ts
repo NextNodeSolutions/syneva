@@ -3,6 +3,7 @@ import type { Guide, GuideResolution } from './guide.js'
 import type {
 	ChangeState,
 	Decision,
+	DomainComment,
 	ReviewComment,
 	ReviewMode,
 } from './review.js'
@@ -30,6 +31,8 @@ export type BrowserReviewState = {
 	baseDiffHash: string
 	changes: readonly ChangeState[]
 	comments: readonly ReviewComment[]
+	// Threads on the guide's domains and blocks (see DomainComment); empty without a guide.
+	domainComments: readonly DomainComment[]
 	decisions?: readonly Decision[] | undefined
 	guide?: Guide | undefined
 	// Where the guide stands against this diff: owned identities at attach, stale domains and references after reloads, the changes no domain owns.
@@ -56,6 +59,7 @@ export type ReviewerSave = Pick<
 	BrowserReviewState,
 	| 'decisions'
 	| 'comments'
+	| 'domainComments'
 	| 'reviewedFiles'
 	| 'reviewedFileHashes'
 	| 'decisionFiles'
@@ -85,5 +89,5 @@ export type FileContentsPayload = {
 // baseDiffHash), not every tick. A stale ?instance= gets a BrowserRefreshEvent instead; DeskStatus rides along.
 export type PollPayload = Pick<
 	BrowserReviewState,
-	'baseDiffHash' | 'guide' | 'guideResolution' | 'comments'
+	'baseDiffHash' | 'guide' | 'guideResolution' | 'comments' | 'domainComments'
 >

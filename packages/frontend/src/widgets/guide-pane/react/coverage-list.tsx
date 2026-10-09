@@ -32,6 +32,19 @@ function spanLabel(change: ChangeState): string {
 	return `${sign}${change.lineNumber}${end}`
 }
 
+// The folder gives way, the file name never does: a long path ellipsizes its directories, not what the reviewer scans for.
+function PathLabel({ path }: { path: string }): ReactElement {
+	const slash = path.lastIndexOf('/')
+	const dir = slash >= 0 ? path.slice(0, slash + 1) : ''
+	const name = slash >= 0 ? path.slice(slash + 1) : path
+	return (
+		<span {...stylex.props(coverage.path)} title={path}>
+			{dir && <span {...stylex.props(coverage.dir)}>{dir}</span>}
+			<span {...stylex.props(coverage.name)}>{name}</span>
+		</span>
+	)
+}
+
 // One canonical change with the verdict its decision record holds, whatever explains it; the click lands on it in the real diff.
 function ChangeRow({
 	change,
@@ -48,7 +61,7 @@ function ChangeRow({
 			data-unit={change.id}
 			onClick={() => S.jumpToSpan?.(changeSpan(change))}
 		>
-			<span {...stylex.props(coverage.path)}>{change.path}</span>
+			<PathLabel path={change.path} />
 			<span {...stylex.props(coverage.lines)}>{spanLabel(change)}</span>
 			<span {...stylex.props(tag.base, verdict.style, coverage.verdict)}>
 				{verdict.label}
@@ -73,7 +86,7 @@ function FileRow({
 				if (index >= 0) S.selectFile?.(index)
 			}}
 		>
-			<span {...stylex.props(coverage.path)}>{path}</span>
+			<PathLabel path={path} />
 			<span {...stylex.props(coverage.lines)}>whole file</span>
 		</button>
 	)

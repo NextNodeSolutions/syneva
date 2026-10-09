@@ -1,5 +1,6 @@
 import { API_PATHS, hubDeskPath } from '@syneva/contracts/routes'
 
+import { appendDomainComment } from '../../../application/add-domain-comment.js'
 import { appendComment } from '../../../application/comments.js'
 import { parseLineNumber } from '../../../domain/comments.js'
 import { sanitizeSession } from '../../../domain/identity.js'
@@ -7,7 +8,7 @@ import { printJson, warn } from '../../outbound/console.js'
 import { nodeReviewStore } from '../../outbound/filesystem/persistence.js'
 import { getBranch, nodeGit } from '../../outbound/git/repo.js'
 
-import { flagText, loadGuideArg, resolveRoot } from './args.js'
+import { flagText, resolveRoot } from './args.js'
 import {
 	connectHub,
 	deskEndpoint,
@@ -18,13 +19,14 @@ import {
 	listDesks,
 	NO_CONTENT,
 } from './hub-client.js'
+import { noDeskHint, targetDesk } from './target-desk.js'
 
-import type { Guide } from '@syneva/contracts/guide'
 import type { DeskSummary } from '@syneva/contracts/hub'
+import type { DomainCommentInput } from '../../../domain/domain-comments.js'
 import type { CliArgs } from './args.js'
 import type { HubConnection } from './hub-client.js'
 
-type CommentPayload = {
+type LinePayload = {
 	path: string
 	side: 'additions' | 'deletions'
 	lineNumber: number
@@ -32,34 +34,15 @@ type CommentPayload = {
 	role: 'agent'
 }
 
+type CommentPayload = LinePayload | DomainCommentInput
+
 const HTTP_OK = 200
 const COMMENT_USAGE =
 	'Usage: syneva comment --path <file> --line <n> [--side additions|deletions] --body "..."\n' +
-	'       (--line 0 replies into the file header thread; omit --side there) [--session <id>] [--repo <path>]'
+	'       (--line 0 replies into the file header thread; omit --side there) [--session <id>] [--repo <path>]\n' +
+	'       syneva comment --domain <id> [--block <id>] --body "..."   (a reply in a guide thread: a domain, or one of its blocks)'
 const STATUS_USAGE =
 	'Usage: syneva status --body "..." [--session <id>] [--repo <path>]'
-
-// The desk an agent command targets: --session names it, else the lone live desk; null when there is no hub or no such desk.
-async function targetDesk(
-	args: CliArgs,
-): Promise<{ hub: HubConnection; desk: DeskSummary } | null> {
-	const hub = await connectHub(args, { autostart: false })
-	if (!hub) return null
-	const desk = await findDesk(
-		hub,
-		await resolveRoot(args),
-		flagText(args, 'session'),
-	)
-	if (!desk) return null
-	return { hub, desk }
-}
-
-function noDeskHint(args: CliArgs): string {
-	const session = flagText(args, 'session')
-	return session
-		? `No live desk for session "${sanitizeSession(session)}". Open it with: syneva open --session ${sanitizeSession(session)}`
-		: 'No live desk for this repo. Open one with: syneva open'
-}
 
 // Post an agent reply; over HTTP when a live desk hosts the session so the open tab updates
 // immediately, else appended to the saved review for the desk's next open.
@@ -93,16 +76,28 @@ export async function runComment(args: CliArgs): Promise<void> {
 	const session = sanitizeSession(
 		flagText(args, 'session') ?? (await getBranch(root)),
 	)
-	const comment = await appendComment(root, session, payload, {
-		store: nodeReviewStore,
-		git: nodeGit,
-	})
+	const comment =
+		'domainId' in payload
+			? await appendDomainComment(root, session, payload, nodeReviewStore)
+			: await appendComment(root, session, payload, {
+					store: nodeReviewStore,
+					git: nodeGit,
+				})
 	printJson({ ok: true, live: false, session, commentId: comment.id })
 }
 
+// --domain names a guide thread instead of a line; the hub resolves the target against the attached guide.
 function parseCommentPayload(args: CliArgs): CommentPayload | null {
-	const path = flagText(args, 'path') ?? ''
 	const body = flagText(args, 'body')?.trim() ?? ''
+	const domainId = flagText(args, 'domain')
+	if (domainId && body)
+		return {
+			domainId,
+			blockId: flagText(args, 'block'),
+			body,
+			role: 'agent',
+		}
+	const path = flagText(args, 'path') ?? ''
 	if (!path || !body) return null
 	const side: 'additions' | 'deletions' =
 		args.side === 'deletions' ? 'deletions' : 'additions'
@@ -179,56 +174,6 @@ function awaitUrl(
 	const base = deskEndpoint(live.hub.url, live.desk.id, API_PATHS.awaitSend)
 	const timeout = Number(flagText(args, 'timeout') ?? 0)
 	return timeout > 0 ? `${base}?timeout=${timeout}` : base
-}
-
-export async function runReload(args: CliArgs): Promise<void> {
-	const guide = loadGuideArg(args.guide)
-	if (guide === null) {
-		process.exitCode = 1
-		return
-	}
-	const live = await targetDesk(args)
-	if (!live) {
-		warn(`${noDeskHint(args)} (nothing to reload).`)
-		process.exitCode = 1
-		return
-	}
-	const response = await hubSend(
-		live.hub,
-		'POST',
-		deskEndpoint(live.hub.url, live.desk.id, API_PATHS.reload),
-		reloadBody(guide),
-	)
-	if (response.status !== HTTP_OK) {
-		warn('Reload failed - is the desk still open on the hub?')
-		process.exitCode = 1
-		return
-	}
-	printJson({
-		ok: true,
-		live: true,
-		session: live.desk.session,
-		...readReloadResult(response.body),
-	})
-}
-
-// A body that is always an object so an absent guide posts {} (re-diff only) rather than an empty body the hub would have to special-case.
-function reloadBody(guide: Guide | undefined): { guide?: Guide } {
-	if (!guide) return {}
-	return { guide }
-}
-
-function readReloadResult(body: unknown): {
-	baseDiffHash?: string
-	empty?: boolean
-} {
-	const outcome: { baseDiffHash?: string; empty?: boolean } = {}
-	if (typeof body !== 'object' || body === null) return outcome
-	if ('baseDiffHash' in body && typeof body.baseDiffHash === 'string')
-		outcome.baseDiffHash = body.baseDiffHash
-	if ('empty' in body && typeof body.empty === 'boolean')
-		outcome.empty = body.empty
-	return outcome
 }
 
 // Idempotent: exit 0 whether or not anything was open, so agents call it unconditionally when a
