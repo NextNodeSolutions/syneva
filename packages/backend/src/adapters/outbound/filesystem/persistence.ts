@@ -9,6 +9,10 @@ import { reviewDir } from './desk.js'
 import { decodeReviewFile, encodeReviewFile } from './diff-envelope-dto.js'
 import { asString } from './dto.js'
 import {
+	decodeGuideResolution,
+	encodeGuideResolution,
+} from './guide-resolution-dto.js'
+import {
 	decodeChange,
 	decodeComment,
 	decodeDecision,
@@ -95,6 +99,9 @@ function serializeReviewState(
 		decisionFiles: state.decisionFiles,
 		decisions: state.decisions?.map(encodeDecision),
 		guide: state.guide ? encodeGuide(state.guide) : undefined,
+		guideResolution: state.guideResolution
+			? encodeGuideResolution(state.guideResolution)
+			: undefined,
 		persistFile: stamp.persistFile,
 	}
 }
@@ -196,10 +203,21 @@ function decodePersistedState(
 		stagedChangeKeys: decodeArray(body.stagedChangeKeys, asString),
 		decisionFiles: decodeArray(body.decisionFiles, asString),
 		decisions: decodeArray(body.decisions, decodeDecision),
-		// A malformed guide decodes to nothing rather than half a grouping (the desk lists files in diff order).
-		guide: body.guide ? (decodeGuide(body.guide) ?? undefined) : undefined,
+		...decodeGuideFields(body),
 		persistFile,
 	}
+}
+
+// A malformed guide decodes to nothing rather than half a guide (the desk reviews in diff order); a resolution without its guide is meaningless and dropped with it.
+function decodeGuideFields(
+	body: Raw,
+): Pick<ReviewState, 'guide' | 'guideResolution'> {
+	const guide = body.guide ? decodeGuide(body.guide) : null
+	if (!guide) return { guide: undefined, guideResolution: undefined }
+	const resolution = body.guideResolution
+		? decodeGuideResolution(body.guideResolution)
+		: null
+	return { guide, guideResolution: resolution ?? undefined }
 }
 
 function decodeStringRecord(raw: unknown): Record<string, string> | undefined {

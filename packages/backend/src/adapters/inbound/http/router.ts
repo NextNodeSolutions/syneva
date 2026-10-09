@@ -23,6 +23,7 @@ import {
 	closeDeskRoute,
 	DESK_NOT_FOUND,
 	hubHealth,
+	inventoryRoute,
 	listDesks,
 	openDeskRoute,
 	readDesk,
@@ -205,6 +206,10 @@ async function handleHubApi(
 		if (method === 'GET') listDesks(deps, res, url)
 		else if (method === 'POST') await openDeskRoute(deps, req, res)
 		else return false
+		return true
+	}
+	if (url.pathname === HUB_PATHS.inventory && method === 'POST') {
+		await inventoryRoute(deps, req, res)
 		return true
 	}
 	if (url.pathname === HUB_PATHS.shutdown && method === 'POST') {

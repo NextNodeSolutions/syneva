@@ -14,9 +14,9 @@ wanted - fix the field, never pad the guide.
 One JSON object:
 - format (required) - exactly "syneva-guide/2". The retired file-grouping format is refused, not adapted.
 - source (required) - the review source the guide was written against: { mode: "repo"|"file"|"pr",
-  fingerprint, head?, base?, staged?, path? }. \`fingerprint\` is the inventory's fingerprint for
-  exactly that mode and source (\`syneva inventory\` prints it); the desk refuses a guide whose
-  fingerprint is not the diff it opens.
+  fingerprint, head?, base?, staged?, path? }. Copy \`mode\` and \`fingerprint\` from the inventory
+  (below) of exactly the source you open; the desk refuses a guide whose fingerprint is not the
+  diff it opens, so references are never read against another revision.
 - overview (required, ≤ 3000 chars, Markdown) - what the changeset does and why, in a short paragraph.
 - domains (required array, ≤ 60; empty only on an empty changeset) - one per coherent changed
   behavior, NOT per folder or file:
@@ -62,9 +62,41 @@ Unknown keys anywhere are refused by name: nothing you write is silently ignored
 
 Empty changeset: a guide over nothing to review has \`"domains": []\` and an overview that says so;
 domains over an empty diff are refused. Coverage: every changed unit of the diff needs exactly one
-owning domain - a unit two domains own, or none, is a validation error naming it (see
-\`syneva inventory\` for the units). Rendering never fabricates: a domain without blocks shows its
-summary and verdict controls, nothing else.
+owning domain - a unit two domains own, or none, is refused naming the unit (its key is the
+inventory's). Rendering never fabricates: a domain without blocks shows its summary and verdict
+controls, nothing else.
+
+### The inventory - what to author against
+\`syneva inventory [file <path> | pr <ref>] [--diff staged] [--path <p>] [--session <id>]\` prints the
+review source as JSON (ReviewInventory), for the same flags an open takes - no desk opens, nothing
+is persisted (a hub starts when none runs; a PR ref is checked out as an open would):
+- format "syneva-inventory/1", mode, root, session, head, base?, staged, path?
+- fingerprint - hash of the mode, the source and every file's and unit's content identity: copy it
+  into guide.source.fingerprint. Two inventories with the same fingerprint are the same review.
+- files[] - { path, oldPath?, newPath?, changeKind, contentHash, hasHunks, renamePure, added, removed }
+- units[] - the changed text blocks: { key, path, side, lineNumber, endLine, removed, added,
+  contentHash, title }. A member or a reference names a block by any line of lineNumber..endLine on
+  its side; \`key\` (path:stableKey) is what verdicts and the unassigned list name.
+- fileUnits[] - the paths with no text block (a pure rename, an untracked addition): each needs a
+  { kind: "file", path } member.
+On a live desk, GET /api/desks/<id>/inventory answers the same for its current diff; the hub answers
+POST /api/hub/inventory with an open's body (no guide) for any source.
+
+### Resolution and staleness
+On attach the desk resolves the guide against its inventory and refuses it (422 INVALID_GUIDE,
+naming every field at fault) when the fingerprint or mode differs, a member names no changed block,
+a unit has two owners or none, a file operation is unowned, or a reference does not land ("changed"
+on a changed block of that side; "context" on lines that exist on the reviewed revision - reads are
+confined to the repository and bounded). What resolved is kept with the guide: each domain's owned
+units and each reference's content identity at attach (state.guideResolution).
+A later \`syneva reload\` never rewrites the guide. It re-reads the diff and marks what no longer
+holds: a domain whose owned code, cited context or file operation changed is stale (with its
+reasons), its dependents through \`prerequisites\` are stale too, a reference reads stale (the cited
+code changed) or unresolved (gone), and changes no domain owns are listed as unassigned - pending,
+visible in Other, never hidden. Verdicts keep their own hash-based rule (a rewritten block resets to
+pending); a stale explanation changes no verdict. Supply a fresh guide (\`syneva reload --guide\`)
+authored against the new inventory to clear it: a replacement is validated the same way and, when
+refused, leaves the desk, its guide and every verdict as they were.
 
 ### Examples
 A domain spanning two files, pointing at supporting context:

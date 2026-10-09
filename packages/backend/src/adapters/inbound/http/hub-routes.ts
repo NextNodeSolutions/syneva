@@ -1,9 +1,4 @@
-import os from 'node:os'
-import path from 'node:path'
-
 import { HUB_PATHS, JOURNAL_READ_MAX } from '@syneva/contracts/routes'
-
-import { validateGuide } from '../../../domain/guide.js'
 
 import {
 	HTTP_NOT_FOUND,
@@ -13,6 +8,7 @@ import {
 	json,
 	fail,
 } from './http.js'
+import { parseOpenRequest } from './open-request.js'
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type {
@@ -21,11 +17,8 @@ import type {
 	HubHealth,
 	OpenDeskResponse,
 } from '@syneva/contracts/hub'
-import type { ReviewMode } from '@syneva/contracts/review'
 import type { HubJournal, JournalQuery } from '../../../application/journal.js'
-import type { DeskQuery } from '../../../application/open-desk.js'
 import type { SettingsPort } from '../../../application/ports.js'
-import type { Guide } from '../../../domain/guide-shapes.js'
 import type { ApiFailure } from './failure.js'
 import type { Hub } from './hub.js'
 
@@ -93,7 +86,10 @@ export async function openDeskRoute(
 			status: HTTP_UNPROCESSABLE,
 			code: outcome.code,
 			error: outcome.reason,
-			fix: 'Fix the repo state named above, then open the desk again.',
+			fix:
+				outcome.code === 'INVALID_GUIDE'
+					? 'Fix the guide fields named above (`syneva spec`, The guide), then open again.'
+					: 'Fix the repo state named above, then open the desk again.',
 		})
 	const response: OpenDeskResponse = {
 		ok: true,
@@ -101,6 +97,31 @@ export async function openDeskRoute(
 		outcome: outcome.outcome,
 	}
 	json(res, HTTP_OK, response)
+}
+
+// POST /api/hub/inventory: the review source for an open's parameters (same body, no guide), before any desk opens.
+export async function inventoryRoute(
+	deps: HubRouteDeps,
+	req: IncomingMessage,
+	res: ServerResponse,
+): Promise<void> {
+	const parsed = parseOpenRequest(await readJsonBody(req))
+	if ('error' in parsed)
+		return fail(res, {
+			status: HTTP_UNPROCESSABLE,
+			code: 'INVALID_INVENTORY',
+			error: parsed.error,
+			fix: 'POST { root, mode?, session?, target?, base?, staged?, path? } - see `syneva spec`.',
+		})
+	const outcome = await deps.hub.inventory(parsed.query)
+	if (!outcome.ok)
+		return fail(res, {
+			status: HTTP_UNPROCESSABLE,
+			code: outcome.code,
+			error: outcome.reason,
+			fix: 'Fix the repo state named above, then ask for the inventory again.',
+		})
+	json(res, HTTP_OK, outcome.inventory)
 }
 
 export function readDesk(
@@ -192,71 +213,5 @@ function parseJournalQuery(
 			Math.max(Number(limit ?? JOURNAL_DEFAULT_LIMIT), 1),
 			JOURNAL_READ_MAX,
 		),
-	}
-}
-
-type ParsedOpen =
-	| { query: DeskQuery; guide: Guide | undefined }
-	| { error: string }
-
-function isMode(raw: unknown): raw is ReviewMode {
-	return raw === 'repo' || raw === 'file' || raw === 'pr'
-}
-
-function optionalText(
-	record: Record<string, unknown>,
-	key: string,
-): string | undefined {
-	const field = record[key]
-	if (typeof field !== 'string' || !field.length) return undefined
-	return field
-}
-
-// A leading `~` names the home directory of the hub's user, as a shell would expand it (a person typing a path into the dashboard writes it so); Node's path functions never do.
-const HOME_PREFIX = /^~(?=$|[\\/])/
-
-function expandHome(text: string): string {
-	return text.replace(HOME_PREFIX, () => os.homedir())
-}
-
-// `root` is required and absolute (after `~`): the hub's cwd is no one's - an auto-started hub inherits whichever agent started it, so a relative root would open whatever repository that is.
-// A present `guide` is validated by the domain rule before any desk is touched.
-function parseOpenRequest(body: unknown): ParsedOpen {
-	if (typeof body !== 'object' || body === null)
-		return { error: 'The open body must be a JSON object.' }
-	const record: Record<string, unknown> = Object.fromEntries(
-		Object.entries(body),
-	)
-	const given = optionalText(record, 'root')
-	if (!given) return { error: 'open requires a non-empty `root` path.' }
-	const root = expandHome(given)
-	if (!path.isAbsolute(root))
-		return {
-			error: "Give the repository's absolute path on the hub's machine.",
-		}
-	const mode = record.mode ?? 'repo'
-	if (!isMode(mode)) return { error: 'mode must be "repo", "file" or "pr".' }
-	const target = optionalText(record, 'target')
-	if (mode === 'file' && !target)
-		return { error: 'file mode requires `target` (the file to review).' }
-	let guide: Guide | undefined
-	// A posted `guide` key is a posted guide, null included: it is validated, never ignored.
-	if ('guide' in record) {
-		const validation = validateGuide(record.guide)
-		if (!validation.ok)
-			return { error: `Invalid guide: ${validation.reason}.` }
-		guide = validation.guide
-	}
-	return {
-		query: {
-			root,
-			mode,
-			session: optionalText(record, 'session'),
-			target: mode === 'file' && target ? expandHome(target) : target,
-			base: optionalText(record, 'base'),
-			staged: record.staged === true,
-			pathFilter: optionalText(record, 'path'),
-		},
-		guide,
 	}
 }

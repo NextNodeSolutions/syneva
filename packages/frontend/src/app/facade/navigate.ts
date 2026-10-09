@@ -5,6 +5,7 @@ import { defaultFileView } from '@entities/review/file/file-summary'
 import { guideInputs, hasGuide, navOrder } from '@entities/review/guide/guide'
 import { nextUnreviewed } from '@entities/review/guide/seek'
 import { deferRender, render } from '@pages/desk/render'
+import { setPendingJump } from '@widgets/diff-view/comment-jump'
 import { cursorReset } from '@widgets/diff-view/cursor'
 import { D } from '@widgets/diff-view/runtime'
 
@@ -19,6 +20,30 @@ export function installNavigationBindings(): void {
 	installFileSelection()
 	installFileStepping()
 	installSignOffAdvance()
+	installSpanJump()
+}
+
+// A guide reference or an owned block lands on its exact file, side and line: a file in the review is selected (the render funnel consumes the jump once the rows exist - offscreen rows of a virtualized file through its navigator), unchanged context outside the diff opens as the read-only preview.
+function installSpanJump(): void {
+	S.jumpToSpan = span => {
+		const { state } = S
+		if (!state) return
+		setPendingJump({
+			path: span.path,
+			side: span.side,
+			lineNumber: span.lineNumber,
+			fileLevel: false,
+			unanchored: false,
+		})
+		const index = state.files.findIndex(file => file.path === span.path)
+		const shown = currentFileOrNull(state.files, S.preview, S.fileIndex)
+		if (index >= 0 && shown?.path === span.path && !S.overviewOpen) {
+			void render()
+			return
+		}
+		if (index >= 0) S.selectFile?.(index)
+		else S.previewFile?.(span.path)
+	}
 }
 
 // Bumped by every selection that replaces the rendered file and by every preview request; an in-flight preview whose token is no longer current is discarded, so a late response can't overwrite a newer selection.

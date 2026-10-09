@@ -13,9 +13,9 @@ import {
 } from '@shared/api/decode'
 import { DecodeError } from '@shared/api/decode'
 
-import { decodeGuide } from './guide/decode'
+import { guideDecoders } from './guide/decode-lazy'
 
-import type { Guide } from './guide/model'
+import type { Guide, GuideResolution } from './guide/model'
 import type {
 	ChangeState,
 	Decision,
@@ -125,12 +125,25 @@ export function decodeReviewFile(raw: unknown, ctx: Ctx): ReviewFile {
 	}
 }
 
+// The guide and its resolution, through the lazily loaded decoders (the API boundary loaded them when the payload carries a guide); a resolution without its guide is dropped.
+function decodeGuideFields(
+	o: Record<string, unknown>,
+	ctx: Ctx,
+): { guide: Guide | undefined; guideResolution: GuideResolution | undefined } {
+	if (!o.guide) return { guide: undefined, guideResolution: undefined }
+	const decoders = guideDecoders(ctx.endpoint)
+	return {
+		guide: decoders.decodeGuide(o.guide, ctx),
+		guideResolution: o.guideResolution
+			? decoders.decodeGuideResolution(o.guideResolution, ctx)
+			: undefined,
+	}
+}
+
 export function decodeReviewState(raw: unknown, endpoint: string): ReviewState {
 	const ctx = { endpoint }
 	const o = assertObject(raw, endpoint, 'review state')
-	let guide: Guide | undefined
-	const rawGuide = o.guide
-	if (rawGuide) guide = decodeGuide(rawGuide, ctx)
+	const { guide, guideResolution } = decodeGuideFields(o, ctx)
 	return {
 		root: requiredString(o, 'root', endpoint),
 		session: requiredString(o, 'session', endpoint),
@@ -150,6 +163,7 @@ export function decodeReviewState(raw: unknown, endpoint: string): ReviewState {
 				)
 			: undefined,
 		guide,
+		guideResolution,
 		reviewedFiles: requiredStringArray(o, 'reviewedFiles', endpoint),
 		reviewedFileHashes: decodeStringRecord(
 			o,
@@ -228,11 +242,9 @@ export function decodePollPayload(
 	const o = assertObject(raw, endpoint, 'poll payload')
 	if (o.kind === 'refresh') return { kind: 'refresh' }
 	const ctx = { endpoint }
-	let guide: Guide | undefined
-	if (o.guide) guide = decodeGuide(o.guide, ctx)
 	return {
 		baseDiffHash: requiredString(o, 'baseDiffHash', endpoint),
-		guide,
+		...decodeGuideFields(o, ctx),
 		comments: requiredArray(o, 'comments', endpoint, 'comments').map(c =>
 			decodeComment(c, ctx),
 		),

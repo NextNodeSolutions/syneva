@@ -13,6 +13,7 @@ import {
 	runStatus,
 } from '../adapters/inbound/cli/commands.js'
 import { runDesks } from '../adapters/inbound/cli/desks.js'
+import { runInventory } from '../adapters/inbound/cli/inventory.js'
 import { runOpen } from '../adapters/inbound/cli/open.js'
 import {
 	runHubStatus,
@@ -38,6 +39,8 @@ Desks:
   syneva open [--diff working|staged] [--path <p>]   Open (or reload) a desk over the working-tree/staged diff
   syneva open file <path>           Open a desk over a single file or artifact (tracked or not)
   syneva open pr <ref|number|url>   Open a desk over a branch's commits vs its merge-base
+  syneva inventory [file <path> | pr <ref>] [--diff staged] [--path <p>]
+                                    Print the review source a guide is authored against (fingerprint, files, changed units)
   syneva desks [--all]              List this repo's live desks (--all: the whole hub) with their URLs
   syneva close [--session <id>|--all]  Close this repo's desk(s); idempotent (alias: stop)
   (syneva / syneva file / syneva pr are shorthands for syneva open … and start a hub when none runs)
@@ -106,6 +109,8 @@ async function dispatch(
 			return first === 'stop' ? runHubStop(args) : runHubStatus(args)
 		case 'open':
 			return dispatchOpen(first, second, args)
+		case 'inventory':
+			return dispatchInventory(first, second, args)
 		case 'file':
 			return runOpen('file', first, args)
 		case 'pr':
@@ -157,9 +162,26 @@ function dispatchOpen(
 	return runOpen('repo', undefined, args)
 }
 
+function dispatchInventory(
+	first: string | undefined,
+	second: string | undefined,
+	args: CliArgs,
+): Promise<void> {
+	if (first === 'file') return runInventory('file', second, args)
+	if (first === 'pr') return runInventory('pr', second, args)
+	if (first) {
+		warn(
+			`Unknown inventory target "${first}". Use: syneva inventory | syneva inventory file <path> | syneva inventory pr <ref>.`,
+		)
+		process.exitCode = 1
+		return Promise.resolve()
+	}
+	return runInventory('repo', undefined, args)
+}
+
 function unknownCommand(sub: string): void {
 	warn(
-		`Unknown command "${sub}". Use: start | hub [stop] | open [file <path> | pr <ref>] | desks | await | comment | status | reload | close | spec.`,
+		`Unknown command "${sub}". Use: start | hub [stop] | open [file <path> | pr <ref>] | inventory [file <path> | pr <ref>] | desks | await | comment | status | reload | close | spec.`,
 	)
 	process.exitCode = 1
 }

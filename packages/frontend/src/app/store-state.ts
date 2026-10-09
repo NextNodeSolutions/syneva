@@ -1,4 +1,5 @@
 import type { TreeRow } from '@entities/review/file/tree-rows'
+import type { CodeSpan } from '@entities/review/guide/model'
 import type { WalkRow } from '@entities/review/guide/walkthrough'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
 import type {
@@ -64,6 +65,8 @@ export interface Store {
 	treeRows?: () => TreeRow[]
 	selectFile?: (i: number) => void
 	previewFile?: (path: string) => void
+	// Land on original-side code: a guide reference's target or an owned block, in the diff or as a preview.
+	jumpToSpan?: (span: CodeSpan) => void
 	toggleDir?: (full: string, changed: boolean) => void
 	toggleAllDirs?: () => void
 	treeAnyOpen?: () => boolean

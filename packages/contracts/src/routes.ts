@@ -18,6 +18,7 @@ export const API_PATHS = {
 	file: '/file',
 	blob: '/blob',
 	fileContents: '/file-contents',
+	inventory: '/inventory',
 	openEditor: '/open-editor',
 	save: '/save',
 	send: '/send',
@@ -36,6 +37,7 @@ export const API_PATHS = {
 export const HUB_PATHS = {
 	health: '/api/hub/health',
 	desks: '/api/hub/desks',
+	inventory: '/api/hub/inventory',
 	journal: '/api/hub/journal',
 	settings: '/api/hub/settings',
 	shutdown: '/api/hub/shutdown',

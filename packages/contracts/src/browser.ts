@@ -1,5 +1,5 @@
 // Explicit allowlist: new backend fields stay private until picked here; hunks are built client-side from /file-contents.
-import type { Guide } from './guide.js'
+import type { Guide, GuideResolution } from './guide.js'
 import type {
 	ChangeState,
 	Decision,
@@ -32,6 +32,8 @@ export type BrowserReviewState = {
 	comments: readonly ReviewComment[]
 	decisions?: readonly Decision[] | undefined
 	guide?: Guide | undefined
+	// Where the guide stands against this diff: owned identities at attach, stale domains and references after reloads, the changes no domain owns.
+	guideResolution?: GuideResolution | undefined
 	reviewedFiles: readonly string[]
 	reviewedFileHashes?: Readonly<Record<string, string>> | undefined
 	stagedFiles: readonly string[]
@@ -83,5 +85,5 @@ export type FileContentsPayload = {
 // baseDiffHash), not every tick. A stale ?instance= gets a BrowserRefreshEvent instead; DeskStatus rides along.
 export type PollPayload = Pick<
 	BrowserReviewState,
-	'baseDiffHash' | 'guide' | 'comments'
+	'baseDiffHash' | 'guide' | 'guideResolution' | 'comments'
 >
