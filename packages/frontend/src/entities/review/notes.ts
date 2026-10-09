@@ -1,3 +1,4 @@
+import { isAnswered } from './answered'
 import { isFileComment } from './changes'
 
 import type { Side } from '@shared/diff-renderer/types'
@@ -24,17 +25,6 @@ const PREVIEW_HEAD = 117
 function oneline(body: string): string {
 	const text = body.replace(/\s+/g, ' ').trim()
 	return text.length > PREVIEW_MAX ? `${text.slice(0, PREVIEW_HEAD)}…` : text
-}
-
-// An open question is answered once an agent reply lands in its thread after the question - the same heuristic the diff's thread UI and the Send handoff (computeOpenQuestions) use, kept in one place here for the panel.
-function isAnswered(group: ReviewComment[]): boolean {
-	const question = group.find(c => c.intent === 'question')
-	if (!question) return false
-	return group.some(
-		reply =>
-			reply.role === 'agent' &&
-			+new Date(reply.createdAt) > +new Date(question.createdAt),
-	)
 }
 
 function threadStatus(

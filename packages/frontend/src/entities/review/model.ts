@@ -21,6 +21,36 @@ export type ReviewComment = {
 	anchor?: 'file' | undefined
 }
 
+// Feedback on the guide: a thread on a domain, or on one of its explanation blocks, anchored by stable ids under the guide it was written against, with the code the target pointed at then (mirrors contracts/review.ts).
+export type DomainCodeRef = {
+	path: string
+	side: 'additions' | 'deletions'
+	lineNumber: number
+	endLine?: number | undefined
+	label?: string | undefined
+}
+
+export type DomainTarget = {
+	guideFingerprint: string
+	domainId: string
+	blockId?: string | undefined
+	domainTitle: string
+	blockTitle?: string | undefined
+	refs: DomainCodeRef[]
+}
+
+export type DomainComment = {
+	id: string
+	target: DomainTarget
+	body: string
+	createdAt: string
+	updatedAt: string
+	status: 'open' | 'resolved' | 'stale'
+	intent?: 'note' | 'action' | 'question' | undefined
+	role?: 'user' | 'agent' | undefined
+	unanchored?: boolean | undefined
+}
+
 export type ChangeState = {
 	id: string
 	path: string
@@ -76,6 +106,7 @@ export type ReviewState = {
 	baseDiffHash: string
 	changes: ChangeState[]
 	comments: ReviewComment[]
+	domainComments: DomainComment[]
 	decisions?: Decision[] | undefined
 	guide?: Guide | undefined
 	guideResolution?: GuideResolution | undefined
@@ -93,6 +124,7 @@ export type ReviewerSave = Pick<
 	ReviewState,
 	| 'decisions'
 	| 'comments'
+	| 'domainComments'
 	| 'reviewedFiles'
 	| 'reviewedFileHashes'
 	| 'decisionFiles'
@@ -112,7 +144,12 @@ export type DeskStateSnapshot = ReviewState &
 
 export type DeskPollSnapshot = Pick<
 	ReviewState,
-	'baseDiffHash' | 'guide' | 'guideResolution' | 'guideExpected' | 'comments'
+	| 'baseDiffHash'
+	| 'guide'
+	| 'guideResolution'
+	| 'guideExpected'
+	| 'comments'
+	| 'domainComments'
 >
 
 export type DeskRefreshEvent = { kind: 'refresh' }
