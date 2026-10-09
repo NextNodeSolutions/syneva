@@ -6,13 +6,15 @@ import type { Guide } from '@syneva/contracts/guide'
 import type {
 	ChangeState,
 	Decision,
+	DomainComment,
 	ReviewComment,
 } from '@syneva/contracts/review'
 import type { Guide as DomainGuide } from '../domain/guide-shapes.js'
 import type {
 	ChangeState as DomainChange,
 	Decision as DomainDecision,
-	ReviewComment as DomainComment,
+	DomainComment as DomainThreadComment,
+	ReviewComment as DomainLineComment,
 	ReviewFile,
 	ReviewState,
 } from '../domain/review.js'
@@ -46,7 +48,7 @@ function browserFile(file: ReviewFile): BrowserReviewFile {
 	})
 }
 
-function browserComment(comment: DomainComment): ReviewComment {
+function browserComment(comment: DomainLineComment): ReviewComment {
 	return withoutUndefined({
 		id: comment.id,
 		path: comment.path,
@@ -62,6 +64,30 @@ function browserComment(comment: DomainComment): ReviewComment {
 		anchorText: comment.anchorText,
 		unanchored: comment.unanchored,
 		anchor: comment.anchor,
+	})
+}
+
+// The target crosses field by field too: the refs are plain code spans. The poll projects the threads through it as well.
+export function browserDomainComment(
+	comment: DomainThreadComment,
+): DomainComment {
+	return withoutUndefined({
+		id: comment.id,
+		target: {
+			guideFingerprint: comment.target.guideFingerprint,
+			domainId: comment.target.domainId,
+			blockId: comment.target.blockId,
+			domainTitle: comment.target.domainTitle,
+			blockTitle: comment.target.blockTitle,
+			refs: comment.target.refs.map(ref => ({ ...ref })),
+		},
+		body: comment.body,
+		createdAt: comment.createdAt,
+		updatedAt: comment.updatedAt,
+		status: comment.status,
+		intent: comment.intent,
+		role: comment.role,
+		unanchored: comment.unanchored,
 	})
 }
 
@@ -112,6 +138,7 @@ export function browserState(state: ReviewState): BrowserReviewState {
 		files: state.files.map(browserFile),
 		changes: state.changes.map(browserChange),
 		comments: state.comments.map(browserComment),
+		domainComments: (state.domainComments ?? []).map(browserDomainComment),
 		decisions: state.decisions?.map(browserDecision),
 		guide: state.guide ? browserGuide(state.guide) : undefined,
 		guideResolution: state.guideResolution,

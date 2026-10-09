@@ -2,6 +2,7 @@ import { reviewerSavePatch } from '../../../application/send-review.js'
 import { commentSide } from '../../../domain/comments.js'
 
 import { HTTP_UNPROCESSABLE } from './http.js'
+import { parseDomainComments } from './reviewer-save-domain.js'
 
 import type { ReviewerSavePatch } from '../../../application/send-review.js'
 import type { Decision, ReviewComment } from '../../../domain/review.js'
@@ -14,7 +15,7 @@ export const INVALID_SAVE: ApiFailure = {
 	status: HTTP_UNPROCESSABLE,
 	code: 'INVALID_SAVE',
 	error: 'The save body carries a malformed reviewer field.',
-	fix: 'POST the reviewer slice { decisions, comments, reviewedFiles, reviewedFileHashes, decisionFiles }; each record must match its documented shape.',
+	fix: 'POST the reviewer slice { decisions, comments, domainComments, reviewedFiles, reviewedFileHashes, decisionFiles }; each record must match its documented shape.',
 }
 
 // A generic runtime guard is a deliberate low-level exception here: this is the save
@@ -36,6 +37,11 @@ export function parseReviewerSave(body: unknown): ReviewerSavePatch | null {
 		const comments = parseComments(slice.comments)
 		if (comments === null) return null
 		patch.comments = comments
+	}
+	if ('domainComments' in slice) {
+		const threads = parseDomainComments(slice.domainComments)
+		if (threads === null) return null
+		patch.domainComments = threads
 	}
 	if ('reviewedFiles' in slice) {
 		const files = parseStringArray(slice.reviewedFiles)

@@ -1,4 +1,7 @@
-import { browserState } from '../../../../application/browser-state.js'
+import {
+	browserDomainComment,
+	browserState,
+} from '../../../../application/browser-state.js'
 import { buildInventory } from '../../../../domain/inventory.js'
 import { readJsonBody, json, jsonBody, HTTP_OK } from '../http.js'
 
@@ -30,6 +33,7 @@ export async function servePoll({
 		guideResolution: state.guideResolution,
 		guideExpected: state.guideExpected,
 		comments: state.comments,
+		domainComments: (state.domainComments ?? []).map(browserDomainComment),
 	}
 	json(res, HTTP_OK, { ...poll, ...ctx.status() })
 }

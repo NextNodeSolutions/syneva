@@ -1,5 +1,6 @@
 import path from 'node:path'
 
+import { reanchorDomainComments } from '../domain/domain-comments.js'
 import { deskId, deskSession } from '../domain/identity.js'
 
 import { attachGuide } from './attach-guide.js'
@@ -168,7 +169,15 @@ export async function buildDeskState(
 		)
 		if (!attached.ok)
 			return { ok: false, reason: attached.reason, code: 'INVALID_GUIDE' }
-		state = { ...state, ...attached.attachment }
+		// The threads follow the guide that replaces the carried one: a dropped target unanchors its thread, a kept one stays.
+		state = {
+			...state,
+			...attached.attachment,
+			domainComments: reanchorDomainComments(
+				state.domainComments ?? [],
+				attached.attachment.guide,
+			),
+		}
 	}
 	if (query.mode === 'repo')
 		state = { ...state, ...(await readStagedSnapshot(state, io.git)) }
