@@ -163,6 +163,14 @@ function Unassigned({ state }: { state: ReviewState }): ReactElement | null {
 }
 
 // The Guide tab: the changeset in one look, then its domains highest risk first. The complete file list stays one tab away (Tree).
+// The overview is Markdown written for the pane; the navigator shows its words without the markers.
+function plainWords(markdown: string): string {
+	return markdown
+		.replace(/[*_`#>]+/g, '')
+		.replace(/\s+/g, ' ')
+		.trim()
+}
+
 export function DomainNavigator(): ReactElement {
 	const { S } = chromeCtx()
 	const { state } = S
@@ -177,7 +185,9 @@ export function DomainNavigator(): ReactElement {
 				<span {...stylex.props(caption.base, caption.upper)}>
 					Changeset
 				</span>
-				<p {...stylex.props(styles.intent)}>{state.guide.overview}</p>
+				<p {...stylex.props(styles.intent)}>
+					{plainWords(state.guide.overview)}
+				</p>
 				<span {...stylex.props(styles.cover)}>
 					<span>
 						<span {...stylex.props(styles.coverCount)}>
