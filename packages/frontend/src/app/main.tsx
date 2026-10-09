@@ -75,44 +75,53 @@ async function bootDiffWorkers(firstPaths: string[]): Promise<void> {
 	}
 }
 
-const [prefs, state, tree] = await Promise.all([
-	fetchPrefs(),
-	fetchState(),
-	fetchTree(),
-])
-S.settings = { ...DEFAULT_SETTINGS, ...prefs.settings }
-
-if (prefs.diffStyle === 'split' || prefs.diffStyle === 'unified')
-	S.diffStyle = prefs.diffStyle
-applyAppearance(S.settings) // font + size before first paint
-setMarkdownTheme(S.settings.theme)
-S.state = adoptDeskStatus(state)
-void bootDiffWorkers(
-	S.state.files.slice(S.fileIndex, S.fileIndex + 1).map(file => file.path),
-)
-S.projectFiles = tree.files ?? []
-S.lastBaseDiffHash = S.state.baseDiffHash
-const name = deskName(S.state)
-if (name) document.title = `Syneva - ${name}`
-setBaseTitle(document.title)
-S.selected = {
-	side: S.state.changes[0]?.side ?? 'additions',
-	lineNumber: S.state.changes[0]?.lineNumber ?? 1,
-}
-const firstFile = S.state.files.at(S.fileIndex)
-if (firstFile) S.fileView = defaultFileView(firstFile, S.settings.markdownView)
-if (hasGuide(guideInputs(S))) {
-	S.overviewOpen = true
-	S.sidebarTab =
-		S.settings.sidebarDefault === 'walkthrough' ? 'walkthrough' : 'tree'
-}
 async function renderFirstFile(): Promise<void> {
 	await render()
 	warmNextFile()
 }
-void renderFirstFile()
-// #diff is the persistent scroll container (x-ignore), so this listener is attached once and survives every re-render/file switch.
-$('diff').addEventListener('scroll', () => {
-	S.diffScrolled = $('diff').scrollTop > FAB_REVEAL_SCROLL_PX
-})
-setInterval(() => void pollState(), POLL_INTERVAL_MS)
+
+// No top-level await: a lazy chunk that imports from this entry (the guide decoders, loaded during the first state fetch) would wait for the entry to finish evaluating while the entry waited for it.
+async function boot(): Promise<void> {
+	const [prefs, state, tree] = await Promise.all([
+		fetchPrefs(),
+		fetchState(),
+		fetchTree(),
+	])
+	S.settings = { ...DEFAULT_SETTINGS, ...prefs.settings }
+
+	if (prefs.diffStyle === 'split' || prefs.diffStyle === 'unified')
+		S.diffStyle = prefs.diffStyle
+	applyAppearance(S.settings) // font + size before first paint
+	setMarkdownTheme(S.settings.theme)
+	S.state = adoptDeskStatus(state)
+	void bootDiffWorkers(
+		S.state.files
+			.slice(S.fileIndex, S.fileIndex + 1)
+			.map(file => file.path),
+	)
+	S.projectFiles = tree.files ?? []
+	S.lastBaseDiffHash = S.state.baseDiffHash
+	const name = deskName(S.state)
+	if (name) document.title = `Syneva - ${name}`
+	setBaseTitle(document.title)
+	S.selected = {
+		side: S.state.changes[0]?.side ?? 'additions',
+		lineNumber: S.state.changes[0]?.lineNumber ?? 1,
+	}
+	const firstFile = S.state.files.at(S.fileIndex)
+	if (firstFile)
+		S.fileView = defaultFileView(firstFile, S.settings.markdownView)
+	if (hasGuide(guideInputs(S))) {
+		S.overviewOpen = true
+		S.sidebarTab =
+			S.settings.sidebarDefault === 'walkthrough' ? 'walkthrough' : 'tree'
+	}
+	void renderFirstFile()
+	// #diff is the persistent scroll container (x-ignore), so this listener is attached once and survives every re-render/file switch.
+	$('diff').addEventListener('scroll', () => {
+		S.diffScrolled = $('diff').scrollTop > FAB_REVEAL_SCROLL_PX
+	})
+	setInterval(() => void pollState(), POLL_INTERVAL_MS)
+}
+
+void boot()
