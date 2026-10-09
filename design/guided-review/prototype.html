@@ -1898,8 +1898,9 @@
 				).length
 				return { total: us.length, done, rejected: rej }
 			}
+			// Every reviewable change of the scenario counts, the reload's unassigned one included.
 			function overall() {
-				const all = UNITS.length
+				const all = allUnits().length
 				const done = Object.keys(S.decisions).length
 				return all ? Math.round((done / all) * 100) : 100
 			}
@@ -1972,7 +1973,7 @@
 				el('asideTree').hidden = S.tab !== 'tree'
 				const ds = domains()
 				const owned = new Set(ds.flatMap(d => d.units))
-				const unowned = UNITS.filter(
+				const unowned = allUnits().filter(
 					u => !owned.has(u.key) && S.scenario !== 'empty',
 				)
 				const guideless =
@@ -1982,7 +1983,7 @@
 					: `<div class="nav-overview">
       <div class="label">Changeset</div>
       <p class="intent">Closing a desk no longer loses a queued round: the queue drains to the waiter, questions a Send superseded are dropped, and the journal names the round each pickup delivered.</p>
-      <div class="cover"><span><b>${ds.length}</b> domains</span><span><b>${owned.size - (S.scenario === 'reload' ? 1 : 0)}</b>/${UNITS.length} changes owned</span><span><b>${FILES.length}</b> files</span></div>
+      <div class="cover"><span><b>${ds.length}</b> domains</span><span><b>${owned.size}</b>/${allUnits().length} changes owned</span><span><b>${FILES.length}</b> files</span></div>
     </div>
     ${ds.map((d, i) => domainRow(d, i)).join('')}
     ${unowned.length || S.scenario === 'reload' ? `<div class="unassigned" role="note"><b>${S.unassigned.length} changes not in the guide</b>Added by the last reload: pending, listed in the Tree and in Other. <button class="ctl quiet" style="margin-top:4px" data-jump-unassigned>Show the first</button></div>` : ''}`
