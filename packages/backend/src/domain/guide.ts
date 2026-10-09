@@ -1,9 +1,11 @@
 import { parseDomain } from './guide-domain.js'
+import { GUIDE_KEYS } from './guide-keys.js'
 import {
 	fail,
 	isRecord,
 	list,
 	oneOf,
+	onlyKeys,
 	optionalBoolean,
 	optionalText,
 	record,
@@ -31,6 +33,8 @@ export function validateGuide(input: unknown): GuideValidation {
 
 function parseGuide(input: unknown): Parsed<Guide> {
 	if (!isRecord(input)) return fail('guide must be a JSON object')
+	const keys = onlyKeys(input, 'guide', GUIDE_KEYS.guide)
+	if (!keys.ok) return keys
 	if (input.format !== GUIDE_FORMAT)
 		return fail(
 			`guide.format must be "${GUIDE_FORMAT}" (the file-grouping guide format is no longer accepted)`,
@@ -73,6 +77,8 @@ function parseGuide(input: unknown): Parsed<Guide> {
 function parseSource(raw: unknown): Parsed<GuideSource> {
 	const source = record(raw, 'guide.source')
 	if (!source.ok) return source
+	const keys = onlyKeys(source.value, 'guide.source', GUIDE_KEYS.source)
+	if (!keys.ok) return keys
 	const mode = oneOf(source.value.mode, 'guide.source.mode', MODES)
 	if (!mode.ok) return mode
 	const fingerprint = text(
