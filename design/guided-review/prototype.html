@@ -1834,6 +1834,29 @@
 				unresolved: new Set(),
 				unassigned: [],
 			}
+			// The reload scenario adds code the guide never saw: a unit no domain owns, with its lines, so the unassigned path lands on real code.
+			const RELOAD_UNITS = [
+				{ key: 'u9', path: 'src/hub.ts', side: 'additions', from: 60, to: 63, title: 'peek at a desk without opening it' },
+			]
+			const RELOAD_CODE = {
+				'src/hub.ts': {
+					additions: {
+						60: 'export function peekDesk(state, id) {',
+						61: '  // added after the guide was written: no domain explains it yet',
+						62: '  return state.desks.get(id) ?? null',
+						63: '}',
+					},
+				},
+			}
+			function allUnits() {
+				return S.scenario === 'reload' ? [...UNITS, ...RELOAD_UNITS] : UNITS
+			}
+			function codeFor(path) {
+				const base = CODE[path]
+				const extra = S.scenario === 'reload' ? RELOAD_CODE[path] : null
+				if (!base || !extra) return base
+				return { ...base, additions: { ...base.additions, ...extra.additions } }
+			}
 			function units(d) {
 				return d.units
 					.map(k => UNITS.find(u => u.key === k))
@@ -1907,7 +1930,19 @@
 			}
 
 			// ---------- Render ----------
+			// A redraw replaces the explanation's HTML: the focused control is found again by its hook and refocused, and the composer's caret comes back (its draft lives in S.composer.body), so a keyboard return or a late agent reply never drops the reviewer.
+			function focusHook(node) {
+				if (!node || node === document.body) return null
+				if (node.id) return '#' + CSS.escape(node.id)
+				for (const attr of ['data-ref', 'data-unit', 'data-domain', 'data-compose', 'data-step', 'data-tab', 'data-file', 'data-decide']) {
+					if (node.hasAttribute(attr))
+						return `[${attr}="${CSS.escape(node.getAttribute(attr))}"]`
+				}
+				return null
+			}
 			function render() {
+				const hook = focusHook(document.activeElement)
+				const caret = el('composerText')?.selectionStart ?? null
 				document.documentElement.dataset.appearance = S.appearance
 				el('appearanceBtn').textContent =
 					S.appearance === 'light' ? 'Night' : 'Light'
@@ -1920,6 +1955,9 @@
 				renderAside()
 				renderExplain()
 				renderCenter()
+				const again = hook ? document.querySelector(hook) : null
+				if (again) again.focus()
+				if (caret !== null && el('composerText')) el('composerText').setSelectionRange(caret, caret)
 			}
 			function renderAside() {
 				document
@@ -2059,14 +2097,16 @@
 						t.target.domainId === d.id && t.target.blockId === b.id,
 				)
 				const failed = S.scenario === 'reload' && b.id === 'flow'
+				const drawn = ['state', 'sequence', 'flow'].includes(b.kind) ? diagram(d, b) : null
 				let body = ''
+				// The text equivalent is rendered on its own, so a diagram that cannot be drawn still explains the relationships.
 				if (failed)
-					body = `<div class="bb">A diagram with 5 nodes and 5 edges (How the pickup finds its round).</div><div class="failNote">The diagram could not be drawn in this session; its text is kept and the rest of the desk is unaffected.</div>`
+					body = `<div class="failNote">The diagram could not be drawn in this session; its text equivalent is kept and the rest of the desk is unaffected.</div><details class="textEq" open><summary>As text</summary>${drawn ? drawn.text : ''}</details>`
 				else if (b.kind === 'prose')
 					body = `<div class="bb"><p>${md(b.markdown)}</p></div>`
 				else if (b.kind === 'before-after')
 					body = `<div class="ba"><div class="before"><div class="label">${esc(b.before.label || 'Before')}</div>${md(b.before.markdown)} ${b.before.ref ? refChip(d, b.before.ref) : ''}</div><div class="after"><div class="label">${esc(b.after.label || 'After')}</div>${md(b.after.markdown)} ${b.after.ref ? refChip(d, b.after.ref) : ''}</div></div>`
-				else body = diagram(d, b)
+				else body = `<div class="diagram">${drawn.svg}</div><details class="textEq"><summary>As text</summary>${drawn.text}</details>`
 				const refs = (b.refs || []).map(r => refChip(d, r)).join(' ')
 				const detail = b.detail
 					? `<details class="more" ${S.expanded.has(d.id + ':' + b.id) ? 'open' : ''} data-detail="${d.id}:${b.id}"><summary>Reasoning, assumptions, failure cases</summary><div class="dm">${md(b.detail)}</div></details>`
@@ -2091,7 +2131,7 @@
 				const b = c.blockId
 					? d.blocks.find(x => x.id === c.blockId)
 					: null
-				return `<div class="compose"><div class="target">${b ? 'On the “' + esc(b.title || b.kind) + '” block' : 'On the domain'} · ${esc(d.title)}${units(d).length ? ' · ' + units(d).length + ' linked changes' : ''}</div><textarea id="composerText" placeholder="${c.intent === 'question' ? 'What do you want the agent to explain?' : 'What should change in this behavior?'}" aria-label="Comment"></textarea><div class="acts"><button class="ctl quiet" id="composerCancel">Cancel <kbd>Esc</kbd></button><button class="ctl ask" id="composerAsk">Ask <kbd>⌘⇧↵</kbd></button><button class="ctl request" id="composerRequest">Request change <kbd>⌘↵</kbd></button></div></div>`
+				return `<div class="compose"><div class="target">${b ? 'On the “' + esc(b.title || b.kind) + '” block' : 'On the domain'} · ${esc(d.title)}${units(d).length ? ' · ' + units(d).length + ' linked changes' : ''}</div><textarea id="composerText" placeholder="${c.intent === 'question' ? 'What do you want the agent to explain?' : 'What should change in this behavior?'}" aria-label="Comment">${esc(c.body || '')}</textarea><div class="acts"><button class="ctl quiet" id="composerCancel">Cancel <kbd>Esc</kbd></button><button class="ctl ask" id="composerAsk">Ask <kbd>⌘⇧↵</kbd></button><button class="ctl request" id="composerRequest">Request change <kbd>⌘↵</kbd></button></div></div>`
 			}
 
 			// ---------- Diagrams (inline SVG from typed data; text equivalent always present) ----------
@@ -2273,7 +2313,7 @@
 						'</svg>'
 					text = `<ol>${b.edges.map(e => `<li>${esc(b.nodes.find(n => n.id === e.from).label)} → ${esc(b.nodes.find(n => n.id === e.to).label)}${e.label ? ' (' + esc(e.label) + ')' : ''}</li>`).join('')}</ol>`
 				}
-				return `<div class="diagram">${svg}</div><details class="textEq"><summary>As text</summary>${text}</details>`
+				return { svg, text }
 			}
 
 			// ---------- Center: the real diff's place ----------
@@ -2314,8 +2354,8 @@
 				}
 			}
 			function rows(path) {
-				const code = CODE[path]
-				const unitsHere = UNITS.filter(u => u.path === path)
+				const code = codeFor(path)
+				const unitsHere = allUnits().filter(u => u.path === path)
 				const lines = []
 				const all = new Set(
 					[
@@ -2573,7 +2613,7 @@
 				}
 				if (t.dataset.step) return stepDomain(+t.dataset.step)
 				if (t.dataset.unit)
-					return jumpToUnit(UNITS.find(u => u.key === t.dataset.unit))
+					return jumpToUnit(allUnits().find(u => u.key === t.dataset.unit))
 				if (t.dataset.ref) return followRef(t.dataset.ref)
 				if (t.dataset.decide) {
 					const [k, s] = t.dataset.decide.split(':')
@@ -2628,11 +2668,16 @@
 				if (t.id === 'composerAsk') return submit('question')
 				if (t.id === 'composerRequest') return submit('action')
 				if (t.dataset.jumpUnassigned !== undefined) {
-					S.fileIdx = 0
-					S.cursor = { side: 'additions', line: 40 }
+					// The unassigned unit itself (RELOAD_UNITS u9), not a line another domain already owns.
+					S.fileIdx = FILES.findIndex(f => f.path === RELOAD_UNITS[0].path)
+					S.cursor = { side: 'additions', line: RELOAD_UNITS[0].from }
 					S.tab = 'tree'
 					return render()
 				}
+			})
+			// The draft follows the store, not the DOM: a redraw re-renders it from S.composer.body.
+			document.addEventListener('input', e => {
+				if (e.target.id === 'composerText' && S.composer) S.composer.body = e.target.value
 			})
 			document.addEventListener(
 				'toggle',
@@ -2688,10 +2733,10 @@
 					S.asideOpen = true
 					render()
 				} else if (k === 'Y' && e.shiftKey) {
-					const u = UNITS.find(isCurrentUnit)
+					const u = allUnits().find(isCurrentUnit)
 					if (u) decide(u.key, 'accepted')
 				} else if (k === 'N' && e.shiftKey) {
-					const u = UNITS.find(isCurrentUnit)
+					const u = allUnits().find(isCurrentUnit)
 					if (u) decide(u.key, 'rejected')
 				} else if (k === 'ArrowRight' && e.shiftKey) {
 					S.fileIdx = (S.fileIdx + 1) % FILES.length

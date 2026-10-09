@@ -29,6 +29,8 @@ export type WalkFile = {
 
 export type WalkGroup = {
 	category: string
+	// The owning domain's stable id: two domains with one title stay two sections, and a file they both own keeps a row under each.
+	domainId?: string | undefined
 	other: boolean
 	renamed: boolean
 	// Exclusive with renamed by construction: a pure rename has no blocks, so it can never be approved.
@@ -46,9 +48,14 @@ type GroupFlags = {
 	isReviewed?: boolean
 }
 
-function blankGroup(category: string, flags: GroupFlags): WalkGroup {
+function blankGroup(
+	category: string,
+	flags: GroupFlags,
+	domainId?: string,
+): WalkGroup {
 	return {
 		category,
+		domainId,
 		other: flags.isOther,
 		renamed: flags.isRenamed ?? false,
 		reviewed: flags.isReviewed ?? false,
@@ -76,7 +83,7 @@ function categoryKey(index: number, group: WalkGroup): string {
 	if (group.renamed) return `cat:${index}:·renamed`
 	if (group.reviewed) return `cat:${index}:·reviewed`
 	if (group.other) return `cat:${index}:·other`
-	return `cat:${index}:${group.category}`
+	return `cat:${index}:${group.domainId ?? group.category}`
 }
 
 function fileBuilder(
@@ -165,8 +172,12 @@ export function walkthroughGroups(
 		const file = mkFile(guide.path, i)
 		const shown = route(guide.path, file)
 		if (!shown) continue
-		if (!current || current.category !== guide.category) {
-			current = blankGroup(guide.category, { isOther: false })
+		if (!current || current.domainId !== guide.domainId) {
+			current = blankGroup(
+				guide.category,
+				{ isOther: false },
+				guide.domainId,
+			)
 			groups.push(current)
 		}
 		current = withFile(current, shown)
@@ -241,7 +252,7 @@ export function walkRows(
 			rows.push({
 				...f,
 				kind: 'file',
-				key: `file:${f.path}`,
+				key: `file:${group.domainId ?? categoryKey(gi, group)}:${f.path}`,
 				active: f.path === activePath,
 			})
 	})
