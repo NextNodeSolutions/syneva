@@ -1,0 +1,2760 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Syneva — guided review prototype</title>
+		<style>
+			/* Tokens: the design system's palette (packages/design-system/src/tokens.stylex.ts). Light default, night under [data-appearance=dark]. */
+			:root {
+				--paper: #f6f6f0;
+				--white: #fff;
+				--field: #eef0e7;
+				--grid: #e4e7dc;
+				--line: #dcdfd4;
+				--line-strong: #a8afa1;
+				--ink: #191b18;
+				--muted: #60635c;
+				--accent: #0e6582;
+				--accent-deep: #0b506a;
+				--accent-line: #8eb5bf;
+				--signal: #1888b0;
+				--wash: #dcedf4;
+				--wash-tint: #eff7fa;
+				--wash-ink: #2f5566;
+				--green: #35633f;
+				--green-line: #a9c6a5;
+				--mint: #e0eddf;
+				--mint-tint: #eef5ec;
+				--amber: #875a0e;
+				--amber-line: #d8bd86;
+				--amber-tint: #f6ecd6;
+				--red: #a8322d;
+				--red-line: #e2aea6;
+				--red-tint: #f8e7e3;
+				--red-pale: #fbefec;
+				--sans: Geist, system-ui, sans-serif;
+				--mono:
+					'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+				--topbar: 48px;
+				--subbar: 40px;
+				--left: 260px;
+				--explain: 380px;
+			}
+			[data-appearance='dark'] {
+				--paper: #101210;
+				--white: #171a17;
+				--field: #1d211d;
+				--grid: #1b1f1b;
+				--line: #272b27;
+				--line-strong: #3c423c;
+				--ink: #e4e6de;
+				--muted: #9ca196;
+				--accent: #62b2cd;
+				--accent-line: #2c5d6c;
+				--signal: #4cb2db;
+				--wash: #132830;
+				--wash-tint: #0f1d22;
+				--wash-ink: #a9d0dd;
+				--green: #80c48c;
+				--green-line: #2f4a34;
+				--mint: #1a2a1d;
+				--mint-tint: #16211a;
+				--amber: #d9a650;
+				--amber-line: #5a4420;
+				--amber-tint: #2a2214;
+				--red: #e9827a;
+				--red-line: #5a2a27;
+				--red-tint: #2a1815;
+				--red-pale: #231614;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				height: 100%;
+				margin: 0;
+			}
+			body {
+				font: 12px/1.5 var(--sans);
+				color: var(--ink);
+				background: var(--paper);
+				-webkit-font-smoothing: antialiased;
+				overflow: hidden;
+			}
+			button,
+			input,
+			textarea {
+				font: inherit;
+				color: inherit;
+			}
+			button {
+				cursor: pointer;
+			}
+			:is(
+				button,
+				[role='button'],
+				a,
+				textarea,
+				[tabindex]
+			):focus-visible {
+				outline: 2px solid var(--accent);
+				outline-offset: 2px;
+			}
+			kbd {
+				font-family: var(--sans);
+				font-size: 10px;
+				padding: 0 4px;
+				border: 1px solid var(--line-strong);
+				background: var(--white);
+				line-height: 1.4;
+				color: var(--muted);
+			}
+			.label {
+				font: 500 10px/1.3 var(--mono);
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: var(--muted);
+			}
+			.mono {
+				font-family: var(--mono);
+			}
+			.tag {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				padding: 2px 6px;
+				font: 500 10.5px/1.5 var(--mono);
+				letter-spacing: 0.04em;
+				white-space: nowrap;
+			}
+			.tag[data-risk='critical'] {
+				color: var(--red);
+				background: var(--red-tint);
+			}
+			.tag[data-risk='high'] {
+				color: var(--amber);
+				background: var(--amber-tint);
+			}
+			.tag[data-risk='medium'] {
+				color: var(--accent);
+				background: var(--wash);
+			}
+			.tag[data-risk='low'] {
+				color: var(--muted);
+				background: var(--field);
+			}
+			.tag.verdict-pending {
+				color: var(--muted);
+				background: var(--field);
+			}
+			.tag.verdict-done {
+				color: var(--green);
+				background: var(--mint);
+			}
+			.tag.verdict-objection {
+				color: var(--amber);
+				background: var(--amber-tint);
+			}
+			.tag.stale {
+				color: var(--amber);
+				background: var(--amber-tint);
+			}
+			.tag.petrol {
+				color: var(--accent);
+				background: var(--wash);
+			}
+			.ctl {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				min-height: 22px;
+				padding: 2px 7px;
+				border: 1px solid var(--line-strong);
+				background: var(--white);
+				font-size: 11px;
+				font-weight: 500;
+				line-height: 1.2;
+				white-space: nowrap;
+			}
+			.ctl:hover {
+				color: var(--accent);
+				border-color: var(--accent);
+				background: var(--wash);
+			}
+			.ctl.quiet {
+				border-color: transparent;
+				background: transparent;
+				color: var(--muted);
+			}
+			.ctl.quiet:hover {
+				background: var(--field);
+				color: var(--ink);
+			}
+			.ctl.primary {
+				background: var(--accent);
+				border-color: var(--accent);
+				color: var(--white);
+			}
+			.ctl.primary:hover {
+				background: var(--accent-deep);
+				border-color: var(--accent-deep);
+				color: var(--white);
+			}
+			.ctl.ask {
+				color: var(--accent);
+				background: var(--wash);
+				border-color: var(--accent-line);
+			}
+			.ctl.request {
+				color: var(--amber);
+				background: var(--amber-tint);
+				border-color: var(--amber-line);
+			}
+			.ctl.keep {
+				color: var(--white);
+				background: var(--green);
+				border-color: transparent;
+			}
+			.ctl.on {
+				color: var(--accent);
+				background: var(--wash);
+				border-color: var(--accent);
+			}
+			.ctl[disabled] {
+				opacity: 0.55;
+				pointer-events: none;
+			}
+
+			/* Frame */
+			.frame {
+				height: 100%;
+				display: grid;
+				grid-template-rows: var(--topbar) minmax(0, 1fr);
+			}
+			.topbar {
+				display: grid;
+				grid-template-columns: 1fr auto 1fr;
+				align-items: center;
+				gap: 12px;
+				padding: 0 14px;
+				background: var(--paper);
+				border-bottom: 1px solid var(--line);
+				color: var(--muted);
+			}
+			.brand {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				font-weight: 600;
+				color: var(--ink);
+				letter-spacing: -0.03em;
+				font-size: 15px;
+			}
+			.brand .desk {
+				font: 11px var(--mono);
+				color: var(--muted);
+				padding-left: 10px;
+				border-left: 1px solid var(--line);
+			}
+			.topbar .center {
+				display: flex;
+				gap: 8px;
+				justify-content: center;
+				align-items: center;
+			}
+			.topbar .right {
+				justify-self: end;
+				display: flex;
+				gap: 8px;
+				align-items: center;
+			}
+			.progress {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: var(--topbar);
+				height: 2px;
+				background: transparent;
+			}
+			.progress i {
+				display: block;
+				height: 100%;
+				background: var(--green);
+				transition: width 0.45s;
+			}
+			.main {
+				position: relative;
+				min-height: 0;
+				display: grid;
+				grid-template-columns: var(--left) 1px var(
+						--explain
+					) 1px minmax(0, 1fr);
+			}
+			.main[data-pane='closed'] {
+				grid-template-columns: var(--left) 1px minmax(0, 1fr);
+			}
+			.main[data-pane='closed'] .explain,
+			.main[data-pane='closed'] .rule.explainRule {
+				display: none;
+			}
+			.rule {
+				background: var(--line);
+			}
+			.col {
+				min-width: 0;
+				min-height: 0;
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+			}
+			.aside {
+				background: var(--paper);
+			}
+			.center {
+				background: var(--white);
+			}
+			.explain {
+				background: var(--paper);
+			}
+			.subbar {
+				flex-shrink: 0;
+				height: var(--subbar);
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 0 10px;
+				border-bottom: 1px solid var(--line);
+				background: var(--paper);
+			}
+			.tabs {
+				display: flex;
+				gap: 4px;
+				height: var(--subbar);
+				border-bottom: 1px solid var(--line);
+				padding: 0 6px;
+				flex-shrink: 0;
+			}
+			.tab {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				padding: 0 8px;
+				margin-bottom: -1px;
+				border: 0;
+				border-bottom: 2px solid transparent;
+				background: transparent;
+				color: var(--muted);
+				font-weight: 500;
+			}
+			.tab[aria-selected='true'] {
+				color: var(--ink);
+				border-bottom-color: var(--accent);
+			}
+			.pane {
+				flex: 1 1 auto;
+				min-height: 0;
+				overflow: auto;
+				padding: 8px;
+			}
+
+			/* Navigator */
+			.nav-overview {
+				padding: 8px 8px 10px;
+				border-bottom: 1px solid var(--line);
+			}
+			.nav-overview .intent {
+				font-size: 12px;
+				line-height: 1.5;
+				color: var(--ink);
+				margin: 4px 0 6px;
+			}
+			.cover {
+				display: flex;
+				gap: 10px;
+				font: 11px var(--mono);
+				color: var(--muted);
+			}
+			.cover b {
+				color: var(--ink);
+				font-weight: 500;
+			}
+			.dom {
+				display: block;
+				width: 100%;
+				text-align: left;
+				padding: 8px 8px 8px 10px;
+				border: 0;
+				border-left: 2px solid transparent;
+				background: transparent;
+				color: var(--ink);
+				position: relative;
+			}
+			.dom:hover {
+				background: var(--field);
+			}
+			.dom[aria-current='true'] {
+				background: var(--wash);
+				border-left-color: var(--accent);
+			}
+			.dom .top {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.dom .title {
+				font-size: 12.5px;
+				font-weight: 500;
+				flex: 1 1 auto;
+				min-width: 0;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+			.dom .n {
+				font: 10px var(--mono);
+				color: var(--muted);
+			}
+			.dom .conseq {
+				margin: 3px 0 0;
+				color: var(--muted);
+				font-size: 11px;
+				line-height: 1.45;
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+			}
+			.dom .meter {
+				margin-top: 6px;
+				height: 3px;
+				background: var(--line);
+				position: relative;
+			}
+			.dom .meter i {
+				position: absolute;
+				inset: 0 auto 0 0;
+				background: var(--green);
+			}
+			.dom .meter em {
+				position: absolute;
+				inset: 0 auto 0 0;
+				background: var(--amber);
+				opacity: 0.9;
+			}
+			.dom .foot {
+				display: flex;
+				justify-content: space-between;
+				margin-top: 4px;
+				font: 10px var(--mono);
+				color: var(--muted);
+			}
+			.unassigned {
+				margin-top: 10px;
+				padding: 8px 10px;
+				border: 1px dashed var(--amber-line);
+				background: var(--amber-tint);
+				color: var(--amber);
+				font-size: 11px;
+			}
+			.unassigned b {
+				display: block;
+				font-weight: 600;
+				margin-bottom: 2px;
+			}
+			.filelist {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.filelist li {
+				display: flex;
+				gap: 6px;
+				align-items: center;
+				min-height: 26px;
+				padding: 3px 8px;
+				font: 11.5px var(--mono);
+				color: var(--muted);
+				cursor: pointer;
+			}
+			.filelist li:hover {
+				background: var(--field);
+				color: var(--ink);
+			}
+			.filelist li .k {
+				width: 7px;
+				height: 7px;
+				background: var(--accent);
+			}
+			.filelist li .k.add {
+				background: var(--green);
+			}
+			.filelist li .k.del {
+				background: var(--red);
+			}
+			.filelist li[data-active] {
+				background: var(--wash);
+				color: var(--ink);
+			}
+			.sideFoot {
+				flex-shrink: 0;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 10px 16px;
+				border-top: 1px solid var(--line);
+				color: var(--muted);
+			}
+
+			/* Explanation pane */
+			.exHead {
+				padding: 12px 14px 10px;
+				border-bottom: 1px solid var(--line);
+				background: var(--paper);
+			}
+			.exHead .row {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				flex-wrap: wrap;
+			}
+			.exHead h2 {
+				margin: 6px 0 4px;
+				font-size: 17px;
+				font-weight: 500;
+				letter-spacing: -0.03em;
+				line-height: 1.25;
+			}
+			.exHead .summary {
+				margin: 0;
+				font-size: 13px;
+				line-height: 1.6;
+				color: var(--ink);
+			}
+			.exHead .navs {
+				display: flex;
+				gap: 4px;
+				margin-left: auto;
+			}
+			.consequence {
+				margin: 10px 0 0;
+				padding: 8px 11px;
+				border-left: 2px solid var(--red-line);
+				background: var(--white);
+				font-size: 12px;
+				line-height: 1.5;
+			}
+			.consequence[data-risk='high'] {
+				border-left-color: var(--amber-line);
+			}
+			.consequence[data-risk='medium'] {
+				border-left-color: var(--accent-line);
+			}
+			.consequence[data-risk='low'] {
+				border-left-color: var(--line-strong);
+			}
+			.consequence .label {
+				display: block;
+				margin-bottom: 2px;
+			}
+			.exBody {
+				flex: 1 1 auto;
+				min-height: 0;
+				overflow: auto;
+				padding: 12px 14px 20px;
+			}
+			.sec {
+				margin-bottom: 16px;
+			}
+			.sec > .label {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				margin-bottom: 6px;
+			}
+			.sec > .label .count {
+				color: var(--ink);
+				letter-spacing: 0;
+				text-transform: none;
+			}
+			.prereq {
+				padding: 8px 10px;
+				background: var(--white);
+				border: 1px solid var(--line);
+				font-size: 12px;
+				line-height: 1.5;
+			}
+			.prereq a {
+				color: var(--accent);
+				text-decoration: none;
+				font-weight: 500;
+			}
+			.prereq a:hover {
+				text-decoration: underline;
+			}
+			.cov {
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+			}
+			.cov button {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				width: 100%;
+				text-align: left;
+				padding: 5px 8px;
+				border: 1px solid transparent;
+				background: transparent;
+				font: 11.5px var(--mono);
+				color: var(--ink);
+			}
+			.cov button:hover {
+				background: var(--white);
+				border-color: var(--line);
+			}
+			.cov button .lines {
+				color: var(--muted);
+			}
+			.cov button .st {
+				margin-left: auto;
+			}
+			.cov button[data-current] {
+				border-color: var(--accent-line);
+				background: var(--wash);
+			}
+			.block {
+				margin-bottom: 14px;
+				background: var(--white);
+				border: 1px solid var(--line);
+			}
+			.block > .bh {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 7px 10px;
+				border-bottom: 1px solid var(--line);
+			}
+			.block > .bh .kind {
+				font: 500 10px var(--mono);
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: var(--muted);
+			}
+			.block > .bh .t {
+				font-size: 12.5px;
+				font-weight: 500;
+			}
+			.block > .bb {
+				padding: 10px 12px;
+				font-size: 12.5px;
+				line-height: 1.6;
+			}
+			.block > .bb p {
+				margin: 0 0 8px;
+			}
+			.block > .bb p:last-child {
+				margin-bottom: 0;
+			}
+			.block > .bb code {
+				font-family: var(--mono);
+				font-size: 11.5px;
+				padding: 0 3px;
+				background: var(--field);
+			}
+			.block.failed .bb {
+				color: var(--muted);
+			}
+			.failNote {
+				padding: 6px 10px;
+				border-top: 1px dashed var(--amber-line);
+				color: var(--amber);
+				font-size: 11px;
+			}
+			details.more {
+				margin-top: 8px;
+				border-top: 1px solid var(--line);
+				padding-top: 6px;
+			}
+			details.more summary {
+				cursor: pointer;
+				color: var(--accent);
+				font-weight: 500;
+				font-size: 11.5px;
+				list-style: none;
+				display: inline-flex;
+				gap: 6px;
+				align-items: center;
+			}
+			details.more summary::before {
+				content: '▸';
+				font-size: 10px;
+			}
+			details.more[open] summary::before {
+				content: '▾';
+			}
+			details.more .dm {
+				margin-top: 6px;
+				color: var(--ink);
+			}
+			.ref {
+				display: inline-flex;
+				align-items: center;
+				gap: 5px;
+				padding: 1px 6px;
+				border: 1px solid var(--accent-line);
+				background: var(--white);
+				color: var(--accent);
+				font: 11px var(--mono);
+				vertical-align: 1px;
+			}
+			.ref:hover {
+				background: var(--wash);
+			}
+			.ref.context {
+				border-style: dashed;
+				color: var(--wash-ink);
+			}
+			.ref.unresolved {
+				border-color: var(--amber-line);
+				color: var(--amber);
+				text-decoration: line-through;
+				text-decoration-color: var(--amber-line);
+			}
+			.ref.unresolved::after {
+				content: 'unresolved';
+				text-decoration: none;
+				font-size: 9.5px;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+			}
+			.ba {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1px;
+				background: var(--line);
+			}
+			.ba > div {
+				background: var(--white);
+				padding: 8px 10px;
+			}
+			.ba .label {
+				margin-bottom: 4px;
+			}
+			.ba .before .label {
+				color: var(--red);
+			}
+			.ba .after .label {
+				color: var(--green);
+			}
+			.evid {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.evid li {
+				padding: 5px 0;
+				border-bottom: 1px solid var(--line);
+				font-size: 12px;
+				line-height: 1.5;
+				display: flex;
+				gap: 8px;
+				align-items: baseline;
+			}
+			.evid li::before {
+				content: '';
+				width: 6px;
+				height: 6px;
+				flex-shrink: 0;
+				background: var(--accent);
+				transform: translateY(-1px);
+			}
+			.unk li::before {
+				background: var(--line-strong);
+			}
+			.staleBanner {
+				display: flex;
+				gap: 8px;
+				align-items: flex-start;
+				padding: 8px 11px;
+				margin: 0 14px;
+				margin-top: 10px;
+				background: var(--amber-tint);
+				border: 1px solid var(--amber-line);
+				color: var(--amber);
+				font-size: 11.5px;
+				line-height: 1.45;
+			}
+			.staleBanner b {
+				font-weight: 600;
+			}
+
+			/* Diagrams */
+			.diagram {
+				position: relative;
+				overflow: auto;
+				max-height: 360px;
+				padding: 8px;
+			}
+			.diagram svg {
+				display: block;
+				max-width: 100%;
+				height: auto;
+				font-family: var(--sans);
+			}
+			.diagram .node rect,
+			.diagram .node ellipse {
+				fill: var(--white);
+				stroke: var(--line-strong);
+				stroke-width: 1;
+			}
+			.diagram .node text {
+				fill: var(--ink);
+				font-size: 11px;
+			}
+			.diagram .node.linked rect,
+			.diagram .node.linked ellipse {
+				stroke: var(--accent);
+			}
+			.diagram .node.linked text {
+				fill: var(--accent);
+			}
+			.diagram .node.linked {
+				cursor: pointer;
+			}
+			.diagram .node.linked:hover rect,
+			.diagram .node.linked:hover ellipse,
+			.diagram .node.linked:focus-visible rect {
+				fill: var(--wash);
+			}
+			.diagram .node:focus-visible {
+				outline: none;
+			}
+			.diagram .node:focus-visible rect,
+			.diagram .node:focus-visible ellipse {
+				stroke: var(--accent);
+				stroke-width: 2;
+			}
+			.diagram .node.initial rect {
+				stroke-width: 2;
+				stroke: var(--ink);
+			}
+			.diagram .node.final rect {
+				stroke-dasharray: 3 2;
+			}
+			.diagram .edge path,
+			.diagram .edge line {
+				stroke: var(--line-strong);
+				fill: none;
+				stroke-width: 1.2;
+				marker-end: url(#arrow);
+			}
+			.diagram .edge text {
+				fill: var(--muted);
+				font-size: 10px;
+			}
+			.diagram .edge.linked path {
+				stroke: var(--accent);
+			}
+			.diagram .edge.linked {
+				cursor: pointer;
+			}
+			.diagram .edge.linked text {
+				fill: var(--accent);
+				text-decoration: underline;
+			}
+			.diagram .lifeline {
+				stroke: var(--line);
+				stroke-dasharray: 3 3;
+			}
+			.textEq {
+				border-top: 1px solid var(--line);
+			}
+			.textEq summary {
+				padding: 6px 10px;
+				cursor: pointer;
+				font-size: 11px;
+				color: var(--muted);
+			}
+			.textEq ol {
+				margin: 0;
+				padding: 0 10px 8px 26px;
+				font-size: 11.5px;
+				line-height: 1.6;
+			}
+
+			/* Threads in the pane */
+			.thread {
+				margin-top: 8px;
+			}
+			.msg {
+				padding: 8px 10px;
+				border: 1px solid var(--line);
+				border-left: 2px solid var(--line-strong);
+				background: var(--white);
+				margin-bottom: 6px;
+				font-size: 12px;
+				line-height: 1.5;
+			}
+			.msg.agent {
+				background: var(--wash-tint);
+				border-color: var(--accent-line);
+				border-left-color: var(--accent);
+			}
+			.msg .meta {
+				display: flex;
+				gap: 8px;
+				align-items: baseline;
+				font-size: 11px;
+				color: var(--muted);
+				margin-bottom: 3px;
+			}
+			.msg .meta b {
+				font-size: 12px;
+				color: var(--ink);
+			}
+			.msg.agent .meta b {
+				color: var(--accent);
+			}
+			.msg .meta .tag {
+				margin-left: 0;
+			}
+			.compose {
+				margin-top: 8px;
+				border: 1px solid var(--line-strong);
+				background: var(--white);
+			}
+			.compose textarea {
+				display: block;
+				width: 100%;
+				min-height: 58px;
+				border: 0;
+				padding: 8px 10px;
+				resize: vertical;
+				background: transparent;
+				outline: none;
+			}
+			.compose .acts {
+				display: flex;
+				gap: 6px;
+				justify-content: flex-end;
+				padding: 6px 8px;
+				border-top: 1px solid var(--line);
+			}
+			.compose .target {
+				padding: 5px 10px;
+				font: 10.5px var(--mono);
+				color: var(--muted);
+				border-bottom: 1px solid var(--line);
+			}
+			.blockActs {
+				display: flex;
+				gap: 4px;
+				margin-left: auto;
+			}
+			.blockActs .ctl {
+				min-height: 20px;
+				font-size: 10.5px;
+				padding: 1px 6px;
+			}
+
+			/* Diff (mock of @pierre/diffs rows: this is the real diff's place) */
+			.guidebar {
+				justify-content: space-between;
+			}
+			.guidebar .acts {
+				display: flex;
+				gap: 4px;
+			}
+			.diffwrap {
+				flex: 1 1 auto;
+				min-height: 0;
+				overflow: auto;
+				background: var(--white);
+			}
+			.fhead {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+				padding: 8px 16px;
+				background: var(--paper);
+				border-bottom: 1px solid var(--line);
+			}
+			.fhead .row {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.fhead .path {
+				font: 600 13px var(--mono);
+			}
+			.fhead .counts {
+				margin-left: auto;
+				font: 11px var(--mono);
+			}
+			.fhead .counts .a {
+				color: var(--green);
+			}
+			.fhead .counts .d {
+				color: var(--red);
+				margin-left: 5px;
+			}
+			.fhead .owners {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+				padding-left: 10px;
+				border-left: 2px solid var(--accent);
+			}
+			.fhead .owners span {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.fhead .owners .label {
+				color: var(--accent);
+			}
+			.diff {
+				font: 12.5px/1.6 var(--mono);
+				padding-bottom: 40px;
+			}
+			.hunk {
+				color: var(--muted);
+				background: var(--field);
+				padding: 2px 16px;
+				font-size: 11px;
+			}
+			.ln {
+				display: grid;
+				grid-template-columns: 48px 14px 1fr;
+				padding: 0 16px 0 0;
+			}
+			.ln .no {
+				text-align: right;
+				padding-right: 10px;
+				color: var(--muted);
+				user-select: none;
+				font-size: 11px;
+				line-height: 20px;
+			}
+			.ln .m {
+				color: var(--muted);
+				line-height: 20px;
+			}
+			.ln .c {
+				white-space: pre;
+				line-height: 20px;
+			}
+			.ln.add {
+				background: var(--mint-tint);
+			}
+			.ln.add .m {
+				color: var(--green);
+			}
+			.ln.del {
+				background: var(--red-pale);
+			}
+			.ln.del .m {
+				color: var(--red);
+			}
+			.ln.ctx {
+				color: var(--ink);
+			}
+			.ln.cur {
+				box-shadow: inset 0 0 0 1px var(--accent);
+				background: var(--wash);
+			}
+			.ln.flash {
+				animation: flash 1.2s ease-out;
+			}
+			@keyframes flash {
+				0% {
+					background: var(--wash);
+				}
+				100% {
+					background: inherit;
+				}
+			}
+			.verdict {
+				display: flex;
+				gap: 6px;
+				align-items: center;
+				padding: 6px 16px 6px 62px;
+				background: var(--white);
+				border-bottom: 1px solid var(--line);
+			}
+			.verdict .who {
+				margin-left: auto;
+				font: 10.5px var(--mono);
+				color: var(--muted);
+			}
+			.contextNote {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 6px 16px;
+				background: var(--wash-tint);
+				border-bottom: 1px solid var(--accent-line);
+				color: var(--wash-ink);
+				font-size: 11.5px;
+			}
+			.emptyPage,
+			.plainPage {
+				flex: 1;
+				display: grid;
+				place-items: start center;
+				padding: 48px 30px;
+				background: var(--paper);
+				background-image:
+					linear-gradient(var(--grid) 1px, transparent 1px),
+					linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+				background-size: 48px 48px;
+				overflow: auto;
+			}
+			.card {
+				width: min(680px, 100%);
+				padding: 24px 28px;
+				background: var(--white);
+				border: 1px solid var(--line-strong);
+			}
+			.card h1 {
+				margin: 0 0 6px;
+				font-size: 26px;
+				font-weight: 500;
+				letter-spacing: -0.035em;
+				line-height: 1.1;
+			}
+			.card .sub {
+				font: 11px var(--mono);
+				color: var(--muted);
+				margin-bottom: 14px;
+			}
+			.card p {
+				font-size: 13px;
+				line-height: 1.6;
+			}
+			.toast {
+				position: fixed;
+				left: 50%;
+				bottom: 18px;
+				transform: translateX(-50%);
+				padding: 6px 10px;
+				background: var(--ink);
+				color: var(--paper);
+				font-size: 11.5px;
+				opacity: 0;
+				transition: opacity 0.15s;
+				pointer-events: none;
+				z-index: 50;
+			}
+			.toast.show {
+				opacity: 1;
+			}
+
+			/* Scenario bar (prototype only) */
+			.proto {
+				position: fixed;
+				right: 10px;
+				bottom: 10px;
+				z-index: 40;
+				display: flex;
+				gap: 6px;
+				flex-wrap: wrap;
+				justify-content: flex-end;
+				max-width: min(96vw, 760px);
+			}
+			.proto .ctl {
+				font-size: 10.5px;
+			}
+			.proto .lbl {
+				align-self: center;
+				font: 10px var(--mono);
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: var(--muted);
+				margin-right: 4px;
+			}
+
+			/* Narrow: the explanation pane leaves the grid and sits above the diff as a drawer the guide bar toggles; the tree is a drawer under the top bar (as today). */
+			@media (max-width: 1100px) {
+				.main,
+				.main[data-pane='closed'] {
+					grid-template-columns: minmax(0, 1fr);
+				}
+				.aside {
+					position: fixed;
+					top: var(--topbar);
+					left: 0;
+					bottom: 0;
+					width: min(86vw, 300px);
+					z-index: 30;
+					border-right: 1px solid var(--line-strong);
+					transform: translateX(-100%);
+					transition: transform 0.18s;
+				}
+				.aside[data-open] {
+					transform: none;
+				}
+				.rule {
+					display: none;
+				}
+				.explain {
+					position: absolute;
+					top: var(--subbar);
+					left: 0;
+					right: 0;
+					z-index: 20;
+					max-height: min(56vh, 520px);
+					border-bottom: 1px solid var(--line-strong);
+					box-shadow: 0 12px 32px rgb(25 27 24 / 14%);
+				}
+				.main[data-pane='closed'] .explain {
+					display: none;
+				}
+				.main[data-pane='open'] .explain {
+					display: flex;
+				}
+				.onlyNarrow {
+					display: inline-flex !important;
+				}
+			}
+			.onlyNarrow {
+				display: none;
+			}
+			.sr {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				overflow: hidden;
+				clip: rect(0 0 0 0);
+				white-space: nowrap;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="frame" id="frame">
+			<header class="topbar">
+				<div class="brand">
+					Syneva
+					<span class="desk mono" id="deskName"
+						>pr · hub-lifecycle · 6 files</span
+					>
+				</div>
+				<div class="center">
+					<span class="label" id="progressLabel">0% reviewed</span>
+				</div>
+				<div class="right">
+					<button class="ctl quiet" id="notesBtn">Notes</button>
+					<button class="ctl primary">
+						Send to agent <kbd>⇧S</kbd>
+					</button>
+					<button class="ctl quiet">Close</button>
+				</div>
+			</header>
+			<div class="progress">
+				<i id="progressFill" style="width: 0%"></i>
+			</div>
+			<div class="main" id="main" data-pane="open">
+				<aside class="col aside" id="aside">
+					<div class="tabs" role="tablist">
+						<button
+							class="tab"
+							role="tab"
+							aria-selected="true"
+							data-tab="domains"
+						>
+							Domains <kbd>w</kbd>
+						</button>
+						<button
+							class="tab"
+							role="tab"
+							aria-selected="false"
+							data-tab="tree"
+						>
+							Tree
+						</button>
+					</div>
+					<div class="pane" id="asideDomains"></div>
+					<div class="pane" id="asideTree" hidden></div>
+					<div class="sideFoot">
+						Settings <kbd style="margin-left: auto">⇧,</kbd>
+					</div>
+				</aside>
+				<div class="rule"></div>
+				<section
+					class="col explain"
+					id="explain"
+					aria-label="Domain explanation"
+				></section>
+				<div class="rule explainRule"></div>
+				<section class="col center" id="center"></section>
+			</div>
+		</div>
+		<div class="toast" id="toast"></div>
+		<div class="proto" id="proto">
+			<span class="lbl">Prototype</span>
+			<button class="ctl" data-scn="default">Default</button>
+			<button class="ctl" data-scn="reload">
+				After reload (stale + unassigned)
+			</button>
+			<button class="ctl" data-scn="many">Many domains</button>
+			<button class="ctl" data-scn="empty">No changes</button>
+			<button class="ctl" data-scn="file">File review, no guide</button>
+			<button class="ctl" id="appearanceBtn">Night</button>
+		</div>
+
+		<script>
+			// ---------- Fixture: one changeset, five behaviors, two of them in src/hub.ts ----------
+			const FILES = [
+				{ path: 'src/hub.ts', kind: 'mod', added: 21, removed: 4 },
+				{ path: 'src/events.ts', kind: 'mod', added: 9, removed: 2 },
+				{ path: 'src/journal.ts', kind: 'mod', added: 14, removed: 0 },
+				{ path: 'src/cli/close.ts', kind: 'mod', added: 6, removed: 6 },
+				{ path: 'src/ui/labels.ts', kind: 'mod', added: 3, removed: 3 },
+				{ path: 'docs/hub.md', kind: 'add', added: 40, removed: 0 },
+			]
+			// Changed units (what the real diff's ChangeState records are): path + side + raw line range + a stable key.
+			const UNITS = [
+				{
+					key: 'u1',
+					path: 'src/hub.ts',
+					side: 'additions',
+					from: 114,
+					to: 128,
+					title: 'drain the queue before leaving',
+				},
+				{
+					key: 'u2',
+					path: 'src/hub.ts',
+					side: 'deletions',
+					from: 96,
+					to: 99,
+					title: 'remove the immediate delete',
+				},
+				{
+					key: 'u3',
+					path: 'src/hub.ts',
+					side: 'additions',
+					from: 40,
+					to: 52,
+					title: 'serialize opens',
+				},
+				{
+					key: 'u4',
+					path: 'src/events.ts',
+					side: 'additions',
+					from: 18,
+					to: 26,
+					title: 'drop queued questions on review',
+				},
+				{
+					key: 'u5',
+					path: 'src/journal.ts',
+					side: 'additions',
+					from: 60,
+					to: 73,
+					title: 'record round-picked',
+				},
+				{
+					key: 'u6',
+					path: 'src/cli/close.ts',
+					side: 'additions',
+					from: 30,
+					to: 35,
+					title: 'print closed sessions',
+				},
+				{
+					key: 'u7',
+					path: 'src/ui/labels.ts',
+					side: 'additions',
+					from: 3,
+					to: 5,
+					title: 'sentence case labels',
+				},
+				{
+					key: 'u8',
+					path: 'docs/hub.md',
+					side: 'additions',
+					from: 1,
+					to: 40,
+					title: 'hub lifecycle doc',
+				},
+			]
+			const DOMAINS = [
+				{
+					id: 'desk-lifecycle',
+					title: 'Desk lifecycle on close',
+					risk: 'critical',
+					consequence:
+						'A desk closed while a Send is queued loses the round: the agent never receives the verdicts, the reviewer believes it did.',
+					summary:
+						'Closing a desk now drains its event queue to the parked waiter before the desk leaves the registry, instead of deleting it on the spot.',
+					verify: 'The delete runs only after the grace period, and nothing else can re-insert the desk in between.',
+					prerequisites: ['event-queue'],
+					related: [
+						{
+							id: 'journal-pickup',
+							note: 'the pickup is what the journal records',
+						},
+					],
+					units: ['u1', 'u2'],
+					refs: [
+						{
+							id: 'drain',
+							label: 'drain()',
+							path: 'src/hub.ts',
+							side: 'additions',
+							line: 118,
+							role: 'changed',
+						},
+						{
+							id: 'grace',
+							label: 'CLOSED_EVENT_GRACE_MS',
+							path: 'src/hub.ts',
+							side: 'additions',
+							line: 25,
+							role: 'context',
+						},
+						{
+							id: 'old-delete',
+							label: 'the old delete',
+							path: 'src/hub.ts',
+							side: 'deletions',
+							line: 97,
+							role: 'changed',
+						},
+					],
+					evidence: [
+						{
+							text: 'The old path deleted the desk synchronously in closeDesk(), before any waiter could read the queue.',
+							refs: ['old-delete'],
+						},
+						{
+							text: 'The grace period already existed for the closed event; the drain reuses it.',
+							refs: ['grace'],
+						},
+					],
+					unknowns: [
+						'Whether a second close() during the grace period is reachable from the dashboard.',
+					],
+					blocks: [
+						{
+							id: 'states',
+							kind: 'state',
+							title: 'Where a desk can be',
+							refs: ['drain', 'grace'],
+							states: [
+								{ id: 'live', label: 'Live', initial: true },
+								{
+									id: 'closing',
+									label: 'Closing',
+									ref: 'drain',
+								},
+								{ id: 'gone', label: 'Gone', final: true },
+							],
+							transitions: [
+								{
+									from: 'live',
+									to: 'closing',
+									label: 'close()',
+								},
+								{
+									from: 'closing',
+									to: 'gone',
+									label: 'after grace',
+									ref: 'grace',
+								},
+								{
+									from: 'closing',
+									to: 'live',
+									label: 'reopen (same id)',
+								},
+							],
+							detail: '**Assumption**: a reopen during the grace period reuses the live desk, which is why Closing can return to Live. **Failure case**: if the grace timer fires after a reopen, the new desk would be deleted; the guard `state.desks.get(id) === desk` is what prevents it.',
+						},
+						{
+							id: 'why',
+							kind: 'prose',
+							markdown:
+								'The queue is drained, not discarded: a review already sent stays a review. Questions queued behind it are dropped on purpose, because the review supersedes them (see the Event queue domain).',
+						},
+					],
+				},
+				{
+					id: 'event-queue',
+					title: 'Event queue supersession',
+					risk: 'high',
+					consequence:
+						'A stale question dribbles in after the round, and the agent answers something the reviewer already moved past.',
+					summary:
+						'A review emitted into the queue drops every still-queued question: their unanswered ones ride out in the ReviewResult instead.',
+					verify: 'drainQuestions can never skip past a review because the flush guarantees no review sits between two queued questions.',
+					units: ['u4'],
+					refs: [
+						{
+							id: 'flush',
+							label: 'dropQueuedQuestions',
+							path: 'src/events.ts',
+							side: 'additions',
+							line: 22,
+							role: 'changed',
+						},
+						{
+							id: 'take',
+							label: 'takeNext()',
+							path: 'src/events.ts',
+							side: 'additions',
+							line: 10,
+							role: 'context',
+						},
+					],
+					evidence: [
+						{
+							text: 'emit() calls the flush before handing the event to a waiter.',
+							refs: ['flush'],
+						},
+					],
+					blocks: [
+						{
+							id: 'seq',
+							kind: 'sequence',
+							title: 'One Send while a question waits',
+							refs: ['flush'],
+							participants: [
+								{ id: 'rev', label: 'Reviewer' },
+								{ id: 'hub', label: 'Hub queue' },
+								{ id: 'ag', label: 'Agent (await)' },
+							],
+							steps: [
+								{ from: 'rev', to: 'hub', label: 'ask(q1)' },
+								{
+									from: 'rev',
+									to: 'hub',
+									label: 'send(review)',
+									ref: 'flush',
+								},
+								{ from: 'hub', to: 'hub', label: 'drop q1' },
+								{
+									from: 'hub',
+									to: 'ag',
+									label: 'review + openQuestions[q1]',
+									ref: 'take',
+								},
+							],
+						},
+					],
+				},
+				{
+					id: 'journal-pickup',
+					title: 'Journal: round picked up',
+					risk: 'medium',
+					consequence:
+						'The dashboard shows a round as delivered that no agent ever read, or never shows the pickup.',
+					summary:
+						'The await route records round-picked once the response carries the review, naming the round of the review it delivered.',
+					units: ['u5'],
+					refs: [
+						{
+							id: 'picked',
+							label: 'recordEvent(round-picked)',
+							path: 'src/journal.ts',
+							side: 'additions',
+							line: 64,
+							role: 'changed',
+						},
+						{
+							id: 'rounds',
+							label: 'createSentRounds',
+							path: 'src/journal.ts',
+							side: 'additions',
+							line: 70,
+							role: 'changed',
+						},
+					],
+					blocks: [
+						{
+							id: 'flow',
+							kind: 'flow',
+							title: 'How the pickup finds its round',
+							refs: ['picked', 'rounds'],
+							nodes: [
+								{ id: 'send', label: 'POST /send' },
+								{
+									id: 'rs',
+									label: 'round-sent',
+									ref: 'rounds',
+								},
+								{ id: 'ev', label: 'event stream' },
+								{ id: 'await', label: 'GET /await' },
+								{
+									id: 'rp',
+									label: 'round-picked',
+									ref: 'picked',
+								},
+							],
+							edges: [
+								{ from: 'send', to: 'rs', label: 'journal' },
+								{
+									from: 'send',
+									to: 'ev',
+									label: 'emit(result)',
+								},
+								{
+									from: 'ev',
+									to: 'await',
+									label: 'same ReviewResult object',
+								},
+								{
+									from: 'await',
+									to: 'rp',
+									label: 'round of that result',
+								},
+								{
+									from: 'rs',
+									to: 'rp',
+									label: 'WeakMap by result',
+								},
+							],
+						},
+						{
+							id: 'p',
+							kind: 'prose',
+							markdown:
+								"Keyed by the result **object**, not a clone: a clone would miss and fall back on the desk's latest send, which is not always the one picked up when several Sends queued.",
+						},
+					],
+				},
+				{
+					id: 'open-serial',
+					title: 'Serialized opens',
+					risk: 'medium',
+					consequence:
+						'Two agents opening the same repo+session at once get two desks for one review.',
+					summary:
+						"Opens are serialized on the hub, so the second one finds the first's desk and reloads it.",
+					units: ['u3'],
+					refs: [
+						{
+							id: 'ser',
+							label: 'serializeOpen',
+							path: 'src/hub.ts',
+							side: 'additions',
+							line: 44,
+							role: 'changed',
+						},
+					],
+					blocks: [
+						{
+							id: 'ba',
+							kind: 'before-after',
+							title: 'Two opens, same desk',
+							refs: ['ser'],
+							before: {
+								label: 'Before',
+								markdown:
+									'`openDesk` ran both builds in parallel; both registered under the same id, the second overwrote the first and its tab went dark.',
+							},
+							after: {
+								label: 'After',
+								markdown:
+									'The second open waits for the first, sees the live desk and reloads it: outcome `reloaded`, one tab.',
+								ref: 'ser',
+							},
+						},
+					],
+				},
+				{
+					id: 'labels',
+					title: 'Close command output',
+					risk: 'low',
+					consequence:
+						'A script parsing `syneva close` output reads a renamed key.',
+					summary:
+						'`stopped` and `closed` both ride for a transition; labels move to sentence case.',
+					units: ['u6', 'u7'],
+					refs: [],
+					blocks: [],
+				},
+				{
+					id: 'docs',
+					title: 'Hub lifecycle documentation',
+					risk: 'low',
+					consequence:
+						'A reader follows an out-of-date description of close; nothing in the code breaks.',
+					summary:
+						'The new docs page describes the close sequence above.',
+					units: ['u8'],
+					refs: [],
+					blocks: [
+						{
+							id: 'p',
+							kind: 'prose',
+							markdown:
+								'Read it against the Desk lifecycle domain: the two must agree.',
+						},
+					],
+				},
+			]
+			const RISK_RANK = { critical: 0, high: 1, medium: 2, low: 3 }
+			const RISK_LABEL = {
+				critical: 'Critical risk',
+				high: 'High risk',
+				medium: 'Medium risk',
+				low: 'Low risk',
+			}
+
+			// Mock file contents: enough lines around each unit for the real-diff area to show its rows.
+			const CODE = {
+				'src/hub.ts': {
+					additions: {
+						25: 'const CLOSED_EVENT_GRACE_MS = 150',
+						40: 'export function createHub(io, instanceId) {',
+						41: '  const desks = new Map()',
+						42: '  const serializeOpen = createSerializer()',
+						43: '  const serializeWrite = createSerializer()',
+						44: '  // opens are serialized: two agents racing to open the same repo+session get one desk',
+						45: '  return {',
+						46: '    openDesk: (query, guide) =>',
+						47: '      serializeOpen(() => openOrReuse(state, query, guide)),',
+						48: '    getDesk: id => liveDesk(desks, id),',
+						49: '    listDesks: () => [...desks.values()].filter(d => !d.closing),',
+						50: '    closeDesk: id => closeDesk(state, id),',
+						51: '    restore: () => restoreAll(state),',
+						52: '  }',
+						53: '}',
+						112: 'function closeDesk(state, id) {',
+						113: '  const desk = state.desks.get(id)',
+						114: '  if (!desk || desk.closing) return false',
+						115: '  desk.ctx.recordEvent(deskClosed(summarize(desk), desk.record))',
+						116: '  desk.closing = true',
+						117: '  // hand the queued review to a parked waiter before the desk leaves',
+						118: '  drain(desk)',
+						119: '  desk.ctx.events.emit({ kind: "closed", session: desk.record.session })',
+						120: '  state.io.log(`desk closed ${id}`)',
+						121: '  setTimeout(() => {',
+						122: '    if (state.desks.get(id) === desk) state.desks.delete(id)',
+						123: '    void state.persist()',
+						124: '  }, CLOSED_EVENT_GRACE_MS)',
+						125: '  return true',
+						126: '}',
+						127: '',
+						128: 'function drain(desk) { /* flush to the waiter, then stop */ }',
+					},
+					deletions: {
+						95: 'function closeDesk(state, id) {',
+						96: '  const desk = state.desks.get(id)',
+						97: '  state.desks.delete(id)',
+						98: '  desk.ctx.events.emit({ kind: "closed" })',
+						99: '  return true',
+					},
+				},
+				'src/events.ts': {
+					additions: {
+						10: '    takeNext() {',
+						11: '      if (!queue.length) return undefined',
+						18: '    emit(event) {',
+						19: '      // a Send supersedes every still-queued question',
+						20: '      if (event.kind === "review") dropQueuedQuestions(queue)',
+						21: '      const waiter = waiters.shift()',
+						22: '      if (waiter) waiter(event)',
+						23: '      else queue.push(event)',
+						24: '    },',
+						25: '',
+						26: 'function dropQueuedQuestions(queue) { /* … */ }',
+					},
+					deletions: {},
+				},
+				'src/journal.ts': {
+					additions: {
+						60: 'function deliver(ctx, res, event) {',
+						61: '  json(res, HTTP_OK, event)',
+						62: '  // a review the agent receives is the round picked up',
+						63: '  if (event.kind === "review")',
+						64: '    ctx.recordEvent({ kind: "round-picked" }, event.result)',
+						65: '}',
+						70: 'function createSentRounds() {',
+						71: '  const rounds = new WeakMap()',
+						72: '  return { of: v => rounds.get(v), note(v, e) { if (e.kind === "round-sent") rounds.set(v, e.round) } }',
+						73: '}',
+					},
+					deletions: {},
+				},
+				'src/cli/close.ts': {
+					additions: {
+						30: '  // stopped is the name the previous contract printed; both ride for a transition',
+						31: '  printJson({ ok: true, stopped: closed, closed })',
+						32: '}',
+						33: '',
+						34: 'function noDeskHint(args) {',
+						35: '  return "No live desk for this repo. Open one with: syneva open"',
+					},
+					deletions: {},
+				},
+				'src/ui/labels.ts': {
+					additions: {
+						3: 'export const SEND = "Send to agent"',
+						4: 'export const APPROVE = "Approve"',
+						5: 'export const MARK = "Mark reviewed"',
+					},
+					deletions: {},
+				},
+				'docs/hub.md': {
+					additions: Object.fromEntries(
+						Array.from({ length: 40 }, (_, i) => [
+							i + 1,
+							i === 0
+								? '# The hub'
+								: i === 2
+									? 'One long-running process per machine hosts every desk.'
+									: '',
+						]),
+					),
+					deletions: {},
+				},
+			}
+
+			// ---------- State ----------
+			const S = {
+				scenario: 'default',
+				appearance: 'light',
+				domainId: 'desk-lifecycle',
+				fileIdx: 0,
+				cursor: null,
+				decisions: {}, // unitKey -> 'accepted' | 'rejected'
+				threads: [], // {target:{domainId, blockId?}, intent, body, replies:[]}
+				composer: null, // {domainId, blockId?}
+				returnStack: [],
+				expanded: new Set(),
+				paneOpen: true,
+				asideOpen: false,
+				tab: 'domains',
+				many: false,
+				stale: new Set(),
+				unresolved: new Set(),
+				unassigned: [],
+			}
+			// The reload scenario adds code the guide never saw: a unit no domain owns, with its lines, so the unassigned path lands on real code.
+			const RELOAD_UNITS = [
+				{ key: 'u9', path: 'src/hub.ts', side: 'additions', from: 60, to: 63, title: 'peek at a desk without opening it' },
+			]
+			const RELOAD_CODE = {
+				'src/hub.ts': {
+					additions: {
+						60: 'export function peekDesk(state, id) {',
+						61: '  // added after the guide was written: no domain explains it yet',
+						62: '  return state.desks.get(id) ?? null',
+						63: '}',
+					},
+				},
+			}
+			function allUnits() {
+				return S.scenario === 'reload' ? [...UNITS, ...RELOAD_UNITS] : UNITS
+			}
+			function codeFor(path) {
+				const base = CODE[path]
+				const extra = S.scenario === 'reload' ? RELOAD_CODE[path] : null
+				if (!base || !extra) return base
+				return { ...base, additions: { ...base.additions, ...extra.additions } }
+			}
+			function units(d) {
+				return d.units
+					.map(k => UNITS.find(u => u.key === k))
+					.filter(Boolean)
+			}
+			function sorted(ds) {
+				return ds
+					.map((d, i) => ({ d, i }))
+					.sort(
+						(a, b) =>
+							RISK_RANK[a.d.risk] - RISK_RANK[b.d.risk] ||
+							(a.d.order ?? a.i) - (b.d.order ?? b.i) ||
+							a.i - b.i,
+					)
+					.map(x => x.d)
+			}
+			function domains() {
+				let ds = DOMAINS.slice()
+				if (S.many) ds = ds.concat(MANY)
+				return sorted(ds)
+			}
+			const MANY = Array.from({ length: 22 }, (_, i) => ({
+				id: 'extra-' + i,
+				title: `Domain ${i + 1} of a long guide`,
+				risk: ['high', 'medium', 'low', 'low'][i % 4],
+				consequence:
+					'A representative consequence for a long guide; each row stays two lines at most.',
+				summary:
+					'A generated domain to test density, scrolling and the keyboard order.',
+				units: [],
+				refs: [],
+				blocks: [],
+			}))
+			function progress(d) {
+				const us = units(d)
+				const done = us.filter(u => S.decisions[u.key]).length
+				const rej = us.filter(
+					u => S.decisions[u.key] === 'rejected',
+				).length
+				return { total: us.length, done, rejected: rej }
+			}
+			// Every reviewable change of the scenario counts, the reload's unassigned one included.
+			function overall() {
+				const all = allUnits().length
+				const done = Object.keys(S.decisions).length
+				return all ? Math.round((done / all) * 100) : 100
+			}
+			const el = id => document.getElementById(id)
+			const esc = s =>
+				String(s).replace(
+					/[&<>"]/g,
+					c =>
+						({
+							'&': '&amp;',
+							'<': '&lt;',
+							'>': '&gt;',
+							'"': '&quot;',
+						})[c],
+				)
+			function md(s) {
+				return esc(s)
+					.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+					.replace(/`(.+?)`/g, '<code>$1</code>')
+			}
+			let toastTimer
+			function toast(t) {
+				const n = el('toast')
+				n.textContent = t
+				n.classList.add('show')
+				clearTimeout(toastTimer)
+				toastTimer = setTimeout(() => n.classList.remove('show'), 1800)
+			}
+
+			// ---------- Render ----------
+			// A redraw replaces the explanation's HTML: the focused control is found again by its hook and refocused, and the composer's caret comes back (its draft lives in S.composer.body), so a keyboard return or a late agent reply never drops the reviewer.
+			function focusHook(node) {
+				if (!node || node === document.body) return null
+				if (node.id) return '#' + CSS.escape(node.id)
+				for (const attr of ['data-ref', 'data-unit', 'data-domain', 'data-compose', 'data-step', 'data-tab', 'data-file', 'data-decide']) {
+					if (node.hasAttribute(attr))
+						return `[${attr}="${CSS.escape(node.getAttribute(attr))}"]`
+				}
+				return null
+			}
+			function render() {
+				const hook = focusHook(document.activeElement)
+				const caret = el('composerText')?.selectionStart ?? null
+				document.documentElement.dataset.appearance = S.appearance
+				el('appearanceBtn').textContent =
+					S.appearance === 'light' ? 'Night' : 'Light'
+				el('main').dataset.pane = S.paneOpen ? 'open' : 'closed'
+				if (S.asideOpen) el('aside').dataset.open = ''
+				else delete el('aside').dataset.open
+				const pct = overall()
+				el('progressLabel').textContent = pct + '% reviewed'
+				el('progressFill').style.width = pct + '%'
+				renderAside()
+				renderExplain()
+				renderCenter()
+				const again = hook ? document.querySelector(hook) : null
+				if (again) again.focus()
+				if (caret !== null && el('composerText')) el('composerText').setSelectionRange(caret, caret)
+			}
+			function renderAside() {
+				document
+					.querySelectorAll('.tab')
+					.forEach(t =>
+						t.setAttribute(
+							'aria-selected',
+							String(t.dataset.tab === S.tab),
+						),
+					)
+				el('asideDomains').hidden = S.tab !== 'domains'
+				el('asideTree').hidden = S.tab !== 'tree'
+				const ds = domains()
+				const owned = new Set(ds.flatMap(d => d.units))
+				const unowned = allUnits().filter(
+					u => !owned.has(u.key) && S.scenario !== 'empty',
+				)
+				const guideless =
+					S.scenario === 'file' || S.scenario === 'empty'
+				el('asideDomains').innerHTML = guideless
+					? `<div class="nav-overview"><div class="label">Guide</div><p class="intent" style="color:var(--muted)">${S.scenario === 'empty' ? 'Nothing to review yet: the guide has no domains and the desk waits for the next reload.' : 'A file review opens without a guide; the Tree is the only list.'}</p></div>`
+					: `<div class="nav-overview">
+      <div class="label">Changeset</div>
+      <p class="intent">Closing a desk no longer loses a queued round: the queue drains to the waiter, questions a Send superseded are dropped, and the journal names the round each pickup delivered.</p>
+      <div class="cover"><span><b>${ds.length}</b> domains</span><span><b>${owned.size}</b>/${allUnits().length} changes owned</span><span><b>${FILES.length}</b> files</span></div>
+    </div>
+    ${ds.map((d, i) => domainRow(d, i)).join('')}
+    ${unowned.length || S.scenario === 'reload' ? `<div class="unassigned" role="note"><b>${S.unassigned.length} changes not in the guide</b>Added by the last reload: pending, listed in the Tree and in Other. <button class="ctl quiet" style="margin-top:4px" data-jump-unassigned>Show the first</button></div>` : ''}`
+				el('asideTree').innerHTML =
+					`<div class="label" style="padding:4px 8px 6px">Files</div><ul class="filelist">${FILES.map((f, i) => `<li data-file="${i}" ${i === S.fileIdx && !S.overview ? 'data-active' : ''}><span class="k ${f.kind}"></span>${esc(f.path)}<span style="margin-left:auto;font-size:10px"><i style="color:var(--green);font-style:normal">+${f.added}</i> <i style="color:var(--red);font-style:normal">−${f.removed}</i></span></li>`).join('')}</ul>`
+			}
+			function domainRow(d, i) {
+				const p = progress(d)
+				const cur = d.id === S.domainId
+				const verdict =
+					p.total === 0
+						? ''
+						: p.done === p.total
+							? p.rejected
+								? '<span class="tag verdict-objection">Changes requested</span>'
+								: '<span class="tag verdict-done">Decided</span>'
+							: `<span class="tag verdict-pending">${p.done}/${p.total} decided</span>`
+				const stale = S.stale.has(d.id)
+					? '<span class="tag stale">Stale</span>'
+					: ''
+				return `<button class="dom" role="option" aria-current="${cur}" data-domain="${d.id}" title="${esc(d.title)}">
+    <span class="top"><span class="n">${i + 1}</span><span class="tag" data-risk="${d.risk}">${RISK_LABEL[d.risk]}</span>${stale}<span class="title">${esc(d.title)}</span></span>
+    <p class="conseq">${esc(d.consequence)}</p>
+    ${p.total ? `<span class="meter"><i style="width:${Math.round((p.done / p.total) * 100)}%"></i>${p.rejected ? `<em style="width:${Math.round((p.rejected / p.total) * 100)}%"></em>` : ''}</span>` : ''}
+    <span class="foot"><span>${p.total ? p.total + ' change' + (p.total > 1 ? 's' : '') + ' · ' + new Set(units(d).map(u => u.path)).size + ' file' + (new Set(units(d).map(u => u.path)).size > 1 ? 's' : '') : 'no changed code'}</span>${verdict}</span>
+  </button>`
+			}
+			function currentDomain() {
+				return domains().find(d => d.id === S.domainId) || domains()[0]
+			}
+			function renderExplain() {
+				const host = el('explain')
+				if (S.scenario === 'file' || S.scenario === 'empty') {
+					host.innerHTML = ''
+					host.style.display = 'none'
+					return
+				}
+				host.style.display = ''
+				const d = currentDomain()
+				if (!d) {
+					host.innerHTML = ''
+					return
+				}
+				const ds = domains()
+				const pos = ds.indexOf(d)
+				const p = progress(d)
+				const prereqs = (d.prerequisites || [])
+					.map(id => ds.find(x => x.id === id))
+					.filter(Boolean)
+				const related = (d.related || [])
+					.map(r => ({ ...r, d: ds.find(x => x.id === r.id) }))
+					.filter(r => r.d)
+				const threads = S.threads.filter(
+					t => t.target.domainId === d.id,
+				)
+				host.innerHTML = `
+    <div class="exHead">
+      <div class="row"><span class="label">Domain ${pos + 1} of ${ds.length}</span><span class="tag" data-risk="${d.risk}">${RISK_LABEL[d.risk]}</span>${S.stale.has(d.id) ? '<span class="tag stale">Stale</span>' : ''}
+        <span class="navs"><button class="ctl quiet" id="backBtn" ${S.returnStack.length ? '' : 'disabled'} title="Back to where you were (b)">← Back <kbd>b</kbd></button><button class="ctl quiet" data-step="-1" title="Previous domain ([)" aria-label="Previous domain">‹ <kbd>[</kbd></button><button class="ctl quiet" data-step="1" title="Next domain (])" aria-label="Next domain"><kbd>]</kbd> ›</button><button class="ctl quiet onlyNarrow" id="closePane" aria-label="Hide explanation">✕</button></span></div>
+      <h2>${esc(d.title)}</h2>
+      <p class="summary">${esc(d.summary)}</p>
+      <div class="consequence" data-risk="${d.risk}"><span class="label">If this is wrong</span>${esc(d.consequence)}</div>
+      ${d.verify ? `<div class="consequence" data-risk="low" style="border-left-color:var(--green-line)"><span class="label">Verify</span>${esc(d.verify)}</div>` : ''}
+    </div>
+    ${S.stale.has(d.id) ? `<div class="staleBanner" role="status">⚠ <span><b>Explanation out of date.</b> The code this domain owns changed on the last reload (the drain() block). The prose and the diagram describe the previous version; verdicts on the changed block were reset to pending. Ask the agent for an updated guide.</span></div>` : ''}
+    <div class="exBody" id="exBody">
+      ${prereqs.length ? `<div class="sec"><div class="label">Read first</div>${prereqs.map(q => `<div class="prereq"><a href="#" data-domain="${q.id}">${esc(q.title)}</a> <span class="tag" data-risk="${q.risk}">${RISK_LABEL[q.risk]}</span><br>${esc(q.summary)}</div>`).join('')}</div>` : ''}
+      <div class="sec"><div class="label">Changed code <span class="count">${p.total}</span> <span class="tag verdict-pending" style="margin-left:auto">${p.done}/${p.total} decided</span></div>
+        <div class="cov">${units(d)
+			.map(
+				u =>
+					`<button data-unit="${u.key}" ${isCurrentUnit(u) ? 'data-current' : ''}><span>${esc(u.path)}</span><span class="lines">${u.side === 'deletions' ? '−' : '+'}${u.from}${u.to !== u.from ? '–' + u.to : ''}</span><span class="st tag ${S.decisions[u.key] === 'accepted' ? 'verdict-done' : S.decisions[u.key] === 'rejected' ? 'verdict-objection' : 'verdict-pending'}">${S.decisions[u.key] === 'accepted' ? 'Kept' : S.decisions[u.key] === 'rejected' ? 'Undone' : 'Pending'}</span></button>`,
+			)
+			.join('')}
+        ${S.scenario === 'reload' && d.id === 'desk-lifecycle' ? `<div class="unassigned" style="margin-top:6px"><b>1 new change in src/hub.ts</b>Not owned by any domain since the reload - pending, visible in Other.</div>` : ''}</div>
+      </div>
+      ${d.blocks.map(b => renderBlock(d, b)).join('')}
+      ${d.evidence && d.evidence.length ? `<div class="sec"><div class="label">Evidence <span class="tag petrol" style="margin-left:auto">agent's claims</span></div><ul class="evid">${d.evidence.map(e => `<li><span>${esc(e.text)} ${(e.refs || []).map(r => refChip(d, r)).join(' ')}</span></li>`).join('')}</ul></div>` : ''}
+      ${d.unknowns && d.unknowns.length ? `<div class="sec"><div class="label">Unknowns</div><ul class="evid unk">${d.unknowns.map(u => `<li>${esc(u)}</li>`).join('')}</ul></div>` : ''}
+      ${related.length ? `<div class="sec"><div class="label">Related</div>${related.map(r => `<div class="prereq"><a href="#" data-domain="${r.d.id}">${esc(r.d.title)}</a>${r.note ? ' — ' + esc(r.note) : ''}</div>`).join('')}</div>` : ''}
+      <div class="sec"><div class="label">Discussion <span class="count">${threads.length || ''}</span><span class="blockActs"><button class="ctl ask" data-compose="${d.id}" data-intent="question">Ask about this domain</button><button class="ctl request" data-compose="${d.id}" data-intent="action">Request a change</button></span></div>
+        <div class="thread">${threads.map(renderThread).join('')}${S.composer && S.composer.domainId === d.id && !S.composer.blockId ? renderComposer() : ''}</div>
+      </div>
+    </div>`
+			}
+			function isCurrentUnit(u) {
+				return (
+					!S.overview &&
+					FILES[S.fileIdx].path === u.path &&
+					S.cursor &&
+					S.cursor.side === u.side &&
+					S.cursor.line >= u.from &&
+					S.cursor.line <= u.to
+				)
+			}
+			function refChip(d, refId) {
+				const r = d.refs.find(x => x.id === refId)
+				if (!r) return ''
+				const un = S.unresolved.has(d.id + ':' + r.id)
+				return `<button class="ref ${r.role} ${un ? 'unresolved' : ''}" data-ref="${d.id}:${r.id}" title="${un ? 'Target no longer resolves: ' + esc(r.path) + ' ' + r.side + ' line ' + r.line : esc(r.path) + ' · ' + (r.side === 'deletions' ? 'old' : 'new') + ' line ' + r.line + (r.role === 'context' ? ' · unchanged context' : '')}" ${un ? 'aria-disabled="true"' : ''}>${r.role === 'context' ? '◌ ' : ''}${esc(r.label)}</button>`
+			}
+			function renderBlock(d, b) {
+				const kindLabel = {
+					prose: 'Prose',
+					'before-after': 'Before / after',
+					state: 'State',
+					sequence: 'Sequence',
+					flow: 'Data flow',
+				}[b.kind]
+				const threads = S.threads.filter(
+					t =>
+						t.target.domainId === d.id && t.target.blockId === b.id,
+				)
+				const failed = S.scenario === 'reload' && b.id === 'flow'
+				const drawn = ['state', 'sequence', 'flow'].includes(b.kind) ? diagram(d, b) : null
+				let body = ''
+				// The text equivalent is rendered on its own, so a diagram that cannot be drawn still explains the relationships.
+				if (failed)
+					body = `<div class="failNote">The diagram could not be drawn in this session; its text equivalent is kept and the rest of the desk is unaffected.</div><details class="textEq" open><summary>As text</summary>${drawn ? drawn.text : ''}</details>`
+				else if (b.kind === 'prose')
+					body = `<div class="bb"><p>${md(b.markdown)}</p></div>`
+				else if (b.kind === 'before-after')
+					body = `<div class="ba"><div class="before"><div class="label">${esc(b.before.label || 'Before')}</div>${md(b.before.markdown)} ${b.before.ref ? refChip(d, b.before.ref) : ''}</div><div class="after"><div class="label">${esc(b.after.label || 'After')}</div>${md(b.after.markdown)} ${b.after.ref ? refChip(d, b.after.ref) : ''}</div></div>`
+				else body = `<div class="diagram">${drawn.svg}</div><details class="textEq"><summary>As text</summary>${drawn.text}</details>`
+				const refs = (b.refs || []).map(r => refChip(d, r)).join(' ')
+				const detail = b.detail
+					? `<details class="more" ${S.expanded.has(d.id + ':' + b.id) ? 'open' : ''} data-detail="${d.id}:${b.id}"><summary>Reasoning, assumptions, failure cases</summary><div class="dm">${md(b.detail)}</div></details>`
+					: ''
+				return `<div class="block ${failed ? 'failed' : ''}" id="block-${b.id}"><div class="bh"><span class="kind">${kindLabel}</span><span class="t">${esc(b.title || '')}</span><span class="blockActs"><button class="ctl quiet" data-compose="${d.id}" data-block="${b.id}" data-intent="question" title="Ask about this explanation">Ask</button><button class="ctl quiet" data-compose="${d.id}" data-block="${b.id}" data-intent="action" title="Request a change here">Request</button></span></div>${body}${refs || detail ? `<div class="bb" style="padding-top:6px;border-top:1px solid var(--line)">${refs ? `<div><span class="label" style="margin-right:6px">Refs</span>${refs}</div>` : ''}${detail}</div>` : ''}${threads.length || (S.composer && S.composer.domainId === d.id && S.composer.blockId === b.id) ? `<div class="bb" style="padding-top:0"><div class="thread">${threads.map(renderThread).join('')}${S.composer && S.composer.domainId === d.id && S.composer.blockId === b.id ? renderComposer() : ''}</div></div>` : ''}</div>`
+			}
+			function renderThread(t) {
+				const tag =
+					t.intent === 'question'
+						? '<span class="tag petrol">Question</span>'
+						: '<span class="tag verdict-objection">Change requested</span>'
+				const state = t.stale
+					? '<span class="tag stale">stale</span>'
+					: t.replies.length
+						? '<span class="tag verdict-done">answered</span>'
+						: '<span class="tag verdict-pending">waiting</span>'
+				return `<div class="msg"><div class="meta"><b>You</b>${tag}${state}<span>${t.target.blockId ? 'on block ' : 'on domain'}</span></div>${esc(t.body)}</div>${t.replies.map(r => `<div class="msg agent"><div class="meta"><b>Agent</b><span>now</span></div>${esc(r)}</div>`).join('')}`
+			}
+			function renderComposer() {
+				const c = S.composer
+				const d = currentDomain()
+				const b = c.blockId
+					? d.blocks.find(x => x.id === c.blockId)
+					: null
+				return `<div class="compose"><div class="target">${b ? 'On the “' + esc(b.title || b.kind) + '” block' : 'On the domain'} · ${esc(d.title)}${units(d).length ? ' · ' + units(d).length + ' linked changes' : ''}</div><textarea id="composerText" placeholder="${c.intent === 'question' ? 'What do you want the agent to explain?' : 'What should change in this behavior?'}" aria-label="Comment">${esc(c.body || '')}</textarea><div class="acts"><button class="ctl quiet" id="composerCancel">Cancel <kbd>Esc</kbd></button><button class="ctl ask" id="composerAsk">Ask <kbd>⌘⇧↵</kbd></button><button class="ctl request" id="composerRequest">Request change <kbd>⌘↵</kbd></button></div></div>`
+			}
+
+			// ---------- Diagrams (inline SVG from typed data; text equivalent always present) ----------
+			const ARROW =
+				'<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--line-strong)"/></marker></defs>'
+			function node(d, x, y, w, h, label, ref, cls) {
+				const linked = ref && !S.unresolved.has(d.id + ':' + ref)
+				const un = ref && S.unresolved.has(d.id + ':' + ref)
+				return `<g class="node ${linked ? 'linked' : ''} ${cls || ''}" ${ref ? `data-ref="${d.id}:${ref}" tabindex="0" role="button" aria-label="${esc(label)}${linked ? ', opens the code' : un ? ', target unresolved' : ''}"` : ''}><rect x="${x}" y="${y}" width="${w}" height="${h}" ${un ? 'stroke-dasharray="4 3"' : ''}/><text x="${x + w / 2}" y="${y + h / 2 + 4}" text-anchor="middle">${esc(label)}${linked ? ' ↗' : ''}</text></g>`
+			}
+			function edgeLabel(x, y, t) {
+				return t
+					? `<text x="${x}" y="${y}" text-anchor="middle">${esc(t)}</text>`
+					: ''
+			}
+			function diagram(d, b) {
+				let svg = '',
+					text = ''
+				if (b.kind === 'state') {
+					const W = 120,
+						H = 34,
+						gap = 70
+					const n = b.states.length
+					const width = n * W + (n - 1) * gap + 20
+					const pos = Object.fromEntries(
+						b.states.map((s, i) => [
+							s.id,
+							{ x: 10 + i * (W + gap), y: 60 },
+						]),
+					)
+					svg =
+						`<svg viewBox="0 0 ${width} 150" width="${width}" height="150" role="img" aria-label="State diagram: ${esc(b.title || '')}">${ARROW}` +
+						b.transitions
+							.map(t => {
+								const a = pos[t.from],
+									c = pos[t.to]
+								const back =
+									b.states.findIndex(s => s.id === t.from) >
+									b.states.findIndex(s => s.id === t.to)
+								const linked =
+									t.ref &&
+									!S.unresolved.has(d.id + ':' + t.ref)
+								if (back) {
+									const x1 = a.x + W / 2,
+										x2 = c.x + W / 2
+									return `<g class="edge ${linked ? 'linked' : ''}" ${t.ref ? `data-ref="${d.id}:${t.ref}" tabindex="0" role="button"` : ''}><path d="M${x1} ${a.y + H} C ${x1} ${a.y + H + 50}, ${x2} ${c.y + H + 50}, ${x2} ${c.y + H}"/>${edgeLabel((x1 + x2) / 2, a.y + H + 56, t.label)}</g>`
+								}
+								const x1 = a.x + W,
+									x2 = c.x
+								return `<g class="edge ${linked ? 'linked' : ''}" ${t.ref ? `data-ref="${d.id}:${t.ref}" tabindex="0" role="button"` : ''}><line x1="${x1}" y1="${a.y + H / 2}" x2="${x2}" y2="${c.y + H / 2}"/>${edgeLabel((x1 + x2) / 2, a.y + H / 2 - 6, t.label)}</g>`
+							})
+							.join('') +
+						b.states
+							.map(s =>
+								node(
+									d,
+									pos[s.id].x,
+									pos[s.id].y,
+									W,
+									H,
+									s.label,
+									s.ref,
+									(s.initial ? 'initial' : '') +
+										(s.final ? ' final' : ''),
+								),
+							)
+							.join('') +
+						'</svg>'
+					text = `<ol>${b.transitions.map(t => `<li>${esc(b.states.find(s => s.id === t.from).label)} → ${esc(b.states.find(s => s.id === t.to).label)}${t.label ? ' on ' + esc(t.label) : ''}${t.ref ? ' (' + refChip(d, t.ref) + ')' : ''}</li>`).join('')}</ol>`
+				} else if (b.kind === 'sequence') {
+					const colW = 150,
+						top = 30,
+						step = 42
+					const width = b.participants.length * colW + 20
+					const height = top + 40 + b.steps.length * step
+					const cx = Object.fromEntries(
+						b.participants.map((p, i) => [
+							p.id,
+							10 + i * colW + colW / 2,
+						]),
+					)
+					svg =
+						`<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Sequence: ${esc(b.title || '')}">${ARROW}` +
+						b.participants
+							.map(
+								p =>
+									`<line class="lifeline" x1="${cx[p.id]}" y1="${top + 34}" x2="${cx[p.id]}" y2="${height}"/>` +
+									node(
+										d,
+										cx[p.id] - 60,
+										top,
+										120,
+										30,
+										p.label,
+									),
+							)
+							.join('') +
+						b.steps
+							.map((s, i) => {
+								const y = top + 60 + i * step
+								const x1 = cx[s.from],
+									x2 = cx[s.to]
+								const linked =
+									s.ref &&
+									!S.unresolved.has(d.id + ':' + s.ref)
+								if (x1 === x2)
+									return `<g class="edge ${linked ? 'linked' : ''}" ${s.ref ? `data-ref="${d.id}:${s.ref}" tabindex="0" role="button"` : ''}><path d="M${x1} ${y - 10} C ${x1 + 40} ${y - 10}, ${x1 + 40} ${y + 10}, ${x1} ${y + 10}"/>${edgeLabel(x1 + 70, y + 3, s.label)}</g>`
+								return `<g class="edge ${linked ? 'linked' : ''}" ${s.ref ? `data-ref="${d.id}:${s.ref}" tabindex="0" role="button"` : ''}><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/>${edgeLabel((x1 + x2) / 2, y - 6, i + 1 + '. ' + s.label)}</g>`
+							})
+							.join('') +
+						'</svg>'
+					text = `<ol>${b.steps.map(s => `<li>${esc(b.participants.find(p => p.id === s.from).label)} → ${esc(b.participants.find(p => p.id === s.to).label)}: ${esc(s.label)}${s.ref ? ' (' + refChip(d, s.ref) + ')' : ''}</li>`).join('')}</ol>`
+				} else if (b.kind === 'flow') {
+					// layered left-to-right by longest path
+					const depth = {}
+					const inc = id => b.edges.filter(e => e.to === id)
+					const rank = id => {
+						if (depth[id] != null) return depth[id]
+						const ins = inc(id)
+						depth[id] = ins.length
+							? 1 + Math.max(...ins.map(e => rank(e.from)))
+							: 0
+						return depth[id]
+					}
+					b.nodes.forEach(n => rank(n.id))
+					const layers = {}
+					b.nodes.forEach(n => {
+						;(layers[depth[n.id]] ??= []).push(n)
+					})
+					const W = 130,
+						H = 32,
+						gx = 60,
+						gy = 24
+					const cols = Object.keys(layers).length
+					const rows = Math.max(
+						...Object.values(layers).map(l => l.length),
+					)
+					const width = cols * W + (cols - 1) * gx + 20,
+						height = rows * H + (rows - 1) * gy + 20
+					const pos = {}
+					Object.entries(layers).forEach(([c, ns]) =>
+						ns.forEach((n, r) => {
+							pos[n.id] = {
+								x: 10 + c * (W + gx),
+								y:
+									10 +
+									r * (H + gy) +
+									((rows - ns.length) * (H + gy)) / 2,
+							}
+						}),
+					)
+					svg =
+						`<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Data flow: ${esc(b.title || '')}">${ARROW}` +
+						b.edges
+							.map(e => {
+								const a = pos[e.from],
+									c = pos[e.to]
+								const x1 = a.x + W,
+									y1 = a.y + H / 2,
+									x2 = c.x,
+									y2 = c.y + H / 2
+								const mx = (x1 + x2) / 2
+								return `<g class="edge"><path d="M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}"/>${edgeLabel(mx, (y1 + y2) / 2 - 6, e.label)}</g>`
+							})
+							.join('') +
+						b.nodes
+							.map(n =>
+								node(
+									d,
+									pos[n.id].x,
+									pos[n.id].y,
+									W,
+									H,
+									n.label,
+									n.ref,
+								),
+							)
+							.join('') +
+						'</svg>'
+					text = `<ol>${b.edges.map(e => `<li>${esc(b.nodes.find(n => n.id === e.from).label)} → ${esc(b.nodes.find(n => n.id === e.to).label)}${e.label ? ' (' + esc(e.label) + ')' : ''}</li>`).join('')}</ol>`
+				}
+				return { svg, text }
+			}
+
+			// ---------- Center: the real diff's place ----------
+			function renderCenter() {
+				const c = el('center')
+				if (S.scenario === 'empty') {
+					c.innerHTML = `<div class="subbar guidebar"><div class="acts"><button class="ctl quiet" disabled>Overview</button></div></div><div class="emptyPage"><div class="card"><h1>No changes to review yet.</h1><p>The guide for this desk has no domains: nothing to explain. Changes appear when your agent reloads the desk, with a guide for them.</p></div></div>`
+					return
+				}
+				if (S.scenario === 'file') {
+					c.innerHTML = `<div class="fhead"><div class="row"><span class="path">plans/guided-review.md</span><span class="tag verdict-pending">Rendered</span><span class="counts"><span class="a">+40</span><span class="d">−0</span></span><button class="ctl keep">Approve <kbd>⇧A</kbd></button></div></div><div class="diffwrap"><div class="diff">${rows('docs/hub.md')}</div></div>`
+					return
+				}
+				const f = FILES[S.fileIdx]
+				const ds = domains()
+				const owners = ds.filter(d =>
+					units(d).some(u => u.path === f.path),
+				)
+				const guidebar = `<div class="subbar guidebar"><div class="acts"><button class="ctl quiet ${S.paneOpen ? 'on' : ''}" id="paneBtn" title="Explanation (g)">Explain <kbd>g</kbd></button><button class="ctl quiet" id="treeBtn" title="Files (⇧B)" style="display:none">Files</button><button class="ctl quiet" title="Previous change in domain ({)" data-unitstep="-1">‹ change</button><button class="ctl quiet" title="Next change in domain (})" data-unitstep="1">change ›</button><button class="ctl quiet" title="Previous file (⇧←)" data-filestep="-1">‹ file</button><button class="ctl quiet" title="Next file (⇧→)" data-filestep="1">file ›</button></div><div class="acts">${S.scenario === 'reload' ? '<span class="tag stale">Guide partly stale</span>' : ''}<button class="ctl quiet" id="overviewBtn">Overview <kbd>o</kbd></button></div></div>`
+				const head = `<div class="fhead"><div class="row"><span class="path">${esc(f.path)}</span><span class="counts"><span class="a">+${f.added}</span><span class="d">−${f.removed}</span></span><button class="ctl keep">Approve <kbd>⇧A</kbd></button></div>${owners.length ? `<div class="owners">${owners.map(o => `<span><span class="tag" data-risk="${o.risk}">${RISK_LABEL[o.risk]}</span><span class="label">${esc(o.title)}</span></span>`).join('')}</div>` : ''}</div>`
+				c.innerHTML =
+					guidebar +
+					head +
+					`<div class="diffwrap" id="diffwrap"><div class="diff">${rows(f.path)}</div></div>`
+				document.getElementById('treeBtn').style.display = matchMedia(
+					'(max-width:1100px)',
+				).matches
+					? ''
+					: 'none'
+				if (S.cursor) {
+					const r = c.querySelector(
+						`.ln[data-side="${S.cursor.side}"][data-line="${S.cursor.line}"]`,
+					)
+					if (r) {
+						r.classList.add('cur')
+						r.scrollIntoView({ block: 'center' })
+					}
+				}
+			}
+			function rows(path) {
+				const code = codeFor(path)
+				const unitsHere = allUnits().filter(u => u.path === path)
+				const lines = []
+				const all = new Set(
+					[
+						...Object.keys(code.additions),
+						...Object.keys(code.deletions),
+					].map(Number),
+				)
+				const sortedLines = [...all].sort((a, b) => a - b)
+				let lastRendered = 0
+				let out = ''
+				const unitAt = (side, l) =>
+					unitsHere.find(
+						u => u.side === side && l >= u.from && l <= u.to,
+					)
+				const ctxRefs = domains().flatMap(d =>
+					d.refs
+						.filter(r => r.path === path && r.role === 'context')
+						.map(r => ({ ...r, domain: d })),
+				)
+				for (const l of sortedLines) {
+					if (lastRendered && l > lastRendered + 1)
+						out += `<div class="hunk">@@ … ${l - lastRendered - 1} unchanged lines @@</div>`
+					const del = code.deletions[l]
+					const add = code.additions[l]
+					if (del !== undefined) {
+						const u = unitAt('deletions', l)
+						out += `<div class="ln del" data-side="deletions" data-line="${l}"><span class="no">${l}</span><span class="m">−</span><span class="c">${esc(del)}</span></div>`
+						if (u && l === u.to) out += verdict(u)
+					}
+					if (add !== undefined) {
+						const u = unitAt('additions', l)
+						const ctx = ctxRefs.find(r => r.line === l)
+						if (ctx)
+							out += `<div class="contextNote">◌ Supporting context for <b>${esc(ctx.domain.title)}</b> — unchanged code, read-only, not a change to approve.</div>`
+						out += `<div class="ln ${u ? 'add' : 'ctx'}" data-side="additions" data-line="${l}"><span class="no">${l}</span><span class="m">${u ? '+' : ' '}</span><span class="c">${esc(add)}</span></div>`
+						if (u && l === u.to) out += verdict(u)
+					}
+					lastRendered = l
+				}
+				return out
+			}
+			function verdict(u) {
+				const dec = S.decisions[u.key]
+				const owner = domains().find(d => d.units.includes(u.key))
+				return `<div class="verdict" data-verdict-for="${u.key}">${dec ? `<span class="tag ${dec === 'accepted' ? 'verdict-done' : 'verdict-objection'}">${dec === 'accepted' ? 'Kept' : 'Undone'}</span><button class="ctl quiet" data-reset="${u.key}">Reset</button>` : `<button class="ctl" data-decide="${u.key}:rejected">Undo <kbd>⇧N</kbd></button><button class="ctl keep" data-decide="${u.key}:accepted">Keep <kbd>⇧Y</kbd></button>`}<span class="who">${owner ? esc(owner.title) : 'not in the guide'}</span></div>`
+			}
+
+			// ---------- Actions ----------
+			function selectDomain(id, opts = {}) {
+				if (!opts.keepReturn) S.returnStack = []
+				S.domainId = id
+				const d = currentDomain()
+				const u = units(d)[0]
+				if (u) {
+					S.fileIdx = FILES.findIndex(f => f.path === u.path)
+					S.cursor = { side: u.side, line: u.from }
+				}
+				S.composer = null
+				render()
+				if (opts.focusPane) {
+					el('explain')
+						.querySelector('h2')
+						?.scrollIntoView({ block: 'start' })
+				}
+			}
+			function stepDomain(dir) {
+				const ds = domains()
+				const i = ds.findIndex(d => d.id === S.domainId)
+				const n = ds[(i + dir + ds.length) % ds.length]
+				selectDomain(n.id)
+				toast(`Domain ${ds.indexOf(n) + 1} of ${ds.length}`)
+			}
+			function stepUnit(dir) {
+				const us = units(currentDomain())
+				if (!us.length) return
+				let i = us.findIndex(isCurrentUnit)
+				i = (i + dir + us.length) % us.length
+				jumpToUnit(us[i])
+			}
+			function jumpToUnit(u) {
+				pushReturn()
+				S.fileIdx = FILES.findIndex(f => f.path === u.path)
+				S.cursor = { side: u.side, line: u.from }
+				render()
+				flashCursor()
+			}
+			function pushReturn() {
+				const body = el('exBody')
+				S.returnStack.push({
+					domainId: S.domainId,
+					fileIdx: S.fileIdx,
+					cursor: S.cursor,
+					paneScroll: body ? body.scrollTop : 0,
+					diffScroll: el('diffwrap')?.scrollTop || 0,
+				})
+				if (S.returnStack.length > 8) S.returnStack.shift()
+			}
+			function goBack() {
+				const r = S.returnStack.pop()
+				if (!r) {
+					toast('Nowhere to go back to')
+					return
+				}
+				S.domainId = r.domainId
+				S.fileIdx = r.fileIdx
+				S.cursor = r.cursor
+				render()
+				const body = el('exBody')
+				if (body) body.scrollTop = r.paneScroll
+				if (el('diffwrap')) el('diffwrap').scrollTop = r.diffScroll
+				flashCursor()
+				toast('Back')
+			}
+			function followRef(key) {
+				const [domainId, refId] = key.split(':')
+				const d = domains().find(x => x.id === domainId)
+				const r = d.refs.find(x => x.id === refId)
+				if (S.unresolved.has(key)) {
+					toast(
+						`Unresolved: ${r.path} ${r.side === 'deletions' ? 'old' : 'new'} line ${r.line} no longer exists`,
+					)
+					return
+				}
+				pushReturn()
+				S.fileIdx = FILES.findIndex(f => f.path === r.path)
+				S.cursor = { side: r.side, line: r.line }
+				render()
+				flashCursor()
+				toast(
+					`${r.role === 'context' ? 'Context: ' : ''}${r.path}:${r.line}`,
+				)
+			}
+			function flashCursor() {
+				const r = document.querySelector('.ln.cur')
+				if (r) {
+					r.classList.remove('flash')
+					void r.offsetWidth
+					r.classList.add('flash')
+				}
+			}
+			function decide(key, status) {
+				S.decisions[key] = status
+				render()
+				toast(status === 'accepted' ? 'Kept' : 'Undone')
+			}
+			function openComposer(domainId, blockId, intent) {
+				S.composer = { domainId, blockId: blockId || null, intent }
+				render()
+				setTimeout(() => el('composerText')?.focus(), 0)
+			}
+			function submit(intent) {
+				const ta = el('composerText')
+				const body = (ta?.value || '').trim()
+				if (!body) return
+				const t = {
+					target: {
+						domainId: S.composer.domainId,
+						blockId: S.composer.blockId,
+					},
+					intent,
+					body,
+					replies: [],
+				}
+				S.threads.push(t)
+				S.composer = null
+				render()
+				toast(
+					intent === 'question'
+						? 'Asked — waiting for the agent'
+						: 'Change requested',
+				)
+				if (intent === 'question')
+					setTimeout(() => {
+						t.replies.push(
+							intent === 'question' && t.target.blockId
+								? 'The transition back to Live is only reachable through an open that reuses the live desk during the grace period (hub.ts:122 guards the delete). Nothing in the dashboard can call close() twice on one desk; the second returns false.'
+								: 'The drain hands the queued review to the parked waiter synchronously, so a Send that was queued before close() is delivered or saved to resultJson, never dropped.',
+						)
+						render()
+						toast('Agent replied')
+					}, 1600)
+			}
+
+			function applyScenario(name) {
+				S.scenario = name
+				S.stale = new Set()
+				S.unresolved = new Set()
+				S.unassigned = []
+				S.many = false
+				S.decisions = {}
+				S.threads = []
+				S.composer = null
+				S.returnStack = []
+				S.cursor = null
+				S.fileIdx = 0
+				S.domainId = 'desk-lifecycle'
+				if (name === 'reload') {
+					S.stale.add('desk-lifecycle')
+					S.unresolved.add('desk-lifecycle:grace')
+					S.unassigned = ['u9']
+					S.decisions = {
+						u3: 'accepted',
+						u4: 'accepted',
+						u6: 'accepted',
+					}
+					S.threads = [
+						{
+							target: {
+								domainId: 'desk-lifecycle',
+								blockId: 'states',
+							},
+							intent: 'question',
+							body: 'Why can Closing go back to Live?',
+							replies: [
+								'Only through an open that reuses the live desk during the grace period.',
+							],
+							stale: true,
+						},
+					]
+				}
+				if (name === 'many') {
+					S.many = true
+				}
+				if (name === 'default') {
+					S.decisions = { u3: 'accepted' }
+				}
+				document
+					.querySelectorAll('[data-scn]')
+					.forEach(b =>
+						b.classList.toggle('on', b.dataset.scn === name),
+					)
+				const d = currentDomain()
+				const u = d && units(d)[0]
+				if (u) {
+					S.fileIdx = FILES.findIndex(f => f.path === u.path)
+					S.cursor = { side: u.side, line: u.from }
+				}
+				render()
+			}
+
+			// ---------- Events ----------
+			document.addEventListener('click', e => {
+				const t = e.target.closest(
+					'[data-scn],[data-domain],[data-step],[data-unit],[data-ref],[data-decide],[data-reset],[data-compose],[data-tab],[data-file],[data-unitstep],[data-filestep],#backBtn,#paneBtn,#overviewBtn,#appearanceBtn,#composerCancel,#composerAsk,#composerRequest,#closePane,#treeBtn,[data-jump-unassigned],[data-detail] summary',
+				)
+				if (!t) return
+				if (t.dataset.scn) return applyScenario(t.dataset.scn)
+				if (t.id === 'appearanceBtn') {
+					S.appearance = S.appearance === 'light' ? 'dark' : 'light'
+					return render()
+				}
+				if (t.dataset.domain !== undefined) {
+					e.preventDefault()
+					return selectDomain(t.dataset.domain, { focusPane: true })
+				}
+				if (t.dataset.step) return stepDomain(+t.dataset.step)
+				if (t.dataset.unit)
+					return jumpToUnit(allUnits().find(u => u.key === t.dataset.unit))
+				if (t.dataset.ref) return followRef(t.dataset.ref)
+				if (t.dataset.decide) {
+					const [k, s] = t.dataset.decide.split(':')
+					return decide(k, s)
+				}
+				if (t.dataset.reset) {
+					delete S.decisions[t.dataset.reset]
+					return render()
+				}
+				if (t.dataset.compose)
+					return openComposer(
+						t.dataset.compose,
+						t.dataset.block,
+						t.dataset.intent,
+					)
+				if (t.dataset.tab) {
+					S.tab = t.dataset.tab
+					return render()
+				}
+				if (t.dataset.file !== undefined) {
+					S.fileIdx = +t.dataset.file
+					S.cursor = null
+					S.asideOpen = false
+					return render()
+				}
+				if (t.dataset.unitstep) return stepUnit(+t.dataset.unitstep)
+				if (t.dataset.filestep) {
+					S.fileIdx =
+						(S.fileIdx + +t.dataset.filestep + FILES.length) %
+						FILES.length
+					S.cursor = null
+					return render()
+				}
+				if (t.id === 'backBtn') return goBack()
+				if (t.id === 'paneBtn' || t.id === 'closePane') {
+					S.paneOpen = !S.paneOpen
+					return render()
+				}
+				if (t.id === 'treeBtn') {
+					S.asideOpen = !S.asideOpen
+					return render()
+				}
+				if (t.id === 'overviewBtn') {
+					S.tab = 'domains'
+					S.asideOpen = true
+					return render()
+				}
+				if (t.id === 'composerCancel') {
+					S.composer = null
+					return render()
+				}
+				if (t.id === 'composerAsk') return submit('question')
+				if (t.id === 'composerRequest') return submit('action')
+				if (t.dataset.jumpUnassigned !== undefined) {
+					// The unassigned unit itself (RELOAD_UNITS u9), not a line another domain already owns.
+					S.fileIdx = FILES.findIndex(f => f.path === RELOAD_UNITS[0].path)
+					S.cursor = { side: 'additions', line: RELOAD_UNITS[0].from }
+					S.tab = 'tree'
+					return render()
+				}
+			})
+			// The draft follows the store, not the DOM: a redraw re-renders it from S.composer.body.
+			document.addEventListener('input', e => {
+				if (e.target.id === 'composerText' && S.composer) S.composer.body = e.target.value
+			})
+			document.addEventListener(
+				'toggle',
+				e => {
+					const d = e.target.closest('[data-detail]')
+					if (!d) return
+					if (d.open) S.expanded.add(d.dataset.detail)
+					else S.expanded.delete(d.dataset.detail)
+				},
+				true,
+			)
+			document.addEventListener('keydown', e => {
+				const typing = e.target.matches('textarea,input')
+				if (e.key === 'Escape') {
+					if (S.composer) {
+						S.composer = null
+						render()
+					} else if (S.asideOpen) {
+						S.asideOpen = false
+						render()
+					}
+					return
+				}
+				if (typing) {
+					if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+						e.preventDefault()
+						submit(e.shiftKey ? 'question' : 'action')
+					}
+					return
+				}
+				if (
+					e.target.matches('.node,.edge') &&
+					(e.key === 'Enter' || e.key === ' ')
+				) {
+					e.preventDefault()
+					followRef(e.target.dataset.ref)
+					return
+				}
+				const k = e.key
+				if (k === ']') stepDomain(1)
+				else if (k === '[') stepDomain(-1)
+				else if (k === '}') stepUnit(1)
+				else if (k === '{') stepUnit(-1)
+				else if (k === 'b') goBack()
+				else if (k === 'g') {
+					S.paneOpen = !S.paneOpen
+					render()
+				} else if (k === 'w') {
+					S.tab = S.tab === 'domains' ? 'tree' : 'domains'
+					render()
+				} else if (k === 'o') {
+					S.tab = 'domains'
+					S.asideOpen = true
+					render()
+				} else if (k === 'Y' && e.shiftKey) {
+					const u = allUnits().find(isCurrentUnit)
+					if (u) decide(u.key, 'accepted')
+				} else if (k === 'N' && e.shiftKey) {
+					const u = allUnits().find(isCurrentUnit)
+					if (u) decide(u.key, 'rejected')
+				} else if (k === 'ArrowRight' && e.shiftKey) {
+					S.fileIdx = (S.fileIdx + 1) % FILES.length
+					S.cursor = null
+					render()
+				} else if (k === 'ArrowLeft' && e.shiftKey) {
+					S.fileIdx = (S.fileIdx - 1 + FILES.length) % FILES.length
+					S.cursor = null
+					render()
+				} else if (k === 'B' && e.shiftKey) {
+					S.asideOpen = !S.asideOpen
+					render()
+				} else return
+				e.preventDefault()
+			})
+			matchMedia('(max-width:1100px)').addEventListener('change', render)
+			applyScenario('default')
+		</script>
+	</body>
+</html>
