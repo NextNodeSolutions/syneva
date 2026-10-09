@@ -5,6 +5,7 @@ import { media } from '@syneva/design-system/media.stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
 const TREE = `${deskVars['--left-width']} 1px`
+const GUIDE = `${deskVars['--guide-width']} 1px`
 const DIFF = 'minmax(0, 1fr)'
 const NOTES = deskVars['--notes-width']
 
@@ -62,6 +63,19 @@ export const app = stylex.create({
 	treeless: columns(DIFF),
 	withTreeAndNotes: columns(`${TREE} ${DIFF} ${NOTES}`),
 	treelessWithNotes: columns(`${DIFF} ${NOTES}`),
+	withTreeGuide: columns(`${TREE} ${GUIDE} ${DIFF}`),
+	treelessGuide: columns(`${GUIDE} ${DIFF}`),
+	withTreeGuideNotes: columns(`${TREE} ${GUIDE} ${DIFF} ${NOTES}`),
+	treelessGuideNotes: columns(`${GUIDE} ${DIFF} ${NOTES}`),
+	// The explanation column's own rule and, while its chunk loads, its empty paper; both leave the grid with it under the tablet width (the pane stacks under the guide bar there).
+	guideRule: {
+		backgroundColor: color['--line'],
+		display: { default: 'block', [media.tablet]: 'none' },
+	},
+	guideSpace: {
+		backgroundColor: color['--paper'],
+		display: { default: 'block', [media.tablet]: 'none' },
+	},
 	center: {
 		minWidth: 0,
 		minHeight: 0,

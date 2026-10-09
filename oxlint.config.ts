@@ -628,6 +628,7 @@ export default defineConfig({
 			// The React chrome is a view over the mutable reactive store (useSyncExternalStore): handler-side writes are the designed mutation path; the effects sync external systems that are not render derivations.
 			files: [
 				'packages/frontend/src/widgets/chrome/react/**',
+				'packages/frontend/src/widgets/guide-pane/react/**',
 				'packages/frontend/src/widgets/hub-shell/react/**',
 				'packages/frontend/src/pages/dashboard/**/*.tsx',
 				'packages/frontend/src/entities/hub/use-hub.ts',

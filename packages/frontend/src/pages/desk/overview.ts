@@ -31,7 +31,7 @@ function domainRow(domain: GuideDomain, state: ReviewState): string {
 	const stale = isDomainStale(state, domain.id)
 		? `<span class="${cx(tag.base, tag.amber)}">Stale</span>`
 		: ''
-	return `<li class="${cx(overview.domain)}"><span class="${cx(overview.domainHead)}">${riskTagHtml(domain.risk)}${stale}<span class="${cx(overview.domainTitle)}">${esc(domain.title)}</span><span class="${cx(caption.base, overview.domainFiles)}">${count}</span></span><p class="${cx(overview.consequence)}">${esc(domain.consequence)}</p></li>`
+	return `<li class="${cx(overview.domain)}"><button class="${cx(overview.domainButton)}" data-domain="${esc(domain.id)}"><span class="${cx(overview.domainHead)}">${riskTagHtml(domain.risk)}${stale}<span class="${cx(overview.domainTitle)}">${esc(domain.title)}</span><span class="${cx(caption.base, overview.domainFiles)}">${count}</span></span><p class="${cx(overview.consequence)}">${esc(domain.consequence)}</p></button></li>`
 }
 
 // Changes the guide does not own (after a reload exposed them): pending, listed here and under Other - never folded into a domain.
@@ -78,4 +78,11 @@ export function renderOverview(): void {
   </div></div>`
 	const start = $('diff').querySelector<HTMLButtonElement>('#guideStart')
 	start?.addEventListener('click', () => S.startGuided?.())
+	for (const row of $('diff').querySelectorAll<HTMLButtonElement>(
+		'[data-domain]',
+	)) {
+		const { domain } = row.dataset
+		if (domain)
+			row.addEventListener('click', () => S.selectDomain?.(domain))
+	}
 }

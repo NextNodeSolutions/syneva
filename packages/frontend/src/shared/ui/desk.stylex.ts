@@ -18,5 +18,6 @@ export const deskText = stylex.defineConsts({
 export const deskVars = stylex.defineVars({
 	'--left-width': '280px',
 	'--notes-width': '340px',
+	'--guide-width': '380px',
 	'--code-size': '12.5px',
 })
