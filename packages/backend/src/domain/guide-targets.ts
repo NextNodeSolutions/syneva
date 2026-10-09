@@ -1,8 +1,10 @@
 // What a domain owns and points at: code spans on an original side, file operations, and the references explanations name.
+import { GUIDE_KEYS } from './guide-keys.js'
 import {
 	fail,
 	identifier,
 	oneOf,
+	onlyKeys,
 	optionalPositiveInteger,
 	optionalText,
 	positiveInteger,
@@ -54,6 +56,8 @@ export function parseMember(raw: unknown, where: string): Parsed<GuideMember> {
 	const kind = oneOf(member.value.kind, `${where}.kind`, MEMBER_KINDS)
 	if (!kind.ok) return kind
 	if (kind.value === 'file') {
+		const keys = onlyKeys(member.value, where, GUIDE_KEYS.fileMember)
+		if (!keys.ok) return keys
 		const path = text(
 			member.value.path,
 			`${where}.path`,
@@ -62,6 +66,8 @@ export function parseMember(raw: unknown, where: string): Parsed<GuideMember> {
 		if (!path.ok) return path
 		return { ok: true, value: { kind: 'file', path: path.value } }
 	}
+	const keys = onlyKeys(member.value, where, GUIDE_KEYS.changeMember)
+	if (!keys.ok) return keys
 	const span = parseSpan(member.value, where)
 	if (!span.ok) return span
 	return { ok: true, value: { kind: 'change', ...span.value } }
@@ -73,6 +79,8 @@ export function parseReference(
 ): Parsed<GuideReference> {
 	const reference = record(raw, where)
 	if (!reference.ok) return reference
+	const keys = onlyKeys(reference.value, where, GUIDE_KEYS.reference)
+	if (!keys.ok) return keys
 	const id = identifier(
 		reference.value.id,
 		`${where}.id`,
@@ -106,6 +114,8 @@ export function parseRelated(
 ): Parsed<GuideCrossReference> {
 	const related = record(raw, where)
 	if (!related.ok) return related
+	const keys = onlyKeys(related.value, where, GUIDE_KEYS.related)
+	if (!keys.ok) return keys
 	const domainId = identifier(
 		related.value.domainId,
 		`${where}.domainId`,

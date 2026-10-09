@@ -1,9 +1,11 @@
 // One domain of the guide: its head (identity, risk, consequence), its links to other domains, what it owns, what it points at and how it explains itself.
 import { parseBlock } from './guide-blocks.js'
+import { GUIDE_KEYS } from './guide-keys.js'
 import {
 	identifier,
 	list,
 	oneOf,
+	onlyKeys,
 	optionalList,
 	optionalNumber,
 	optionalText,
@@ -118,6 +120,8 @@ function parseEvidence(
 ): Parsed<GuideEvidence> {
 	const evidence = record(raw, where)
 	if (!evidence.ok) return evidence
+	const keys = onlyKeys(evidence.value, where, GUIDE_KEYS.evidence)
+	if (!keys.ok) return keys
 	const body = text(
 		evidence.value.text,
 		`${where}.text`,
@@ -215,6 +219,8 @@ function parseBlocks(
 export function parseDomain(raw: unknown, where: string): Parsed<GuideDomain> {
 	const domain = record(raw, where)
 	if (!domain.ok) return domain
+	const keys = onlyKeys(domain.value, where, GUIDE_KEYS.domain)
+	if (!keys.ok) return keys
 	const head = parseDomainHead(domain.value, where)
 	if (!head.ok) return head
 	const links = parseDomainLinks(domain.value, where)
