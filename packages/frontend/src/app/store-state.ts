@@ -1,7 +1,6 @@
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { CodeSpan } from '@entities/review/guide/model'
 import type { GuideReturnPoint } from '@entities/review/guide/return-point'
-import type { WalkRow } from '@entities/review/guide/walkthrough'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
 import type {
 	NoteThreadRef,
@@ -112,7 +111,6 @@ export interface Store {
 	guidePrev?: () => void
 	guideAtStart?: () => boolean
 	guideAtLast?: () => boolean
-	walkthroughRows?: () => WalkRow[]
 	saveComment?: () => void
 	ask?: () => void
 	requestChange?: () => void
