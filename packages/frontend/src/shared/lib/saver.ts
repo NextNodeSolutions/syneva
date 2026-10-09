@@ -16,13 +16,18 @@ export type Saver = {
 	// The poll's reload branch checks this so it never adopts server state over local
 	// mutations that haven't been persisted yet (app/poll.ts).
 	isBusy: () => boolean
+	// A trailing save is queued behind the one in flight: a page that unloads never sends it.
+	isPending: () => boolean
+	// Requests a save, then settles.
+	drain: (limitMs?: number) => Promise<void>
 	// Resolves once everything requested so far has left for the wire (an in-flight save
 	// plus one trailing save, if one was pending), or when the limit expires - a wedged
-	// endpoint must not block a caller that is leaving anyway (the browser Close).
-	drain: (limitMs?: number) => Promise<void>
+	// endpoint must not block a caller that is leaving anyway (the browser Close). Requests
+	// no save itself, so a caller leaving with nothing changed rewrites nothing.
+	settle: (limitMs?: number) => Promise<void>
 }
 
-// How often drain() re-checks busy, and how long it waits overall when the caller passes no limit.
+// How often settle() re-checks busy, and how long it waits overall when the caller passes no limit.
 const DRAIN_TICK_MS = 25
 const DRAIN_DEFAULT_LIMIT_MS = 2000
 
@@ -74,12 +79,17 @@ export function createSaver<T>(
 
 	const isBusy = (): boolean => isInFlight || isPending
 
+	const settle = (limitMs = DRAIN_DEFAULT_LIMIT_MS): Promise<void> =>
+		settledWithin(limitMs, () => !isBusy())
+
 	return {
 		trigger,
 		isBusy,
-		drain(limitMs = DRAIN_DEFAULT_LIMIT_MS): Promise<void> {
+		isPending: () => isPending,
+		drain(limitMs?: number): Promise<void> {
 			trigger()
-			return settledWithin(limitMs, () => !isBusy())
+			return settle(limitMs)
 		},
+		settle,
 	}
 }
