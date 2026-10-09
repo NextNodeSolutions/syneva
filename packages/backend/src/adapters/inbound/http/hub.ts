@@ -8,6 +8,7 @@ import {
 	rootProblem,
 	restoredDeskIdentity,
 } from '../../../application/open-desk.js'
+import { checkoutPrTarget } from '../../../application/pr-target.js'
 import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
 
@@ -184,12 +185,20 @@ async function reuseDesk(
 	return { ok: true, desk: live, outcome: 'reloaded' }
 }
 
+// The checkout a pr open ends with happens here, right before the desk is built; the desk then builds at HEAD like a restore does.
 async function createDesk(
 	state: HubState,
 	identity: DeskIdentity,
 	query: DeskQuery,
 	guide: Guide | undefined,
 ): Promise<OpenOutcome> {
+	const checkout = await checkoutPrTarget(
+		identity.checkout,
+		identity.root,
+		state.io.git,
+	)
+	if (!checkout.ok)
+		return { ok: false, code: 'PR_TARGET', reason: checkout.reason }
 	const built = await buildDeskState(identity, query, guide, state.io)
 	if (!built.ok)
 		return {

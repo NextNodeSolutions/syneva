@@ -11,7 +11,7 @@ import { sameSource } from './hub-records.js'
 import type { DeskQuery } from '../../../application/open-desk.js'
 import type { HubState, InventoryOutcome } from './hub.js'
 
-export // Same resolution as an open (a PR target is checked out the same way), then the inventory of the live desk's state or of a state built on the spot.
+export // Same resolution as an open (a PR head is fetched and read by ref, never checked out), then the inventory of the live desk's state or of a state built on the spot.
 async function inventoryOf(
 	state: HubState,
 	query: DeskQuery,

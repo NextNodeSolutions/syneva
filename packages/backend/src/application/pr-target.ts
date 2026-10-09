@@ -3,22 +3,38 @@ import { errorMessage } from './errors.js'
 import type { ReviewMode } from '../domain/review.js'
 import type { GitPort } from './ports.js'
 
-export type PrTarget = { target: string | undefined; base: string | undefined }
+// How the head is reached once the open is admitted: a PR number or URL through gh (it tracks a fork's head), a branch through git.
+export type PrCheckout =
+	| { kind: 'pr'; ref: string }
+	| { kind: 'branch'; name: string }
+
+// `head` is the commit the diff is built against before anything is checked out - the PR's own head, fetched, or the branch's tip - so a guide is validated on the review as it will be while HEAD is still where the agent left it.
+export type PrTarget = {
+	target: string | undefined
+	base: string | undefined
+	head?: string | undefined
+	checkout?: PrCheckout | undefined
+}
 
 export type PrTargetOutcome =
 	| { ok: true; target: PrTarget }
 	| { ok: false; reason: string }
 
+export type CheckoutOutcome = { ok: true } | { ok: false; reason: string }
+
 type PrInfo = { headRefName: string; baseRefName: string }
 
+const PR_NUMBER = /^\d+$/
+const PR_URL = /^https?:\/\/github\.com\/[^/]+\/[^/]+\/pull\/(?<number>\d+)/
+
 export function isPrRef(ref: string): boolean {
-	return (
-		/^\d+$/.test(ref) ||
-		/^https?:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+/.test(ref)
-	)
+	return PR_NUMBER.test(ref) || PR_URL.test(ref)
 }
 
-// A failure is a reason, never a thrown error: the hub answers it as a 422 and the CLI prints it - the desk is simply not opened.
+function prNumber(ref: string): string {
+	return PR_URL.exec(ref)?.groups?.number ?? ref
+}
+
 export type PrTargetQuery = {
 	mode: ReviewMode
 	target: string | undefined
@@ -26,6 +42,8 @@ export type PrTargetQuery = {
 	root: string
 }
 
+// Resolves the head and the base without moving HEAD: the dirty-tree check, gh for a PR number, a fetch of the PR's head, a branch looked up locally then on origin.
+// A failure is a reason, never a thrown error: the hub answers it as a 422 and the CLI prints it - the desk is simply not opened.
 export async function resolvePrTarget(
 	query: PrTargetQuery,
 	git: GitPort,
@@ -41,7 +59,7 @@ export async function resolvePrTarget(
 			reason: `Working tree has uncommitted changes to tracked files. Commit or stash them before reviewing a PR (no checkout performed):\n${dirty}`,
 		}
 	if (isPrRef(target)) return resolvePrNumber(target, root, base, git)
-	return checkoutBranch(target, root, base, git)
+	return resolveBranch(target, root, base, git)
 }
 
 async function resolvePrNumber(
@@ -52,7 +70,7 @@ async function resolvePrNumber(
 ): Promise<PrTargetOutcome> {
 	try {
 		const prInfo = await fetchPrInfo(ref, root, git)
-		await git.gh(['pr', 'checkout', ref], root)
+		const head = await fetchPrHead(ref, root, git)
 		return {
 			ok: true,
 			target: {
@@ -60,11 +78,23 @@ async function resolvePrNumber(
 				base:
 					base ??
 					(await resolveRemoteBase(prInfo.baseRefName, root, git)),
+				head,
+				checkout: { kind: 'pr', ref },
 			},
 		}
 	} catch (error) {
 		return { ok: false, reason: errorMessage(error) }
 	}
+}
+
+// The PR's head commits, fetched but not checked out: GitHub serves every PR's head at refs/pull/<n>/head, and the fetched commit is pinned by its sha so no later fetch can move the diff under the validation.
+async function fetchPrHead(
+	ref: string,
+	root: string,
+	git: GitPort,
+): Promise<string> {
+	await git.run(['fetch', 'origin', `refs/pull/${prNumber(ref)}/head`], root)
+	return await git.run(['rev-parse', 'FETCH_HEAD'], root)
 }
 
 async function fetchPrInfo(
@@ -118,19 +148,59 @@ function readPrInfo(parsed: unknown): PrInfo | null {
 	return { headRefName: parsed.headRefName, baseRefName: parsed.baseRefName }
 }
 
-async function checkoutBranch(
-	target: string,
+// A branch by its name, locally first, then as origin's (what `git checkout <name>` would track).
+async function resolveBranch(
+	name: string,
 	root: string,
 	base: string | undefined,
 	git: GitPort,
 ): Promise<PrTargetOutcome> {
-	try {
-		await git.run(['checkout', target], root)
-		return { ok: true, target: { target, base } }
-	} catch (error) {
+	const head =
+		(await revision(name, root, git)) ??
+		(await revision(`origin/${name}`, root, git))
+	if (!head)
 		return {
 			ok: false,
-			reason: `Could not check out "${target}": ${errorMessage(error)}`,
+			reason: `Could not find branch "${name}", locally or on origin.`,
+		}
+	return {
+		ok: true,
+		target: {
+			target: name,
+			base,
+			head,
+			checkout: { kind: 'branch', name },
+		},
+	}
+}
+
+async function revision(
+	ref: string,
+	root: string,
+	git: GitPort,
+): Promise<string | null> {
+	return await git
+		.run(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], root)
+		.catch(() => null)
+}
+
+// The one PR operation with a side effect, run only once the open is admitted: HEAD moves to the reviewed head (gh tracks a fork's branch; a branch checks out by name).
+export async function checkoutPrTarget(
+	checkout: PrCheckout | undefined,
+	root: string,
+	git: GitPort,
+): Promise<CheckoutOutcome> {
+	if (!checkout) return { ok: true }
+	try {
+		if (checkout.kind === 'pr')
+			await git.gh(['pr', 'checkout', checkout.ref], root)
+		else await git.run(['checkout', checkout.name], root)
+		return { ok: true }
+	} catch (error) {
+		const name = checkout.kind === 'pr' ? checkout.ref : checkout.name
+		return {
+			ok: false,
+			reason: `Could not check out "${name}": ${errorMessage(error)}`,
 		}
 	}
 }

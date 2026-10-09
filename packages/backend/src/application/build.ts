@@ -17,6 +17,8 @@ export type BuildQuery = {
 	session: string
 	target?: string | undefined
 	base?: string | undefined
+	// pr only: the commit to read the branch at instead of HEAD (an open's resolved head, before its checkout).
+	head?: string | undefined
 }
 
 export async function buildReviewState(
@@ -58,7 +60,7 @@ async function buildFileReview(
 	})
 }
 
-// base defaults to the clone's default branch and then to its merge-base with HEAD, so a feature branch reviews only its own commits.
+// base defaults to the clone's default branch and then to its merge-base with the reviewed head (HEAD, or the head an open resolved before its checkout), so a feature branch reviews only its own commits.
 async function buildPrReview(
 	cwd: string,
 	query: BuildQuery,
@@ -67,9 +69,12 @@ async function buildPrReview(
 	const root = await git.getGitRoot(cwd)
 	const defaultBranch = query.base ?? (await resolveDefaultBranch(root, git))
 	const base = await git
-		.run(['merge-base', defaultBranch, 'HEAD'], root)
+		.run(['merge-base', defaultBranch, query.head ?? 'HEAD'], root)
 		.catch(() => defaultBranch)
-	const source = await buildDiffSource({ mode: 'pr', root, base }, git)
+	const source = await buildDiffSource(
+		{ mode: 'pr', root, base, head: query.head },
+		git,
+	)
 	if (!source) return null
 	return makeReviewState({
 		mode: 'pr',
@@ -78,7 +83,7 @@ async function buildPrReview(
 		target: query.target,
 		base,
 		staged: false,
-		head: await git.getHead(root),
+		head: query.head ?? (await git.getHead(root)),
 		source,
 	})
 }
