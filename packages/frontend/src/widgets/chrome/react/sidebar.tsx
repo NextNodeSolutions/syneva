@@ -11,6 +11,7 @@ import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'
 
+import { GuidePending } from './guide-pending'
 import { glyph, row, sidebar } from './sidebar.styles'
 import { ChangedIcon, StateBadge } from './tree-badges'
 import { Chevron, indentStyle, MovedFrom } from './tree-parts'
@@ -238,6 +239,7 @@ export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 			)}
 		>
 			{guided && <TreeTabs />}
+			{!guided && S.state?.guideExpected && <GuidePending />}
 			{showTree && <TreePane active={activePath(S)} />}
 			{guided && S.sidebarTab === 'walkthrough' && (
 				<div {...stylex.props(sidebar.pane)}>
