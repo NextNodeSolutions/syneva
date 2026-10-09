@@ -135,15 +135,21 @@ async function refreshProjectFiles(): Promise<void> {
 	}
 }
 
+// The guide and its resolution move together (a swap or a reload refreshes both); a changed resolution alone (a reload that only marked staleness) counts too.
 function adoptGuide(lite: DeskPollSnapshot): boolean {
 	const { state } = S
 	if (!state) return false
-	if (
-		JSON.stringify(lite.guide ?? null) ===
-		JSON.stringify(state.guide ?? null)
-	)
-		return false
+	const incoming = JSON.stringify([
+		lite.guide ?? null,
+		lite.guideResolution ?? null,
+	])
+	const current = JSON.stringify([
+		state.guide ?? null,
+		state.guideResolution ?? null,
+	])
+	if (incoming === current) return false
 	state.guide = lite.guide
+	state.guideResolution = lite.guideResolution
 	return true
 }
 
