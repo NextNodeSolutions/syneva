@@ -4,16 +4,16 @@ import { deskClosed } from '../../../application/journal.js'
 import { createSerializer } from '../../../application/mutex.js'
 import {
 	buildDeskState,
-	buildSourceState,
 	resolveDeskIdentity,
 	rootProblem,
 	restoredDeskIdentity,
 } from '../../../application/open-desk.js'
 import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
-import { buildInventory } from '../../../domain/inventory.js'
 
 import { hostDesk, summarize } from './hosted-desk.js'
+import { liveDesk, liveRecords } from './hub-desks.js'
+import { inventoryOf } from './hub-inventory.js'
 import { queryOf, recordOf, sameSource } from './hub-records.js'
 
 import type { DeskSummary, OpenDeskOutcome } from '@syneva/contracts/hub'
@@ -62,7 +62,7 @@ export type Hub = {
 	persist(): Promise<void>
 }
 
-type HubState = {
+export type HubState = {
 	desks: Map<string, HubDesk>
 	io: HubIo
 	persist: () => Promise<void>
@@ -105,21 +105,6 @@ async function restoreAll(state: HubState): Promise<void> {
 	// Independent repos rebuild concurrently; a failed one only drops itself.
 	await Promise.all(records.map(record => restoreOne(state, record)))
 	await state.persist()
-}
-
-function liveDesk(
-	desks: Map<string, HubDesk>,
-	id: string,
-): HubDesk | undefined {
-	const desk = desks.get(id)
-	if (!desk || desk.closing) return undefined
-	return desk
-}
-
-function liveRecords(desks: Map<string, HubDesk>): HubDeskRecord[] {
-	return [...desks.values()]
-		.filter(desk => !desk.closing)
-		.map(desk => desk.record)
 }
 
 function closeDesk(state: HubState, id: string): boolean {
@@ -172,31 +157,6 @@ async function openOrReuse(
 		state.desks.delete(identity.id)
 	}
 	return createDesk(state, identity, query, guide)
-}
-
-// Same resolution as an open (a PR target is checked out the same way), then the inventory of the live desk's state or of a state built on the spot.
-async function inventoryOf(
-	state: HubState,
-	query: DeskQuery,
-): Promise<InventoryOutcome> {
-	const problem = await rootProblem(query, state.io.git)
-	if (problem) return { ok: false, code: 'NO_REPOSITORY', reason: problem }
-	const resolved = await resolveDeskIdentity(query, state.io.git)
-	if (!resolved.ok)
-		return { ok: false, code: 'PR_TARGET', reason: resolved.reason }
-	const { identity } = resolved
-	const live = liveDesk(state.desks, identity.id)
-	if (live && sameSource(live.record, query, identity))
-		return {
-			ok: true,
-			inventory: buildInventory(live.ctx.state, live.ctx.pathFilter),
-		}
-	const built = await buildSourceState(identity, query, state.io.git)
-	if (!built.ok) return { ok: false, code: 'NO_REVIEW', reason: built.reason }
-	return {
-		ok: true,
-		inventory: buildInventory(built.state, query.pathFilter),
-	}
 }
 
 async function reuseDesk(
