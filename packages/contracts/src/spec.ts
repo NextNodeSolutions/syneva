@@ -1,5 +1,8 @@
 // Second line of the agent contract (BOOT/.../spec), printed by `syneva spec` so skills fetch
 // it instead of hardcoding a drifting copy; boot principles live in the skill/AGENTS.md.
+// The guide's section is its own module (spec-guide.ts): one contract text, printed as one.
+import { GUIDE_SPEC } from './spec-guide.js'
+
 export const SPEC = `syneva agent contract
 
 Syneva is a hub: one long-running process per machine that hosts review desks and serves a
@@ -116,7 +119,7 @@ done
   persisted; exits 0 even with no desk.
 - \`syneva reload [--guide <file>]\` - re-diff the working tree into the live desk (your edits are
   NOT auto-re-diffed). Anything you edit resets to pending on reload - decisions and approvals
-  alike; anything you left untouched carries over. --guide swaps the grouping (one desk only -
+  alike; anything you left untouched carries over. --guide swaps the guide (one desk only -
   see Between rounds).
 - \`syneva close [--session <id> | --all]\` (alias: \`syneva stop\`) - close this repo's live desk(s)
   on the hub (--all = every session of the repo). The hub keeps running. Idempotent, exits 0 with
@@ -184,31 +187,7 @@ all-approved send already committed to an empty diff), call \`syneva close\` in 
 never end a round by asking the human "say done to close" - that buys an idle desk with one
 whole LLM round-trip for nothing.
 
-## Grouping the review (optional)
-By default the desk lists the changed files in diff order. Attach a grouping with
-\`syneva open … --guide <file>\` to give the reviewer a reading order and domain sections in the
-Walkthrough tab (schema below). Syneva validates + renders it and runs no model - order and labels
-are yours. Write the guide OUTSIDE the working tree (temp or gitignored): working mode surfaces
-untracked files, so an in-repo guide shows as a stray addition. It is a grouping, not a review: it
-carries no prose, and the reviewer's decisions, comments and Send are unaffected by it. Stamped to
-its diff and surviving reload/restart; once a reload advances past it the desk notes the grouping
-may be out of date - regenerate and swap via \`syneva reload --guide <new>\` (one desk only - see
-Between rounds). A guide is optional: without one the desk reviews the diff in file order.
-
-### Guide JSON schema
-One JSON object:
-- files (required, non-empty array) - one entry per reviewed file:
-  - path (required, non-empty) - repo-relative.
-  - category? - the Walkthrough section this file is listed under (default "Changes"). Files
-    group by adjacency in review order, so a label repeated non-adjacently makes a second
-    section - keep a category's files together.
-  - order? - ascending review order; defaults to array position.
-Every other key is ignored, so a guide written for an older Syneva still attaches. Files the guide
-doesn't list land in a trailing "Other" section, so nothing is hidden from the reviewer.
-
-Validation: an unreadable file, invalid JSON, a missing/non-array/empty \`files\`, or an entry
-without a non-empty \`path\` refuses the open naming the offending field.
-
+${GUIDE_SPEC}
 ## Between rounds - reload vs reopen, and the hub
 - Don't edit tracked files mid-round: the reviewer wouldn't see the edits and their in-flight
   decisions would be invalidated. Edit between rounds, then \`syneva reload\`.
