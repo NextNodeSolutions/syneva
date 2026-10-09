@@ -1,5 +1,13 @@
 import { parseFlow, parseSequence, parseState } from './guide-diagrams.js'
-import { identifier, oneOf, optionalText, record, text } from './guide-parse.js'
+import { GUIDE_KEYS } from './guide-keys.js'
+import {
+	identifier,
+	oneOf,
+	onlyKeys,
+	optionalText,
+	record,
+	text,
+} from './guide-parse.js'
 import { parseOptionalRef, parseRefIds } from './guide-refs.js'
 import { GUIDE_LIMITS } from './guide-shapes.js'
 
@@ -33,6 +41,11 @@ export function parseBlock(
 	if (!block.ok) return block
 	const kind = oneOf(block.value.kind, `${where}.kind`, BLOCK_KINDS)
 	if (!kind.ok) return kind
+	const keys = onlyKeys(block.value, where, [
+		...GUIDE_KEYS.block,
+		...KIND_KEYS[kind.value],
+	])
+	if (!keys.ok) return keys
 	const base = parseBase(block.value, where, scope)
 	if (!base.ok) return base
 	return PARSERS[kind.value]({
@@ -41,6 +54,15 @@ export function parseBlock(
 		scope,
 		base: base.value,
 	})
+}
+
+// The fields each kind adds to the common ones; a block may carry its own kind's fields and no other's.
+const KIND_KEYS: Record<(typeof BLOCK_KINDS)[number], readonly string[]> = {
+	prose: GUIDE_KEYS.prose,
+	'before-after': GUIDE_KEYS.beforeAfter,
+	state: GUIDE_KEYS.state,
+	sequence: GUIDE_KEYS.sequence,
+	flow: GUIDE_KEYS.flow,
 }
 
 type BlockParser = (input: BlockInput) => Parsed<ExplanationBlock>
@@ -110,6 +132,8 @@ function parseSide(
 ): Parsed<BeforeAfterSide> {
 	const side = record(raw, where)
 	if (!side.ok) return side
+	const keys = onlyKeys(side.value, where, GUIDE_KEYS.side)
+	if (!keys.ok) return keys
 	const label = optionalText(
 		side.value.label,
 		`${where}.label`,

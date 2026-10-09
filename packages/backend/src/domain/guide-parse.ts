@@ -30,6 +30,20 @@ export function record(
 	return { ok: true, value: raw }
 }
 
+// Nothing an agent writes is silently ignored: a key its object does not declare is refused by name, so a typo in an optional field (verfy for verify) cannot drop it.
+export function onlyKeys(
+	raw: Record<string, unknown>,
+	where: string,
+	allowed: readonly string[],
+): Parsed<true> {
+	const stray = Object.keys(raw).find(key => !allowed.includes(key))
+	if (typeof stray === 'string')
+		return fail(
+			`${where}.${stray} is not a field here (the fields are ${allowed.join(', ')})`,
+		)
+	return { ok: true, value: true }
+}
+
 // Required text: present, non-blank, within `max` characters.
 export function text(raw: unknown, where: string, max: number): Parsed<string> {
 	if (typeof raw !== 'string' || !raw.trim())
