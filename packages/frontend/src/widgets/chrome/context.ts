@@ -1,7 +1,6 @@
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { WalkRow } from '@entities/review/guide/walkthrough'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
-import type { GuideFile } from '@entities/review/model'
 import type { ReviewNote } from '@entities/review/notes'
 import type { Settings } from '@entities/settings/model'
 import type { DiffStyle } from '@shared/diff-renderer/types'
@@ -70,7 +69,6 @@ export interface ChromeStoreView {
 	openOverview?(): void
 	startGuided?(): void
 	showGuideBar?(): boolean
-	curGuide?(): GuideFile | null
 	curFileName?(): string
 	guideNext?(): void
 	guidePrev?(): void

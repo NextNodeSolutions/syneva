@@ -1,10 +1,6 @@
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { WalkRow } from '@entities/review/guide/walkthrough'
-import type {
-	GuideFile,
-	PreviewFile,
-	ReviewState,
-} from '@entities/review/model'
+import type { PreviewFile, ReviewState } from '@entities/review/model'
 import type {
 	NoteThreadRef,
 	NotesLens,
@@ -93,7 +89,6 @@ export interface Store {
 	openOverview?: () => void
 	startGuided?: () => void
 	showGuideBar?: () => boolean
-	curGuide?: () => GuideFile | null
 	curFileName?: () => string
 	guideNext?: () => void
 	guidePrev?: () => void

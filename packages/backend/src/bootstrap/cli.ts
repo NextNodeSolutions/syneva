@@ -53,7 +53,7 @@ Agent loop:
 Common flags:
   --repo <path>     Repo to review / target (default: cwd)
   --session <id>    Review session id (default: branch / file-<path> / pr-<ref>)
-  --guide <file>    Attach an AI review guide (JSON) when opening or reloading
+  --guide <file>    Attach the review guide (JSON; syneva spec prints the schema) when opening or reloading
   --no-open         Don't open the browser
   --hub <url>       The hub to talk to (default: this machine's hub)
   --key <secret>    Access key of a key-protected hub (SYNEVA_KEY)

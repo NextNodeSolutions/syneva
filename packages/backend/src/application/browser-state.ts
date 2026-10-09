@@ -2,16 +2,16 @@ import type {
 	BrowserReviewFile,
 	BrowserReviewState,
 } from '@syneva/contracts/browser'
+import type { Guide } from '@syneva/contracts/guide'
 import type {
 	ChangeState,
 	Decision,
-	Guide,
 	ReviewComment,
 } from '@syneva/contracts/review'
+import type { Guide as DomainGuide } from '../domain/guide-shapes.js'
 import type {
 	ChangeState as DomainChange,
 	Decision as DomainDecision,
-	Guide as DomainGuide,
 	ReviewComment as DomainComment,
 	ReviewFile,
 	ReviewState,
@@ -95,15 +95,9 @@ function browserDecision(decision: DomainDecision): Decision {
 	})
 }
 
+// The guide was admitted field by field by the validator and holds nothing but the wire shape, so it crosses whole; the round trip drops its undefined-valued keys like every other DTO's.
 function browserGuide(guide: DomainGuide): Guide {
-	return withoutUndefined({
-		files: guide.files.map(file => ({
-			path: file.path,
-			order: file.order,
-			category: file.category,
-		})),
-		baseDiffHash: guide.baseDiffHash,
-	})
+	return withoutUndefined(guide)
 }
 
 // Allowlist every level: spreading the backend state/files would silently expose future fields. Do not mutate or clone diff bodies - staging and reconciliation still own the originals.

@@ -1,5 +1,5 @@
 ---
-import type { Guide, GuideFile } from '@syneva/contracts/review'
+import type { Guide, GuideDomain } from '@syneva/contracts/guide'
 
 import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
 import Chapter from '@widgets/chapter/ui/Chapter.astro'
@@ -21,46 +21,58 @@ import { GUIDE_FILE_COUNT } from './art/guide-sections'
 
 const GUIDE = [
 	'# guide.json, written by your agent',
-	'{ "files": [',
-	'  { "path": "contracts/review.ts", "category": "Contracts" },',
-	'  { "path": "auth/session.ts",     "category": "Behavior" },',
-	'  { "path": "api/middleware.ts",   "category": "Behavior" },',
-	'  { "path": "pages/desk.tsx",      "category": "Interface" }',
+	'{ "format": "syneva-guide/2",',
+	'  "source": { "mode": "repo", "fingerprint": "5b3d9c0a1e2f4a6b" },',
+	'  "overview": "Sessions move to signed cookies.",',
+	'  "domains": [',
+	'    { "id": "session-signing", "risk": "critical",',
+	'      "title": "Signed session cookies",',
+	'      "consequence": "A forged cookie logs anyone in.",',
+	'      "summary": "The middleware verifies the signature before the lookup.",',
+	'      "members": [{ "kind": "change", "path": "auth/session.ts",',
+	'                   "side": "additions", "lineNumber": 41 }],',
+	'      "blocks": [{ "id": "flow", "kind": "sequence", … }] },',
+	'    { "id": "desk-copy", "risk": "low", … }',
 	'] }',
 	'',
 	'$ syneva --guide /tmp/guide.json',
 ]
 // Field names mirror the desk contract: a rename there fails this build.
-const FILES = 'files' satisfies keyof Guide
-const fileField = (name: keyof GuideFile): string => `${FILES}[].${name}`
+const DOMAINS = 'domains' satisfies keyof Guide
+const domainField = (name: keyof GuideDomain): string =>
+	`${DOMAINS}[].${name}`
 const FIELDS = [
-	[FILES, 'Required. One entry per reviewed file.'],
-	[fileField('path'), 'Required. Repo-relative path.'],
-	[fileField('category'), 'The section it is listed under. Defaults to “Changes”.'],
-	[fileField('order'), 'Ascending review order. Defaults to array position.'],
+	['format' satisfies keyof Guide, 'Required. “syneva-guide/2”.'],
+	['source' satisfies keyof Guide, 'Required. The review the guide was written for, with its fingerprint.'],
+	['overview' satisfies keyof Guide, 'Required. What the changeset does, in a paragraph.'],
+	[DOMAINS, 'Required. One per coherent changed behavior, across files.'],
+	[domainField('risk'), 'Required. Critical, high, medium or low: the reading order.'],
+	[domainField('consequence'), 'Required. What breaks if this behavior is wrong.'],
+	[domainField('members'), 'Required. The changed code the domain owns, by file, side and line.'],
+	[domainField('blocks'), 'Prose, before/after, state, sequence or data flow. Its choice.'],
 ] as const
 ---
 
 <PageHero
 	title="A reading order,<br>not a pile of files."
-	lede={'Git lists changed files alphabetically. Understanding doesn’t work that way. Your agent knows what it changed and why, so let it hand you the order: contracts first, behavior next, the interface last.'}
+	lede={'Git lists changed files alphabetically. Understanding doesn’t work that way. Your agent knows what it changed and why, so let it hand you the behaviors it changed, the riskiest first, each explained beside its real code.'}
 	caption={`One order makes sense of the same ${countWord(GUIDE_FILE_COUNT)} files.`}
 >
 	<Fragment slot="actions"><PrimaryButton label="Try it on your diff" /><TextLink href={PAGES.connectYourAgent.href} label="How agents attach a guide" /></Fragment>
 	<GuideSort slot="art" />
 </PageHero>
-<Prose id="guide" title="One small JSON file.">
-	<ProseText>A guide is a list of files with an optional section name and order. Your agent writes it outside the working tree and passes it at start, or swaps it in later. Syneva validates it, renders it as sections in the Walkthrough tab, and runs no model to do so.</ProseText>
+<Prose id="guide" title="One JSON file.">
+	<ProseText>A guide names the behaviors a changeset changes, ranks them by risk with the concrete consequence each risk rests on, says which changed code each one owns, and explains it in the form that fits: prose, a before and after, a state, sequence or data-flow diagram whose elements land on the code. Your agent writes it outside the working tree and passes it at start, or swaps it in later. Syneva validates it, renders it beside the diff, and runs no model to do so.</ProseText>
 	<Terminal lines={GUIDE} title="guide.json" />
 	<SpecTable rows={FIELDS} head={['Field', 'Meaning']} />
 </Prose>
-<Prose id="nothing-hidden" title="The guide reorders files,<br>and never hides one.">
-	<Callout lead={'A guide reorders and labels. It can’t remove.'}>Files the guide doesn&rsquo;t mention land in a trailing Other section. A guide carries no prose and no flags, and your verdicts, comments and Send work exactly the same with or without one.</Callout>
-	<ProseText>That is a deliberate limit. A reading order is advice from the agent that wrote the code. The decision about what deserves your attention stays with you.</ProseText>
+<Prose id="nothing-hidden" title="The guide explains changes,<br>and never hides one.">
+	<Callout lead={'A guide orders and explains. It can’t remove, and it can’t approve.'}>Files the guide doesn&rsquo;t own land in a trailing Other section. Reading an explanation decides nothing: your verdicts, comments and Send work exactly the same with or without one.</Callout>
+	<ProseText>That is a deliberate limit. An explanation is a claim from the agent that wrote the code, labelled as such. The decision about what deserves your attention stays with you.</ProseText>
 </Prose>
 <Chapter id="stamped" title="Stamped to<br>its diff." artSide="left" caption="Guide → stamped diff → reload → refreshed guide">
 	<ChapterText>A guide is tied to the diff it was written for, and survives reloads and restarts.</ChapterText>
-	<ChapterText>When a reload moves the diff past it, the desk says the grouping may be out of date. Your agent regenerates it and swaps it in with a single command, without restarting your review.</ChapterText>
+	<ChapterText>When a reload changes the code a domain owns, that domain&rsquo;s explanation is marked stale while the rest stays current. Your agent refreshes the guide and swaps it in with a single command, without restarting your review.</ChapterText>
 	<GuideStamp slot="art" />
 </Chapter>
 <CtaBand />

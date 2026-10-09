@@ -69,7 +69,8 @@ export const diffHeader = stylex.create({
 	guide: {
 		alignSelf: 'flex-start',
 		display: 'flex',
-		alignItems: 'center',
+		flexDirection: 'column',
+		gap: '4px',
 		marginLeft: '6px',
 		marginBottom: '1px',
 		paddingBlock: '1px',
@@ -77,10 +78,5 @@ export const diffHeader = stylex.create({
 		borderLeftWidth: '2px',
 		borderLeftStyle: 'solid',
 		borderLeftColor: color['--accent'],
-	},
-	category: {
-		fontSize: deskText.label,
-		color: color['--accent'],
-		whiteSpace: 'nowrap',
 	},
 })
