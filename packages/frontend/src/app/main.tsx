@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 
 import { installCommentBindings } from '@app/facade/comment-thread'
 import { installDialogBindings } from '@app/facade/dialogs'
+import { installDomainFeedbackBindings } from '@app/facade/domain-feedback'
 import { installGuideBindings } from '@app/facade/guide-bar'
 import { installGuideDomainBindings } from '@app/facade/guide-domain'
 import { installNavigationBindings, warmNextFile } from '@app/facade/navigate'
@@ -49,6 +50,7 @@ installNavigationBindings()
 installNotesBindings()
 installGuideBindings()
 installGuideDomainBindings()
+installDomainFeedbackBindings()
 installFileActionBindings()
 installCommentBindings()
 installDialogBindings()
