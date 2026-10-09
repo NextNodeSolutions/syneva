@@ -1,6 +1,6 @@
 import { helpGroups } from '@app/keys'
 import { isCurrentDesk } from '@app/poll'
-import { saver, S } from '@app/store'
+import { prefsSaver, saver, S } from '@app/store'
 import { resetReview, shutdownDesk } from '@entities/review/api'
 import { flowIndex } from '@entities/review/changes'
 import { reviewLineCount } from '@entities/review/file/file-summary'
@@ -144,8 +144,12 @@ function installCloseBinding(): void {
 		)
 	}
 	S.closeDesk = async () => {
-		// Flush the trailing save first so Close can't drop the freshest review mutations (bounded - a wedged desk must still close).
-		await saver.drain(CLOSE_SAVE_FLUSH_MS)
+		// Flush the trailing saves first so Close can't drop the freshest review mutations or preference (bounded - a wedged desk must still close).
+		// Preferences only settle: a forced write would put this desk's copy back over a newer dashboard choice.
+		await Promise.all([
+			saver.drain(CLOSE_SAVE_FLUSH_MS),
+			prefsSaver.settle(CLOSE_SAVE_FLUSH_MS),
+		])
 		// Paint the cover first: the desk dies within the request's grace window, and a refused script-close leaves the cover as the tab's terminal state.
 		S.deskClosed = true
 		try {

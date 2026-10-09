@@ -1,4 +1,4 @@
-import { S, toast } from '@app/store'
+import { flushPrefsOnLeave, persistPrefs, S, toast } from '@app/store'
 import {
 	currentFileOrNull,
 	fileFinished,
@@ -7,7 +7,6 @@ import {
 import { currentSplittable } from '@entities/review/file/contents'
 import { isMarkdownPath } from '@entities/review/file/file-summary'
 import { hasReviewedMaterial } from '@entities/review/file/reviewed'
-import { persistSettings } from '@entities/settings/api'
 import { applyAppearance } from '@entities/settings/settings'
 import { approveCurrentFile } from '@features/decide-change/decisions'
 import { openInEditor } from '@features/open-editor/open-editor'
@@ -21,9 +20,10 @@ export function installFileActionBindings(): void {
 }
 
 function installLayoutBindings(): void {
+	window.addEventListener('pagehide', flushPrefsOnLeave)
 	S.setStyle = style => {
 		S.diffStyle = style
-		void persistSettings({ settings: S.settings, diffStyle: S.diffStyle })
+		persistPrefs()
 		void render()
 	}
 	S.setFileView = view => {
@@ -32,7 +32,7 @@ function installLayoutBindings(): void {
 		void render()
 	}
 	S.applySettings = () => {
-		void persistSettings({ settings: S.settings, diffStyle: S.diffStyle })
+		persistPrefs()
 		applyAppearance(S.settings)
 		setMarkdownTheme(S.settings.theme)
 		void render()
@@ -66,7 +66,7 @@ function installSignOffBindings(): void {
 	S.hasReviewed = () => hasReviewedMaterial(S.state)
 	S.toggleHideReviewed = () => {
 		S.settings = { ...S.settings, hideReviewed: !S.settings.hideReviewed }
-		void persistSettings({ settings: S.settings, diffStyle: S.diffStyle })
+		persistPrefs()
 		void render()
 		toast(
 			S.settings.hideReviewed

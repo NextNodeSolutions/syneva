@@ -114,13 +114,18 @@ export type SavedPrefs = { settings: Settings; diffStyle: DiffStyle }
 export const fetchPrefs = async (): Promise<DisplayPrefs> =>
 	decodePrefs(await api(API_PATHS.settings), API_PATHS.settings)
 
-// Best-effort: an unreachable desk must not break the settings UI.
-export const persistSettings = async (prefs: SavedPrefs): Promise<void> => {
+// Best-effort: an unreachable desk must not break the settings UI. `keepalive` lets a write
+// sent while the page unloads outlive it.
+export const persistSettings = async (
+	prefs: SavedPrefs,
+	{ keepalive = false }: { keepalive?: boolean } = {},
+): Promise<void> => {
 	try {
 		acknowledge(
 			await api(API_PATHS.settings, {
 				method: 'POST',
 				body: JSON.stringify(prefs),
+				keepalive,
 			}),
 			API_PATHS.settings,
 		)
