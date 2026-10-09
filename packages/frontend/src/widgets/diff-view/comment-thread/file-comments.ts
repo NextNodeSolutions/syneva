@@ -2,6 +2,7 @@ import {
 	currentFileComments,
 	currentFileOrNull,
 } from '@entities/review/changes'
+import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 import { buildComposer } from '@features/manage-comment/composer'
 import { cx } from '@shared/lib/cx'
 import { count, deskControl } from '@shared/ui/desk-control.styles'
@@ -94,6 +95,15 @@ export function fileCommentIconButton(
 		: glyph
 	b.addEventListener('click', () => diffCtx().S.toggleFileComposer?.())
 	return b
+}
+
+// The whole-file trigger the file header and the oversized card carry: under a guide the guide bar carries it instead, and a single-file desk has nothing to address.
+export function fileCommentButton(
+	placement: Extract<FileCommentPlacement, 'header' | 'card'>,
+): HTMLElement | null {
+	if (hasGuide(guideInputs(diffCtx().S)) || !fileCommentsEnabled())
+		return null
+	return fileCommentIconButton(placement)
 }
 
 function isStandaloneComposerOpen(): boolean {

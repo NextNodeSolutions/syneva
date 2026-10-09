@@ -7,11 +7,6 @@ import {
 } from '@entities/review/changes'
 import { movedFrom } from '@entities/review/file/renames'
 import {
-	currentGuideEntry,
-	guideInputs,
-	hasGuide,
-} from '@entities/review/guide/guide'
-import {
 	approveCurrentFile,
 	resetReview,
 	rejectFile,
@@ -30,18 +25,17 @@ import { press } from '@syneva/design-system/press.styles'
 import { churnCounts } from './change-kind'
 import { changeTone } from './change-kind.styles'
 import {
-	fileCommentIconButton,
+	fileCommentButton,
 	fileCommentSection,
-	fileCommentsEnabled,
 } from './comment-thread/file-comments'
 import { diffCtx } from './context'
+import { currentDomainRows } from './guide-domain-chips'
 import { oversized } from './oversized.styles'
 
 import type { ReviewState } from '@entities/review/model'
 import type { StaticStyle } from '@shared/lib/cx'
 
 type ReviewFile = ReviewState['files'][number]
-type GuideEntry = ReturnType<typeof currentGuideEntry>
 
 const BYTES_PER_UNIT = 1024
 
@@ -161,20 +155,9 @@ function headSection(file: ReviewFile): HTMLElement {
 	kind.className = cx(caption.base, caption.upper, tone, oversized.kind)
 	kind.textContent = file.changeKind ?? 'modified'
 	head.appendChild(kind)
-	if (!hasGuide(guideInputs(diffCtx().S)) && fileCommentsEnabled())
-		head.appendChild(fileCommentIconButton('card'))
+	const fc = fileCommentButton('card')
+	if (fc) head.appendChild(fc)
 	return head
-}
-
-function badgesSection(entry: GuideEntry): HTMLElement | null {
-	if (!entry) return null
-	const badges = document.createElement('div')
-	badges.className = cx(oversized.badges)
-	const cat = document.createElement('span')
-	cat.className = cx(caption.base, caption.upper, oversized.category)
-	cat.textContent = entry.category
-	badges.appendChild(cat)
-	return badges
 }
 
 function statsSection(file: ReviewFile): HTMLElement {
@@ -214,11 +197,10 @@ export function renderOversizedCard(): void {
 		diffCtx().S.preview,
 		diffCtx().S.fileIndex,
 	)
-	const entry = currentGuideEntry(guideInputs(diffCtx().S))
 	const card = document.createElement('div')
 	card.className = cx(oversized.card)
 	card.appendChild(headSection(file))
-	const badges = badgesSection(entry)
+	const badges = currentDomainRows(oversized.badges)
 	if (badges) card.appendChild(badges)
 	card.appendChild(statsSection(file))
 	const note = document.createElement('p')

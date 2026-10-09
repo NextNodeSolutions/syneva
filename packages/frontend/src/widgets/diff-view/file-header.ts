@@ -3,11 +3,6 @@ import { fileFinished, fileObjections } from '@entities/review/changes'
 import { currentSplittable } from '@entities/review/file/contents'
 import { movedFrom } from '@entities/review/file/renames'
 import {
-	currentGuideEntry,
-	guideInputs,
-	hasGuide,
-} from '@entities/review/guide/guide'
-import {
 	approveCurrentFile,
 	resetReview,
 } from '@features/decide-change/decisions'
@@ -23,13 +18,13 @@ import { press } from '@syneva/design-system/press.styles'
 import { blockersChip } from './blockers'
 import { changeIcon, churnCounts } from './change-kind'
 import {
-	fileCommentIconButton,
+	fileCommentButton,
 	fileCommentSection,
-	fileCommentsEnabled,
 } from './comment-thread/file-comments'
 import { unanchoredStrip } from './comment-thread/strip'
 import { diffCtx } from './context'
 import { diffHeader } from './file-header.styles'
+import { currentDomainRows } from './guide-domain-chips'
 
 import type { FileDiffMetadata } from '@pierre/diffs'
 
@@ -67,12 +62,6 @@ function openEditorButton(): HTMLElement {
 	b.innerHTML = iconHtml('gly-open-editor', diffHeader.editorIcon)
 	b.addEventListener('click', () => void diffCtx().S.openInEditor?.())
 	return b
-}
-
-export function fileCommentButton(): HTMLElement | null {
-	if (hasGuide(guideInputs(diffCtx().S)) || !fileCommentsEnabled())
-		return null
-	return fileCommentIconButton('header')
 }
 
 export function headerActions(): HTMLElement {
@@ -157,7 +146,7 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 		)
 	)
 		row.appendChild(layoutToggle())
-	const fc = fileCommentButton()
+	const fc = fileCommentButton('header')
 	if (fc) row.appendChild(fc)
 	row.appendChild(openEditorButton())
 	const grow = document.createElement('span')
@@ -170,23 +159,11 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 	return row
 }
 
-function guideRow(): HTMLElement | null {
-	const entry = currentGuideEntry(guideInputs(diffCtx().S))
-	if (!entry) return null
-	const guide = document.createElement('div')
-	guide.className = cx(diffHeader.guide)
-	const chip = document.createElement('span')
-	chip.className = cx(caption.base, caption.upper, diffHeader.category)
-	chip.textContent = entry.category
-	guide.appendChild(chip)
-	return guide
-}
-
 function fileHeader(file: FileDiffMetadata): HTMLElement {
 	const wrap = document.createElement('div')
 	wrap.className = cx(diffHeader.header)
 	wrap.appendChild(headerRow(file))
-	const guide = guideRow()
+	const guide = currentDomainRows(diffHeader.guide)
 	if (guide) wrap.appendChild(guide)
 	const fc = fileCommentSection()
 	if (fc) wrap.appendChild(fc)
@@ -209,7 +186,7 @@ function previewHeader(): HTMLElement {
 		diffCtx().S.fileIndex,
 	).path
 	row.appendChild(name)
-	const fc = fileCommentButton()
+	const fc = fileCommentButton('header')
 	if (fc) row.appendChild(fc)
 	row.appendChild(openEditorButton())
 	const grow = document.createElement('span')

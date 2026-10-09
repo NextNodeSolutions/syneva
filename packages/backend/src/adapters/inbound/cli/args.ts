@@ -6,7 +6,7 @@ import { validateGuide } from '../../../domain/guide.js'
 import { warn } from '../../outbound/console.js'
 import { getGitRoot } from '../../outbound/git/repo.js'
 
-import type { Guide } from '@syneva/contracts/review'
+import type { Guide } from '@syneva/contracts/guide'
 
 // A flag that was never passed has no key at all, so every read is | undefined: callers default it instead of trusting the index signature's non-null type.
 export type CliArgs = Record<string, string | boolean | undefined>

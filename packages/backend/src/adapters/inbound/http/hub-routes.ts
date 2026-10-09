@@ -25,7 +25,7 @@ import type { ReviewMode } from '@syneva/contracts/review'
 import type { HubJournal, JournalQuery } from '../../../application/journal.js'
 import type { DeskQuery } from '../../../application/open-desk.js'
 import type { SettingsPort } from '../../../application/ports.js'
-import type { Guide } from '../../../domain/review.js'
+import type { Guide } from '../../../domain/guide-shapes.js'
 import type { ApiFailure } from './failure.js'
 import type { Hub } from './hub.js'
 

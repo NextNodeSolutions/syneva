@@ -2,7 +2,6 @@ import { S } from '@app/store'
 import {
 	anyUnreviewed,
 	currentFileName,
-	currentGuideEntry,
 	firstGuideIndex,
 	guideInputs,
 	guideStale,
@@ -20,7 +19,6 @@ export function installGuideBindings(): void {
 	S.hasGuide = () => hasGuide(guideInputs(S))
 	S.showGuideBar = () => showGuideBar(guideInputs(S))
 	S.guideStale = () => guideStale(guideInputs(S))
-	S.curGuide = () => currentGuideEntry(guideInputs(S))
 	S.curFileName = () => currentFileName(guideInputs(S))
 	S.openOverview = () => {
 		S.overviewOpen = true
