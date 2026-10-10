@@ -1,3 +1,4 @@
+import { isAnswered } from './answered'
 import { isDomainStale } from './guide/resolution'
 
 import type { Guide, GuideDomain } from './guide/model'
@@ -31,19 +32,19 @@ export function domainThreadKey(
 	return JSON.stringify([target.domainId, target.blockId ?? ''])
 }
 
+// The references a block cites, else the domain's (a block may cite none), else the code the domain owns - the hub's own rule (domain-comments.ts targetRefs).
 function blockRefs(
 	domain: GuideDomain,
 	blockId: string | undefined,
 ): DomainCodeRef[] {
 	const references = domain.references ?? []
-	const block = domain.blocks.find(candidate => candidate.id === blockId)
-	const cited = block
-		? references.filter(reference =>
-				(block.refs ?? []).includes(reference.id),
-			)
+	const cited =
+		domain.blocks.find(candidate => candidate.id === blockId)?.refs ?? []
+	const pointed = cited.length
+		? references.filter(reference => cited.includes(reference.id))
 		: references
-	if (cited.length)
-		return cited.slice(0, REFS_MAX).map(reference => ({
+	if (pointed.length)
+		return pointed.slice(0, REFS_MAX).map(reference => ({
 			path: reference.path,
 			side: reference.side,
 			lineNumber: reference.lineNumber,
@@ -86,16 +87,6 @@ export function domainTargetOf(
 		blockTitle: block?.title,
 		refs: blockRefs(domain, block?.id),
 	}
-}
-
-function isAnswered(messages: DomainComment[]): boolean {
-	const question = messages.find(message => message.intent === 'question')
-	if (!question) return false
-	return messages.some(
-		reply =>
-			reply.role === 'agent' &&
-			+new Date(reply.createdAt) > +new Date(question.createdAt),
-	)
 }
 
 // An open change request keeps the thread open whatever its question's state: the request is what the next Send carries.

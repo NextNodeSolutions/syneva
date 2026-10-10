@@ -75,7 +75,7 @@ export function installDomainFeedbackBindings(): void {
 	}
 	S.submitDomainComment = submitDomainComment
 	S.setDomainThreadStatus = setDomainThreadStatus
-	// From the notes panel: the domain's explanation, pane open, its discussion at the bottom.
+	// From the notes panel: the domain's explanation, pane open, its discussion at the bottom; a domain the guide dropped shows its threads alone (the pane's gone-domain view).
 	S.openDomainThread = domainId => {
 		S.guidePaneOpen = true
 		S.selectDomain?.(domainId)

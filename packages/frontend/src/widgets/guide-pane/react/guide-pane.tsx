@@ -1,3 +1,4 @@
+import { domainThreads } from '@entities/review/domain-threads'
 import { orderedDomains } from '@entities/review/guide/domains'
 import {
 	domainById,
@@ -15,6 +16,7 @@ import { ExplanationBlockView } from './blocks/explanation-block'
 import { CoverageList } from './coverage-list'
 import { BlockFeedback, Discussion, DomainComposer } from './discussion'
 import { DomainHead } from './domain-head'
+import { GoneDomainPane } from './gone-domain'
 import { pane } from './guide-pane.styles'
 import {
 	Evidence,
@@ -25,6 +27,7 @@ import {
 	Unknowns,
 } from './pane-sections'
 
+import type { DomainThread } from '@entities/review/domain-threads'
 import type { GuideDomain } from '@entities/review/guide/model'
 import type { ReviewState } from '@entities/review/model'
 import type { ReactElement } from 'react'
@@ -102,6 +105,25 @@ function selectedDomain(
 	return chosen ?? orderedDomains(state?.guide)[0]
 }
 
+// A selected domain the attached guide no longer has (reached from the notes panel) keeps its threads on screen rather than falling back to another domain's discussion; a miss without threads falls back.
+function goneThreads(
+	state: ReviewState | null,
+	domainId: string | null,
+): DomainThread[] {
+	if (!domainId || domainById(state, domainId)) return []
+	return domainThreads(state, domainId)
+}
+
+function EmptyPane(): ReactElement {
+	return (
+		<aside {...stylex.props(pane.aside)} aria-label="Explanation">
+			<p {...stylex.props(pane.empty)}>
+				This guide has no domain to explain.
+			</p>
+		</aside>
+	)
+}
+
 // The explanation column: the selected domain beside the real diff. Nothing here approves anything; the verdict controls stay on the code.
 export function GuidePane(): ReactElement {
 	const { S } = chromeCtx()
@@ -117,15 +139,12 @@ export function GuidePane(): ReactElement {
 		'domainComposerBody',
 	)
 	const { state } = S
+	const gone = goneThreads(state, S.domainId)
+	const [firstGone] = gone
+	if (firstGone)
+		return <GoneDomainPane target={firstGone.target} threads={gone} />
 	const domain = selectedDomain(state, S.domainId)
-	if (!state || !domain)
-		return (
-			<aside {...stylex.props(pane.aside)} aria-label="Explanation">
-				<p {...stylex.props(pane.empty)}>
-					This guide has no domain to explain.
-				</p>
-			</aside>
-		)
+	if (!state || !domain) return <EmptyPane />
 	const domains = orderedDomains(state.guide)
 	const isStale = isDomainStale(state, domain.id)
 	return (

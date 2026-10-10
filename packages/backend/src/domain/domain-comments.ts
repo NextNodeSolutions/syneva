@@ -21,19 +21,18 @@ function codeRef(reference: GuideReference): DomainCodeRef {
 	}
 }
 
-// The code a target points at when the comment is written: a block's own references, else the domain's references, else the code it owns - kept on the comment so a later guide cannot move the thread.
+// The code a target points at when the comment is written: the references a block cites, else the domain's references (a block may cite none), else the code it owns - kept on the comment so a later guide cannot move the thread.
 function targetRefs(
 	domain: GuideDomain,
 	blockId: string | undefined,
 ): DomainCodeRef[] {
 	const references = domain.references ?? []
-	const block = domain.blocks.find(candidate => candidate.id === blockId)
-	const cited = block
-		? references.filter(reference =>
-				(block.refs ?? []).includes(reference.id),
-			)
+	const cited =
+		domain.blocks.find(candidate => candidate.id === blockId)?.refs ?? []
+	const pointed = cited.length
+		? references.filter(reference => cited.includes(reference.id))
 		: references
-	if (cited.length) return cited.slice(0, REFS_MAX).map(codeRef)
+	if (pointed.length) return pointed.slice(0, REFS_MAX).map(codeRef)
 	return domain.members
 		.flatMap(member =>
 			member.kind === 'change'

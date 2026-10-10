@@ -90,19 +90,22 @@ function ThreadFoot({ thread }: { thread: DomainThread }): ReactElement {
 				</button>
 			</div>
 		)
+	// A reply on a gone target has nowhere to land (the hub refuses a comment on a domain the guide lacks), so the thread offers none.
 	return (
 		<div {...stylex.props(styles.foot)}>
-			<button
-				{...stylex.props(MINI, control.outlined)}
-				onClick={() =>
-					S.openDomainComposer?.(
-						thread.target.domainId,
-						thread.target.blockId,
-					)
-				}
-			>
-				Reply
-			</button>
+			{!thread.unanchored && (
+				<button
+					{...stylex.props(MINI, control.outlined)}
+					onClick={() =>
+						S.openDomainComposer?.(
+							thread.target.domainId,
+							thread.target.blockId,
+						)
+					}
+				>
+					Reply
+				</button>
+			)}
 			<button
 				{...stylex.props(MINI, deskControl.resolve)}
 				onClick={() =>
