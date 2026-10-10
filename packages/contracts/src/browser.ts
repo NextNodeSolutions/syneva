@@ -37,6 +37,8 @@ export type BrowserReviewState = {
 	guide?: Guide | undefined
 	// Where the guide stands against this diff: owned identities at attach, stale domains and references after reloads, the changes no domain owns.
 	guideResolution?: GuideResolution | undefined
+	// A repo or pr desk opened without --no-guide expects a guide: while none is attached the desk says it waits for one.
+	guideExpected?: boolean | undefined
 	reviewedFiles: readonly string[]
 	reviewedFileHashes?: Readonly<Record<string, string>> | undefined
 	stagedFiles: readonly string[]
@@ -89,5 +91,10 @@ export type FileContentsPayload = {
 // baseDiffHash), not every tick. A stale ?instance= gets a BrowserRefreshEvent instead; DeskStatus rides along.
 export type PollPayload = Pick<
 	BrowserReviewState,
-	'baseDiffHash' | 'guide' | 'guideResolution' | 'comments' | 'domainComments'
+	| 'baseDiffHash'
+	| 'guide'
+	| 'guideResolution'
+	| 'guideExpected'
+	| 'comments'
+	| 'domainComments'
 >

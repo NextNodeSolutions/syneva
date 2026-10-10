@@ -45,7 +45,7 @@ I'm not saying this is *the* review surface. I built it in a week and I'm still 
    syneva open pr feature-branch --guide guide.json   # a branch's commits vs its merge-base
    ```
 
-   A repository or branch desk opens with the guide your agent authored against `syneva inventory` (the changed code, fingerprinted); a single-file desk needs none.
+   A repository or branch desk is guided by default: your agent authors the guide against `syneva inventory` (the changed code, fingerprinted) and opens with it, or attaches it afterwards with `syneva reload --guide`; `--no-guide` opens a plain review; a single-file desk needs none.
 
    The desk opens in your browser at its own stable URL (`/d/<id>/` on the hub) and stays open until you close it, from the tab or from the dashboard. You review and click **Send to Agent**; the agent attaches, acts on each send, and replies in the same tab. The dashboard is the hub's control center: whose turn it is on every desk (drawn as the review circuit, or as a board, or as a cockpit with the numbers), how far each review is, what your agents are doing, and the hub's journal of rounds, by project and for your plans. From a desk, the hub's rail opens over the review and takes you to the next desk waiting on you. The full agent contract — the hub, modes, the event loop, all flags (`--repo`, `--path`, `--port`, `--no-open`, `--guide`, …), `ReviewResult`, and the guide schema — is printed by **`syneva spec`**.
 

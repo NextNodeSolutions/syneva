@@ -168,5 +168,7 @@ export type ReviewState = {
 	readonly guide?: Guide | undefined
 	// Where the guide stands against this diff (attach-time identities, reload-time staleness); absent without a guide.
 	readonly guideResolution?: GuideResolution | undefined
+	// Guided by default: a repo or pr desk opened without --no-guide expects a guide until one is attached.
+	readonly guideExpected?: boolean | undefined
 	readonly persistFile?: string | undefined
 }

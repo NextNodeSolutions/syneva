@@ -166,6 +166,7 @@ export function decodeReviewState(raw: unknown, endpoint: string): ReviewState {
 			: undefined,
 		guide,
 		guideResolution,
+		guideExpected: optBoolean(o, 'guideExpected', endpoint),
 		reviewedFiles: requiredStringArray(o, 'reviewedFiles', endpoint),
 		reviewedFileHashes: decodeStringRecord(
 			o,
@@ -247,6 +248,7 @@ export function decodePollPayload(
 	return {
 		baseDiffHash: requiredString(o, 'baseDiffHash', endpoint),
 		...decodeGuideFields(o, ctx),
+		guideExpected: optBoolean(o, 'guideExpected', endpoint),
 		comments: requiredArray(o, 'comments', endpoint, 'comments').map(c =>
 			decodeComment(c, ctx),
 		),

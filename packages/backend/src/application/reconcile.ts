@@ -50,6 +50,7 @@ export async function mergeReviewState(
 		changes: decisions.changes,
 		decisions: decisions.decisions,
 		guide: saved.guide ?? base.guide,
+		guideExpected: saved.guideExpected,
 		guideResolution: await reconcileCarriedGuide(base, saved, git),
 		// The threads on the guide follow the carried guide: a target it still has keeps its thread anchored.
 		domainComments: reanchorDomainComments(

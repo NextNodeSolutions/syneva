@@ -5,6 +5,7 @@ import { deskId, deskSession } from '../domain/identity.js'
 
 import { attachGuide } from './attach-guide.js'
 import { buildReviewState, emptyReviewState } from './build.js'
+import { guideExpectation } from './open-policy.js'
 import { resolvePrTarget } from './pr-target.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
@@ -23,6 +24,8 @@ export type DeskQuery = {
 	base?: string | undefined
 	staged: boolean
 	pathFilter?: string | undefined
+	// The reviewer wants no guide on this repo or pr desk (otherwise the desk expects one).
+	noGuide: boolean
 }
 
 // A pr identity also carries the resolved head (the commit its diff is read from before any checkout) and the checkout an admitted open then runs.
@@ -178,6 +181,8 @@ export async function buildDeskState(
 	}
 	if (query.mode === 'repo')
 		state = { ...state, ...(await readStagedSnapshot(state, io.git)) }
+	// The open's own words decide whether the desk waits for a guide; a restore rebuilds from the same words.
+	state = { ...state, guideExpected: guideExpectation(query) }
 	const persisted = await io.store.persistReview(state)
 	return { ok: true, state: { ...state, ...persisted.stamp } }
 }

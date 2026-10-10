@@ -110,6 +110,8 @@ export type ReviewState = {
 	decisions?: Decision[] | undefined
 	guide?: Guide | undefined
 	guideResolution?: GuideResolution | undefined
+	// A repo or pr desk opened without --no-guide waits for a guide while none is attached.
+	guideExpected?: boolean | undefined
 	reviewedFiles: string[]
 	reviewedFileHashes?: Record<string, string> | undefined
 	stagedFiles: string[]
@@ -142,7 +144,12 @@ export type DeskStateSnapshot = ReviewState &
 
 export type DeskPollSnapshot = Pick<
 	ReviewState,
-	'baseDiffHash' | 'guide' | 'guideResolution' | 'comments' | 'domainComments'
+	| 'baseDiffHash'
+	| 'guide'
+	| 'guideResolution'
+	| 'guideExpected'
+	| 'comments'
+	| 'domainComments'
 >
 
 export type DeskRefreshEvent = { kind: 'refresh' }

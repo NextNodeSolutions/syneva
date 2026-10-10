@@ -8,7 +8,10 @@ import {
 	rootProblem,
 	restoredDeskIdentity,
 } from '../../../application/open-desk.js'
-import { admitOpen, admitReopen } from '../../../application/open-policy.js'
+import {
+	admitOpen,
+	guideExpectation,
+} from '../../../application/open-policy.js'
 import { checkoutPrTarget } from '../../../application/pr-target.js'
 import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
@@ -154,7 +157,7 @@ async function openOrReuse(
 	const { identity } = resolved
 	const live = liveDesk(state.desks, identity.id)
 	if (live && sameSource(live.record, query, identity))
-		return reuseDesk(state, live, guide)
+		return reuseDesk(state, live, guide, query)
 	const admission = await admitOpen(identity, query, guide, state.io)
 	if (!admission.ok) return admission
 	if (live) {
@@ -164,17 +167,17 @@ async function openOrReuse(
 	return createDesk(state, identity, query, guide)
 }
 
+// A reopen is a reload that may also change what the desk expects of its guide (--no-guide, or back to the default).
 async function reuseDesk(
 	state: HubState,
 	live: HubDesk,
 	guide: Guide | undefined,
+	query: DeskQuery,
 ): Promise<OpenOutcome> {
-	const admission = admitReopen(live.ctx.state, guide)
-	if (!admission.ok) return admission
 	const guideSwap = guide ? { guide } : undefined
 	const outcome = await live.ctx.serialize(() =>
 		reloadDesk(
-			live.ctx.state,
+			{ ...live.ctx.state, guideExpected: guideExpectation(query) },
 			live.ctx.pathFilter,
 			{ git: state.io.git, store: state.io.store },
 			guideSwap,
