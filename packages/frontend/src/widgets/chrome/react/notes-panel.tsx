@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 import { currentFileOrNull } from '@entities/review/changes'
+import { domainThreads } from '@entities/review/domain-threads'
 import {
 	notesPanelView,
 	reviewNotes,
@@ -17,9 +18,11 @@ import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'
 
+import { DomainNoteSection } from './notes-panel-domains'
 import { NoteSection, NotesEmpty, NotesNoMatch } from './notes-panel-rows'
 import { notes as styles } from './notes-panel.styles'
 
+import type { DomainThread } from '@entities/review/domain-threads'
 import type { NotesLens, ReviewNote } from '@entities/review/notes'
 import type { KeyboardEvent, ReactElement, RefObject } from 'react'
 
@@ -134,20 +137,47 @@ function NotesTools({
 	)
 }
 
-function NotesBody({
-	questions,
-	comments,
-	flat,
-	currentPath,
-	filtered,
-}: {
+// The guide's threads under the panel's lens: open hides the resolved, resolved keeps only them; the query matches the target's names and the text.
+function visibleThreads(
+	threads: DomainThread[],
+	view: { query: string; lens: NotesLens },
+): DomainThread[] {
+	const query = view.query.trim().toLowerCase()
+	return threads.filter(thread => {
+		if (view.lens === 'open' && thread.status === 'resolved') return false
+		if (view.lens === 'resolved' && thread.status !== 'resolved')
+			return false
+		if (!query) return true
+		const haystack = [
+			thread.target.domainTitle,
+			thread.target.blockTitle ?? '',
+			...thread.messages.map(message => message.body),
+		]
+			.join(' ')
+			.toLowerCase()
+		return haystack.includes(query)
+	})
+}
+
+type NoteLists = {
 	questions: ReviewNote[]
 	comments: ReviewNote[]
 	flat: ReviewNote[]
+	threads: DomainThread[]
+}
+
+function NotesBody({
+	lists,
+	currentPath,
+	filtered,
+}: {
+	lists: NoteLists
 	currentPath: string | null
 	filtered: boolean
 }): ReactElement {
-	if (!flat.length) return filtered ? <NotesNoMatch /> : <NotesEmpty />
+	const { questions, comments, flat, threads } = lists
+	if (!flat.length && !threads.length)
+		return filtered ? <NotesNoMatch /> : <NotesEmpty />
 	const sections = [
 		{
 			label: 'Questions',
@@ -171,6 +201,7 @@ function NotesBody({
 					currentPath={currentPath}
 				/>
 			))}
+			<DomainNoteSection threads={threads} />
 		</>
 	)
 }
@@ -188,10 +219,12 @@ export function NotesPanel(): ReactElement {
 		'notesSearchTick',
 	)
 	const notes = reviewNotes(S.state)
-	const { questions, comments, flat } = notesPanelView(S.state, {
-		query: S.notesQuery,
-		lens: S.notesLens,
-	})
+	const view = { query: S.notesQuery, lens: S.notesLens }
+	const { questions, comments, flat } = notesPanelView(S.state, view)
+	const threads = visibleThreads(domainThreads(S.state), view)
+	const openThreads = domainThreads(S.state).filter(
+		thread => thread.status !== 'resolved',
+	).length
 	const inputRef = useRef<HTMLInputElement | null>(null)
 	const searchTick = S.notesSearchTick
 	const cursor = S.notesCursor
@@ -212,13 +245,11 @@ export function NotesPanel(): ReactElement {
 
 	return (
 		<aside {...stylex.props(styles.aside)}>
-			<NotesHead unresolved={unresolvedNoteCount(notes)} />
+			<NotesHead unresolved={unresolvedNoteCount(notes) + openThreads} />
 			<NotesTools inputRef={inputRef} />
 			<div {...stylex.props(styles.body)} ref={bodyRef}>
 				<NotesBody
-					questions={questions}
-					comments={comments}
-					flat={flat}
+					lists={{ questions, comments, flat, threads }}
 					currentPath={activePath(S)}
 					filtered={filtered}
 				/>

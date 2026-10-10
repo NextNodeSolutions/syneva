@@ -7,13 +7,27 @@ import { runCorrespondent } from './pi-thread.js'
 import type { DeskConnection, DeskTarget } from './desk-connection.js'
 
 // Desk-event semantics re-exported by the delivery layer; the mechanism (spawning and reading one pi thread) stays in this file.
-export type DeskQuestion = {
+export type LineQuestion = {
 	path: string
 	lineNumber: number
 	side: 'additions' | 'deletions'
 	body: string
 	mode?: string
 }
+
+// A question on the guide's explanation of a domain or a block: answered from the code the refs name, replied into that thread.
+export type DomainQuestion = {
+	anchor: 'domain'
+	domainId: string
+	blockId?: string | undefined
+	domainTitle?: string | undefined
+	blockTitle?: string | undefined
+	refs?: unknown
+	body: string
+	mode?: string
+}
+
+export type DeskQuestion = LineQuestion | DomainQuestion
 
 export type CorrespondentIo = {
 	readQuestions: (eventPath: string) => Promise<DeskQuestion[]>
@@ -41,6 +55,7 @@ export function buildCorrespondentPrompt(
 		`Syneva review question for repo ${JSON.stringify(target.repo)}, session ${JSON.stringify(target.session)}.`,
 		`Questions in order: ${JSON.stringify(questions)}`,
 		`Answer ${count === 1 ? 'it' : `all ${count} of them`} read-only: read the anchored code as needed to answer, never edit files, never run desk commands.`,
+		'A question whose anchor is "domain" is about the review guide\'s explanation of that domain or block (its title and the code refs are in the JSON): answer from the code the refs point at and from the repository; the guide lives in the desk, not on disk, and you cannot change it.',
 		"Answer in the reviewer's language.",
 		'Reply format - for each question in order, emit exactly:',
 		'### q<N>',
@@ -109,18 +124,40 @@ function questionListOf(scope: object): unknown[] {
 }
 
 function isDeskQuestion(candidate: unknown): candidate is DeskQuestion {
+	if (typeof candidate !== 'object' || candidate === null) return false
+	if (!('body' in candidate) || typeof candidate.body !== 'string')
+		return false
+	if ('anchor' in candidate && candidate.anchor === 'domain')
+		return 'domainId' in candidate && typeof candidate.domainId === 'string'
 	return (
-		typeof candidate === 'object' &&
-		candidate !== null &&
 		'path' in candidate &&
 		typeof candidate.path === 'string' &&
 		'lineNumber' in candidate &&
 		typeof candidate.lineNumber === 'number' &&
 		'side' in candidate &&
-		(candidate.side === 'additions' || candidate.side === 'deletions') &&
-		'body' in candidate &&
-		typeof candidate.body === 'string'
+		(candidate.side === 'additions' || candidate.side === 'deletions')
 	)
+}
+
+// The reply lands where the question was asked: a line thread or a guide thread.
+function replyBody(
+	question: DeskQuestion,
+	body: string,
+): Record<string, unknown> {
+	if ('anchor' in question)
+		return {
+			domainId: question.domainId,
+			blockId: question.blockId,
+			body,
+			role: 'agent',
+		}
+	return {
+		path: question.path,
+		side: question.side,
+		lineNumber: question.lineNumber,
+		body,
+		role: 'agent',
+	}
 }
 
 // Same wire shape the `syneva comment` CLI posts, so replies show up live in the desk.
@@ -138,13 +175,7 @@ export async function postDeskComment(
 		signal: AbortSignal.timeout(POST_COMMENT_TIMEOUT_MS),
 		redirect: 'error',
 		headers,
-		body: JSON.stringify({
-			path: question.path,
-			side: question.side,
-			lineNumber: question.lineNumber,
-			body,
-			role: 'agent',
-		}),
+		body: JSON.stringify(replyBody(question, body)),
 	})
 	if (!response.ok)
 		throw new Error(

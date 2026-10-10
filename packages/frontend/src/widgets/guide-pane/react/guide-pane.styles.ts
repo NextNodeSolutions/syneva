@@ -201,11 +201,17 @@ export const coverage = stylex.create({
 		},
 	},
 	path: {
+		display: 'flex',
+		minWidth: 0,
+		whiteSpace: 'nowrap',
+	},
+	dir: {
 		minWidth: 0,
 		overflow: 'hidden',
 		textOverflow: 'ellipsis',
-		whiteSpace: 'nowrap',
+		color: color['--muted'],
 	},
+	name: { flexShrink: 0 },
 	lines: { color: color['--muted'], whiteSpace: 'nowrap' },
 	verdict: { marginLeft: 'auto' },
 })

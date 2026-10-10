@@ -5,7 +5,12 @@ import { buildReviewResult } from './review-result.js'
 
 import type { ReviewResult } from '@syneva/contracts/agent'
 import type { ReviewerSave } from '@syneva/contracts/browser'
-import type { Decision, ReviewComment, ReviewState } from '../domain/review.js'
+import type {
+	Decision,
+	DomainComment,
+	ReviewComment,
+	ReviewState,
+} from '../domain/review.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
 
 const JSON_INDENT = 2
@@ -21,6 +26,7 @@ export type SentReview = {
 export type ReviewerSavePatch = {
 	decisions?: Decision[] | undefined
 	comments?: ReviewComment[] | undefined
+	domainComments?: DomainComment[] | undefined
 	reviewedFiles?: string[] | undefined
 	reviewedFileHashes?: Record<string, string> | undefined
 	decisionFiles?: string[] | undefined
@@ -31,6 +37,7 @@ export type ReviewerSavePatch = {
 const REVIEWER_SAVE_KEYS = [
 	'decisions',
 	'comments',
+	'domainComments',
 	'reviewedFiles',
 	'reviewedFileHashes',
 	'decisionFiles',
@@ -48,7 +55,21 @@ export function reviewerSavePatch(body: unknown): Record<string, unknown> {
 	)
 }
 
-// Only PRESENT keys replace - absent keys mean "unchanged" - and each key is spelled against ReviewState, so no raw or unknown patch can ever reach the state.
+type AgentAuthored = { id: string; role?: 'user' | 'agent' | undefined }
+
+// A reply the browser has not polled yet is not the reviewer's to drop: the posted slice is the reviewer's copy of each thread, and the desk's agent messages missing from it (by id) ride along, so an answer landing between a poll and a save or Send survives both and never rides out as an open question again. The reviewer deletes only their own messages, so an agent message absent from the copy is one it never saw.
+function keepAgentMessages<Message extends AgentAuthored>(
+	posted: readonly Message[],
+	live: readonly Message[] | undefined,
+): Message[] {
+	const postedIds = new Set(posted.map(message => message.id))
+	const unseen = (live ?? []).filter(
+		message => message.role === 'agent' && !postedIds.has(message.id),
+	)
+	return [...posted, ...unseen]
+}
+
+// Only PRESENT keys replace - absent keys mean "unchanged" - and each key is spelled against ReviewState, so no raw or unknown patch can ever reach the state. The two thread keys keep the desk's agent messages on top of the copy.
 export function applyReviewerSave(
 	state: ReviewState,
 	patch: ReviewerSavePatch,
@@ -56,7 +77,12 @@ export function applyReviewerSave(
 	return {
 		...state,
 		decisions: patch.decisions ?? state.decisions,
-		comments: patch.comments ?? state.comments,
+		comments: patch.comments
+			? keepAgentMessages(patch.comments, state.comments)
+			: state.comments,
+		domainComments: patch.domainComments
+			? keepAgentMessages(patch.domainComments, state.domainComments)
+			: state.domainComments,
 		reviewedFiles: patch.reviewedFiles ?? state.reviewedFiles,
 		reviewedFileHashes:
 			patch.reviewedFileHashes ?? state.reviewedFileHashes,

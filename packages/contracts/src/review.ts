@@ -56,5 +56,36 @@ export type Decision = {
 	title: string
 }
 
+// Feedback on the guide rather than on a line: a note, question or change request on a domain, or on one of its explanation blocks. Its anchor is the domain's (and block's) stable id under the guide it was written against, plus the code the target pointed at then, so the thread stays readable after a guide replacement drops or changes the target - it is never re-pointed by title or position.
+export type DomainCodeRef = {
+	path: string
+	side: 'additions' | 'deletions'
+	lineNumber: number
+	endLine?: number | undefined
+	label?: string | undefined
+}
+
+export type DomainTarget = {
+	guideFingerprint: string
+	domainId: string
+	blockId?: string | undefined
+	domainTitle: string
+	blockTitle?: string | undefined
+	refs: DomainCodeRef[]
+}
+
+export type DomainComment = {
+	id: string
+	target: DomainTarget
+	body: string
+	createdAt: string
+	updatedAt: string
+	status: 'open' | 'resolved' | 'stale'
+	intent?: 'note' | 'action' | 'question' | undefined
+	role?: 'user' | 'agent' | undefined
+	// The attached guide no longer has the target (a replacement dropped the domain or the block): the thread keeps the context above and is marked, never moved.
+	unanchored?: boolean | undefined
+}
+
 // review: decisions + sign-off, notes kept; approved: signed-off files only; all also clears notes (and the default for a bodyless POST).
 export type ResetScope = 'review' | 'approved' | 'all'

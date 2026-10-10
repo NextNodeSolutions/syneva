@@ -49,6 +49,8 @@ export interface ChromeStoreView {
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	markdownTick: number
+	domainComposer: { domainId: string; blockId?: string | undefined } | null
+	domainComposerBody: string
 
 	treeRows?(): TreeRow[]
 	selectFile?(i: number): void
@@ -61,6 +63,11 @@ export interface ChromeStoreView {
 	guideBack?(): void
 	toggleGuidePane?(): void
 	toggleBlockDetail?(key: string): void
+	openDomainComposer?(domainId: string, blockId?: string): void
+	closeDomainComposer?(): void
+	submitDomainComment?(intent: 'question' | 'action'): void
+	setDomainThreadStatus?(key: string, status: 'open' | 'resolved'): void
+	openDomainThread?(domainId: string): void
 	toggleDir?(full: string, changed: boolean): void
 	toggleAllDirs?(): void
 	treeAnyOpen?(): boolean

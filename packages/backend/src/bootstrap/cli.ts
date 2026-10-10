@@ -9,12 +9,12 @@ import {
 	runAwait,
 	runClose,
 	runComment,
-	runReload,
 	runStatus,
 } from '../adapters/inbound/cli/commands.js'
 import { runDesks } from '../adapters/inbound/cli/desks.js'
 import { runInventory } from '../adapters/inbound/cli/inventory.js'
 import { runOpen } from '../adapters/inbound/cli/open.js'
+import { runReload } from '../adapters/inbound/cli/reload.js'
 import {
 	runHubStatus,
 	runHubStop,

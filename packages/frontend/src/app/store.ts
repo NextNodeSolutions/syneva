@@ -62,6 +62,8 @@ export const S: Store = reactive<Store>({
 	guideExpanded: new Set<string>(),
 	guideReturn: [],
 	markdownTick: 0,
+	domainComposer: null,
+	domainComposerBody: '',
 })
 
 export function requireState(): ReviewState {

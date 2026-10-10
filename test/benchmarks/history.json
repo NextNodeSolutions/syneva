@@ -126,6 +126,11 @@
 			"id": "pierre-virtual",
 			"label": "Virtualize very large diffs",
 			"note": "Hypothesis: following Pierre's surface choice (FileDiff for a diff, VirtualizedFileDiff with a worker pool for a very large one), a file over 3000 lines renders through a Virtualizer that mounts only the rows around the viewport, so a forced open and every later pass stop blocking on a full DOM build; the cursor jumps, go-to-line and the overview ruler use Pierre's line layout for rows that are not mounted. Verdict on bigfile (pi-frontend-check driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; three fresh desks per build, interleaved against the pierre-prime build; Load diff anyway on the 8000-line giant-surface.ts): rows on screen 915-960 ms (control 2387-2453), 200 rows mounted instead of 16000; opening the composer 69-73 ms (control 4214-4805) and a layout toggle 42-48 ms (control 2935-3659), both blocking before; colour 22.9-23.5 s (control 28.6-29.3 s), still bound by the worker highlighting the whole 16k-row file. Files under the threshold keep the full render (medium unchanged)."
+		},
+		{
+			"id": "guided",
+			"label": "Guided review: the overview lands first",
+			"note": "Hypothesis: a guided desk (PROD-88..96) lands on the risk-first overview and the explanation pane beside the diff without slowing the diff's own render path - the guide, its resolution and the threads ride /state, the pane, the diagrams, the navigator and the guide decoders are lazy chunks, and the initial graph stays under 415 KB. Route: headless Brave over CDP (the session's scratchpad driver; pi-frontend-check was not available), 1440x900, stage marks only; the guided runs on this branch, the guided-control-* runs on main (ae4f600a) built in its own worktree and served by its own hub, same driver and fixtures, two samples each. Verdict on medium (a generated 31-domain prose guide over 12,001 units, 5.4 MB of state): the guided desk shows its overview ~2.0 s after navigation and the reviewer's Enter (ttcStart) is followed by rows at +0.11 s and colour at +1.17 s; the control lands on the first file directly, rows at 0.27 s and colour at 1.21 s from navigation. Paint-to-colour is 1.05 s guided against 0.94 s control: the diff path is unchanged within a tenth of a second, and the guided landing adds the overview and the state decode before the first keypress. On bigfile (the giant file behind the oversized guard, loaded by Enter = ttcStart): colour 34.3-34.4 s after the press guided, 34.0-34.1 s control - the same within noise; rows 0.13 s after the press in both. These bigfile numbers are not comparable to the pierre-virtual milestone's 22.9 s (another route, viewport and marks). The pool:* stages are not instrumented on this build (no emitter of those marks in the source; the worker chunks do load), so bootStart/bootDone/jobOpen/firstWindowSent/final and the pool counts are absent or zero on every run of this milestone: a measurement gap, not a regression."
 		}
 	],
 	"rejected": [
@@ -2463,6 +2468,172 @@
 				"diff:render:layout": 3659
 			},
 			"note": "Control for pierre-virtual: the pierre-prime build, full render (16000 rows mounted). pi-frontend-check (Brave headless) driven by pi on zai/glm-5.3-flash, thinking low; 1920x1080; fresh desk; every number from the click on Load diff anyway for src/giant-surface.ts (8000 lines, 2000+2000 changed, behind the oversized guard): rows on screen, the diff:render span of that pass, colour, then composer on a gutter click and Split->Stacked by their diff:render span; interleaved with the other build."
+		},
+		{
+			"id": "guided-bigfile-1",
+			"fixture": "bigfile",
+			"milestone": "guided",
+			"date": "2026-10-09",
+			"stagesMs": {
+				"module": 38,
+				"plainPaint": 2164,
+				"firstColor": 36435,
+				"contents": 29
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "headless Brave over CDP (the session's scratchpad driver), stage marks only - not pi-frontend-check; guided desk (generated prose-only guide, 6 domain(s) over 2111 units), fresh session, 1440x900; the overview lands first and Enter starts the review (ttcStart); Enter on the oversized guard loads the giant file (ttcStart moved to that press). contents = first /file-contents resource duration. The pool:* stages are not instrumented on this build (no emitter of those marks in the source; the worker chunks diff-workers-*.js and worker-*.js do load), so bootStart/bootDone/jobOpen/firstWindowSent/final and the pool counts are absent or zero: a measurement gap, not a regression.",
+			"ttcStart": 2033
+		},
+		{
+			"id": "guided-bigfile-2",
+			"fixture": "bigfile",
+			"milestone": "guided",
+			"date": "2026-10-09",
+			"stagesMs": {
+				"module": 37,
+				"plainPaint": 2168,
+				"firstColor": 36347,
+				"contents": 32
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "headless Brave over CDP (the session's scratchpad driver), stage marks only - not pi-frontend-check; guided desk (generated prose-only guide, 6 domain(s) over 2111 units), fresh session, 1440x900; the overview lands first and Enter starts the review (ttcStart); Enter on the oversized guard loads the giant file (ttcStart moved to that press). contents = first /file-contents resource duration. The pool:* stages are not instrumented on this build (no emitter of those marks in the source; the worker chunks diff-workers-*.js and worker-*.js do load), so bootStart/bootDone/jobOpen/firstWindowSent/final and the pool counts are absent or zero: a measurement gap, not a regression.",
+			"ttcStart": 2032
+		},
+		{
+			"id": "guided-medium-1",
+			"fixture": "medium",
+			"milestone": "guided",
+			"date": "2026-10-09",
+			"stagesMs": {
+				"module": 38,
+				"plainPaint": 2123,
+				"firstColor": 3179,
+				"contents": 5
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "headless Brave over CDP (the session's scratchpad driver), stage marks only - not pi-frontend-check; guided desk (generated prose-only guide, 31 domain(s) over 12001 units), fresh session, 1440x900; the overview lands first and Enter starts the review (ttcStart). contents = first /file-contents resource duration. The pool:* stages are not instrumented on this build (no emitter of those marks in the source; the worker chunks diff-workers-*.js and worker-*.js do load), so bootStart/bootDone/jobOpen/firstWindowSent/final and the pool counts are absent or zero: a measurement gap, not a regression.",
+			"ttcStart": 2012
+		},
+		{
+			"id": "guided-medium-2",
+			"fixture": "medium",
+			"milestone": "guided",
+			"date": "2026-10-09",
+			"stagesMs": {
+				"module": 34,
+				"plainPaint": 2120,
+				"firstColor": 3172,
+				"contents": 4
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "headless Brave over CDP (the session's scratchpad driver), stage marks only - not pi-frontend-check; guided desk (generated prose-only guide, 31 domain(s) over 12001 units), fresh session, 1440x900; the overview lands first and Enter starts the review (ttcStart). contents = first /file-contents resource duration. The pool:* stages are not instrumented on this build (no emitter of those marks in the source; the worker chunks diff-workers-*.js and worker-*.js do load), so bootStart/bootDone/jobOpen/firstWindowSent/final and the pool counts are absent or zero: a measurement gap, not a regression.",
+			"ttcStart": 2011
+		},
+		{
+			"id": "guided-control-bigfile-1",
+			"fixture": "bigfile",
+			"milestone": "guided",
+			"date": "2026-10-09",
+			"stagesMs": {
+				"module": 38,
+				"plainPaint": 2172,
+				"firstColor": 36155,
+				"contents": 53
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "Control for guided: main at ae4f600a, built in its own worktree and served by its own hub, unguided desk (it lands on the first file, no overview, no Enter; Enter on the oversized guard loads the giant file, ttcStart); the same headless Brave over CDP driver, fixtures and 1440x900 viewport as the guided runs, stage marks only. contents = first /file-contents resource duration. No pool:* marks were recorded on this build; final is absent.",
+			"ttcStart": 2016
+		},
+		{
+			"id": "guided-control-bigfile-2",
+			"fixture": "bigfile",
+			"milestone": "guided",
+			"date": "2026-10-09",
+			"stagesMs": {
+				"module": 41,
+				"plainPaint": 2145,
+				"firstColor": 36027,
+				"contents": 30
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "Control for guided: main at ae4f600a, built in its own worktree and served by its own hub, unguided desk (it lands on the first file, no overview, no Enter; Enter on the oversized guard loads the giant file, ttcStart); the same headless Brave over CDP driver, fixtures and 1440x900 viewport as the guided runs, stage marks only. contents = first /file-contents resource duration. No pool:* marks were recorded on this build; final is absent.",
+			"ttcStart": 2014
+		},
+		{
+			"id": "guided-control-medium-1",
+			"fixture": "medium",
+			"milestone": "guided",
+			"date": "2026-10-09",
+			"stagesMs": {
+				"module": 40,
+				"plainPaint": 274,
+				"firstColor": 1214,
+				"contents": 16
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "Control for guided: main at ae4f600a, built in its own worktree and served by its own hub, unguided desk (it lands on the first file, no overview, no Enter); the same headless Brave over CDP driver, fixtures and 1440x900 viewport as the guided runs, stage marks only. contents = first /file-contents resource duration. No pool:* marks were recorded on this build; final is absent."
+		},
+		{
+			"id": "guided-control-medium-2",
+			"fixture": "medium",
+			"milestone": "guided",
+			"date": "2026-10-09",
+			"stagesMs": {
+				"module": 37,
+				"plainPaint": 268,
+				"firstColor": 1209,
+				"contents": 2
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "Control for guided: main at ae4f600a, built in its own worktree and served by its own hub, unguided desk (it lands on the first file, no overview, no Enter); the same headless Brave over CDP driver, fixtures and 1440x900 viewport as the guided runs, stage marks only. contents = first /file-contents resource duration. No pool:* marks were recorded on this build; final is absent."
 		}
 	]
 }

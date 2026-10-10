@@ -37,6 +37,7 @@ export function resetReviewPatch(
 		decisionFiles: [],
 		decisions: [],
 		comments: scope === 'review' ? state.comments : [],
+		domainComments: scope === 'review' ? state.domainComments : [],
 		changes: state.changes.map(change => ({
 			...change,
 			status: 'pending',
