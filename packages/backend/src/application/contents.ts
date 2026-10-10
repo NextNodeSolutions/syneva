@@ -48,9 +48,10 @@ function evictLeastRecentlyUsed(): void {
 	}
 }
 
-// pr: both sides are committed objects, read strictly - a git object dropped by a mid-session
-// rebase throws (→ /file-contents 404s with a reload hint) instead of serving empty; `changeKind`
-// says which sides exist, so a legitimately absent side is "" WITHOUT a read.
+// pr: both sides are committed objects (the new one the head the diff was built from, not whatever
+// HEAD is now), read strictly - a git object dropped by a mid-session rebase throws (→ /file-contents
+// 404s with a reload hint) instead of serving empty; `changeKind` says which sides exist, so a
+// legitimately absent side is "" WITHOUT a read.
 async function prContents(
 	state: ReviewState,
 	file: ReviewFile,
@@ -64,7 +65,12 @@ async function prContents(
 	const newContents =
 		file.changeKind === 'deleted'
 			? ''
-			: await git.fileAt(state.root, file.newPath, 'HEAD', true)
+			: await git.fileAt(
+					state.root,
+					file.newPath,
+					state.head ?? 'HEAD',
+					true,
+				)
 	return { oldContents, newContents }
 }
 

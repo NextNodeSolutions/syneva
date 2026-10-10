@@ -56,7 +56,8 @@ Agent loop:
 Common flags:
   --repo <path>     Repo to review / target (default: cwd)
   --session <id>    Review session id (default: branch / file-<path> / pr-<ref>)
-  --guide <file>    Attach the review guide (JSON; syneva spec prints the schema) when opening or reloading
+  --guide <file>    The review guide (JSON; syneva spec prints the schema): a repo or pr desk expects one, a file desk may; reload swaps it
+  --no-guide        Review a repo or pr desk without a guide, on purpose (otherwise the desk waits for one)
   --no-open         Don't open the browser
   --hub <url>       The hub to talk to (default: this machine's hub)
   --key <secret>    Access key of a key-protected hub (SYNEVA_KEY)

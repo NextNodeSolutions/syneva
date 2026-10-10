@@ -82,6 +82,7 @@ function isZeroOid(oid: string): boolean {
 type RawDiffQuery = {
 	staged?: boolean | undefined
 	base?: string | undefined
+	head?: string | undefined
 	path?: string | undefined
 }
 
@@ -96,7 +97,7 @@ export async function rawBlobOids(
 ): Promise<Map<string, string>> {
 	const args = ['diff', '--no-ext-diff', '-M', '--raw', '-z', '--no-abbrev']
 	if (query.staged) args.push('--cached')
-	if (query.base) args.push(`${query.base}..HEAD`)
+	if (query.base) args.push(`${query.base}..${query.head ?? 'HEAD'}`)
 	if (query.path) args.push('--', query.path)
 	const raw = await git(args, root).catch(() => '')
 	const tokens = raw.split('\0').filter(token => token.length > 0)

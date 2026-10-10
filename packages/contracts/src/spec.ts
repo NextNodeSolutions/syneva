@@ -42,9 +42,17 @@ repo has several desks. Each repo+session is ONE desk with ONE stable URL (/d/<i
   generated plan).
 - pr - \`syneva open pr <ref>\` (shorthand: \`syneva pr <ref>\`): a branch's commits vs merge-base.
   <ref> = branch | PR number | GitHub URL (number/URL resolved via \`gh\`, which must be
-  installed+authed). Checks out the branch (refused if the working tree has uncommitted tracked
-  changes); \`--base <ref>\` overrides the base. Verdict only: Approve = approve, reject =
-  request-changes, no staging - you amend the branch and re-review.
+  installed+authed). The branch is checked out once the open is admitted - its diff is read by ref
+  first, so the guide is validated before HEAD moves (refused up front if the working tree has
+  uncommitted tracked changes); \`--base <ref>\` overrides the base. Verdict only: Approve =
+  approve, reject = request-changes, no staging - you amend the branch and re-review.
+A repo or pr desk is guided by default: \`--guide <file>\` (The guide, below) is part of the open.
+Without one the desk still opens, reviews in file order and says it waits for the guide - attach
+it with \`syneva reload --guide <file>\` once authored; \`--no-guide\` opens a plain, unguided
+review on purpose (no waiting notice). A file desk needs none (one is welcome). A posted guide
+that does not fit its source is refused (422 INVALID_GUIDE) before anything else: a refused open
+replaces no desk, writes nothing and checks out nothing. Syneva validates and attaches the JSON
+you supply; it never generates one.
 open prints one JSON line on stdout: {ok, deskId, url, dashboard, session, mode, outcome, empty}.
 outcome "created" = a new desk (the browser opens unless --no-open); "reloaded" = the live desk
 for that repo+session was reused and re-diffed (its tab updates by itself, no new tab). empty =
@@ -193,11 +201,15 @@ ${GUIDE_SPEC}
   decisions would be invalidated. Edit between rounds, then \`syneva reload\`.
 - Changing the diff source of a session (working ↔ staged, another --path) is an open with the
   other flags: the hub replaces that session's desk under the same URL (its tab asks for a
-  refresh). Changing the mode or the file/ref is a different session - a second desk.
+  refresh) - admitted like any open, guide first, so a refusal leaves the live desk as it was.
+  Changing the mode or the file/ref is a different session - a second desk.
 - The reviewer keeps ONE tab per desk: open is idempotent (a live desk is reused, never
   duplicated) and each repo+session maps to one stable /d/<id>/ URL on the hub, so a reopened or
   restored desk lands in the same tab (it shows a refresh notice after a hub restart) - don't tell
-  the reviewer to switch tabs. Pass --session only to run a second, separate desk.
+  the reviewer to switch tabs. Pass --session only to run a second, separate desk. A live desk
+  reopened without a guide is reloaded with the guide it carries (stale where the code moved on)
+  or stays unguided; a reopen may add --no-guide or drop it - \`syneva reload\` never needs a guide,
+  and a hub restart restores every desk as it was.
 - The hub never closes desks on its own: a desk lives until the human closes it (browser or
   dashboard) or you do (\`syneva close\`). The dashboard lists every live desk with its last
   activity, agent status and review progress. State persists on every save; \`syneva hub stop\`
@@ -234,4 +246,6 @@ ${GUIDE_SPEC}
   placeholders; known GUI editors only) has no effect on review state.
 - Error responses are {error, code, fix, docs} - honor fix. PATCH_CONFLICT (409) = the working
   tree changed since the desk loaded; reload state and retry. DESK_NOT_FOUND (404) = the desk was
-  closed; list desks or open one. UNAUTHORIZED (401) = the hub wants its key (SYNEVA_KEY).`
+  closed; list desks or open one. UNAUTHORIZED (401) = the hub wants its key (SYNEVA_KEY).
+  INVALID_GUIDE (422) = the guide names what does not hold (the fields are listed); fix them,
+  never pad.`

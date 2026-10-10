@@ -115,6 +115,7 @@ export function browserState(state: ReviewState): BrowserReviewState {
 		decisions: state.decisions?.map(browserDecision),
 		guide: state.guide ? browserGuide(state.guide) : undefined,
 		guideResolution: state.guideResolution,
+		guideExpected: state.guideExpected,
 		reviewedFiles: state.reviewedFiles,
 		reviewedFileHashes: state.reviewedFileHashes,
 		stagedFiles: state.stagedFiles,

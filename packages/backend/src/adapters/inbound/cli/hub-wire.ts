@@ -98,5 +98,7 @@ export function failureText(body: unknown, fallback: string): string {
 	)
 	const error = typeof record.error === 'string' ? record.error : fallback
 	const fix = typeof record.fix === 'string' ? ` ${record.fix}` : ''
-	return `${error}${fix}`
+	// The two read as consecutive sentences: a reason that ends without punctuation (a listed field) gets its period before the fix.
+	const stop = /[.!?)]$/.test(error) || !fix ? '' : '.'
+	return `${error}${stop}${fix}`
 }

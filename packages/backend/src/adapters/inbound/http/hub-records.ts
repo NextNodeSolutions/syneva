@@ -17,6 +17,7 @@ export function recordOf(
 		base: identity.base,
 		staged: query.staged,
 		pathFilter: query.pathFilter,
+		noGuide: query.noGuide || undefined,
 		openedAt: nowIso(),
 	}
 }
@@ -30,6 +31,7 @@ export function queryOf(record: HubDeskRecord): DeskQuery {
 		base: record.base,
 		staged: record.staged,
 		pathFilter: record.pathFilter,
+		noGuide: record.noGuide === true,
 	}
 }
 
