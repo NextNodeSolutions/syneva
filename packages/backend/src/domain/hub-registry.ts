@@ -12,6 +12,8 @@ export type HubDeskRecord = {
 	readonly base?: string | undefined
 	readonly staged: boolean
 	readonly pathFilter?: string | undefined
+	// The open said --no-guide: a restore rebuilds the same expectation.
+	readonly noGuide?: boolean | undefined
 	readonly openedAt: string
 }
 
@@ -58,6 +60,7 @@ export function decodeHubDeskRecord(raw: unknown): HubDeskRecord | null {
 		base: optionalString(record.base),
 		staged: record.staged === true,
 		pathFilter: optionalString(record.pathFilter),
+		noGuide: record.noGuide === true ? true : undefined,
 		openedAt,
 	}
 }

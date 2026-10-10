@@ -28,6 +28,7 @@ export async function servePoll({
 		baseDiffHash: state.baseDiffHash,
 		guide: state.guide,
 		guideResolution: state.guideResolution,
+		guideExpected: state.guideExpected,
 		comments: state.comments,
 	}
 	json(res, HTTP_OK, { ...poll, ...ctx.status() })

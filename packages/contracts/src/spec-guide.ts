@@ -4,9 +4,10 @@ A guide is the review's reading order AND its explanation: the coherent behavior
 changes ("domains"), highest risk first, each owning its changed code across files and explaining
 itself in the form that fits it. You write it (Syneva runs no model), Syneva validates it, resolves
 it against the real diff and renders it beside the real code; the reviewer's decisions, comments
-and Send are never affected by it. A repo or pr desk opens with it (\`syneva open … --guide <file>\`;
-without one the open is refused, GUIDE_REQUIRED, unless the session's saved guide still fits the
-source or there is nothing to review); a file desk takes one optionally. Swap it with
+and Send are never affected by it. A repo or pr desk is guided by default: open it with the guide
+(\`syneva open … --guide <file>\`), or open first and attach it with \`syneva reload --guide <file>\`
+- the desk waits for it in file order meanwhile; \`--no-guide\` opens a plain review on purpose. A
+file desk takes one optionally. Swap it with
 \`syneva reload --guide <new>\` after your edits (one desk only - see Between rounds). Write the
 file OUTSIDE the working tree (temp or gitignored): working mode surfaces untracked files, so an
 in-repo guide shows as a stray addition. Validation refuses a guide naming the field and what it

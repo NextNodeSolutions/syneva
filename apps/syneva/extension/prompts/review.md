@@ -17,7 +17,7 @@ Treat **`syneva spec`** as the authoritative contract — run it once before you
      c. Review only the uncommitted working-tree changes now (`syneva`, repo mode) and skip branch commits.
      Never commit, stash, or checkout without the user's explicit choice.
 2. **Author the guide** against the inventory: `syneva inventory pr <ref>` (the same ref and flags as the open; nothing is checked out) prints the review source - its fingerprint, files and changed units are what the guide names. Read the changed code around them and write the guide JSON to `/tmp/syneva-guide-<ref|branch>.json`, OUTSIDE the working tree, following the guide section of `syneva spec` - the schema, the limits and the authoring workflow and rules (grouping, risk, forms, references, what to verify) live there, not here. With `focused`, say so in the overview and keep the explanations to what the reviewer must judge. A validation refusal names the field - fix the field, never pad the guide.
-3. **Open the desk on the hub** with the guide (a pr or repo desk opens only with one) and capture its URL (the command returns at once; the hub starts in the background when none runs):
+3. **Open the desk on the hub** with the guide (a pr or repo desk is guided by default: pass it) and capture its URL (the command returns at once; the hub starts in the background when none runs):
    ```bash
    syneva open pr ${1:-$(git branch --show-current)} --guide /tmp/syneva-guide-<ref|branch>.json | tee /tmp/syneva-<slug>.json
    url=$(jq -r .url /tmp/syneva-<slug>.json); echo "${url:-open failed - read the command's stderr}"

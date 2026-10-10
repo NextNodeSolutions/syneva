@@ -148,14 +148,17 @@ function adoptGuide(lite: DeskPollSnapshot): boolean {
 	const incoming = JSON.stringify([
 		lite.guide ?? null,
 		lite.guideResolution ?? null,
+		lite.guideExpected ?? false,
 	])
 	const current = JSON.stringify([
 		state.guide ?? null,
 		state.guideResolution ?? null,
+		state.guideExpected ?? false,
 	])
 	if (incoming === current) return false
 	state.guide = lite.guide
 	state.guideResolution = lite.guideResolution
+	state.guideExpected = lite.guideExpected
 	return true
 }
 

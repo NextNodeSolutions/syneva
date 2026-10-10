@@ -35,8 +35,6 @@ export type HubRouteDeps = {
 const OPEN_FIXES: Record<string, string> = {
 	INVALID_GUIDE:
 		'Fix the guide fields named above (`syneva spec`, The guide), then open again.',
-	GUIDE_REQUIRED:
-		'Take the inventory of this very source (`syneva inventory` with the same target and flags), author the guide against it (`syneva spec`, The guide), then open again with --guide <file>. A file desk opens without one.',
 }
 
 export const DESK_NOT_FOUND: ApiFailure = {
