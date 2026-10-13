@@ -69,9 +69,15 @@ function packetOf(
 		pending.reason === 'draft'
 			? DRAFT_NOTE
 			: staleNote(owned.stale?.reasons ?? [])
+	// The rules follow the bounded part, so a reader that stops before the appendix still has them.
+	const packet = domainPacket(domain, owned, state, note)
 	return {
 		id: domain.id,
-		markdown: `${domainPacket(domain, owned, state, note)}\n${WRITING_GUIDE}`,
+		markdown: [
+			packet.body,
+			WRITING_GUIDE,
+			...(packet.appendix ? [packet.appendix] : []),
+		].join('\n'),
 	}
 }
 
