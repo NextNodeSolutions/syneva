@@ -1,19 +1,21 @@
 // Every changed block named by the code it sits in: both sides of each outlined file read in one batch (the revisions the diff was taken over), parsed once per content, and each block mapped to its enclosing declaration.
 import path from 'node:path'
 
-import { blockCounts, changeTitle } from '../domain/change-blocks.js'
+import { blockCounts, changeKey, changeTitle } from '../domain/change-blocks.js'
 import { hash } from '../domain/identity.js'
 import {
 	blockDeclarations,
 	changeTrivia,
 	outlineLanguage,
 } from '../domain/outline.js'
+import { symbolLinks } from '../domain/symbol-links.js'
 
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
 
 import type { SourceOutline } from '../domain/outline.js'
 import type { ChangeState, ReviewFile, ReviewState } from '../domain/review.js'
+import type { LinkSource } from '../domain/symbol-links.js'
 import type { GitPort } from './ports.js'
 
 type Side = ChangeState['side']
@@ -141,30 +143,46 @@ function outlineFor(
 	return outlineOf(change.path, text, git)
 }
 
+type Named = { change: ChangeState; link?: LinkSource | undefined }
+
 function namedChange(
 	change: ChangeState,
 	texts: SideTexts,
 	git: GitPort,
-): ChangeState {
+): Named {
 	const outline = outlineFor(change, texts, git)
-	if (!outline) return change
+	if (!outline) return { change }
 	const span = {
 		lineNumber: change.lineNumber,
 		endLine: change.endLine ?? change.lineNumber,
 	}
-	const [declaration] = blockDeclarations(outline, span)
+	const declarations = blockDeclarations(outline, span)
+	const [declaration] = declarations
 	const symbol = declaration
 		? { name: declaration.name, kind: declaration.kind }
 		: undefined
 	const trivia = changeTrivia(outline, span)
-	return {
+	const named = {
 		...change,
 		symbol,
 		trivia,
 		title: changeTitle(blockCounts(change), { symbol, trivia }),
 	}
+	if (!declaration) return { change: named }
+	return {
+		change: named,
+		link: {
+			key: changeKey(change),
+			path: change.path,
+			symbol: declaration.name,
+			declared: declarations.map(entry => entry.name),
+			uses: [...new Set(declarations.flatMap(entry => entry.uses))],
+			imports: outline.imports,
+		},
+	}
 }
 
+// The blocks named, then linked: each block learns which other changed declarations its own declaration references.
 export async function nameChanges(
 	state: ReviewState,
 	git: GitPort,
@@ -174,8 +192,16 @@ export async function nameChanges(
 		state.mode === 'file'
 			? await readFileDeskSides(state, git)
 			: await readSides(state, wantedSides(state), git)
+	const named = state.changes.map(change => namedChange(change, texts, git))
+	const links = symbolLinks(named.flatMap(entry => entry.link ?? []))
 	return {
 		...state,
-		changes: state.changes.map(change => namedChange(change, texts, git)),
+		changes: named.map(({ change }) =>
+			withLinks(change, links.get(changeKey(change)) ?? []),
+		),
 	}
+}
+
+function withLinks(change: ChangeState, links: string[]): ChangeState {
+	return links.length ? { ...change, links } : change
 }

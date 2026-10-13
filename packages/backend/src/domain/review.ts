@@ -99,6 +99,8 @@ export type ChangeState = {
 	// The declaration the block sits in (a function, a class member, a Markdown section) and whether it touches only comments or imports: read from the file's outline when the language has one.
 	readonly symbol?: ChangeSymbol | undefined
 	readonly trivia?: ChangeTrivia | undefined
+	// The other changed declarations this block's declaration references (`path#Name` nodes, symbol-links.ts): what the draft guide groups by.
+	readonly links?: readonly string[] | undefined
 	readonly stableKey?: string | undefined
 	readonly status: 'pending' | 'accepted' | 'rejected'
 	readonly stageable?: boolean | undefined
