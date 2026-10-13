@@ -1,0 +1,42 @@
+{
+	"runs": [
+		{
+			"id": "draft-v1-syneva-stack",
+			"date": "2026-10-13T16:07:14.336Z",
+			"note": "First draft (PR 33): Louvain over link, companion, neighbour and folder edges, small groups folded, cap round(sqrt(n)) <= 25. Range main..feat/guide-draft, the guided-review stack.",
+			"repo": "syneva",
+			"base": "ae4f600a01",
+			"head": "d1145709bb",
+			"buildMs": 316,
+			"draftMs": 27,
+			"blocks": 600,
+			"scored": 547,
+			"commits": 11,
+			"domains": 17,
+			"largestDomain": 103,
+			"unassigned": 0,
+			"nmi": 0.4,
+			"purity": 0.527,
+			"linkCohesion": 0.803
+		},
+		{
+			"id": "draft-v1-core-cloud-only",
+			"date": "2026-10-13T16:07:15.277Z",
+			"note": "First draft (PR 33) on nextnode/core feat/core-cloud-only: one squashed commit, so only timing and linkCohesion apply.",
+			"repo": "core",
+			"base": "0b6f6cc784",
+			"head": "7d1051ae1a",
+			"buildMs": 629,
+			"draftMs": 71,
+			"blocks": 1326,
+			"scored": 299,
+			"commits": 1,
+			"domains": 25,
+			"largestDomain": 250,
+			"unassigned": 0,
+			"nmi": null,
+			"purity": null,
+			"linkCohesion": 0.843
+		}
+	]
+}
