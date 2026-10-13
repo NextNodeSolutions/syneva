@@ -13,6 +13,7 @@ server — see "MCP trajectory".
 | `prompts/plan.md`, `prompts/review.md` | `/plan` and `/review` prompt templates: open a desk on the hub, attach, act on events. | prompt templates |
 | `skills/syneva/SKILL.md` | The bootstrap skill: what Syneva is, when to reach for it, and the single rule that matters — run `syneva spec` for the authoritative contract. | skill |
 | `subagents/syneva-answer.md` | The read-only subagent that answers one review question for pasting into a thread. | subagent |
+| `subagents/syneva-explain.md` | The subagent that explains one domain of a drafted guide from its code packet, read-only on the repository: it writes one JSON file the `/review` prompt merges and posts. | subagent |
 
 ## Rules
 
