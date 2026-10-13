@@ -130,3 +130,24 @@ timings (`pool:window:done` → `rows`, `slice`, `tokenize`).
 
 `test/benchmarks/browser-bench.mjs` is the older headful latency bench (scroll smoothness, memory). It is
 not the source of `stagesMs`: prefer the `synevaPerf` timeline, and record its numbers here.
+
+## Guide partition
+
+`node test/benchmarks/guide-partition.mjs [--repo <path>] [--base <ref>] [--head <ref>]` measures the
+guide a guided desk opens on (`domain/guide-redraft.ts`) over a real changeset, after `pnpm build`
+(it imports `packages/backend/dist`). It builds the review of the merge-base of `--base` (default
+`main`) and `--head` (default `HEAD`) as a pr desk would, by ref: nothing is checked out and no hub
+runs. It prints:
+
+- `buildMs` (the diff, the outlines and the symbol links) and `draftMs` (the grouping and the draft).
+- `blocks`, `domains`, `largestDomain` (blocks in the biggest domain) and `unassigned` (always 0 on a
+  draft).
+- `nmi` and `purity` against the commit that wrote each block, taken from `git blame` over the range:
+  `nmi` is 1 when domains and commits are the same partition, `purity` is the share of blocks whose
+  domain's most common commit is their own. Only blocks with added lines are `scored`, and a range of
+  one commit scores `null`, since one commit says nothing about grouping. Commits are a proxy for
+  intent, not ground truth: a later commit that edits earlier lines takes them over.
+- `linkCohesion`: the share of references between changed declarations whose two ends share a domain.
+
+`--record <id> --note <text>` keeps the run in `guide-partition.json`, idempotent by `id`. Record a run
+before and after a change to the grouping, on the same ranges, and say in the note what changed.
