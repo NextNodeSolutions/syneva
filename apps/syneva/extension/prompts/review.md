@@ -24,11 +24,14 @@ Treat **`syneva spec`** as the authoritative contract — run it once before you
    Adjust the command line to the decisions above (e.g. repo mode `syneva open`). Report the printed URL (and the `dashboard` URL) to the user. `outcome: "reloaded"` means the desk was already open: its tab updated by itself.
 3. **Explain the guide.** The open's JSON names `guide` (the guide.json to fill, in a folder of its own outside the working tree) and `pending` (each domain waiting for your words, with its `packet`). The authoring workflow and rules of `syneva spec` apply; the packets carry the rules a domain needs.
    - Launch one `syneva-explain` subagent per pending domain with the `subagent` tool, all at once (async), each with the task `Explain domain <id>. Packet: <packet>. Guide: <guide>. Write: <guide folder>/explained/<id>.json`. Never explain the domains one after another yourself: they are independent.
-   - When they are all done, merge their files and post once. When `overviewDrafted`, write the overview (what the changeset does and why, from the domains' titles and risks); otherwise pass it empty to keep the desk's:
+   - With no `pending` domain and no `overviewDrafted`, the guide is complete: skip this step.
+   - When they are all done, merge their files and post once. When `overviewDrafted`, write the overview (what the changeset does and why, from the domains' titles and risks); otherwise pass it empty to keep the desk's. Nothing is posted when no subagent wrote a file and the overview is kept, and the reload runs only once the merge succeeded:
      ```bash
-     guide=$(jq -r .guide /tmp/syneva-<slug>.json); dir=$(dirname "$guide")
-     jq -s --arg overview "<overview>" '.[0] + {overview: (if $overview == "" then .[0].overview else $overview end), domains: [.[1:][][]]}' "$guide" "$dir"/explained/*.json > "$dir/posted.json"
-     syneva reload --guide "$dir/posted.json"
+     guide=$(jq -r .guide /tmp/syneva-<slug>.json); dir=$(dirname "$guide"); overview="<overview>"
+     set -- "$dir"/explained/*.json; [ -e "$1" ] || set --
+     if [ $# -gt 0 ] || [ -n "$overview" ]; then
+       jq -s --arg overview "$overview" '.[0] + {overview: (if $overview == "" then .[0].overview else $overview end), domains: [.[1:][][]]}' "$guide" "$@" > "$dir/posted.json" && syneva reload --guide "$dir/posted.json"
+     fi
      ```
      A domain the post leaves out stays as it is: a subagent that failed leaves its domain pending, explain it again. A refusal names the field - fix it in that domain's file and post again, never pad the guide. With `focused`, say so in the overview and tell each subagent to keep its explanation to what the reviewer must judge.
 4. **Attach the owning Pi session** with `syneva_agent` as documented in `syneva spec`, then return control. Never delegate waiting to a one-shot subagent. If the tool is unavailable, report the missing native attachment rather than claim the desk will wake an idle agent. Incoming native messages point to the complete event JSON; read it before handling the event:
