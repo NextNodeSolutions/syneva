@@ -3,7 +3,7 @@ import { redraftGuide } from '../domain/guide-redraft.js'
 import { attachGuide } from './attach-guide.js'
 import { buildSourceState } from './open-desk.js'
 
-import type { Guide } from '../domain/guide-shapes.js'
+import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { DeskIdentity, DeskIo, DeskQuery } from './open-desk.js'
 
 export type AdmissionCode = 'INVALID_GUIDE' | 'NO_REVIEW'
@@ -17,7 +17,7 @@ export type Admission =
 export async function admitOpen(
 	identity: DeskIdentity,
 	query: DeskQuery,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 	io: DeskIo,
 ): Promise<Admission> {
 	if (!guide) return { ok: true }

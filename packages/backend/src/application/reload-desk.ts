@@ -9,7 +9,7 @@ import { attachGuide } from './attach-guide.js'
 import { buildReviewState } from './build.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
-import type { Guide } from '../domain/guide-shapes.js'
+import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { ReviewState } from '../domain/review.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
 
@@ -28,7 +28,7 @@ export async function reloadDesk(
 	io: ReloadIo,
 	guideSwap: { guide: unknown } | undefined,
 ): Promise<ReloadOutcome> {
-	let validatedGuide: Guide | undefined
+	let validatedGuide: AuthoredGuide | undefined
 	if (guideSwap) {
 		const validation = validateGuide(guideSwap.guide)
 		if (!validation.ok)
@@ -101,7 +101,7 @@ type GuidedState =
 async function withPostedGuide(
 	state: ReviewState,
 	pathFilter: string | undefined,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 	git: GitPort,
 ): Promise<GuidedState> {
 	if (!guide) return { ok: true, state }
@@ -125,7 +125,7 @@ async function withPostedGuide(
 async function reloadEmpty(
 	state: ReviewState,
 	pathFilter: string | undefined,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 	io: ReloadIo,
 ): Promise<ReloadOutcome> {
 	const cleared: ReviewState = {

@@ -7,7 +7,7 @@ import { deskEndpoint, hubSend } from './hub-client.js'
 import { failureText } from './hub-wire.js'
 import { noDeskHint, targetDesk } from './target-desk.js'
 
-import type { Guide } from '@syneva/contracts/guide'
+import type { AuthoredGuide } from '@syneva/contracts/guide'
 import type { CliArgs } from './args.js'
 
 const HTTP_OK = 200
@@ -50,7 +50,9 @@ export async function runReload(args: CliArgs): Promise<void> {
 }
 
 // A body that is always an object so an absent guide posts {} (re-diff only) rather than an empty body the hub would have to special-case.
-function reloadBody(guide: Guide | undefined): { guide?: Guide } {
+function reloadBody(guide: AuthoredGuide | undefined): {
+	guide?: AuthoredGuide
+} {
 	if (!guide) return {}
 	return { guide }
 }

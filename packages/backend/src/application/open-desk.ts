@@ -10,7 +10,7 @@ import { guideExpectation } from './open-policy.js'
 import { resolvePrTarget } from './pr-target.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
-import type { Guide } from '../domain/guide-shapes.js'
+import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { ReviewMode, ReviewState } from '../domain/review.js'
 import type { BuildQuery } from './build.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
@@ -149,7 +149,7 @@ export async function buildSourceState(
 export async function buildDeskState(
 	identity: DeskIdentity,
 	query: DeskQuery,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 	io: DeskIo,
 ): Promise<DeskBuildOutcome> {
 	const buildQuery = toBuildQuery(identity, query)

@@ -6,7 +6,7 @@ import { validateGuide } from '../../../domain/guide.js'
 import { warn } from '../../outbound/console.js'
 import { getGitRoot } from '../../outbound/git/repo.js'
 
-import type { Guide } from '@syneva/contracts/guide'
+import type { AuthoredGuide } from '@syneva/contracts/guide'
 
 // A flag that was never passed has no key at all, so every read is | undefined: callers default it instead of trusting the index signature's non-null type.
 export type CliArgs = Record<string, string | boolean | undefined>
@@ -63,7 +63,7 @@ export async function resolveRoot(args: CliArgs): Promise<string> {
 // Returns the validated guide, undefined when the flag is absent, or null on any error (after printing why) so the caller can abort.
 export function loadGuideArg(
 	guideFlag: string | boolean | undefined,
-): Guide | undefined | null {
+): AuthoredGuide | undefined | null {
 	if (!guideFlag) return undefined
 	if (typeof guideFlag !== 'string') {
 		warn(

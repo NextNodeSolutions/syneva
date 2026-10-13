@@ -24,7 +24,7 @@ import { queryOf, recordOf, sameSource } from './hub-records.js'
 import type { DeskSummary, OpenDeskOutcome } from '@syneva/contracts/hub'
 import type { DeskIdentity, DeskQuery } from '../../../application/open-desk.js'
 import type { HubRegistryPort } from '../../../application/ports.js'
-import type { Guide } from '../../../domain/guide-shapes.js'
+import type { AuthoredGuide } from '../../../domain/guide-shapes.js'
 import type { HubDeskRecord } from '../../../domain/hub-registry.js'
 import type { ReviewInventory } from '../../../domain/inventory.js'
 import type { ReviewState } from '../../../domain/review.js'
@@ -52,7 +52,10 @@ export type HubIo = HostedDeskIo & {
 export type Hub = {
 	readonly instanceId: string
 	readonly startedAt: string
-	openDesk(query: DeskQuery, guide: Guide | undefined): Promise<OpenOutcome>
+	openDesk(
+		query: DeskQuery,
+		guide: AuthoredGuide | undefined,
+	): Promise<OpenOutcome>
 	// The review source as a guide is authored against it: the live desk's when one reviews that source, else built from the repo without registering, persisting or journaling anything.
 	inventory(query: DeskQuery): Promise<InventoryOutcome>
 	getDesk(id: string): HubDesk | undefined
@@ -147,7 +150,7 @@ function registerDesk(
 async function openOrReuse(
 	state: HubState,
 	query: DeskQuery,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 ): Promise<OpenOutcome> {
 	const problem = await rootProblem(query, state.io.git)
 	if (problem) return { ok: false, code: 'NO_REPOSITORY', reason: problem }
@@ -171,7 +174,7 @@ async function openOrReuse(
 async function reuseDesk(
 	state: HubState,
 	live: HubDesk,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 	query: DeskQuery,
 ): Promise<OpenOutcome> {
 	const guideSwap = guide ? { guide } : undefined
@@ -199,7 +202,7 @@ async function createDesk(
 	state: HubState,
 	identity: DeskIdentity,
 	query: DeskQuery,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 ): Promise<OpenOutcome> {
 	const checkout = await checkoutPrTarget(
 		identity.checkout,
