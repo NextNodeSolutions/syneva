@@ -8,6 +8,7 @@ import {
 } from './routes/agent.js'
 import { serveBlob } from './routes/blob.js'
 import {
+	serveAuthoring,
 	serveInventory,
 	servePoll,
 	serveSettings,
@@ -40,6 +41,7 @@ export const routes: RouteTable = {
 	[`GET ${API_PATHS.blob}`]: serveBlob,
 	[`GET ${API_PATHS.fileContents}`]: serveFileContents,
 	[`GET ${API_PATHS.inventory}`]: serveInventory,
+	[`GET ${API_PATHS.authoring}`]: serveAuthoring,
 	[`POST ${API_PATHS.openEditor}`]: openInEditor,
 	[`POST ${API_PATHS.save}`]: saveReview,
 	[`POST ${API_PATHS.send}`]: sendReviewToAgent,

@@ -3,6 +3,7 @@ import { API_PATHS } from '@syneva/contracts/routes'
 import { printJson, warn } from '../../outbound/console.js'
 
 import { loadGuideArg } from './args.js'
+import { writeAuthoring } from './authoring.js'
 import { deskEndpoint, hubSend } from './hub-client.js'
 import { failureText } from './hub-wire.js'
 import { noDeskHint, targetDesk } from './target-desk.js'
@@ -41,11 +42,13 @@ export async function runReload(args: CliArgs): Promise<void> {
 		process.exitCode = 1
 		return
 	}
+	const authoring = await writeAuthoring(live.hub, live.desk.id)
 	printJson({
 		ok: true,
 		live: true,
 		session: live.desk.session,
 		...readReloadResult(response.body),
+		...authoring,
 	})
 }
 

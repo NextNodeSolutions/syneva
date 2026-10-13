@@ -6,6 +6,7 @@ import { printJson, warn } from '../../outbound/console.js'
 import { openBrowser } from '../http/listen.js'
 
 import { flagText, loadGuideArg, resolveRepo } from './args.js'
+import { writeAuthoring } from './authoring.js'
 import { connectHub, hubEndpoint, hubSend } from './hub-client.js'
 import { failureText, readDesk } from './hub-wire.js'
 
@@ -122,6 +123,7 @@ async function report(
 			'Nothing to review yet - the desk is open and shows your next `syneva reload`.',
 		)
 	warn(`Dashboard: ${hub.url}`)
+	const authoring = await writeAuthoring(hub, desk.id)
 	printJson({
 		ok: true,
 		deskId: desk.id,
@@ -131,6 +133,7 @@ async function report(
 		mode: desk.mode,
 		outcome,
 		empty: desk.empty,
+		...authoring,
 	})
 	if (outcome === 'created' && args.open !== false) await openBrowser(url)
 }
