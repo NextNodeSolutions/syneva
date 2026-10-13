@@ -79,8 +79,12 @@ by ref):
   into guide.source.fingerprint. Two inventories with the same fingerprint are the same review.
 - files[] - { path, oldPath?, newPath?, changeKind, contentHash, hasHunks, renamePure, added, removed }
 - units[] - the changed text blocks: { key, path, side, lineNumber, endLine, removed, added,
-  contentHash, title }. A member or a reference names a block by any line of lineNumber..endLine on
-  its side; \`key\` (path:stableKey) is what verdicts and the unassigned list name.
+  contentHash, title, symbol?, trivia? }. A member or a reference names a block by any line of
+  lineNumber..endLine on its side; \`key\` (path:stableKey) is what verdicts and the unassigned
+  list name. \`symbol\` ({ name, kind }) is the declaration the block sits in, for TS/JS and
+  Markdown (a function, \`Class.method\`, a type, a top-level call such as \`describe("x")\`, a
+  heading's section) - group by it instead of re-reading the diff; \`trivia\` is "comment" or
+  "import" when the block changes only comments, or only imports and exports.
 - fileUnits[] - the paths with no text block (a pure rename, an untracked addition): each needs a
   { kind: "file", path } member.
 On a live desk, GET /api/desks/<id>/inventory answers the same for its current diff; the hub answers

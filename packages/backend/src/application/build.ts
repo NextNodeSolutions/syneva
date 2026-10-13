@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import { hash, sanitizeSession } from '../domain/identity.js'
 
+import { nameChanges } from './change-symbols.js'
 import { buildDiffSource, resolveDefaultBranch } from './diff-source.js'
 import { nowIso } from './time.js'
 
@@ -21,7 +22,18 @@ export type BuildQuery = {
 	head?: string | undefined
 }
 
+// Every changed block leaves here named by the code it sits in (change-symbols.ts), whatever built it: an open, a reload, a restore or an inventory.
 export async function buildReviewState(
+	cwd: string,
+	query: BuildQuery,
+	git: GitPort,
+): Promise<ReviewState | null> {
+	const built = await buildModeReview(cwd, query, git)
+	if (!built) return null
+	return await nameChanges(built, git)
+}
+
+async function buildModeReview(
 	cwd: string,
 	query: BuildQuery,
 	git: GitPort,

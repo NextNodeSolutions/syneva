@@ -3,6 +3,7 @@
 // ReviewComment/ChangeState/Decision structurally mirror packages/contracts/review.ts (domain may not import contracts) - keep both sides in sync; the guide's mirror is guide-shapes.ts.
 
 import type { Guide, GuideResolution } from './guide-shapes.js'
+import type { ChangeSymbol, ChangeTrivia } from './outline.js'
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
@@ -95,6 +96,9 @@ export type ChangeState = {
 	readonly lineNumber: number
 	readonly endLine?: number | undefined
 	readonly title: string
+	// The declaration the block sits in (a function, a class member, a Markdown section) and whether it touches only comments or imports: read from the file's outline when the language has one.
+	readonly symbol?: ChangeSymbol | undefined
+	readonly trivia?: ChangeTrivia | undefined
 	readonly stableKey?: string | undefined
 	readonly status: 'pending' | 'accepted' | 'rejected'
 	readonly stageable?: boolean | undefined
