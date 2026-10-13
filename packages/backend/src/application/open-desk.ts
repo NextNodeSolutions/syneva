@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import { reanchorDomainComments } from '../domain/domain-comments.js'
+import { redraftGuide } from '../domain/guide-redraft.js'
 import { deskId, deskSession } from '../domain/identity.js'
 
 import { attachGuide } from './attach-guide.js'
@@ -158,7 +159,11 @@ export async function buildDeskState(
 	const base =
 		built ?? (await emptyReviewState(identity.root, buildQuery, io.git))
 	const saved = await io.store.loadLatestReview(base.root, identity.session)
-	let state = await mergeReviewState(base, saved, io.git)
+	const merged = await mergeReviewState(base, saved, io.git)
+	// A guided desk opens on its guide at once: the code no explained domain owns is drafted before anything else reads the state.
+	let state = guideExpectation(query)
+		? redraftGuide(merged, query.pathFilter)
+		: merged
 	// A posted guide is resolved against this very diff before anything is persisted: a refused guide leaves no desk behind.
 	if (guide) {
 		const attached = await attachGuide(

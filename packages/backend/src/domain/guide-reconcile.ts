@@ -167,9 +167,12 @@ export function reconcileGuide(
 				resolveReferenceNow(target, refId, inventory, contextHashes),
 		)
 	}
+	// Which domains are Syneva's drafts is a fact about their words, not their code: a reconcile carries it, the redraft that follows decides what to draw again.
 	return {
 		fingerprint: attached.fingerprint,
 		domains: propagatePrerequisites(guide, domains),
 		unassigned: ownership.unassigned,
+		drafted: attached.drafted,
+		overviewDrafted: attached.overviewDrafted,
 	}
 }

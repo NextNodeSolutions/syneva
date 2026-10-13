@@ -1,5 +1,6 @@
 import { reanchorDomainComments } from '../domain/domain-comments.js'
 import { reconcileGuide } from '../domain/guide-reconcile.js'
+import { redraftGuide } from '../domain/guide-redraft.js'
 import { validateGuide } from '../domain/guide.js'
 import { hash } from '../domain/identity.js'
 import { buildInventory } from '../domain/inventory.js'
@@ -37,7 +38,7 @@ export async function reloadDesk(
 	const base = await rebuildBase(state, pathFilter, io.git)
 	if (!base) return await reloadEmpty(state, pathFilter, validatedGuide, io)
 	const merged = await withPostedGuide(
-		await mergeReviewState(base, state, io.git),
+		redrafted(await mergeReviewState(base, state, io.git), pathFilter),
 		pathFilter,
 		validatedGuide,
 		io.git,
@@ -84,6 +85,14 @@ function rebuildPathOf(
 	return undefined
 }
 
+// A guided desk keeps its guide whole across reloads: the code no explained domain owns is drafted again.
+function redrafted(
+	state: ReviewState,
+	pathFilter: string | undefined,
+): ReviewState {
+	return state.guideExpected ? redraftGuide(state, pathFilter) : state
+}
+
 type GuidedState =
 	| { ok: true; state: ReviewState }
 	| { ok: false; reason: string }
@@ -127,7 +136,10 @@ async function reloadEmpty(
 		baseDiffHash: hash(''),
 	}
 	const emptied = await withPostedGuide(
-		{ ...cleared, guideResolution: reconciledOnEmpty(cleared) },
+		redrafted(
+			{ ...cleared, guideResolution: reconciledOnEmpty(cleared) },
+			pathFilter,
+		),
 		pathFilter,
 		guide,
 		io.git,
