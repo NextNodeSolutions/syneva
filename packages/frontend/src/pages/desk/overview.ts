@@ -2,7 +2,9 @@ import { orderedDomains } from '@entities/review/guide/domains'
 import { guideInputs, guideStale } from '@entities/review/guide/guide'
 import {
 	domainProgress,
+	isDomainDrafted,
 	isDomainStale,
+	isOverviewDrafted,
 	unassignedChanges,
 	unassignedFiles,
 } from '@entities/review/guide/resolution'
@@ -31,7 +33,10 @@ function domainRow(domain: GuideDomain, state: ReviewState): string {
 	const stale = isDomainStale(state, domain.id)
 		? `<span class="${cx(tag.base, tag.amber)}">Stale</span>`
 		: ''
-	return `<li class="${cx(overview.domain)}"><button class="${cx(overview.domainButton)}" data-domain="${esc(domain.id)}"><span class="${cx(overview.domainHead)}">${riskTagHtml(domain.risk)}${stale}<span class="${cx(overview.domainTitle)}">${esc(domain.title)}</span><span class="${cx(caption.base, overview.domainFiles)}">${count}</span></span><p class="${cx(overview.consequence)}">${esc(domain.consequence)}</p></button></li>`
+	const drafted = isDomainDrafted(state, domain.id)
+		? `<span class="${cx(tag.base, tag.neutral)}">Draft</span>`
+		: ''
+	return `<li class="${cx(overview.domain)}"><button class="${cx(overview.domainButton)}" data-domain="${esc(domain.id)}"><span class="${cx(overview.domainHead)}">${riskTagHtml(domain.risk)}${stale}${drafted}<span class="${cx(overview.domainTitle)}">${esc(domain.title)}</span><span class="${cx(caption.base, overview.domainFiles)}">${count}</span></span><p class="${cx(overview.consequence)}">${esc(domain.consequence)}</p></button></li>`
 }
 
 // Changes the guide does not own (after a reload exposed them): pending, listed here and under Other - never folded into a domain.
@@ -48,6 +53,13 @@ function unassignedNote(state: ReviewState): string {
 			: '',
 	].filter(Boolean)
 	return `<div class="${cx(overview.unassigned)}">${iconHtml('gly-warn')} ${parts.join(' and ')} not in the guide: pending, listed under Other in the Walkthrough.</div>`
+}
+
+// While the agent explains the changeset, the guide reads as Syneva drew it: said once, above the domains it concerns.
+function draftNote(state: ReviewState): string {
+	const domains = state.guideResolution?.drafted?.length ?? 0
+	if (!domains && !isOverviewDrafted(state)) return ''
+	return `<div class="${cx(overview.drafted)}">Syneva drafted this guide from the code's structure: the domains marked Draft are grouped and named, not explained yet. Your agent's explanations replace them as it posts them.</div>`
 }
 
 // The reading order itself: the changeset's intent, then its domains highest risk first - each with the consequence its risk rests on - and Start, which opens the first file of the first domain.
@@ -70,6 +82,7 @@ export function renderOverview(): void {
     <h1 class="${cx(overview.title)}">${esc(title)}</h1>
     <div class="${cx(caption.base, overview.sub)}">${esc(state.mode)} · ${esc(state.session)} · ${state.files.length} files · ${domains.length} ${domains.length === 1 ? 'domain' : 'domains'}</div>
     ${stale}
+    ${draftNote(state)}
     ${unassignedNote(state)}
     <div class="${cx(overview.intent)}" data-prose="guide">${renderMarkdown(state.guide?.overview ?? '')}</div>
     <div class="${cx(caption.base, caption.upper, overview.label)}">Domains, highest risk first</div>

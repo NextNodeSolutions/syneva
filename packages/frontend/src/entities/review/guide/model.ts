@@ -165,4 +165,7 @@ export type GuideResolution = {
 	fingerprint: string
 	domains: Record<string, DomainResolution>
 	unassigned: { units: string[]; files: string[] }
+	// The domains Syneva drafted from the code's structure that no agent has explained yet, and whether the overview is still its draft.
+	drafted?: string[] | undefined
+	overviewDrafted?: boolean | undefined
 }

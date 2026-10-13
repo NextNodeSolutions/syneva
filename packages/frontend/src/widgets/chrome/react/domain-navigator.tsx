@@ -2,6 +2,7 @@ import { orderedDomains } from '@entities/review/guide/domains'
 import { changeSpan } from '@entities/review/guide/navigation'
 import {
 	domainProgress,
+	isDomainDrafted,
 	isDomainStale,
 	unassignedChanges,
 	unassignedFiles,
@@ -21,6 +22,8 @@ import type { ReactElement } from 'react'
 
 const PERCENT = 100
 const MINUS = '\u2212'
+const DRAFT_NOTE =
+	"Drafted by Syneva from the code's structure: grouped and named, not explained by the agent yet"
 
 function Verdict({
 	progress,
@@ -105,6 +108,14 @@ function DomainRow({
 				</span>
 				{isDomainStale(state, domain.id) && (
 					<span {...stylex.props(tag.base, tag.amber)}>Stale</span>
+				)}
+				{isDomainDrafted(state, domain.id) && (
+					<span
+						{...stylex.props(tag.base, tag.neutral)}
+						title={DRAFT_NOTE}
+					>
+						Draft
+					</span>
 				)}
 				<span {...stylex.props(styles.title)}>{domain.title}</span>
 			</span>

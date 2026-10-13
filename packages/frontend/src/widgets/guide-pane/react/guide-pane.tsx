@@ -3,6 +3,7 @@ import { orderedDomains } from '@entities/review/guide/domains'
 import {
 	domainById,
 	domainProgress,
+	isDomainDrafted,
 	isDomainStale,
 	staleReasons,
 } from '@entities/review/guide/resolution'
@@ -158,6 +159,7 @@ export function GuidePane(): ReactElement {
 				position={domains.indexOf(domain) + 1}
 				total={domains.length}
 				isStale={isStale}
+				isDrafted={isDomainDrafted(state, domain.id)}
 			/>
 			{isStale && (
 				<StaleBanner reasons={staleReasons(state, domain.id)} />

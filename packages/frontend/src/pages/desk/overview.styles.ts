@@ -48,6 +48,12 @@ export const overview = stylex.create({
 		lineHeight: 1.45,
 		color: color['--amber'],
 	},
+	drafted: {
+		marginBottom: '18px',
+		fontSize: deskText.body,
+		lineHeight: 1.45,
+		color: color['--muted'],
+	},
 	unassigned: {
 		display: 'flex',
 		alignItems: 'center',
