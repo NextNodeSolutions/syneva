@@ -35,6 +35,11 @@ export interface GitPort {
 			path?: string | undefined
 		},
 	) => Promise<Map<string, string>>
+	// Many objects in one git process (`cat-file --batch`), keyed by the spec asked for (`<rev>:<path>`, `:0:<path>`); a missing object is simply absent.
+	readonly readObjects: (
+		root: string,
+		specs: readonly string[],
+	) => Promise<Map<string, string>>
 	readonly getGitRoot: (cwd: string) => Promise<string>
 	readonly getHead: (cwd: string) => Promise<string | null>
 	// The branch at cwd ("" when HEAD is unresolvable): the CLI's default session name.
