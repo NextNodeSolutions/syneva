@@ -1,4 +1,9 @@
 // What the agent explaining a guided desk works from (GET /authoring): the guide file to fill - the overview and the domains still waiting for words, members left out so each keeps the blocks it owns, stamped with the current source so it posts back as is - and each pending domain's code in a packet. A domain the file leaves out stays as it is when the file is posted, so the file is the agent's to-do list and nothing else.
+import {
+	AUTHORING_RULES_SPEC,
+	DOMAIN_FIELDS_SPEC,
+} from '@syneva/contracts/spec-guide'
+
 import { domainPacket } from '../domain/guide-packets.js'
 import { isMechanicalDomain, sourceOf } from '../domain/guide-redraft.js'
 import { buildInventory } from '../domain/inventory.js'
@@ -17,6 +22,17 @@ import type { ReviewState } from '../domain/review.js'
 
 const DRAFT_NOTE =
 	"Drafted by Syneva from the code's structure: its title, summary, consequence and risk are mechanical. Read the code below and write what it does, why, and what breaks if it is wrong."
+
+// The contract's own words on writing a domain close every packet, so whoever explains one domain needs nothing else.
+const WRITING_GUIDE = [
+	'## How to write it',
+	'',
+	"The domain is one object of the guide's `domains`, with these fields (leave `members` out unless you regroup):",
+	DOMAIN_FIELDS_SPEC,
+	'',
+	AUTHORING_RULES_SPEC,
+	'',
+].join('\n')
 
 function staleNote(reasons: readonly string[]): string {
 	return `Explained before, but the code changed since: ${reasons.join('; ')}. Check the explanation against the code below and rewrite what no longer holds: posting the domain, changed or not, marks its explanation current.`
@@ -53,7 +69,10 @@ function packetOf(
 		pending.reason === 'draft'
 			? DRAFT_NOTE
 			: staleNote(owned.stale?.reasons ?? [])
-	return { id: domain.id, markdown: domainPacket(domain, owned, state, note) }
+	return {
+		id: domain.id,
+		markdown: `${domainPacket(domain, owned, state, note)}\n${WRITING_GUIDE}`,
+	}
 }
 
 export function guideAuthoring(
