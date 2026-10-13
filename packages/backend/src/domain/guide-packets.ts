@@ -154,7 +154,14 @@ export function domainPacket(
 		...headOf(domain, owned, reason),
 		...bodyOf(hunksOf(owned, state)),
 		...(files.length
-			? ['## File operations (no text diff)', '', ...files, '']
+			? [
+					'## Files without a text diff',
+					'',
+					'A rename, a deletion or an untracked addition: read the file in the repository when its content matters.',
+					'',
+					...files,
+					'',
+				]
 			: []),
 	].join('\n')
 }
