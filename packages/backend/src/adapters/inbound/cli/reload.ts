@@ -4,6 +4,7 @@ import { printJson, warn } from '../../outbound/console.js'
 
 import { loadGuideArg } from './args.js'
 import { deskEndpoint, hubSend } from './hub-client.js'
+import { failureText } from './hub-wire.js'
 import { noDeskHint, targetDesk } from './target-desk.js'
 
 import type { Guide } from '@syneva/contracts/guide'
@@ -30,7 +31,13 @@ export async function runReload(args: CliArgs): Promise<void> {
 		reloadBody(guide),
 	)
 	if (response.status !== HTTP_OK) {
-		warn('Reload failed - is the desk still open on the hub?')
+		// A refused guide names what to fix; only a hub that did not answer gets the generic line.
+		warn(
+			failureText(
+				response.body,
+				'Reload failed - is the desk still open on the hub?',
+			),
+		)
 		process.exitCode = 1
 		return
 	}
