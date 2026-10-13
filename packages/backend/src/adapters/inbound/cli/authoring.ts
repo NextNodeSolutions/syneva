@@ -1,4 +1,4 @@
-// After an open or a reload, the CLI writes what the agent explains a guided desk from as local files: the desk's guide to fill in place (guide.json) and each pending domain's code (packets/<id>.md). One fixed folder per desk, rewritten each time, so the agent always reads the desk as it stands and posts the file back with `syneva reload --guide`.
+// After an open or a reload, the CLI writes what the agent explains a guided desk from as local files: the desk's guide to fill in place (guide.json) and each pending domain's code (packets/<id>.md). One fixed folder per desk, emptied and rewritten each time - whatever the agent left there for the last round goes with it - so the agent always reads the desk as it stands and posts the file back with `syneva reload --guide`.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -78,7 +78,7 @@ function packetName(id: string): string {
 function writeFiles(deskId: string, authoring: Authoring): AuthoringReport {
 	const folder = path.join(os.tmpdir(), 'syneva', deskId)
 	const packets = path.join(folder, 'packets')
-	rmSync(packets, { recursive: true, force: true })
+	rmSync(folder, { recursive: true, force: true })
 	mkdirSync(packets, { recursive: true })
 	const guide = path.join(folder, 'guide.json')
 	writeFileSync(guide, `${JSON.stringify(authoring.guide, null, '\t')}\n`)
