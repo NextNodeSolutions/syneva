@@ -2,24 +2,25 @@
 export const GUIDE_SPEC = `## The guide - a risk-ranked explanation of the changeset
 A guide is the review's reading order AND its explanation: the coherent behaviors the changeset
 changes ("domains"), highest risk first, each owning its changed code across files and explaining
-itself in the form that fits it. You write it (Syneva runs no model), Syneva validates it, resolves
-it against the real diff and renders it beside the real code; the reviewer's decisions, comments
-and Send are never affected by it. A repo or pr desk is guided by default: open it with the guide
-(\`syneva open … --guide <file>\`), or open first and attach it with \`syneva reload --guide <file>\`
-- the desk waits for it in file order meanwhile; \`--no-guide\` opens a plain review on purpose. A
-file desk takes one optionally. Swap it with
-\`syneva reload --guide <new>\` after your edits (one desk only - see Between rounds). Write the
-file OUTSIDE the working tree (temp or gitignored): working mode surfaces untracked files, so an
-in-repo guide shows as a stray addition. Validation refuses a guide naming the field and what it
-wanted - fix the field, never pad the guide.
+itself in the form that fits it. Syneva runs no model: a repo or pr desk (guided by default) opens
+on a DRAFT of its guide drawn from the code's structure - domains grouped by the declarations the
+changeset touches and the references between them, named, ranked and summarized mechanically,
+marked Draft on the desk - and you EXPLAIN it (the workflow below). Syneva validates what you post,
+resolves it against the real diff and renders it beside the real code; the reviewer's decisions,
+comments and Send are never affected by it. \`--no-guide\` opens a plain review on purpose; a file
+desk takes a guide optionally (\`--guide <file>\`), never a draft. Keep guide files OUTSIDE the
+working tree (the CLI writes its own under the OS temp folder): working mode surfaces untracked
+files, so an in-repo guide shows as a stray addition. Validation refuses a guide naming the field
+and what it wanted - fix the field, never pad the guide.
 
 ### Guide JSON schema (format "syneva-guide/2")
 One JSON object:
 - format (required) - exactly "syneva-guide/2". The retired file-grouping format is refused, not adapted.
 - source (required) - the review source the guide was written against: { mode: "repo"|"file"|"pr",
-  fingerprint, head?, base?, staged?, path? }. Copy \`mode\` and \`fingerprint\` from the inventory
-  (below) of exactly the source you open; the desk refuses a guide whose fingerprint is not the
-  diff it opens, so references are never read against another revision.
+  fingerprint, head?, base?, staged?, path? }. The guide.json the CLI writes carries it; from
+  scratch, copy \`mode\` and \`fingerprint\` from the inventory (below) of exactly the source you
+  open. The desk refuses a guide whose fingerprint is not its diff's, so references are never read
+  against another revision.
 - overview (required, ≤ 3000 chars, Markdown) - what the changeset does and why, in a short paragraph.
 - domains (required array, ≤ 60; empty only on an empty changeset) - one per coherent changed
   behavior, NOT per folder or file:
@@ -34,11 +35,15 @@ One JSON object:
   - summary (required, ≤ 1000) - the minimum context: what the behavior is for.
   - verify? (≤ 1000) - what the reviewer should check with their own eyes.
   - prerequisites? - ids of domains to read first (summarized beside this one).
-  - members (required, 1..400) - the changed code this domain OWNS, one primary owner per changed
-    unit across the whole guide: { kind: "change", path, side, lineNumber, endLine? } names a
-    changed block by any line of it on its side ("additions" = the new file, "deletions" = the old
-    one, 1-based file lines, never rendered-diff numbers); { kind: "file", path } owns a file
-    operation without a text block (a pure rename, an untracked addition, a hunk-less deletion).
+  - members (1..400; optional on a posted domain - see Laying a guide over the desk) - the changed
+    code this domain OWNS, one primary owner per changed unit across the whole guide:
+    { kind: "change", path, side, lineNumber, endLine? } names a changed block by any line of it on
+    its side ("additions" = the new file, "deletions" = the old one, 1-based file lines, never
+    rendered-diff numbers); { kind: "symbol", path, symbol } every changed block of a declaration
+    (a unit's symbol.name; a class takes its members); { kind: "domain", id } every block the
+    desk's current domain of that id owns; { kind: "file", path } a file operation without a text
+    block (a pure rename, an untracked addition, a hunk-less deletion). The desk stores "symbol"
+    and "domain" members as the "change" members they cover.
   - references? (≤ 60) - code the explanation points at: { id, path, side, lineNumber, endLine?,
     role: "changed"|"context", label? }. "changed" points into changed code (this domain's or
     another's); "context" points at supporting UNCHANGED code on the reviewed revision - read-only
@@ -97,14 +102,14 @@ a unit has two owners or none, a file operation is unowned, or a reference does 
 on a changed block of that side; "context" on lines that exist on the reviewed revision - reads are
 confined to the repository and bounded). What resolved is kept with the guide: each domain's owned
 units and each reference's content identity at attach (state.guideResolution).
-A later \`syneva reload\` never rewrites the guide. It re-reads the diff and marks what no longer
-holds: a domain whose owned code, cited context or file operation changed is stale (with its
+A later \`syneva reload\` never rewrites your words. It re-reads the diff, draws the drafts again
+over the code no explained domain owns, and marks what no longer holds: a domain whose owned code, cited context or file operation changed is stale (with its
 reasons), its dependents through \`prerequisites\` are stale too, a reference reads stale (the cited
-code changed) or unresolved (gone), and changes no domain owns are listed as unassigned - pending,
-visible in Other, never hidden. Verdicts keep their own hash-based rule (a rewritten block resets to
-pending); a stale explanation changes no verdict. Supply a fresh guide (\`syneva reload --guide\`)
-authored against the new inventory to clear it: a replacement is validated the same way and, when
-refused, leaves the desk, its guide and every verdict as they were.
+code changed) or unresolved (gone), and on a desk without drafts (a file desk) changes no domain
+owns are listed as unassigned - pending, visible in Other, never hidden. Verdicts keep their own hash-based rule (a rewritten block resets to
+pending); a stale explanation changes no verdict. Post the domain's explanation again (\`syneva
+reload --guide\` with the guide.json that reload wrote) to clear it: a post is validated the same
+way and, when refused, leaves the desk, its guide and every verdict as they were.
 
 ### Feedback on domains
 From the explanation pane the reviewer asks and requests changes on a domain, or on one of its
@@ -115,20 +120,39 @@ it pointed at when written. Threads stay with their domain and block ids across 
 (keep the ids when you regenerate); a target a new guide drops is marked unanchored with its
 context kept, never re-pointed. Resolving a thread or reading an explanation approves nothing.
 
+### Laying a guide over the desk
+A posted guide (\`--guide\`) is laid over the desk's current one, draft included: a domain it names
+takes its words; a domain it leaves out stays as it is (a draft stays a draft). A posted domain
+without \`members\` keeps the blocks the desk's domain of the same id owns; members it lists join
+it, taken from whichever domain owned them (taking every block of a domain removes it). A draft
+posted with new words is explained; one posted unchanged stays a draft; draft words over code that
+changed hands are drawn again. A stale domain posted, its words changed or not, is taken as
+explaining the code as it is now - post it once you checked it. The result still needs one owner
+per changed unit, and its \`related\` and \`prerequisites\` must name its domains.
+
 ### Authoring a guide - the workflow
-1. Take the inventory of exactly the source you will open - same mode, target and flags
-   (\`syneva inventory …\`). It is the input: its files and units are the changed code, its
-   fingerprint goes into \`source\`. Never author from another diff (a working-tree diff for a pr
-   open, another base, another revision): references would land on other lines, and the open
-   refuses a fingerprint that is not the desk's.
-2. Write the guide outside the working tree, then open with it (\`syneva open … --guide <file>\`).
-   A refusal names the field and what it wanted: fix that field.
-3. Read the reviewer's feedback through the review loop (verdicts and comments land on the code the
+1. Open the desk (\`syneva open …\`). On a guided desk the CLI writes the guide to fill (stdout
+   \`guide\`: a guide.json with the current fingerprint, the overview and only the domains waiting
+   for words, without members - a domain the file leaves out stays as it is) and, per domain
+   waiting for words (stdout \`pending\`: [{ id, reason: "draft"|"stale", packet }]), a
+   Markdown packet: the domain's diff hunks, the declarations they change, the reference ids it
+   may cite (a stale one names the references the code moved under). Read the packet, not the
+   repository. \`overviewDrafted\` = the overview is Syneva's.
+2. Explain each pending domain in guide.json - title, risk, consequence, summary, verify,
+   evidence, blocks - and rewrite the overview. Regroup only where the draft is wrong: move a
+   declaration with a "symbol" member, merge a domain in with a "domain" member, split one by
+   giving a new domain the declarations it takes. Domains are independent: explain them in
+   parallel (one subagent per packet), then post once.
+3. Post: \`syneva reload --guide <guide.json>\`. A refusal names the field and what it wanted: fix
+   that field. Every open and reload rewrites guide.json and the packets, so they always match the
+   desk. To post in several passes, take out of the file the domains you have not checked yet.
+4. Read the reviewer's feedback through the review loop (verdicts and comments land on the code the
    domain owns; a question about a domain reaches you like any question).
-4. After you change code a domain owns or context it cites, take the inventory again and reload
-   with an updated guide (\`syneva reload --guide <new>\`, same domain ids): nothing refreshes a
-   guide for you - a plain reload only marks what went stale. Nothing here runs a model or a
-   worker; every step is yours.
+5. After you change code, \`syneva reload\`: drafts are drawn again over the code no explained
+   domain owns, and an explained domain whose code moved comes back in \`pending\` as "stale" with
+   its packet - explain it again the same way, same id.
+Writing a whole guide yourself still works: take the inventory of exactly the source you open (same
+mode, target and flags), give every domain its members, and open with \`--guide <file>\`.
 
 ### Authoring a guide - the rules
 - Group by changed behavior, across files: one domain per coherent behavior the changeset changes,

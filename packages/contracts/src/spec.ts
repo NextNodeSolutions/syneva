@@ -47,14 +47,15 @@ repo has several desks. Each repo+session is ONE desk with ONE stable URL (/d/<i
   first, so the guide is validated before HEAD moves (refused up front if the working tree has
   uncommitted tracked changes); \`--base <ref>\` overrides the base. Verdict only: Approve =
   approve, reject = request-changes, no staging - you amend the branch and re-review.
-A repo or pr desk is guided by default: \`--guide <file>\` (The guide, below) is part of the open.
-Without one the desk still opens, reviews in file order and says it waits for the guide - attach
-it with \`syneva reload --guide <file>\` once authored; \`--no-guide\` opens a plain, unguided
-review on purpose (no waiting notice). A file desk needs none (one is welcome). A posted guide
-that does not fit its source is refused (422 INVALID_GUIDE) before anything else: a refused open
-replaces no desk, writes nothing and checks out nothing. Syneva validates and attaches the JSON
-you supply; it never generates one.
-open prints one JSON line on stdout: {ok, deskId, url, dashboard, session, mode, outcome, empty}.
+A repo or pr desk is guided by default: it opens on a draft of its guide drawn from the code's
+structure, which you then explain (The guide, below); \`--guide <file>\` lays your guide over the
+draft as part of the open, \`--no-guide\` opens a plain, unguided review on purpose. A file desk
+needs none (one is welcome). A posted guide that does not fit its source is refused (422
+INVALID_GUIDE) before anything else: a refused open replaces no desk, writes nothing and checks
+out nothing. Syneva runs no model: the draft is mechanical, the explanation is yours.
+open prints one JSON line on stdout: {ok, deskId, url, dashboard, session, mode, outcome, empty}
+plus, on a guided desk, {guide, overviewDrafted, pending}: the guide.json to fill and the domains
+waiting for your words, each with its code packet (The guide: the workflow).
 outcome "created" = a new desk (the browser opens unless --no-open); "reloaded" = the live desk
 for that repo+session was reused and re-diffed (its tab updates by itself, no new tab). empty =
 nothing to review yet: the desk stays open and shows your next \`syneva reload\`. The URL also
@@ -134,8 +135,8 @@ done
   persisted; exits 0 even with no desk.
 - \`syneva reload [--guide <file>]\` - re-diff the working tree into the live desk (your edits are
   NOT auto-re-diffed). Anything you edit resets to pending on reload - decisions and approvals
-  alike; anything you left untouched carries over. --guide swaps the guide (one desk only -
-  see Between rounds).
+  alike; anything you left untouched carries over. --guide lays a guide over the desk's (one desk
+  only - see Between rounds). On a guided desk it prints and rewrites guide/pending like open.
 - \`syneva close [--session <id> | --all]\` (alias: \`syneva stop\`) - close this repo's live desk(s)
   on the hub (--all = every session of the repo). The hub keeps running. Idempotent, exits 0 with
   {stopped:[…], closed:[…]} whether or not a desk was open - call it yourself the same turn the
@@ -156,8 +157,8 @@ ${GUIDE_SPEC}
   duplicated) and each repo+session maps to one stable /d/<id>/ URL on the hub, so a reopened or
   restored desk lands in the same tab (it shows a refresh notice after a hub restart) - don't tell
   the reviewer to switch tabs. Pass --session only to run a second, separate desk. A live desk
-  reopened without a guide is reloaded with the guide it carries (stale where the code moved on)
-  or stays unguided; a reopen may add --no-guide or drop it - \`syneva reload\` never needs a guide,
+  reopened without a guide is reloaded with the guide it carries (explained domains stale where
+  the code moved on, drafts drawn again) or stays unguided; a reopen may add --no-guide or drop it - \`syneva reload\` never needs a guide,
   and a hub restart restores every desk as it was.
 - The hub never closes desks on its own: a desk lives until the human closes it (browser or
   dashboard) or you do (\`syneva close\`). The dashboard lists every live desk with its last
