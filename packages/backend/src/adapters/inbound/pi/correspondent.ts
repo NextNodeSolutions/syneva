@@ -12,6 +12,8 @@ export type LineQuestion = {
 	lineNumber: number
 	side: 'additions' | 'deletions'
 	body: string
+	// 'file': a whole-file question (line 0), still answered into a line thread.
+	anchor?: 'file' | undefined
 	mode?: string
 }
 
@@ -139,12 +141,12 @@ function isDeskQuestion(candidate: unknown): candidate is DeskQuestion {
 	)
 }
 
-// The reply lands where the question was asked: a line thread or a guide thread.
+// The reply lands where the question was asked: a line thread (whole-file questions included, they carry `anchor: 'file'`) or a guide thread.
 function replyBody(
 	question: DeskQuestion,
 	body: string,
 ): Record<string, unknown> {
-	if ('anchor' in question)
+	if (question.anchor === 'domain')
 		return {
 			domainId: question.domainId,
 			blockId: question.blockId,
