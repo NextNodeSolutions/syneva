@@ -89,12 +89,16 @@ function unanswered<Item extends Threaded>(
 }
 
 // They ride out on the Send's ReviewResult so an agent without the live await still owes each an answer.
+// A domain question whose target the attached guide dropped (unanchored) is left out: a reply needs the target on the guide (appendLiveDomainComment), so listing it would repeat on every Send a question the agent cannot answer. The thread itself stays readable on the desk, and comes back here if a later guide restores the target.
 export function computeOpenQuestions(state: ReviewState): QuestionPayload[] {
+	const anchoredDomainComments = (state.domainComments ?? []).filter(
+		comment => !comment.unanchored,
+	)
 	return [
 		...unanswered(state.comments, threadKey).map(comment =>
 			questionPayload(state, comment),
 		),
-		...unanswered(state.domainComments ?? [], comment =>
+		...unanswered(anchoredDomainComments, comment =>
 			domainThreadKey(comment.target),
 		).map(comment => domainQuestionPayload(state, comment)),
 	]
