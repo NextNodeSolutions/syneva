@@ -1,6 +1,8 @@
 // The carried guide against a reloaded diff: nothing is rewritten, the attach-time identities stay, and what no longer holds is marked - stale domains with their reasons, references by status, changes no domain owns.
 import { resolveOwnership } from './guide-ownership.js'
 import { resolveReference } from './guide-reference-resolve.js'
+import { resolveGuide } from './guide-resolve.js'
+import { fileOperationIdentities } from './inventory.js'
 
 import type { ContextHashes } from './guide-reference-resolve.js'
 import type {
@@ -21,14 +23,22 @@ function sameUnits(
 	return attached.every(unit => now.get(unit.key) === unit.contentHash)
 }
 
-function sameFiles(
-	attached: readonly string[],
-	current: readonly string[],
-): boolean {
-	return (
-		attached.length === current.length &&
-		attached.every(path => current.includes(path))
+// The same paths, and (once recorded) each one the same operation: a file rewritten in place keeps its path.
+function sameFiles(attached: DomainResolution, now: OwnedNow): boolean {
+	if (
+		attached.files.length !== now.files.length ||
+		!attached.files.every(path => now.files.includes(path))
 	)
+		return false
+	const then = attached.fileHashes
+	if (!then) return true
+	return attached.files.every(path => then[path] === now.fileHashes[path])
+}
+
+type OwnedNow = {
+	units: DomainResolution['units']
+	files: string[]
+	fileHashes: Record<string, string>
 }
 
 // A reference keeps its attach-time identity; its status says what the reload found at the target.
@@ -50,7 +60,7 @@ function reconcileReference(
 function reconcileDomain(
 	domain: GuideDomain,
 	attached: DomainResolution,
-	now: { units: DomainResolution['units']; files: string[] },
+	now: OwnedNow,
 	resolveNow: (
 		domain: GuideDomain,
 		refId: string,
@@ -59,7 +69,7 @@ function reconcileDomain(
 	const reasons: string[] = []
 	if (!sameUnits(attached.units, now.units))
 		reasons.push('the owned code changed')
-	if (!sameFiles(attached.files, now.files))
+	if (!sameFiles(attached, now))
 		reasons.push('an owned file operation changed')
 	const refs: Record<string, ResolvedReference> = {}
 	for (const [refId, attachedRef] of Object.entries(attached.refs)) {
@@ -73,6 +83,7 @@ function reconcileDomain(
 	return {
 		units: attached.units,
 		files: attached.files,
+		fileHashes: attached.fileHashes,
 		refs,
 		stale: reasons.length ? { reasons } : undefined,
 	}
@@ -148,6 +159,29 @@ function resolveReferenceNow(
 	return resolveReference(domain, reference, inventory, contextHashes)
 }
 
+// A carried guide whose attach-time record is gone (a review file saved before resolutions existed, or one that no longer decodes): what it owns and cites now is resolved again, but nothing says the code is what the guide described, so every domain reads stale until a fresh guide replaces it. The owned identities are left blank, never borrowed from the current diff, so the next reload still finds them changed rather than calling the guide current.
+export function recoverGuide(
+	guide: Guide,
+	inventory: ReviewInventory,
+	contextHashes: ContextHashes,
+): GuideResolution {
+	const { resolution } = resolveGuide(guide, inventory, contextHashes)
+	const reasons = [
+		'the record of what this guide was written against was lost, so it could not be checked against this diff',
+	]
+	const domains: Record<string, DomainResolution> = {}
+	for (const [id, domain] of Object.entries(resolution.domains))
+		domains[id] = {
+			...domain,
+			units: domain.units.map(unit => ({ ...unit, contentHash: '' })),
+			fileHashes: Object.fromEntries(
+				domain.files.map(path => [path, '']),
+			),
+			stale: { reasons },
+		}
+	return { ...resolution, domains }
+}
+
 export function reconcileGuide(
 	guide: Guide,
 	attached: GuideResolution,
@@ -159,10 +193,17 @@ export function reconcileGuide(
 	for (const domain of guide.domains) {
 		const attachedDomain = attached.domains[domain.id]
 		if (!attachedDomain) continue
+		const owned = ownership.domains.get(domain.id) ?? {
+			units: [],
+			files: [],
+		}
 		domains[domain.id] = reconcileDomain(
 			domain,
 			attachedDomain,
-			ownership.domains.get(domain.id) ?? { units: [], files: [] },
+			{
+				...owned,
+				fileHashes: fileOperationIdentities(inventory, owned.files),
+			},
 			(target, refId) =>
 				resolveReferenceNow(target, refId, inventory, contextHashes),
 		)

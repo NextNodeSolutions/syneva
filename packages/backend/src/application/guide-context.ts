@@ -3,7 +3,7 @@ import path from 'node:path'
 import { contextKey } from '../domain/guide-reference-resolve.js'
 import { hash } from '../domain/identity.js'
 
-import { repoPath } from './containment.js'
+import { repoPath, resolveContained } from './containment.js'
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
 
@@ -52,12 +52,26 @@ async function readUnchangedSide(
 	return git.workspace.readFile(path.join(state.root, rel))
 }
 
-async function readSide(
+// The working tree is read through the filesystem, which follows symlinks: an in-repo link to a file outside it passes the lexical check, so such a read must stay inside the repo once resolved. Git objects carry a link as its target text and need no such check.
+function readsWorkingTree(
+	state: ReviewState,
+	side: 'additions' | 'deletions',
+): boolean {
+	if (state.mode === 'pr' || state.staged) return false
+	return side === 'additions' || state.mode === 'file'
+}
+
+// One side of a file as the review took it (the cited revision of a reference, a preview of it), or null when it cannot be read inside the repository.
+export async function readReviewedSide(
 	state: ReviewState,
 	rel: string,
 	side: 'additions' | 'deletions',
 	git: GitPort,
 ): Promise<string | null> {
+	if (readsWorkingTree(state, side)) {
+		const contained = await resolveContained(state.root, rel, git.workspace)
+		if ('error' in contained && contained.error === 'escape') return null
+	}
 	const file = state.files.find(candidate => candidate.path === rel)
 	try {
 		if (!file) return await readUnchangedSide(state, rel, side, git)
@@ -70,8 +84,10 @@ async function readSide(
 	}
 }
 
+// A final newline ends the last line rather than opening another: "hello\n" has one line and an empty file none, so a span past them cites nothing.
 function spanHash(text: string, reference: GuideReference): string | null {
 	const lines = text.split('\n')
+	if (lines.at(-1) === '') lines.pop()
 	const end = reference.endLine ?? reference.lineNumber
 	if (end > lines.length) return null
 	return hash(lines.slice(reference.lineNumber - 1, end).join('\n'))
@@ -91,7 +107,7 @@ export async function readContextHashes(
 		const [side, rel] = key.split('\0')
 		const text =
 			side === 'additions' || side === 'deletions'
-				? await readSide(state, rel ?? '', side, git)
+				? await readReviewedSide(state, rel ?? '', side, git)
 				: null
 		texts.set(key, text)
 	})
