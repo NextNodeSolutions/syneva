@@ -34,20 +34,21 @@ function domainRow(domain: GuideDomain, state: ReviewState): string {
 	return `<li class="${cx(overview.domain)}"><span class="${cx(overview.domainHead)}">${riskTagHtml(domain.risk)}${stale}<span class="${cx(overview.domainTitle)}">${esc(domain.title)}</span><span class="${cx(caption.base, overview.domainFiles)}">${count}</span></span><p class="${cx(overview.consequence)}">${esc(domain.consequence)}</p></li>`
 }
 
-// Changes the guide does not own (after a reload exposed them): pending, listed here and under Other - never folded into a domain.
+// Changes the guide does not own (after a reload exposed them): pending, never folded into a domain, and named where the reviewer finds them - the Walkthrough groups whole files, so a block in a file a domain already names never reaches Other and is pointed to by its file instead.
 function unassignedNote(state: ReviewState): string {
-	const changes = unassignedChanges(state).length
+	const changes = unassignedChanges(state)
 	const files = unassignedFiles(state).length
-	if (!changes && !files) return ''
+	if (!changes.length && !files) return ''
+	const paths = [...new Set(changes.map(change => change.path))]
 	const parts = [
-		changes
-			? `${changes} changed ${changes === 1 ? 'block' : 'blocks'}`
+		changes.length
+			? `${changes.length} changed ${changes.length === 1 ? 'block' : 'blocks'} (in ${paths.map(esc).join(', ')})`
 			: '',
 		files
-			? `${files} file ${files === 1 ? 'operation' : 'operations'}`
+			? `${files} file ${files === 1 ? 'operation' : 'operations'} (under Other in the Walkthrough)`
 			: '',
 	].filter(Boolean)
-	return `<div class="${cx(overview.unassigned)}">${iconHtml('gly-warn')} ${parts.join(' and ')} not in the guide: pending, listed under Other in the Walkthrough.</div>`
+	return `<div class="${cx(overview.unassigned)}">${iconHtml('gly-warn')} ${parts.join(' and ')} not in the guide: still pending.</div>`
 }
 
 // The reading order itself: the changeset's intent, then its domains highest risk first - each with the consequence its risk rests on - and Start, which opens the first file of the first domain.
