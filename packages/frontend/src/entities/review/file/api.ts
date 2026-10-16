@@ -41,10 +41,13 @@ export const repoBlobUrl = (path: string): string =>
 
 export type PreviewPayload = { path: string; contents: string }
 
+// With a side, the file as the review took that side (the revision a guide reference resolved against); without, the working tree.
 export const fetchPreviewFile = async (
 	path: string,
+	side?: 'additions' | 'deletions',
 ): Promise<PreviewPayload> => {
-	const endpoint = `${API_PATHS.file}?path=${encodeURIComponent(path)}`
+	const query = side ? `&side=${side}` : ''
+	const endpoint = `${API_PATHS.file}?path=${encodeURIComponent(path)}${query}`
 	const raw = await api(endpoint)
 	const o = assertObject(raw, endpoint)
 	return {

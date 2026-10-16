@@ -1,6 +1,7 @@
 // Where a reference lands: a changed block of the inventory, or unchanged lines whose content the lifecycle read on the reviewed revision.
 import { spanOverlaps } from './guide-ownership.js'
 import { indexed } from './guide-parse.js'
+import { hash } from './identity.js'
 
 import type {
 	GuideDomain,
@@ -10,11 +11,12 @@ import type {
 } from './guide-shapes.js'
 import type { ReviewInventory } from './inventory.js'
 
-// `${domainId}:${refId}` → the hash of the cited lines on the reviewed revision, or null when they do not exist (or could not be read within bounds).
+// contextKey(domainId, refId) → the hash of the cited lines on the reviewed revision, or null when they do not exist (or could not be read within bounds).
 export type ContextHashes = ReadonlyMap<string, string | null>
 
+// Ids may hold ":" (domain "a:b" + ref "c" and domain "a" + ref "b:c" would collide) but never a NUL, so the pair stays unambiguous.
 export function contextKey(domainId: string, refId: string): string {
-	return `${domainId}:${refId}`
+	return `${domainId}\0${refId}`
 }
 
 function describe(reference: GuideReference): string {
@@ -26,30 +28,38 @@ function resolveChangedReference(
 	reference: GuideReference,
 	inventory: ReviewInventory,
 ): ResolvedReference {
-	const unit = inventory.units.find(
+	const units = inventory.units.filter(
 		candidate =>
 			candidate.path === reference.path &&
 			candidate.side === reference.side &&
 			spanOverlaps(reference, candidate),
 	)
-	if (!unit)
+	const [only] = units
+	if (!only)
 		return {
 			status: 'unresolved',
 			reason: `no changed block at ${describe(reference)}`,
 		}
-	return { status: 'resolved', contentHash: unit.contentHash }
+	// A span may cover several blocks: its identity is every one of them, so a rewrite of any block it cites reads stale.
+	return {
+		status: 'resolved',
+		contentHash:
+			units.length === 1
+				? only.contentHash
+				: hash(units.map(unit => unit.contentHash).join('\0')),
+	}
 }
 
 function resolveContextReference(
 	reference: GuideReference,
-	hash: string | null | undefined,
+	cited: string | null | undefined,
 ): ResolvedReference {
-	if (typeof hash !== 'string')
+	if (typeof cited !== 'string')
 		return {
 			status: 'unresolved',
 			reason: `${describe(reference)} does not exist on the reviewed revision`,
 		}
-	return { status: 'resolved', contentHash: hash }
+	return { status: 'resolved', contentHash: cited }
 }
 
 export function resolveReference(

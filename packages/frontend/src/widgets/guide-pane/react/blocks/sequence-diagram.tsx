@@ -1,7 +1,14 @@
 import * as stylex from '@stylexjs/stylex'
 
 import { edgeKeys } from '../../layout/keys'
-import { LANE, laneX, layoutSequence } from '../../layout/sequence-layout'
+import {
+	LANE,
+	laneX,
+	layoutSequence,
+	SELF_LABEL_GAP,
+	SELF_LOOP,
+	stepLabel,
+} from '../../layout/sequence-layout'
 
 import { ARROW_END, ArrowMarker } from './arrow-marker'
 import { DiagramNode } from './diagram-node'
@@ -17,14 +24,13 @@ import type {
 import type { ReactElement } from 'react'
 
 const TOP = 10
-const SELF_LOOP = 40
 const LABEL_LIFT = 6
 const HALF = 2
 const SELF_LABEL_DROP = 3
 
 type Lanes = readonly { id: string; x: number }[]
 
-// A message to the same lane: a loop out and back, its label beside it.
+// A message to the same lane: a loop out and back, its label starting just past it (the layout's width reserves it).
 function SelfStep({
 	domain,
 	x,
@@ -48,8 +54,9 @@ function SelfStep({
 			<EdgeLabel
 				domain={domain}
 				at={{
-					x: x + SELF_LOOP + LANE.headWidth / HALF,
+					x: x + SELF_LOOP + SELF_LABEL_GAP,
 					y: y + SELF_LABEL_DROP,
+					anchor: 'start',
 				}}
 				label={label}
 				refId={refId}
@@ -74,7 +81,7 @@ function Step({
 }): ReactElement {
 	const x1 = laneX(lanes, step.from)
 	const x2 = laneX(lanes, step.to)
-	const label = `${index + 1}. ${step.label}`
+	const label = stepLabel(index, step.label)
 	if (x1 === x2)
 		return (
 			<SelfStep

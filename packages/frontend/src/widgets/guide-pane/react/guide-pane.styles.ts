@@ -22,6 +22,9 @@ export const pane = stylex.create({
 	},
 	head: {
 		flexShrink: 0,
+		// Stacked, the pane's height is capped: a long summary, consequence and verify would fill it and clip the body, so the head takes at most half and scrolls on its own.
+		maxHeight: { default: null, [media.tablet]: 'min(22vh, 220px)' },
+		overflowY: { default: null, [media.tablet]: 'auto' },
 		paddingBlock: '10px',
 		paddingInline: PAD,
 		borderBottomWidth: '1px',

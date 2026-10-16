@@ -22,10 +22,18 @@ export type PrTargetOutcome =
 
 export type CheckoutOutcome = { ok: true } | { ok: false; reason: string }
 
-type PrInfo = { headRefName: string; baseRefName: string }
+// `url` is the PR as gh resolved it: its repository is the one the head is fetched from.
+type PrInfo = {
+	headRefName: string
+	baseRefName: string
+	url: string | undefined
+}
 
 const PR_NUMBER = /^\d+$/
-const PR_URL = /^https?:\/\/github\.com\/[^/]+\/[^/]+\/pull\/(?<number>\d+)/
+const PR_URL =
+	/^https?:\/\/github\.com\/(?<repo>[^/]+\/[^/]+)\/pull\/(?<number>\d+)/
+// A GitHub remote's `owner/name`, in its https or ssh form.
+const GITHUB_REMOTE = /github\.com[:/](?<repo>[^/]+\/[^/]+?)(?:\.git)?\/?$/
 
 export function isPrRef(ref: string): boolean {
 	return PR_NUMBER.test(ref) || PR_URL.test(ref)
@@ -70,7 +78,7 @@ async function resolvePrNumber(
 ): Promise<PrTargetOutcome> {
 	try {
 		const prInfo = await fetchPrInfo(ref, root, git)
-		const head = await fetchPrHead(ref, root, git)
+		const head = await fetchPrHead(prInfo.url ?? ref, root, git)
 		return {
 			ok: true,
 			target: {
@@ -93,8 +101,30 @@ async function fetchPrHead(
 	root: string,
 	git: GitPort,
 ): Promise<string> {
-	await git.run(['fetch', 'origin', `refs/pull/${prNumber(ref)}/head`], root)
+	const repo = PR_URL.exec(ref)?.groups?.repo
+	const remote = repo
+		? ((await remoteOf(repo, root, git)) ??
+			`https://github.com/${repo}.git`)
+		: 'origin'
+	await git.run(['fetch', remote, `refs/pull/${prNumber(ref)}/head`], root)
 	return await git.run(['rev-parse', 'FETCH_HEAD'], root)
+}
+
+// The PR's repository (gh's answer, the URL's own) and not blindly origin: in a fork's clone origin is the fork, whose PR of the same number is another PR. Its remote when the clone has one, so that remote's credentials are used.
+async function remoteOf(
+	repo: string,
+	root: string,
+	git: GitPort,
+): Promise<string | undefined> {
+	const remotes = await git.run(['remote', '-v'], root).catch(() => '')
+	const wanted = repo.toLowerCase()
+	for (const line of remotes.split('\n')) {
+		const [name, url] = line.split(/\s+/)
+		if (!name || !url) continue
+		const named = GITHUB_REMOTE.exec(url)?.groups?.repo
+		if (named?.toLowerCase() === wanted) return name
+	}
+	return undefined
 }
 
 async function fetchPrInfo(
@@ -105,7 +135,7 @@ async function fetchPrInfo(
 	let raw: string
 	try {
 		raw = await git.gh(
-			['pr', 'view', ref, '--json', 'headRefName,baseRefName'],
+			['pr', 'view', ref, '--json', 'headRefName,baseRefName,url'],
 			root,
 		)
 	} catch (error) {
@@ -145,7 +175,14 @@ function readPrInfo(parsed: unknown): PrInfo | null {
 		return null
 	if (!('baseRefName' in parsed) || typeof parsed.baseRefName !== 'string')
 		return null
-	return { headRefName: parsed.headRefName, baseRefName: parsed.baseRefName }
+	return {
+		headRefName: parsed.headRefName,
+		baseRefName: parsed.baseRefName,
+		url:
+			'url' in parsed && typeof parsed.url === 'string'
+				? parsed.url
+				: undefined,
+	}
 }
 
 // A branch by its name, locally first, then as origin's (what `git checkout <name>` would track).

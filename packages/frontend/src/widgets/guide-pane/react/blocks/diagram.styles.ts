@@ -30,17 +30,16 @@ export const diagram = stylex.create({
 		strokeWidth: 1,
 	},
 	nodeText: { fill: color['--ink'], fontSize: '11px' },
-	linked: { cursor: 'pointer', outline: 'none' },
+	// The focused control is the <g> or <text> itself, not its shape: the desk's focus ring (desk.css) draws around it, so none is removed here.
+	linked: { cursor: 'pointer' },
 	linkedShape: {
 		stroke: color['--accent'],
 		fill: {
 			default: color['--white'],
 			':hover': color['--wash'],
-			':focus-visible': color['--wash'],
 		},
 	},
 	linkedText: { fill: color['--accent'] },
-	focusShape: { strokeWidth: 2 },
 	initialShape: { stroke: color['--ink'], strokeWidth: 2 },
 	finalShape: { strokeDasharray: '3 2' },
 	unresolvedShape: { strokeDasharray: '4 3', stroke: color['--amber-line'] },

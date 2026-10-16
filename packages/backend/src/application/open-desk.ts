@@ -152,7 +152,8 @@ export async function buildDeskState(
 	guide: AuthoredGuide | undefined,
 	io: DeskIo,
 ): Promise<DeskBuildOutcome> {
-	const buildQuery = toBuildQuery(identity, query)
+	// A pr open builds at the head it was admitted on, not at whatever its checkout landed on: a push between the fetch and the checkout must not refuse the guide admission accepted (the next reload reads the newer HEAD).
+	const buildQuery = { ...toBuildQuery(identity, query), head: identity.head }
 	const built = await buildReviewState(identity.root, buildQuery, io.git)
 	if (!built && query.mode === 'file')
 		return { ok: false, reason: 'File not found or unreadable.' }
