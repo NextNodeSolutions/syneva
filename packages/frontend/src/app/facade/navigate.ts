@@ -39,7 +39,8 @@ function installSpanJump(): void {
 		}
 		const index = state.files.findIndex(file => file.path === span.path)
 		// Context outside the diff opens as the preview of the side the reference resolved against (the index or a commit on a staged or pr desk); the jump is armed only once that preview is the file on screen, so a render landing during the fetch cannot spend it on the file being left.
-		if (index < 0) {
+		// A pure rename renders as its moved notice, which has no rows to land on, so a line cited in it opens as that side's preview too.
+		if (index < 0 || state.files[index]?.renamePure) {
 			void openPreview(span.path, span.side, target)
 			return
 		}
