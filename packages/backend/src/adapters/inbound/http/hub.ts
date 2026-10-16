@@ -174,8 +174,7 @@ type ResolvedOpen = {
 	guide: AuthoredGuide | undefined
 }
 
-// A reopen is a reload that may also change what the desk expects of its guide (--no-guide, or back to the default).
-// A pr reopen checks its head out again first (the agent may have switched branches since), once a posted guide is admitted, so a refusal still leaves HEAD where it was.
+// A reopen is a reload that may also change what the desk expects of its guide (--no-guide, or back to the default). A pr reopen checks its head out again first (the agent may have switched branches since), once a posted guide is admitted, so a refusal still leaves HEAD where it was.
 async function reuseDesk(
 	state: HubState,
 	live: HubDesk,
@@ -192,13 +191,12 @@ async function reuseDesk(
 		if (!checkout.ok)
 			return { ok: false, code: 'PR_TARGET', reason: checkout.reason }
 	}
-	const guideSwap = guide ? { guide } : undefined
 	const outcome = await live.ctx.serialize(() =>
 		reloadDesk(
 			{ ...live.ctx.state, guideExpected: guideExpectation(query) },
 			live.ctx.pathFilter,
 			{ git: state.io.git, store: state.io.store },
-			guideSwap,
+			guide ? { guide } : undefined,
 		),
 	)
 	if (outcome.kind === 'invalid-guide')
