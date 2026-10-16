@@ -4,7 +4,7 @@ import { deskId, deskSession } from '../domain/identity.js'
 
 import { attachGuide } from './attach-guide.js'
 import { buildReviewState, emptyReviewState } from './build.js'
-import { guideExpectation } from './open-policy.js'
+import { carriedGuideOf, guideExpectation } from './open-policy.js'
 import { resolvePrTarget } from './pr-target.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
@@ -142,12 +142,15 @@ export async function buildSourceState(
 	}
 }
 
+// What a build is told about the guide: the one posted with the open, if any, and whether this is an open (whose --no-guide sets the saved review's guide aside) or a restore (which keeps it).
+export type DeskGuide = { posted: Guide | undefined; isOpen: boolean }
+
 // The fresh diff merges with the saved review (decisions/comments/sign-offs survive by content hash; a carried guide is reconciled), a posted guide is attached against the diff, the staged snapshot folded in, then persisted - the stamped root is what the desk publishes.
 // An empty diff still yields a desk (waiting for the next reload); only an unreadable file is an error.
 export async function buildDeskState(
 	identity: DeskIdentity,
 	query: DeskQuery,
-	guide: Guide | undefined,
+	{ posted: guide, isOpen }: DeskGuide,
 	io: DeskIo,
 ): Promise<DeskBuildOutcome> {
 	// A pr open builds at the head it was admitted on, not at whatever its checkout landed on: a push between the fetch and the checkout must not refuse the guide admission accepted (the next reload reads the newer HEAD).
@@ -157,7 +160,8 @@ export async function buildDeskState(
 		return { ok: false, reason: 'File not found or unreadable.' }
 	const base =
 		built ?? (await emptyReviewState(identity.root, buildQuery, io.git))
-	const saved = await io.store.loadLatestReview(base.root, identity.session)
+	const latest = await io.store.loadLatestReview(base.root, identity.session)
+	const saved = latest && isOpen ? carriedGuideOf(latest, query) : latest
 	let state = await mergeReviewState(base, saved, io.git)
 	// A posted guide is resolved against this very diff before anything is persisted: a refused guide leaves no desk behind.
 	if (guide) {

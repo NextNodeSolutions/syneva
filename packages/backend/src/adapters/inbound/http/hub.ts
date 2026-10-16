@@ -8,10 +8,7 @@ import {
 	rootProblem,
 	restoredDeskIdentity,
 } from '../../../application/open-desk.js'
-import {
-	admitOpen,
-	guideExpectation,
-} from '../../../application/open-policy.js'
+import { admitOpen, reopenedState } from '../../../application/open-policy.js'
 import { checkoutPrTarget } from '../../../application/pr-target.js'
 import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
@@ -192,7 +189,7 @@ async function reuseDesk(
 	const guideSwap = guide ? { guide } : undefined
 	const outcome = await live.ctx.serialize(() =>
 		reloadDesk(
-			{ ...live.ctx.state, guideExpected: guideExpectation(query) },
+			reopenedState(live.ctx.state, query),
 			live.ctx.pathFilter,
 			{ git: state.io.git, store: state.io.store },
 			guideSwap,
@@ -236,7 +233,12 @@ async function createDesk(
 	)
 	if (!checkout.ok)
 		return { ok: false, code: 'PR_TARGET', reason: checkout.reason }
-	const built = await buildDeskState(identity, query, guide, state.io)
+	const built = await buildDeskState(
+		identity,
+		query,
+		{ posted: guide, isOpen: true },
+		state.io,
+	)
 	if (!built.ok)
 		return {
 			ok: false,
@@ -266,7 +268,7 @@ async function restoreOne(
 		const built = await buildDeskState(
 			identity,
 			queryOf(record),
-			undefined,
+			{ posted: undefined, isOpen: false },
 			state.io,
 		)
 		if (!built.ok) {

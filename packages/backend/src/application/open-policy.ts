@@ -2,6 +2,7 @@ import { attachGuide } from './attach-guide.js'
 import { buildSourceState } from './open-desk.js'
 
 import type { Guide } from '../domain/guide-shapes.js'
+import type { ReviewState } from '../domain/review.js'
 import type { DeskIdentity, DeskIo, DeskQuery } from './open-desk.js'
 
 export type AdmissionCode = 'INVALID_GUIDE' | 'NO_REVIEW'
@@ -37,4 +38,25 @@ export function guideExpectation(
 	query: Pick<DeskQuery, 'mode' | 'noGuide'>,
 ): boolean {
 	return query.mode !== 'file' && !query.noGuide
+}
+
+// --no-guide asks for a plain review, and the page reads guided mode from the guide it carries, not from the expectation: an open that says it sets the carried guide aside (a guide posted with it still attaches).
+// A restore never does, so a guide attached later by `syneva reload --guide` outlives a hub restart.
+export function carriedGuideOf(
+	state: ReviewState,
+	query: Pick<DeskQuery, 'noGuide'>,
+): ReviewState {
+	if (!query.noGuide || !state.guide) return state
+	return { ...state, guide: undefined, guideResolution: undefined }
+}
+
+// A reopen reloads the live desk under the open's own words about its guide.
+export function reopenedState(
+	state: ReviewState,
+	query: Pick<DeskQuery, 'mode' | 'noGuide'>,
+): ReviewState {
+	return {
+		...carriedGuideOf(state, query),
+		guideExpected: guideExpectation(query),
+	}
 }
