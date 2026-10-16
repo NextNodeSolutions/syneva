@@ -30,29 +30,26 @@ function placed(nodes: readonly Placed[], id: string): Placed {
 	return nodes.find(node => node.id === id) ?? { id, x: 0, y: 0 }
 }
 
+type Ends = { x1: number; y1: number; x2: number; y2: number }
+
 // An edge routed around the nodes: down into the gap under its source, across to its own gutter, along it to the gap over its target, then in from above. Its label sits beside the gutter.
 function AroundEdge({
 	domain,
-	edge,
-	from,
-	to,
+	label,
+	ends: { x1, y1, x2, y2 },
 	gutter,
 }: {
 	domain: GuideDomain
-	edge: FlowEdge
-	from: Placed
-	to: Placed
+	label: string | undefined
+	ends: Ends
 	gutter: number
 }): ReactElement {
-	const x1 = from.x + FLOW_NODE.width / HALF
-	const y1 = from.y + FLOW_NODE.height
-	const x2 = to.x + FLOW_NODE.width / HALF
 	const below = y1 + GAP_Y / QUARTER
-	const above = to.y - GAP_Y / QUARTER
+	const above = y2 - GAP_Y / QUARTER
 	return (
 		<g>
 			<path
-				d={`M${x1} ${y1} V ${below} H ${gutter} V ${above} H ${x2} V ${to.y}`}
+				d={`M${x1} ${y1} V ${below} H ${gutter} V ${above} H ${x2} V ${y2}`}
 				markerEnd={ARROW_END}
 				{...stylex.props(diagram.edgePath)}
 			/>
@@ -63,10 +60,20 @@ function AroundEdge({
 					y: (below + above) / HALF + LABEL_BASELINE,
 					anchor: 'start',
 				}}
-				label={edge.label}
+				label={label}
 			/>
 		</g>
 	)
+}
+
+// From the middle of the source's bottom edge to the middle of the target's top edge.
+function endsOf(from: Placed, to: Placed, nodeHeight: number): Ends {
+	return {
+		x1: from.x + FLOW_NODE.width / HALF,
+		y1: from.y + nodeHeight,
+		x2: to.x + FLOW_NODE.width / HALF,
+		y2: to.y,
+	}
 }
 
 // A dependency drawn top to bottom: a curve from the source's bottom edge to the target's top edge in the next layer, its label beside the bend; any other edge goes around.
@@ -75,32 +82,34 @@ function Edge({
 	edge,
 	route,
 	nodes,
+	nodeHeight,
 }: {
 	domain: GuideDomain
 	edge: FlowEdge
 	route: FlowRoute | undefined
 	nodes: readonly Placed[]
+	nodeHeight: number
 }): ReactElement {
-	const from = placed(nodes, edge.from)
-	const to = placed(nodes, edge.to)
+	const ends = endsOf(
+		placed(nodes, edge.from),
+		placed(nodes, edge.to),
+		nodeHeight,
+	)
 	if (route?.kind === 'around')
 		return (
 			<AroundEdge
 				domain={domain}
-				edge={edge}
-				from={from}
-				to={to}
+				label={edge.label}
+				ends={ends}
 				gutter={route.gutter}
 			/>
 		)
-	const x1 = from.x + FLOW_NODE.width / HALF
-	const y1 = from.y + FLOW_NODE.height
-	const x2 = to.x + FLOW_NODE.width / HALF
-	const my = (y1 + to.y) / HALF
+	const { x1, y1, x2, y2 } = ends
+	const my = (y1 + y2) / HALF
 	return (
 		<g>
 			<path
-				d={`M${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${to.y}`}
+				d={`M${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`}
 				markerEnd={ARROW_END}
 				{...stylex.props(diagram.edgePath)}
 			/>
@@ -143,13 +152,18 @@ export function FlowDiagram({
 					edge={edge}
 					route={layout.routes[index]}
 					nodes={layout.nodes}
+					nodeHeight={layout.nodeHeight}
 				/>
 			))}
 			{block.nodes.map(node => (
 				<DiagramNode
 					key={node.id}
 					domain={domain}
-					box={{ ...placed(layout.nodes, node.id), ...FLOW_NODE }}
+					box={{
+						...placed(layout.nodes, node.id),
+						width: FLOW_NODE.width,
+						height: layout.nodeHeight,
+					}}
 					label={node.label}
 					refId={node.ref}
 				/>

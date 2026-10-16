@@ -69,16 +69,19 @@ function coverageIssues(
 	]
 }
 
+// `checksReferences` names the domains whose references must land; the others (a carried domain whose resolution is kept as it was) still get their references resolved, but an unresolved one does not refuse the guide.
 export function resolveGuide(
 	guide: Guide,
 	inventory: ReviewInventory,
 	contextHashes: ContextHashes,
+	checksReferences?: (domainId: string) => boolean,
 ): GuideResolveOutcome {
 	const ownership = resolveOwnership(guide, inventory)
 	const references = resolveReferences(
 		guide.domains,
 		inventory,
 		contextHashes,
+		checksReferences,
 	)
 	const domains: Record<string, DomainResolution> = {}
 	for (const domain of guide.domains) {

@@ -1,4 +1,4 @@
-import { isAnswered } from './answered'
+import { awaitsAnswer, isAnswered } from './answered'
 import { isDomainStale } from './guide/resolution'
 
 import type { Guide, GuideDomain } from './guide/model'
@@ -15,6 +15,8 @@ export type DomainThread = {
 	kind: 'question' | 'comment'
 	// resolved: no open message; answered: an agent reply landed after the question; open otherwise.
 	status: 'open' | 'answered' | 'resolved'
+	// An open question of the reviewer's has no agent reply after it yet (an open thread may instead be open on a change request).
+	awaitingAnswer: boolean
 	// The attached guide no longer has the target.
 	unanchored: boolean
 	// The target's domain is stale against the current diff (its explanation describes earlier code).
@@ -128,6 +130,7 @@ function threadOf(state: ReviewState, messages: DomainComment[]): DomainThread {
 		},
 		kind,
 		status: threadStatus(ordered, kind),
+		awaitingAnswer: awaitsAnswer(ordered),
 		unanchored: ordered.some(message => message.unanchored === true),
 		stale: first ? isDomainStale(state, first.target.domainId) : false,
 		messages: ordered,

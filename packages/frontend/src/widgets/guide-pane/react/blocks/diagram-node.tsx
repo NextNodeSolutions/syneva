@@ -2,6 +2,7 @@ import { referenceStatus } from '@entities/review/guide/resolution'
 import * as stylex from '@stylexjs/stylex'
 
 import { chromeCtx } from '../../../chrome/context'
+import { LINE_HEIGHT, nodeLines } from '../../layout/node-label'
 
 import { diagram } from './diagram.styles'
 
@@ -84,7 +85,44 @@ function buttonProps(
 	}
 }
 
-// A node of any diagram: a labelled box; with a reference it is a button (pointer and keyboard both call followReference, the same validated action every chip uses), outlined in petrol and saying so.
+// The label wrapped to its box, the lines centred on it as a block (the layout sized the box for them); a linked node's last line ends with its arrow.
+function NodeText({
+	box,
+	label,
+	isLinked,
+}: {
+	box: Box
+	label: string
+	isLinked: boolean
+}): ReactElement {
+	const lines = nodeLines(label, box.width)
+	const centre = box.x + box.width / HALF
+	const firstLine =
+		box.y +
+		box.height / HALF -
+		((lines.length - 1) * LINE_HEIGHT) / HALF +
+		TEXT_BASELINE
+	return (
+		<text
+			y={firstLine}
+			textAnchor="middle"
+			{...stylex.props(diagram.nodeText, isLinked && diagram.linkedText)}
+		>
+			{lines.map((line, index) => (
+				<tspan
+					key={`${String(index)}:${line}`}
+					x={centre}
+					dy={index === 0 ? 0 : LINE_HEIGHT}
+				>
+					{line}
+					{isLinked && index === lines.length - 1 ? ' ↗' : ''}
+				</tspan>
+			))}
+		</text>
+	)
+}
+
+// A node of any diagram: a labelled box, its label wrapped to the box; with a reference it is a button (pointer and keyboard both call followReference, the same validated action every chip uses), outlined in petrol and saying so.
 export function DiagramNode({
 	domain,
 	box,
@@ -111,18 +149,7 @@ export function DiagramNode({
 				height={box.height}
 				{...stylex.props(shapeStyles(link, shape))}
 			/>
-			<text
-				x={box.x + box.width / HALF}
-				y={box.y + box.height / HALF + TEXT_BASELINE}
-				textAnchor="middle"
-				{...stylex.props(
-					diagram.nodeText,
-					link.isLinked && diagram.linkedText,
-				)}
-			>
-				{label}
-				{link.isLinked ? ' ↗' : ''}
-			</text>
+			<NodeText box={box} label={label} isLinked={link.isLinked} />
 		</g>
 	)
 }

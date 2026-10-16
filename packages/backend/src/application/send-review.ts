@@ -1,5 +1,7 @@
 import path from 'node:path'
 
+import { reanchorDomainComments } from '../domain/domain-comments.js'
+
 import { readStagedSnapshot } from './reconcile.js'
 import { buildReviewResult } from './review-result.js'
 
@@ -70,6 +72,7 @@ function keepAgentMessages<Message extends AgentAuthored>(
 }
 
 // Only PRESENT keys replace - absent keys mean "unchanged" - and each key is spelled against ReviewState, so no raw or unknown patch can ever reach the state. The two thread keys keep the desk's agent messages on top of the copy.
+// A guide thread's `unanchored` is the hub's verdict against the guide it holds now, never the browser's: a copy polled before a guide replacement still says the dropped target is there.
 export function applyReviewerSave(
 	state: ReviewState,
 	patch: ReviewerSavePatch,
@@ -81,7 +84,13 @@ export function applyReviewerSave(
 			? keepAgentMessages(patch.comments, state.comments)
 			: state.comments,
 		domainComments: patch.domainComments
-			? keepAgentMessages(patch.domainComments, state.domainComments)
+			? reanchorDomainComments(
+					keepAgentMessages(
+						patch.domainComments,
+						state.domainComments,
+					),
+					state.guide,
+				)
 			: state.domainComments,
 		reviewedFiles: patch.reviewedFiles ?? state.reviewedFiles,
 		reviewedFileHashes:

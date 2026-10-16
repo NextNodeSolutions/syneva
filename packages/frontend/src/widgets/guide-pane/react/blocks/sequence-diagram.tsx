@@ -118,17 +118,19 @@ function Lane({
 	participant,
 	x,
 	height,
+	headHeight,
 }: {
 	domain: GuideDomain
 	participant: SequenceParticipant
 	x: number
 	height: number
+	headHeight: number
 }): ReactElement {
 	return (
 		<g>
 			<line
 				x1={x}
-				y1={TOP + LANE.headHeight}
+				y1={TOP + headHeight}
 				x2={x}
 				y2={height}
 				{...stylex.props(diagram.lifeline)}
@@ -139,7 +141,7 @@ function Lane({
 					x: x - LANE.headWidth / HALF,
 					y: TOP,
 					width: LANE.headWidth,
-					height: LANE.headHeight,
+					height: headHeight,
 				}}
 				label={participant.label}
 			/>
@@ -173,6 +175,7 @@ export function SequenceDiagram({
 					participant={participant}
 					x={laneX(layout.lanes, participant.id)}
 					height={layout.height}
+					headHeight={layout.headHeight}
 				/>
 			))}
 			{block.steps.map((step, index) => (

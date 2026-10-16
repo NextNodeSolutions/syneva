@@ -24,7 +24,7 @@ const STATUS_TONES = {
 
 function statusLabel(thread: DomainThread): string {
 	if (thread.status !== 'open') return thread.status
-	return thread.kind === 'question' ? 'waiting' : 'open'
+	return thread.awaitingAnswer ? 'waiting' : 'open'
 }
 
 function DomainNoteRow({ thread }: { thread: DomainThread }): ReactElement {
