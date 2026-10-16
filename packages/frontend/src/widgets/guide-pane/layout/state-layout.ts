@@ -1,4 +1,5 @@
 import { labelWidth } from './label-width'
+import { nodeHeight } from './node-label'
 
 import type { StateBlock } from '@entities/review/guide/model'
 import type { Placed } from './flow-layout'
@@ -113,9 +114,15 @@ function routesOf(
 export function layoutStates(block: StateBlock): {
 	nodes: Placed[]
 	routes: StateRoute[]
+	nodeHeight: number
 	width: number
 	height: number
 } {
+	const height = nodeHeight(
+		block.states.map(state => state.label),
+		STATE_NODE.width,
+		STATE_NODE.height,
+	)
 	const row = rowOf(block)
 	const spans = labelSpans(block, row)
 	const offset = Math.max(MARGIN, ...spans.map(span => MARGIN - span.left))
@@ -123,12 +130,13 @@ export function layoutStates(block: StateBlock): {
 	const overs = kinds.filter(kind => kind === 'over').length
 	const unders = kinds.filter(kind => kind === 'under').length
 	const top = Math.max(MIN_TOP, MARGIN + overs * LEVEL_STEP + LABEL_ROOM)
-	const base = top + STATE_NODE.height
+	const base = top + height
 	const nodes = row.map(node => ({ id: node.id, x: node.x + offset, y: top }))
 	const rowEnd = row.length * STATE_NODE.width + (row.length - 1) * GAP
 	return {
 		nodes,
 		routes: routesOf(block, nodes, kinds, { top, base }),
+		nodeHeight: height,
 		width:
 			offset +
 			Math.max(rowEnd, ...spans.map(span => span.right)) +
