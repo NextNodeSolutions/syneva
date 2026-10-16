@@ -210,7 +210,7 @@ function contextOf(
 	return { ...context, heirs: heirsOf(posted.domains, context) }
 }
 
-export type ComposeInput = Pick<ComposeContext, 'inventory' | 'links' | 'order'>
+export type ComposeInput = Pick<ComposeContext, 'inventory' | 'order'>
 
 export function composeGuide(
 	posted: AuthoredGuide,

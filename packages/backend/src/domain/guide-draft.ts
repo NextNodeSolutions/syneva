@@ -181,6 +181,22 @@ export function draftDomains(input: DraftInput): GuideDomain[] {
 	return withRelated(domains, facts, input.links)
 }
 
+// One domain drafted over the whole scope, never partitioned: a domain drawn again under its own id must keep every block it holds, and a partition would set its lockfiles or documents apart.
+export function draftOneDomain(
+	inventory: ReviewInventory,
+	scope: DraftScope,
+): GuideDomain | null {
+	const facts = {
+		units: inventory.units.filter(unit => scope.units.has(unit.key)),
+		files: inventory.fileUnits.filter(file => scope.files.has(file)),
+	}
+	if (!facts.units.length && !facts.files.length) return null
+	return domainOf(facts, sideOrder(inventory.units), {
+		domains: new Set(),
+		refs: new Set(),
+	})
+}
+
 export function draftOverview(
 	inventory: ReviewInventory,
 	domains: readonly GuideDomain[],
