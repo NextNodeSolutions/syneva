@@ -4,7 +4,8 @@ import { hash } from '../domain/identity.js'
 import { buildReviewState } from './build.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
-import type { Guide, ReviewState } from '../domain/review.js'
+import type { Guide } from '../domain/guide-shapes.js'
+import type { ReviewState } from '../domain/review.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
 
 export type ReloadIo = { git: GitPort; store: ReviewStorePort }

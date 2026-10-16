@@ -17,8 +17,9 @@ import { queryOf, recordOf, sameSource } from './hub-records.js'
 import type { DeskSummary, OpenDeskOutcome } from '@syneva/contracts/hub'
 import type { DeskIdentity, DeskQuery } from '../../../application/open-desk.js'
 import type { HubRegistryPort } from '../../../application/ports.js'
+import type { Guide } from '../../../domain/guide-shapes.js'
 import type { HubDeskRecord } from '../../../domain/hub-registry.js'
-import type { Guide, ReviewState } from '../../../domain/review.js'
+import type { ReviewState } from '../../../domain/review.js'
 import type { HostedDeskIo, HubDesk } from './hosted-desk.js'
 
 // The linger lets the `closed` event reach a parked waiter: its HTTP response flushes on the emission, but Node needs a beat to write it to the socket before the desk's routes answer 404.

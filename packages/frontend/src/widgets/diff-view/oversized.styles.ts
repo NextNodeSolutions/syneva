@@ -50,10 +50,6 @@ export const oversized = stylex.create({
 		gap: '10px',
 		marginTop: '13px',
 	},
-	category: {
-		fontSize: deskText.label,
-		color: color['--accent'],
-	},
 	stats: {
 		display: 'flex',
 		alignItems: 'baseline',

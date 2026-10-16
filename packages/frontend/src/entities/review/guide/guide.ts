@@ -2,12 +2,14 @@ import { flowIndex } from '../changes'
 import { isRenamedGroupExpanded } from '../file/renames'
 import { isReviewedGroupExpanded } from '../file/reviewed'
 
+import { domainsOwningPath, guideFileEntries } from './domains'
 import { isGuideBaseStale } from './guide-derive'
 import { navFileOrder, wrapNextTarget, wrapPrevTarget } from './seek'
 import { lineStats, walkthroughGroups, walkRows } from './walkthrough'
 
 import type { FlowIndex } from '../change/flow-index'
-import type { GuideFile, ReviewState } from '../model'
+import type { ReviewState } from '../model'
+import type { GuideDomain } from './model'
 import type { WalkGroup, WalkRow } from './walkthrough'
 
 export type GuideInputs = {
@@ -33,17 +35,25 @@ export function guideInputs(S: {
 	}
 }
 
+// A guide with no domains (an empty changeset) carries nothing to walk: every guide surface stays off, as without a guide.
 export function hasGuide(g: GuideInputs): boolean {
-	return !!g.state?.guide?.files.length
+	return !!g.state?.guide?.domains.length
 }
 
+// File indices in reading order, each file once at its first domain: the Next/Prev order the walkthrough follows.
 export function guideOrder(g: GuideInputs): number[] {
 	const { state } = g
-	if (!state?.guide?.files.length) return []
+	if (!state?.guide?.domains.length) return []
 	const byPath = new Map(state.files.map((f, i) => [f.path, i] as const))
-	return state.guide.files
-		.map(entry => byPath.get(entry.path))
-		.filter((i): i is number => typeof i === 'number')
+	const seen = new Set<number>()
+	const order: number[] = []
+	for (const entry of guideFileEntries(state.guide)) {
+		const index = byPath.get(entry.path)
+		if (typeof index !== 'number' || seen.has(index)) continue
+		seen.add(index)
+		order.push(index)
+	}
+	return order
 }
 
 export function firstGuideIndex(g: GuideInputs): number {
@@ -163,10 +173,10 @@ function locByPath(state: ReviewState): Map<string, number> {
 
 export function walkGroups(g: GuideInputs): WalkGroup[] {
 	const { state } = g
-	if (!state?.guide?.files.length) return []
+	if (!state?.guide?.domains.length) return []
 	const ix = flowIndexOf(g)
 	return walkthroughGroups(
-		state.guide.files,
+		guideFileEntries(state.guide),
 		state.files,
 		p => ix.reviewState(p),
 		{
@@ -217,12 +227,13 @@ export function guideProgress(g: GuideInputs): {
 	}
 }
 
-export function currentGuideEntry(g: GuideInputs): GuideFile | null {
+// The domains owning the shown file, highest risk first: the file header names them.
+export function currentFileDomains(g: GuideInputs): GuideDomain[] {
 	const { state } = g
-	if (!state?.guide) return null
+	if (!state?.guide) return []
 	const f = state.files.at(g.fileIndex)
-	if (!f) return null
-	return state.guide.files.find(entry => entry.path === f.path) ?? null
+	if (!f) return []
+	return domainsOwningPath(state.guide, f.path)
 }
 
 export function currentFileName(g: GuideInputs): string {
