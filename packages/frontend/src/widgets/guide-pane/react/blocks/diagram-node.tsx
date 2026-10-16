@@ -14,8 +14,20 @@ export type Box = { x: number; y: number; width: number; height: number }
 const HALF = 2
 const TEXT_BASELINE = 4
 
-export function isActivation(event: KeyboardEvent<SVGElement>): boolean {
+function isActivation(event: KeyboardEvent<SVGElement>): boolean {
 	return event.key === 'Enter' || event.key === ' '
+}
+
+// Enter or Space on an SVG control follows it, and the key stops there: the desk's own Enter (comment, jump to note) listens on the document and would run a second action after the jump.
+export function onActivationKey(
+	activate: () => void,
+): (event: KeyboardEvent<SVGElement>) => void {
+	return event => {
+		if (!isActivation(event)) return
+		event.preventDefault()
+		event.stopPropagation()
+		activate()
+	}
 }
 
 type Link = {
@@ -68,11 +80,7 @@ function buttonProps(
 		'aria-label': ariaLabel,
 		'data-ref': `${domain.id}:${refId}`,
 		onClick: activate,
-		onKeyDown: (event: KeyboardEvent<SVGElement>): void => {
-			if (!isActivation(event)) return
-			event.preventDefault()
-			activate()
-		},
+		onKeyDown: onActivationKey(activate),
 	}
 }
 

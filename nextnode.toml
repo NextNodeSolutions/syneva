@@ -1,5 +1,5 @@
-# Landing deploy: Cloudflare Workers (static assets + one on-demand route), CI-only —
-# the NextNodeSolutions/core deploy-workers.yml pipeline reads this file
+# Landing deploy: Cloudflare Workers (static assets + one on-demand route), CI-only:
+# the NextNodeSolutions/core deploy.yml pipeline reads this file
 # (plan → quality → provision → D1 migrate → deploy); local machines never deploy.
 [project]
 name = "syneva-landing"
@@ -25,8 +25,9 @@ url = "syneva.dev"
 # along for the smoke check.
 entry = "apps/landing/dist/server/entry.mjs"
 needs = ["d1"]
-# Launch list emails (the welcome, the already-on-the-list note) via Resend from hello@syneva.dev (GitHub env-secret in dev and prod).
-secrets = ["RESEND_API_KEY"]
+# No secrets list: the pipeline syncs the whole Infisical project named after
+# the repository (dev and prod) into the Worker, RESEND_API_KEY included
+# (apps/landing/src/worker-secrets.d.ts types it).
 
 # Signup abuse guard per client address (env.RL_SUBSCRIBE): a few tries a
 # minute is plenty for one person.

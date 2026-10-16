@@ -50,6 +50,9 @@ export function neighbourDomainId(
 	const domains = orderedDomains(state?.guide)
 	if (!domains.length) return null
 	const position = domains.findIndex(domain => domain.id === currentId)
+	// No domain chosen yet (the overview): next starts at the first, previous at the last.
+	if (position < 0)
+		return (direction === 1 ? domains[0] : domains.at(-1))?.id ?? null
 	const next =
 		domains[(position + direction + domains.length) % domains.length]
 	return next?.id ?? null

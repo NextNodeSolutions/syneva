@@ -1,5 +1,10 @@
+import { Fragment } from 'react'
+
 import { orderedDomains } from '@entities/review/guide/domains'
-import { changeSpan } from '@entities/review/guide/navigation'
+import {
+	changeSpan,
+	orderedDomainChanges,
+} from '@entities/review/guide/navigation'
 import {
 	domainProgress,
 	isDomainStale,
@@ -21,6 +26,12 @@ import type { ReactElement } from 'react'
 
 const PERCENT = 100
 const MINUS = '\u2212'
+
+const VERDICT = {
+	pending: { label: 'Pending', style: tag.neutral },
+	accepted: { label: 'Kept', style: tag.green },
+	rejected: { label: 'Undone', style: tag.amber },
+} as const
 
 function Verdict({
 	progress,
@@ -118,6 +129,46 @@ function DomainRow({
 	)
 }
 
+// The open domain's owned changes in reading order, each with its verdict: any of them is one click away, not only the first.
+function DomainChanges({
+	domain,
+	state,
+}: {
+	domain: GuideDomain
+	state: ReviewState
+}): ReactElement | null {
+	const { S } = chromeCtx()
+	const changes = orderedDomainChanges(domain, state)
+	if (!changes.length) return null
+	return (
+		<div {...stylex.props(styles.changes)}>
+			{changes.map(change => {
+				const verdict = VERDICT[change.status]
+				return (
+					<button
+						key={change.id}
+						{...stylex.props(styles.changeRow)}
+						data-unit={change.id}
+						title={change.path}
+						onClick={() => S.jumpToSpan?.(changeSpan(change))}
+					>
+						<span {...stylex.props(styles.changePath)}>
+							{change.path}
+						</span>
+						<span {...stylex.props(styles.changeLine)}>
+							{change.side === 'deletions' ? MINUS : '+'}
+							{change.lineNumber}
+						</span>
+						<span {...stylex.props(tag.base, verdict.style)}>
+							{verdict.label}
+						</span>
+					</button>
+				)
+			})}
+		</div>
+	)
+}
+
 // What no domain owns after a reload: pending, listed by file, each row landing on its code; never folded into a domain.
 function Unassigned({ state }: { state: ReviewState }): ReactElement | null {
 	const { S } = chromeCtx()
@@ -204,12 +255,12 @@ export function DomainNavigator(): ReactElement {
 				</span>
 			</div>
 			{domains.map((domain, index) => (
-				<DomainRow
-					key={domain.id}
-					domain={domain}
-					index={index}
-					state={state}
-				/>
+				<Fragment key={domain.id}>
+					<DomainRow domain={domain} index={index} state={state} />
+					{S.domainId === domain.id && !S.overviewOpen && (
+						<DomainChanges domain={domain} state={state} />
+					)}
+				</Fragment>
 			))}
 			<Unassigned state={state} />
 		</>

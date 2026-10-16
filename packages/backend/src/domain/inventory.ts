@@ -83,7 +83,7 @@ function fileOf(file: ReviewFile): InventoryFile {
 	}
 }
 
-// Equal when the same files hold the same content and the same blocks changed the same way; a comment moving a block keeps the block's hash, a rewrite does not.
+// Equal when the same files hold the same content and the same blocks changed the same way; a comment moving a block keeps the block's hash, a rewrite does not. A rename names where it came from: a.ts → c.ts and b.ts → c.ts with one content are two operations.
 export function sourceFingerprint(
 	state: Pick<ReviewState, 'mode' | 'staged' | 'files' | 'changes'>,
 	pathFilter: string | undefined,
@@ -97,6 +97,7 @@ export function sourceFingerprint(
 				file.path,
 				file.changeKind ?? '',
 				file.contentHash,
+				file.oldPath ?? '',
 			]),
 			state.changes.map(change => [
 				changeKey(change),
@@ -104,6 +105,27 @@ export function sourceFingerprint(
 			]),
 		]),
 	)
+}
+
+// What a guide owns through a "file" member is the operation itself, not its path: the same path rewritten in place (a binary file, an untracked one) or reached from another origin is another operation.
+export function fileOperationIdentities(
+	inventory: ReviewInventory,
+	paths: readonly string[],
+): Record<string, string> {
+	const identities: Record<string, string> = {}
+	for (const path of paths) {
+		const file = inventory.files.find(candidate => candidate.path === path)
+		identities[path] = file
+			? hash(
+					JSON.stringify([
+						file.changeKind,
+						file.oldPath ?? '',
+						file.contentHash,
+					]),
+				)
+			: ''
+	}
+	return identities
 }
 
 export function buildInventory(

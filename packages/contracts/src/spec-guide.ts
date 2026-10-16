@@ -121,9 +121,10 @@ context kept, never re-pointed. Resolving a thread or reading an explanation app
    A refusal names the field and what it wanted: fix that field.
 3. Read the reviewer's feedback through the review loop (verdicts and comments land on the code the
    domain owns; a question about a domain reaches you like any question).
-4. After you change code a domain owns or context it cites, take the inventory again and reload
-   with an updated guide (\`syneva reload --guide <new>\`, same domain ids): nothing refreshes a
-   guide for you - a plain reload only marks what went stale. Nothing here runs a model or a
+4. After you change code a domain owns or context it cites, run a plain \`syneva reload\` first (a
+   live desk's inventory is the diff it last loaded, not your edits), then take the inventory again
+   and reload with an updated guide (\`syneva reload --guide <new>\`, same domain ids): nothing
+   refreshes a guide for you - a plain reload only marks what went stale. Nothing here runs a model or a
    worker; every step is yours.
 
 ### Authoring a guide - the rules
