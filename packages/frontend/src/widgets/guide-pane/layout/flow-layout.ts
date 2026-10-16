@@ -1,4 +1,5 @@
 import { labelWidth } from './label-width'
+import { nodeHeight } from './node-label'
 
 import type { FlowBlock, FlowEdge } from '@entities/review/guide/model'
 
@@ -63,11 +64,12 @@ function routesOf(
 	return { routes, end }
 }
 
-// The nodes of one layer side by side, centred on the widest layer, the layers stacked from `top`.
+// The nodes of one layer side by side, centred on the widest layer, the layers stacked from `top`, each as tall as the diagram's tallest label needs.
 function placeNodes(
 	rows: readonly string[][],
 	inner: number,
 	top: number,
+	height: number,
 ): Placed[] {
 	return rows.flatMap((ids, rowIndex) => {
 		const span = ids.length * FLOW_NODE.width + (ids.length - 1) * GAP_X
@@ -75,18 +77,28 @@ function placeNodes(
 		return ids.map((id, columnIndex) => ({
 			id,
 			x: left + columnIndex * (FLOW_NODE.width + GAP_X),
-			y: top + rowIndex * (FLOW_NODE.height + GAP_Y),
+			y: top + rowIndex * (height + GAP_Y),
 		}))
 	})
+}
+
+function flowNodeHeight(block: FlowBlock): number {
+	return nodeHeight(
+		block.nodes.map(node => node.label),
+		FLOW_NODE.width,
+		FLOW_NODE.height,
+	)
 }
 
 // The layers stack top-down, so a chain fits the explanation's column whatever its length. The width takes in every label: a direct edge's starts right of its bend, and the routed edges' gutters lie past all of them.
 export function layoutFlow(block: FlowBlock): {
 	nodes: Placed[]
 	routes: FlowRoute[]
+	nodeHeight: number
 	width: number
 	height: number
 } {
+	const height = flowNodeHeight(block)
 	const layers = layersOf(block)
 	const rows = [...layers.keys()]
 		.toSorted((a, b) => a - b)
@@ -100,7 +112,7 @@ export function layoutFlow(block: FlowBlock): {
 	const routeRoom = block.edges.every(edge => isDirect(edge, rowOf))
 		? 0
 		: GAP_Y / HALF
-	const nodes = placeNodes(rows, inner, MARGIN + routeRoom)
+	const nodes = placeNodes(rows, inner, MARGIN + routeRoom, height)
 	const centre = (id: string): number =>
 		(nodes.find(node => node.id === id)?.x ?? 0) + FLOW_NODE.width / HALF
 	const directEnd = Math.max(
@@ -118,9 +130,10 @@ export function layoutFlow(block: FlowBlock): {
 	return {
 		nodes,
 		routes,
+		nodeHeight: height,
 		width: Math.max(directEnd, end) + MARGIN,
 		height:
-			rows.length * FLOW_NODE.height +
+			rows.length * height +
 			(rows.length - 1) * GAP_Y +
 			routeRoom * SIDES +
 			MARGIN * SIDES,

@@ -120,7 +120,7 @@ function ThreadFoot({ thread }: { thread: DomainThread }): ReactElement {
 
 // One thread on the domain or on a block: its target as written, its state, the exchange, and the reviewer's bookkeeping.
 export function ThreadCard({ thread }: { thread: DomainThread }): ReactElement {
-	const isWaiting = thread.kind === 'question' && thread.status === 'open'
+	const isWaiting = thread.status === 'open' && thread.awaitingAnswer
 	return (
 		<div
 			{...stylex.props(

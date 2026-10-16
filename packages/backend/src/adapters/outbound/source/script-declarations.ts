@@ -157,6 +157,7 @@ const DECLARATION_TYPES: ReadonlySet<string> = new Set([
 	'TSInterfaceDeclaration',
 	'TSTypeAliasDeclaration',
 	'TSEnumDeclaration',
+	'TSModuleDeclaration',
 ])
 
 function isDeclaration(
