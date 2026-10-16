@@ -5,6 +5,7 @@ import { defaultFileView } from '@entities/review/file/file-summary'
 import { guideInputs, hasGuide, navOrder } from '@entities/review/guide/guide'
 import { nextUnreviewed } from '@entities/review/guide/seek'
 import { deferRender, render } from '@pages/desk/render'
+import { setPendingJump } from '@widgets/diff-view/comment-jump'
 import { cursorReset } from '@widgets/diff-view/cursor'
 import { D } from '@widgets/diff-view/runtime'
 
@@ -12,6 +13,8 @@ import { S, toast } from '../store'
 
 import type { FileRow } from '@entities/review/file/tree-rows'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
+import type { Side } from '@shared/diff-renderer/types'
+import type { JumpTarget } from '@widgets/diff-view/comment-jump'
 
 type ReviewFile = ReviewState['files'][number]
 
@@ -19,6 +22,39 @@ export function installNavigationBindings(): void {
 	installFileSelection()
 	installFileStepping()
 	installSignOffAdvance()
+	installSpanJump()
+}
+
+// A guide reference or an owned block lands on its exact file, side and line: a file in the review is selected (the render funnel consumes the jump once the rows exist - offscreen rows of a virtualized file through its navigator), unchanged context outside the diff opens as the read-only preview.
+function installSpanJump(): void {
+	S.jumpToSpan = span => {
+		const { state } = S
+		if (!state) return
+		const target: JumpTarget = {
+			path: span.path,
+			side: span.side,
+			lineNumber: span.lineNumber,
+			fileLevel: false,
+			unanchored: false,
+		}
+		const index = state.files.findIndex(file => file.path === span.path)
+		// Context outside the diff opens as the preview of the side the reference resolved against (the index or a commit on a staged or pr desk); the jump is armed only once that preview is the file on screen, so a render landing during the fetch cannot spend it on the file being left.
+		// A pure rename renders as its moved notice, which has no rows to land on, so a line cited in it opens as that side's preview too.
+		if (index < 0 || state.files[index]?.renamePure) {
+			void openPreview(span.path, span.side, target)
+			return
+		}
+		const shown = currentFileOrNull(state.files, S.preview, S.fileIndex)
+		const isShown = shown?.path === span.path && !S.overviewOpen
+		if (!isShown) S.selectFile?.(index)
+		// A cited line lives in the source rows: the rendered Markdown view has none to land on.
+		if (S.fileView === 'rendered') {
+			S.fileView = 'source'
+			D.fileDiff = null
+		}
+		setPendingJump(target)
+		if (isShown) void render()
+	}
 }
 
 // Bumped by every selection that replaces the rendered file and by every preview request; an in-flight preview whose token is no longer current is discarded, so a late response can't overwrite a newer selection.
@@ -45,11 +81,16 @@ function installFileSelection(): void {
 	}
 }
 
-async function openPreview(path: string): Promise<void> {
+async function openPreview(
+	path: string,
+	side?: Side,
+	jump?: JumpTarget,
+): Promise<void> {
 	const gen = ++navGeneration
-	const preview = await readPreviewFile(path)
+	const preview = await readPreviewFile(path, side)
 	if (gen !== navGeneration) return
 	if (!preview) return
+	if (jump) setPendingJump(jump)
 	S.overviewOpen = false
 	S.preview = preview
 	D.fileDiff = null
@@ -162,9 +203,12 @@ function installSignOffAdvance(): void {
 }
 
 // A preview is UI-only (never persisted or wired): its single contents ride inline via previewContents; contentHash is unused - previews are never approved.
-async function readPreviewFile(path: string): Promise<PreviewFile | null> {
+async function readPreviewFile(
+	path: string,
+	side?: Side,
+): Promise<PreviewFile | null> {
 	try {
-		const body = await fetchPreviewFile(path)
+		const body = await fetchPreviewFile(path, side)
 		return {
 			path,
 			hasHunks: false,

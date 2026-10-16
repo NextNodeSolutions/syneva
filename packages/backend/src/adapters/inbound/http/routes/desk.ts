@@ -1,4 +1,5 @@
 import { browserState } from '../../../../application/browser-state.js'
+import { buildInventory } from '../../../../domain/inventory.js'
 import { readJsonBody, json, jsonBody, HTTP_OK } from '../http.js'
 
 import type {
@@ -26,6 +27,7 @@ export async function servePoll({
 	const poll: PollPayload = {
 		baseDiffHash: state.baseDiffHash,
 		guide: state.guide,
+		guideResolution: state.guideResolution,
 		comments: state.comments,
 	}
 	json(res, HTTP_OK, { ...poll, ...ctx.status() })
@@ -47,6 +49,15 @@ export async function serveState({ ctx, res }: RouteRequest): Promise<void> {
 			}),
 	)
 	jsonBody(res, HTTP_OK, body)
+}
+
+// GET /inventory: the live desk's review source as a guide is authored against it (fingerprint, files, units).
+export async function serveInventory({
+	ctx,
+	res,
+}: RouteRequest): Promise<void> {
+	await ctx.refreshStaged()
+	json(res, HTTP_OK, buildInventory(ctx.state, ctx.pathFilter))
 }
 
 export async function serveTree({ ctx, res }: RouteRequest): Promise<void> {

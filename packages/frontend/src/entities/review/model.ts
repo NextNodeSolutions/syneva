@@ -1,6 +1,6 @@
 // Declared structurally here (NOT re-exported from @contracts) so contract DTOs cannot escape the entity API boundaries.
 // Keep structurally in sync with packages/contracts/src/review.ts / browser.ts; optional props are explicitly `T | undefined` under exactOptionalPropertyTypes.
-import type { Guide } from './guide/model'
+import type { Guide, GuideResolution } from './guide/model'
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
@@ -78,6 +78,7 @@ export type ReviewState = {
 	comments: ReviewComment[]
 	decisions?: Decision[] | undefined
 	guide?: Guide | undefined
+	guideResolution?: GuideResolution | undefined
 	reviewedFiles: string[]
 	reviewedFileHashes?: Record<string, string> | undefined
 	stagedFiles: string[]
@@ -109,7 +110,7 @@ export type DeskStateSnapshot = ReviewState &
 
 export type DeskPollSnapshot = Pick<
 	ReviewState,
-	'baseDiffHash' | 'guide' | 'comments'
+	'baseDiffHash' | 'guide' | 'guideResolution' | 'comments'
 >
 
 export type DeskRefreshEvent = { kind: 'refresh' }
