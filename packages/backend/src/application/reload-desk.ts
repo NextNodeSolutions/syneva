@@ -1,11 +1,12 @@
 import { reanchorDomainComments } from '../domain/domain-comments.js'
-import { reconcileGuide } from '../domain/guide-reconcile.js'
+import { reconcileGuide, recoverGuide } from '../domain/guide-reconcile.js'
 import { validateGuide } from '../domain/guide.js'
 import { hash } from '../domain/identity.js'
 import { buildInventory } from '../domain/inventory.js'
 
 import { attachGuide } from './attach-guide.js'
 import { buildReviewState } from './build.js'
+import { readContextHashes } from './guide-context.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
 import type { Guide } from '../domain/guide-shapes.js'
@@ -127,7 +128,10 @@ async function reloadEmpty(
 		baseDiffHash: hash(''),
 	}
 	const emptied = await withPostedGuide(
-		{ ...cleared, guideResolution: reconciledOnEmpty(cleared) },
+		{
+			...cleared,
+			guideResolution: await reconciledOnEmpty(cleared, io.git),
+		},
 		pathFilter,
 		guide,
 		io.git,
@@ -141,14 +145,20 @@ async function reloadEmpty(
 	}
 }
 
-function reconciledOnEmpty(
+// Cited context is read like on any reload: unchanged lines that still exist keep their reference resolved even once the diff is empty.
+async function reconciledOnEmpty(
 	cleared: ReviewState,
-): ReviewState['guideResolution'] {
-	if (!cleared.guide || !cleared.guideResolution) return undefined
+	git: GitPort,
+): Promise<ReviewState['guideResolution']> {
+	if (!cleared.guide) return undefined
+	const inventory = buildInventory(cleared, undefined)
+	const contextHashes = await readContextHashes(cleared, cleared.guide, git)
+	if (!cleared.guideResolution)
+		return recoverGuide(cleared.guide, inventory, contextHashes)
 	return reconcileGuide(
 		cleared.guide,
 		cleared.guideResolution,
-		buildInventory(cleared, undefined),
-		new Map(),
+		inventory,
+		contextHashes,
 	)
 }

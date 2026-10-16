@@ -13,6 +13,8 @@ import { S, toast } from '../store'
 
 import type { FileRow } from '@entities/review/file/tree-rows'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
+import type { Side } from '@shared/diff-renderer/types'
+import type { JumpTarget } from '@widgets/diff-view/comment-jump'
 
 type ReviewFile = ReviewState['files'][number]
 
@@ -28,21 +30,29 @@ function installSpanJump(): void {
 	S.jumpToSpan = span => {
 		const { state } = S
 		if (!state) return
-		setPendingJump({
+		const target: JumpTarget = {
 			path: span.path,
 			side: span.side,
 			lineNumber: span.lineNumber,
 			fileLevel: false,
 			unanchored: false,
-		})
+		}
 		const index = state.files.findIndex(file => file.path === span.path)
-		const shown = currentFileOrNull(state.files, S.preview, S.fileIndex)
-		if (index >= 0 && shown?.path === span.path && !S.overviewOpen) {
-			void render()
+		// Context outside the diff opens as the preview of the side the reference resolved against (the index or a commit on a staged or pr desk); the jump is armed only once that preview is the file on screen, so a render landing during the fetch cannot spend it on the file being left.
+		if (index < 0) {
+			void openPreview(span.path, span.side, target)
 			return
 		}
-		if (index >= 0) S.selectFile?.(index)
-		else S.previewFile?.(span.path)
+		const shown = currentFileOrNull(state.files, S.preview, S.fileIndex)
+		const isShown = shown?.path === span.path && !S.overviewOpen
+		if (!isShown) S.selectFile?.(index)
+		// A cited line lives in the source rows: the rendered Markdown view has none to land on.
+		if (S.fileView === 'rendered') {
+			S.fileView = 'source'
+			D.fileDiff = null
+		}
+		setPendingJump(target)
+		if (isShown) void render()
 	}
 }
 
@@ -70,11 +80,16 @@ function installFileSelection(): void {
 	}
 }
 
-async function openPreview(path: string): Promise<void> {
+export async function openPreview(
+	path: string,
+	side?: Side,
+	jump?: JumpTarget,
+): Promise<void> {
 	const gen = ++navGeneration
-	const preview = await readPreviewFile(path)
+	const preview = await readPreviewFile(path, side)
 	if (gen !== navGeneration) return
 	if (!preview) return
+	if (jump) setPendingJump(jump)
 	S.overviewOpen = false
 	S.preview = preview
 	D.fileDiff = null
@@ -187,9 +202,12 @@ function installSignOffAdvance(): void {
 }
 
 // A preview is UI-only (never persisted or wired): its single contents ride inline via previewContents; contentHash is unused - previews are never approved.
-async function readPreviewFile(path: string): Promise<PreviewFile | null> {
+async function readPreviewFile(
+	path: string,
+	side?: Side,
+): Promise<PreviewFile | null> {
 	try {
-		const body = await fetchPreviewFile(path)
+		const body = await fetchPreviewFile(path, side)
 		return {
 			path,
 			hasHunks: false,

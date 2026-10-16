@@ -180,6 +180,7 @@ export type OwnedUnit = { key: string; contentHash: string }
 export type DomainResolution = {
 	units: OwnedUnit[]
 	files: string[]
+	fileHashes?: Record<string, string> | undefined
 	refs: Record<string, ResolvedReference>
 	stale?: { reasons: string[] } | undefined
 }

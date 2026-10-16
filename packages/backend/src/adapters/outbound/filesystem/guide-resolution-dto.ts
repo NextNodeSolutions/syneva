@@ -7,7 +7,7 @@ import type {
 } from '../../../domain/guide-shapes.js'
 import type { Raw } from './dto.js'
 
-// The guide resolution's storage DTO: decoded field by field like every persisted record; a malformed resolution decodes to nothing, and the next reload rebuilds it from the guide.
+// The guide resolution's storage DTO: decoded field by field like every persisted record; a malformed resolution decodes to nothing, and the next reload rebuilds it from the guide with every domain stale (guide-reconcile.ts recoverGuide).
 
 function decodeStrings(raw: unknown): string[] | null {
 	if (!Array.isArray(raw)) return null
@@ -62,7 +62,25 @@ function decodeDomain(raw: unknown): DomainResolution | null {
 	const reasons = isObject(raw.stale)
 		? decodeStrings(raw.stale.reasons)
 		: null
-	return { units, files, refs, stale: reasons ? { reasons } : undefined }
+	return {
+		units,
+		files,
+		fileHashes: decodeFileHashes(raw.fileHashes),
+		refs,
+		stale: reasons ? { reasons } : undefined,
+	}
+}
+
+// Absent on a resolution saved before file identities were recorded: the reload then compares paths alone.
+function decodeFileHashes(raw: unknown): Record<string, string> | undefined {
+	if (!isObject(raw)) return undefined
+	const hashes: Record<string, string> = {}
+	for (const [path, entry] of Object.entries(raw)) {
+		const identity = asString(entry)
+		if (identity === null) return undefined
+		hashes[path] = identity
+	}
+	return hashes
 }
 
 export function decodeGuideResolution(raw: unknown): GuideResolution | null {

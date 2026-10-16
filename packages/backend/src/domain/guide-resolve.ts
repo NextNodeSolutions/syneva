@@ -1,6 +1,7 @@
 // A freshly attached guide against the review's inventory: the same source, every changed unit owned once, every reference landing. Pure; the lifecycle supplies the context reads.
 import { resolveOwnership } from './guide-ownership.js'
 import { resolveReferences } from './guide-reference-resolve.js'
+import { fileOperationIdentities } from './inventory.js'
 
 import type { ContextHashes } from './guide-reference-resolve.js'
 import type {
@@ -88,6 +89,7 @@ export function resolveGuide(
 		domains[domain.id] = {
 			units: owned.units,
 			files: owned.files,
+			fileHashes: fileOperationIdentities(inventory, owned.files),
 			refs: references.byDomain.get(domain.id) ?? {},
 		}
 	}
@@ -106,13 +108,7 @@ export function resolveGuide(
 	}
 }
 
-// One sentence an error response or a CLI prints: the first issues by field, and how many more there are.
-const SHOWN_ISSUES = 4
-
+// What an error response or a CLI prints: every issue by field, since the refusal is the only list the author gets and one round should fix them all.
 export function describeIssues(issues: readonly GuideIssue[]): string {
-	const shown = issues
-		.slice(0, SHOWN_ISSUES)
-		.map(issue => `${issue.field}: ${issue.reason}`)
-	const more = issues.length - shown.length
-	return more > 0 ? `${shown.join('; ')}; and ${more} more` : shown.join('; ')
+	return issues.map(issue => `${issue.field}: ${issue.reason}`).join('; ')
 }

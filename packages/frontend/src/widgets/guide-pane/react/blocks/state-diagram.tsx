@@ -16,8 +16,8 @@ import type {
 } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
 import type { Placed } from '../../layout/flow-layout'
+import type { StateRoute } from '../../layout/state-layout'
 
-const BACK_DROP = 50
 const LABEL_LIFT = 6
 const HALF = 2
 
@@ -31,31 +31,26 @@ function shapeOf(state: StateNode): 'initial' | 'final' | undefined {
 	return undefined
 }
 
-// A transition back along the row loops under it.
-function BackTransition({
+// A transition on its own level: up (or down) from the source, along the level, back into the target, its label on the level.
+function BracketTransition({
 	domain,
 	transition,
-	from,
-	to,
+	route,
 }: {
 	domain: GuideDomain
 	transition: StateTransition
-	from: Placed
-	to: Placed
+	route: Extract<StateRoute, { kind: 'bracket' }>
 }): ReactElement {
-	const x1 = from.x + STATE_NODE.width / HALF
-	const x2 = to.x + STATE_NODE.width / HALF
-	const base = from.y + STATE_NODE.height
 	return (
 		<g>
 			<path
-				d={`M${x1} ${base} C ${x1} ${base + BACK_DROP}, ${x2} ${base + BACK_DROP}, ${x2} ${base}`}
+				d={`M${route.x1} ${route.edgeY} V ${route.lineY} H ${route.x2} V ${route.edgeY}`}
 				markerEnd={ARROW_END}
 				{...stylex.props(diagram.edgePath)}
 			/>
 			<EdgeLabel
 				domain={domain}
-				at={{ x: (x1 + x2) / HALF, y: base + BACK_DROP + LABEL_LIFT }}
+				at={{ x: (route.x1 + route.x2) / HALF, y: route.labelY }}
 				label={transition.label}
 				refId={transition.ref}
 			/>
@@ -63,29 +58,28 @@ function BackTransition({
 	)
 }
 
-// A forward transition runs straight between neighbours.
+// A transition to the next state runs straight between the neighbours; the layout sends every other one around the row.
 function Transition({
 	domain,
 	transition,
+	route,
 	nodes,
 }: {
 	domain: GuideDomain
 	transition: StateTransition
+	route: StateRoute | undefined
 	nodes: readonly Placed[]
 }): ReactElement {
-	const from = placed(nodes, transition.from)
-	const to = placed(nodes, transition.to)
-	const isBack =
-		position(nodes, transition.from) > position(nodes, transition.to)
-	if (isBack)
+	if (route?.kind === 'bracket')
 		return (
-			<BackTransition
+			<BracketTransition
 				domain={domain}
 				transition={transition}
-				from={from}
-				to={to}
+				route={route}
 			/>
 		)
+	const from = placed(nodes, transition.from)
+	const to = placed(nodes, transition.to)
 	const x1 = from.x + STATE_NODE.width
 	const y = from.y + STATE_NODE.height / HALF
 	return (
@@ -132,6 +126,7 @@ export function StateDiagram({
 					key={keys[index]}
 					domain={domain}
 					transition={transition}
+					route={layout.routes[index]}
 					nodes={layout.nodes}
 				/>
 			))}
