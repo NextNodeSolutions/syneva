@@ -27,7 +27,7 @@ entry = "apps/landing/dist/server/entry.mjs"
 needs = ["d1"]
 # No secrets list: the pipeline syncs the whole Infisical project named after
 # the repository (dev and prod) into the Worker, RESEND_API_KEY included
-# (apps/landing/src/worker-secrets.d.ts types it).
+# (apps/landing/worker-secrets.d.ts types it).
 
 # Signup abuse guard per client address (env.RL_SUBSCRIBE): a few tries a
 # minute is plenty for one person.
