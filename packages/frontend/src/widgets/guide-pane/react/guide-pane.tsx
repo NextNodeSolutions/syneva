@@ -101,6 +101,7 @@ export function GuidePane(): ReactElement {
 			{...stylex.props(pane.aside)}
 			aria-label="Explanation"
 			data-guide-pane=""
+			data-guide-controls=""
 		>
 			<DomainHead
 				domain={domain}
