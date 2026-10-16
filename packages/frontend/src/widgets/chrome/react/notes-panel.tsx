@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react'
 
 import { currentFileOrNull } from '@entities/review/changes'
-import { domainThreads } from '@entities/review/domain-threads'
+import {
+	openDomainThreadCount,
+	visibleDomainThreads,
+} from '@entities/review/domain-threads'
 import {
 	notesPanelView,
 	reviewNotes,
@@ -137,28 +140,6 @@ function NotesTools({
 	)
 }
 
-// The guide's threads under the panel's lens: open hides the resolved, resolved keeps only them; the query matches the target's names and the text.
-function visibleThreads(
-	threads: DomainThread[],
-	view: { query: string; lens: NotesLens },
-): DomainThread[] {
-	const query = view.query.trim().toLowerCase()
-	return threads.filter(thread => {
-		if (view.lens === 'open' && thread.status === 'resolved') return false
-		if (view.lens === 'resolved' && thread.status !== 'resolved')
-			return false
-		if (!query) return true
-		const haystack = [
-			thread.target.domainTitle,
-			thread.target.blockTitle ?? '',
-			...thread.messages.map(message => message.body),
-		]
-			.join(' ')
-			.toLowerCase()
-		return haystack.includes(query)
-	})
-}
-
 type NoteLists = {
 	questions: ReviewNote[]
 	comments: ReviewNote[]
@@ -201,7 +182,7 @@ function NotesBody({
 					currentPath={currentPath}
 				/>
 			))}
-			<DomainNoteSection threads={threads} />
+			<DomainNoteSection threads={threads} startIndex={flat.length} />
 		</>
 	)
 }
@@ -221,10 +202,7 @@ export function NotesPanel(): ReactElement {
 	const notes = reviewNotes(S.state)
 	const view = { query: S.notesQuery, lens: S.notesLens }
 	const { questions, comments, flat } = notesPanelView(S.state, view)
-	const threads = visibleThreads(domainThreads(S.state), view)
-	const openThreads = domainThreads(S.state).filter(
-		thread => thread.status !== 'resolved',
-	).length
+	const threads = visibleDomainThreads(S.state, view)
 	const inputRef = useRef<HTMLInputElement | null>(null)
 	const searchTick = S.notesSearchTick
 	const cursor = S.notesCursor
@@ -245,7 +223,11 @@ export function NotesPanel(): ReactElement {
 
 	return (
 		<aside {...stylex.props(styles.aside)}>
-			<NotesHead unresolved={unresolvedNoteCount(notes) + openThreads} />
+			<NotesHead
+				unresolved={
+					unresolvedNoteCount(notes) + openDomainThreadCount(S.state)
+				}
+			/>
 			<NotesTools inputRef={inputRef} />
 			<div {...stylex.props(styles.body)} ref={bodyRef}>
 				<NotesBody

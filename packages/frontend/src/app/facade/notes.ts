@@ -1,4 +1,5 @@
 import { currentFileOrNull, fileFinished } from '@entities/review/changes'
+import { visibleDomainThreads } from '@entities/review/domain-threads'
 import { notesPanelView, sameThread } from '@entities/review/notes'
 import {
 	jumpTargetFor,
@@ -65,14 +66,25 @@ export function installNotesBindings(): void {
 		S.notesLens = lens
 		S.notesCursor = 0
 	}
+	// The cursor walks the line notes, then the guide's threads below them, in the panel's own order.
 	S.notesCursorMove = dir => {
 		S.notesCursor = Math.max(0, S.notesCursor + dir)
-		const last = notesPanelView(S.state, notesView()).flat.length - 1
+		const { flat } = notesPanelView(S.state, notesView())
+		const threads = visibleDomainThreads(S.state, notesView())
+		const last = flat.length + threads.length - 1
 		S.notesCursor = Math.min(S.notesCursor, Math.max(last, 0))
 	}
 	S.notesJumpCursor = () => {
-		const note = notesPanelView(S.state, notesView()).flat[S.notesCursor]
-		if (note) jumpToNote(note)
+		const { flat } = notesPanelView(S.state, notesView())
+		const note = flat[S.notesCursor]
+		if (note) {
+			jumpToNote(note)
+			return
+		}
+		const thread = visibleDomainThreads(S.state, notesView())[
+			S.notesCursor - flat.length
+		]
+		if (thread) S.openDomainThread?.(thread.target.domainId)
 	}
 	S.notesFocusSearch = () => {
 		S.notesSearchTick++
