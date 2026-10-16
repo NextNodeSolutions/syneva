@@ -8,6 +8,7 @@ import type {
 	DomainTarget,
 	ReviewState,
 } from './model'
+import type { NotesView } from './notes'
 
 export type DomainThread = {
 	key: string
@@ -164,4 +165,28 @@ export function domainThreads(
 export function openDomainThreadCount(state: ReviewState | null): number {
 	return domainThreads(state).filter(thread => thread.status !== 'resolved')
 		.length
+}
+
+// The guide's threads the notes panel shows, in its screen order (grouped by domain, first-asked domain first): the panel renders them and the keyboard cursor walks them from this one derivation, so the two cannot drift. Open hides the resolved, resolved keeps only them; the query matches the target's names and the text.
+export function visibleDomainThreads(
+	state: ReviewState | null,
+	view: NotesView,
+): DomainThread[] {
+	const query = view.query.trim().toLowerCase()
+	const visible = domainThreads(state).filter(thread => {
+		if (view.lens === 'open' && thread.status === 'resolved') return false
+		if (view.lens === 'resolved' && thread.status !== 'resolved')
+			return false
+		if (!query) return true
+		const haystack = [
+			thread.target.domainTitle,
+			thread.target.blockTitle ?? '',
+			...thread.messages.map(message => message.body),
+		]
+			.join(' ')
+			.toLowerCase()
+		return haystack.includes(query)
+	})
+	const byDomain = Map.groupBy(visible, thread => thread.target.domainId)
+	return [...byDomain.values()].flat()
 }

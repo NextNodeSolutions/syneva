@@ -27,18 +27,30 @@ function statusLabel(thread: DomainThread): string {
 	return thread.awaitingAnswer ? 'waiting' : 'open'
 }
 
-function DomainNoteRow({ thread }: { thread: DomainThread }): ReactElement {
+function DomainNoteRow({
+	thread,
+	index,
+}: {
+	thread: DomainThread
+	index: number
+}): ReactElement {
 	const { S } = chromeCtx()
 	const [first] = thread.messages
 	const { target } = thread
+	const cursor = index === S.notesCursor
 	return (
 		<button
 			{...stylex.props(
 				row.row,
 				thread.status === 'resolved' && row.resolved,
+				cursor && row.cursor,
 			)}
 			data-status={thread.status}
-			onClick={() => S.openDomainThread?.(target.domainId)}
+			data-cursor={cursor || undefined}
+			onClick={() => {
+				S.notesCursor = index
+				S.openDomainThread?.(target.domainId)
+			}}
 		>
 			<span {...stylex.props(row.top)}>
 				<span {...stylex.props(row.where)}>
@@ -67,17 +79,21 @@ function DomainNoteRow({ thread }: { thread: DomainThread }): ReactElement {
 }
 
 // Threads on the guide, grouped by domain: a click opens that domain's explanation with its discussion - no file to land on first.
+// The threads come in screen order (visibleDomainThreads) and the cursor index runs on from the line notes (startIndex), so the keyboard walks these rows after the comments.
 export function DomainNoteSection({
 	threads,
+	startIndex,
 }: {
 	threads: DomainThread[]
+	startIndex: number
 }): ReactElement {
-	const byDomain = new Map<string, DomainThread[]>()
-	for (const thread of threads) {
-		const group = byDomain.get(thread.target.domainId)
-		if (group) group.push(thread)
-		else byDomain.set(thread.target.domainId, [thread])
-	}
+	const byDomain = Map.groupBy(
+		threads.map((thread, offset) => ({
+			thread,
+			index: startIndex + offset,
+		})),
+		entry => entry.thread.target.domainId,
+	)
 	return (
 		<div {...stylex.props(panel.section)}>
 			<div {...stylex.props(caption.base, caption.upper, panel.label)}>
@@ -97,12 +113,16 @@ export function DomainNoteSection({
 				<div key={domainId} {...stylex.props(panel.file)}>
 					<div
 						{...stylex.props(panel.fileName)}
-						title={group[0]?.target.domainTitle ?? domainId}
+						title={group[0]?.thread.target.domainTitle ?? domainId}
 					>
-						{group[0]?.target.domainTitle ?? domainId}
+						{group[0]?.thread.target.domainTitle ?? domainId}
 					</div>
-					{group.map(thread => (
-						<DomainNoteRow key={thread.key} thread={thread} />
+					{group.map(entry => (
+						<DomainNoteRow
+							key={entry.thread.key}
+							thread={entry.thread}
+							index={entry.index}
+						/>
 					))}
 				</div>
 			))}

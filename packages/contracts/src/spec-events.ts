@@ -40,8 +40,9 @@ The \`result\` field of a review event:
 - stagedFiles[], approvedFiles[]
 - openQuestions[]: {path,lineNumber,side,body,mode,session}, or the domain shape of a question event
   (anchor "domain") - questions you never answered, folded into this Send (superseding queued live
-  question events). Answer each with \`syneva comment\` (READ-ONLY, as a live question) while acting
-  on the round.
+  question events); a domain question whose target the attached guide dropped is left out (a
+  reply there is refused). Answer each with \`syneva comment\` (READ-ONLY, as a live question)
+  while acting on the round.
 - artifacts: {resultJson, sessionDir} under ~/.syneva/<repoHash>/<session>/ (repoHash =
   sha256(abs repo root)[:16])
 The arrays above ARE the review - act on them directly; there's no prose summary to parse.
