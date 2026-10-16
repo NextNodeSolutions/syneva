@@ -64,11 +64,13 @@ function Transition({
 	transition,
 	route,
 	nodes,
+	nodeHeight,
 }: {
 	domain: GuideDomain
 	transition: StateTransition
 	route: StateRoute | undefined
 	nodes: readonly Placed[]
+	nodeHeight: number
 }): ReactElement {
 	if (route?.kind === 'bracket')
 		return (
@@ -81,7 +83,7 @@ function Transition({
 	const from = placed(nodes, transition.from)
 	const to = placed(nodes, transition.to)
 	const x1 = from.x + STATE_NODE.width
-	const y = from.y + STATE_NODE.height / HALF
+	const y = from.y + nodeHeight / HALF
 	return (
 		<g>
 			<line
@@ -128,13 +130,18 @@ export function StateDiagram({
 					transition={transition}
 					route={layout.routes[index]}
 					nodes={layout.nodes}
+					nodeHeight={layout.nodeHeight}
 				/>
 			))}
 			{block.states.map(state => (
 				<DiagramNode
 					key={state.id}
 					domain={domain}
-					box={{ ...placed(layout.nodes, state.id), ...STATE_NODE }}
+					box={{
+						...placed(layout.nodes, state.id),
+						width: STATE_NODE.width,
+						height: layout.nodeHeight,
+					}}
 					label={state.label}
 					refId={state.ref}
 					shape={shapeOf(state)}

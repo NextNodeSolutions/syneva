@@ -12,15 +12,24 @@ function repliedAt(messages: readonly Threaded[]): number {
 
 // The hub's own rule for a Send's openQuestions (computeOpenQuestions), for a line thread or a domain thread: every open question of the reviewer's has an agent reply after it. A follow-up asked after the last answer puts the thread back to waiting; a thread without a question is never "answered".
 export function isAnswered(messages: readonly Threaded[]): boolean {
-	const questions = messages.filter(
-		message =>
-			message.intent === 'question' &&
-			message.status === 'open' &&
-			message.role !== 'agent',
-	)
+	const questions = openQuestions(messages)
 	if (!questions.length) return false
 	const latestReply = repliedAt(messages)
 	return questions.every(
 		question => latestReply > +new Date(question.createdAt),
 	)
+}
+
+function openQuestions(messages: readonly Threaded[]): Threaded[] {
+	return messages.filter(
+		message =>
+			message.intent === 'question' &&
+			message.status === 'open' &&
+			message.role !== 'agent',
+	)
+}
+
+// Whether the thread waits on the agent's answer, apart from whether it is open: an answered question followed by a change request leaves the thread open on the request, not waiting on an answer.
+export function awaitsAnswer(messages: readonly Threaded[]): boolean {
+	return openQuestions(messages).length > 0 && !isAnswered(messages)
 }

@@ -221,7 +221,7 @@ export function GuideBar(): ReactElement {
 		<div {...stylex.props(guideBar.bar)}>
 			<FileControls />
 			{!S.overviewOpen && (
-				<div {...stylex.props(guideBar.acts)}>
+				<div {...stylex.props(guideBar.acts)} data-guide-controls="">
 					<DomainControls />
 				</div>
 			)}

@@ -11,7 +11,7 @@ import type { ReactElement } from 'react'
 function statusLabel(note: ReviewNote): string {
 	if (note.status === 'resolved') return 'resolved'
 	if (note.status === 'answered') return 'answered'
-	return note.kind === 'question' ? 'waiting' : 'open'
+	return note.awaitingAnswer ? 'waiting' : 'open'
 }
 
 const STATUS_TONES = {
