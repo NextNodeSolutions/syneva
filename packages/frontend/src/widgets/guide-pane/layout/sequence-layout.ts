@@ -13,13 +13,30 @@ const MARGIN = 10
 const FIRST_STEP_OFFSET = 60
 const HALF = 2
 const SIDES = 2
+const LABEL_PAD = 12
 
 // The step's label as drawn: numbered in the order it happens.
 export function stepLabel(index: number, label: string): string {
 	return `${index + 1}. ${label}`
 }
 
-// One lane per participant in declared order, one row per step in message order: the layout a reviewer reads top to bottom. A self-message's label runs right of its lane, so the width reaches the end of the furthest one. A head grown by a wrapped label pushes the steps down by as much.
+// The distance between neighbouring lanes: wide enough that every message label, centred between its two lanes, fits between them, so none runs past the drawing's edge (scrolling cannot reveal what lies outside the SVG).
+function laneSpacing(block: SequenceBlock): number {
+	const slot = new Map(
+		block.participants.map((participant, index) => [participant.id, index]),
+	)
+	const needs = block.steps.flatMap((step, index) => {
+		const span = Math.abs(
+			(slot.get(step.to) ?? 0) - (slot.get(step.from) ?? 0),
+		)
+		return span
+			? [(labelWidth(stepLabel(index, step.label)) + LABEL_PAD) / span]
+			: []
+	})
+	return Math.max(LANE.width, ...needs)
+}
+
+// One lane per participant in declared order, one row per step in message order: the layout a reviewer reads top to bottom. Lanes spread apart for the longest message label; a self-message's label runs right of its lane, so the width reaches the end of the furthest one. A head grown by a wrapped label pushes the steps down by as much.
 export function layoutSequence(block: SequenceBlock): {
 	lanes: { id: string; x: number }[]
 	headHeight: number
@@ -33,9 +50,10 @@ export function layoutSequence(block: SequenceBlock): {
 		LANE.headHeight,
 	)
 	const firstStep = TOP + FIRST_STEP_OFFSET + headHeight - LANE.headHeight
+	const spacing = laneSpacing(block)
 	const lanes = block.participants.map((participant, index) => ({
 		id: participant.id,
-		x: MARGIN + index * LANE.width + LANE.width / HALF,
+		x: MARGIN + index * spacing + spacing / HALF,
 	}))
 	const selfLabelEnds = block.steps.flatMap((step, index) =>
 		step.from === step.to
@@ -53,7 +71,7 @@ export function layoutSequence(block: SequenceBlock): {
 		headHeight,
 		stepY: index => firstStep + index * STEP_HEIGHT,
 		width: Math.max(
-			block.participants.length * LANE.width + MARGIN * SIDES,
+			block.participants.length * spacing + MARGIN * SIDES,
 			...selfLabelEnds,
 		),
 		height: firstStep + block.steps.length * STEP_HEIGHT,
