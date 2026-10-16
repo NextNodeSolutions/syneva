@@ -65,7 +65,7 @@ export function outlineLanguage(path: string): OutlineLanguage | null {
 	return null
 }
 
-type LineSpan = { lineNumber: number; endLine: number }
+export type LineSpan = { lineNumber: number; endLine: number }
 
 function lineCount(declaration: OutlineDeclaration): number {
 	return declaration.endLine - declaration.startLine

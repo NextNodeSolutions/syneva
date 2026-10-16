@@ -2,6 +2,10 @@
 import path from 'node:path'
 
 import { blockCounts, changeTitle } from '../domain/change-blocks.js'
+import {
+	changeBlocks,
+	changeStableKeyFromBlock,
+} from '../domain/diff/change.js'
 import { hash } from '../domain/identity.js'
 import {
 	blockDeclarations,
@@ -12,7 +16,11 @@ import {
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
 
-import type { SourceOutline } from '../domain/outline.js'
+import type {
+	ChangeTrivia,
+	LineSpan,
+	SourceOutline,
+} from '../domain/outline.js'
 import type { ChangeState, ReviewFile, ReviewState } from '../domain/review.js'
 import type { GitPort } from './ports.js'
 
@@ -113,7 +121,9 @@ async function readFileDeskSides(
 	state: ReviewState,
 	git: GitPort,
 ): Promise<SideTexts> {
-	const files = state.files.filter(entry => outlineLanguage(entry.path))
+	const files = state.files.filter(
+		entry => !entry.oversized && outlineLanguage(entry.path),
+	)
 	const contents = await mapContentReads(files, file =>
 		readFileContents(state, file, git),
 	)
@@ -132,13 +142,66 @@ async function readFileDeskSides(
 }
 
 function outlineFor(
-	change: ChangeState,
+	side: Side,
+	filePath: string,
 	texts: SideTexts,
 	git: GitPort,
 ): SourceOutline | null {
-	const text = texts.get(sideKey(change.side, change.path))
+	const text = texts.get(sideKey(side, filePath))
 	if (!text) return null
-	return outlineOf(change.path, text, git)
+	return outlineOf(filePath, text, git)
+}
+
+// The old-side lines a replacement block removes, found again from its hunk: a change records only the side it is anchored on.
+function removedSpan(
+	state: ReviewState,
+	change: ChangeState,
+): LineSpan | undefined {
+	const file = state.files.find(entry => entry.path === change.path)
+	const hunk = file?.hunks[change.hunkIndex]
+	if (!hunk) return undefined
+	const block = changeBlocks(hunk).find(
+		lines => changeStableKeyFromBlock(lines) === change.stableKey,
+	)
+	const removed = block?.filter(line => line.kind === 'delete') ?? []
+	const first = removed[0]?.oldLine
+	const last = removed.at(-1)?.oldLine
+	if (!first || !last) return undefined
+	return { lineNumber: first, endLine: last }
+}
+
+function needsRemovedSide(change: ChangeState): boolean {
+	return (
+		change.side === 'additions' &&
+		!!change.trivia &&
+		blockCounts(change).removed > 0
+	)
+}
+
+// A replacement block is trivia only when what it removes is too: `runTask()` turned into `// runTask()` adds a comment but deletes code. Import outranks comment, as in changeTrivia.
+function replacedTrivia(
+	state: ReviewState,
+	change: ChangeState,
+	texts: SideTexts,
+	git: GitPort,
+): ChangeTrivia | undefined {
+	const outline = outlineFor('deletions', change.path, texts, git)
+	const span = removedSpan(state, change)
+	const removed = outline && span ? changeTrivia(outline, span) : undefined
+	if (!removed || !change.trivia) return undefined
+	return removed === 'import' ? 'import' : change.trivia
+}
+
+function withTrivia(
+	change: ChangeState,
+	trivia: ChangeTrivia | undefined,
+): ChangeState {
+	const { symbol } = change
+	return {
+		...change,
+		trivia,
+		title: changeTitle(blockCounts(change), { symbol, trivia }),
+	}
 }
 
 function namedChange(
@@ -146,7 +209,7 @@ function namedChange(
 	texts: SideTexts,
 	git: GitPort,
 ): ChangeState {
-	const outline = outlineFor(change, texts, git)
+	const outline = outlineFor(change.side, change.path, texts, git)
 	if (!outline) return change
 	const span = {
 		lineNumber: change.lineNumber,
@@ -156,13 +219,22 @@ function namedChange(
 	const symbol = declaration
 		? { name: declaration.name, kind: declaration.kind }
 		: undefined
-	const trivia = changeTrivia(outline, span)
-	return {
-		...change,
-		symbol,
-		trivia,
-		title: changeTitle(blockCounts(change), { symbol, trivia }),
-	}
+	return withTrivia({ ...change, symbol }, changeTrivia(outline, span))
+}
+
+// The old sides of the files whose replacement blocks still read as trivia: read only for them, so an ordinary edit costs no second read.
+async function removedSides(
+	state: ReviewState,
+	pending: readonly ChangeState[],
+	git: GitPort,
+): Promise<SideTexts> {
+	const paths = new Set(pending.map(change => change.path))
+	const wanted = new Map<ReviewFile, Set<Side>>(
+		state.files
+			.filter(file => paths.has(file.path))
+			.map(file => [file, new Set<Side>(['deletions'])]),
+	)
+	return await readSides(state, wanted, git)
 }
 
 export async function nameChanges(
@@ -174,8 +246,21 @@ export async function nameChanges(
 		state.mode === 'file'
 			? await readFileDeskSides(state, git)
 			: await readSides(state, wantedSides(state), git)
+	const named = state.changes.map(change => namedChange(change, texts, git))
+	if (!named.some(needsRemovedSide)) return { ...state, changes: named }
+	const oldTexts =
+		state.mode === 'file'
+			? texts
+			: await removedSides(state, named.filter(needsRemovedSide), git)
 	return {
 		...state,
-		changes: state.changes.map(change => namedChange(change, texts, git)),
+		changes: named.map(change =>
+			needsRemovedSide(change)
+				? withTrivia(
+						change,
+						replacedTrivia(state, change, oldTexts, git),
+					)
+				: change,
+		),
 	}
 }
