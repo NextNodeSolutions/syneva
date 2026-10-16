@@ -8,9 +8,16 @@ concurrency:
     group: deploy-development
     cancel-in-progress: true
 
+# The pipeline reads its credentials and the repository's secrets from the
+# vault through GitHub OIDC, so the caller grants id-token and passes no
+# secrets.
+permissions:
+    contents: read
+    actions: read
+    id-token: write
+
 jobs:
     deploy:
-        uses: NextNodeSolutions/core/.github/workflows/deploy-workers.yml@main
+        uses: NextNodeSolutions/core/.github/workflows/deploy.yml@main
         with:
             environment: development
-        secrets: inherit
