@@ -163,6 +163,12 @@ export function renderFileMarkdown(text: string): string {
 	return rewriteRepoImages(DOMPurify.sanitize(mdFile.render(text || '')))
 }
 
+// Guide prose keeps the comment-safe renderer (no raw HTML from an agent) but cites repository images like a markdown file does, so they rewrite to the repo's blob route.
+export function renderGuideMarkdown(text: string): string {
+	if (!md) return `<p>${esc(text)}</p>`
+	return rewriteRepoImages(DOMPurify.sanitize(md.render(text || '')))
+}
+
 const NON_REPO_SRC = /^(https?:|data:|blob:|\/)/i
 function repoImageUrl(src: string): string {
 	const raw = src.trim()
