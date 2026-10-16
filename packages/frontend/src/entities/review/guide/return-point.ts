@@ -4,6 +4,8 @@ export type GuideReturnPoint = {
 	domainId: string | null
 	filePath: string | null
 	previewPath: string | null
+	// The preview's revision travels with its path: a staged or pr desk's cited side differs from the working tree.
+	previewSide: 'additions' | 'deletions' | undefined
 	cursor: { side: 'additions' | 'deletions'; lineNumber: number } | null
 	paneScroll: number
 	diffScroll: number
