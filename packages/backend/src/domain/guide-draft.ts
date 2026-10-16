@@ -104,6 +104,34 @@ function domainOf(
 	}
 }
 
+// Fixed groups (lockfiles, documents) and per-domain splits can leave the partition past the room the guide has left: the two smallest drafts merge while the merge stays within a domain's bound, and when even they cannot, the smallest is left out - its code stays unassigned, as when the guide has no room at all - so the saved guide never passes its domain limit.
+function withinRoom(
+	facts: readonly DraftFacts[],
+	room: number,
+	order: SideOrder,
+): DraftFacts[] {
+	const kept = [...facts]
+	while (kept.length > room) {
+		const [smallest, next] = kept
+			.map((fact, position) => ({
+				position,
+				size: draftMembers(fact.units, fact.files, order).length,
+			}))
+			.toSorted((a, b) => a.size - b.size || b.position - a.position)
+		if (!smallest || !next) break
+		const left = kept[smallest.position]
+		const right = kept[next.position]
+		if (!left || !right) break
+		if (smallest.size + next.size <= GUIDE_LIMITS.membersPerDomain)
+			kept[next.position] = {
+				units: [...right.units, ...left.units],
+				files: [...right.files, ...left.files],
+			}
+		kept.splice(smallest.position, 1)
+	}
+	return kept
+}
+
 // Each domain points at the domains whose declarations it references, the most-referenced first.
 function withRelated(
 	domains: GuideDomain[],
@@ -161,7 +189,7 @@ export function draftDomains(input: DraftInput): GuideDomain[] {
 	if (!input.maxDomains || (!units.length && !files.length)) return []
 	const byKey = new Map(units.map(unit => [unit.key, unit]))
 	const order = sideOrder(input.inventory.units)
-	const facts = partitionChanges(
+	const groups = partitionChanges(
 		units.map(partitionUnit(input.links)),
 		files,
 		input.maxDomains,
@@ -173,6 +201,7 @@ export function draftDomains(input: DraftInput): GuideDomain[] {
 		.flatMap(group =>
 			isOversized(group, order) ? bounded(group, order) : [group],
 		)
+	const facts = withinRoom(groups, input.maxDomains, order)
 	const ids = { domains: new Set(input.takenIds), refs: new Set<string>() }
 	const domains = facts.map((fact, position) => ({
 		...domainOf(fact, order, ids),
