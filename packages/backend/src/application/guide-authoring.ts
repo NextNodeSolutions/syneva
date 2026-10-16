@@ -4,6 +4,7 @@ import {
 	DOMAIN_FIELDS_SPEC,
 } from '@syneva/contracts/spec-guide'
 
+import { prunedLinks } from '../domain/guide-compose-context.js'
 import { resolveOwnership } from '../domain/guide-ownership.js'
 import { domainPacket } from '../domain/guide-packets.js'
 import { isMechanicalDomain, sourceOf } from '../domain/guide-redraft.js'
@@ -95,18 +96,28 @@ export function guideAuthoring(
 ): GuideAuthoring | null {
 	const { guide, guideResolution } = state
 	if (!guide || !guideResolution) return null
+	const inventory = buildInventory(state, pathFilter)
+	const ownership = resolveOwnership(guide, inventory)
+	// A domain whose code was reverted (or moved out of its spans) owns nothing now: posting it is refused, and leaving it out drops it, so it is no task. Links to it go too, or naming it would refuse the post.
+	const live = new Set(
+		[...ownership.domains]
+			.filter(([, owned]) => owned.units.length || owned.files.length)
+			.map(([id]) => id),
+	)
 	const pendingDomains = guide.domains.flatMap(domain => {
-		const pending = pendingOf(domain, guideResolution)
+		const pending = live.has(domain.id)
+			? pendingOf(domain, guideResolution)
+			: null
 		return pending ? [{ domain, pending }] : []
 	})
 	const { baseDiffHash: _stamp, ...unstamped } = guide
-	const inventory = buildInventory(state, pathFilter)
-	const ownership = resolveOwnership(guide, inventory)
 	return {
 		guide: {
 			...unstamped,
 			source: sourceOf(inventory),
-			domains: pendingDomains.map(({ domain }) => withoutMembers(domain)),
+			domains: pendingDomains.map(({ domain }) =>
+				withoutMembers(prunedLinks(domain, live)),
+			),
 		},
 		overviewDrafted: guideResolution.overviewDrafted ?? false,
 		pending: pendingDomains.map(entry => entry.pending),

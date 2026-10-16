@@ -63,13 +63,35 @@ function isInside(index: LineIndex, line: number, span: Span): boolean {
 	return span.start <= visibleStart && visibleEnd <= span.end
 }
 
+// A line an import touches is wiring only when every visible character on it sits in an import or a comment: code sharing the line ("import { x } from './x'; runTask()") keeps it a code line.
+function isWiringOnly(
+	index: LineIndex,
+	line: number,
+	spans: readonly Span[],
+): boolean {
+	const text = index.lines[line - 1] ?? ''
+	const start = index.starts[line - 1] ?? 0
+	const end = start + text.length
+	const onLine = spans.filter(span => span.start < end && start < span.end)
+	for (let offset = 0; offset < text.length; offset++) {
+		if (!text[offset]?.trim()) continue
+		const at = start + offset
+		if (!onLine.some(span => span.start <= at && at < span.end))
+			return false
+	}
+	return true
+}
+
 export function lineKinds(
 	index: LineIndex,
 	imports: readonly Span[],
 	comments: readonly Span[],
 ): string {
+	const wiring = [...imports, ...comments]
 	const importLines = new Set(
-		imports.flatMap(statement => linesOf(index, statement)),
+		imports
+			.flatMap(statement => linesOf(index, statement))
+			.filter(line => isWiringOnly(index, line, wiring)),
 	)
 	const covered = commentLines(index, comments)
 	return index.lines
