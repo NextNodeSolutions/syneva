@@ -70,7 +70,7 @@ function installFileSelection(): void {
 	}
 }
 
-async function openPreview(path: string): Promise<void> {
+export async function openPreview(path: string): Promise<void> {
 	const gen = ++navGeneration
 	const preview = await readPreviewFile(path)
 	if (gen !== navGeneration) return
