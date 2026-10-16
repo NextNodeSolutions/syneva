@@ -1,4 +1,5 @@
 import { appendLiveComment } from '../../../../application/add-comment.js'
+import { appendLiveDomainComment } from '../../../../application/add-domain-comment.js'
 import { browserState } from '../../../../application/browser-state.js'
 import { roundSent } from '../../../../application/journal.js'
 import {
@@ -18,10 +19,16 @@ import {
 } from '../http.js'
 import { INVALID_SAVE, parseReviewerSave } from '../reviewer-save.js'
 
-import { parseCommentRequest } from './comment-body.js'
+import {
+	isDomainCommentBody,
+	parseCommentRequest,
+	parseDomainCommentRequest,
+} from './comment-body.js'
 
+import type { ServerResponse } from 'node:http'
 import type { BrowserResetResponse } from '@syneva/contracts/browser'
 import type { ResetScope } from '@syneva/contracts/review'
+import type { DeskContext } from '../context.js'
 import type { RouteRequest } from '../router.js'
 
 // Absent/empty -> 'all' (the documented pre-scope behavior); a recognized value passes; anything else parses to null, which the route rejects.
@@ -106,24 +113,58 @@ export async function addComment({
 }: RouteRequest): Promise<void> {
 	await ctx.serialize(async (): Promise<void> => {
 		const body: unknown = await readJsonBody(req)
+		if (isDomainCommentBody(body)) return addDomainComment(ctx, res, body)
 		const request = parseCommentRequest(body)
 		if (!request)
 			return fail(res, {
 				status: HTTP_UNPROCESSABLE,
 				code: 'INVALID_COMMENT',
 				error: 'comment requires path and body',
-				fix: 'Send { path, lineNumber, side, body } as JSON.',
+				fix: 'Send { path, lineNumber, side, body } as JSON, or { domainId, blockId?, body } for a guide thread.',
 			})
 		const appended = await appendLiveComment(ctx.state, request, ctx.git)
-		// The route is the agent's (`syneva comment`, the pi correspondent): the reviewer's own
-		// comments ride /save. A body may still claim role "user" - that one is no agent reply.
-		const isAgentReply = appended.comment.role === 'agent'
-		if (isAgentReply) ctx.activity.clear()
-		const saved = await ctx.persist(appended.state)
-		ctx.commit(saved.state)
-		if (isAgentReply) ctx.recordEvent({ kind: 'agent-replied' })
+		await commitReply(ctx, appended.state, appended.comment.role)
 		json(res, HTTP_OK, { ok: true, commentId: appended.comment.id })
 	})
+}
+
+// The route is the agent's (`syneva comment`, the pi correspondent): the reviewer's own comments ride /save. A body may still claim role "user" - that one is no agent reply.
+async function commitReply(
+	ctx: DeskContext,
+	state: DeskContext['state'],
+	role: 'user' | 'agent' | undefined,
+): Promise<void> {
+	const isAgentReply = role === 'agent'
+	if (isAgentReply) ctx.activity.clear()
+	const saved = await ctx.persist(state)
+	ctx.commit(saved.state)
+	if (isAgentReply) ctx.recordEvent({ kind: 'agent-replied' })
+}
+
+// A reply in a guide thread: the target must exist in the attached guide, so an answer never lands on a domain the reviewer did not ask about.
+async function addDomainComment(
+	ctx: DeskContext,
+	res: ServerResponse,
+	body: unknown,
+): Promise<void> {
+	const request = parseDomainCommentRequest(body)
+	if (!request)
+		return fail(res, {
+			status: HTTP_UNPROCESSABLE,
+			code: 'INVALID_COMMENT',
+			error: 'a domain comment requires domainId and body',
+			fix: 'Send { domainId, blockId?, body } as JSON.',
+		})
+	const appended = appendLiveDomainComment(ctx.state, request)
+	if (!appended.ok)
+		return fail(res, {
+			status: HTTP_UNPROCESSABLE,
+			code: 'UNKNOWN_DOMAIN',
+			error: appended.reason,
+			fix: 'Name a domain id (and block id) of the attached guide, as the question event or GET …/state gives them.',
+		})
+	await commitReply(ctx, appended.state, appended.comment.role)
+	json(res, HTTP_OK, { ok: true, commentId: appended.comment.id })
 }
 
 export async function resetDesk({

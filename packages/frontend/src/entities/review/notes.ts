@@ -1,3 +1,4 @@
+import { awaitsAnswer, isAnswered } from './answered'
 import { isFileComment } from './changes'
 
 import type { Side } from '@shared/diff-renderer/types'
@@ -12,6 +13,8 @@ export type ReviewNote = {
 	fileLevel: boolean
 	unanchored: boolean
 	status: 'open' | 'answered' | 'resolved'
+	// An open question of the reviewer's has no agent reply after it yet.
+	awaitingAnswer: boolean
 	preview: string
 	latest: string
 	updatedAt: string
@@ -24,17 +27,6 @@ const PREVIEW_HEAD = 117
 function oneline(body: string): string {
 	const text = body.replace(/\s+/g, ' ').trim()
 	return text.length > PREVIEW_MAX ? `${text.slice(0, PREVIEW_HEAD)}…` : text
-}
-
-// An open question is answered once an agent reply lands in its thread after the question - the same heuristic the diff's thread UI and the Send handoff (computeOpenQuestions) use, kept in one place here for the panel.
-function isAnswered(group: ReviewComment[]): boolean {
-	const question = group.find(c => c.intent === 'question')
-	if (!question) return false
-	return group.some(
-		reply =>
-			reply.role === 'agent' &&
-			+new Date(reply.createdAt) > +new Date(question.createdAt),
-	)
 }
 
 function threadStatus(
@@ -60,6 +52,7 @@ function toNote(group: [ReviewComment, ...ReviewComment[]]): ReviewNote {
 		fileLevel: isFileComment(first),
 		unanchored: group.some(c => c.unanchored === true),
 		status: threadStatus(group, kind),
+		awaitingAnswer: awaitsAnswer(group),
 		preview: oneline(first.body),
 		latest: oneline(last.body),
 		updatedAt: last.updatedAt,

@@ -16,8 +16,24 @@ export type InventoryUnit = {
 	added: number
 	// The block's content identity: a rewrite changes it, a move does not.
 	contentHash: string
+	// The declaration and size the block is named by ("reloadDesk · 2 removed · 5 added").
 	title: string
+	// The declaration the block sits in, for the languages Syneva outlines (TS/JS, Markdown sections): `Hub.open` for a class member, `describe("x")` for a top-level call.
+	symbol?: { name: string; kind: SymbolKind } | undefined
+	// Set when the block changes only comments, or only imports and exports.
+	trivia?: 'comment' | 'import' | undefined
 }
+
+export type SymbolKind =
+	| 'function'
+	| 'class'
+	| 'method'
+	| 'interface'
+	| 'type'
+	| 'enum'
+	| 'variable'
+	| 'call'
+	| 'section'
 
 export type InventoryFile = {
 	path: string

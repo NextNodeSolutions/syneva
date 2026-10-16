@@ -1,4 +1,4 @@
-import { filePathOf } from '../domain/change-blocks.js'
+import { changeTitle, filePathOf } from '../domain/change-blocks.js'
 import {
 	changeBlockContent,
 	changeBlocks,
@@ -178,7 +178,7 @@ function changeForBlock(input: {
 		stableKey,
 		stageable: input.isStageable,
 		contentHash: hash(changeBlockContent(input.block)),
-		title: `${removed} removed · ${added} added`,
+		title: changeTitle({ removed, added }),
 		status: 'pending',
 	}
 }

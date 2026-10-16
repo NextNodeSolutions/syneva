@@ -3,6 +3,7 @@
 // ReviewComment/ChangeState/Decision structurally mirror packages/contracts/review.ts (domain may not import contracts) - keep both sides in sync; the guide's mirror is guide-shapes.ts.
 
 import type { Guide, GuideResolution } from './guide-shapes.js'
+import type { ChangeSymbol, ChangeTrivia } from './outline.js'
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
@@ -56,6 +57,36 @@ export type ReviewComment = {
 	readonly anchor?: 'file' | undefined
 }
 
+// Mirrors contracts/review.ts DomainCodeRef / DomainTarget / DomainComment: feedback anchored on a domain or a block of the guide by stable id, with the code the target pointed at when it was written.
+export type DomainCodeRef = {
+	readonly path: string
+	readonly side: 'additions' | 'deletions'
+	readonly lineNumber: number
+	readonly endLine?: number | undefined
+	readonly label?: string | undefined
+}
+
+export type DomainTarget = {
+	readonly guideFingerprint: string
+	readonly domainId: string
+	readonly blockId?: string | undefined
+	readonly domainTitle: string
+	readonly blockTitle?: string | undefined
+	readonly refs: readonly DomainCodeRef[]
+}
+
+export type DomainComment = {
+	readonly id: string
+	readonly target: DomainTarget
+	readonly body: string
+	readonly createdAt: string
+	readonly updatedAt: string
+	readonly status: 'open' | 'resolved' | 'stale'
+	readonly intent?: 'note' | 'action' | 'question' | undefined
+	readonly role?: 'user' | 'agent' | undefined
+	readonly unanchored?: boolean | undefined
+}
+
 export type ChangeState = {
 	readonly id: string
 	readonly path: string
@@ -65,6 +96,9 @@ export type ChangeState = {
 	readonly lineNumber: number
 	readonly endLine?: number | undefined
 	readonly title: string
+	// The declaration the block sits in (a function, a class member, a Markdown section) and whether it touches only comments or imports: read from the file's outline when the language has one.
+	readonly symbol?: ChangeSymbol | undefined
+	readonly trivia?: ChangeTrivia | undefined
 	readonly stableKey?: string | undefined
 	readonly status: 'pending' | 'accepted' | 'rejected'
 	readonly stageable?: boolean | undefined
@@ -125,6 +159,8 @@ export type ReviewState = {
 	readonly rawDiff: string
 	readonly files: readonly ReviewFile[]
 	readonly comments: readonly ReviewComment[]
+	// Threads on the guide's domains and blocks; absent in files written before them.
+	readonly domainComments?: readonly DomainComment[] | undefined
 	readonly changes: readonly ChangeState[]
 	// Sign-offs (Approve button); approved-vs-changes-requested is DERIVED from objections, never stored; reviewedFileHashes pins the contentHash at sign-off.
 	readonly reviewedFiles: readonly string[]

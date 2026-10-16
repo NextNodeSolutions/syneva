@@ -1,7 +1,8 @@
 // The review's inventory: the changed units an agent's guide must own and the fingerprint its source stamp must carry. Pure over the review state (mirror of packages/contracts/src/inventory.ts).
-import { changeKey } from './change-blocks.js'
+import { blockCounts, changeKey } from './change-blocks.js'
 import { hash } from './identity.js'
 
+import type { ChangeSymbol, ChangeTrivia } from './outline.js'
 import type { ChangeState, ReviewFile, ReviewState } from './review.js'
 
 export const INVENTORY_FORMAT = 'syneva-inventory/1'
@@ -16,6 +17,8 @@ export type InventoryUnit = {
 	readonly added: number
 	readonly contentHash: string
 	readonly title: string
+	readonly symbol?: ChangeSymbol | undefined
+	readonly trivia?: ChangeTrivia | undefined
 }
 
 export type InventoryFile = {
@@ -45,16 +48,9 @@ export type ReviewInventory = {
 	readonly fileUnits: string[]
 }
 
-// A stable key has the block's counts (side:line:dels:adds); the inventory spells the span out so an agent never parses it.
-const STABLE_KEY = /^(additions|deletions):(\d+):(\d+):(\d+)$/
-const REMOVED_GROUP = 3
-const ADDED_GROUP = 4
-
+// The inventory spells the block's span out so an agent never parses the stable key.
 function unitOf(change: ChangeState): InventoryUnit {
-	const counts: (string | undefined)[] =
-		change.stableKey?.match(STABLE_KEY) ?? []
-	const removed = Number(counts[REMOVED_GROUP] ?? 0)
-	const added = Number(counts[ADDED_GROUP] ?? 0)
+	const { removed, added } = blockCounts(change)
 	const span = change.side === 'additions' ? added : removed
 	return {
 		key: changeKey(change),
@@ -66,6 +62,8 @@ function unitOf(change: ChangeState): InventoryUnit {
 		added,
 		contentHash: change.contentHash ?? '',
 		title: change.title,
+		symbol: change.symbol,
+		trivia: change.trivia,
 	}
 }
 

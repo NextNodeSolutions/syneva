@@ -3,8 +3,10 @@ import path from 'node:path'
 
 import { gitStats } from '../../../domain/diff/git-stats.js'
 import { nodeWorkspace } from '../filesystem/workspace.js'
+import { nodeParser } from '../source/parser.js'
 
 import { gh, git, runGitRaw } from './exec.js'
+import { readObjects } from './objects.js'
 
 import type { GitPort } from '../../../application/ports.js'
 
@@ -15,12 +17,14 @@ export const nodeGit: GitPort = Object.freeze({
 	run: git,
 	fileAt,
 	rawBlobOids,
+	readObjects,
 	getGitRoot,
 	getHead,
 	getBranch,
 	projectTree: listProjectTree,
 	gh,
 	workspace: nodeWorkspace,
+	parser: nodeParser,
 })
 
 export async function getGitRoot(cwd: string): Promise<string> {

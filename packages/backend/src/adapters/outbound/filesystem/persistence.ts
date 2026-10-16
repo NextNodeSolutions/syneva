@@ -7,6 +7,10 @@ import { nowIso } from '../../../application/time.js'
 
 import { reviewDir } from './desk.js'
 import { decodeReviewFile, encodeReviewFile } from './diff-envelope-dto.js'
+import {
+	decodeDomainComment,
+	encodeDomainComment,
+} from './domain-comment-dto.js'
 import { asString } from './dto.js'
 import {
 	decodeGuideResolution,
@@ -91,6 +95,7 @@ function serializeReviewState(
 		rawDiff: state.rawDiff,
 		files: state.files.map(encodeReviewFile),
 		comments: state.comments.map(encodeComment),
+		domainComments: (state.domainComments ?? []).map(encodeDomainComment),
 		changes: state.changes.map(encodeChange),
 		reviewedFiles: state.reviewedFiles,
 		reviewedFileHashes: state.reviewedFileHashes,
@@ -197,6 +202,7 @@ function decodePersistedState(
 		rawDiff: typeof body.rawDiff === 'string' ? body.rawDiff : '',
 		files: decodeArray(body.files, decodeReviewFile),
 		comments: decodeArray(body.comments, decodeComment),
+		domainComments: decodeArray(body.domainComments, decodeDomainComment),
 		changes: decodeArray(body.changes, decodeChange),
 		reviewedFiles: decodeArray(body.reviewedFiles, asString),
 		reviewedFileHashes: decodeStringRecord(body.reviewedFileHashes),

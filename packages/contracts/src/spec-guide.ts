@@ -79,8 +79,12 @@ by ref):
   into guide.source.fingerprint. Two inventories with the same fingerprint are the same review.
 - files[] - { path, oldPath?, newPath?, changeKind, contentHash, hasHunks, renamePure, added, removed }
 - units[] - the changed text blocks: { key, path, side, lineNumber, endLine, removed, added,
-  contentHash, title }. A member or a reference names a block by any line of lineNumber..endLine on
-  its side; \`key\` (path:stableKey) is what verdicts and the unassigned list name.
+  contentHash, title, symbol?, trivia? }. A member or a reference names a block by any line of
+  lineNumber..endLine on its side; \`key\` (path:stableKey) is what verdicts and the unassigned
+  list name. \`symbol\` ({ name, kind }) is the declaration the block sits in, for TS/JS and
+  Markdown (a function, \`Class.method\`, a type, a top-level call such as \`describe("x")\`, a
+  heading's section) - group by it instead of re-reading the diff; \`trivia\` is "comment" or
+  "import" when the block changes only comments, or only imports and exports.
 - fileUnits[] - the paths with no text block (a pure rename, an untracked addition): each needs a
   { kind: "file", path } member.
 On a live desk, GET /api/desks/<id>/inventory answers the same for its current diff; the hub answers
@@ -101,6 +105,15 @@ visible in Other, never hidden. Verdicts keep their own hash-based rule (a rewri
 pending); a stale explanation changes no verdict. Supply a fresh guide (\`syneva reload --guide\`)
 authored against the new inventory to clear it: a replacement is validated the same way and, when
 refused, leaves the desk, its guide and every verdict as they were.
+
+### Feedback on domains
+From the explanation pane the reviewer asks and requests changes on a domain, or on one of its
+blocks, without leaving it. A question reaches you as a question event with anchor "domain" (answer
+it with \`syneva comment --domain <id> [--block <id>]\`; the correspondent does on a Pi attachment),
+a change request rides the Send as \`domainRequests\`, both carrying the target's title and the code
+it pointed at when written. Threads stay with their domain and block ids across guide replacements
+(keep the ids when you regenerate); a target a new guide drops is marked unanchored with its
+context kept, never re-pointed. Resolving a thread or reading an explanation approves nothing.
 
 ### Authoring a guide - the workflow
 1. Take the inventory of exactly the source you will open - same mode, target and flags

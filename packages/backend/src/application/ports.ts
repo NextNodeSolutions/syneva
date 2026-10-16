@@ -3,6 +3,7 @@
 
 import type { JournalEvent } from '../domain/hub-journal.js'
 import type { HubDeskRecord } from '../domain/hub-registry.js'
+import type { SourceOutline } from '../domain/outline.js'
 import type { ReviewState } from '../domain/review.js'
 
 // The filesystem facet implemented by the same adapter object as GitPort's workspace: application never imports node:fs and use-case signatures stay git-shaped.
@@ -13,6 +14,11 @@ export interface WorkspacePort {
 	// Staging's `git apply` needs a file argument (must share the tree's filesystem).
 	readonly writeTempFile: (contents: string) => Promise<string>
 	readonly removeTempDir: (dir: string) => Promise<void>
+}
+
+// Reads a source file's outline (declarations, imports, line kinds) for the languages it knows; null for any other file or one that does not parse. Pure over its input: the caller caches by content.
+export interface ParserPort {
+	readonly outline: (path: string, text: string) => SourceOutline | null
 }
 
 // The git surface the diff builders, content resolution and staging flows drive.
@@ -35,6 +41,11 @@ export interface GitPort {
 			path?: string | undefined
 		},
 	) => Promise<Map<string, string>>
+	// Many objects in one git process (`cat-file --batch`), keyed by the spec asked for (`<rev>:<path>`, `:0:<path>`); a missing object is simply absent.
+	readonly readObjects: (
+		root: string,
+		specs: readonly string[],
+	) => Promise<Map<string, string>>
 	readonly getGitRoot: (cwd: string) => Promise<string>
 	readonly getHead: (cwd: string) => Promise<string | null>
 	// The branch at cwd ("" when HEAD is unresolvable): the CLI's default session name.
@@ -43,6 +54,8 @@ export interface GitPort {
 	// One `gh` invocation, only to resolve a PR number/URL; rejects when gh is missing or unauthenticated (callers report, never crash).
 	readonly gh: (args: string[], cwd: string) => Promise<string>
 	readonly workspace: WorkspacePort
+	// The parser rides along like the workspace: the diff builders already hold this capability, and naming the code they diff needs no other port threaded through every build.
+	readonly parser: ParserPort
 }
 
 // Load the newest saved review for a session, persist the live state, and write auxiliary artifacts (the Send result) atomically.

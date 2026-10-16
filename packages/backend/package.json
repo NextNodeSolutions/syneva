@@ -13,7 +13,8 @@
 		"check": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@syneva/contracts": "workspace:*"
+		"@syneva/contracts": "workspace:*",
+		"oxc-parser": "^0.152.0"
 	},
 	"peerDependencies": {
 		"@earendil-works/pi-coding-agent": "*",

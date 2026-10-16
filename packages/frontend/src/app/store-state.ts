@@ -68,6 +68,9 @@ export interface Store {
 	guideReturn: GuideReturnPoint[]
 	// Bumped when the Markdown engine (lazy) lands or repaints, so React prose re-renders with it.
 	markdownTick: number
+	// The guide thread being written: on a domain, or on one of its blocks; the text lives here so a poll or a repaint never loses it.
+	domainComposer: { domainId: string; blockId?: string | undefined } | null
+	domainComposerBody: string
 
 	treeRows?: () => TreeRow[]
 	selectFile?: (i: number) => void
@@ -81,6 +84,11 @@ export interface Store {
 	guideBack?: () => void
 	toggleGuidePane?: () => void
 	toggleBlockDetail?: (key: string) => void
+	openDomainComposer?: (domainId: string, blockId?: string) => void
+	closeDomainComposer?: () => void
+	submitDomainComment?: (intent: 'question' | 'action') => void
+	setDomainThreadStatus?: (key: string, status: 'open' | 'resolved') => void
+	openDomainThread?: (domainId: string) => void
 	toggleDir?: (full: string, changed: boolean) => void
 	toggleAllDirs?: () => void
 	treeAnyOpen?: () => boolean
