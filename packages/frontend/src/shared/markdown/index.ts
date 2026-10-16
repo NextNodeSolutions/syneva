@@ -48,6 +48,12 @@ export function renderFileMarkdown(text: string): string {
 	return `<p>${esc(text)}</p>`
 }
 
+export function renderGuideMarkdown(text: string): string {
+	if (engine) return engine.renderGuideMarkdown(text)
+	loadMarkdown()
+	return `<p>${esc(text)}</p>`
+}
+
 export function renderMarkdownInline(text: string): string {
 	if (engine) return engine.renderMarkdownInline(text)
 	loadMarkdown()
