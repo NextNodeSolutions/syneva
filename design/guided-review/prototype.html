@@ -1947,7 +1947,11 @@
 				document.documentElement.dataset.appearance = S.appearance
 				el('appearanceBtn').textContent =
 					S.appearance === 'light' ? 'Night' : 'Light'
-				el('main').dataset.pane = S.paneOpen ? 'open' : 'closed'
+				// A guideless desk has no explanation to show: closing the pane drops its grid column and rule, otherwise the diff lands in the 1px rule column.
+				const guideless =
+					S.scenario === 'file' || S.scenario === 'empty'
+				el('main').dataset.pane =
+					S.paneOpen && !guideless ? 'open' : 'closed'
 				if (S.asideOpen) el('aside').dataset.open = ''
 				else delete el('aside').dataset.open
 				const pct = overall()
