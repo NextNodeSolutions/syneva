@@ -2,16 +2,28 @@
 import type { OutlineDeclaration, SourceOutline } from './outline.js'
 
 const HEADING = /^(#{1,6})\s+(.+?)\s*#*\s*$/
-const FENCE = /^\s*(```|~~~)/
+const FENCE = /^\s*(`{3,}|~{3,})(.*)$/
 
 type Heading = { level: number; title: string; line: number }
 
+// The opening fence a line closes or opens, or what was open before. As in CommonMark, only a fence of the same character, at least as long and with nothing after it, closes the open one: a four-backtick example can hold a three-backtick sample whose "#" lines stay code.
+function fenceAfter(open: string | null, text: string): string | null {
+	const [, marker, rest] = FENCE.exec(text) ?? []
+	if (!marker) return open
+	if (!open) return marker
+	const isClosing =
+		marker[0] === open[0] && marker.length >= open.length && !rest?.trim()
+	if (isClosing) return null
+	return open
+}
+
 function headingsOf(lines: readonly string[]): Heading[] {
 	const headings: Heading[] = []
-	let isFenced = false
+	let fence: string | null = null
 	for (const [index, text] of lines.entries()) {
-		if (FENCE.test(text)) isFenced = !isFenced
-		if (isFenced) continue
+		const wasFenced = fence !== null
+		fence = fenceAfter(fence, text)
+		if (wasFenced || fence) continue
 		const [, hashes, title] = HEADING.exec(text) ?? []
 		if (hashes && title)
 			headings.push({ level: hashes.length, title, line: index + 1 })

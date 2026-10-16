@@ -8,10 +8,7 @@ import {
 	rootProblem,
 	restoredDeskIdentity,
 } from '../../../application/open-desk.js'
-import {
-	admitOpen,
-	guideExpectation,
-} from '../../../application/open-policy.js'
+import { admitOpen, reopenedState } from '../../../application/open-policy.js'
 import { checkoutPrTarget } from '../../../application/pr-target.js'
 import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
@@ -49,13 +46,12 @@ export type HubIo = HostedDeskIo & {
 }
 
 // The one place a desk is born, reused, restored or closed; opens are serialized so two agents racing to open the same repo+session get one desk (the second sees the first's and reloads it).
+type PostedGuide = AuthoredGuide | undefined
+
 export type Hub = {
 	readonly instanceId: string
 	readonly startedAt: string
-	openDesk(
-		query: DeskQuery,
-		guide: AuthoredGuide | undefined,
-	): Promise<OpenOutcome>
+	openDesk(query: DeskQuery, guide: PostedGuide): Promise<OpenOutcome>
 	// The review source as a guide is authored against it, built from the repo as it stands now without registering, persisting or journaling anything.
 	inventory(query: DeskQuery): Promise<InventoryOutcome>
 	getDesk(id: string): HubDesk | undefined
@@ -150,7 +146,7 @@ function registerDesk(
 async function openOrReuse(
 	state: HubState,
 	query: DeskQuery,
-	guide: AuthoredGuide | undefined,
+	guide: PostedGuide,
 ): Promise<OpenOutcome> {
 	const problem = await rootProblem(query, state.io.git)
 	if (problem) return { ok: false, code: 'NO_REPOSITORY', reason: problem }
@@ -171,7 +167,7 @@ async function openOrReuse(
 type ResolvedOpen = {
 	identity: DeskIdentity
 	query: DeskQuery
-	guide: AuthoredGuide | undefined
+	guide: PostedGuide
 }
 
 // A reopen is a reload that may also change what the desk expects of its guide (--no-guide, or back to the default). A pr reopen checks its head out again first (the agent may have switched branches since), once a posted guide is admitted, so a refusal still leaves HEAD where it was.
@@ -193,7 +189,7 @@ async function reuseDesk(
 	}
 	const outcome = await live.ctx.serialize(() =>
 		reloadDesk(
-			{ ...live.ctx.state, guideExpected: guideExpectation(query) },
+			reopenedState(live.ctx.state, query),
 			live.ctx.pathFilter,
 			{ git: state.io.git, store: state.io.store },
 			guide ? { guide } : undefined,
@@ -237,7 +233,12 @@ async function createDesk(
 	)
 	if (!checkout.ok)
 		return { ok: false, code: 'PR_TARGET', reason: checkout.reason }
-	const built = await buildDeskState(identity, query, guide, state.io)
+	const built = await buildDeskState(
+		identity,
+		query,
+		{ posted: guide, isOpen: true },
+		state.io,
+	)
 	if (!built.ok)
 		return {
 			ok: false,
@@ -267,7 +268,7 @@ async function restoreOne(
 		const built = await buildDeskState(
 			identity,
 			queryOf(record),
-			undefined,
+			{ posted: undefined, isOpen: false },
 			state.io,
 		)
 		if (!built.ok) {

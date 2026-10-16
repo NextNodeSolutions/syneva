@@ -40,6 +40,7 @@ function currentPoint(): GuideReturnPoint {
 		domainId: S.domainId,
 		filePath: shownDiffPath(),
 		previewPath: S.preview?.path ?? null,
+		previewSide: S.preview?.previewSide,
 		cursor: cursorSelection(),
 		paneScroll: paneBody()?.scrollTop ?? 0,
 		diffScroll: $('diff').scrollTop,
@@ -135,8 +136,11 @@ function followReference(domainId: string, refId: string): void {
 async function restore(point: GuideReturnPoint): Promise<void> {
 	S.domainId = point.domainId
 	if (point.previewPath) {
-		if (S.preview?.path !== point.previewPath)
-			await openPreview(point.previewPath)
+		if (
+			S.preview?.path !== point.previewPath ||
+			S.preview.previewSide !== point.previewSide
+		)
+			await openPreview(point.previewPath, point.previewSide)
 	} else {
 		const index =
 			S.state?.files.findIndex(file => file.path === point.filePath) ?? -1
