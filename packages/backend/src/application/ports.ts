@@ -31,6 +31,7 @@ export interface GitPort {
 		query: {
 			staged?: boolean | undefined
 			base?: string | undefined
+			head?: string | undefined
 			path?: string | undefined
 		},
 	) => Promise<Map<string, string>>

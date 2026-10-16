@@ -9,7 +9,7 @@ Treat **`syneva spec`** as the authoritative contract — run it once before you
 1. **Investigate** the repository enough to plan concretely: relevant files, existing patterns, tests/checks, constraints. Do not write code yet.
 2. **Write the plan** (English) to `<repo>/.pi/syneva/plans/<slug>.md` where `<slug>` is from the request (kebab-case, ≤40 chars; if the file already exists, suffix `-$EPOCHSECONDS`). `mkdir -p` first. Sections: **Goal**, **Context** (what exists, relevant constraints), **Approach** (steps with rationale, in order), **Files touched** (per file: what changes and why), **Risks / open questions**, **Verification** (how each step proves done). If the repo has AGENTS.md, honor it.
 3. **Keep the plan invisible to git**: if in a git repo and the path is not already ignored (check `git check-ignore -q .pi/syneva/plans/<slug>.md`), append one line `.pi/syneva/plans/` to `.git/info/exclude` (never touch tracked `.gitignore` for this).
-4. **Open the desk on the hub** (file mode; the command returns at once and starts the hub in the background when none runs):
+4. **Open the desk on the hub** (file mode, which needs no guide; the command returns at once and starts the hub in the background when none runs):
    ```bash
    syneva open file .pi/syneva/plans/<slug>.md | tee /tmp/syneva-<slug>.json
    url=$(jq -r .url /tmp/syneva-<slug>.json); echo "${url:-open failed - read the command's stderr}"

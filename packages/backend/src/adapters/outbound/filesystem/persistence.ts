@@ -102,6 +102,7 @@ function serializeReviewState(
 		guideResolution: state.guideResolution
 			? encodeGuideResolution(state.guideResolution)
 			: undefined,
+		guideExpected: state.guideExpected,
 		persistFile: stamp.persistFile,
 	}
 }
@@ -204,6 +205,10 @@ function decodePersistedState(
 		decisionFiles: decodeArray(body.decisionFiles, asString),
 		decisions: decodeArray(body.decisions, decodeDecision),
 		...decodeGuideFields(body),
+		guideExpected:
+			typeof body.guideExpected === 'boolean'
+				? body.guideExpected
+				: undefined,
 		persistFile,
 	}
 }

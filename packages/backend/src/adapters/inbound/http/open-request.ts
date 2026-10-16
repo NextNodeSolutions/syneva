@@ -69,6 +69,7 @@ export function parseOpenRequest(body: unknown): ParsedOpen {
 			base: optionalText(record, 'base'),
 			staged: record.staged === true,
 			pathFilter: optionalText(record, 'path'),
+			noGuide: record.noGuide === true,
 		},
 		guide,
 	}

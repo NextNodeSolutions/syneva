@@ -44,7 +44,9 @@ async function readUnchangedSide(
 		return git.fileAt(
 			state.root,
 			rel,
-			side === 'additions' ? 'HEAD' : (state.base ?? 'HEAD'),
+			side === 'additions'
+				? (state.head ?? 'HEAD')
+				: (state.base ?? 'HEAD'),
 		)
 	if (state.staged)
 		return git.fileAt(state.root, rel, side === 'additions' ? ':0' : 'HEAD')

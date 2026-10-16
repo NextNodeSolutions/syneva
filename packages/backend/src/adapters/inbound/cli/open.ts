@@ -78,6 +78,7 @@ export function deskRequest(
 		staged:
 			mode === 'repo' && (args.diff === 'staged' || args.staged === true),
 		path: pathFilter ? path.resolve(repo, pathFilter) : undefined,
+		noGuide: args['no-guide'] === true,
 	}
 }
 
