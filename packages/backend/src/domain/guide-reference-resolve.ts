@@ -104,11 +104,12 @@ function resolveDomainReferences(
 	return { refs, issues }
 }
 
-// Every reference of every domain.
+// Every reference of every domain; an unresolved one is an issue only for the domains `isChecked` names (every one by default).
 export function resolveReferences(
 	domains: readonly GuideDomain[],
 	inventory: ReviewInventory,
 	contextHashes: ContextHashes,
+	isChecked: (domainId: string) => boolean = () => true,
 ): {
 	byDomain: Map<string, Record<string, ResolvedReference>>
 	issues: GuideIssue[]
@@ -123,7 +124,7 @@ export function resolveReferences(
 			contextHashes,
 		)
 		byDomain.set(domain.id, resolved.refs)
-		issues.push(...resolved.issues)
+		if (isChecked(domain.id)) issues.push(...resolved.issues)
 	}
 	return { byDomain, issues }
 }

@@ -61,6 +61,26 @@ function strippedStale(
 	}
 }
 
+// The attach-time resolution a domain keeps instead of resolving afresh: one the post left as it was, or a stale explained one it left out (strippedStale). Undefined for the domains being explained or drawn now.
+function carriedOf(
+	state: ReviewState,
+	posted: AuthoredGuide,
+	composition: Composition,
+): (id: string) => DomainResolution | undefined {
+	const carried = state.guideResolution?.domains ?? {}
+	const postedIds = new Set(posted.domains.map(domain => domain.id))
+	return id => {
+		const previous = carried[id]
+		if (!composition.touched.has(id)) return previous
+		const isOmittedStale =
+			previous?.stale &&
+			!postedIds.has(id) &&
+			!composition.drafted.has(id)
+		if (!isOmittedStale) return undefined
+		return previous
+	}
+}
+
 // A domain the post left as it was keeps the resolution it had - its attach-time identities, its staleness - so laying a guide over the desk never makes stale code read as current.
 function keptResolution(
 	state: ReviewState,
@@ -68,19 +88,16 @@ function keptResolution(
 	composition: Composition,
 	fresh: GuideResolution,
 ): GuideResolution {
-	const carried = state.guideResolution?.domains ?? {}
-	const postedIds = new Set(posted.domains.map(domain => domain.id))
+	const carriedResolution = carriedOf(state, posted, composition)
 	const resolutionOf = (
 		id: string,
 		entry: DomainResolution,
 	): DomainResolution => {
-		const previous = carried[id]
-		if (!composition.touched.has(id)) return previous ?? entry
-		const isOmittedStale =
-			previous?.stale &&
-			!postedIds.has(id) &&
-			!composition.drafted.has(id)
-		return isOmittedStale ? strippedStale(id, previous, fresh) : entry
+		const previous = carriedResolution(id)
+		if (!previous) return entry
+		return composition.touched.has(id)
+			? strippedStale(id, previous, fresh)
+			: previous
 	}
 	const domains = Object.fromEntries(
 		Object.entries(fresh.domains).map(([id, entry]) => [
@@ -115,10 +132,13 @@ export async function attachGuide(
 			issues: composition.issues,
 		}
 	const contextHashes = await readContextHashes(state, composition.guide, git)
+	// Only the domains this post explains must cite code that is there: a carried domain keeps its own stale references until it is explained, so explaining in separate passes is never refused over another domain's.
+	const carriedResolution = carriedOf(state, posted, composition)
 	const { resolution, issues } = resolveGuide(
 		composition.guide,
 		inventory,
 		contextHashes,
+		id => !carriedResolution(id),
 	)
 	if (issues.length)
 		return { ok: false, reason: describeIssues(issues), issues }
