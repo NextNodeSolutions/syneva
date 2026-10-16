@@ -1,3 +1,4 @@
+import { domainThreads } from '@entities/review/domain-threads'
 import { reviewNotes } from '@entities/review/notes'
 import { useStoreFields } from '@shared/lib/use-store-version'
 import { count, deskControl, segmented } from '@shared/ui/desk-control.styles'
@@ -110,7 +111,10 @@ const tile = [press.control, control.base, deskControl.compact]
 function NotesButton(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields('state', 'notesOpen')
-	const open = reviewNotes(S.state).filter(n => n.status === 'open').length
+	// The guide's threads count like line notes: an open domain question or request shows on the badge before the panel opens.
+	const open =
+		reviewNotes(S.state).filter(n => n.status === 'open').length +
+		domainThreads(S.state).filter(thread => thread.status === 'open').length
 	return (
 		<button
 			{...stylex.props(
