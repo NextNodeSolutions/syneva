@@ -48,7 +48,7 @@ export type Hub = {
 	readonly instanceId: string
 	readonly startedAt: string
 	openDesk(query: DeskQuery, guide: Guide | undefined): Promise<OpenOutcome>
-	// The review source as a guide is authored against it: the live desk's when one reviews that source, else built from the repo without registering, persisting or journaling anything.
+	// The review source as a guide is authored against it, built from the repo as it stands now without registering, persisting or journaling anything.
 	inventory(query: DeskQuery): Promise<InventoryOutcome>
 	getDesk(id: string): HubDesk | undefined
 	listDesks(): HubDesk[]
@@ -174,7 +174,7 @@ async function openOrReuse(
 	return createDesk(state, identity, query, guide)
 }
 
-// Same resolution as an open (a PR target is checked out the same way), then the inventory of the live desk's state or of a state built on the spot.
+// Same resolution as an open (a PR target is checked out the same way), then the inventory of a state built on the spot, even when a live desk reviews that source: an open or a reload rebuilds the diff before it attaches a guide, so an inventory taken from the desk's last round would carry a fingerprint the rebuild refuses as soon as the repo moved.
 async function inventoryOf(
 	state: HubState,
 	query: DeskQuery,
@@ -184,14 +184,7 @@ async function inventoryOf(
 	const resolved = await resolveDeskIdentity(query, state.io.git)
 	if (!resolved.ok)
 		return { ok: false, code: 'PR_TARGET', reason: resolved.reason }
-	const { identity } = resolved
-	const live = liveDesk(state.desks, identity.id)
-	if (live && sameSource(live.record, query, identity))
-		return {
-			ok: true,
-			inventory: buildInventory(live.ctx.state, live.ctx.pathFilter),
-		}
-	const built = await buildSourceState(identity, query, state.io.git)
+	const built = await buildSourceState(resolved.identity, query, state.io.git)
 	if (!built.ok) return { ok: false, code: 'NO_REVIEW', reason: built.reason }
 	return {
 		ok: true,
