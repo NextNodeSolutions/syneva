@@ -157,8 +157,9 @@ ${GUIDE_SPEC}
   restored desk lands in the same tab (it shows a refresh notice after a hub restart) - don't tell
   the reviewer to switch tabs. Pass --session only to run a second, separate desk. A live desk
   reopened without a guide is reloaded with the guide it carries (stale where the code moved on)
-  or stays unguided; a reopen may add --no-guide or drop it - \`syneva reload\` never needs a guide,
-  and a hub restart restores every desk as it was.
+  or stays unguided; a reopen may add --no-guide (which sets the carried guide aside: a plain
+  review) or drop it - \`syneva reload\` never needs a guide, and a hub restart restores every desk
+  as it was.
 - The hub never closes desks on its own: a desk lives until the human closes it (browser or
   dashboard) or you do (\`syneva close\`). The dashboard lists every live desk with its last
   activity, agent status and review progress. State persists on every save; \`syneva hub stop\`
