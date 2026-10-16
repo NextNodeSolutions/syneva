@@ -245,6 +245,8 @@ export type DomainResolution = {
 	units: OwnedUnit[]
 	// The hunk-less file operations it owned.
 	files: string[]
+	// Per owned file operation, its identity then (kind, origin, content): a path alone misses a binary file rewritten in place. Absent on a resolution saved before it existed.
+	fileHashes?: Record<string, string> | undefined
 	refs: Record<string, ResolvedReference>
 	// Set on reload when the owned code, the cited context or a prerequisite changed since the guide was written.
 	stale?: { reasons: string[] } | undefined

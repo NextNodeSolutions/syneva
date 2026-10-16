@@ -3,13 +3,16 @@ import { promises as fs } from 'node:fs'
 import { resolveContained } from '../../../../application/containment.js'
 import { readFileContents } from '../../../../application/contents.js'
 import { errorMessage } from '../../../../application/errors.js'
+import { readReviewedSide } from '../../../../application/guide-context.js'
 import { blobOid } from '../../../../domain/identity.js'
 import { BAD_PATH, cannotRead } from '../failure.js'
 import { HTTP_NOT_FOUND, HTTP_OK, json, fail } from '../http.js'
 
+import type { ContainedPath } from '../../../../application/containment.js'
 import type { RouteRequest } from '../router.js'
 
 // GET /file - read an arbitrary repo file, for previewing/commenting on unchanged files; same strict path boundary as /file-contents (repo-relative, no escapes).
+// Without `side`, the working tree as it is now; with one (a cited guide reference), that side as the review took it - the index or a commit on a staged or pr desk - so the preview shows the lines the reference resolved against.
 export async function serveFile({
 	ctx,
 	res,
@@ -23,12 +26,20 @@ export async function serveFile({
 	)
 	if ('error' in resolved && resolved.error === 'escape')
 		return fail(res, BAD_PATH)
+	const side = url.searchParams.get('side')
 	const contents =
-		'abs' in resolved
-			? await fs.readFile(resolved.abs, 'utf8').catch(() => null)
-			: null
+		side === 'additions' || side === 'deletions'
+			? await readReviewedSide(ctx.state, rel, side, ctx.git)
+			: await readWorkingFile(resolved)
 	if (contents === null) return fail(res, cannotRead(rel))
 	json(res, HTTP_OK, { path: rel, contents })
+}
+
+async function readWorkingFile(
+	resolved: ContainedPath,
+): Promise<string | null> {
+	if (!('abs' in resolved)) return null
+	return await fs.readFile(resolved.abs, 'utf8').catch(() => null)
 }
 
 // GET /file-contents - one reviewed file's old/new contents, fetched on demand so the full contents never ride /state; resolved from git/the working tree (the state embeds none).

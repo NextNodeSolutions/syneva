@@ -2,6 +2,7 @@ import { redraftGuide } from '../domain/guide-redraft.js'
 
 import { attachGuide } from './attach-guide.js'
 import { buildSourceState } from './open-desk.js'
+import { mergeReviewState } from './reconcile.js'
 
 import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { DeskIdentity, DeskIo, DeskQuery } from './open-desk.js'
@@ -24,10 +25,15 @@ export async function admitOpen(
 	const source = await buildSourceState(identity, query, io.git)
 	if (!source.ok)
 		return { ok: false, code: 'NO_REVIEW', reason: source.reason }
-	// Judged as the open will lay it: over the draft a guided desk opens on.
+	// Judged as the open will lay it: over the saved guide reconciled to this diff, then drafted, as buildDeskState does - a reopen posts the guide.json written for the saved guide's own domains.
+	const saved = await io.store.loadLatestReview(
+		source.state.root,
+		identity.session,
+	)
+	const merged = await mergeReviewState(source.state, saved, io.git)
 	const drafted = guideExpectation(query)
-		? redraftGuide(source.state, query.pathFilter)
-		: source.state
+		? redraftGuide(merged, query.pathFilter)
+		: merged
 	const attached = await attachGuide(drafted, query.pathFilter, guide, io.git)
 	if (attached.ok) return { ok: true }
 	return { ok: false, code: 'INVALID_GUIDE', reason: attached.reason }

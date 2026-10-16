@@ -1,11 +1,10 @@
+import { Fragment } from 'react'
+
 import { orderedDomains } from '@entities/review/guide/domains'
-import { changeSpan } from '@entities/review/guide/navigation'
 import {
 	domainProgress,
 	isDomainDrafted,
 	isDomainStale,
-	unassignedChanges,
-	unassignedFiles,
 } from '@entities/review/guide/resolution'
 import { RISK_LABELS } from '@shared/ui/risk-tag-html'
 import { riskTag } from '@shared/ui/risk-tag.styles'
@@ -14,14 +13,14 @@ import { caption, tag } from '@syneva/design-system/controls.styles'
 
 import { chromeCtx } from '../context'
 
+import { DomainChanges, Unassigned } from './domain-navigator-changes'
 import { navigator as styles } from './domain-navigator.styles'
 
 import type { GuideDomain } from '@entities/review/guide/model'
-import type { ChangeState, ReviewState } from '@entities/review/model'
+import type { ReviewState } from '@entities/review/model'
 import type { ReactElement } from 'react'
 
 const PERCENT = 100
-const MINUS = '\u2212'
 const DRAFT_NOTE =
 	"Drafted by Syneva from the code's structure: grouped and named, not explained by the agent yet"
 
@@ -129,50 +128,6 @@ function DomainRow({
 	)
 }
 
-// What no domain owns after a reload: pending, listed by file, each row landing on its code; never folded into a domain.
-function Unassigned({ state }: { state: ReviewState }): ReactElement | null {
-	const { S } = chromeCtx()
-	const changes = unassignedChanges(state)
-	const files = unassignedFiles(state)
-	if (!changes.length && !files.length) return null
-	const count = changes.length + files.length
-	return (
-		<div {...stylex.props(styles.unassigned)} role="note">
-			<span {...stylex.props(styles.unassignedTitle)}>
-				{count} {count === 1 ? 'change' : 'changes'} not in the guide
-			</span>
-			{changes.map((change: ChangeState) => (
-				<button
-					key={change.id}
-					{...stylex.props(styles.unassignedRow)}
-					onClick={() => S.jumpToSpan?.(changeSpan(change))}
-				>
-					<span>{change.path}</span>
-					<span>
-						{change.side === 'deletions' ? MINUS : '+'}
-						{change.lineNumber}
-					</span>
-				</button>
-			))}
-			{files.map(path => (
-				<button
-					key={path}
-					{...stylex.props(styles.unassignedRow)}
-					onClick={() => {
-						const index = state.files.findIndex(
-							file => file.path === path,
-						)
-						if (index >= 0) S.selectFile?.(index)
-					}}
-				>
-					<span>{path}</span>
-					<span>whole file</span>
-				</button>
-			))}
-		</div>
-	)
-}
-
 // The Guide tab: the changeset in one look, then its domains highest risk first. The complete file list stays one tab away (Tree).
 // The overview is Markdown written for the pane; the navigator shows its words without the markers.
 function plainWords(markdown: string): string {
@@ -215,12 +170,12 @@ export function DomainNavigator(): ReactElement {
 				</span>
 			</div>
 			{domains.map((domain, index) => (
-				<DomainRow
-					key={domain.id}
-					domain={domain}
-					index={index}
-					state={state}
-				/>
+				<Fragment key={domain.id}>
+					<DomainRow domain={domain} index={index} state={state} />
+					{S.domainId === domain.id && !S.overviewOpen && (
+						<DomainChanges domain={domain} state={state} />
+					)}
+				</Fragment>
 			))}
 			<Unassigned state={state} />
 		</>

@@ -13,7 +13,12 @@ import { resolveGuide } from './guide-resolve.js'
 import { GUIDE_FORMAT, GUIDE_LIMITS } from './guide-shapes.js'
 import { buildInventory } from './inventory.js'
 
-import type { Guide, GuideDomain, GuideResolution } from './guide-shapes.js'
+import type {
+	Guide,
+	GuideDomain,
+	GuideResolution,
+	OwnedUnit,
+} from './guide-shapes.js'
 import type { ReviewInventory } from './inventory.js'
 import type { ChangeState, ReviewState } from './review.js'
 
@@ -77,10 +82,16 @@ function guideOf(
 	return {
 		format: GUIDE_FORMAT,
 		source: sourceOf(inventory),
-		overview: draftOverview(inventory, drafts),
+		overview: authoredOverview(state) ?? draftOverview(inventory, drafts),
 		domains: drafts,
 		baseDiffHash: state.baseDiffHash,
 	}
+}
+
+// The overview the agent wrote is its own, whether or not any domain is explained yet (a lockfile-only desk has none to explain).
+function authoredOverview(state: ReviewState): string | undefined {
+	if (!state.guide || state.guideResolution?.overviewDrafted) return undefined
+	return state.guide.overview
 }
 
 type Drafted = {
@@ -91,6 +102,7 @@ type Drafted = {
 }
 
 function resolutionOf(
+	state: ReviewState,
 	inventory: ReviewInventory,
 	explained: Explained | null,
 	drafts: Drafted,
@@ -126,7 +138,7 @@ function resolutionOf(
 		drafted: drafts.domains.map(domain => domain.id),
 		overviewDrafted: explained
 			? (explained.resolution?.overviewDrafted ?? false)
-			: true,
+			: typeof authoredOverview(state) !== 'string',
 	}
 }
 
@@ -154,7 +166,17 @@ function sameSet(left: readonly string[], right: readonly string[]): boolean {
 	)
 }
 
-// The drafts in place, kept while they own exactly the code no explained domain owns: a reload that changed none of it keeps the same domains, ids and order.
+// Same blocks with the same content as when the draft was drawn: an edit in place keeps a block's key, but its names and counts may no longer be the draft's.
+function sameCode(
+	drawn: readonly OwnedUnit[] | undefined,
+	now: readonly OwnedUnit[],
+): boolean {
+	if (!drawn || drawn.length !== now.length) return false
+	const hashes = new Map(now.map(unit => [unit.key, unit.contentHash]))
+	return drawn.every(unit => hashes.get(unit.key) === unit.contentHash)
+}
+
+// The drafts in place, kept while they own exactly the code no explained domain owns, unchanged: a reload that changed none of it keeps the same domains, ids and order.
 function standingDrafts(
 	state: ReviewState,
 	inventory: ReviewInventory,
@@ -178,6 +200,11 @@ function standingDrafts(
 	const isExact =
 		sameSet(units, leftover.units) && sameSet(files, leftover.files)
 	if (!isExact) return null
+	const drawn = state.guideResolution?.domains ?? {}
+	const isUnchanged = [...owned.domains].every(([id, holding]) =>
+		sameCode(drawn[id]?.units, holding.units),
+	)
+	if (!isUnchanged) return null
 	return domains
 }
 
@@ -212,7 +239,7 @@ export function redraftGuide(
 		guide,
 		guideResolution:
 			guide &&
-			resolutionOf(inventory, explained, {
+			resolutionOf(state, inventory, explained, {
 				guide,
 				domains: drafts,
 				leftover,

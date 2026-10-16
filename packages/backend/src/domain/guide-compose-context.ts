@@ -1,6 +1,6 @@
 // What composing a posted guide over the current one works from, and the current domains the post leaves out: kept as they were, kept without the blocks the post took (a drafted one re-drafted over what is left), or dropped once nothing is left.
 import { draftMembers } from './guide-draft-members.js'
-import { draftDomains } from './guide-draft.js'
+import { draftOneDomain } from './guide-draft.js'
 import { resolveOwnership } from './guide-ownership.js'
 
 import type { Claims } from './guide-compose-claims.js'
@@ -29,7 +29,6 @@ export type Holding = {
 
 export type ComposeContext = {
 	readonly inventory: ReviewInventory
-	readonly links: ReadonlyMap<string, readonly string[]>
 	readonly order: SideOrder
 	readonly current: CurrentGuide | undefined
 	readonly currentDomains: ReadonlyMap<string, GuideDomain>
@@ -83,13 +82,7 @@ export function redrafted(
 	left: Holding,
 	context: ComposeContext,
 ): GuideDomain | null {
-	const [fresh] = draftDomains({
-		inventory: context.inventory,
-		links: context.links,
-		scope: left,
-		takenIds: new Set(),
-		maxDomains: 1,
-	})
+	const fresh = draftOneDomain(context.inventory, left)
 	if (!fresh) return null
 	return { ...fresh, id: domain.id, order: domain.order }
 }

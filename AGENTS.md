@@ -10,11 +10,11 @@ Product positioning lives in `PRODUCT.md`, the review app's UI design language i
 
 ## Landing deploy
 
-The landing (`apps/landing`, an Astro app) deploys to Cloudflare Workers through CI only, never from a local machine: its pages as static assets, and one on-demand route (the launch list signup) in the Worker, bound to a D1 database, a rate limiter and the `RESEND_API_KEY` secret (a GitHub env-secret in both environments). Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy-workers.yml`, which also applies the D1 migrations before each deploy: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). Its build output, the Worker's types and local bindings, and the pipeline's smoke check: `apps/landing/AGENTS.md`.
+The landing (`apps/landing`, an Astro app) deploys to Cloudflare Workers through CI only, never from a local machine: its pages as static assets, and one on-demand route (the launch list signup) in the Worker, bound to a D1 database, a rate limiter and the `RESEND_API_KEY` secret (from the `syneva` Infisical project, `dev` and `prod`, synced into the Worker on every deploy; GitHub holds no secret). Config lives in `nextnode.toml`; the pipeline is `NextNodeSolutions/core`'s `deploy.yml`, which also applies the D1 migrations before each deploy: `deploy-dev.yml` fires on merge to `main` (dev.syneva.dev), `deploy-prod.yml` is a manual dispatch (syneva.dev, gated on the dev pipeline). Its build output, the Worker's types and local bindings, and the pipeline's smoke check: `apps/landing/AGENTS.md`.
 
 ## Commands
 
-Every command is a pnpm script in `package.json` — that file is the authoritative list (`dev`, `build`, `check`, `lint`, `lint:types`, `lint:fix`, `format`, `format:check`, `perf-smoke`, `release`). CI (`.github/workflows/ci.yml`) runs the same gates on Node 24 — all must pass. The tooling needs Node 24 (`devEngines`); the published CLI keeps its `engines.node >= 22` contract.
+Every command is a pnpm script in `package.json` — that file is the authoritative list (`dev`, `build`, `check`, `lint`, `lint:types`, `lint:fix`, `format`, `format:check`, `perf-smoke`, `release`). CI (`.github/workflows/ci.yml`) runs the same gates on Node 24 for every pull request, stacked ones included — all must pass. The tooling needs Node 24 (`devEngines`); the published CLI keeps its `engines.node >= 22` contract.
 
 ## Test layout
 

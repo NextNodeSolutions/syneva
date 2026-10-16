@@ -1,6 +1,5 @@
 import { composeGuide } from '../domain/guide-compose.js'
 import { sideOrder } from '../domain/guide-draft-members.js'
-import { changeLinks } from '../domain/guide-redraft.js'
 import { describeIssues, resolveGuide } from '../domain/guide-resolve.js'
 import { buildInventory } from '../domain/inventory.js'
 
@@ -10,6 +9,7 @@ import type { CurrentGuide } from '../domain/guide-compose-context.js'
 import type { Composition } from '../domain/guide-compose.js'
 import type {
 	AuthoredGuide,
+	DomainResolution,
 	Guide,
 	GuideIssue,
 	GuideResolution,
@@ -41,17 +41,51 @@ function currentGuideOf(state: ReviewState): CurrentGuide | undefined {
 	}
 }
 
+// A stale explained domain the post left out but took blocks from: its words were never checked, so it keeps its attach-time identities and its stale mark, minus the blocks that now belong to another domain - the next reload then still finds what changed under what it kept.
+function strippedStale(
+	id: string,
+	carried: DomainResolution,
+	fresh: GuideResolution,
+): DomainResolution {
+	const others = Object.entries(fresh.domains).filter(
+		([otherId]) => otherId !== id,
+	)
+	const units = new Set(
+		others.flatMap(([, entry]) => entry.units.map(unit => unit.key)),
+	)
+	const files = new Set(others.flatMap(([, entry]) => entry.files))
+	return {
+		...carried,
+		units: carried.units.filter(unit => !units.has(unit.key)),
+		files: carried.files.filter(file => !files.has(file)),
+	}
+}
+
 // A domain the post left as it was keeps the resolution it had - its attach-time identities, its staleness - so laying a guide over the desk never makes stale code read as current.
 function keptResolution(
 	state: ReviewState,
+	posted: AuthoredGuide,
 	composition: Composition,
 	fresh: GuideResolution,
 ): GuideResolution {
 	const carried = state.guideResolution?.domains ?? {}
+	const postedIds = new Set(posted.domains.map(domain => domain.id))
+	const resolutionOf = (
+		id: string,
+		entry: DomainResolution,
+	): DomainResolution => {
+		const previous = carried[id]
+		if (!composition.touched.has(id)) return previous ?? entry
+		const isOmittedStale =
+			previous?.stale &&
+			!postedIds.has(id) &&
+			!composition.drafted.has(id)
+		return isOmittedStale ? strippedStale(id, previous, fresh) : entry
+	}
 	const domains = Object.fromEntries(
 		Object.entries(fresh.domains).map(([id, entry]) => [
 			id,
-			composition.touched.has(id) ? entry : (carried[id] ?? entry),
+			resolutionOf(id, entry),
 		]),
 	)
 	return {
@@ -72,7 +106,6 @@ export async function attachGuide(
 	const inventory = buildInventory(state, pathFilter)
 	const composition = composeGuide(posted, currentGuideOf(state), {
 		inventory,
-		links: changeLinks(state.changes),
 		order: sideOrder(inventory.units),
 	})
 	if (composition.issues.length)
@@ -93,7 +126,12 @@ export async function attachGuide(
 		ok: true,
 		attachment: {
 			guide: { ...composition.guide, baseDiffHash: state.baseDiffHash },
-			guideResolution: keptResolution(state, composition, resolution),
+			guideResolution: keptResolution(
+				state,
+				posted,
+				composition,
+				resolution,
+			),
 		},
 	}
 }

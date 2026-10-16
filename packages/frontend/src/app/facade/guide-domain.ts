@@ -1,4 +1,4 @@
-import { currentFileOrNull } from '@entities/review/changes'
+import { currentFileOrNull, fromDisplayLine } from '@entities/review/changes'
 import { orderedDomains } from '@entities/review/guide/domains'
 import {
 	changeAt,
@@ -13,8 +13,11 @@ import { pushReturnPoint } from '@entities/review/guide/return-point'
 import { $ } from '@shared/lib/dom'
 import { render } from '@shared/lib/render-scheduler'
 import { cursorSelection, cursorSyncTo } from '@widgets/diff-view/cursor'
+import { D } from '@widgets/diff-view/runtime'
 
 import { S, toast } from '../store'
+
+import { openPreview } from './navigate'
 
 import type { GuideReturnPoint } from '@entities/review/guide/return-point'
 
@@ -26,10 +29,16 @@ function paneBody(): HTMLElement | null {
 	return document.querySelector<HTMLElement>(PANE_BODY)
 }
 
+// The diff file on screen, by path; null while a preview is shown.
+function shownDiffPath(): string | null {
+	if (S.preview) return null
+	return S.state?.files[S.fileIndex]?.path ?? null
+}
+
 function currentPoint(): GuideReturnPoint {
 	return {
 		domainId: S.domainId,
-		fileIndex: S.fileIndex,
+		filePath: shownDiffPath(),
 		previewPath: S.preview?.path ?? null,
 		cursor: cursorSelection(),
 		paneScroll: paneBody()?.scrollTop ?? 0,
@@ -72,7 +81,7 @@ function stepDomain(direction: 1 | -1): void {
 	toast(`Domain ${position + 1} of ${domains.length}`)
 }
 
-// The owned change the cursor sits in, when the shown file is one of the domain's.
+// The owned change the cursor sits in, when the shown file is one of the domain's. The cursor holds displayed lines, the changes raw ones: a decided block above shifts the two apart.
 function currentOwnedChange(domainId: string): ReturnType<typeof changeAt> {
 	const { state } = S
 	const domain = domainById(state, domainId)
@@ -82,7 +91,7 @@ function currentOwnedChange(domainId: string): ReturnType<typeof changeAt> {
 	return changeAt(orderedDomainChanges(domain, state), {
 		path: shown.path,
 		side: cursor.side,
-		lineNumber: cursor.lineNumber,
+		lineNumber: fromDisplayLine(cursor.side, cursor.lineNumber, D.lineMap),
 	})
 }
 
@@ -122,13 +131,23 @@ function followReference(domainId: string, refId: string): void {
 	S.jumpToSpan?.(reference)
 }
 
-function restore(point: GuideReturnPoint): void {
+// The file (or preview) is shown and rendered first: opening one resets the cursor and the diff's scroll, so the saved position only lands once that render is done.
+async function restore(point: GuideReturnPoint): Promise<void> {
 	S.domainId = point.domainId
-	if (point.previewPath) S.previewFile?.(point.previewPath)
-	else if (S.fileIndex !== point.fileIndex || S.preview)
-		S.selectFile?.(point.fileIndex)
+	if (point.previewPath) {
+		if (S.preview?.path !== point.previewPath)
+			await openPreview(point.previewPath)
+	} else {
+		const index =
+			S.state?.files.findIndex(file => file.path === point.filePath) ?? -1
+		if (index < 0) {
+			toast('That file is no longer in the review')
+			return
+		}
+		if (S.fileIndex !== index || S.preview) S.selectFile?.(index)
+	}
 	if (point.cursor) cursorSyncTo(point.cursor.side, point.cursor.lineNumber)
-	void render()
+	await render()
 	requestAnimationFrame(() => {
 		paneBody()?.scrollTo({ top: point.paneScroll })
 		$('diff').scrollTo({ top: point.diffScroll })
@@ -142,7 +161,7 @@ function guideBack(): void {
 		return
 	}
 	S.guideReturn = S.guideReturn.slice(0, -1)
-	restore(point)
+	void restore(point)
 }
 
 export function installGuideDomainBindings(): void {

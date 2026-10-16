@@ -1,5 +1,5 @@
-// After an open or a reload, the CLI writes what the agent explains a guided desk from as local files: the desk's guide to fill in place (guide.json) and each pending domain's code (packets/<id>.md). One fixed folder per desk, emptied and rewritten each time - whatever the agent left there for the last round goes with it - so the agent always reads the desk as it stands and posts the file back with `syneva reload --guide`.
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+// After an open or a reload, the CLI writes what the agent explains a guided desk from as local files: the desk's guide to fill in place (guide.json) and each pending domain's code (packets/<n>-<id>.md). One fixed folder per desk, emptied and rewritten each time - whatever the agent left there for the last round goes with it - so the agent always reads the desk as it stands and posts the file back with `syneva reload --guide`.
+import { chmodSync, lstatSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
@@ -70,22 +70,46 @@ function readAuthoring(body: unknown): Authoring | null {
 	}
 }
 
-// A domain id may hold ":", which some file systems refuse in a name; the report maps every id to its file, so the rename is never guessed.
-function packetName(id: string): string {
-	return `${id.replaceAll(':', '_')}.md`
+// A domain id may hold ":", which some file systems refuse in a name, and ids that differ only by ":" against "_" or by case would then share a file: the position prefix keeps every packet its own. The report maps every id to its file, so the name is never guessed.
+function packetName(id: string, position: number): string {
+	return `${position + 1}-${id.replaceAll(':', '_')}.md`
+}
+
+const PRIVATE_DIR = 0o700
+const PRIVATE_FILE = 0o600
+const GROUP_OTHER_BITS = 0o077
+
+// The shared temp dir is writable by every local user and the desk id is predictable, so the folder is one only this user owns: another user could otherwise plant a symlink where a packet is written, or read the reviewed source. Refused (thrown) rather than repaired when it is someone else's or a link.
+function privateRoot(): string {
+	const uid = process.getuid?.()
+	// Windows has no uid and its temp dir is already per user.
+	if (typeof uid !== 'number') {
+		const shared = path.join(os.tmpdir(), 'syneva')
+		mkdirSync(shared, { recursive: true })
+		return shared
+	}
+	const root = path.join(os.tmpdir(), `syneva-${uid}`)
+	mkdirSync(root, { recursive: true, mode: PRIVATE_DIR })
+	const stat = lstatSync(root)
+	if (!stat.isDirectory() || stat.isSymbolicLink() || stat.uid !== uid)
+		throw new Error(`${root} is not a directory this user owns`)
+	if (stat.mode & GROUP_OTHER_BITS) chmodSync(root, PRIVATE_DIR)
+	return root
 }
 
 function writeFiles(deskId: string, authoring: Authoring): AuthoringReport {
-	const folder = path.join(os.tmpdir(), 'syneva', deskId)
+	const folder = path.join(privateRoot(), deskId)
 	const packets = path.join(folder, 'packets')
 	rmSync(folder, { recursive: true, force: true })
-	mkdirSync(packets, { recursive: true })
+	mkdirSync(packets, { recursive: true, mode: PRIVATE_DIR })
 	const guide = path.join(folder, 'guide.json')
-	writeFileSync(guide, `${JSON.stringify(authoring.guide, null, '\t')}\n`)
+	writeFileSync(guide, `${JSON.stringify(authoring.guide, null, '\t')}\n`, {
+		mode: PRIVATE_FILE,
+	})
 	const written = new Map(
-		authoring.packets.map(packet => {
-			const file = path.join(packets, packetName(packet.id))
-			writeFileSync(file, packet.markdown)
+		authoring.packets.map((packet, position) => {
+			const file = path.join(packets, packetName(packet.id, position))
+			writeFileSync(file, packet.markdown, { mode: PRIVATE_FILE })
 			return [packet.id, file] as const
 		}),
 	)
@@ -110,7 +134,7 @@ function hint(report: AuthoringReport): void {
 	)
 }
 
-// Null on a desk without a guide (an unguided desk, a file desk) or a hub that could not answer: the open or reload itself already succeeded, so this never fails the command.
+// Null on a desk without a guide (an unguided desk, a file desk), a hub that could not answer or files that could not be written: the open or reload itself already succeeded, so this never fails the command.
 export async function writeAuthoring(
 	hub: HubConnection,
 	deskId: string,
@@ -122,7 +146,13 @@ export async function writeAuthoring(
 	if (response.status !== HTTP_OK) return null
 	const authoring = readAuthoring(response.body)
 	if (!authoring) return null
-	const report = writeFiles(deskId, authoring)
-	hint(report)
-	return report
+	try {
+		const report = writeFiles(deskId, authoring)
+		hint(report)
+		return report
+	} catch (error) {
+		const reason = error instanceof Error ? error.message : String(error)
+		warn(`Guide: the authoring files were not written (${reason}).`)
+		return null
+	}
 }

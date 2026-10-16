@@ -3,7 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import { chromeCtx } from '../../../chrome/context'
 
-import { isActivation } from './diagram-node'
+import { onActivationKey } from './diagram-node'
 import { diagram } from './diagram.styles'
 
 import type { GuideDomain } from '@entities/review/guide/model'
@@ -45,15 +45,7 @@ export function EdgeLabel({
 			role={isLinked ? 'button' : undefined}
 			tabIndex={isLinked ? 0 : undefined}
 			onClick={isLinked ? activate : undefined}
-			onKeyDown={
-				isLinked
-					? event => {
-							if (!isActivation(event)) return
-							event.preventDefault()
-							activate()
-						}
-					: undefined
-			}
+			onKeyDown={isLinked ? onActivationKey(activate) : undefined}
 		>
 			{label}
 		</text>

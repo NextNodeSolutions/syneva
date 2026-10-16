@@ -25,7 +25,8 @@ export type HubDesk = {
 	readonly id: string
 	readonly ctx: DeskContext
 	readonly liveness: DeskLiveness
-	readonly record: HubDeskRecord
+	// Replaced (never mutated) when a reopen changes a rebuild parameter, such as --no-guide.
+	record: HubDeskRecord
 	closing: boolean
 }
 
