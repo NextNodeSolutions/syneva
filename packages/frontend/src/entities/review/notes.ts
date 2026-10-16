@@ -1,4 +1,4 @@
-import { isAnswered } from './answered'
+import { awaitsAnswer, isAnswered } from './answered'
 import { isFileComment } from './changes'
 
 import type { Side } from '@shared/diff-renderer/types'
@@ -13,6 +13,8 @@ export type ReviewNote = {
 	fileLevel: boolean
 	unanchored: boolean
 	status: 'open' | 'answered' | 'resolved'
+	// An open question of the reviewer's has no agent reply after it yet.
+	awaitingAnswer: boolean
 	preview: string
 	latest: string
 	updatedAt: string
@@ -50,6 +52,7 @@ function toNote(group: [ReviewComment, ...ReviewComment[]]): ReviewNote {
 		fileLevel: isFileComment(first),
 		unanchored: group.some(c => c.unanchored === true),
 		status: threadStatus(group, kind),
+		awaitingAnswer: awaitsAnswer(group),
 		preview: oneline(first.body),
 		latest: oneline(last.body),
 		updatedAt: last.updatedAt,
