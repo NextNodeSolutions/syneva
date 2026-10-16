@@ -1,4 +1,5 @@
 import { labelWidth } from './label-width'
+import { nodeHeight } from './node-label'
 
 import type { SequenceBlock } from '@entities/review/guide/model'
 
@@ -18,13 +19,20 @@ export function stepLabel(index: number, label: string): string {
 	return `${index + 1}. ${label}`
 }
 
-// One lane per participant in declared order, one row per step in message order: the layout a reviewer reads top to bottom. A self-message's label runs right of its lane, so the width reaches the end of the furthest one.
+// One lane per participant in declared order, one row per step in message order: the layout a reviewer reads top to bottom. A self-message's label runs right of its lane, so the width reaches the end of the furthest one. A head grown by a wrapped label pushes the steps down by as much.
 export function layoutSequence(block: SequenceBlock): {
 	lanes: { id: string; x: number }[]
+	headHeight: number
 	stepY: (index: number) => number
 	width: number
 	height: number
 } {
+	const headHeight = nodeHeight(
+		block.participants.map(participant => participant.label),
+		LANE.headWidth,
+		LANE.headHeight,
+	)
+	const firstStep = TOP + FIRST_STEP_OFFSET + headHeight - LANE.headHeight
 	const lanes = block.participants.map((participant, index) => ({
 		id: participant.id,
 		x: MARGIN + index * LANE.width + LANE.width / HALF,
@@ -42,12 +50,13 @@ export function layoutSequence(block: SequenceBlock): {
 	)
 	return {
 		lanes,
-		stepY: index => TOP + FIRST_STEP_OFFSET + index * STEP_HEIGHT,
+		headHeight,
+		stepY: index => firstStep + index * STEP_HEIGHT,
 		width: Math.max(
 			block.participants.length * LANE.width + MARGIN * SIDES,
 			...selfLabelEnds,
 		),
-		height: TOP + FIRST_STEP_OFFSET + block.steps.length * STEP_HEIGHT,
+		height: firstStep + block.steps.length * STEP_HEIGHT,
 	}
 }
 

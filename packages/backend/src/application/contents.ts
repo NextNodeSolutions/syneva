@@ -1,13 +1,28 @@
 import path from 'node:path'
 
+import { hash } from '../domain/identity.js'
+
 import type { FileContents } from '../domain/contents.js'
 import type { ReviewFile, ReviewState } from '../domain/review.js'
 import type { GitPort } from './ports.js'
 
-// Keyed by root + path + contentHash (the new-side blob OID): a reload that rewrites the file changes the key so the stale entry falls out (no explicit invalidation).
+// Keyed by root + path + both sides' identities: contentHash names the new side, the file's hunks the old one (with the new side fixed, the diff determines it). The old side moves on its own - staging a hunk rewrites the index a working diff reads its old side from, a commit moves the HEAD a staged diff reads - so a key on the new side alone would keep serving the old side from before. A reload that changes either side changes the key, and the stale entry falls out (no explicit invalidation).
 // Process-global and shared by every desk, but the key carries the repo root, so two desks never collide.
 const CONTENTS_CACHE_CAP = 30
 const contentsCache = new Map<string, FileContents>()
+
+// Review files are immutable records (a reload replaces them), so one hash per record is enough.
+const oldSideStamps = new WeakMap<ReviewFile, string>()
+
+function oldSideStamp(file: ReviewFile): string {
+	const known = oldSideStamps.get(file)
+	if (known) return known
+	const stamp = hash(
+		JSON.stringify([file.changeKind ?? '', file.oldPath ?? '', file.hunks]),
+	)
+	oldSideStamps.set(file, stamp)
+	return stamp
+}
 
 // Replays the exact per-mode ref semantics buildDiffSource built the diff against, so a fetch returns the bytes the diff was taken over (the state carries no contents).
 export async function readFileContents(
@@ -15,7 +30,7 @@ export async function readFileContents(
 	file: ReviewFile,
 	git: GitPort,
 ): Promise<FileContents> {
-	const key = `${state.root}\0${file.path}\0${file.contentHash}`
+	const key = `${state.root}\0${file.path}\0${file.contentHash}\0${oldSideStamp(file)}`
 	const hit = contentsCache.get(key)
 	if (hit) {
 		contentsCache.delete(key) // re-insert below → most-recently-used

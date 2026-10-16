@@ -242,7 +242,7 @@ export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 			{!guided && S.state?.guideExpected && <GuidePending />}
 			{showTree && <TreePane active={activePath(S)} />}
 			{guided && S.sidebarTab === 'walkthrough' && (
-				<div {...stylex.props(sidebar.pane)}>
+				<div {...stylex.props(sidebar.pane)} data-guide-controls="">
 					<Suspense fallback={null}>
 						<DomainNavigator />
 					</Suspense>
