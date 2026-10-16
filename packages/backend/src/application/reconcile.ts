@@ -1,7 +1,7 @@
 import { changeKey } from '../domain/change-blocks.js'
 import { reanchorComments } from '../domain/comments.js'
 import { effectiveDecisions } from '../domain/decisions.js'
-import { reconcileGuide } from '../domain/guide-reconcile.js'
+import { reconcileGuide, recoverGuide } from '../domain/guide-reconcile.js'
 import { buildInventory } from '../domain/inventory.js'
 
 import { mapContentReads } from './content-reads.js'
@@ -61,12 +61,16 @@ async function reconcileCarriedGuide(
 	saved: ReviewState,
 	git: GitPort,
 ): Promise<GuideResolution | undefined> {
-	if (!saved.guide || !saved.guideResolution) return undefined
+	if (!saved.guide) return undefined
+	const inventory = buildInventory(base, undefined)
+	const contextHashes = await readContextHashes(base, saved.guide, git)
+	if (!saved.guideResolution)
+		return recoverGuide(saved.guide, inventory, contextHashes)
 	return reconcileGuide(
 		saved.guide,
 		saved.guideResolution,
-		buildInventory(base, undefined),
-		await readContextHashes(base, saved.guide, git),
+		inventory,
+		contextHashes,
 	)
 }
 

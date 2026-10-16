@@ -53,7 +53,7 @@ export type Hub = {
 	readonly instanceId: string
 	readonly startedAt: string
 	openDesk(query: DeskQuery, guide: Guide | undefined): Promise<OpenOutcome>
-	// The review source as a guide is authored against it: the live desk's when one reviews that source, else built from the repo without registering, persisting or journaling anything.
+	// The review source as a guide is authored against it, built from the repo as it stands now without registering, persisting or journaling anything.
 	inventory(query: DeskQuery): Promise<InventoryOutcome>
 	getDesk(id: string): HubDesk | undefined
 	listDesks(): HubDesk[]
