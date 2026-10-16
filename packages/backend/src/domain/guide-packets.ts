@@ -1,4 +1,4 @@
-// One domain's code as the agent reads it to explain the domain: the diff hunks holding its blocks, the declarations they change and the reference ids an explanation may cite - everything in one Markdown file, so no tool call is spent fetching code. Bounded: a packet past its line budget names what it left out.
+// One domain's code as the agent reads it to explain the domain: the diff hunks holding its blocks, the declarations they change and the reference ids an explanation may cite - everything in one Markdown file, so no tool call is spent fetching code. Bounded: past its line budget the diff moves to an appendix at the very end of the file, so the reader takes the bounded part (and the rules after it) first and reads the rest only when it needs it - code a deletion took is nowhere else it could read.
 import { changeKey } from './change-blocks.js'
 
 import type {
@@ -20,6 +20,13 @@ const MIN_FENCE = 3
 const LINE_MARKS = { context: ' ', add: '+', delete: '-' } as const
 
 type HunkRef = { file: ReviewFile; hunk: DiffHunk; changes: ChangeState[] }
+
+// What the packet's budget left out of one hunk: its lines from `from` on (0: the whole hunk).
+type HunkTail = { ref: HunkRef; from: number }
+
+export type PacketText = { body: string; appendix: string | undefined }
+
+const LEFT_OUT = 'the appendix at the end of this packet holds them'
 
 // The hunks holding the domain's blocks, in the diff's own order.
 function hunksOf(owned: DomainResolution, state: ReviewState): HunkRef[] {
@@ -47,12 +54,12 @@ function fenceFor(text: string): string {
 	return '`'.repeat(Math.max(MIN_FENCE, longest + 1))
 }
 
-// The hunk's first `room` lines: a new file arrives as one hunk, and one hunk must not spend the whole packet.
-function hunkText(hunk: DiffHunk, room: number): string {
-	const shown = hunk.lines
-		.slice(0, room)
+// The hunk's lines from `start` (to `end`), under its header: a new file arrives as one hunk, and one hunk must not spend the whole packet.
+function hunkText(hunk: DiffHunk, start: number, end?: number): string {
+	const lines = hunk.lines
+		.slice(start, end)
 		.map(line => `${LINE_MARKS[line.kind]}${line.text}`)
-	return [hunk.header, ...shown].join('\n')
+	return [hunk.header, ...lines].join('\n')
 }
 
 function declaredIn(changes: readonly ChangeState[]): string {
@@ -107,40 +114,74 @@ function headOf(
 	]
 }
 
-function hunkSection({ hunk, changes }: HunkRef, room: number): string[] {
-	const text = hunkText(hunk, room)
+function fenced(lead: string, text: string): string[] {
 	const fence = fenceFor(text)
+	return [lead, '', `${fence}diff`, text, fence]
+}
+
+function hunkSection({ hunk, changes }: HunkRef, room: number): string[] {
 	const hidden = hunk.lines.length - room
 	return [
-		`Changes ${declaredIn(changes)}.`,
-		'',
-		`${fence}diff`,
-		text,
-		fence,
+		...fenced(`Changes ${declaredIn(changes)}.`, hunkText(hunk, 0, room)),
 		...(hidden > 0
-			? [`(${hidden} more lines of this hunk not shown.)`]
+			? [
+					`(${hidden} more lines of this hunk not shown here: ${LEFT_OUT}.)`,
+				]
 			: []),
 		'',
 	]
 }
 
-function bodyOf(hunks: readonly HunkRef[]): string[] {
-	const lines: string[] = []
+// The hunks in diff order until the budget is spent; every line it could not show is kept for the appendix.
+function bodyOf(hunks: readonly HunkRef[]): {
+	shown: string[]
+	left: HunkTail[]
+} {
+	const shown: string[] = []
+	const left: HunkTail[] = []
 	let budget = PACKET_LINES
 	let lastPath = ''
-	for (const [position, ref] of hunks.entries()) {
+	for (const ref of hunks) {
 		if (budget <= 0) {
-			lines.push(
-				`(${hunks.length - position} more hunks not shown: read them on the desk or with \`git diff\`.)`,
-			)
-			break
+			left.push({ ref, from: 0 })
+			continue
 		}
-		if (ref.file.path !== lastPath) lines.push(`## ${ref.file.path}`, '')
+		if (ref.file.path !== lastPath) shown.push(`## ${ref.file.path}`, '')
 		lastPath = ref.file.path
-		lines.push(...hunkSection(ref, budget))
+		shown.push(...hunkSection(ref, budget))
+		if (ref.hunk.lines.length > budget) left.push({ ref, from: budget })
 		budget -= ref.hunk.lines.length
 	}
-	return lines
+	const unshown = left.filter(tail => tail.from === 0).length
+	if (unshown)
+		shown.push(`(${unshown} more hunks not shown here: ${LEFT_OUT}.)`, '')
+	return { shown, left }
+}
+
+function tailSection({ ref, from }: HunkTail): string[] {
+	const lead = from
+		? `The rest of a hunk shown above, from its line ${from + 1}.`
+		: `Changes ${declaredIn(ref.changes)}.`
+	return [...fenced(lead, hunkText(ref.hunk, from)), '']
+}
+
+// Everything the budget left out, in full and in diff order.
+function appendixOf(left: readonly HunkTail[]): string | undefined {
+	if (!left.length) return undefined
+	const lines = [
+		'## Appendix: the diff this packet leaves out',
+		'',
+		'Read it only when the hunks above are not enough to explain the domain.',
+		'',
+	]
+	let lastPath = ''
+	for (const tail of left) {
+		if (tail.ref.file.path !== lastPath)
+			lines.push(`### ${tail.ref.file.path}`, '')
+		lastPath = tail.ref.file.path
+		lines.push(...tailSection(tail))
+	}
+	return lines.join('\n')
 }
 
 export function domainPacket(
@@ -148,13 +189,22 @@ export function domainPacket(
 	owned: DomainResolution,
 	state: ReviewState,
 	reason: string,
-): string {
+): PacketText {
 	const files = owned.files.map(file => `- ${file}`)
-	return [
+	const { shown, left } = bodyOf(hunksOf(owned, state))
+	const body = [
 		...headOf(domain, owned, reason),
-		...bodyOf(hunksOf(owned, state)),
+		...shown,
 		...(files.length
-			? ['## File operations (no text diff)', '', ...files, '']
+			? [
+					'## Files without a text diff',
+					'',
+					'A rename, a deletion or an untracked addition: read the file in the repository when its content matters.',
+					'',
+					...files,
+					'',
+				]
 			: []),
 	].join('\n')
+	return { body, appendix: appendixOf(left) }
 }

@@ -1,30 +1,6 @@
 // The guide's section of the agent contract (spec.ts splices it in): the schema an agent writes to, its limits, and the examples it can start from.
-export const GUIDE_SPEC = `## The guide - a risk-ranked explanation of the changeset
-A guide is the review's reading order AND its explanation: the coherent behaviors the changeset
-changes ("domains"), highest risk first, each owning its changed code across files and explaining
-itself in the form that fits it. Syneva runs no model: a repo or pr desk (guided by default) opens
-on a DRAFT of its guide drawn from the code's structure - domains grouped by the declarations the
-changeset touches and the references between them, named, ranked and summarized mechanically,
-marked Draft on the desk - and you EXPLAIN it (the workflow below). Syneva validates what you post,
-resolves it against the real diff and renders it beside the real code; the reviewer's decisions,
-comments and Send are never affected by it. \`--no-guide\` opens a plain review on purpose; a file
-desk takes a guide optionally (\`--guide <file>\`), never a draft. Keep guide files OUTSIDE the
-working tree (the CLI writes its own under the OS temp folder): working mode surfaces untracked
-files, so an in-repo guide shows as a stray addition. Validation refuses a guide naming the field
-and what it wanted - fix the field, never pad the guide.
-
-### Guide JSON schema (format "syneva-guide/2")
-One JSON object:
-- format (required) - exactly "syneva-guide/2". The retired file-grouping format is refused, not adapted.
-- source (required) - the review source the guide was written against: { mode: "repo"|"file"|"pr",
-  fingerprint, head?, base?, staged?, path? }. The guide.json the CLI writes carries it; from
-  scratch, copy \`mode\` and \`fingerprint\` from the inventory (below) of exactly the source you
-  open. The desk refuses a guide whose fingerprint is not its diff's, so references are never read
-  against another revision.
-- overview (required, ≤ 3000 chars, Markdown) - what the changeset does and why, in a short paragraph.
-- domains (required array, ≤ 60; empty only on an empty changeset) - one per coherent changed
-  behavior, NOT per folder or file:
-  - id (required) - stable identity ([A-Za-z0-9][A-Za-z0-9._:-]*, ≤ 80): feedback and the reviewer's
+// A domain's fields and the authoring rules are their own constants: the spec prints them once, and every code packet an agent explains a domain from (guide-authoring.ts) carries the same text.
+export const DOMAIN_FIELDS_SPEC = `  - id (required) - stable identity ([A-Za-z0-9][A-Za-z0-9._:-]*, ≤ 80): feedback and the reviewer's
     position key on it across guides of the same changeset - keep it when you regenerate.
   - title (required, ≤ 120).
   - risk (required) - "critical" | "high" | "medium" | "low". Syneva sorts by it, never reorders
@@ -64,7 +40,59 @@ One JSON object:
       edges: [{ from, to, label? }] (≤ 80) }.
     Every \`ref\` names one of the domain's references, every edge end a declared node. A ref'd
     element is what the reviewer clicks to land on the code.
-  - order? - the tie order among domains of the same risk.
+  - order? - the tie order among domains of the same risk.`
+
+export const AUTHORING_RULES_SPEC = `- Group by changed behavior, across files: one domain per coherent behavior the changeset changes,
+  never per folder or file; two independent behaviors in one file are two domains. Every changed
+  unit has exactly one owning domain - shared context is a "context" reference or a \`related\`
+  entry, never a second owner. Own the operations without text too (a rename, an untracked
+  addition, a hunk-less deletion) as \`file\` members.
+- Rank by risk from consequences: say what breaks and for whom (which users, data, money,
+  availability), how far the change reaches (one path, every request, every worker) and cite the
+  code that shows it (\`evidence\` with refs). Keep impact and uncertainty apart: what you could not
+  establish goes in \`unknowns\`, never into a lower risk; no numbers you cannot back (no
+  "95% safe", no severity scores). Highest risk first; a domain the reviewer needs another read
+  for names it in \`prerequisites\` - that one is summarized beside it, so keep the dependency to
+  what the reviewer must know.
+- Choose the form by what it explains: "state" for transitions, "sequence" for the order of
+  exchanges between participants, "flow" for dependencies and data movement, "before-after" for a
+  behavioral difference, "prose" when a paragraph says it best. No form is required, a diagram is
+  not expected everywhere, and the same long template in every domain is wrong: a one-line change
+  gets a sentence.
+- Reference the facts: the key claims of an explanation and every diagram element that stands for
+  code carry a \`ref\` the reviewer can click; a claim without one reads as your word. Keep the
+  first read short (summary, consequence, a block or two) and put the long reasoning in
+  \`detail\`. Separate facts (what the code does, cited), assumptions (what you believe without a
+  citation - say so) and rationale (why the change is right). Always say what the reviewer should
+  verify. Never write that code is approved, tested or checked unless the guide cites the evidence
+  (the test, the run): the reviewer approves, the guide explains.`
+
+export const GUIDE_SPEC = `## The guide - a risk-ranked explanation of the changeset
+A guide is the review's reading order AND its explanation: the coherent behaviors the changeset
+changes ("domains"), highest risk first, each owning its changed code across files and explaining
+itself in the form that fits it. Syneva runs no model: a repo or pr desk (guided by default) opens
+on a DRAFT of its guide drawn from the code's structure - domains grouped by the declarations the
+changeset touches and the references between them, named, ranked and summarized mechanically,
+marked Draft on the desk - and you EXPLAIN it (the workflow below). Syneva validates what you post,
+resolves it against the real diff and renders it beside the real code; the reviewer's decisions,
+comments and Send are never affected by it. \`--no-guide\` opens a plain review on purpose; a file
+desk takes a guide optionally (\`--guide <file>\`), never a draft. Keep guide files OUTSIDE the
+working tree (the CLI writes its own under the OS temp folder): working mode surfaces untracked
+files, so an in-repo guide shows as a stray addition. Validation refuses a guide naming the field
+and what it wanted - fix the field, never pad the guide.
+
+### Guide JSON schema (format "syneva-guide/2")
+One JSON object:
+- format (required) - exactly "syneva-guide/2". The retired file-grouping format is refused, not adapted.
+- source (required) - the review source the guide was written against: { mode: "repo"|"file"|"pr",
+  fingerprint, head?, base?, staged?, path? }. The guide.json the CLI writes carries it; from
+  scratch, copy \`mode\` and \`fingerprint\` from the inventory (below) of exactly the source you
+  open. The desk refuses a guide whose fingerprint is not its diff's, so references are never read
+  against another revision.
+- overview (required, ≤ 3000 chars, Markdown) - what the changeset does and why, in a short paragraph.
+- domains (required array, ≤ 60; empty only on an empty changeset) - one per coherent changed
+  behavior, NOT per folder or file:
+${DOMAIN_FIELDS_SPEC}
 - baseDiffHash - stamped by the desk on attach; leave it out.
 Unknown keys anywhere are refused by name: nothing you write is silently ignored.
 
@@ -155,30 +183,7 @@ Writing a whole guide yourself still works: take the inventory of exactly the so
 mode, target and flags), give every domain its members, and open with \`--guide <file>\`.
 
 ### Authoring a guide - the rules
-- Group by changed behavior, across files: one domain per coherent behavior the changeset changes,
-  never per folder or file; two independent behaviors in one file are two domains. Every changed
-  unit has exactly one owning domain - shared context is a "context" reference or a \`related\`
-  entry, never a second owner. Own the operations without text too (a rename, an untracked
-  addition, a hunk-less deletion) as \`file\` members.
-- Rank by risk from consequences: say what breaks and for whom (which users, data, money,
-  availability), how far the change reaches (one path, every request, every worker) and cite the
-  code that shows it (\`evidence\` with refs). Keep impact and uncertainty apart: what you could not
-  establish goes in \`unknowns\`, never into a lower risk; no numbers you cannot back (no
-  "95% safe", no severity scores). Highest risk first; a domain the reviewer needs another read
-  for names it in \`prerequisites\` - that one is summarized beside it, so keep the dependency to
-  what the reviewer must know.
-- Choose the form by what it explains: "state" for transitions, "sequence" for the order of
-  exchanges between participants, "flow" for dependencies and data movement, "before-after" for a
-  behavioral difference, "prose" when a paragraph says it best. No form is required, a diagram is
-  not expected everywhere, and the same long template in every domain is wrong: a one-line change
-  gets a sentence.
-- Reference the facts: the key claims of an explanation and every diagram element that stands for
-  code carry a \`ref\` the reviewer can click; a claim without one reads as your word. Keep the
-  first read short (summary, consequence, a block or two) and put the long reasoning in
-  \`detail\`. Separate facts (what the code does, cited), assumptions (what you believe without a
-  citation - say so) and rationale (why the change is right). Always say what the reviewer should
-  verify. Never write that code is approved, tested or checked unless the guide cites the evidence
-  (the test, the run): the reviewer approves, the guide explains.
+${AUTHORING_RULES_SPEC}
 
 ### Examples
 A domain spanning two files, pointing at supporting context:
