@@ -19,6 +19,7 @@ export const API_PATHS = {
 	blob: '/blob',
 	fileContents: '/file-contents',
 	inventory: '/inventory',
+	authoring: '/authoring',
 	openEditor: '/open-editor',
 	save: '/save',
 	send: '/send',

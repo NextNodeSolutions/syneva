@@ -21,7 +21,7 @@ import { queryOf, recordOf, sameSource } from './hub-records.js'
 import type { DeskSummary, OpenDeskOutcome } from '@syneva/contracts/hub'
 import type { DeskIdentity, DeskQuery } from '../../../application/open-desk.js'
 import type { HubRegistryPort } from '../../../application/ports.js'
-import type { Guide } from '../../../domain/guide-shapes.js'
+import type { AuthoredGuide } from '../../../domain/guide-shapes.js'
 import type { HubDeskRecord } from '../../../domain/hub-registry.js'
 import type { ReviewInventory } from '../../../domain/inventory.js'
 import type { ReviewState } from '../../../domain/review.js'
@@ -46,10 +46,12 @@ export type HubIo = HostedDeskIo & {
 }
 
 // The one place a desk is born, reused, restored or closed; opens are serialized so two agents racing to open the same repo+session get one desk (the second sees the first's and reloads it).
+type PostedGuide = AuthoredGuide | undefined
+
 export type Hub = {
 	readonly instanceId: string
 	readonly startedAt: string
-	openDesk(query: DeskQuery, guide: Guide | undefined): Promise<OpenOutcome>
+	openDesk(query: DeskQuery, guide: PostedGuide): Promise<OpenOutcome>
 	// The review source as a guide is authored against it, built from the repo as it stands now without registering, persisting or journaling anything.
 	inventory(query: DeskQuery): Promise<InventoryOutcome>
 	getDesk(id: string): HubDesk | undefined
@@ -144,7 +146,7 @@ function registerDesk(
 async function openOrReuse(
 	state: HubState,
 	query: DeskQuery,
-	guide: Guide | undefined,
+	guide: PostedGuide,
 ): Promise<OpenOutcome> {
 	const problem = await rootProblem(query, state.io.git)
 	if (problem) return { ok: false, code: 'NO_REPOSITORY', reason: problem }
@@ -165,11 +167,10 @@ async function openOrReuse(
 type ResolvedOpen = {
 	identity: DeskIdentity
 	query: DeskQuery
-	guide: Guide | undefined
+	guide: PostedGuide
 }
 
-// A reopen is a reload that may also change what the desk expects of its guide (--no-guide, or back to the default).
-// A pr reopen checks its head out again first (the agent may have switched branches since), once a posted guide is admitted, so a refusal still leaves HEAD where it was.
+// A reopen is a reload that may also change what the desk expects of its guide (--no-guide, or back to the default). A pr reopen checks its head out again first (the agent may have switched branches since), once a posted guide is admitted, so a refusal still leaves HEAD where it was.
 async function reuseDesk(
 	state: HubState,
 	live: HubDesk,
@@ -186,13 +187,12 @@ async function reuseDesk(
 		if (!checkout.ok)
 			return { ok: false, code: 'PR_TARGET', reason: checkout.reason }
 	}
-	const guideSwap = guide ? { guide } : undefined
 	const outcome = await live.ctx.serialize(() =>
 		reloadDesk(
 			reopenedState(live.ctx.state, query),
 			live.ctx.pathFilter,
 			{ git: state.io.git, store: state.io.store },
-			guideSwap,
+			guide ? { guide } : undefined,
 		),
 	)
 	if (outcome.kind === 'invalid-guide')

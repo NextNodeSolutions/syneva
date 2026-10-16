@@ -20,6 +20,7 @@ import { parseMember, parseReference, parseRelated } from './guide-targets.js'
 
 import type { Parsed } from './guide-parse.js'
 import type {
+	AuthoredDomain,
 	ExplanationBlock,
 	GuideDomain,
 	GuideEvidence,
@@ -158,20 +159,30 @@ function parseReferences(
 }
 
 type DomainBody = Pick<
-	GuideDomain,
+	AuthoredDomain,
 	'members' | 'references' | 'evidence' | 'blocks'
 >
+
+// Left out, the domain keeps the blocks the desk's current domain of its id owns; written, it lists at least one.
+function parseMembers(
+	raw: unknown,
+	where: string,
+): Parsed<AuthoredDomain['members']> {
+	if (raw === null || typeof raw === 'undefined')
+		return { ok: true, value: undefined }
+	return list(
+		raw,
+		where,
+		{ min: 1, max: GUIDE_LIMITS.membersPerDomain },
+		parseMember,
+	)
+}
 
 function parseDomainBody(
 	raw: Record<string, unknown>,
 	where: string,
 ): Parsed<DomainBody> {
-	const members = list(
-		raw.members,
-		`${where}.members`,
-		{ min: 1, max: GUIDE_LIMITS.membersPerDomain },
-		parseMember,
-	)
+	const members = parseMembers(raw.members, `${where}.members`)
 	if (!members.ok) return members
 	const references = parseReferences(raw.references, `${where}.references`)
 	if (!references.ok) return references
@@ -216,7 +227,10 @@ function parseBlocks(
 	return blocks
 }
 
-export function parseDomain(raw: unknown, where: string): Parsed<GuideDomain> {
+export function parseDomain(
+	raw: unknown,
+	where: string,
+): Parsed<AuthoredDomain> {
 	const domain = record(raw, where)
 	if (!domain.ok) return domain
 	const keys = onlyKeys(domain.value, where, GUIDE_KEYS.domain)

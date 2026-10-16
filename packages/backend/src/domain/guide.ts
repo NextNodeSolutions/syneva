@@ -15,15 +15,26 @@ import {
 import { GUIDE_FORMAT, GUIDE_LIMITS } from './guide-shapes.js'
 
 import type { Parsed } from './guide-parse.js'
-import type { Guide, GuideDomain, GuideSource } from './guide-shapes.js'
+import type {
+	AuthoredDomain,
+	AuthoredGuide,
+	Guide,
+	GuideDomain,
+	GuideMember,
+	GuideSource,
+} from './guide-shapes.js'
 
 export type GuideValidation =
+	| { ok: true; guide: AuthoredGuide }
+	| { ok: false; reason: string }
+
+export type StoredGuideValidation =
 	| { ok: true; guide: Guide }
 	| { ok: false; reason: string }
 
 const MODES = ['repo', 'file', 'pr'] as const
 
-// The schema check alone: the shape, its bounds and its internal identities. Membership, coverage and reference targets are resolved against the review's inventory by the lifecycle (guide-resolve.ts), which needs the diff.
+// The schema check of a posted guide alone: the shape, its bounds and its internal identities. What it lays over the desk's current guide, its coverage and its reference targets are resolved against the review by the lifecycle (guide-compose.ts, guide-resolve.ts), which needs the diff.
 // Pure - the same check server-side and in the CLI; the reason names the field it refused and what it wanted.
 export function validateGuide(input: unknown): GuideValidation {
 	const parsed = parseGuide(input)
@@ -31,7 +42,36 @@ export function validateGuide(input: unknown): GuideValidation {
 	return { ok: true, guide: parsed.value }
 }
 
-function parseGuide(input: unknown): Parsed<Guide> {
+function isResolvedMember(
+	member: NonNullable<AuthoredDomain['members']>[number],
+): member is GuideMember {
+	return member.kind === 'change' || member.kind === 'file'
+}
+
+function resolvedDomain(domain: AuthoredDomain): GuideDomain | null {
+	const members = domain.members ?? []
+	if (!members.length || !members.every(isResolvedMember)) return null
+	return { ...domain, members: members.filter(isResolvedMember) }
+}
+
+// A guide as the desk keeps it: every domain owns its blocks by `change` and `file` members, and every domain it links to is one of its own.
+export function validateStoredGuide(input: unknown): StoredGuideValidation {
+	const parsed = parseGuide(input)
+	if (!parsed.ok) return { ok: false, reason: parsed.reason }
+	const domains = parsed.value.domains.flatMap(
+		domain => resolvedDomain(domain) ?? [],
+	)
+	if (domains.length !== parsed.value.domains.length)
+		return {
+			ok: false,
+			reason: 'a stored guide lists every domain\'s members as "change" or "file" members',
+		}
+	const links = checkDomainLinks(domains)
+	if (!links.ok) return { ok: false, reason: links.reason }
+	return { ok: true, guide: { ...parsed.value, domains } }
+}
+
+function parseGuide(input: unknown): Parsed<AuthoredGuide> {
 	if (!isRecord(input)) return fail('guide must be a JSON object')
 	const keys = onlyKeys(input, 'guide', GUIDE_KEYS.guide)
 	if (!keys.ok) return keys
@@ -54,8 +94,11 @@ function parseGuide(input: unknown): Parsed<Guide> {
 		parseDomain,
 	)
 	if (!domains.ok) return domains
-	const links = checkDomainLinks(domains.value)
-	if (!links.ok) return links
+	const unique = uniqueIds(
+		domains.value.map(domain => domain.id),
+		'guide.domains',
+	)
+	if (!unique.ok) return unique
 	const baseDiffHash = optionalText(
 		input.baseDiffHash,
 		'guide.baseDiffHash',

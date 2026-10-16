@@ -1,27 +1,22 @@
 // Every changed block named by the code it sits in: both sides of each outlined file read in one batch (the revisions the diff was taken over), parsed once per content, and each block mapped to its enclosing declaration.
 import path from 'node:path'
 
-import { blockCounts, changeTitle } from '../domain/change-blocks.js'
-import {
-	changeBlocks,
-	changeStableKeyFromBlock,
-} from '../domain/diff/change.js'
+import { changeKey } from '../domain/change-blocks.js'
 import { hash } from '../domain/identity.js'
 import {
 	blockDeclarations,
 	changeTrivia,
 	outlineLanguage,
 } from '../domain/outline.js'
+import { symbolLinks } from '../domain/symbol-links.js'
 
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
+import { needsRemovedSide, removedSpan, withTrivia } from './replaced-trivia.js'
 
-import type {
-	ChangeTrivia,
-	LineSpan,
-	SourceOutline,
-} from '../domain/outline.js'
+import type { ChangeTrivia, SourceOutline } from '../domain/outline.js'
 import type { ChangeState, ReviewFile, ReviewState } from '../domain/review.js'
+import type { LinkSource } from '../domain/symbol-links.js'
 import type { GitPort } from './ports.js'
 
 type Side = ChangeState['side']
@@ -152,32 +147,6 @@ function outlineFor(
 	return outlineOf(filePath, text, git)
 }
 
-// The old-side lines a replacement block removes, found again from its hunk: a change records only the side it is anchored on.
-function removedSpan(
-	state: ReviewState,
-	change: ChangeState,
-): LineSpan | undefined {
-	const file = state.files.find(entry => entry.path === change.path)
-	const hunk = file?.hunks[change.hunkIndex]
-	if (!hunk) return undefined
-	const block = changeBlocks(hunk).find(
-		lines => changeStableKeyFromBlock(lines) === change.stableKey,
-	)
-	const removed = block?.filter(line => line.kind === 'delete') ?? []
-	const first = removed[0]?.oldLine
-	const last = removed.at(-1)?.oldLine
-	if (!first || !last) return undefined
-	return { lineNumber: first, endLine: last }
-}
-
-function needsRemovedSide(change: ChangeState): boolean {
-	return (
-		change.side === 'additions' &&
-		!!change.trivia &&
-		blockCounts(change).removed > 0
-	)
-}
-
 // A replacement block is trivia only when what it removes is too: `runTask()` turned into `// runTask()` adds a comment but deletes code. Import outranks comment, as in changeTrivia.
 function replacedTrivia(
 	state: ReviewState,
@@ -192,34 +161,37 @@ function replacedTrivia(
 	return removed === 'import' ? 'import' : change.trivia
 }
 
-function withTrivia(
-	change: ChangeState,
-	trivia: ChangeTrivia | undefined,
-): ChangeState {
-	const { symbol } = change
-	return {
-		...change,
-		trivia,
-		title: changeTitle(blockCounts(change), { symbol, trivia }),
-	}
-}
+type Named = { change: ChangeState; link?: LinkSource | undefined }
 
 function namedChange(
 	change: ChangeState,
 	texts: SideTexts,
 	git: GitPort,
-): ChangeState {
+): Named {
 	const outline = outlineFor(change.side, change.path, texts, git)
-	if (!outline) return change
+	if (!outline) return { change }
 	const span = {
 		lineNumber: change.lineNumber,
 		endLine: change.endLine ?? change.lineNumber,
 	}
-	const [declaration] = blockDeclarations(outline, span)
+	const declarations = blockDeclarations(outline, span)
+	const [declaration] = declarations
 	const symbol = declaration
 		? { name: declaration.name, kind: declaration.kind }
 		: undefined
-	return withTrivia({ ...change, symbol }, changeTrivia(outline, span))
+	const named = withTrivia({ ...change, symbol }, changeTrivia(outline, span))
+	if (!declaration) return { change: named }
+	return {
+		change: named,
+		link: {
+			key: changeKey(change),
+			path: change.path,
+			symbol: declaration.name,
+			declared: declarations.map(entry => entry.name),
+			uses: [...new Set(declarations.flatMap(entry => entry.uses))],
+			imports: outline.imports,
+		},
+	}
 }
 
 // The old sides of the files whose replacement blocks still read as trivia: read only for them, so an ordinary edit costs no second read.
@@ -237,6 +209,18 @@ async function removedSides(
 	return await readSides(state, wanted, git)
 }
 
+async function oldSidesFor(
+	state: ReviewState,
+	pending: readonly ChangeState[],
+	texts: SideTexts,
+	git: GitPort,
+): Promise<SideTexts | undefined> {
+	if (!pending.length) return undefined
+	if (state.mode === 'file') return texts
+	return await removedSides(state, pending, git)
+}
+
+// The blocks named, then linked: each block learns which other changed declarations its own declaration references.
 export async function nameChanges(
 	state: ReviewState,
 	git: GitPort,
@@ -247,20 +231,29 @@ export async function nameChanges(
 			? await readFileDeskSides(state, git)
 			: await readSides(state, wantedSides(state), git)
 	const named = state.changes.map(change => namedChange(change, texts, git))
-	if (!named.some(needsRemovedSide)) return { ...state, changes: named }
-	const oldTexts =
-		state.mode === 'file'
-			? texts
-			: await removedSides(state, named.filter(needsRemovedSide), git)
+	const links = symbolLinks(named.flatMap(entry => entry.link ?? []))
+	const changes = named.map(entry => entry.change)
+	const oldTexts = await oldSidesFor(
+		state,
+		changes.filter(needsRemovedSide),
+		texts,
+		git,
+	)
 	return {
 		...state,
-		changes: named.map(change =>
-			needsRemovedSide(change)
-				? withTrivia(
-						change,
-						replacedTrivia(state, change, oldTexts, git),
-					)
-				: change,
-		),
+		changes: changes.map(change => {
+			const settled =
+				oldTexts && needsRemovedSide(change)
+					? withTrivia(
+							change,
+							replacedTrivia(state, change, oldTexts, git),
+						)
+					: change
+			return withLinks(settled, links.get(changeKey(change)) ?? [])
+		}),
 	}
+}
+
+function withLinks(change: ChangeState, links: string[]): ChangeState {
+	return links.length ? { ...change, links } : change
 }

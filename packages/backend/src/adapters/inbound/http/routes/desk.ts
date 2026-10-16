@@ -2,6 +2,7 @@ import {
 	browserDomainComment,
 	browserState,
 } from '../../../../application/browser-state.js'
+import { guideAuthoring } from '../../../../application/guide-authoring.js'
 import { buildInventory } from '../../../../domain/inventory.js'
 import { readJsonBody, json, jsonBody, HTTP_OK } from '../http.js'
 
@@ -63,6 +64,15 @@ export async function serveInventory({
 }: RouteRequest): Promise<void> {
 	await ctx.refreshStaged()
 	json(res, HTTP_OK, buildInventory(ctx.state, ctx.pathFilter))
+}
+
+// GET /authoring: what the agent explaining the desk works from - its guide to fill, the domains waiting for words and their code; null on a desk without a guide.
+export async function serveAuthoring({
+	ctx,
+	res,
+}: RouteRequest): Promise<void> {
+	await ctx.refreshStaged()
+	json(res, HTTP_OK, guideAuthoring(ctx.state, ctx.pathFilter))
 }
 
 export async function serveTree({ ctx, res }: RouteRequest): Promise<void> {

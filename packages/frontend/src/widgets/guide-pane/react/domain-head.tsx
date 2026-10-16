@@ -11,6 +11,9 @@ import { HeadNav } from './head-nav'
 import type { GuideDomain } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
 
+const DRAFT_NOTE =
+	"Drafted by Syneva from the code's structure: grouped and named, not explained by the agent yet"
+
 const CONSEQUENCE_TONE = {
 	critical: pane.consequenceCritical,
 	high: pane.consequenceHigh,
@@ -18,17 +21,44 @@ const CONSEQUENCE_TONE = {
 	low: null,
 } as const
 
+// Where the explanation stands against the code: written for an earlier version of it, or not written yet.
+function StatusTags({
+	isStale,
+	isDrafted,
+}: {
+	isStale: boolean
+	isDrafted: boolean
+}): ReactElement {
+	return (
+		<>
+			{isStale && (
+				<span {...stylex.props(tag.base, tag.amber)}>Stale</span>
+			)}
+			{isDrafted && (
+				<span
+					{...stylex.props(tag.base, tag.neutral)}
+					title={DRAFT_NOTE}
+				>
+					Draft
+				</span>
+			)}
+		</>
+	)
+}
+
 // The judgment first: where the domain stands in the risk order, its title and summary, the concrete consequence its risk rests on, and what to verify. Criticality and verdicts never share a tag.
 export function DomainHead({
 	domain,
 	position,
 	total,
 	isStale,
+	isDrafted,
 }: {
 	domain: GuideDomain
 	position: number
 	total: number
 	isStale: boolean
+	isDrafted: boolean
 }): ReactElement {
 	const { S } = chromeCtx()
 	return (
@@ -43,9 +73,7 @@ export function DomainHead({
 				>
 					{RISK_LABELS[domain.risk]} risk
 				</span>
-				{isStale && (
-					<span {...stylex.props(tag.base, tag.amber)}>Stale</span>
-				)}
+				<StatusTags isStale={isStale} isDrafted={isDrafted} />
 				<HeadNav canGoBack={S.guideReturn.length > 0} />
 			</div>
 			<h2 {...stylex.props(pane.title)}>{domain.title}</h2>

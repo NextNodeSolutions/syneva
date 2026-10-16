@@ -1,7 +1,10 @@
 import {
 	assertObject,
 	enumValue,
+	optBoolean,
+	optional,
 	optString,
+	stringArray,
 	requiredString,
 	requiredStringArray,
 	requiredArray,
@@ -73,5 +76,9 @@ export function decodeGuideResolution(raw: unknown, ctx: Ctx): GuideResolution {
 			units: requiredStringArray(unassigned, 'units', ctx.endpoint),
 			files: requiredStringArray(unassigned, 'files', ctx.endpoint),
 		},
+		drafted: optional(o, 'drafted', ctx.endpoint, entry =>
+			stringArray(entry, ctx.endpoint),
+		),
+		overviewDrafted: optBoolean(o, 'overviewDrafted', ctx.endpoint),
 	}
 }

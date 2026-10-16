@@ -29,7 +29,7 @@ function sourceIssues(guide: Guide, inventory: ReviewInventory): GuideIssue[] {
 		issues.push({
 			field: 'guide.source.fingerprint',
 			target: inventory.fingerprint,
-			reason: `the guide was written against another revision of the source (its fingerprint is ${guide.source.fingerprint}, the review's is ${inventory.fingerprint}); run \`syneva inventory\` again and author against it`,
+			reason: `the guide was written against another revision of the source (its fingerprint is ${guide.source.fingerprint}, the review's is ${inventory.fingerprint}); post the guide.json the last \`syneva open\` or \`syneva reload\` wrote, or take \`syneva inventory\` again and author against it`,
 		})
 	return issues
 }
@@ -69,16 +69,19 @@ function coverageIssues(
 	]
 }
 
+// `checksReferences` names the domains whose references must land; the others (a carried domain whose resolution is kept as it was) still get their references resolved, but an unresolved one does not refuse the guide.
 export function resolveGuide(
 	guide: Guide,
 	inventory: ReviewInventory,
 	contextHashes: ContextHashes,
+	checksReferences?: (domainId: string) => boolean,
 ): GuideResolveOutcome {
 	const ownership = resolveOwnership(guide, inventory)
 	const references = resolveReferences(
 		guide.domains,
 		inventory,
 		contextHashes,
+		checksReferences,
 	)
 	const domains: Record<string, DomainResolution> = {}
 	for (const domain of guide.domains) {

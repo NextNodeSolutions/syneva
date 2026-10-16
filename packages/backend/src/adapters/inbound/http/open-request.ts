@@ -6,10 +6,10 @@ import { validateGuide } from '../../../domain/guide.js'
 
 import type { ReviewMode } from '@syneva/contracts/review'
 import type { DeskQuery } from '../../../application/open-desk.js'
-import type { Guide } from '../../../domain/guide-shapes.js'
+import type { AuthoredGuide } from '../../../domain/guide-shapes.js'
 
 type ParsedOpen =
-	| { query: DeskQuery; guide: Guide | undefined }
+	| { query: DeskQuery; guide: AuthoredGuide | undefined }
 	| { error: string }
 
 function isMode(raw: unknown): raw is ReviewMode {
@@ -52,7 +52,7 @@ export function parseOpenRequest(body: unknown): ParsedOpen {
 	const target = optionalText(record, 'target')
 	if (mode === 'file' && !target)
 		return { error: 'file mode requires `target` (the file to review).' }
-	let guide: Guide | undefined
+	let guide: AuthoredGuide | undefined
 	// A posted `guide` key is a posted guide, null included: it is validated, never ignored.
 	if ('guide' in record) {
 		const validation = validateGuide(record.guide)

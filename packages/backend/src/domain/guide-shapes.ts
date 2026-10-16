@@ -25,6 +25,12 @@ export type GuideMember =
 	| ({ kind: 'change' } & CodeSpan)
 	| { kind: 'file'; path: string }
 
+// What an agent may also write when it posts a guide over the desk's current one (guide-compose.ts): every block of a declaration (`Class` takes its members too), or every block a current domain owns. They resolve to `change` and `file` members before the guide attaches.
+export type AuthoredMember =
+	| GuideMember
+	| { kind: 'symbol'; path: string; symbol: string }
+	| { kind: 'domain'; id: string }
+
 export type GuideReference = CodeSpan & {
 	id: string
 	role: 'changed' | 'context'
@@ -134,6 +140,11 @@ export type GuideDomain = {
 	order?: number | undefined
 }
 
+// A posted domain: without members it keeps the blocks the current domain of that id owns.
+export type AuthoredDomain = Omit<GuideDomain, 'members'> & {
+	members?: AuthoredMember[] | undefined
+}
+
 export type GuideSource = {
 	mode: ReviewMode
 	fingerprint: string
@@ -149,6 +160,10 @@ export type Guide = {
 	overview: string
 	domains: GuideDomain[]
 	baseDiffHash?: string | undefined
+}
+
+export type AuthoredGuide = Omit<Guide, 'domains'> & {
+	domains: AuthoredDomain[]
 }
 
 export const GUIDE_LIMITS = {
@@ -189,6 +204,8 @@ export type GuideResolution = {
 	fingerprint: string
 	domains: Record<string, DomainResolution>
 	unassigned: { units: string[]; files: string[] }
+	drafted?: string[] | undefined
+	overviewDrafted?: boolean | undefined
 }
 
 export type GuideIssue = {

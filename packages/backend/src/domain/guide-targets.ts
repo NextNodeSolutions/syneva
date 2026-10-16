@@ -15,15 +15,15 @@ import { GUIDE_LIMITS } from './guide-shapes.js'
 
 import type { Parsed } from './guide-parse.js'
 import type {
+	AuthoredMember,
 	CodeSpan,
 	GuideCrossReference,
-	GuideMember,
 	GuideReference,
 } from './guide-shapes.js'
 
 const SIDES = ['additions', 'deletions'] as const
 const REFERENCE_ROLES = ['changed', 'context'] as const
-const MEMBER_KINDS = ['change', 'file'] as const
+const MEMBER_KINDS = ['change', 'file', 'symbol', 'domain'] as const
 
 export function parseSpan(
 	raw: Record<string, unknown>,
@@ -50,11 +50,45 @@ export function parseSpan(
 	}
 }
 
-export function parseMember(raw: unknown, where: string): Parsed<GuideMember> {
+// `symbol` names a declaration's blocks in one file; `domain` names a domain of the desk's current guide. Both resolve to `change` and `file` members when the guide attaches (guide-compose.ts).
+function parseNamedMember(
+	member: Record<string, unknown>,
+	kind: 'symbol' | 'domain',
+	where: string,
+): Parsed<AuthoredMember> {
+	if (kind === 'domain') {
+		const keys = onlyKeys(member, where, GUIDE_KEYS.domainMember)
+		if (!keys.ok) return keys
+		const id = identifier(member.id, `${where}.id`, GUIDE_LIMITS.idChars)
+		if (!id.ok) return id
+		return { ok: true, value: { kind: 'domain', id: id.value } }
+	}
+	const keys = onlyKeys(member, where, GUIDE_KEYS.symbolMember)
+	if (!keys.ok) return keys
+	const path = text(member.path, `${where}.path`, GUIDE_LIMITS.textChars)
+	if (!path.ok) return path
+	const symbol = text(
+		member.symbol,
+		`${where}.symbol`,
+		GUIDE_LIMITS.textChars,
+	)
+	if (!symbol.ok) return symbol
+	return {
+		ok: true,
+		value: { kind: 'symbol', path: path.value, symbol: symbol.value },
+	}
+}
+
+export function parseMember(
+	raw: unknown,
+	where: string,
+): Parsed<AuthoredMember> {
 	const member = record(raw, where)
 	if (!member.ok) return member
 	const kind = oneOf(member.value.kind, `${where}.kind`, MEMBER_KINDS)
 	if (!kind.ok) return kind
+	if (kind.value === 'symbol' || kind.value === 'domain')
+		return parseNamedMember(member.value, kind.value, where)
 	if (kind.value === 'file') {
 		const keys = onlyKeys(member.value, where, GUIDE_KEYS.fileMember)
 		if (!keys.ok) return keys

@@ -60,6 +60,18 @@ export function staleReasons(
 	return state?.guideResolution?.domains[domainId]?.stale?.reasons ?? []
 }
 
+// Drafted by Syneva from the code's structure: its words are mechanical until the agent explains it.
+export function isDomainDrafted(
+	state: ReviewState | null,
+	domainId: string,
+): boolean {
+	return state?.guideResolution?.drafted?.includes(domainId) ?? false
+}
+
+export function isOverviewDrafted(state: ReviewState | null): boolean {
+	return state?.guideResolution?.overviewDrafted === true
+}
+
 export function anyDomainStale(state: ReviewState | null): boolean {
 	return Object.values(state?.guideResolution?.domains ?? {}).some(
 		domain => domain.stale,

@@ -20,6 +20,8 @@ export const GUIDE_KEYS = {
 	],
 	changeMember: ['kind', 'path', 'side', 'lineNumber', 'endLine'],
 	fileMember: ['kind', 'path'],
+	symbolMember: ['kind', 'path', 'symbol'],
+	domainMember: ['kind', 'id'],
 	reference: ['id', 'path', 'side', 'lineNumber', 'endLine', 'role', 'label'],
 	related: ['domainId', 'note'],
 	evidence: ['text', 'refs'],

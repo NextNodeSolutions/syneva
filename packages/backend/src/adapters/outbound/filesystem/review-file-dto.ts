@@ -1,4 +1,4 @@
-import { validateGuide } from '../../../domain/guide.js'
+import { validateStoredGuide } from '../../../domain/guide.js'
 
 import { asBoolean, asNumber, asOneOf, asString, isObject } from './dto.js'
 
@@ -149,7 +149,7 @@ export function decodeDecision(raw: unknown): Decision | null {
 
 // The guide is decoded by the same validator that admitted it (field by field, bounded, identities checked); a file holding a guide the current schema refuses decodes to nothing rather than half a guide.
 export function decodeGuide(raw: unknown): Guide | null {
-	const validation = validateGuide(raw)
+	const validation = validateStoredGuide(raw)
 	if (!validation.ok) return null
 	return validation.guide
 }

@@ -3,10 +3,12 @@ import { API_PATHS } from '@syneva/contracts/routes'
 import { printJson, warn } from '../../outbound/console.js'
 
 import { loadGuideArg } from './args.js'
+import { writeAuthoring } from './authoring.js'
 import { deskEndpoint, hubSend } from './hub-client.js'
+import { failureText } from './hub-wire.js'
 import { noDeskHint, targetDesk } from './target-desk.js'
 
-import type { Guide } from '@syneva/contracts/guide'
+import type { AuthoredGuide } from '@syneva/contracts/guide'
 import type { CliArgs } from './args.js'
 
 const HTTP_OK = 200
@@ -30,20 +32,30 @@ export async function runReload(args: CliArgs): Promise<void> {
 		reloadBody(guide),
 	)
 	if (response.status !== HTTP_OK) {
-		warn('Reload failed - is the desk still open on the hub?')
+		// A refused guide names what to fix; only a hub that did not answer gets the generic line.
+		warn(
+			failureText(
+				response.body,
+				'Reload failed - is the desk still open on the hub?',
+			),
+		)
 		process.exitCode = 1
 		return
 	}
+	const authoring = await writeAuthoring(live.hub, live.desk.id)
 	printJson({
 		ok: true,
 		live: true,
 		session: live.desk.session,
 		...readReloadResult(response.body),
+		...authoring,
 	})
 }
 
 // A body that is always an object so an absent guide posts {} (re-diff only) rather than an empty body the hub would have to special-case.
-function reloadBody(guide: Guide | undefined): { guide?: Guide } {
+function reloadBody(guide: AuthoredGuide | undefined): {
+	guide?: AuthoredGuide
+} {
 	if (!guide) return {}
 	return { guide }
 }

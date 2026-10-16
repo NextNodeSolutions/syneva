@@ -1,5 +1,6 @@
 import { reanchorDomainComments } from '../domain/domain-comments.js'
 import { reconcileGuide, recoverGuide } from '../domain/guide-reconcile.js'
+import { redraftGuide } from '../domain/guide-redraft.js'
 import { validateGuide } from '../domain/guide.js'
 import { hash } from '../domain/identity.js'
 import { buildInventory } from '../domain/inventory.js'
@@ -9,7 +10,7 @@ import { buildReviewState } from './build.js'
 import { readContextHashes } from './guide-context.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
 
-import type { Guide } from '../domain/guide-shapes.js'
+import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { ReviewState } from '../domain/review.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
 
@@ -28,7 +29,7 @@ export async function reloadDesk(
 	io: ReloadIo,
 	guideSwap: { guide: unknown } | undefined,
 ): Promise<ReloadOutcome> {
-	let validatedGuide: Guide | undefined
+	let validatedGuide: AuthoredGuide | undefined
 	if (guideSwap) {
 		const validation = validateGuide(guideSwap.guide)
 		if (!validation.ok)
@@ -38,7 +39,7 @@ export async function reloadDesk(
 	const base = await rebuildBase(state, pathFilter, io.git)
 	if (!base) return await reloadEmpty(state, pathFilter, validatedGuide, io)
 	const merged = await withPostedGuide(
-		await mergeReviewState(base, state, io.git),
+		redrafted(await mergeReviewState(base, state, io.git), pathFilter),
 		pathFilter,
 		validatedGuide,
 		io.git,
@@ -85,6 +86,14 @@ function rebuildPathOf(
 	return undefined
 }
 
+// A guided desk keeps its guide whole across reloads: the code no explained domain owns is drafted again.
+function redrafted(
+	state: ReviewState,
+	pathFilter: string | undefined,
+): ReviewState {
+	return state.guideExpected ? redraftGuide(state, pathFilter) : state
+}
+
 type GuidedState =
 	| { ok: true; state: ReviewState }
 	| { ok: false; reason: string }
@@ -93,7 +102,7 @@ type GuidedState =
 async function withPostedGuide(
 	state: ReviewState,
 	pathFilter: string | undefined,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 	git: GitPort,
 ): Promise<GuidedState> {
 	if (!guide) return { ok: true, state }
@@ -117,7 +126,7 @@ async function withPostedGuide(
 async function reloadEmpty(
 	state: ReviewState,
 	pathFilter: string | undefined,
-	guide: Guide | undefined,
+	guide: AuthoredGuide | undefined,
 	io: ReloadIo,
 ): Promise<ReloadOutcome> {
 	const cleared: ReviewState = {
@@ -128,10 +137,13 @@ async function reloadEmpty(
 		baseDiffHash: hash(''),
 	}
 	const emptied = await withPostedGuide(
-		{
-			...cleared,
-			guideResolution: await reconciledOnEmpty(cleared, io.git),
-		},
+		redrafted(
+			{
+				...cleared,
+				guideResolution: await reconciledOnEmpty(cleared, io.git),
+			},
+			pathFilter,
+		),
 		pathFilter,
 		guide,
 		io.git,

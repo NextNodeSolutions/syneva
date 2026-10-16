@@ -96,7 +96,22 @@ export function decodeGuideResolution(raw: unknown): GuideResolution | null {
 		if (domain === null) return null
 		domains[id] = domain
 	}
-	return { fingerprint, domains, unassigned: { units, files } }
+	return {
+		fingerprint,
+		domains,
+		unassigned: { units, files },
+		...draftedOf(raw),
+	}
+}
+
+// Absent in files written before drafts: such a guide is all the agent's.
+function draftedOf(
+	raw: Raw,
+): Pick<GuideResolution, 'drafted' | 'overviewDrafted'> {
+	return {
+		drafted: decodeStrings(raw.drafted) ?? undefined,
+		overviewDrafted: raw.overviewDrafted === true || undefined,
+	}
 }
 
 // Decoded by the allowlist above and holding nothing else, the record is written whole; JSON.stringify drops undefined-valued keys.

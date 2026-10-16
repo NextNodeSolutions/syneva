@@ -31,6 +31,12 @@ export type GuideMember =
 	| ({ kind: 'change' } & CodeSpan)
 	| { kind: 'file'; path: string }
 
+// What an agent may also write in a posted guide, resolved by the desk into `change` and `file` members before the guide attaches: `symbol` owns every changed block of a declaration (a class takes its members too) in one file; `domain` owns every block a domain of the desk's current guide owns (the draft's included).
+export type AuthoredMember =
+	| GuideMember
+	| { kind: 'symbol'; path: string; symbol: string }
+	| { kind: 'domain'; id: string }
+
 // A code target an explanation points at. `changed` points into changed code (this domain's or another's); `context` points at supporting unchanged code on the reviewed revision - read-only, never a change to approve.
 export type GuideReference = CodeSpan & {
 	id: string
@@ -154,6 +160,11 @@ export type GuideDomain = {
 	order?: number | undefined
 }
 
+// A domain as posted: without members it keeps the blocks the desk's current domain of the same id owns; members it lists join it, taken from wherever they were.
+export type AuthoredDomain = Omit<GuideDomain, 'members'> & {
+	members?: AuthoredMember[] | undefined
+}
+
 // The exact review source the guide was authored against; `fingerprint` is the inventory's and must match the desk's at attach.
 export type GuideSource = {
 	mode: ReviewMode
@@ -173,6 +184,11 @@ export type Guide = {
 	domains: GuideDomain[]
 	// Stamped by the desk on attach: the diff the guide describes; a reload advancing past it is what the lifecycle re-resolves against.
 	baseDiffHash?: string | undefined
+}
+
+// What `syneva reload --guide` and `open --guide` accept: a guide laid over the desk's current one. A domain it names replaces that domain's text; a domain it leaves out stays as it is.
+export type AuthoredGuide = Omit<Guide, 'domains'> & {
+	domains: AuthoredDomain[]
 }
 
 // Bounds the validator enforces; a guide past one is refused naming the field, never truncated.
@@ -242,6 +258,9 @@ export type GuideResolution = {
 	domains: Record<string, DomainResolution>
 	// Changed units and file operations no domain owns now (empty when the guide attached; a reload can grow it).
 	unassigned: { units: string[]; files: string[] }
+	// The domains Syneva drafted from the code's structure that no agent has explained yet: their text is mechanical.
+	drafted?: string[] | undefined
+	overviewDrafted?: boolean | undefined
 }
 
 // One thing wrong with a guide against its inventory, named by the field and the target it concerns.
