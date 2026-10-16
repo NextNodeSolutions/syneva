@@ -156,24 +156,39 @@ async function openOrReuse(
 		return { ok: false, code: 'PR_TARGET', reason: resolved.reason }
 	const { identity } = resolved
 	const live = liveDesk(state.desks, identity.id)
+	const open = { identity, query, guide }
 	if (live && sameSource(live.record, query, identity))
-		return reuseDesk(state, live, guide, query)
+		return reuseDesk(state, live, open)
 	const admission = await admitOpen(identity, query, guide, state.io)
 	if (!admission.ok) return admission
-	if (live) {
-		closeDesk(state, identity.id)
-		state.desks.delete(identity.id)
-	}
-	return createDesk(state, identity, query, guide)
+	return createDesk(state, open, live)
+}
+
+// An open once its identity is resolved: what reuse and creation both act on.
+type ResolvedOpen = {
+	identity: DeskIdentity
+	query: DeskQuery
+	guide: Guide | undefined
 }
 
 // A reopen is a reload that may also change what the desk expects of its guide (--no-guide, or back to the default).
+// A pr reopen checks its head out again first (the agent may have switched branches since), once a posted guide is admitted, so a refusal still leaves HEAD where it was.
 async function reuseDesk(
 	state: HubState,
 	live: HubDesk,
-	guide: Guide | undefined,
-	query: DeskQuery,
+	{ identity, query, guide }: ResolvedOpen,
 ): Promise<OpenOutcome> {
+	if (identity.checkout) {
+		const admission = await admitOpen(identity, query, guide, state.io)
+		if (!admission.ok) return admission
+		const checkout = await checkoutPrTarget(
+			identity.checkout,
+			identity.root,
+			state.io.git,
+		)
+		if (!checkout.ok)
+			return { ok: false, code: 'PR_TARGET', reason: checkout.reason }
+	}
 	const guideSwap = guide ? { guide } : undefined
 	const outcome = await live.ctx.serialize(() =>
 		reloadDesk(
@@ -191,15 +206,28 @@ async function reuseDesk(
 		...reviewScope(outcome.state),
 	})
 	state.io.log(`desk reloaded ${live.id} (${live.record.root})`)
+	await keepGuidePreference(state, live.id, query)
 	return { ok: true, desk: live, outcome: 'reloaded' }
 }
 
-// The checkout a pr open ends with happens here, once admitted; the desk then builds at HEAD like a restore does.
+// The record is what a restart rebuilds from: a reopen that changed the guide expectation must outlive the hub too.
+async function keepGuidePreference(
+	state: HubState,
+	id: string,
+	query: DeskQuery,
+): Promise<void> {
+	const desk = state.desks.get(id)
+	const noGuide = query.noGuide || undefined
+	if (!desk || desk.record.noGuide === noGuide) return
+	desk.record = { ...desk.record, noGuide }
+	await state.persist()
+}
+
+// The checkout a pr open ends with happens here, once admitted; the desk then builds at the admitted head. The desk it replaces stays live until the new one is built, so a failed checkout or build leaves it reviewable.
 async function createDesk(
 	state: HubState,
-	identity: DeskIdentity,
-	query: DeskQuery,
-	guide: Guide | undefined,
+	{ identity, query, guide }: ResolvedOpen,
+	replaced: HubDesk | undefined,
 ): Promise<OpenOutcome> {
 	const checkout = await checkoutPrTarget(
 		identity.checkout,
@@ -215,6 +243,10 @@ async function createDesk(
 			code: built.code ?? 'NO_REVIEW',
 			reason: built.reason,
 		}
+	if (replaced) {
+		closeDesk(state, identity.id)
+		state.desks.delete(identity.id)
+	}
 	const desk = registerDesk(state, built.state, recordOf(identity, query))
 	desk.ctx.recordEvent({ kind: 'desk-opened', ...reviewScope(built.state) })
 	state.io.log(
