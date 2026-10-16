@@ -65,7 +65,11 @@ export type ReviewFile = {
 
 export type FileReviewState = 'pending' | 'approved' | 'changes-requested'
 
-export type PreviewFile = ReviewFile & { previewContents: string }
+// previewSide is the revision the preview was read from (a cited side on a staged or pr desk), undefined for the working tree: reopening the preview must read the same one.
+export type PreviewFile = ReviewFile & {
+	previewContents: string
+	previewSide?: 'additions' | 'deletions' | undefined
+}
 
 export type ReviewState = {
 	root: string

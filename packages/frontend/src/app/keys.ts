@@ -1,6 +1,7 @@
 import { cmd, enter } from '@app/hotkey-matchers'
 import { HOTKEYS_APP, HOTKEYS_NOTES } from '@app/hotkeys-app'
 import { HOTKEYS_DIFF } from '@app/hotkeys-diff'
+import { HOTKEYS_GUIDE } from '@app/hotkeys-guide'
 import { confirmYes } from '@widgets/dialogs/confirm'
 import { golineCancel } from '@widgets/diff-view/cursor-goline'
 import { isInRail } from '@widgets/hub-shell/rail-hook'
@@ -37,6 +38,7 @@ const HOTKEYS: Hotkey[] = [
 	...HOTKEYS_MODAL,
 	...HOTKEYS_NOTES,
 	...HOTKEYS_DIFF,
+	...HOTKEYS_GUIDE,
 	...HOTKEYS_APP,
 ]
 
@@ -50,11 +52,22 @@ function isTyping(e: KeyboardEvent): boolean {
 	)
 }
 
+// A focused guide control (a reference chip, a domain or change row, a pane button) answers its own Enter, as the rail's links do: the desk's Enter would otherwise cancel the click and comment, or jump to a note, instead. The guide's surfaces carry data-guide-controls.
+function isGuideControl(e: KeyboardEvent): boolean {
+	const { target } = e
+	return (
+		enter(e) &&
+		target instanceof Element &&
+		target.matches('button, [role="button"]') &&
+		target.closest('[data-guide-controls]') !== null
+	)
+}
+
 export function installKeys(): void {
 	document.addEventListener('keydown', e => {
 		if (S.deskClosed) return
 		// A key pressed inside the hub's rail is the rail's: Enter follows its link.
-		if (isInRail(e.target)) return
+		if (isInRail(e.target) || isGuideControl(e)) return
 		const typing = isTyping(e)
 		for (const h of HOTKEYS) {
 			if (!h.test(e)) continue

@@ -176,7 +176,7 @@ export const TREE_SELECTS: SelectSpec[] = [
 	},
 	{
 		label: 'Guided sidebar opens',
-		options: opts(['tree', 'Tree'], ['walkthrough', 'Walkthrough']),
+		options: opts(['tree', 'Tree'], ['walkthrough', 'Guide']),
 		get: () => chromeCtx().S.settings.sidebarDefault,
 		set: next => {
 			applySetting('sidebarDefault', next)

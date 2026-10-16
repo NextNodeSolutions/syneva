@@ -92,6 +92,18 @@ export const overview = stylex.create({
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
 	},
+	domainButton: {
+		display: 'block',
+		width: '100%',
+		padding: 0,
+		borderWidth: 0,
+		borderStyle: 'none',
+		backgroundColor: 'transparent',
+		textAlign: 'left',
+		color: color['--ink'],
+		cursor: 'pointer',
+		outlineOffset: '2px',
+	},
 	domainHead: {
 		display: 'flex',
 		alignItems: 'center',

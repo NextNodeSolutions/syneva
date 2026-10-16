@@ -1,7 +1,9 @@
 import { lazy, Suspense } from 'react'
 
 import { deskIdFromLocation } from '@shared/api/base'
+import { useMediaQuery } from '@shared/lib/use-media-query'
 import * as stylex from '@stylexjs/stylex'
+import { queries } from '@syneva/design-system/media.stylex'
 import { isTreeless } from '@widgets/chrome/layout'
 import { DeskCovers } from '@widgets/chrome/react/desk-covers'
 import { ConfirmModal, SendModal } from '@widgets/chrome/react/dialog-modals'
@@ -29,19 +31,49 @@ const DeskRail = lazy(async () => {
 	return { default: module.DeskRail }
 })
 
-function columns(shape: { isTreeless: boolean; isNotesOpen: boolean }): Style {
-	if (shape.isTreeless)
+// The explanation pane rides its own chunk too: a desk without a guide never loads it, a guided one loads it once the diff is on its way.
+const GuidePane = lazy(async () => {
+	const module = await import('@widgets/guide-pane/react/guide-pane')
+	return { default: module.GuidePane }
+})
+
+type Shape = { isTreeless: boolean; isGuideOpen: boolean; isNotesOpen: boolean }
+
+// One static grid template per shape: StyleX compiles each ahead of time, and the tablet rule collapses every one to the diff alone.
+function columns(shape: Shape): Style {
+	if (shape.isTreeless) {
+		if (shape.isGuideOpen)
+			return shape.isNotesOpen
+				? app.treelessGuideNotes
+				: app.treelessGuide
 		return shape.isNotesOpen ? app.treelessWithNotes : app.treeless
+	}
+	if (shape.isGuideOpen)
+		return shape.isNotesOpen ? app.withTreeGuideNotes : app.withTreeGuide
 	return shape.isNotesOpen ? app.withTreeAndNotes : app.withTree
 }
 
 function Workspace(): ReactElement {
 	const hasNoTree = isTreeless(S)
+	const isGuideOpen =
+		(S.hasGuide?.() ?? false) && S.guidePaneOpen && !S.overviewOpen
+	// Under the tablet width the explanation stacks under the guide bar, above the diff; wider, it is the column between the tree and the diff.
+	const isUnderTablet = useMediaQuery(queries.tablet)
+	const isGuideColumn = isGuideOpen && !isUnderTablet
+	const pane = (
+		<Suspense fallback={<div {...stylex.props(app.guideSpace)} />}>
+			<GuidePane />
+		</Suspense>
+	)
 	return (
 		<main
 			{...stylex.props(
 				app.main,
-				columns({ isTreeless: hasNoTree, isNotesOpen: S.notesOpen }),
+				columns({
+					isTreeless: hasNoTree,
+					isGuideOpen: isGuideColumn,
+					isNotesOpen: S.notesOpen,
+				}),
 			)}
 		>
 			<Sidebar hidden={hasNoTree} />
@@ -55,8 +87,11 @@ function Workspace(): ReactElement {
 				}}
 			/>
 			<Resizer hidden={hasNoTree} />
+			{isGuideColumn && pane}
+			{isGuideColumn && <div {...stylex.props(app.guideRule)} />}
 			<section {...stylex.props(app.center)}>
 				<GuideBar />
+				{isGuideOpen && isUnderTablet && pane}
 				<DiffArea />
 			</section>
 			{S.notesOpen && <NotesPanel />}
@@ -71,6 +106,8 @@ export function App(): ReactElement {
 		'isRefreshRequired',
 		'treeDrawerOpen',
 		'notesOpen',
+		'guidePaneOpen',
+		'overviewOpen',
 	)
 	const isClosed = S.deskClosed && !S.isRefreshRequired
 	return (

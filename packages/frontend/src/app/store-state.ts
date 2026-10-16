@@ -1,6 +1,6 @@
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { CodeSpan } from '@entities/review/guide/model'
-import type { WalkRow } from '@entities/review/guide/walkthrough'
+import type { GuideReturnPoint } from '@entities/review/guide/return-point'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
 import type {
 	NoteThreadRef,
@@ -61,12 +61,26 @@ export interface Store {
 	// A tick instead of a boolean so repeating '/' refocuses even after the field kept focus.
 	notesSearchTick: number
 	notesAdvanceAfter: { ref: NoteThreadRef; pos: number } | null
+	// The guided review's position: the selected domain (its explanation beside the diff), the pane's visibility, the block details the reviewer opened, and where a reference follow came from (Back).
+	domainId: string | null
+	guidePaneOpen: boolean
+	guideExpanded: Set<string>
+	guideReturn: GuideReturnPoint[]
+	// Bumped when the Markdown engine (lazy) lands or repaints, so React prose re-renders with it.
+	markdownTick: number
 
 	treeRows?: () => TreeRow[]
 	selectFile?: (i: number) => void
 	previewFile?: (path: string) => void
 	// Land on original-side code: a guide reference's target or an owned block, in the diff or as a preview.
 	jumpToSpan?: (span: CodeSpan) => void
+	selectDomain?: (id: string) => void
+	stepDomain?: (direction: 1 | -1) => void
+	stepDomainChange?: (direction: 1 | -1) => void
+	followReference?: (domainId: string, refId: string) => void
+	guideBack?: () => void
+	toggleGuidePane?: () => void
+	toggleBlockDetail?: (key: string) => void
 	toggleDir?: (full: string, changed: boolean) => void
 	toggleAllDirs?: () => void
 	treeAnyOpen?: () => boolean
@@ -97,7 +111,6 @@ export interface Store {
 	guidePrev?: () => void
 	guideAtStart?: () => boolean
 	guideAtLast?: () => boolean
-	walkthroughRows?: () => WalkRow[]
 	saveComment?: () => void
 	ask?: () => void
 	requestChange?: () => void

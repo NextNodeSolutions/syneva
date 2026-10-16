@@ -4,7 +4,6 @@ import { prefsSaver, saver, S } from '@app/store'
 import { resetReview, shutdownDesk } from '@entities/review/api'
 import { flowIndex } from '@entities/review/changes'
 import { reviewLineCount } from '@entities/review/file/file-summary'
-import { guideInputs, walkthroughRows } from '@entities/review/guide/guide'
 import { sendReviewToAgent } from '@features/send-review/send'
 import { $ } from '@shared/lib/dom'
 import { render } from '@shared/lib/render-scheduler'
@@ -172,5 +171,4 @@ function installHelpBindings(): void {
 	S.helpGroups = helpGroups
 	S.confirmYes = confirmYes
 	S.confirmNo = confirmNo
-	S.walkthroughRows = () => walkthroughRows(guideInputs(S))
 }

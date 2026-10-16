@@ -81,7 +81,7 @@ function installFileSelection(): void {
 	}
 }
 
-async function openPreview(
+export async function openPreview(
 	path: string,
 	side?: Side,
 	jump?: JumpTarget,
@@ -217,6 +217,7 @@ async function readPreviewFile(
 			added: 0,
 			removed: 0,
 			previewContents: body.contents,
+			previewSide: side,
 		}
 	} catch {
 		toast('Could not open file')

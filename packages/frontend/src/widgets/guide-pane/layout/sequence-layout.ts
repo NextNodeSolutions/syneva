@@ -1,0 +1,86 @@
+import { labelWidth } from './label-width'
+import { nodeHeight } from './node-label'
+
+import type { SequenceBlock } from '@entities/review/guide/model'
+
+export const LANE = { width: 150, headHeight: 30, headWidth: 124 }
+export const STEP_HEIGHT = 40
+// A message to its own lane loops this far right, its label starting just past the loop.
+export const SELF_LOOP = 40
+export const SELF_LABEL_GAP = 6
+const TOP = 10
+const MARGIN = 10
+const FIRST_STEP_OFFSET = 60
+const HALF = 2
+const SIDES = 2
+const LABEL_PAD = 12
+
+// The step's label as drawn: numbered in the order it happens.
+export function stepLabel(index: number, label: string): string {
+	return `${index + 1}. ${label}`
+}
+
+// The distance between neighbouring lanes: wide enough that every message label, centred between its two lanes, fits between them, so none runs past the drawing's edge (scrolling cannot reveal what lies outside the SVG).
+function laneSpacing(block: SequenceBlock): number {
+	const slot = new Map(
+		block.participants.map((participant, index) => [participant.id, index]),
+	)
+	const needs = block.steps.flatMap((step, index) => {
+		const span = Math.abs(
+			(slot.get(step.to) ?? 0) - (slot.get(step.from) ?? 0),
+		)
+		return span
+			? [(labelWidth(stepLabel(index, step.label)) + LABEL_PAD) / span]
+			: []
+	})
+	return Math.max(LANE.width, ...needs)
+}
+
+// One lane per participant in declared order, one row per step in message order: the layout a reviewer reads top to bottom. Lanes spread apart for the longest message label; a self-message's label runs right of its lane, so the width reaches the end of the furthest one. A head grown by a wrapped label pushes the steps down by as much.
+export function layoutSequence(block: SequenceBlock): {
+	lanes: { id: string; x: number }[]
+	headHeight: number
+	stepY: (index: number) => number
+	width: number
+	height: number
+} {
+	const headHeight = nodeHeight(
+		block.participants.map(participant => participant.label),
+		LANE.headWidth,
+		LANE.headHeight,
+	)
+	const firstStep = TOP + FIRST_STEP_OFFSET + headHeight - LANE.headHeight
+	const spacing = laneSpacing(block)
+	const lanes = block.participants.map((participant, index) => ({
+		id: participant.id,
+		x: MARGIN + index * spacing + spacing / HALF,
+	}))
+	const selfLabelEnds = block.steps.flatMap((step, index) =>
+		step.from === step.to
+			? [
+					laneX(lanes, step.from) +
+						SELF_LOOP +
+						SELF_LABEL_GAP +
+						labelWidth(stepLabel(index, step.label)) +
+						MARGIN,
+				]
+			: [],
+	)
+	return {
+		lanes,
+		headHeight,
+		stepY: index => firstStep + index * STEP_HEIGHT,
+		width: Math.max(
+			block.participants.length * spacing + MARGIN * SIDES,
+			...selfLabelEnds,
+		),
+		height: firstStep + block.steps.length * STEP_HEIGHT,
+	}
+}
+
+export function laneX(
+	lanes: readonly { id: string; x: number }[],
+	id: string,
+): number {
+	return lanes.find(lane => lane.id === id)?.x ?? 0
+}
