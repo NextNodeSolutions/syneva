@@ -5,7 +5,7 @@ import type { FlowBlock, FlowEdge } from '@entities/review/guide/model'
 
 export type Placed = { id: string; x: number; y: number }
 
-// How an edge is drawn: straight down to the next layer, or around the nodes through the gaps between layers and a gutter of its own right of the drawing (an edge that skips a layer, returns upward or loops on its node would otherwise run under the boxes painted over it).
+// How an edge is drawn: straight down to the next layer, or around the nodes through the gaps between layers and a gutter of its own right of the drawing (an edge that skips a layer, returns upward or loops on its node would otherwise run under the boxes painted over it, and one whose label would land on another direct label would hide its words).
 export type FlowRoute = { kind: 'direct' } | { kind: 'around'; gutter: number }
 
 export const FLOW_NODE = { width: 132, height: 32 }
@@ -41,21 +41,50 @@ function layersOf(block: FlowBlock): Map<number, string[]> {
 	return layers
 }
 
-// An edge runs direct only into the next layer; skipping one, returning upward or looping on its node goes around.
-function isDirect(edge: FlowEdge, rowOf: ReadonlyMap<string, number>): boolean {
+// An edge can run direct only into the next layer; skipping one, returning upward or looping on its node goes around.
+function intoNextLayer(
+	edge: FlowEdge,
+	rowOf: ReadonlyMap<string, number>,
+): boolean {
 	return (rowOf.get(edge.to) ?? 0) - (rowOf.get(edge.from) ?? 0) === 1
+}
+
+type Span = { start: number; end: number }
+
+// A direct edge's label sits at its curve's middle, so a second edge between the same nodes, or one crossing it in the same gap, would print its words on the first's: an edge stays direct only while its label clears every direct label already in that gap, and goes around otherwise.
+function directEdges(
+	block: FlowBlock,
+	rowOf: ReadonlyMap<string, number>,
+	centre: (id: string) => number,
+): boolean[] {
+	const taken = new Map<number, Span[]>()
+	return block.edges.map(edge => {
+		if (!intoNextLayer(edge, rowOf)) return false
+		const row = rowOf.get(edge.from) ?? 0
+		const start = (centre(edge.from) + centre(edge.to)) / HALF + LABEL_GAP
+		const span = { start, end: start + labelWidth(edge.label) }
+		const spans = taken.get(row) ?? []
+		if (
+			spans.some(
+				other => span.start < other.end && other.start < span.end,
+			)
+		)
+			return false
+		taken.set(row, [...spans, span])
+		return true
+	})
 }
 
 // Each routed edge gets the next gutter, its label beside it, so neither its line nor its words lie on another's.
 function routesOf(
 	block: FlowBlock,
-	rowOf: ReadonlyMap<string, number>,
+	direct: readonly boolean[],
 	firstGutter: number,
 ): { routes: FlowRoute[]; end: number } {
 	let gutter = firstGutter
 	let end = 0
-	const routes = block.edges.map((edge): FlowRoute => {
-		if (isDirect(edge, rowOf)) return { kind: 'direct' }
+	const routes = block.edges.map((edge, index): FlowRoute => {
+		if (direct[index]) return { kind: 'direct' }
 		const route: FlowRoute = { kind: 'around', gutter }
 		end = gutter + LABEL_GAP + labelWidth(edge.label)
 		gutter = end + GUTTER_GAP
@@ -109,16 +138,17 @@ export function layoutFlow(block: FlowBlock): {
 	const widest = Math.max(1, ...rows.map(ids => ids.length))
 	const inner = widest * FLOW_NODE.width + (widest - 1) * GAP_X
 	// A routed edge leaves through the gap under its source and enters through the gap over its target: half a layer gap is kept above the first layer and under the last.
-	const routeRoom = block.edges.every(edge => isDirect(edge, rowOf))
-		? 0
-		: GAP_Y / HALF
-	const nodes = placeNodes(rows, inner, MARGIN + routeRoom, height)
+	// The columns do not depend on the vertical room, so they are known before deciding which edges run direct.
+	const columns = placeNodes(rows, inner, 0, height)
 	const centre = (id: string): number =>
-		(nodes.find(node => node.id === id)?.x ?? 0) + FLOW_NODE.width / HALF
+		(columns.find(node => node.id === id)?.x ?? 0) + FLOW_NODE.width / HALF
+	const direct = directEdges(block, rowOf, centre)
+	const routeRoom = direct.every(Boolean) ? 0 : GAP_Y / HALF
+	const nodes = placeNodes(rows, inner, MARGIN + routeRoom, height)
 	const directEnd = Math.max(
 		MARGIN + inner,
 		...block.edges
-			.filter(edge => isDirect(edge, rowOf))
+			.filter((_, index) => direct[index])
 			.map(
 				edge =>
 					(centre(edge.from) + centre(edge.to)) / HALF +
@@ -126,7 +156,7 @@ export function layoutFlow(block: FlowBlock): {
 					labelWidth(edge.label),
 			),
 	)
-	const { routes, end } = routesOf(block, rowOf, directEnd + GUTTER_GAP)
+	const { routes, end } = routesOf(block, direct, directEnd + GUTTER_GAP)
 	return {
 		nodes,
 		routes,
