@@ -121,7 +121,7 @@ export const HOTKEYS_APP: Hotkey[] = [
 	},
 	{
 		combo: 'w',
-		desc: 'Tree / Walkthrough sidebar',
+		desc: 'Tree / Guide sidebar',
 		group: 'View',
 		when: () => hasGuide(guideInputs(S)) && navigable(),
 		test: key('w'),
