@@ -1,6 +1,7 @@
 import { currentFileOrNull, fromDisplayLine } from '@entities/review/changes'
 import { orderedDomains } from '@entities/review/guide/domains'
 import {
+	changeAt,
 	changeSpan,
 	domainEntry,
 	fileOrderOf,
@@ -116,13 +117,10 @@ function domainSteppedFrom(): string | null {
 	return S.domainId
 }
 
+// The position strip names the domain reached; no toast repeats it.
 function stepDomain(direction: 1 | -1): void {
 	const next = neighbourDomainId(S.state, domainSteppedFrom(), direction)
-	if (!next) return
-	selectDomain(next)
-	const domains = orderedDomains(S.state?.guide)
-	const position = domains.findIndex(domain => domain.id === next)
-	toast(`Domain ${position + 1} of ${domains.length}`)
+	if (next) selectDomain(next)
 }
 
 // Where the cursor sits in the diff file on screen, as a raw line: the cursor holds displayed lines, the changes raw ones, and a decided block above shifts the two apart. Null on a preview or without a cursor.
@@ -135,6 +133,20 @@ function cursorPlace(): CodePlace | undefined {
 		path: shown.path,
 		side: cursor.side,
 		lineNumber: fromDisplayLine(cursor.side, cursor.lineNumber, D.lineMap),
+	}
+}
+
+// The domain's change the cursor sits in, in reading order; null between its blocks or with the code closed.
+function changePosition(): { index: number | null; total: number } | null {
+	const { state } = S
+	const domain = S.domainId ? domainById(state, S.domainId) : undefined
+	if (!state || !domain) return null
+	const ordered = orderedDomainChanges(domain, state)
+	const place = cursorPlace()
+	const current = place ? changeAt(ordered, place) : undefined
+	return {
+		index: current ? ordered.indexOf(current) + 1 : null,
+		total: ordered.length,
 	}
 }
 
@@ -242,6 +254,7 @@ export function installGuideDomainBindings(): void {
 	S.selectDomain = selectDomain
 	S.openCode = openCode
 	S.closeCode = closeCode
+	S.changePosition = changePosition
 	S.stepDomain = stepDomain
 	S.stepDomainChange = stepDomainChange
 	S.followReference = followReference

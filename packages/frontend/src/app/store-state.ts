@@ -72,6 +72,8 @@ export interface Store {
 	guideReturn: GuideReturnPoint[]
 	// Bumped when the Markdown engine (lazy) lands or repaints, so React prose re-renders with it.
 	markdownTick: number
+	// Bumped on every cursor move, so the chrome that names the change under the cursor follows it.
+	cursorTick: number
 	// The guide thread being written: on a domain, or on one of its blocks; the text lives here so a poll or a repaint never loses it.
 	domainComposer: { domainId: string; blockId?: string | undefined } | null
 	domainComposerBody: string
@@ -119,6 +121,9 @@ export interface Store {
 	startGuided?: () => void
 	openCode?: () => void
 	closeCode?: () => void
+	// Where the reviewer is at each level, for the position strip: the file in the active order, the domain's change under the cursor (null between its blocks).
+	filePosition?: () => { index: number | null; total: number } | null
+	changePosition?: () => { index: number | null; total: number } | null
 	showGuideBar?: () => boolean
 	curFileName?: () => string
 	guideNext?: () => void

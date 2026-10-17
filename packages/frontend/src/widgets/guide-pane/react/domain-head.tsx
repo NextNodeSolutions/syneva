@@ -79,12 +79,10 @@ function HeadRow({
 	domain,
 	position,
 	total,
-	isPage,
 }: {
 	domain: GuideDomain
 	position: number
 	total: number
-	isPage: boolean
 }): ReactElement {
 	const { S } = chromeCtx()
 	return (
@@ -102,7 +100,7 @@ function HeadRow({
 				isStale={isDomainStale(S.state, domain.id)}
 				isDrafted={isDomainDrafted(S.state, domain.id)}
 			/>
-			<HeadNav canGoBack={S.guideReturn.length > 0} canClose={!isPage} />
+			<HeadNav canGoBack={S.guideReturn.length > 0} />
 		</div>
 	)
 }
@@ -122,12 +120,7 @@ export function DomainHead({
 	const isPage = layout === 'page'
 	return (
 		<header {...stylex.props(pane.head, isPage && pane.headPage)}>
-			<HeadRow
-				domain={domain}
-				position={position}
-				total={total}
-				isPage={isPage}
-			/>
+			<HeadRow domain={domain} position={position} total={total} />
 			<h2 {...stylex.props(pane.title, isPage && pane.titlePage)}>
 				{domain.title}
 			</h2>

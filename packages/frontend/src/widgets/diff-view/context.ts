@@ -18,6 +18,7 @@ export interface DiffStoreView {
 	editingCommentId: string | null
 	overviewOpen: boolean
 	codeOpen: boolean
+	cursorTick: number
 	expandedDirs: Set<string>
 	collapsedDirs: Set<string>
 	golineBuffer: string

@@ -64,6 +64,7 @@ export const S: Store = reactive<Store>({
 	guideExpanded: new Set<string>(),
 	guideReturn: [],
 	markdownTick: 0,
+	cursorTick: 0,
 	domainComposer: null,
 	domainComposerBody: '',
 })

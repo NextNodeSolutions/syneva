@@ -12,60 +12,27 @@ import { pane } from './guide-pane.styles'
 
 import type { ReactElement } from 'react'
 
-const square = [
-	press.control,
-	control.base,
-	control.quiet,
-	deskControl.mini,
-	tip.host,
-]
-
-// The pane's moves, the same on every head: back to where the reviewer was, the neighbouring domains, and beside the code, hiding the pane (a domain read full width has nothing to hide).
-export function HeadNav({
-	canGoBack,
-	canClose,
-}: {
-	canGoBack: boolean
-	canClose: boolean
-}): ReactElement {
+// The head's one move, and only once there is somewhere to go: back to where the reviewer was before following a reference. Every other move lives in the position strip.
+export function HeadNav({ canGoBack }: { canGoBack: boolean }): ReactElement {
 	const { S } = chromeCtx()
+	if (!canGoBack) return <></>
 	return (
 		<span {...stylex.props(pane.navs)}>
 			<button
-				{...stylex.props(square)}
-				disabled={!canGoBack}
+				{...stylex.props(
+					press.control,
+					control.base,
+					control.quiet,
+					deskControl.mini,
+					tip.host,
+					tip.end,
+				)}
 				data-tip="Back to where you were (b)"
 				aria-label="Back"
 				onClick={() => S.guideBack?.()}
 			>
 				<Icon id="gly-arrow-left" /> Back <Kbd keys="b" />
 			</button>
-			<button
-				{...stylex.props(square)}
-				data-tip="Previous domain (⇧D)"
-				aria-label="Previous domain"
-				onClick={() => S.stepDomain?.(-1)}
-			>
-				<Kbd keys="⇧D" />
-			</button>
-			<button
-				{...stylex.props(square)}
-				data-tip="Next domain (d)"
-				aria-label="Next domain"
-				onClick={() => S.stepDomain?.(1)}
-			>
-				<Kbd keys="d" />
-			</button>
-			{canClose && (
-				<button
-					{...stylex.props(square, tip.end)}
-					data-tip="Hide explanation (g)"
-					aria-label="Hide explanation"
-					onClick={() => S.toggleGuidePane?.()}
-				>
-					<Icon id="gly-close" />
-				</button>
-			)}
 		</span>
 	)
 }

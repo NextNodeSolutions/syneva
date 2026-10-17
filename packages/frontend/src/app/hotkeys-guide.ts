@@ -55,7 +55,8 @@ export const HOTKEYS_GUIDE: Hotkey[] = [
 		desc: 'Show / hide the explanation',
 		group: 'View',
 		test: key('g'),
-		when: guided,
+		// Beside the code only: a domain read full width is its own explanation.
+		when: () => guided() && S.codeOpen && !S.overviewOpen,
 		run: () => S.toggleGuidePane?.(),
 	},
 ]

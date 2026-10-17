@@ -181,7 +181,24 @@ async function warmFile(file: ReviewFile): Promise<void> {
 	}
 }
 
+// Where the shown file stands in the order the file keys walk: the walkthrough's, or the tree's rows; a preview has no place in either.
+function filePosition(): { index: number | null; total: number } | null {
+	if (!S.state) return null
+	const shown = currentFileOrNull(S.state.files, S.preview, S.fileIndex)
+	if (walkthroughActive()) {
+		const order = navOrder(guideInputs(S))
+		const at = S.preview ? -1 : order.indexOf(S.fileIndex)
+		return { index: at >= 0 ? at + 1 : null, total: order.length }
+	}
+	const rows = (S.treeRows?.() ?? []).filter(
+		(row): row is FileRow => row.kind === 'file' || row.kind === 'test',
+	)
+	const at = rows.findIndex(row => row.path === shown?.path)
+	return { index: at >= 0 ? at + 1 : null, total: rows.length }
+}
+
 function installFileStepping(): void {
+	S.filePosition = filePosition
 	// One dispatch for "open the file this tree row points at": stepInView's tree fallthrough and the explicit tree-order keys share it, so the two can never drift apart.
 	const openTreeRow = (dir: 1 | -1): void => {
 		const row = nextInTree(dir)
