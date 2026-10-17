@@ -1,8 +1,13 @@
 /* All scoped under the desk root's data-desk marker and zero-specificity :where(), because one styles.css serves desk and dashboard: nothing touches a bare element and every component's StyleX styles stay in charge. */
 
-/* The desk fills the viewport and every column scrolls on its own: the document itself never does, so a jump that scrolls a row into view cannot drag the page by the few pixels a column overflows. */
+/* The desk fills the viewport and every column scrolls on its own: the document itself never does. Clip, not hidden: a hidden box still scrolls programmatically, and a jump that scrolls a row into view dragged the whole desk up by the few pixels a stray box overflowed the body. */
 :where(html:has([data-desk]), body:has([data-desk])) {
-	overflow: hidden;
+	overflow: clip;
+}
+
+/* The diff renderer appends its icon sprite to the body as an inline 0x0 svg, which still opens a line box of its own below the desk (the 18px the body overflowed by). Out of flow, it takes no room. */
+:where(body:has([data-desk])) > :where(svg[data-icon-sprite]) {
+	position: absolute;
 }
 
 :where([data-desk]) :where(*, *::before, *::after) {
