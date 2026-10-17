@@ -56,7 +56,7 @@ function TopLenses(): ReactElement {
 						tipText="Hide accepted changes (⇧H)"
 						onClick={() => S.toggleHideReviewed?.()}
 					>
-						Hide approved
+						Hide accepted
 						<Kbd keys="⇧H" css={kbd.onTint} />
 					</Lens>
 				</div>

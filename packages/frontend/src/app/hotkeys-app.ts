@@ -113,7 +113,7 @@ export const HOTKEYS_APP: Hotkey[] = [
 	},
 	{
 		combo: '⇧H',
-		desc: 'Hide approved changes (multi-round)',
+		desc: 'Hide accepted changes (multi-round)',
 		group: 'View',
 		when: navigable,
 		test: shift('H'),
