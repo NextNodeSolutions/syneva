@@ -8,6 +8,7 @@ import {
 	ReactFlow,
 	useReactFlow,
 	useStore,
+	useStoreApi,
 } from '@xyflow/react'
 
 import { layoutCanvas } from '../layout/canvas-layout'
@@ -54,6 +55,25 @@ const FLOW = {
 
 const paneWidth = (state: ReactFlowState): number => state.width
 const paneHeight = (state: ReactFlowState): number => state.height
+const flowNode = (state: ReactFlowState): HTMLDivElement | null => state.domNode
+
+// Esc on a part clears the selection and leaves the focus on the part. React Flow's own Escape blurs the part, dropping the keyboard out of the drawing, and selects a part that was not selected; this listener takes the key on its way down to the part, before React Flow sees it, and the key ends there.
+function EscapeClears(): null {
+	const store = useStoreApi()
+	const flow = useStore(flowNode)
+	useEffect(() => {
+		const clear = (event: KeyboardEvent): void => {
+			const { target } = event
+			if (event.key !== 'Escape' || !(target instanceof Element)) return
+			if (!target.closest('[data-id]')) return
+			event.stopPropagation()
+			store.getState().unselectNodesAndEdges()
+		}
+		flow?.addEventListener('keydown', clear, true)
+		return () => flow?.removeEventListener('keydown', clear, true)
+	}, [flow, store])
+	return null
+}
 
 // React Flow fits the drawing once, on its first measure: a field that grows or shrinks with the window fits it again, across as well as down. A drawing that fits at full size keeps the field's height as the window narrows, so a refit on the height alone left it at its old offset, cut at the field's right edge.
 function RefitOnResize(): null {
@@ -125,6 +145,7 @@ export function CanvasField({
 					patternClassName={cx(canvas.gridLine)}
 				/>
 				<RefitOnResize />
+				<EscapeClears />
 			</ReactFlow>
 		</div>
 	)
