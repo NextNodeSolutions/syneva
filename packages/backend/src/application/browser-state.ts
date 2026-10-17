@@ -5,6 +5,7 @@ import type {
 import type { Guide } from '@syneva/contracts/guide'
 import type {
 	ChangeState,
+	ChangeSymbol,
 	Decision,
 	DomainComment,
 	ReviewComment,
@@ -91,6 +92,17 @@ export function browserDomainComment(
 	})
 }
 
+function browserSymbol(
+	symbol: NonNullable<DomainChange['symbol']>,
+): ChangeSymbol {
+	return withoutUndefined({
+		name: symbol.name,
+		kind: symbol.kind,
+		before: symbol.before && { ...symbol.before },
+		after: symbol.after && { ...symbol.after },
+	})
+}
+
 function browserChange(change: DomainChange): ChangeState {
 	return withoutUndefined({
 		id: change.id,
@@ -101,6 +113,8 @@ function browserChange(change: DomainChange): ChangeState {
 		lineNumber: change.lineNumber,
 		endLine: change.endLine,
 		title: change.title,
+		symbol: change.symbol && browserSymbol(change.symbol),
+		trivia: change.trivia,
 		stableKey: change.stableKey,
 		status: change.status,
 		stageable: change.stageable,

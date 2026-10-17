@@ -9,10 +9,12 @@ import {
 	optEnum,
 	optNumber,
 	optString,
+	optional,
 	enumValue,
 } from '@shared/api/decode'
 import { DecodeError } from '@shared/api/decode'
 
+import { decodeChangeSymbol, decodeChangeTrivia } from './decode-change-symbol'
 import { decodeDomainComments } from './decode-domain-comments'
 import { guideDecoders } from './guide/decode-lazy'
 
@@ -76,6 +78,10 @@ export function decodeChange(raw: unknown, ctx: Ctx): ChangeState {
 		lineNumber: requiredNumber(o, 'lineNumber', ctx.endpoint),
 		endLine: optNumber(o, 'endLine', ctx.endpoint),
 		title: requiredString(o, 'title', ctx.endpoint),
+		symbol: optional(o, 'symbol', ctx.endpoint, rawSymbol =>
+			decodeChangeSymbol(rawSymbol, ctx.endpoint),
+		),
+		trivia: decodeChangeTrivia(o, ctx.endpoint),
 		stableKey: optString(o, 'stableKey', ctx.endpoint),
 		status: enumValue(
 			o.status,

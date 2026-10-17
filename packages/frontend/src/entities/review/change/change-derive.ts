@@ -55,6 +55,8 @@ function deriveChange(
 		stableKey,
 		...changeSpan(part),
 		title: `${part.deletions} removed · ${part.additions} added`,
+		symbol: prev?.symbol,
+		trivia: prev?.trivia,
 		status,
 		stageable: prev?.stageable,
 		contentHash: prev?.contentHash,

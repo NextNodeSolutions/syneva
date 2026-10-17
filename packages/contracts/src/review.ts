@@ -22,6 +22,30 @@ export type ReviewComment = {
 	anchor?: 'file' | undefined
 }
 
+export type SymbolKind =
+	| 'function'
+	| 'class'
+	| 'method'
+	| 'interface'
+	| 'type'
+	| 'enum'
+	| 'variable'
+	| 'call'
+	| 'section'
+
+// 1-based, inclusive lines of one side of the diff.
+export type LineRange = { startLine: number; endLine: number }
+
+// The declaration a changed block sits in (a function, a class member, a Markdown section) for the languages the hub outlines, with its lines on each side of the diff where that side holds it: the brick the desk reads whole, before and after. A declaration the change adds has no `before`, one it removes no `after`.
+export type ChangeSymbol = {
+	name: string
+	kind: SymbolKind
+	before?: LineRange | undefined
+	after?: LineRange | undefined
+}
+
+export type ChangeTrivia = 'comment' | 'import'
+
 export type ChangeState = {
 	id: string
 	path: string
@@ -31,6 +55,9 @@ export type ChangeState = {
 	lineNumber: number
 	endLine?: number | undefined
 	title: string
+	symbol?: ChangeSymbol | undefined
+	// Set when the block changes only comments, or only imports and exports.
+	trivia?: ChangeTrivia | undefined
 	stableKey?: string | undefined
 	status: 'pending' | 'accepted' | 'rejected'
 	// Uncommitted tracked-file modifications only (repo mode; file mode when tracked); PR mode and untracked are verdict-only.

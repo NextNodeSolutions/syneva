@@ -62,7 +62,11 @@ function unitOf(change: ChangeState): InventoryUnit {
 		added,
 		contentHash: change.contentHash ?? '',
 		title: change.title,
-		symbol: change.symbol,
+		// The inventory names the declaration; its lines are the desk's to read.
+		symbol: change.symbol && {
+			name: change.symbol.name,
+			kind: change.symbol.kind,
+		},
 		trivia: change.trivia,
 	}
 }

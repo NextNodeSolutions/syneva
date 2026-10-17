@@ -1,6 +1,6 @@
 // The read-only inventory of a review source: what an agent authors a guide against, before any desk opens.
 // `syneva inventory` prints it; a guide's source.fingerprint must be this inventory's, so references are never read against another revision.
-import type { ReviewMode } from './review.js'
+import type { ReviewMode, SymbolKind } from './review.js'
 
 export const INVENTORY_FORMAT = 'syneva-inventory/1'
 
@@ -23,17 +23,6 @@ export type InventoryUnit = {
 	// Set when the block changes only comments, or only imports and exports.
 	trivia?: 'comment' | 'import' | undefined
 }
-
-export type SymbolKind =
-	| 'function'
-	| 'class'
-	| 'method'
-	| 'interface'
-	| 'type'
-	| 'enum'
-	| 'variable'
-	| 'call'
-	| 'section'
 
 export type InventoryFile = {
 	path: string

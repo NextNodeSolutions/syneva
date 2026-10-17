@@ -9,6 +9,7 @@ import {
 	outlineLanguage,
 } from '../domain/outline.js'
 import { symbolLinks } from '../domain/symbol-links.js'
+import { symbolOnSides } from '../domain/symbol-sides.js'
 
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
@@ -45,7 +46,7 @@ function outlineOf(
 	return outline
 }
 
-// The sides each file needs: the new one where a block adds, the old one where a block only removes. Oversized files stay unnamed: parsing them would cost what their summary card saves.
+// Both sides of every outlined file a block changes: a block is named on its own side, and its declaration is looked up on the other side too, so the desk can read the brick before and after (a side that does not exist, an added or deleted file's, reads as missing). Oversized files stay unnamed: parsing them would cost what their summary card saves.
 function wantedSides(state: ReviewState): Map<ReviewFile, Set<Side>> {
 	const outlined = new Map(
 		state.files
@@ -55,8 +56,8 @@ function wantedSides(state: ReviewState): Map<ReviewFile, Set<Side>> {
 	const wanted = new Map<ReviewFile, Set<Side>>()
 	for (const change of state.changes) {
 		const file = outlined.get(change.path)
-		if (!file) continue
-		wanted.set(file, (wanted.get(file) ?? new Set<Side>()).add(change.side))
+		if (file && !wanted.has(file))
+			wanted.set(file, new Set<Side>(['additions', 'deletions']))
 	}
 	return wanted
 }
@@ -176,8 +177,14 @@ function namedChange(
 	}
 	const declarations = blockDeclarations(outline, span)
 	const [declaration] = declarations
+	const otherSide: Side =
+		change.side === 'additions' ? 'deletions' : 'additions'
 	const symbol = declaration
-		? { name: declaration.name, kind: declaration.kind }
+		? symbolOnSides(
+				declaration,
+				change.side,
+				outlineFor(otherSide, change.path, texts, git),
+			)
 		: undefined
 	const named = withTrivia({ ...change, symbol }, changeTrivia(outline, span))
 	if (!declaration) return { change: named }
