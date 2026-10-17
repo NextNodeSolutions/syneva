@@ -2,6 +2,7 @@ import { currentFileOrNull, fileFinished } from '@entities/review/changes'
 import { fetchPreviewFile } from '@entities/review/file/api'
 import { peekContents, prefetchContents } from '@entities/review/file/contents'
 import { defaultFileView } from '@entities/review/file/file-summary'
+import { domainsOwningPath } from '@entities/review/guide/domains'
 import { guideInputs, hasGuide, navOrder } from '@entities/review/guide/guide'
 import { nextUnreviewed } from '@entities/review/guide/seek'
 import { deferRender, render } from '@pages/desk/render'
@@ -79,10 +80,19 @@ function selectFile(i: number): void {
 	S.diffScrolled = false // the new file renders at the top (see render.ts) - hide the floating action
 	S.fileIndex = i
 	S.fileView = defaultFileView(state.files[i], S.settings.markdownView)
+	followFile(state, state.files[i].path)
 	D.fileDiff = null
 	cursorReset()
 	deferRender()
 	warmNextFile()
+}
+
+// The explanation beside the code is the file's: a file opened from the tree or by the file keys switches it to the first domain that owns the file, unless the current one does. A file no domain owns keeps the explanation as it was.
+function followFile(state: ReviewState, path: string): void {
+	const owners = domainsOwningPath(state.guide, path)
+	if (!owners.length || owners.some(domain => domain.id === S.domainId))
+		return
+	S.domainId = owners[0]?.id ?? S.domainId
 }
 
 function installFileSelection(): void {
