@@ -1,3 +1,4 @@
+import { isMotionReduced } from '@shared/lib/motion'
 import { Button } from '@shared/ui/button'
 import { deskControl } from '@shared/ui/desk-control.styles'
 import { tip } from '@shared/ui/tip.styles'
@@ -14,7 +15,12 @@ import type { Projection } from '../model'
 import type { CanvasScene } from './use-canvas-scene'
 import type { OrbitHold } from './use-orbit'
 
-const ZOOM = { duration: 160 }
+const ZOOM_MS = 160
+
+// The plan's zoom eases, unless the reviewer asked for less motion: then it jumps, as the 3D view's poses do.
+const zoom = (): { duration: number } => ({
+	duration: isMotionReduced() ? 0 : ZOOM_MS,
+})
 
 function Zoom(): ReactElement {
 	const flow = useReactFlow()
@@ -24,7 +30,7 @@ function Zoom(): ReactElement {
 				size="small"
 				css={[deskControl.mini, deskControl.iconMini]}
 				aria-label="Zoom out"
-				onClick={() => void flow.zoomOut(ZOOM)}
+				onClick={() => void flow.zoomOut(zoom())}
 			>
 				<ZoomGlyph isIn={false} />
 			</Button>
@@ -32,14 +38,14 @@ function Zoom(): ReactElement {
 				size="small"
 				css={[deskControl.mini, deskControl.iconMini]}
 				aria-label="Zoom in"
-				onClick={() => void flow.zoomIn(ZOOM)}
+				onClick={() => void flow.zoomIn(zoom())}
 			>
 				<ZoomGlyph isIn />
 			</Button>
 			<Button
 				size="small"
 				css={deskControl.mini}
-				onClick={() => void flow.fitView({ ...ZOOM, padding: 0.06 })}
+				onClick={() => void flow.fitView({ ...zoom(), padding: 0.06 })}
 			>
 				Fit
 			</Button>
