@@ -136,6 +136,11 @@
 			"id": "layers",
 			"label": "Reading levels: overview, domain, code, brick",
 			"note": "Hypothesis: the reading levels (the overview with the system canvas's three projections, the domain page, the code under the position strip, the brick view cut from the replay) and the hub's cut of every block at the declarations it crosses change what the desk draws before the code and how the change set is listed, not the diff's render path: the canvas stays a lazy chunk (initial graph 418,120 B of 420,000), the brick cut runs only in the brick view, the split only adds changes to map. Route: headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs; pi-frontend-check was not available), 1440x900, stage marks only; guided desks on the hub's own drafted guide (the fixtures carry no system model, so the canvas is not drawn, and the guided milestone's 31-domain generated guide is not reproduced), a fresh session per run, two samples per fixture, served by a hub started from the built package. Verdict on medium: the overview's domain list is on screen 0.49-0.56 s after navigation, Enter shows the domain page 0.59-0.71 s later, and from the Enter that opens the code (ttcStart) rows come at +0.48-0.55 s and colour at +1.51-1.59 s; paint-to-colour is 1.03-1.04 s against 1.05 s guided and 0.94 s control, so the diff path is unchanged, and the rows now follow the layout motion that slides the explanation aside (SETTLE_MS 320): the +0.4 s before rows against guided is that motion, by design. On bigfile (the giant file behind the oversized guard, loaded by Enter = ttcStart): colour 34.6-34.7 s after the press against 34.3-34.4 s guided, measured on another browser - within a percent. The pool:* stages remain uninstrumented on this build (0 marks), as in guided."
+		},
+		{
+			"id": "polish",
+			"label": "Desk polish: the micro-bug rounds",
+			"note": "Hypothesis: the two polish rounds (the desk's and the canvas's: the reset confirmation, the notes' floating decision under the laptop width, the folded tree's button, the questions counted apart from the comments, the focus a mouse click releases, the reading's place kept across the fold into the column, the brick view's verdict rows filtered to the brick, the raised drawings' names and words kept off each other) touch the chrome and the overview, not the diff's render path: the initial graph moved to 419,808 B (its limit to 424,000), the canvas stays a lazy chunk (all chunks 12,963,067 B of 13,000,000). Route: headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs; pi-frontend-check was not available), 1440x900, stage marks only; guided desks on the hub's own drafted guide (the fixtures carry no system model, so the canvas is not drawn), a fresh session per run, two samples per fixture, served by a hub started from the built package - which restored the 16 desks of the earlier bench sessions at start, so the first medium open timed out on the CLI's probe while the hub was busy (a hub-side matter outside these marks) and was reopened once the hub was idle. Verdict on medium: from the Enter that opens the code (ttcStart) rows come at +0.52-0.59 s and colour at +1.56-1.62 s, paint-to-colour 1.03 s against 1.03-1.04 s on layers: unchanged within the pool-boot swing. On bigfile (the giant file behind the oversized guard, loaded by Enter = ttcStart): colour 34.4-34.5 s after the press against 34.6-34.7 s on layers, the same within a percent. The pool:* stages remain uninstrumented on this build (0 marks)."
 		}
 	],
 	"rejected": [
@@ -2723,6 +2728,90 @@
 			},
 			"workerBundleKb": 208,
 			"note": "headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs), stage marks only - not pi-frontend-check and not the guided milestone's Brave-over-CDP driver; guided desk on the hub's own drafted guide (no generated prose guide), fresh session, 1440x900; the overview's domain list is on screen at 470 ms (system canvas drawn: false), Enter at 484 ms shows the domain page at 975 ms, Enter on it opens the code (ttcStart). contents = first /file-contents resource duration. pool:* marks: 0 on this build."
+		},
+		{
+			"id": "polish-medium-1",
+			"fixture": "medium",
+			"milestone": "layers",
+			"date": "2026-10-17",
+			"stagesMs": {
+				"module": 26,
+				"plainPaint": 1763,
+				"firstColor": 2795,
+				"ttcStart": 1240,
+				"contents": 18
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs), stage marks only - not pi-frontend-check and not the guided milestone's Brave-over-CDP driver; guided desk on the hub's own drafted guide (no generated prose guide), fresh session, 1440x900; the overview's domain list is on screen at 548 ms (system canvas drawn: false), Enter at 561 ms shows the domain page at 1223 ms, Enter on it opens the code (ttcStart). contents = first /file-contents resource duration. pool:* marks: 0 on this build."
+		},
+		{
+			"id": "polish-medium-2",
+			"fixture": "medium",
+			"milestone": "layers",
+			"date": "2026-10-17",
+			"stagesMs": {
+				"module": 28,
+				"plainPaint": 1860,
+				"firstColor": 2892,
+				"ttcStart": 1272,
+				"contents": 5
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs), stage marks only - not pi-frontend-check and not the guided milestone's Brave-over-CDP driver; guided desk on the hub's own drafted guide (no generated prose guide), fresh session, 1440x900; the overview's domain list is on screen at 545 ms (system canvas drawn: false), Enter at 557 ms shows the domain page at 1271 ms, Enter on it opens the code (ttcStart). contents = first /file-contents resource duration. pool:* marks: 0 on this build."
+		},
+		{
+			"id": "polish-bigfile-1",
+			"fixture": "bigfile",
+			"milestone": "layers",
+			"date": "2026-10-17",
+			"stagesMs": {
+				"module": 50,
+				"plainPaint": 1494,
+				"firstColor": 35803,
+				"ttcStart": 1270,
+				"contents": 37
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs), stage marks only - not pi-frontend-check and not the guided milestone's Brave-over-CDP driver; guided desk on the hub's own drafted guide (no generated prose guide), fresh session, 1440x900; the overview's domain list is on screen at 501 ms (system canvas drawn: false), Enter at 515 ms shows the domain page at 989 ms, Enter on it opens the code (ttcStart). contents = first /file-contents resource duration. pool:* marks: 0 on this build."
+		},
+		{
+			"id": "polish-bigfile-2",
+			"fixture": "bigfile",
+			"milestone": "layers",
+			"date": "2026-10-17",
+			"stagesMs": {
+				"module": 25,
+				"plainPaint": 1371,
+				"firstColor": 35522,
+				"ttcStart": 1144,
+				"contents": 19
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 208,
+			"note": "headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs), stage marks only - not pi-frontend-check and not the guided milestone's Brave-over-CDP driver; guided desk on the hub's own drafted guide (no generated prose guide), fresh session, 1440x900; the overview's domain list is on screen at 463 ms (system canvas drawn: false), Enter at 478 ms shows the domain page at 939 ms, Enter on it opens the code (ttcStart). contents = first /file-contents resource duration. pool:* marks: 0 on this build."
 		}
 	]
 }
