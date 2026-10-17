@@ -83,6 +83,12 @@ export const overview = stylex.create({
 		color: color['--ink'],
 	},
 	label: { marginBottom: '8px' },
+	number: {
+		minWidth: '14px',
+		fontFamily: font['--mono'],
+		fontSize: '11px',
+		color: color['--muted'],
+	},
 	domains: {
 		listStyle: 'none',
 		margin: 0,
