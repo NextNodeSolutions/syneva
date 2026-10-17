@@ -1,3 +1,5 @@
+import { useCallback } from 'react'
+
 import { domainThreads } from '@entities/review/domain-threads'
 import { orderedDomains } from '@entities/review/guide/domains'
 import {
@@ -31,10 +33,37 @@ import {
 import type { DomainThread } from '@entities/review/domain-threads'
 import type { GuideDomain } from '@entities/review/guide/model'
 import type { ReviewState } from '@entities/review/model'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode, UIEvent } from 'react'
 
 // Where the explanation is drawn: the column beside the code, or the page the domain reads as, full width, before its code opens.
 export type GuideLayout = 'column' | 'page'
+
+type ScrollMemory = readonly [
+	attach: (element: HTMLElement | null) => void,
+	onScroll: (event: UIEvent<HTMLElement>) => void,
+]
+
+const lastScroll: Partial<
+	Record<GuideLayout, { domainId: string; top: number }>
+> = {}
+
+// The scroller remembers where the domain it shows was left, per layout: the explanation hidden and shown again, or the page left for the project level and reopened, comes back to the same place; another domain starts at the top.
+function useScrollMemory(layout: GuideLayout, domainId: string): ScrollMemory {
+	const attach = useCallback(
+		(element: HTMLElement | null) => {
+			if (!element) return
+			const last = lastScroll[layout]
+			element.scrollTo({
+				top: last?.domainId === domainId ? last.top : 0,
+			})
+		},
+		[layout, domainId],
+	)
+	const onScroll = (event: UIEvent<HTMLElement>): void => {
+		lastScroll[layout] = { domainId, top: event.currentTarget.scrollTop }
+	}
+	return [attach, onScroll]
+}
 
 function DomainBody({
 	domain,
@@ -46,10 +75,15 @@ function DomainBody({
 	layout: GuideLayout
 }): ReactElement {
 	const progress = domainProgress(domain, state.changes)
+	// The column scrolls by itself and keeps its place; the page's scroller is its wrapper.
+	const isColumn = layout === 'column'
+	const [attach, onScroll] = useScrollMemory(layout, domain.id)
 	return (
 		<div
 			{...stylex.props(pane.body, layout === 'page' && pane.bodyPage)}
 			data-guide-pane-body=""
+			ref={isColumn ? attach : undefined}
+			onScroll={isColumn ? onScroll : undefined}
 		>
 			<Prerequisites domain={domain} state={state} />
 			<CriticalSpans domain={domain} state={state} />
@@ -134,15 +168,15 @@ function EmptyPane(): ReactElement {
 	)
 }
 
-function DomainPane({ layout }: { layout: GuideLayout }): ReactElement {
-	const { S } = chromeCtx()
-	const { state } = S
-	const gone = goneThreads(state, S.domainId)
-	const [firstGone] = gone
-	if (firstGone)
-		return <GoneDomainPane target={firstGone.target} threads={gone} />
-	const domain = selectedDomain(state, S.domainId)
-	if (!state || !domain) return <EmptyPane />
+function DomainAside({
+	domain,
+	state,
+	layout,
+}: {
+	domain: GuideDomain
+	state: ReviewState
+	layout: GuideLayout
+}): ReactElement {
 	const domains = orderedDomains(state.guide)
 	const isStale = isDomainStale(state, domain.id)
 	const isPage = layout === 'page'
@@ -173,6 +207,42 @@ function DomainPane({ layout }: { layout: GuideLayout }): ReactElement {
 	)
 }
 
+// The page the domain reads as: the full-width scroller around the sheet, the morphing element, with the place it was left.
+function PageFrame({
+	domainId,
+	children,
+}: {
+	domainId: string
+	children: ReactNode
+}): ReactElement {
+	const [attach, onScroll] = useScrollMemory('page', domainId)
+	return (
+		<div
+			{...stylex.props(pane.page)}
+			data-reading=""
+			data-morph="reading"
+			ref={attach}
+			onScroll={onScroll}
+		>
+			{children}
+		</div>
+	)
+}
+
+function DomainPane({ layout }: { layout: GuideLayout }): ReactElement {
+	const { S } = chromeCtx()
+	const { state } = S
+	const gone = goneThreads(state, S.domainId)
+	const [firstGone] = gone
+	if (firstGone)
+		return <GoneDomainPane target={firstGone.target} threads={gone} />
+	const domain = selectedDomain(state, S.domainId)
+	if (!state || !domain) return <EmptyPane />
+	const aside = <DomainAside domain={domain} state={state} layout={layout} />
+	if (layout === 'column') return aside
+	return <PageFrame domainId={domain.id}>{aside}</PageFrame>
+}
+
 // The explanation of the selected domain: the column beside the real diff, or the page it reads as before its code opens. Nothing here approves anything; the verdict controls stay on the code.
 export function GuidePane({
 	layout = 'column',
@@ -190,15 +260,5 @@ export function GuidePane({
 		'domainComposer',
 		'domainComposerBody',
 	)
-	if (layout === 'page')
-		return (
-			<div
-				{...stylex.props(pane.page)}
-				data-reading=""
-				data-morph="reading"
-			>
-				<DomainPane layout={layout} />
-			</div>
-		)
 	return <DomainPane layout={layout} />
 }
