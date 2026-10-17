@@ -1,19 +1,14 @@
-import { spawn } from 'node:child_process'
-import { closeSync, realpathSync } from 'node:fs'
 import http from 'node:http'
 
 import { deskApiBase, HUB_PATHS } from '@syneva/contracts/routes'
 
 import { sanitizeSession } from '../../../domain/identity.js'
 import { warn } from '../../outbound/console.js'
-import {
-	isProcessAlive,
-	openHubLog,
-	readHubLock,
-} from '../../outbound/filesystem/hub.js'
+import { isProcessAlive, readHubLock } from '../../outbound/filesystem/hub.js'
 import { DEFAULT_HUB_PORT } from '../http/options.js'
 
 import { flagText } from './args.js'
+import { startDetachedHub } from './hub-spawn.js'
 import { readDesks } from './hub-wire.js'
 
 import type { DeskSummary, HubHealth } from '@syneva/contracts/hub'
@@ -147,24 +142,6 @@ function canAutostart(args: CliArgs, url: string): boolean {
 // Spawn `syneva start --no-open` detached: stdio to ~/.syneva/hub/hub.log, outliving this CLI
 // process, and idempotent - a second hub finding the port already answered exits, so two agents
 // racing to open the first desk land on one hub.
-export function startDetachedHub(args: CliArgs): void {
-	const entry = realpathSync(process.argv[1] ?? '')
-	const port = flagText(args, 'port') ?? process.env.SYNEVA_PORT
-	const log = openHubLog()
-	const child = spawn(
-		process.execPath,
-		[entry, 'start', '--no-open', ...(port ? ['--port', port] : [])],
-		{
-			detached: true,
-			stdio: ['ignore', log, log],
-			env: { ...process.env, SYNEVA_NO_UPDATE_CHECK: '1' },
-			windowsHide: true,
-		},
-	)
-	child.unref()
-	closeSync(log)
-}
-
 export async function waitForHub(
 	url: string,
 	key: string | undefined,
