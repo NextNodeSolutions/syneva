@@ -10,8 +10,8 @@ import {
 	prunedLinks,
 	redrafted,
 } from './guide-compose-context.js'
+import { textOf } from './guide-compose-text.js'
 import { draftMembers } from './guide-draft-members.js'
-import { isRecord } from './guide-parse.js'
 import { GUIDE_FORMAT, GUIDE_LIMITS } from './guide-shapes.js'
 
 import type {
@@ -64,40 +64,6 @@ function postedHolding(domainId: string, context: ComposeContext): Holding {
 			...named(context.claims.files),
 		]),
 	}
-}
-
-// The text an agent writes; equal text means the agent left the domain as it was.
-// Key order and absent-versus-undefined fields are not text: a guide read back from a file compares equal to the one written.
-function canonical(entry: unknown): unknown {
-	if (Array.isArray(entry)) return entry.map(canonical)
-	if (!isRecord(entry)) return entry
-	return Object.fromEntries(
-		Object.entries(entry)
-			.filter(([, field]) => typeof field !== 'undefined')
-			.toSorted(([a], [b]) => a.localeCompare(b))
-			.map(([key, field]) => [key, canonical(field)]),
-	)
-}
-
-function textOf(domain: AuthoredDomain | GuideDomain): string {
-	const { title, risk, consequence, summary, verify, prerequisites } = domain
-	const { references, related, evidence, unknowns, critical, blocks } = domain
-	return JSON.stringify(
-		canonical({
-			title,
-			risk,
-			consequence,
-			summary,
-			verify,
-			prerequisites,
-			references,
-			related,
-			evidence,
-			unknowns,
-			critical,
-			blocks,
-		}),
-	)
 }
 
 function isUntouched(domain: AuthoredDomain, context: ComposeContext): boolean {
@@ -212,6 +178,26 @@ function contextOf(
 	return { ...context, heirs: heirsOf(posted.domains, context) }
 }
 
+// What the composed guide breaks: ownership claims, the posted domains' links to domains it does not hold, and its size.
+function composedIssues(
+	posted: AuthoredGuide,
+	context: ComposeContext,
+	placed: readonly Placed[],
+): GuideIssue[] {
+	const ids = new Set(placed.map(entry => entry.domain.id))
+	const issues = [
+		...context.claims.issues,
+		...context.issues,
+		...domainLinkIssues(posted.domains, ids),
+	]
+	if (placed.length > GUIDE_LIMITS.domains)
+		issues.push({
+			field: 'guide.domains',
+			reason: `the guide would hold ${placed.length} domains; at most ${GUIDE_LIMITS.domains} - merge some`,
+		})
+	return issues
+}
+
 export type ComposeInput = Pick<ComposeContext, 'inventory' | 'order'>
 
 export function composeGuide(
@@ -230,16 +216,6 @@ export function composeGuide(
 	const domains = placed.map(entry =>
 		entry.isPosted ? entry.domain : prunedLinks(entry.domain, ids),
 	)
-	const issues = [
-		...context.claims.issues,
-		...context.issues,
-		...domainLinkIssues(posted.domains, ids),
-	]
-	if (placed.length > GUIDE_LIMITS.domains)
-		issues.push({
-			field: 'guide.domains',
-			reason: `the guide would hold ${placed.length} domains; at most ${GUIDE_LIMITS.domains} - merge some`,
-		})
 	return {
 		guide: {
 			format: GUIDE_FORMAT,
@@ -261,6 +237,6 @@ export function composeGuide(
 			current?.overviewDrafted &&
 			current.guide.overview === posted.overview,
 		),
-		issues,
+		issues: composedIssues(posted, context, placed),
 	}
 }
