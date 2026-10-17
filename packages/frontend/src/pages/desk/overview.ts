@@ -26,7 +26,11 @@ import { overview } from './overview.styles'
 import type { GuideDomain } from '@entities/review/guide/model'
 import type { ReviewState } from '@entities/review/model'
 
-function domainRow(domain: GuideDomain, state: ReviewState): string {
+function domainRow(
+	domain: GuideDomain,
+	index: number,
+	state: ReviewState,
+): string {
 	const files = new Set(domain.members.map(member => member.path)).size
 	const progress = domainProgress(domain, state.changes)
 	const count = `${files} ${files === 1 ? 'file' : 'files'} · ${progress.decided}/${progress.total} decided`
@@ -36,7 +40,7 @@ function domainRow(domain: GuideDomain, state: ReviewState): string {
 	const drafted = isDomainDrafted(state, domain.id)
 		? `<span class="${cx(tag.base, tag.neutral)}">Draft</span>`
 		: ''
-	return `<li class="${cx(overview.domain)}"><button class="${cx(overview.domainButton)}" data-domain="${esc(domain.id)}"><span class="${cx(overview.domainHead)}">${riskTagHtml(domain.risk)}${stale}${drafted}<span class="${cx(overview.domainTitle)}">${esc(domain.title)}</span><span class="${cx(caption.base, overview.domainFiles)}">${count}</span></span><p class="${cx(overview.consequence)}">${esc(domain.consequence)}</p></button></li>`
+	return `<li class="${cx(overview.domain)}"><button class="${cx(overview.domainButton)}" data-domain="${esc(domain.id)}"><span class="${cx(overview.domainHead)}"><span class="${cx(overview.number)}">${index + 1}</span>${riskTagHtml(domain.risk)}${stale}${drafted}<span class="${cx(overview.domainTitle)}">${esc(domain.title)}</span><span class="${cx(caption.base, overview.domainFiles)}">${count}</span></span><p class="${cx(overview.consequence)}">${esc(domain.consequence)}</p></button></li>`
 }
 
 // Changes the guide does not own (after a reload exposed them): pending, never folded into a domain, and named where the reviewer finds them - the Walkthrough groups whole files, so a block in a file a domain already names never reaches Other and is pointed to by its file instead.
@@ -63,6 +67,15 @@ function draftNote(state: ReviewState): string {
 	return `<div class="${cx(overview.drafted)}">Syneva drafted this guide from the code's structure: the domains marked Draft are grouped and named, not explained yet. Your agent's explanations replace them as it posts them.</div>`
 }
 
+// The system canvas (React Flow, ELK) is a chunk of its own, loaded by the first overview whose guide draws a model; a domain it leads to opens like a row below.
+async function placeCanvas(
+	slot: HTMLElement,
+	state: ReviewState,
+): Promise<void> {
+	const { placeSystemCanvas } = await import('@widgets/system-canvas/mount')
+	placeSystemCanvas(slot, state, id => diffCtx().S.selectDomain?.(id))
+}
+
 // The reading order itself: the changeset's intent, then its domains highest risk first - each with the consequence its risk rests on - and Start, which opens the first file of the first domain.
 export function renderOverview(): void {
 	const { S, requireState } = diffCtx()
@@ -79,17 +92,20 @@ export function renderOverview(): void {
 		control.primary,
 	)
 	$('diff').innerHTML =
-		`<div class="${cx(overview.page)}"><div class="${cx(overview.card)}">
+		`<div class="${cx(overview.page)}"><div class="${cx(overview.card, Boolean(state.guide?.model) && overview.cardWide)}">
     <h1 class="${cx(overview.title)}">${esc(title)}</h1>
     <div class="${cx(caption.base, overview.sub)}">${esc(state.mode)} · ${esc(state.session)} · ${state.files.length} files · ${domains.length} ${domains.length === 1 ? 'domain' : 'domains'}</div>
     ${stale}
     ${draftNote(state)}
     ${unassignedNote(state)}
     <div class="${cx(overview.intent)}" data-prose="guide">${renderMarkdown(state.guide?.overview ?? '')}</div>
+    ${state.guide?.model ? `<div id="systemCanvas" class="${cx(overview.canvasSlot)}"></div>` : ''}
     <div class="${cx(caption.base, caption.upper, overview.label)}">Domains, highest risk first</div>
-    <ol class="${cx(overview.domains)}">${domains.map(domain => domainRow(domain, state)).join('')}</ol>
+    <ol class="${cx(overview.domains)}">${domains.map((domain, index) => domainRow(domain, index, state)).join('')}</ol>
     <div class="${cx(overview.actions)}"><button class="${startClass}" id="guideStart">Start review${kbdHtml('↵', kbd.onFill)}</button></div>
   </div></div>`
+	const slot = $('diff').querySelector<HTMLElement>('#systemCanvas')
+	if (slot) void placeCanvas(slot, state)
 	const start = $('diff').querySelector<HTMLButtonElement>('#guideStart')
 	start?.addEventListener('click', () => S.startGuided?.())
 	for (const row of $('diff').querySelectorAll<HTMLButtonElement>(

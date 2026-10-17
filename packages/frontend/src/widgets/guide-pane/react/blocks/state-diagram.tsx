@@ -7,8 +7,8 @@ import type {
 	StateBlock,
 	StateNode,
 } from '@entities/review/guide/model'
+import type { GraphInput, GraphNodeInput } from '@shared/lib/graph-layout'
 import type { ReactElement } from 'react'
-import type { GraphInput, GraphNodeInput } from '../../layout/graph-layout'
 
 const STATE_NODE = { width: 124, height: 34 }
 

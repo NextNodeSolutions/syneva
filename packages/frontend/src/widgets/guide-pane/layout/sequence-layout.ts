@@ -1,4 +1,5 @@
-import { labelWidth } from './label-width'
+import { labelWidth } from '@shared/lib/label-width'
+
 import { nodeHeight } from './node-label'
 
 import type { SequenceBlock } from '@entities/review/guide/model'

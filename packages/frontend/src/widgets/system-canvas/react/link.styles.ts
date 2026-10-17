@@ -1,0 +1,60 @@
+import * as stylex from '@stylexjs/stylex'
+import { color, font } from '@syneva/design-system/tokens.stylex'
+
+// A link is a 1.2px rule routed between the tiles with its arrowhead; a changed one takes its change's colour, a dynamic view's step is petrol and numbered. Its words sit on the field's paper where they cross the line.
+export const link = stylex.create({
+	path: {
+		fill: 'none',
+		stroke: color['--line-strong'],
+		strokeWidth: 1.2,
+		strokeLinejoin: 'round',
+	},
+	head: { fill: color['--line-strong'] },
+	step: { stroke: color['--accent'], strokeWidth: 1.5 },
+	stepHead: { fill: color['--accent'] },
+	lit: { strokeWidth: 2 },
+	dim: { opacity: 0.22 },
+	label: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: '5px',
+		paddingInline: '4px',
+		backgroundColor: color['--paper'],
+		fontFamily: font['--sans'],
+		fontSize: '10.5px',
+		lineHeight: '18px',
+		color: color['--muted'],
+	},
+	at: (x: number, y: number, width: number, height: number) => ({
+		width: `${width}px`,
+		height: `${height}px`,
+		transform: `translate(${x}px, ${y}px)`,
+	}),
+	text: {
+		overflow: 'hidden',
+		whiteSpace: 'nowrap',
+		textOverflow: 'ellipsis',
+	},
+	labelLit: { color: color['--ink'] },
+	labelDim: { opacity: 0.3 },
+	number: {
+		display: 'inline-flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		minWidth: '16px',
+		height: '16px',
+		paddingInline: '3px',
+		backgroundColor: color['--wash'],
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: color['--accent'],
+		fontFamily: font['--mono'],
+		fontSize: '10px',
+		fontWeight: 600,
+		color: color['--accent'],
+	},
+})

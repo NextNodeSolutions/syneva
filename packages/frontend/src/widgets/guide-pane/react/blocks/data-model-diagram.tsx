@@ -1,18 +1,18 @@
 import { use } from 'react'
 
-import * as stylex from '@stylexjs/stylex'
-
-import { chromeCtx } from '../../../chrome/context'
-import { layoutGraph } from '../../layout/graph-layout'
-import { edgeKeys } from '../../layout/keys'
-
-import { ArrowMarker } from './arrow-marker'
+import { layoutGraph } from '@shared/lib/graph-layout'
 import {
 	CHANGE_SIGNS,
 	CHANGE_WORDS,
 	changeFill,
 	changeStroke,
-} from './change-mark.styles'
+} from '@shared/ui/change-mark.styles'
+import * as stylex from '@stylexjs/stylex'
+
+import { chromeCtx } from '../../../chrome/context'
+import { edgeKeys } from '../../layout/keys'
+
+import { ArrowMarker } from './arrow-marker'
 import { onActivationKey } from './diagram-node'
 import { diagram } from './diagram.styles'
 import { GraphEdge } from './graph-diagram'
@@ -24,8 +24,8 @@ import type {
 	DataRelation,
 	GuideDomain,
 } from '@entities/review/guide/model'
+import type { GraphInput, Rect } from '@shared/lib/graph-layout'
 import type { ReactElement } from 'react'
-import type { GraphInput, Rect } from '../../layout/graph-layout'
 
 const ENTITY_WIDTH = 210
 const HEAD = 24

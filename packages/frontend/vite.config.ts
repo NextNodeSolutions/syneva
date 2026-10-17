@@ -23,6 +23,9 @@ const SOURCE_CONDITION = '@syneva/source'
 const MANIFEST = path.join(OUT_DIR, 'ui-manifest.json')
 // base36 stays inside the desk chunk route's [\w-]+-[A-Za-z0-9]{8}\.js pattern.
 const CHUNK_HASH_CHARS = 'base36'
+// A chunk is named after its module, and a module shared by two lazy chunks can carry a dot (change-mark.styles): spelled with a dash, the name stays inside the same route pattern.
+const chunkFileName = ({ name }: { name: string }): string =>
+	`chunks/${name.replaceAll('.', '-')}-[hash].js`
 const frontendAliases = {
 	'@app': fileURLToPath(new URL('./src/app', import.meta.url)),
 	'@pages': fileURLToPath(new URL('./src/pages', import.meta.url)),
@@ -192,7 +195,7 @@ export default defineConfig(({ command }) => ({
 			output: {
 				format: 'es',
 				entryFileNames: '[name].js',
-				chunkFileNames: 'chunks/[name]-[hash].js',
+				chunkFileNames: chunkFileName,
 				assetFileNames: ({ names }) => {
 					if (names.some(name => name.endsWith('.css')))
 						return STYLES_FILE

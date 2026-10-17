@@ -1,9 +1,9 @@
+import { CHANGE_WORDS } from '@shared/ui/change-mark.styles'
 import * as stylex from '@stylexjs/stylex'
 
 import { lineKeys } from '../../layout/keys'
 import { RefChip } from '../ref-chip'
 
-import { CHANGE_WORDS } from './change-mark.styles'
 import { diagram } from './diagram.styles'
 
 import type {

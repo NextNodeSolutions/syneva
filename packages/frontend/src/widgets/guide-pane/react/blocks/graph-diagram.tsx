@@ -1,19 +1,19 @@
 import { use } from 'react'
 
+import { labelAnchor, layoutGraph, routePath } from '@shared/lib/graph-layout'
+import { changeStroke } from '@shared/ui/change-mark.styles'
 import * as stylex from '@stylexjs/stylex'
 
-import { labelAnchor, layoutGraph, routePath } from '../../layout/graph-layout'
 import { edgeKeys } from '../../layout/keys'
 
 import { ARROW_END, ArrowMarker } from './arrow-marker'
-import { changeStroke } from './change-mark.styles'
 import { DiagramNode } from './diagram-node'
 import { diagram } from './diagram.styles'
 import { EdgeLabel } from './edge-label'
 
 import type { ChangeMark, GuideDomain } from '@entities/review/guide/model'
+import type { GraphInput, LaidEdge, Rect } from '@shared/lib/graph-layout'
 import type { ReactElement } from 'react'
-import type { GraphInput, LaidEdge, Rect } from '../../layout/graph-layout'
 
 export type GraphNodeView = {
 	id: string

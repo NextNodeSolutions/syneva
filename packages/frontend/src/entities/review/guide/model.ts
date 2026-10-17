@@ -1,5 +1,6 @@
 // The guide as the desk reads it: a structural mirror of packages/contracts/src/guide.ts, declared here (not re-exported from the contracts) so the wire type never escapes the entity boundary.
 // Optional props are explicitly `T | undefined` under exactOptionalPropertyTypes.
+import type { GuideModel } from './system-model'
 
 export type RiskLevel = 'critical' | 'high' | 'medium' | 'low'
 
@@ -246,6 +247,7 @@ export type Guide = {
 	source: GuideSource
 	overview: string
 	domains: GuideDomain[]
+	model?: GuideModel | undefined
 	baseDiffHash?: string | undefined
 }
 

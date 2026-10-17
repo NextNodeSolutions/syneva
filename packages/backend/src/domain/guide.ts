@@ -1,5 +1,7 @@
 import { parseDomain } from './guide-domain.js'
 import { GUIDE_KEYS } from './guide-keys.js'
+import { modelLinkIssues } from './guide-model-links.js'
+import { parseModel } from './guide-model.js'
 import {
 	fail,
 	isRecord,
@@ -68,6 +70,12 @@ export function validateStoredGuide(input: unknown): StoredGuideValidation {
 		}
 	const links = checkDomainLinks(domains)
 	if (!links.ok) return { ok: false, reason: links.reason }
+	const [stranger] = modelLinkIssues(
+		parsed.value.model,
+		new Set(domains.map(domain => domain.id)),
+	)
+	if (stranger)
+		return { ok: false, reason: `${stranger.field} ${stranger.reason}` }
 	return { ok: true, guide: { ...parsed.value, domains } }
 }
 
@@ -99,6 +107,8 @@ function parseGuide(input: unknown): Parsed<AuthoredGuide> {
 		'guide.domains',
 	)
 	if (!unique.ok) return unique
+	const model = parseModel(input.model)
+	if (!model.ok) return model
 	const baseDiffHash = optionalText(
 		input.baseDiffHash,
 		'guide.baseDiffHash',
@@ -112,6 +122,7 @@ function parseGuide(input: unknown): Parsed<AuthoredGuide> {
 			source: source.value,
 			overview: overview.value,
 			domains: domains.value,
+			model: model.value,
 			baseDiffHash: baseDiffHash.value,
 		},
 	}

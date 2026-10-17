@@ -1,0 +1,152 @@
+import { deskText } from '@shared/ui/desk.stylex'
+import * as stylex from '@stylexjs/stylex'
+import { color, font } from '@syneva/design-system/tokens.stylex'
+
+// The canvas is a ruled panel in the overview: its views and zoom on a paper bar, the system on the 24px grid field, what is selected or pointed at in a white strip under it.
+export const FIELD_HEIGHT = 460
+
+export const canvas = stylex.create({
+	root: {
+		marginBottom: '20px',
+		backgroundColor: color['--white'],
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: color['--line-strong'],
+	},
+	toolbar: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		gap: '6px',
+		paddingBlock: '6px',
+		paddingInline: '8px',
+		backgroundColor: color['--paper'],
+		borderBottomWidth: '1px',
+		borderBottomStyle: 'solid',
+		borderBottomColor: color['--line'],
+	},
+	tabs: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		gap: '4px',
+		minWidth: 0,
+	},
+	tabOn: {
+		color: color['--accent'],
+		backgroundColor: color['--wash'],
+		borderColor: color['--accent'],
+	},
+	zoom: {
+		display: 'flex',
+		gap: '4px',
+		marginLeft: 'auto',
+	},
+	field: {
+		position: 'relative',
+		height: `${FIELD_HEIGHT}px`,
+		backgroundColor: color['--paper'],
+	},
+	fieldHeight: (height: number) => ({ height: `${height}px` }),
+	gridLine: { stroke: color['--grid'] },
+	inspector: {
+		display: 'grid',
+		gap: '8px',
+		minHeight: '64px',
+		paddingBlock: '10px',
+		paddingInline: '12px',
+		borderTopWidth: '1px',
+		borderTopStyle: 'solid',
+		borderTopColor: color['--line'],
+		fontSize: deskText.body,
+		lineHeight: 1.5,
+		color: color['--ink'],
+	},
+	hint: { margin: 0, color: color['--muted'] },
+	row: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		gap: '6px',
+	},
+	title: {
+		fontSize: deskText.title,
+		fontWeight: 500,
+	},
+	caption: {
+		fontFamily: font['--mono'],
+		fontSize: '10.5px',
+		color: color['--muted'],
+	},
+	description: { margin: 0, color: color['--muted'] },
+	chips: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		gap: '6px',
+	},
+	chip: {
+		display: 'inline-flex',
+		alignItems: 'center',
+		gap: '6px',
+		maxWidth: '100%',
+		paddingBlock: '3px',
+		paddingInline: '6px',
+		backgroundColor: {
+			default: color['--white'],
+			':hover': color['--field'],
+		},
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: color['--line'],
+		fontSize: deskText.small,
+		textAlign: 'left',
+		color: color['--ink'],
+		cursor: 'pointer',
+	},
+	chipTitle: {
+		overflow: 'hidden',
+		whiteSpace: 'nowrap',
+		textOverflow: 'ellipsis',
+	},
+	steps: {
+		display: 'grid',
+		gap: '3px',
+		margin: 0,
+		padding: 0,
+		listStyle: 'none',
+	},
+	step: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '8px',
+	},
+	failed: {
+		margin: 0,
+		paddingBlock: '10px',
+		paddingInline: '12px',
+		fontSize: deskText.body,
+		color: color['--muted'],
+	},
+	text: {
+		borderTopWidth: '1px',
+		borderTopStyle: 'solid',
+		borderTopColor: color['--line'],
+	},
+	textSummary: {
+		paddingBlock: '6px',
+		paddingInline: '12px',
+		cursor: 'pointer',
+		fontSize: deskText.small,
+		color: color['--muted'],
+	},
+	textList: {
+		marginBlock: 0,
+		marginInline: 0,
+		paddingTop: 0,
+		paddingBottom: '8px',
+		paddingLeft: '28px',
+		paddingRight: '12px',
+		fontSize: deskText.small,
+		lineHeight: 1.6,
+		color: color['--ink'],
+	},
+})

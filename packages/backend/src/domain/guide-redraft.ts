@@ -8,6 +8,7 @@ import {
 	draftDomains,
 	draftOverview,
 } from './guide-draft.js'
+import { prunedModel } from './guide-model-links.js'
 import { resolveOwnership } from './guide-ownership.js'
 import { resolveGuide } from './guide-resolve.js'
 import { GUIDE_FORMAT, GUIDE_LIMITS } from './guide-shapes.js'
@@ -71,19 +72,22 @@ function guideOf(
 	explained: Explained | null,
 	drafts: GuideDomain[],
 ): Guide {
+	const ids = new Set(
+		[...(explained?.domains ?? []), ...drafts].map(domain => domain.id),
+	)
+	// The model the agent drew outlives the drafts drawn under it; only its links to domains that are no more go.
+	const model = prunedModel(state.guide?.model, ids)
 	if (explained) {
-		const ids = new Set(
-			[...explained.domains, ...drafts].map(domain => domain.id),
-		)
 		// An explained domain's link to a draft that is no more is dropped with it.
 		const kept = explained.domains.map(domain => prunedLinks(domain, ids))
-		return { ...explained.guide, domains: [...kept, ...drafts] }
+		return { ...explained.guide, domains: [...kept, ...drafts], model }
 	}
 	return {
 		format: GUIDE_FORMAT,
 		source: sourceOf(inventory),
 		overview: authoredOverview(state) ?? draftOverview(inventory, drafts),
 		domains: drafts,
+		model,
 		baseDiffHash: state.baseDiffHash,
 	}
 }

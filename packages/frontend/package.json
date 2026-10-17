@@ -15,6 +15,7 @@
 		"@stylexjs/stylex": "0.19.1",
 		"@syneva/contracts": "workspace:*",
 		"@syneva/design-system": "workspace:*",
+		"@xyflow/react": "12.12.0",
 		"dompurify": "^3.4.8",
 		"elkjs": "0.12.0",
 		"markdown-it": "^14.2.0",

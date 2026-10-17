@@ -1,11 +1,11 @@
 import { lazy, Suspense, useState } from 'react'
 
+import { BlockBoundary } from '@shared/ui/block-boundary'
 import * as stylex from '@stylexjs/stylex'
 
 import { RefChip } from '../ref-chip'
 
 import { ApiView } from './api-block'
-import { BlockBoundary } from './block-boundary'
 import { BlockFrame } from './block-frame'
 import { block as styles } from './block.styles'
 import { diagram } from './diagram.styles'

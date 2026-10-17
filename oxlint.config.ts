@@ -123,8 +123,11 @@ export default defineConfig({
 			rules: { 'nextnode/no-detached-tailwind': 'off' },
 		},
 		{
-			// Unassigned import: CSS is loaded for its side effect (the font faces land in the linked stylesheet).
-			files: ['packages/frontend/src/app/*.tsx'],
+			// Unassigned import: CSS is loaded for its side effect (the font faces and the system canvas's structural rules land in the linked stylesheet).
+			files: [
+				'packages/frontend/src/app/*.tsx',
+				'packages/frontend/src/widgets/system-canvas/react/system-canvas.tsx',
+			],
 			rules: {
 				'import/no-unassigned-import': [
 					'warn',
@@ -630,6 +633,7 @@ export default defineConfig({
 				'packages/frontend/src/widgets/chrome/react/**',
 				'packages/frontend/src/widgets/guide-pane/react/**',
 				'packages/frontend/src/widgets/hub-shell/react/**',
+				'packages/frontend/src/widgets/system-canvas/react/**',
 				'packages/frontend/src/pages/dashboard/**/*.tsx',
 				'packages/frontend/src/entities/hub/use-hub.ts',
 				'packages/frontend/src/pages/dashboard/use-document-title.ts',

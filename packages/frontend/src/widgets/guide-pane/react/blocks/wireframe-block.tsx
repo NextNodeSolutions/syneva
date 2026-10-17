@@ -1,13 +1,13 @@
-import * as stylex from '@stylexjs/stylex'
-
-import { chromeCtx } from '../../../chrome/context'
-
 import {
 	CHANGE_SIGNS,
 	CHANGE_WORDS,
 	changeOutline,
 	changeTone,
-} from './change-mark.styles'
+} from '@shared/ui/change-mark.styles'
+import * as stylex from '@stylexjs/stylex'
+
+import { chromeCtx } from '../../../chrome/context'
+
 import { wire } from './wireframe.styles'
 
 import type {

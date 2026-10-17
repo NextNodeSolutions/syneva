@@ -3,8 +3,8 @@ import { nodeHeight } from '../../layout/node-label'
 import { GraphDiagram } from './graph-diagram'
 
 import type { FlowBlock, GuideDomain } from '@entities/review/guide/model'
+import type { GraphInput } from '@shared/lib/graph-layout'
 import type { ReactElement } from 'react'
-import type { GraphInput } from '../../layout/graph-layout'
 
 const FLOW_NODE = { width: 132, height: 32 }
 
