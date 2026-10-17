@@ -25,7 +25,10 @@ function holds(range: LineRange | undefined, line: number): boolean {
 }
 
 // The narrowest brick of the shown file whose lines on this side hold the raw line: a method before its class.
-function brickHolding(side: Side, line: number): ChangeSymbol | undefined {
+export function brickHolding(
+	side: Side,
+	line: number,
+): ChangeSymbol | undefined {
 	const { S } = diffCtx()
 	const file = currentFileOrNull(S.state?.files, S.preview, S.fileIndex)
 	if (!file || S.preview) return undefined

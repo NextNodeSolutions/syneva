@@ -48,6 +48,7 @@ export interface ChromeStoreView {
 	domainId: string | null
 	guidePaneOpen: boolean
 	codeOpen: boolean
+	brickFocus: boolean
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	markdownTick: number
@@ -59,6 +60,8 @@ export interface ChromeStoreView {
 	selectFile?(i: number): void
 	previewFile?(path: string): void
 	jumpToSpan?(span: CodeSpan): void
+	toggleBrickFocus?(): void
+	focusBrick?(span: CodeSpan): void
 	selectDomain?(id: string): void
 	stepDomain?(direction: 1 | -1): void
 	stepDomainChange?(direction: 1 | -1): void

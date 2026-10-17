@@ -25,6 +25,7 @@ import type { AnnotationMeta } from '@entities/review/annotations'
 import type { ReviewState } from '@entities/review/model'
 import type { FileDiffMetadata, FileDiffOptions } from '@pierre/diffs'
 import type { WorkerPoolManager } from '@pierre/diffs/worker'
+import type { DiffView } from './types'
 
 type ReviewFile = ReviewState['files'][number]
 type DiffOptions = FileDiffOptions<AnnotationMeta, undefined>
@@ -36,6 +37,8 @@ type Surface = {
 	container: HTMLElement
 	wrapper: HTMLElement
 	options: DiffOptions
+	// The brick the surface is cut to (brick-focus.ts), null for the whole file: a move to another cut starts it at its top.
+	brickKey: string | null
 }
 let surface: Surface | null = null
 
@@ -66,7 +69,14 @@ function mountSurface(
 	D.instance = isVirtualized
 		? mountVirtualized({ host, wrapper, container }, options, pool)
 		: new FileDiff(options, pool)
-	return { key, instance: D.instance, container, wrapper, options }
+	return {
+		key,
+		instance: D.instance,
+		container,
+		wrapper,
+		options,
+		brickKey: null,
+	}
 }
 
 type SurfaceDom = {
@@ -130,11 +140,15 @@ export async function renderDiffInstance(
 	const kept = isLive(surface, key) ? surface : null
 	const { scrollTop: readerScrollTop } = host
 	const isOptionsChanged = kept ? applyOptions(kept, options) : false
-	const current = kept
-		? { ...kept, options }
-		: mountSurface(key, options, pool, isVirtualized)
+	const { D } = diffCtx()
+	const brickKey = D.focus?.brick.key ?? null
+	const current = {
+		...(kept ?? mountSurface(key, options, pool, isVirtualized)),
+		options,
+		brickKey,
+	}
 	surface = current
-	diffCtx().D.fileDiff = metadata
+	D.fileDiff = metadata
 	current.instance.render({
 		fileDiff: metadata,
 		lineAnnotations: annotations(),
@@ -143,10 +157,16 @@ export async function renderDiffInstance(
 		forceRender: isOptionsChanged,
 	})
 	refreshDiffHeader(metadata, view.isPreviewing)
-	host.scrollTop = kept ? readerScrollTop : 0
+	host.scrollTop = kept?.brickKey === brickKey ? readerScrollTop : 0
 	endRender({ path: file.path, isReused: Boolean(kept) })
-	if (!view.isPreviewing) revealThreadLines()
+	afterRender(view)
+}
+
+// What follows a pass: the open threads' folded lines opened, the selection handlers, the overview ruler, the cursor. The brick view's cut holds no collapsed run to open, nor the whole file's rows for the ruler to map.
+function afterRender(view: DiffView): void {
+	const isWholeDiff = !view.isPreviewing && !diffCtx().D.focus
+	if (isWholeDiff) revealThreadLines()
 	attachDiffSelectionHandlers()
-	if (!view.isPreviewing && view.isExpandedUnchanged) scheduleOverviewRuler()
+	if (isWholeDiff && view.isExpandedUnchanged) scheduleOverviewRuler()
 	requestAnimationFrame(cursorResync)
 }

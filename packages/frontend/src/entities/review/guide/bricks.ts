@@ -41,7 +41,8 @@ export function spanLabel(change: ChangeState): string {
 	return `${sign}${change.lineNumber}${end}`
 }
 
-function brickIdentity(change: ChangeState): {
+// The brick a change belongs to, by the key every brick list and the brick view share.
+export function brickIdentity(change: ChangeState): {
 	name: string
 	kind: BrickKind
 	key: string

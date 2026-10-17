@@ -79,6 +79,11 @@ export function setPendingJump(t: JumpTarget): void {
 	pending = t
 }
 
+// The landing the next pass will make, read before the diff is built: the brick view cuts the code to the brick it lands in.
+export function pendingJumpTarget(): JumpTarget | null {
+	return pending
+}
+
 export function consumePendingJump(file: ReviewFile | null): void {
 	const t = pending
 	if (!t) return

@@ -1,3 +1,4 @@
+import type { CodeSpan } from '@entities/review/guide/model'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
 import type { NoteThreadRef } from '@entities/review/notes'
 import type { Settings } from '@entities/settings/model'
@@ -18,6 +19,7 @@ export interface DiffStoreView {
 	editingCommentId: string | null
 	overviewOpen: boolean
 	codeOpen: boolean
+	brickFocus: boolean
 	cursorTick: number
 	expandedDirs: Set<string>
 	collapsedDirs: Set<string>
@@ -40,6 +42,8 @@ export interface DiffStoreView {
 	selectFile?: (i: number) => void
 	previewFile?: (path: string) => void
 	noteResolved?: (ref: NoteThreadRef) => void
+	jumpToSpan?: (span: CodeSpan) => void
+	toggleBrickFocus?: () => void
 }
 
 export interface DiffServices {

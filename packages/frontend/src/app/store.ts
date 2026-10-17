@@ -61,6 +61,7 @@ export const S: Store = reactive<Store>({
 	domainId: null,
 	guidePaneOpen: true,
 	codeOpen: true,
+	brickFocus: false,
 	guideExpanded: new Set<string>(),
 	guideReturn: [],
 	markdownTick: 0,

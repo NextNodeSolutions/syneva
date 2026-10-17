@@ -3,6 +3,7 @@ import './desk.css'
 import '@shared/markdown/prose.css'
 import { createRoot } from 'react-dom/client'
 
+import { installBrickFocusBindings } from '@app/facade/brick-focus'
 import { installCommentBindings } from '@app/facade/comment-thread'
 import { installDialogBindings } from '@app/facade/dialogs'
 import { installDomainFeedbackBindings } from '@app/facade/domain-feedback'
@@ -54,6 +55,7 @@ installDomainFeedbackBindings()
 installFileActionBindings()
 installCommentBindings()
 installDialogBindings()
+installBrickFocusBindings()
 
 createRoot($('root')).render(<App />)
 

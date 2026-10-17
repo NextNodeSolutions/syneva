@@ -68,6 +68,8 @@ export interface Store {
 	guidePaneOpen: boolean
 	// Whether the code is open in the center: a domain opened from the project level reads full width until a span, a reference or Enter opens its code beside it; Esc closes the code back onto the reading.
 	codeOpen: boolean
+	// The brick view (L3): the code shows only the brick the cursor is in, before and after. A mode of the code, so it holds across files; a view with no brick to cut (a preview, a rendered or oversized file, a pure rename) draws whole while it is on.
+	brickFocus: boolean
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	// Bumped when the Markdown engine (lazy) lands or repaints, so React prose re-renders with it.
@@ -83,6 +85,9 @@ export interface Store {
 	previewFile?: (path: string) => void
 	// Land on original-side code: a guide reference's target or an owned block, in the diff or as a preview.
 	jumpToSpan?: (span: CodeSpan) => void
+	toggleBrickFocus?: () => void
+	// Land on a brick's block and read that brick alone: the explanation's way down from a domain to its bricks.
+	focusBrick?: (span: CodeSpan) => void
 	selectDomain?: (id: string) => void
 	stepDomain?: (direction: 1 | -1) => void
 	stepDomainChange?: (direction: 1 | -1) => void

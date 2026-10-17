@@ -5,6 +5,7 @@ import {
 } from '@features/manage-comment/composer'
 import { cursorReset, cursorSelection } from '@widgets/diff-view/cursor'
 import { golineActive, golineCancel } from '@widgets/diff-view/cursor-goline'
+import { D } from '@widgets/diff-view/runtime'
 
 import { S } from './store'
 
@@ -49,6 +50,11 @@ function closeTransient(): boolean {
 	if (S.composerOpen || S.editingCommentId) {
 		cursorReset()
 		closeComposer()
+		return true
+	}
+	// The brick view sits under the composers and above the cursor: the press draws the whole file back around the cursor's row.
+	if (S.brickFocus && D.focus) {
+		S.toggleBrickFocus?.()
 		return true
 	}
 	if (cursorSelection()) {

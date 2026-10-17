@@ -192,6 +192,12 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 			return
 		}
 	}
+	// The brick view draws one brick: past its last block the step goes on to the file's next block, and the cut follows it there.
+	const edge = dir === 1 ? D.focus?.next : D.focus?.prev
+	if (edge) {
+		diffCtx().S.jumpToSpan?.(edge)
+		return
+	}
 	const far = D.virtual?.farChangeStart(cur, dir)
 	if (far) {
 		cursorJumpTo(far.side, far.line)
