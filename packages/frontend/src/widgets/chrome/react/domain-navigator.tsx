@@ -140,11 +140,13 @@ function DomainRow({
 		>
 			<span {...stylex.props(styles.top)}>
 				<span {...stylex.props(styles.index)}>{index + 1}</span>
+				<span {...stylex.props(styles.title)}>{domain.title}</span>
+			</span>
+			<span {...stylex.props(styles.tags)}>
 				<span {...stylex.props(tag.base, riskTag[domain.risk])}>
 					{RISK_LABELS[domain.risk]} risk
 				</span>
 				<DomainTags domain={domain} state={state} />
-				<span {...stylex.props(styles.title)}>{domain.title}</span>
 			</span>
 			<p {...stylex.props(styles.consequence)}>{domain.consequence}</p>
 			<Meter progress={progress} />
