@@ -2,7 +2,7 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The raised field: the drawing in one SVG on the paper, the names over it in HTML at the points the camera puts them, so they stay crisp and focusable at any angle. A part's name floats above its block; a platform's hangs under its nearest corner like a plaque.
+// The raised field: the drawing in one SVG on the paper, the names over it in HTML at the points the camera puts them, so they stay crisp and focusable at any angle. A part's name floats above its block (under it, when it hangs); a platform's hangs under its nearest corner like a plaque; a deck's name stands at its far left corner, in the label voice.
 
 export const projection = stylex.create({
 	field: {
@@ -46,6 +46,21 @@ export const projection = stylex.create({
 		pointerEvents: 'auto',
 		cursor: 'pointer',
 	},
+	// The name's own button fills the chip but for the domains' numbers after it.
+	nameButton: {
+		display: 'inline-flex',
+		alignItems: 'center',
+		gap: '5px',
+		minWidth: 0,
+		padding: 0,
+		borderWidth: 0,
+		backgroundColor: 'transparent',
+		font: 'inherit',
+		letterSpacing: 'inherit',
+		textTransform: 'inherit',
+		color: 'inherit',
+		cursor: 'pointer',
+	},
 	plaque: {
 		backgroundColor: color['--iso-platform'],
 		borderStyle: 'dashed',
@@ -56,8 +71,6 @@ export const projection = stylex.create({
 		color: color['--muted'],
 	},
 	nameText: { overflow: 'hidden', textOverflow: 'ellipsis' },
-	// A name keeps its badges on its one line.
-	nameBadges: { flexWrap: 'nowrap', flexShrink: 0, marginTop: 0 },
 	struck: { textDecoration: 'line-through' },
 	nameLit: { borderColor: color['--accent'] },
 	nameSelected: {
@@ -65,6 +78,25 @@ export const projection = stylex.create({
 		borderColor: color['--accent'],
 	},
 	nameDim: { opacity: 0.35 },
+	nameQuiet: { opacity: 0.55 },
+	deck: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		paddingBlock: '1px',
+		paddingInline: '5px',
+		backgroundColor: color['--paper'],
+		fontFamily: font['--mono'],
+		fontSize: '10px',
+		letterSpacing: '.08em',
+		textTransform: 'uppercase',
+		whiteSpace: 'nowrap',
+		color: color['--muted'],
+	},
+	// A deck's name ends just left of its point.
+	beside: (x: number, y: number) => ({
+		transform: `translate(${x}px, ${y}px) translate(calc(-100% - 8px), -50%)`,
+	}),
 	// A part's name sits above the point, centred on it; a plaque hangs under its point.
 	above: (x: number, y: number) => ({
 		transform: `translate(${x}px, ${y}px) translate(-50%, -100%)`,

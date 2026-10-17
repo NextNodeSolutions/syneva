@@ -5,10 +5,19 @@ import * as stylex from '@stylexjs/stylex'
 
 import { CanvasField } from './canvas-field'
 import { canvas } from './canvas.styles'
-import { ProjectedField } from './projected-field'
+import { OrbitField } from './orbit-field'
+import { TierField } from './tier-field'
 
 import type { ReactElement } from 'react'
+import type { Scene } from '../layout/scene'
+import type { Projection, Selection } from '../model'
 import type { CanvasScene } from './use-canvas-scene'
+
+// Each projection's field. The field is keyed by the scene: React Flow keeps its nodes once given, and an orbit starts from its own pose on a new scene.
+const FIELDS: Record<
+	Projection,
+	(props: Selection & { scene: Scene }) => ReactElement
+> = { plan: CanvasField, iso: TierField, orbit: OrbitField }
 
 // In place of a drawing that threw: says so, and opens the sentences under it.
 function CanvasFailed({ onFail }: { onFail: () => void }): ReactElement {
@@ -32,25 +41,16 @@ export function CanvasStage({
 	current: CanvasScene
 	onFail: () => void
 }): ReactElement {
+	const Chosen = FIELDS[current.projection]
 	return (
 		<BlockBoundary fallback={<CanvasFailed onFail={onFail} />}>
 			<Suspense fallback={<div {...stylex.props(canvas.field)} />}>
-				{current.projection === 'plan' ? (
-					<CanvasField
-						key={current.sceneKey}
-						scene={current.scene}
-						selected={current.selected}
-						onSelect={current.onSelect}
-					/>
-				) : (
-					<ProjectedField
-						key={`${current.projection}:${current.sceneKey}`}
-						scene={current.scene}
-						mode={current.projection}
-						selected={current.selected}
-						onSelect={current.onSelect}
-					/>
-				)}
+				<Chosen
+					key={current.sceneKey}
+					scene={current.scene}
+					selected={current.selected}
+					onSelect={current.onSelect}
+				/>
 			</Suspense>
 		</BlockBoundary>
 	)

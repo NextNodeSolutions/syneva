@@ -11,11 +11,10 @@ import { solid } from './solid.styles'
 
 import type { Point } from '@shared/lib/graph-layout'
 import type { ReactElement } from 'react'
-import type { SceneLink } from '../layout/scene'
-import type { Camera, Size } from '../projection/camera'
-import type { Route } from '../projection/solids'
+import type { RaisedLink, Trace } from '../projection/raised'
+import type { View } from './solid-shape'
 
-// A step up a rim projects to a point on top of the one before it in some turns: the arrowhead needs a last leg with a length.
+// A step up a rim or a drop projects to a point on top of the one before it in some turns: the arrowhead needs a last leg with a length.
 function distinct(points: readonly Point[]): Point[] {
 	return points.filter((point, index) => {
 		const before = points[index - 1]
@@ -23,35 +22,39 @@ function distinct(points: readonly Point[]): Point[] {
 	})
 }
 
-// One link over the ground, in the plan's rules: its route as the camera sees it, its arrowhead at the part it reaches.
+// One link in the plan's rules: its route as the camera sees it, its arrowhead at the part it reaches, in the change this deck shows on it.
 export function RouteShape({
-	route,
-	link,
-	camera,
-	floor,
+	raised,
+	view,
 }: {
-	route: Route
-	link: SceneLink
-	camera: Camera
-	floor: Size
+	raised: RaisedLink
+	view: View
 }): ReactElement {
 	const focus = useCanvasFocus()
+	const { link, mark } = raised
 	const tone = focus.linkTone(link)
 	const points = distinct(
-		route.points.map(point => project(camera, floor, point)),
+		raised.route.points.map(point =>
+			project(view.camera, view.floor, point),
+		),
 	)
 	const head = arrowHead(points)
 	const isStep = Boolean(link.step)
 	return (
-		<g {...stylex.props(solid.link)}>
+		<g
+			{...stylex.props(
+				solid.link,
+				raised.isQuiet && solid.quiet,
+				tone === 'dim' && styles.dim,
+			)}
+		>
 			<path
 				d={routePath(points)}
 				{...stylex.props(
 					styles.path,
 					isStep && styles.step,
-					link.change && changeStroke[link.change],
+					mark && changeStroke[mark],
 					tone === 'lit' && styles.lit,
-					tone === 'dim' && styles.dim,
 				)}
 			/>
 			{head && (
@@ -60,11 +63,34 @@ export function RouteShape({
 					{...stylex.props(
 						styles.head,
 						isStep && styles.stepHead,
-						link.change && changeFill[link.change],
-						tone === 'dim' && styles.dim,
+						mark && changeFill[mark],
 					)}
 				/>
 			)}
 		</g>
+	)
+}
+
+// The same part on two decks, joined by a thin dotted rule.
+export function TraceShape({
+	trace,
+	view,
+}: {
+	trace: Trace
+	view: View
+}): ReactElement {
+	const focus = useCanvasFocus()
+	const tone = focus.toneOf(trace.id)
+	const from = project(view.camera, view.floor, trace.from)
+	const to = project(view.camera, view.floor, trace.to)
+	return (
+		<path
+			d={`M${from.x} ${from.y}L${to.x} ${to.y}`}
+			{...stylex.props(
+				solid.trace,
+				tone === 'lit' && solid.traceLit,
+				tone === 'dim' && styles.dim,
+			)}
+		/>
 	)
 }
