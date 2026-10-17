@@ -108,8 +108,14 @@ function closeCode(): void {
 	})
 }
 
+// From the project level the step starts the order over (next is the first domain, previous the last), whatever domain was read before.
+function domainSteppedFrom(): string | null {
+	if (S.overviewOpen) return null
+	return S.domainId
+}
+
 function stepDomain(direction: 1 | -1): void {
-	const next = neighbourDomainId(S.state, S.domainId, direction)
+	const next = neighbourDomainId(S.state, domainSteppedFrom(), direction)
 	if (!next) return
 	selectDomain(next)
 	const domains = orderedDomains(S.state?.guide)
