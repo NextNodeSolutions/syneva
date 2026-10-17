@@ -141,6 +141,11 @@
 			"id": "polish",
 			"label": "Desk polish: the micro-bug rounds",
 			"note": "Hypothesis: the two polish rounds (the desk's and the canvas's: the reset confirmation, the notes' floating decision under the laptop width, the folded tree's button, the questions counted apart from the comments, the focus a mouse click releases, the reading's place kept across the fold into the column, the brick view's verdict rows filtered to the brick, the raised drawings' names and words kept off each other) touch the chrome and the overview, not the diff's render path: the initial graph moved to 419,808 B (its limit to 424,000), the canvas stays a lazy chunk (all chunks 12,963,067 B of 13,000,000). Route: headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs; pi-frontend-check was not available), 1440x900, stage marks only; guided desks on the hub's own drafted guide (the fixtures carry no system model, so the canvas is not drawn), a fresh session per run, two samples per fixture, served by a hub started from the built package - which restored the 16 desks of the earlier bench sessions at start, so the first medium open timed out on the CLI's probe while the hub was busy (a hub-side matter outside these marks) and was reopened once the hub was idle. Verdict on medium: from the Enter that opens the code (ttcStart) rows come at +0.52-0.59 s and colour at +1.56-1.62 s, paint-to-colour 1.03 s against 1.03-1.04 s on layers: unchanged within the pool-boot swing. On bigfile (the giant file behind the oversized guard, loaded by Enter = ttcStart): colour 34.4-34.5 s after the press against 34.6-34.7 s on layers, the same within a percent. The pool:* stages remain uninstrumented on this build (0 marks)."
+		},
+		{
+			"id": "visual-reading",
+			"label": "Read each event beside its drawing",
+			"note": "Hypothesis: the adjacent reading pane, fixed-height drawing and explicit path steps remain in the lazy canvas rather than the initial UI graph. Built graph: 420022 B; all chunks: 12969489 B. Route: pi-frontend-check, headless local Brave, 1920x1080, two fresh medium desks, the hub's drafted guide without a system model. The first domain owns 7,000 changes. From the clock read immediately before the code-opening action, plain rows took 13.6-24.1 s and colour 40.4-45.8 s. These slow samples include tool dispatch and DOM/control-inspection overhead and have no comparable same-browser control. They establish no gain or unchanged-performance claim. Pool marks remain uninstrumented. No diff renderer or highlighting change was made in this batch."
 		}
 	],
 	"rejected": [
@@ -2812,6 +2817,48 @@
 			},
 			"workerBundleKb": 208,
 			"note": "headless Chromium 1243 through Playwright (the session's scratchpad driver bench-layers.mjs), stage marks only - not pi-frontend-check and not the guided milestone's Brave-over-CDP driver; guided desk on the hub's own drafted guide (no generated prose guide), fresh session, 1440x900; the overview's domain list is on screen at 463 ms (system canvas drawn: false), Enter at 478 ms shows the domain page at 939 ms, Enter on it opens the code (ttcStart). contents = first /file-contents resource duration. pool:* marks: 0 on this build."
+		},
+		{
+			"id": "visual-reading-medium-1",
+			"fixture": "medium",
+			"milestone": "visual-reading",
+			"date": "2026-10-17",
+			"stagesMs": {
+				"module": 1394,
+				"contents": 175.19999998807907,
+				"plainPaint": 147039,
+				"firstColor": 163315,
+				"ttcStart": 122961.80000001192
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 203.2265625,
+			"note": "pi-frontend-check, headless local Brave, 1920x1080, built package, fresh desk and browser per sample. The first drafted domain owns 7,000 changes and has no system model. The clock is read immediately before frontend_batch dispatches the code-opening action and includes tool dispatch and DOM/control-inspection overhead. Navigation-to-colour includes manual pauses. Pool marks are absent; zero counts mean uninstrumented. Worker bundle is from resource timing. The earlier Chromium 1440x900 samples are not a comparable control. No speed claim."
+		},
+		{
+			"id": "visual-reading-medium-2",
+			"fixture": "medium",
+			"milestone": "visual-reading",
+			"date": "2026-10-17",
+			"stagesMs": {
+				"module": 1840,
+				"contents": 158.20000004768372,
+				"plainPaint": 44922,
+				"firstColor": 77087,
+				"ttcStart": 31295.5
+			},
+			"pool": {
+				"boots": 0,
+				"workers": 0,
+				"windowSent": 0,
+				"windowDone": 0
+			},
+			"workerBundleKb": 203.2265625,
+			"note": "pi-frontend-check, headless local Brave, 1920x1080, built package, fresh desk and browser per sample. The first drafted domain owns 7,000 changes and has no system model. The clock is read immediately before frontend_batch dispatches the code-opening action and includes tool dispatch and DOM/control-inspection overhead. Navigation-to-colour includes manual pauses. Pool marks are absent; zero counts mean uninstrumented. Worker bundle is from resource timing. The earlier Chromium 1440x900 samples are not a comparable control. No speed claim."
 		}
 	]
 }

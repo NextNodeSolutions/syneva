@@ -27,6 +27,7 @@ export type FocusTarget = {
 	selected: string | null
 	hovered: string | null
 	domain: string | null
+	step?: SceneLink | undefined
 }
 
 export const CanvasFocusContext = createContext<CanvasFocus>(REST)
@@ -47,7 +48,11 @@ function holders(scene: Scene, ids: ReadonlySet<string>): Set<string> {
 	return held
 }
 
-type Lit = { ids: Set<string>; picked: ReadonlySet<string> | null }
+type Lit = {
+	ids: Set<string>
+	picked: ReadonlySet<string> | null
+	linkId?: string
+}
 
 function litIds(scene: Scene, target: FocusTarget): Lit | null {
 	const { domain } = target
@@ -61,6 +66,12 @@ function litIds(scene: Scene, target: FocusTarget): Lit | null {
 		})
 		return { ids: new Set([...picked, ...partners]), picked }
 	}
+	if (!domain && target.step)
+		return {
+			ids: new Set([target.step.from, target.step.to]),
+			picked: null,
+			linkId: target.step.id,
+		}
 	if (!domain) return null
 	return {
 		ids: new Set(
@@ -96,6 +107,7 @@ export function canvasFocus(
 			return held.has(id) ? 'rest' : 'dim'
 		},
 		linkTone: link => {
+			if (lit.linkId) return link.id === lit.linkId ? 'lit' : 'dim'
 			const touches = picked
 				? picked.has(link.from) || picked.has(link.to)
 				: lit.ids.has(link.from) && lit.ids.has(link.to)

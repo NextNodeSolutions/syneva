@@ -3,6 +3,8 @@ import { Suspense, useState } from 'react'
 import { BlockBoundary } from '@shared/ui/block-boundary'
 import * as stylex from '@stylexjs/stylex'
 
+import { REFERENCE } from '../layout/canvas-layout'
+
 import { CanvasField } from './canvas-field'
 import { canvas } from './canvas.styles'
 import { OrbitField } from './orbit-field'
@@ -16,7 +18,6 @@ import type { OrbitHold } from './use-orbit'
 
 type FieldProps = Selection & { scene: Scene; hold: OrbitHold }
 
-// Each projection's field, keyed by the scene: React Flow keeps its nodes once given. The 3D camera's hold is the canvas's, so it keeps its pose from one view to the next.
 const FIELDS: Record<Projection, (props: FieldProps) => ReactElement> = {
 	plan: CanvasField,
 	iso: TierField,
@@ -50,7 +51,19 @@ export function CanvasStage({
 	const Chosen = FIELDS[current.projection]
 	return (
 		<BlockBoundary fallback={<CanvasFailed onFail={onFail} />}>
-			<Suspense fallback={<div {...stylex.props(canvas.field)} />}>
+			<Suspense
+				fallback={
+					<div
+						role="status"
+						{...stylex.props(
+							canvas.field,
+							canvas.fieldHeight(REFERENCE.height),
+						)}
+					>
+						Preparing the system drawing…
+					</div>
+				}
+			>
 				<Chosen
 					key={current.sceneKey}
 					scene={current.scene}
