@@ -1,9 +1,5 @@
 import { flushPrefsOnLeave, persistPrefs, S, toast } from '@app/store'
-import {
-	currentFileOrNull,
-	fileFinished,
-	fileObjections,
-} from '@entities/review/changes'
+import { currentFileOrNull } from '@entities/review/changes'
 import { currentSplittable } from '@entities/review/file/contents'
 import { isMarkdownPath } from '@entities/review/file/file-summary'
 import { hasReviewedMaterial } from '@entities/review/file/reviewed'
@@ -47,15 +43,9 @@ function installLayoutBindings(): void {
 
 function installSignOffBindings(): void {
 	S.approveFile = () => {
-		// fabState() hides the button without a current file; keeping the action a no-op means it can never reach currentFile(S.state?.files, S.preview, S.fileIndex)'s throw (same contract as openInEditor).
+		// The name bar's button is absent without a current file; keeping the action a no-op means it can never reach currentFile(S.state?.files, S.preview, S.fileIndex)'s throw (same contract as openInEditor).
 		if (!currentFileOrNull(S.state?.files, S.preview, S.fileIndex)) return
 		void approveCurrentFile()
-	}
-	S.fabState = () => {
-		if (S.overviewOpen || S.preview) return null
-		const path = S.state?.files[S.fileIndex]?.path
-		if (!path || fileFinished(S.state, path)) return null
-		return fileObjections(S.state, path) ? 'changes' : 'clean'
 	}
 	S.isMarkdownFile = () => {
 		const { state } = S

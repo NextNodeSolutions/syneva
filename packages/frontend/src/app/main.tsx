@@ -38,7 +38,6 @@ import { App } from './react/app'
 import { persist, requireState, toast } from './store'
 import { S } from './store'
 
-const FAB_REVEAL_SCROLL_PX = 140
 bindFeaturePorts()
 // Bound before the React root mounts and before any render or action: every desk render pass and diff-island mutation goes through this seam, which throws until app composition has bound it.
 // D stays the plain holder because @pierre's element-identity checks break on a reactive proxy.
@@ -127,10 +126,6 @@ async function boot(): Promise<void> {
 			S.settings.sidebarDefault === 'walkthrough' ? 'walkthrough' : 'tree'
 	}
 	void renderFirstFile()
-	// #diff is the persistent scroll container (x-ignore), so this listener is attached once and survives every re-render/file switch.
-	$('diff').addEventListener('scroll', () => {
-		S.diffScrolled = $('diff').scrollTop > FAB_REVEAL_SCROLL_PX
-	})
 	setInterval(() => void pollState(), POLL_INTERVAL_MS)
 }
 

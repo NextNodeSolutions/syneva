@@ -28,7 +28,6 @@ export interface DiffStoreView {
 	foldExpanded: Set<string>
 	awaitingAgent: boolean
 	agentActivity: string | null
-	diffScrolled: boolean
 	toastMsg: string
 	projectFiles: string[]
 	queuedQuestions: number

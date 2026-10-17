@@ -52,7 +52,6 @@ export interface Store {
 	// The tree folded away at desk width (the drawer is the narrow screens' tree): folded by the code opening from the reading, or by hand.
 	treeFolded: boolean
 	fileView: 'rendered' | 'source'
-	diffScrolled: boolean
 	foldExpanded: Set<string>
 	// Per-session and never persisted - the oversized stamp is server-owned and re-derived on reload.
 	loadedOversized: Set<string>
@@ -114,7 +113,6 @@ export interface Store {
 	// The pref persists; hasReviewed gates the header toggle (nothing to distill on first sight).
 	hasReviewed?: () => boolean
 	toggleHideReviewed?: () => void
-	fabState?: () => 'clean' | 'changes' | null
 	splitApplies?: () => boolean
 	applySettings?: () => void
 	openInEditor?: () => Promise<void>

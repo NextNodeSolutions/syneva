@@ -34,11 +34,4 @@ export const diffArea = stylex.create({
 		zIndex: 6,
 		pointerEvents: 'none',
 	},
-	fab: {
-		position: 'absolute',
-		top: '12px',
-		right: '20px',
-		zIndex: 9,
-		boxShadow: '0 12px 32px rgb(25 27 24 / 14%)',
-	},
 })

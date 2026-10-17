@@ -44,7 +44,6 @@ export interface ChromeStoreView {
 	treeDrawerOpen: boolean
 	treeFolded: boolean
 	fileView: 'rendered' | 'source'
-	diffScrolled: boolean
 	domainId: string | null
 	guidePaneOpen: boolean
 	codeOpen: boolean
@@ -87,7 +86,6 @@ export interface ChromeStoreView {
 	approveFile?(): void
 	hasReviewed?(): boolean
 	toggleHideReviewed?(): void
-	fabState?(): 'clean' | 'changes' | null
 	applySettings?(): void
 	openSettings?(): void
 	closeSettings?(): void

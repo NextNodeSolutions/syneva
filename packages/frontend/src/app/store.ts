@@ -48,7 +48,6 @@ export const S: Store = reactive<Store>({
 	treeDrawerOpen: false,
 	treeFolded: false,
 	fileView: 'rendered',
-	diffScrolled: false,
 	foldExpanded: new Set<string>(),
 	loadedOversized: new Set<string>(),
 	notesOpen: false,
