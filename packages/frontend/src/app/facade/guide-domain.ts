@@ -73,6 +73,8 @@ function openDomainEntry(domainId: string): boolean {
 
 // A domain opened from the project level reads full width first; one reached beside the code (the next domain, a related one) keeps the code open and lands on its first change. From a reading the move plays as the motion (a cross-fade between two readings); beside the code it is plain.
 function selectDomain(domainId: string): void {
+	// The domain already read (its row, its chip, its name on a diagram) stays where the reviewer is: no jump back to its first change, no Back stack dropped.
+	if (!S.overviewOpen && S.domainId === domainId) return
 	const move = (): void => {
 		if (S.overviewOpen) S.codeOpen = false
 		S.domainId = domainId
