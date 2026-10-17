@@ -1,5 +1,6 @@
 import {
 	changeSpan,
+	changesByFile,
 	orderedDomainChanges,
 } from '@entities/review/guide/navigation'
 import {
@@ -25,7 +26,26 @@ const VERDICT = {
 	rejected: { label: 'Undone', style: tag.amber },
 } as const
 
-// The open domain's owned changes in reading order, each with its verdict: any of them is one click away, not only the first.
+function lineLabel(change: ChangeState): string {
+	return `${change.side === 'deletions' ? MINUS : '+'}${change.lineNumber}`
+}
+
+function ChangeChip({ change }: { change: ChangeState }): ReactElement {
+	const { S } = chromeCtx()
+	const verdict = VERDICT[change.status]
+	return (
+		<button
+			{...stylex.props(tag.base, verdict.style, styles.changeChip)}
+			data-unit={change.id}
+			title={`${lineLabel(change)} · ${verdict.label}`}
+			onClick={() => S.jumpToSpan?.(changeSpan(change))}
+		>
+			{lineLabel(change)}
+		</button>
+	)
+}
+
+// The open domain's owned changes by file in reading order: the path once, each changed block a span tinted by its verdict, any of them one click away.
 export function DomainChanges({
 	domain,
 	state,
@@ -34,33 +54,34 @@ export function DomainChanges({
 	state: ReviewState
 }): ReactElement | null {
 	const { S } = chromeCtx()
-	const changes = orderedDomainChanges(domain, state)
-	if (!changes.length) return null
+	const files = changesByFile(orderedDomainChanges(domain, state))
+	if (!files.length) return null
 	return (
 		<div {...stylex.props(styles.changes)}>
-			{changes.map(change => {
-				const verdict = VERDICT[change.status]
-				return (
+			{files.map(({ path, changes }) => (
+				<div key={path} {...stylex.props(styles.changeFile)}>
 					<button
-						key={change.id}
 						{...stylex.props(styles.changeRow)}
-						data-unit={change.id}
-						title={change.path}
-						onClick={() => S.jumpToSpan?.(changeSpan(change))}
+						title={path}
+						onClick={() => {
+							const [first] = changes
+							if (first) S.jumpToSpan?.(changeSpan(first))
+						}}
 					>
-						<span {...stylex.props(styles.changePath)}>
-							{change.path}
-						</span>
-						<span {...stylex.props(styles.changeLine)}>
-							{change.side === 'deletions' ? MINUS : '+'}
-							{change.lineNumber}
-						</span>
-						<span {...stylex.props(tag.base, verdict.style)}>
-							{verdict.label}
-						</span>
+						<span {...stylex.props(styles.changePath)}>{path}</span>
+						{changes.length > 1 && (
+							<span {...stylex.props(styles.changeLine)}>
+								{changes.length}
+							</span>
+						)}
 					</button>
-				)
-			})}
+					<span {...stylex.props(styles.changeSpans)}>
+						{changes.map(change => (
+							<ChangeChip key={change.id} change={change} />
+						))}
+					</span>
+				</div>
+			))}
 		</div>
 	)
 }
@@ -81,18 +102,21 @@ export function Unassigned({
 			<span {...stylex.props(styles.unassignedTitle)}>
 				{count} {count === 1 ? 'change' : 'changes'} not in the guide
 			</span>
-			{changes.map((change: ChangeState) => (
-				<button
-					key={change.id}
-					{...stylex.props(styles.unassignedRow)}
-					onClick={() => S.jumpToSpan?.(changeSpan(change))}
-				>
-					<span>{change.path}</span>
-					<span>
-						{change.side === 'deletions' ? MINUS : '+'}
-						{change.lineNumber}
+			{changesByFile(changes).map(group => (
+				<div key={group.path} {...stylex.props(styles.unassignedRow)}>
+					<span {...stylex.props(styles.changePath)}>
+						{group.path}
 					</span>
-				</button>
+					{group.changes.map(change => (
+						<button
+							key={change.id}
+							{...stylex.props(styles.unassignedSpan)}
+							onClick={() => S.jumpToSpan?.(changeSpan(change))}
+						>
+							{lineLabel(change)}
+						</button>
+					))}
+				</div>
 			))}
 			{files.map(path => (
 				<button

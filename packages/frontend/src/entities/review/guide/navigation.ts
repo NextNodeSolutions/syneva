@@ -21,6 +21,19 @@ export function orderedDomainChanges(
 	})
 }
 
+// One entry per file in first-seen order, its changes kept in the order given: a domain that touches one file ten times reads as one file with ten spans, not ten rows of the same path.
+export type FileChanges = { path: string; changes: ChangeState[] }
+
+export function changesByFile(changes: readonly ChangeState[]): FileChanges[] {
+	const groups = new Map<string, ChangeState[]>()
+	for (const change of changes) {
+		const group = groups.get(change.path)
+		if (group) group.push(change)
+		else groups.set(change.path, [change])
+	}
+	return [...groups].map(([path, grouped]) => ({ path, changes: grouped }))
+}
+
 export function changeSpan(change: ChangeState): CodeSpan {
 	return {
 		path: change.path,

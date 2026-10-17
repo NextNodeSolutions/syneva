@@ -122,16 +122,23 @@ export const navigator = stylex.create({
 		lineHeight: 1.45,
 	},
 	unassignedTitle: { display: 'block', fontWeight: 600, marginBottom: '4px' },
+	// One file no domain owns: its path, then each changed block it holds, each landing on its code.
 	unassignedRow: {
 		display: 'flex',
+		flexWrap: 'wrap',
+		alignItems: 'baseline',
 		gap: '6px',
-		width: '100%',
 		paddingBlock: '3px',
+		fontFamily: font['--mono'],
+		fontSize: deskText.small,
+		color: color['--amber'],
+	},
+	unassignedSpan: {
+		paddingBlock: 0,
 		paddingInline: 0,
 		borderWidth: 0,
 		borderStyle: 'none',
 		backgroundColor: 'transparent',
-		textAlign: 'left',
 		fontFamily: font['--mono'],
 		fontSize: deskText.small,
 		color: color['--amber'],
@@ -171,6 +178,22 @@ export const navigator = stylex.create({
 		whiteSpace: 'nowrap',
 	},
 	changeLine: { color: color['--muted'], whiteSpace: 'nowrap' },
+	changeFile: { paddingBottom: '4px' },
+	changeSpans: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		gap: '4px',
+		paddingInline: '8px',
+	},
+	changeChip: {
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: {
+			default: 'transparent',
+			':hover': color['--line-strong'],
+		},
+		cursor: 'pointer',
+	},
 	otherLabel: {
 		marginTop: '12px',
 		marginBottom: '4px',
