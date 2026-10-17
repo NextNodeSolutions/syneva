@@ -68,6 +68,17 @@
 	animation-duration: 400ms;
 	animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
+/* The full-width reading and its column are two layouts of the same text, not one picture resized: each snapshot keeps its own size, pinned to the box's top left, and the moving box clips them. Stretched to the box, the column's snapshot drew its text at nearly three times its size for the first frames. */
+::view-transition-group(reading) {
+	overflow: clip;
+}
+::view-transition-old(reading),
+::view-transition-new(reading) {
+	width: auto;
+	height: auto;
+	object-fit: none;
+	object-position: left top;
+}
 ::view-transition-new(code):only-child {
 	animation: 400ms cubic-bezier(0.2, 0, 0, 1) both desk-code-in;
 }
