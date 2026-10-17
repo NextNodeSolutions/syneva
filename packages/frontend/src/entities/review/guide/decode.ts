@@ -74,7 +74,10 @@ function decodeReference(raw: unknown, ctx: Ctx): GuideReference {
 function decodeDomainLinks(
 	o: Record<string, unknown>,
 	ctx: Ctx,
-): Pick<GuideDomain, 'prerequisites' | 'related' | 'evidence' | 'unknowns'> {
+): Pick<
+	GuideDomain,
+	'prerequisites' | 'related' | 'evidence' | 'unknowns' | 'critical'
+> {
 	return {
 		prerequisites: optStrings(o, 'prerequisites', ctx),
 		related: optList(o, 'related', ctx, entry => {
@@ -92,6 +95,13 @@ function decodeDomainLinks(
 			}
 		}),
 		unknowns: optStrings(o, 'unknowns', ctx),
+		critical: optList(o, 'critical', ctx, entry => {
+			const span = assertObject(entry, ctx.endpoint, 'critical span')
+			return {
+				ref: requiredString(span, 'ref', ctx.endpoint),
+				why: requiredString(span, 'why', ctx.endpoint),
+			}
+		}),
 	}
 }
 

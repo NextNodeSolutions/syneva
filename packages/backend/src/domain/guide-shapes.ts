@@ -44,6 +44,9 @@ export type GuideCrossReference = {
 
 export type GuideEvidence = { text: string; refs?: string[] | undefined }
 
+// Changed code to read line by line: one of the domain's `changed` references and what a wrong line there costs.
+export type GuideCritical = { ref: string; why: string }
+
 type BlockBase = {
 	id: string
 	title?: string | undefined
@@ -136,6 +139,7 @@ export type GuideDomain = {
 	related?: GuideCrossReference[] | undefined
 	evidence?: GuideEvidence[] | undefined
 	unknowns?: string[] | undefined
+	critical?: GuideCritical[] | undefined
 	blocks: ExplanationBlock[]
 	order?: number | undefined
 }
@@ -171,6 +175,7 @@ export const GUIDE_LIMITS = {
 	membersPerDomain: 400,
 	referencesPerDomain: 60,
 	blocksPerDomain: 12,
+	criticalPerDomain: 8,
 	diagramNodes: 40,
 	diagramEdges: 80,
 	overviewChars: 3000,

@@ -147,6 +147,23 @@ export const pane = stylex.create({
 		textUnderlineOffset: '3px',
 	},
 	list: { margin: 0, padding: 0, listStyle: 'none' },
+	// A span to read line by line: the red rule marks it as the one place the visuals do not settle.
+	critical: {
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'flex-start',
+		gap: '4px',
+		marginBottom: '6px',
+		paddingBlock: '6px',
+		paddingInline: '10px',
+		borderLeftWidth: '3px',
+		borderLeftStyle: 'solid',
+		borderLeftColor: color['--red'],
+		backgroundColor: color['--red-tint'],
+		fontSize: deskText.body,
+		lineHeight: 1.5,
+		color: color['--ink'],
+	},
 	claim: {
 		display: 'flex',
 		gap: '8px',
@@ -173,70 +190,4 @@ export const pane = stylex.create({
 		lineHeight: 1.6,
 		color: color['--muted'],
 	},
-})
-
-export const coverage = stylex.create({
-	row: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: '8px',
-		width: '100%',
-		paddingBlock: '5px',
-		paddingInline: '8px',
-		borderWidth: '1px',
-		borderStyle: 'solid',
-		borderColor: { default: 'transparent', ':hover': color['--line'] },
-		backgroundColor: {
-			default: 'transparent',
-			':hover': color['--white'],
-		},
-		textAlign: 'left',
-		fontFamily: font['--mono'],
-		fontSize: '11.5px',
-		color: color['--ink'],
-		cursor: 'pointer',
-	},
-	// One file of the domain: its row, then its spans when it owns more than one block.
-	file: {
-		borderWidth: '1px',
-		borderStyle: 'solid',
-		borderColor: 'transparent',
-	},
-	current: {
-		borderColor: color['--accent-line'],
-		backgroundColor: color['--wash'],
-	},
-	spans: {
-		display: 'flex',
-		flexWrap: 'wrap',
-		alignItems: 'center',
-		gap: '4px',
-		paddingInline: '8px',
-		paddingBottom: '6px',
-		fontFamily: font['--mono'],
-		fontSize: '11.5px',
-	},
-	chip: {
-		borderWidth: '1px',
-		borderStyle: 'solid',
-		borderColor: {
-			default: 'transparent',
-			':hover': color['--line-strong'],
-		},
-		cursor: 'pointer',
-	},
-	path: {
-		display: 'flex',
-		minWidth: 0,
-		whiteSpace: 'nowrap',
-	},
-	dir: {
-		minWidth: 0,
-		overflow: 'hidden',
-		textOverflow: 'ellipsis',
-		color: color['--muted'],
-	},
-	name: { flexShrink: 0 },
-	lines: { color: color['--muted'], whiteSpace: 'nowrap' },
-	verdict: { marginLeft: 'auto' },
 })

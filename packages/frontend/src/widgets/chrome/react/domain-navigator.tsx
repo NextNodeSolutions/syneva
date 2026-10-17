@@ -78,6 +78,40 @@ function scopeLabel(total: number, files: number): string {
 	return `${total} ${total === 1 ? 'change' : 'changes'} · ${files} ${fileWord}`
 }
 
+// What sets a domain apart before its title: stale text, a draft not explained yet, spans to read line by line.
+function DomainTags({
+	domain,
+	state,
+}: {
+	domain: GuideDomain
+	state: ReviewState
+}): ReactElement {
+	const critical = domain.critical?.length ?? 0
+	return (
+		<>
+			{isDomainStale(state, domain.id) && (
+				<span {...stylex.props(tag.base, tag.amber)}>Stale</span>
+			)}
+			{isDomainDrafted(state, domain.id) && (
+				<span
+					{...stylex.props(tag.base, tag.neutral)}
+					title={DRAFT_NOTE}
+				>
+					Draft
+				</span>
+			)}
+			{critical > 0 && (
+				<span
+					{...stylex.props(tag.base, tag.red)}
+					title="Spans the agent marked to read line by line"
+				>
+					{critical} to read
+				</span>
+			)}
+		</>
+	)
+}
+
 // One domain in the risk order: its criticality in words, its title and consequence, and its progress from the owned changes' verdicts (green decided, amber undone) - never from reading.
 function DomainRow({
 	domain,
@@ -105,17 +139,7 @@ function DomainRow({
 				<span {...stylex.props(tag.base, riskTag[domain.risk])}>
 					{RISK_LABELS[domain.risk]} risk
 				</span>
-				{isDomainStale(state, domain.id) && (
-					<span {...stylex.props(tag.base, tag.amber)}>Stale</span>
-				)}
-				{isDomainDrafted(state, domain.id) && (
-					<span
-						{...stylex.props(tag.base, tag.neutral)}
-						title={DRAFT_NOTE}
-					>
-						Draft
-					</span>
-				)}
+				<DomainTags domain={domain} state={state} />
 				<span {...stylex.props(styles.title)}>{domain.title}</span>
 			</span>
 			<p {...stylex.props(styles.consequence)}>{domain.consequence}</p>

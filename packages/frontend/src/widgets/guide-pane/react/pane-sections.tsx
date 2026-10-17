@@ -1,3 +1,4 @@
+import { criticalSpans, isCriticalDone } from '@entities/review/guide/critical'
 import { domainById } from '@entities/review/guide/resolution'
 import { Icon } from '@shared/ui/icon'
 import { RISK_LABELS } from '@shared/ui/risk-tag-html'
@@ -91,6 +92,48 @@ export function Prerequisites({
 					{prerequisite.summary}
 				</div>
 			))}
+		</Section>
+	)
+}
+
+// The code the agent marked to be read line by line, first in the domain: whatever the diagrams show, these lines decide money, access or data, and a reviewer who reads nothing else reads these.
+export function CriticalSpans({
+	domain,
+	state,
+}: {
+	domain: GuideDomain
+	state: ReviewState
+}): ReactElement | null {
+	const spans = criticalSpans(domain, state.changes)
+	if (!spans.length) return null
+	const done = spans.filter(isCriticalDone).length
+	return (
+		<Section
+			label="Read line by line"
+			count={spans.length}
+			trail={
+				<span
+					{...stylex.props(
+						tag.base,
+						done === spans.length ? tag.green : tag.red,
+					)}
+				>
+					{done}/{spans.length} read
+				</span>
+			}
+		>
+			<ul {...stylex.props(pane.list)}>
+				{spans.map(span => (
+					<li
+						key={span.reference.id}
+						{...stylex.props(pane.critical)}
+						data-critical={span.reference.id}
+					>
+						<RefChip domain={domain} reference={span.reference} />
+						<span>{span.why}</span>
+					</li>
+				))}
+			</ul>
 		</Section>
 	)
 }

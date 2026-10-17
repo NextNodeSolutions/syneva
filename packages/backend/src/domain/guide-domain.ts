@@ -1,5 +1,6 @@
 // One domain of the guide: its head (identity, risk, consequence), its links to other domains, what it owns, what it points at and how it explains itself.
 import { parseBlock } from './guide-blocks.js'
+import { parseCriticalList } from './guide-critical.js'
 import { GUIDE_KEYS } from './guide-keys.js'
 import {
 	identifier,
@@ -160,7 +161,7 @@ function parseReferences(
 
 type DomainBody = Pick<
 	AuthoredDomain,
-	'members' | 'references' | 'evidence' | 'blocks'
+	'members' | 'references' | 'evidence' | 'critical' | 'blocks'
 >
 
 // Left out, the domain keeps the blocks the desk's current domain of its id owns; written, it lists at least one.
@@ -194,6 +195,12 @@ function parseDomainBody(
 		(entry, entryWhere) => parseEvidence(entry, entryWhere, refIds),
 	)
 	if (!evidence.ok) return evidence
+	const critical = parseCriticalList(
+		raw.critical,
+		`${where}.critical`,
+		references.value.references ?? [],
+	)
+	if (!critical.ok) return critical
 	const blocks = parseBlocks(raw.blocks, `${where}.blocks`, refIds)
 	if (!blocks.ok) return blocks
 	return {
@@ -202,6 +209,7 @@ function parseDomainBody(
 			members: members.value,
 			references: references.value.references,
 			evidence: evidence.value,
+			critical: critical.value,
 			blocks: blocks.value,
 		},
 	}

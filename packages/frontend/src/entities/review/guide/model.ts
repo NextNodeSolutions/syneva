@@ -29,6 +29,9 @@ export type GuideCrossReference = {
 
 export type GuideEvidence = { text: string; refs?: string[] | undefined }
 
+// Changed code to read line by line whatever the explanation says: one of the domain's `changed` references and what a wrong line there costs.
+export type GuideCritical = { ref: string; why: string }
+
 type BlockBase = {
 	id: string
 	title?: string | undefined
@@ -121,6 +124,7 @@ export type GuideDomain = {
 	related?: GuideCrossReference[] | undefined
 	evidence?: GuideEvidence[] | undefined
 	unknowns?: string[] | undefined
+	critical?: GuideCritical[] | undefined
 	blocks: ExplanationBlock[]
 	order?: number | undefined
 }

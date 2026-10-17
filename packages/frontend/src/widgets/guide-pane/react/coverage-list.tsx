@@ -9,7 +9,7 @@ import { tag } from '@syneva/design-system/controls.styles'
 
 import { chromeCtx } from '../../chrome/context'
 
-import { coverage } from './guide-pane.styles'
+import { coverage } from './coverage-list.styles'
 
 import type { GuideDomain } from '@entities/review/guide/model'
 import type { ChangeState, ReviewState } from '@entities/review/model'

@@ -20,6 +20,7 @@ import { DomainHead } from './domain-head'
 import { GoneDomainPane } from './gone-domain'
 import { pane } from './guide-pane.styles'
 import {
+	CriticalSpans,
 	Evidence,
 	Prerequisites,
 	Related,
@@ -44,6 +45,7 @@ function DomainBody({
 	return (
 		<div {...stylex.props(pane.body)} data-guide-pane-body="">
 			<Prerequisites domain={domain} state={state} />
+			<CriticalSpans domain={domain} state={state} />
 			<Section
 				label="Changed code"
 				count={progress.total}

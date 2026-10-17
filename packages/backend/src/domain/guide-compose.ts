@@ -81,7 +81,7 @@ function canonical(entry: unknown): unknown {
 
 function textOf(domain: AuthoredDomain | GuideDomain): string {
 	const { title, risk, consequence, summary, verify, prerequisites } = domain
-	const { references, related, evidence, unknowns, blocks } = domain
+	const { references, related, evidence, unknowns, critical, blocks } = domain
 	return JSON.stringify(
 		canonical({
 			title,
@@ -94,6 +94,7 @@ function textOf(domain: AuthoredDomain | GuideDomain): string {
 			related,
 			evidence,
 			unknowns,
+			critical,
 			blocks,
 		}),
 	)
@@ -150,6 +151,7 @@ function postedDomain(
 		related: domain.related,
 		evidence: domain.evidence,
 		unknowns: domain.unknowns,
+		critical: domain.critical,
 		blocks: domain.blocks,
 		order: domain.order,
 	}
