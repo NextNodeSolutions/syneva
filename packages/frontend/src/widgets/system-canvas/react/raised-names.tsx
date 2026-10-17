@@ -12,7 +12,7 @@ import { slabCorner } from './name-anchor'
 import { projection as styles } from './projection.styles'
 import { raisedLabels } from './raised-labels'
 
-import type { ReactElement } from 'react'
+import type { KeyboardEvent, ReactElement } from 'react'
 import type { Selection } from '../model'
 import type { Deck, Raised, RaisedPart } from '../projection/raised'
 import type { NameLabel, WordsLabel } from './raised-labels'
@@ -151,7 +151,7 @@ function DeckName({
 	)
 }
 
-// The names over the raised drawing, each part's a button: Tab reaches every named part, Enter selects it.
+// The names over the raised drawing, each part's a button: Tab reaches every named part, Enter selects it, Esc clears the selection and the focus stays on the name (with nothing selected, Esc goes on to the desk).
 export function RaisedNames({
 	raised,
 	view,
@@ -163,8 +163,13 @@ export function RaisedNames({
 }): ReactElement {
 	const focus = useCanvasFocus()
 	const { names, words } = raisedLabels(raised, view, focus)
+	const clear = (event: KeyboardEvent): void => {
+		if (event.key !== 'Escape' || !selection.selected) return
+		event.stopPropagation()
+		selection.onSelect(null)
+	}
 	return (
-		<div {...stylex.props(styles.names)}>
+		<div onKeyDown={clear} {...stylex.props(styles.names)}>
 			{raised.decks.map(deck => (
 				<DeckName key={deck.id} deck={deck} view={view} />
 			))}
