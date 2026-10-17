@@ -95,6 +95,8 @@ export type ChangeState = {
 	readonly side: 'additions' | 'deletions'
 	readonly lineNumber: number
 	readonly endLine?: number | undefined
+	// Where the lines a block anchored on the new side removes begin, on the old side (the key carries their count): a block cut at declarations (diff/block-split.ts) removes lines from inside its git block, and the staging patch cuts them back out by this.
+	readonly removedLine?: number | undefined
 	readonly title: string
 	// The declaration the block sits in (a function, a class member, a Markdown section) and whether it touches only comments or imports: read from the file's outline when the language has one.
 	readonly symbol?: ChangeSymbol | undefined

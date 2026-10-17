@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { patchForChange } from '../domain/diff/change.js'
+import { stagePatch } from '../domain/diff/stage-patch.js'
 
 import { errorMessage } from './errors.js'
 
@@ -46,7 +46,12 @@ export async function stageChange(
 	try {
 		applied = await applyPatchToIndex(
 			state.root,
-			patchForChange(state.rawDiff, request.path, request.stableKey),
+			stagePatch(state.rawDiff, request.path, request.stableKey, {
+				changes: state.changes.filter(
+					change => change.path === request.path,
+				),
+				stagedKeys: staged,
+			}),
 			git,
 		)
 	} catch (error) {

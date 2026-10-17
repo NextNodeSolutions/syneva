@@ -1,5 +1,3 @@
-import { parseUnifiedDiff } from './parse.js'
-
 import type { DiffFile, DiffHunk, DiffLine } from '../review.js'
 
 const STABLE_KEY = /^(additions|deletions):(\d+):(\d+):(\d+)$/
@@ -62,14 +60,14 @@ function changeAnchor(block: readonly DiffLine[]): ChangeAnchor {
 	return { side, line, adds, deletes }
 }
 
-type RequestedChange = {
+export type RequestedChange = {
 	side: string | undefined
 	line: number
 	deletes: number
 	adds: number
 }
 
-function parseStableKey(stableKey: string): RequestedChange {
+export function parseStableKey(stableKey: string): RequestedChange {
 	// Capture slots are `undefined` when the key does not match, but destructuring a match array types every one as `string` - the annotation keeps the fallbacks below visible as real guards rather than dead code.
 	const captures: (string | undefined)[] = stableKey.match(STABLE_KEY) ?? []
 	const [, side, rawLine, rawDeletes, rawAdds] = captures
@@ -81,14 +79,14 @@ function parseStableKey(stableKey: string): RequestedChange {
 	}
 }
 
-type ChangeCandidate = {
+export type ChangeCandidate = {
 	hunk: DiffHunk
 	block: readonly DiffLine[]
 	score: number
 }
 
 // An exact stable-key match always wins; otherwise the closest block by anchor line, tie-broken by how far the add/delete counts miss.
-function findChangeCandidate(
+export function findChangeCandidate(
 	file: DiffFile,
 	stableKey: string,
 	requested: RequestedChange,
@@ -126,67 +124,4 @@ function scoreBlock(
 			Math.abs(anchor.deletes.length - requested.deletes) *
 			SIZE_MISMATCH_WEIGHT
 	return { hunk, block, score }
-}
-
-export function patchForChange(
-	rawDiff: string,
-	filePath: string,
-	stableKey: string,
-): string {
-	const file = parseUnifiedDiff(rawDiff).find(
-		candidate => (candidate.newPath ?? candidate.oldPath) === filePath,
-	)
-	if (!file) throw new Error(`No diff found for ${filePath}`)
-	const match = findChangeCandidate(
-		file,
-		stableKey,
-		parseStableKey(stableKey),
-	)
-	if (!match)
-		throw new Error(`No matching change found for ${filePath}:${stableKey}`)
-	return renderPatch(filePath, match.hunk, match.block)
-}
-
-function findPreviousContext(
-	lines: readonly DiffLine[],
-	beforeIndex: number,
-): DiffLine | undefined {
-	let found: DiffLine | undefined
-	for (let index = 0; index < beforeIndex; index++) {
-		const candidate = lines.at(index)
-		if (candidate?.kind === 'context') found = candidate
-	}
-	return found
-}
-
-function formatRange(start: number, count: number): string {
-	return count === 1 ? String(start) : `${start},${count}`
-}
-
-function renderPatch(
-	filePath: string,
-	hunk: DiffHunk,
-	block: readonly DiffLine[],
-): string {
-	const anchor = changeAnchor(block)
-	const [first] = block
-	const previous = first
-		? findPreviousContext(hunk.lines, hunk.lines.indexOf(first))
-		: undefined
-	const oldStart =
-		anchor.deletes[0]?.oldLine ??
-		previous?.oldLine ??
-		Math.max(0, (anchor.adds[0]?.newLine ?? hunk.newStart) - 1)
-	const newStart =
-		anchor.adds[0]?.newLine ??
-		previous?.newLine ??
-		Math.max(0, (anchor.deletes[0]?.oldLine ?? hunk.oldStart) - 1)
-	return [
-		`diff --git a/${filePath} b/${filePath}`,
-		`--- a/${filePath}`,
-		`+++ b/${filePath}`,
-		`@@ -${formatRange(oldStart, anchor.deletes.length)} +${formatRange(newStart, anchor.adds.length)} @@`,
-		...block.map(line => `${line.kind === 'add' ? '+' : '-'}${line.text}`),
-		'',
-	].join('\n')
 }

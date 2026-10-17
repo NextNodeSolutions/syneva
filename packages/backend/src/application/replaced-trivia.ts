@@ -8,11 +8,19 @@ import {
 import type { ChangeTrivia, LineSpan } from '../domain/outline.js'
 import type { ChangeState, ReviewState } from '../domain/review.js'
 
-// The old-side lines a replacement block removes, found again from its hunk: a change records only the side it is anchored on.
+// The old-side lines a replacement block removes: from where the cut put them when the block is a piece of git's (change-split.ts), else found again from its hunk - a change records only the side it is anchored on.
 export function removedSpan(
 	state: ReviewState,
 	change: ChangeState,
 ): LineSpan | undefined {
+	if (change.removedLine) {
+		const { removed } = blockCounts(change)
+		if (!removed) return undefined
+		return {
+			lineNumber: change.removedLine,
+			endLine: change.removedLine + removed - 1,
+		}
+	}
 	const file = state.files.find(entry => entry.path === change.path)
 	const hunk = file?.hunks[change.hunkIndex]
 	if (!hunk) return undefined
