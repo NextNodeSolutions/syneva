@@ -1,3 +1,4 @@
+import { parseApi } from './guide-api.js'
 import { parseFlow, parseSequence, parseState } from './guide-diagrams.js'
 import { GUIDE_KEYS } from './guide-keys.js'
 import {
@@ -10,6 +11,8 @@ import {
 } from './guide-parse.js'
 import { parseOptionalRef, parseRefIds } from './guide-refs.js'
 import { GUIDE_LIMITS } from './guide-shapes.js'
+import { parseDataModel } from './guide-structures.js'
+import { parseWireframe } from './guide-wireframe.js'
 
 import type { Parsed } from './guide-parse.js'
 import type { BlockBase, BlockScope } from './guide-refs.js'
@@ -22,6 +25,9 @@ const BLOCK_KINDS = [
 	'state',
 	'sequence',
 	'flow',
+	'data-model',
+	'api',
+	'wireframe',
 ] as const
 
 // One block as the kind parsers see it: the raw record, its field name, the domain's reference scope and the common fields already read.
@@ -63,6 +69,9 @@ const KIND_KEYS: Record<(typeof BLOCK_KINDS)[number], readonly string[]> = {
 	state: GUIDE_KEYS.state,
 	sequence: GUIDE_KEYS.sequence,
 	flow: GUIDE_KEYS.flow,
+	'data-model': GUIDE_KEYS.dataModel,
+	api: GUIDE_KEYS.api,
+	wireframe: GUIDE_KEYS.wireframe,
 }
 
 type BlockParser = (input: BlockInput) => Parsed<ExplanationBlock>
@@ -74,6 +83,9 @@ const PARSERS: Record<(typeof BLOCK_KINDS)[number], BlockParser> = {
 	state: parseState,
 	sequence: parseSequence,
 	flow: parseFlow,
+	'data-model': parseDataModel,
+	api: parseApi,
+	wireframe: parseWireframe,
 }
 
 function parseBase(

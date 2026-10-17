@@ -104,12 +104,115 @@ export type FlowBlock = BlockBase & {
 	edges: FlowEdge[]
 }
 
+// What an element of a block is to the changeset; absent, it is unchanged context.
+export type ChangeMark = 'added' | 'changed' | 'removed'
+
+export type DataField = {
+	name: string
+	type?: string | undefined
+	change?: ChangeMark | undefined
+	note?: string | undefined
+	ref?: string | undefined
+}
+
+export type DataEntity = {
+	id: string
+	label: string
+	ref?: string | undefined
+	change?: ChangeMark | undefined
+	fields: DataField[]
+}
+
+export type Cardinality = '1-1' | '1-n' | 'n-1' | 'n-n'
+
+export type DataRelation = {
+	from: string
+	to: string
+	label?: string | undefined
+	cardinality?: Cardinality | undefined
+	change?: ChangeMark | undefined
+}
+
+export type DataModelBlock = BlockBase & {
+	kind: 'data-model'
+	entities: DataEntity[]
+	relations: DataRelation[]
+}
+
+export type ApiMethod =
+	| 'GET'
+	| 'POST'
+	| 'PUT'
+	| 'PATCH'
+	| 'DELETE'
+	| 'EVENT'
+	| 'COMMAND'
+	| 'RPC'
+
+export type ApiEndpoint = {
+	id: string
+	method: ApiMethod
+	path: string
+	summary?: string | undefined
+	change?: ChangeMark | undefined
+	ref?: string | undefined
+	request?: DataField[] | undefined
+	response?: DataField[] | undefined
+}
+
+export type ApiBlock = BlockBase & { kind: 'api'; endpoints: ApiEndpoint[] }
+
+export type WireframeElement =
+	| 'screen'
+	| 'header'
+	| 'sidebar'
+	| 'main'
+	| 'footer'
+	| 'row'
+	| 'column'
+	| 'card'
+	| 'dialog'
+	| 'tabs'
+	| 'list'
+	| 'item'
+	| 'table'
+	| 'title'
+	| 'text'
+	| 'button'
+	| 'input'
+	| 'select'
+	| 'checkbox'
+	| 'image'
+	| 'badge'
+	| 'toast'
+	| 'divider'
+
+export type WireframeNode = {
+	el: WireframeElement
+	label?: string | undefined
+	change?: ChangeMark | undefined
+	ref?: string | undefined
+	children?: WireframeNode[] | undefined
+}
+
+export type WireframeSurface = 'desktop' | 'mobile' | 'panel' | 'dialog'
+
+export type WireframeBlock = BlockBase & {
+	kind: 'wireframe'
+	surface?: WireframeSurface | undefined
+	before?: WireframeNode | undefined
+	after: WireframeNode
+}
+
 export type ExplanationBlock =
 	| ProseBlock
 	| BeforeAfterBlock
 	| StateBlock
 	| SequenceBlock
 	| FlowBlock
+	| DataModelBlock
+	| ApiBlock
+	| WireframeBlock
 
 export type GuideDomain = {
 	id: string

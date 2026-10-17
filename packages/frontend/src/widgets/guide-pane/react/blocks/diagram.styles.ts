@@ -60,6 +60,25 @@ export const diagram = stylex.create({
 	},
 	edgeTextLinked: { fill: color['--accent'], textDecoration: 'underline' },
 	lifeline: { stroke: color['--line'], strokeDasharray: '3 3' },
+	entityHead: { fill: color['--field'] },
+	entityName: { fill: color['--ink'], fontSize: '11.5px', fontWeight: 600 },
+	entityChange: { fontSize: '9.5px', fontFamily: font['--mono'] },
+	fieldSign: {
+		fontSize: '11px',
+		fontWeight: 700,
+		fontFamily: font['--mono'],
+	},
+	fieldName: {
+		fill: color['--ink'],
+		fontSize: '11px',
+		fontFamily: font['--mono'],
+	},
+	fieldType: {
+		fill: color['--muted'],
+		fontSize: '10.5px',
+		fontFamily: font['--mono'],
+	},
+	struck: { textDecoration: 'line-through' },
 	marker: { fill: color['--line-strong'] },
 	textEquivalent: {
 		borderTopWidth: '1px',

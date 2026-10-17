@@ -53,7 +53,7 @@ function endpoint(
 	return id
 }
 
-function parseEdge(
+export function parseEdge(
 	raw: unknown,
 	where: string,
 	edgeScope: EdgeScope,

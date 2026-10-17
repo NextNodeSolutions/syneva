@@ -4,12 +4,14 @@ import * as stylex from '@stylexjs/stylex'
 
 import { RefChip } from '../ref-chip'
 
+import { ApiView } from './api-block'
 import { BlockBoundary } from './block-boundary'
 import { BlockFrame } from './block-frame'
 import { block as styles } from './block.styles'
 import { diagram } from './diagram.styles'
 import { MarkdownHtml } from './markdown-html'
 import { TextEquivalent } from './text-equivalent'
+import { WireframeView } from './wireframe-block'
 
 import type {
 	BeforeAfterBlock,
@@ -79,7 +81,7 @@ function BeforeAfter({
 
 type DiagramBlock = Extract<
 	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
+	{ kind: 'state' | 'sequence' | 'flow' | 'data-model' }
 >
 
 function DiagramBody({
@@ -148,6 +150,18 @@ export function ExplanationBlockView({
 		return (
 			<BlockFrame domain={domain} block={block} actions={actions}>
 				<BeforeAfter domain={domain} block={block} />
+			</BlockFrame>
+		)
+	if (block.kind === 'api')
+		return (
+			<BlockFrame domain={domain} block={block} actions={actions}>
+				<ApiView domain={domain} block={block} />
+			</BlockFrame>
+		)
+	if (block.kind === 'wireframe')
+		return (
+			<BlockFrame domain={domain} block={block} actions={actions}>
+				<WireframeView domain={domain} block={block} />
 			</BlockFrame>
 		)
 	return <DiagramBody domain={domain} block={block} actions={actions} />

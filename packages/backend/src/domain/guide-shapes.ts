@@ -1,4 +1,9 @@
 // Structural mirror of packages/contracts/src/guide.ts (domain may not import contracts): the validator builds these field by field, the projection and the store serialize them whole - keep both sides in sync.
+import type {
+	ApiBlock,
+	DataModelBlock,
+	WireframeBlock,
+} from './guide-structure-shapes.js'
 import type { ReviewMode } from './review.js'
 
 export const GUIDE_FORMAT = 'syneva-guide/2'
@@ -47,7 +52,7 @@ export type GuideEvidence = { text: string; refs?: string[] | undefined }
 // Changed code to read line by line: one of the domain's `changed` references and what a wrong line there costs.
 export type GuideCritical = { ref: string; why: string }
 
-type BlockBase = {
+export type BlockBase = {
 	id: string
 	title?: string | undefined
 	refs?: string[] | undefined
@@ -125,6 +130,9 @@ export type ExplanationBlock =
 	| StateBlock
 	| SequenceBlock
 	| FlowBlock
+	| DataModelBlock
+	| ApiBlock
+	| WireframeBlock
 
 export type GuideDomain = {
 	id: string
@@ -178,6 +186,10 @@ export const GUIDE_LIMITS = {
 	criticalPerDomain: 8,
 	diagramNodes: 40,
 	diagramEdges: 80,
+	entityFields: 30,
+	endpoints: 20,
+	wireframeNodes: 80,
+	wireframeDepth: 8,
 	overviewChars: 3000,
 	markdownChars: 20_000,
 	textChars: 1000,

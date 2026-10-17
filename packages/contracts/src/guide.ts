@@ -1,5 +1,10 @@
 // The guide: an externally authored, risk-ranked explanation of the coherent behaviors a changeset changes.
 // Syneva validates and renders it, never writes it; the backend domain mirrors these shapes (domain/guide-shapes.ts) - keep both sides in sync.
+import type {
+	ApiBlock,
+	DataModelBlock,
+	WireframeBlock,
+} from './guide-structures.js'
 import type { ReviewMode } from './review.js'
 
 // The schema id every guide names; a guide without it (the retired file-grouping format included) is refused, never adapted.
@@ -55,7 +60,7 @@ export type GuideEvidence = { text: string; refs?: string[] | undefined }
 // Changed code the reviewer must read line by line whatever the explanation says (money moving, access granted, data deleted): the visual level shows these spans as code and nothing else. `ref` names one of the domain's `changed` references, `why` says what a wrong line there costs.
 export type GuideCritical = { ref: string; why: string }
 
-type BlockBase = {
+export type BlockBase = {
 	id: string
 	title?: string | undefined
 	// Reference ids (GuideDomain.references) the block as a whole rests on.
@@ -136,6 +141,9 @@ export type ExplanationBlock =
 	| StateBlock
 	| SequenceBlock
 	| FlowBlock
+	| DataModelBlock
+	| ApiBlock
+	| WireframeBlock
 
 export type ExplanationBlockKind = ExplanationBlock['kind']
 
@@ -204,6 +212,10 @@ export const GUIDE_LIMITS = {
 	criticalPerDomain: 8,
 	diagramNodes: 40,
 	diagramEdges: 80,
+	entityFields: 30,
+	endpoints: 20,
+	wireframeNodes: 80,
+	wireframeDepth: 8,
 	overviewChars: 3000,
 	markdownChars: 20_000,
 	textChars: 1000,
