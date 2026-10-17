@@ -52,13 +52,13 @@ function isTyping(e: KeyboardEvent): boolean {
 	)
 }
 
-// A focused guide control (a reference chip, a domain or change row, a pane button) answers its own Enter, as the rail's links do: the desk's Enter would otherwise cancel the click and comment, or jump to a note, instead. The guide's surfaces carry data-guide-controls.
+// A focused guide control (a reference chip, a domain or change row, a pane button) answers its own Enter, as the rail's links do: the desk's Enter would otherwise cancel the click and comment, or jump to a note, instead. The guide's surfaces carry data-guide-controls; a custom button (a tree row) keys itself wherever it is.
 function isGuideControl(e: KeyboardEvent): boolean {
 	const { target } = e
+	if (!enter(e) || !(target instanceof Element)) return false
+	if (target.matches('[role="button"]')) return true
 	return (
-		enter(e) &&
-		target instanceof Element &&
-		target.matches('button, [role="button"]') &&
+		target.matches('button') &&
 		target.closest('[data-guide-controls]') !== null
 	)
 }

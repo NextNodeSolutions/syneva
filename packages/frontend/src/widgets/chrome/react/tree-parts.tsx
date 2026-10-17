@@ -4,7 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 import { glyph, row } from './sidebar.styles'
 
 import type { Style } from '@shared/lib/cx'
-import type { ReactElement } from 'react'
+import type { KeyboardEvent, ReactElement } from 'react'
 
 const INDENT_PX = 14
 const BASE_PAD_PX = 8
@@ -33,4 +33,14 @@ export function Chevron({ open }: { open: boolean }): ReactElement {
 			css={[glyph.chevron, open && glyph.chevronOpen]}
 		/>
 	)
+}
+
+// A row is a button in role only: it answers Enter and Space itself, as a button would.
+export function activateOnKey(
+	event: KeyboardEvent<HTMLElement>,
+	act: () => void,
+): void {
+	if (event.key !== 'Enter' && event.key !== ' ') return
+	event.preventDefault()
+	act()
 }
