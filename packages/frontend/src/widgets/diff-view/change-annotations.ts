@@ -38,6 +38,11 @@ function pushChange(annotations: AnnotationInput[], ch: ChangeState): void {
 	)
 }
 
+// The brick view draws one brick's blocks: a block outside it has no rows in the cut, and its anchor (its raw end, with no part on the cut to place it) can fall on the brick's edge row, where its verdict row would sit as a stray.
+function isDrawn(ch: ChangeState): boolean {
+	return !D.focus || D.focus.brick.changes.some(inside => inside.id === ch.id)
+}
+
 export function changeAnnotations(
 	coveredChangeIds: Set<string>,
 ): AnnotationInput[] {
@@ -51,7 +56,7 @@ export function changeAnnotations(
 		),
 	)) {
 		if (ch.status !== 'pending' || coveredChangeIds.has(ch.id)) continue
-		pushChange(annotations, ch)
+		if (isDrawn(ch)) pushChange(annotations, ch)
 	}
 	return annotations
 }
