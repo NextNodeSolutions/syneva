@@ -37,7 +37,69 @@ const GuidePane = lazy(async () => {
 	return { default: module.GuidePane }
 })
 
+// The reading surface (the guide's levels, the system canvas behind them) is another: a guided desk loads it when the reviewer opens the overview, and the diff's own chrome never carries it.
+const ReadingSurface = lazy(async () => {
+	const module = await import('@pages/desk/react/reading-surface')
+	return { default: module.ReadingSurface }
+})
+
 type Shape = { isTreeless: boolean; isGuideOpen: boolean; isNotesOpen: boolean }
+
+function Reading(): ReactElement {
+	return (
+		<Suspense fallback={<div {...stylex.props(app.readingSpace)} />}>
+			<ReadingSurface />
+		</Suspense>
+	)
+}
+
+function DomainPage(): ReactElement {
+	return (
+		<Suspense fallback={<div {...stylex.props(app.readingSpace)} />}>
+			<GuidePane layout="page" />
+		</Suspense>
+	)
+}
+
+type Level = {
+	isOverview: boolean
+	isDomainPage: boolean
+	isReading: boolean
+	isPaneOpen: boolean
+}
+
+// What the center shows: the project level, a domain read full width, or the code - with the explanation open beside it or not.
+function readingLevel(): Level {
+	const hasGuide = S.hasGuide?.() ?? false
+	const isOverview = hasGuide && S.overviewOpen
+	const isDomainPage = hasGuide && !S.overviewOpen && !S.codeOpen
+	return {
+		isOverview,
+		isDomainPage,
+		isReading: isOverview || isDomainPage,
+		isPaneOpen:
+			hasGuide && S.codeOpen && !S.overviewOpen && S.guidePaneOpen,
+	}
+}
+
+function Center({
+	level,
+	stackedPane,
+}: {
+	level: Level
+	stackedPane: ReactElement | null
+}): ReactElement {
+	return (
+		<section {...stylex.props(app.center)}>
+			<GuideBar />
+			{stackedPane}
+			{level.isOverview && <Reading />}
+			{level.isDomainPage && <DomainPage />}
+			{/* The diff's scroller stays in the DOM while the reading covers it: the render funnel paints into it by id and the next file lands in it the moment the reading closes. */}
+			<DiffArea hidden={level.isReading} />
+		</section>
+	)
+}
 
 // One static grid template per shape: StyleX compiles each ahead of time, and the tablet rule collapses every one to the diff alone.
 function columns(shape: Shape): Style {
@@ -54,12 +116,11 @@ function columns(shape: Shape): Style {
 }
 
 function Workspace(): ReactElement {
-	const hasNoTree = isTreeless(S)
-	const isGuideOpen =
-		(S.hasGuide?.() ?? false) && S.guidePaneOpen && !S.overviewOpen
-	// Under the tablet width the explanation stacks under the guide bar, above the diff; wider, it is the column between the tree and the diff.
+	// Under the tablet width the explanation stacks under the guide bar, above the diff, and the tree is a drawer; wider, the explanation is the column between the tree and the diff, and the tree can fold away.
 	const isUnderTablet = useMediaQuery(queries.tablet)
-	const isGuideColumn = isGuideOpen && !isUnderTablet
+	const hasNoTree = isTreeless(S) || (S.treeFolded && !isUnderTablet)
+	const level = readingLevel()
+	const isGuideColumn = level.isPaneOpen && !isUnderTablet
 	const pane = (
 		<Suspense fallback={<div {...stylex.props(app.guideSpace)} />}>
 			<GuidePane />
@@ -89,11 +150,10 @@ function Workspace(): ReactElement {
 			<Resizer hidden={hasNoTree} />
 			{isGuideColumn && pane}
 			{isGuideColumn && <div {...stylex.props(app.guideRule)} />}
-			<section {...stylex.props(app.center)}>
-				<GuideBar />
-				{isGuideOpen && isUnderTablet && pane}
-				<DiffArea />
-			</section>
+			<Center
+				level={level}
+				stackedPane={level.isPaneOpen && isUnderTablet ? pane : null}
+			/>
 			{S.notesOpen && <NotesPanel />}
 		</main>
 	)
@@ -108,6 +168,8 @@ export function App(): ReactElement {
 		'notesOpen',
 		'guidePaneOpen',
 		'overviewOpen',
+		'codeOpen',
+		'treeFolded',
 	)
 	const isClosed = S.deskClosed && !S.isRefreshRequired
 	return (

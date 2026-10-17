@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 
+import { criticalSpans, isCriticalDone } from '@entities/review/guide/critical'
 import { orderedDomains } from '@entities/review/guide/domains'
 import {
 	domainProgress,
@@ -86,7 +87,10 @@ function DomainTags({
 	domain: GuideDomain
 	state: ReviewState
 }): ReactElement {
-	const critical = domain.critical?.length ?? 0
+	// What is still owed, not what was marked: a span decided is read.
+	const critical = criticalSpans(domain, state.changes).filter(
+		span => !isCriticalDone(span),
+	).length
 	return (
 		<>
 			{isDomainStale(state, domain.id) && (

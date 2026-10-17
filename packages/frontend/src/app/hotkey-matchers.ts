@@ -26,8 +26,11 @@ export const inModal = (): boolean =>
 	S.settingsOpen || !!S.confirmMsg || S.sendOpen
 export const inOverview = (): boolean =>
 	S.overviewOpen && hasGuide(guideInputs(S))
-export const inDiff = (): boolean =>
-	!inComposer() && !inModal() && !inOverview()
+// The domain's reading, full width, before its code opens.
+export const inDomainPage = (): boolean =>
+	!S.overviewOpen && !S.codeOpen && hasGuide(guideInputs(S))
+export const inReading = (): boolean => inOverview() || inDomainPage()
+export const inDiff = (): boolean => !inComposer() && !inModal() && !inReading()
 export const navigable = (): boolean => !inComposer() && !inModal()
 export const isMd = (): boolean => inDiff() && !!S.isMarkdownFile?.()
 // While it is up, its own keys own the arrows and Enter - HOTKEYS_NOTES is ranked above the diff's segment for exactly that.

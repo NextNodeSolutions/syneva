@@ -2,7 +2,24 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
+// The header is two blocks laid straight into the diff's flow (Pierre's header wrapper is flattened, see diff-options): the bar with the file's name, toggles and verdict stays pinned at the top of the diff scroller while the code scrolls under it, so a jump that lands mid-file still says which file it is; the rest (the domain rows, the file's comments) scrolls away with the top of the file.
 export const diffHeader = stylex.create({
+	bar: {
+		position: 'sticky',
+		top: 0,
+		zIndex: 3,
+		display: 'flex',
+		flexDirection: 'column',
+		width: '100%',
+		paddingBlock: '8px',
+		paddingInline: '16px',
+		backgroundColor: color['--paper'],
+		borderBottomWidth: '1px',
+		borderBottomStyle: 'solid',
+		borderBottomColor: color['--line'],
+		fontFamily: font['--sans'],
+		fontSize: deskText.body,
+	},
 	header: {
 		display: 'flex',
 		flexDirection: 'column',

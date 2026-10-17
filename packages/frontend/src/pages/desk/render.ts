@@ -23,7 +23,6 @@ import { clearOverviewRuler } from '@widgets/diff-view/overview-ruler'
 import { releaseDiffInstance } from '@widgets/diff-view/runtime'
 
 import { renderEmptyDesk } from './empty'
-import { renderOverview } from './overview'
 
 import type { ReviewState } from '@entities/review/model'
 import type * as DiffIsland from '@widgets/diff-view/diff-instance'
@@ -44,12 +43,15 @@ function currentFile(): ReviewFile | null {
 	)
 }
 
+// A deferred render that a direct render overtook has nothing left to paint: the direct one read the same or a newer store, and running the deferred one after it would rebuild the diff a second time and drop the scroll a restore just set.
 export function deferRender(): void {
 	if (isDeferredRenderPending) return
 	isDeferredRenderPending = true
+	const scheduledAt = renderSequence
 	requestAnimationFrame(() =>
 		requestAnimationFrame(() => {
 			isDeferredRenderPending = false
+			if (renderSequence !== scheduledAt) return
 			void render()
 		}),
 	)
@@ -63,12 +65,14 @@ function detachDiffInstance(): void {
 	D.lineMap = null
 }
 
+// While the reading surface covers the center (React draws it beside the diff's scroller: the project level, or a domain read full width before its code opens), the code leaves the scroller: the next file then lands in an empty one, and nothing of the file left behind survives a reading.
 function renderGuideOverview(): boolean {
-	if (!(diffCtx().S.overviewOpen && hasGuide(guideInputs(diffCtx().S))))
+	const { S } = diffCtx()
+	if (!(S.overviewOpen || !S.codeOpen) || !hasGuide(guideInputs(S)))
 		return false
 	cursorReset()
 	detachDiffInstance()
-	renderOverview()
+	$('diff').replaceChildren()
 	return true
 }
 

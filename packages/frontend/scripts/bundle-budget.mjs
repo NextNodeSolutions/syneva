@@ -26,7 +26,7 @@ export function staticBundleBytes(outputs, entry) {
 export const INITIAL_UI_BYTES_LIMIT = 416_000
 // React 19 (~134 KB minified) + StyleX class maps/runtime leave the 133 KB gzip cold payload within
 // 6% of before; the limit sat just above the measured 392 KB, then moved to 415 KB for the guided
-// review's cold chrome (the domain moves, the guide bar's controls, the keys: ~8 KB measured at
+// review's cold chrome (the domain moves, the position strip's steps, the keys: ~8 KB measured at
 // 408 KB) - the explanation pane, the diagrams, the navigator and the guide decoders ride lazy
 // chunks and never count here - and to 416 KB for the system canvas's door on the overview (its
 // slot, its lazy import and the domain numbers, ~1 KB measured at 415.9 KB): React Flow and the

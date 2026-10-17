@@ -49,6 +49,8 @@ export interface Store {
 	overviewOpen: boolean
 	sidebarTab: 'tree' | 'walkthrough'
 	treeDrawerOpen: boolean
+	// The tree folded away at desk width (the drawer is the narrow screens' tree): folded by the code opening from the reading, or by hand.
+	treeFolded: boolean
 	fileView: 'rendered' | 'source'
 	diffScrolled: boolean
 	foldExpanded: Set<string>
@@ -64,10 +66,14 @@ export interface Store {
 	// The guided review's position: the selected domain (its explanation beside the diff), the pane's visibility, the block details the reviewer opened, and where a reference follow came from (Back).
 	domainId: string | null
 	guidePaneOpen: boolean
+	// Whether the code is open in the center: a domain opened from the project level reads full width until a span, a reference or Enter opens its code beside it; Esc closes the code back onto the reading.
+	codeOpen: boolean
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	// Bumped when the Markdown engine (lazy) lands or repaints, so React prose re-renders with it.
 	markdownTick: number
+	// Bumped on every cursor move, so the chrome that names the change under the cursor follows it.
+	cursorTick: number
 	// The guide thread being written: on a domain, or on one of its blocks; the text lives here so a poll or a repaint never loses it.
 	domainComposer: { domainId: string; blockId?: string | undefined } | null
 	domainComposerBody: string
@@ -113,6 +119,11 @@ export interface Store {
 	guideStale?: () => boolean
 	openOverview?: () => void
 	startGuided?: () => void
+	openCode?: () => void
+	closeCode?: () => void
+	// Where the reviewer is at each level, for the position strip: the file in the active order, the domain's change under the cursor (null between its blocks).
+	filePosition?: () => { index: number | null; total: number } | null
+	changePosition?: () => { index: number | null; total: number } | null
 	showGuideBar?: () => boolean
 	curFileName?: () => string
 	guideNext?: () => void

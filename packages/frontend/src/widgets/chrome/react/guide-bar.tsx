@@ -1,27 +1,101 @@
+import { orderedDomains } from '@entities/review/guide/domains'
 import { useStoreFields } from '@shared/lib/use-store-version'
 import { count, deskControl } from '@shared/ui/desk-control.styles'
 import { Icon } from '@shared/ui/icon'
-import { Kbd } from '@shared/ui/kbd'
 import { tip } from '@shared/ui/tip.styles'
 import * as stylex from '@stylexjs/stylex'
 import { control } from '@syneva/design-system/controls.styles'
-import { kbd } from '@syneva/design-system/inline.styles'
 import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'
 
-import { guideBar } from './guide-bar.styles'
+import { guideBar as strip } from './guide-bar.styles'
 
 import type { ReactElement } from 'react'
+import type { ChromeStoreView } from '../context'
 
 const square = [
 	press.control,
 	control.base,
-	control.outlined,
+	control.quiet,
 	deskControl.mini,
 	deskControl.iconMini,
 	tip.host,
 ]
+
+type Position = { index: number | null; total: number }
+
+function formatPosition({ index, total }: Position): string {
+	return `${index ?? '-'}/${total}`
+}
+
+// One level of the reading: its name, where the reviewer is in it, and its two steps either side. Only the digits change its width, so the steps stay under the pointer.
+function StepGroup({
+	label,
+	position,
+	keys,
+	onStep,
+}: {
+	label: string
+	position: Position
+	keys: [string, string]
+	onStep: (direction: 1 | -1) => void
+}): ReactElement {
+	const name = label.toLowerCase()
+	return (
+		<span {...stylex.props(strip.group)}>
+			<button
+				{...stylex.props(square)}
+				data-tip={`Previous ${name} (${keys[0]})`}
+				aria-label={`Previous ${name}`}
+				onClick={() => onStep(-1)}
+			>
+				<Icon id="gly-arrow-left" />
+			</button>
+			<span {...stylex.props(strip.label)}>
+				{label}{' '}
+				<span {...stylex.props(strip.number)}>
+					{formatPosition(position)}
+				</span>
+			</span>
+			<button
+				{...stylex.props(square)}
+				data-tip={`Next ${name} (${keys[1]})`}
+				aria-label={`Next ${name}`}
+				onClick={() => onStep(1)}
+			>
+				<Icon id="gly-arrow-right" />
+			</button>
+		</span>
+	)
+}
+
+function domainPosition(S: ChromeStoreView): Position {
+	const domains = orderedDomains(S.state?.guide)
+	const index = S.overviewOpen
+		? -1
+		: domains.findIndex(domain => domain.id === S.domainId)
+	return { index: index >= 0 ? index + 1 : null, total: domains.length }
+}
+
+function HomeButton(): ReactElement {
+	const { S } = chromeCtx()
+	return (
+		<button
+			{...stylex.props(
+				square,
+				tip.start,
+				S.overviewOpen && deskControl.ask,
+			)}
+			onClick={() => S.openOverview?.()}
+			data-tip="Project level (o)"
+			aria-label="Project level"
+			aria-pressed={S.overviewOpen}
+		>
+			<Icon id="gly-home" />
+		</button>
+	)
+}
 
 function FileCommentButton(): ReactElement {
 	const { S } = chromeCtx()
@@ -30,8 +104,9 @@ function FileCommentButton(): ReactElement {
 		<button
 			{...stylex.props(
 				square,
+				control.outlined,
 				S.fileComposerOpen && deskControl.ask,
-				guideBar.trigger,
+				strip.trigger,
 			)}
 			data-file-comment-trigger=""
 			data-tip="Comment on file (⇧C)"
@@ -47,43 +122,23 @@ function FileCommentButton(): ReactElement {
 	)
 }
 
-function NavButton({
-	direction,
-	disabled,
-	onClick,
-	ariaLabel,
-}: {
-	direction: 'prev' | 'next'
-	disabled: boolean
-	onClick: () => void
-	ariaLabel: string
-}): ReactElement {
-	const tips = { prev: 'Previous file (⇧←)', next: 'Next file (⇧→)' }
-	const icons = { prev: 'gly-arrow-left', next: 'gly-arrow-right' }
-	return (
-		<button
-			{...stylex.props(square)}
-			onClick={onClick}
-			disabled={disabled}
-			data-tip={tips[direction]}
-			aria-label={ariaLabel}
-		>
-			<Icon id={icons[direction]} />
-		</button>
-	)
-}
-
-function HomeButton(): ReactElement {
+function ExplainToggle(): ReactElement {
 	const { S } = chromeCtx()
 	return (
 		<button
-			{...stylex.props(square, S.overviewOpen && deskControl.ask)}
-			onClick={() => S.openOverview?.()}
-			data-tip="Overview (o)"
-			aria-label="Open overview"
-			aria-pressed={S.overviewOpen}
+			{...stylex.props(
+				press.control,
+				control.base,
+				S.guidePaneOpen ? deskControl.ask : control.outlined,
+				deskControl.mini,
+				tip.host,
+				tip.end,
+			)}
+			data-tip="Show / hide the explanation (g)"
+			aria-pressed={S.guidePaneOpen}
+			onClick={() => S.toggleGuidePane?.()}
 		>
-			<Icon id="gly-home" />
+			Explain
 		</button>
 	)
 }
@@ -91,7 +146,7 @@ function HomeButton(): ReactElement {
 function StaleNotice(): ReactElement {
 	return (
 		<span
-			{...stylex.props(guideBar.stale)}
+			{...stylex.props(strip.stale)}
 			title="Parts of this guide describe an earlier diff - the stale domains are marked; ask your agent for a fresh guide (syneva reload --guide)"
 		>
 			<Icon id="gly-warn" />
@@ -100,132 +155,77 @@ function StaleNotice(): ReactElement {
 	)
 }
 
-function StepButton({
-	tipText,
-	ariaLabel,
-	onClick,
-	children,
-}: {
-	tipText: string
-	ariaLabel: string
-	onClick: () => void
-	children: ReactElement | string | (ReactElement | string)[]
-}): ReactElement {
-	return (
-		<button
-			{...stylex.props(
-				press.control,
-				control.base,
-				control.outlined,
-				deskControl.mini,
-				tip.host,
-			)}
-			data-tip={tipText}
-			aria-label={ariaLabel}
-			onClick={onClick}
-		>
-			{children}
-		</button>
-	)
-}
-
-// The domain moves beside the file moves: a domain, a change of it, back after a reference, and the explanation's toggle.
-function DomainControls(): ReactElement {
+// The levels the code sits in, shown once the code is open: the file in the active order, and the domain's change under the cursor.
+function CodeLevels(): ReactElement {
 	const { S } = chromeCtx()
+	const file = S.filePosition?.()
+	const change = S.changePosition?.()
 	return (
 		<>
-			<StepButton
-				tipText="Previous domain (⇧D)"
-				ariaLabel="Previous domain"
-				onClick={() => S.stepDomain?.(-1)}
-			>
-				<Kbd keys="⇧D" /> domain
-			</StepButton>
-			<StepButton
-				tipText="Next domain (d)"
-				ariaLabel="Next domain"
-				onClick={() => S.stepDomain?.(1)}
-			>
-				domain <Kbd keys="d" />
-			</StepButton>
-			<StepButton
-				tipText="Previous change of the domain (,)"
-				ariaLabel="Previous change of the domain"
-				onClick={() => S.stepDomainChange?.(-1)}
-			>
-				<Kbd keys="," /> change
-			</StepButton>
-			<StepButton
-				tipText="Next change of the domain (.)"
-				ariaLabel="Next change of the domain"
-				onClick={() => S.stepDomainChange?.(1)}
-			>
-				change <Kbd keys="." />
-			</StepButton>
-			<button
-				{...stylex.props(
-					press.control,
-					control.base,
-					S.guidePaneOpen ? deskControl.ask : control.outlined,
-					deskControl.mini,
-					tip.host,
-				)}
-				data-tip="Show / hide the explanation (g)"
-				aria-pressed={S.guidePaneOpen}
-				onClick={() => S.toggleGuidePane?.()}
-			>
-				Explain{' '}
-				<Kbd keys="g" css={S.guidePaneOpen ? kbd.onTint : undefined} />
-			</button>
+			{file && (
+				<>
+					<span {...stylex.props(strip.rule)} />
+					<StepGroup
+						label="File"
+						position={file}
+						keys={['⇧←', '⇧→']}
+						onStep={direction =>
+							direction === 1 ? S.guideNext?.() : S.guidePrev?.()
+						}
+					/>
+				</>
+			)}
+			{change && (
+				<>
+					<span {...stylex.props(strip.rule)} />
+					<StepGroup
+						label="Change"
+						position={change}
+						keys={[',', '.']}
+						onStep={direction => S.stepDomainChange?.(direction)}
+					/>
+				</>
+			)}
 		</>
 	)
 }
 
-// The file moves: overview, the whole-file comment, previous and next file.
-function FileControls(): ReactElement {
-	const { S } = chromeCtx()
-	const canCommentOnFile =
-		!S.overviewOpen && (S.fileCommentAvailable?.() ?? false)
-	return (
-		<div {...stylex.props(guideBar.acts)}>
-			<HomeButton />
-			{canCommentOnFile && <FileCommentButton />}
-			<NavButton
-				direction="prev"
-				disabled={S.guideAtStart?.() ?? false}
-				onClick={() => S.guidePrev?.()}
-				ariaLabel="Previous file"
-			/>
-			<NavButton
-				direction="next"
-				disabled={S.guideAtLast?.() ?? false}
-				onClick={() => S.guideNext?.()}
-				ariaLabel="Next file"
-			/>
-		</div>
-	)
-}
-
+// The position strip: the project level, then the reading's levels with their steps, and at the far end what acts on the code (the file comment, the explanation's toggle). Every move has one control here and one key; the explanation's head keeps only Back.
 export function GuideBar(): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields(
 		'state',
 		'settings',
 		'overviewOpen',
+		'codeOpen',
 		'fileComposerOpen',
 		'guidePaneOpen',
 		'domainId',
+		'fileIndex',
+		'preview',
+		'sidebarTab',
+		'cursorTick',
 	)
 	if (!(S.showGuideBar?.() ?? false)) return <></>
+	const isCode = S.codeOpen && !S.overviewOpen
+	const canCommentOnFile = isCode && (S.fileCommentAvailable?.() ?? false)
 	return (
-		<div {...stylex.props(guideBar.bar)}>
-			<FileControls />
-			{!S.overviewOpen && (
-				<div {...stylex.props(guideBar.acts)} data-guide-controls="">
-					<DomainControls />
-				</div>
-			)}
+		<div {...stylex.props(strip.bar)} data-guide-controls="">
+			<HomeButton />
+			<span {...stylex.props(strip.rule)} />
+			<StepGroup
+				label="Domain"
+				position={domainPosition(S)}
+				keys={['⇧D', 'd']}
+				onStep={direction => S.stepDomain?.(direction)}
+			/>
+			{isCode && <CodeLevels />}
+			<span {...stylex.props(strip.spacer)} />
 			{(S.guideStale?.() ?? false) && <StaleNotice />}
+			<div {...stylex.props(strip.acts)}>
+				{canCommentOnFile && <FileCommentButton />}
+				{isCode && <ExplainToggle />}
+			</div>
 		</div>
 	)
 }

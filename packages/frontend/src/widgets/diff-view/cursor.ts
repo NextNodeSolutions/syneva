@@ -74,15 +74,18 @@ function indexOfCur(list: Row[]): number {
 		: -1
 }
 
+// Every move of the cursor ticks the store: the chrome that names the change under it follows without reading the diff.
 function paint(r: Row): void {
 	D.instance?.setSelectedLines(
 		{ start: r.line, end: r.line, side: r.side },
 		{ notify: false },
 	)
+	diffCtx().S.cursorTick++
 }
 
 function hide(): void {
 	D.instance?.setSelectedLines(null, { notify: false })
+	diffCtx().S.cursorTick++
 }
 
 function landOn(r: Row | undefined, shouldScroll = true): void {

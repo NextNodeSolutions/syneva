@@ -1,7 +1,15 @@
+import {
+	isDomainDrafted,
+	isDomainStale,
+} from '@entities/review/guide/resolution'
+import { deskControl } from '@shared/ui/desk-control.styles'
+import { Kbd } from '@shared/ui/kbd'
 import { RISK_LABELS } from '@shared/ui/risk-tag-html'
 import { riskTag } from '@shared/ui/risk-tag.styles'
 import * as stylex from '@stylexjs/stylex'
-import { tag } from '@syneva/design-system/controls.styles'
+import { control, tag } from '@syneva/design-system/controls.styles'
+import { kbd } from '@syneva/design-system/inline.styles'
+import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../../chrome/context'
 
@@ -10,6 +18,7 @@ import { HeadNav } from './head-nav'
 
 import type { GuideDomain } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
+import type { GuideLayout } from './guide-pane'
 
 const DRAFT_NOTE =
 	"Drafted by Syneva from the code's structure: grouped and named, not explained by the agent yet"
@@ -46,37 +55,75 @@ function StatusTags({
 	)
 }
 
+// On the domain's reading, the one way into its code: Enter, or this.
+function OpenCodeButton(): ReactElement {
+	const { S } = chromeCtx()
+	return (
+		<button
+			{...stylex.props(
+				press.control,
+				control.base,
+				deskControl.compact,
+				control.primary,
+			)}
+			onClick={() => S.openCode?.()}
+		>
+			Read the code
+			<Kbd keys="↵" css={kbd.onFill} />
+		</button>
+	)
+}
+
+// Where the domain stands: its place in the risk order, its risk, the state of its explanation, and the pane's moves.
+function HeadRow({
+	domain,
+	position,
+	total,
+}: {
+	domain: GuideDomain
+	position: number
+	total: number
+}): ReactElement {
+	const { S } = chromeCtx()
+	return (
+		<div {...stylex.props(pane.row)}>
+			<span {...stylex.props(pane.position)}>
+				Domain {position} of {total}
+			</span>
+			<span
+				{...stylex.props(tag.base, riskTag[domain.risk])}
+				data-risk={domain.risk}
+			>
+				{RISK_LABELS[domain.risk]} risk
+			</span>
+			<StatusTags
+				isStale={isDomainStale(S.state, domain.id)}
+				isDrafted={isDomainDrafted(S.state, domain.id)}
+			/>
+			<HeadNav canGoBack={S.guideReturn.length > 0} />
+		</div>
+	)
+}
+
 // The judgment first: where the domain stands in the risk order, its title and summary, the concrete consequence its risk rests on, and what to verify. Criticality and verdicts never share a tag.
 export function DomainHead({
 	domain,
 	position,
 	total,
-	isStale,
-	isDrafted,
+	layout,
 }: {
 	domain: GuideDomain
 	position: number
 	total: number
-	isStale: boolean
-	isDrafted: boolean
+	layout: GuideLayout
 }): ReactElement {
-	const { S } = chromeCtx()
+	const isPage = layout === 'page'
 	return (
-		<header {...stylex.props(pane.head)}>
-			<div {...stylex.props(pane.row)}>
-				<span {...stylex.props(pane.position)}>
-					Domain {position} of {total}
-				</span>
-				<span
-					{...stylex.props(tag.base, riskTag[domain.risk])}
-					data-risk={domain.risk}
-				>
-					{RISK_LABELS[domain.risk]} risk
-				</span>
-				<StatusTags isStale={isStale} isDrafted={isDrafted} />
-				<HeadNav canGoBack={S.guideReturn.length > 0} />
-			</div>
-			<h2 {...stylex.props(pane.title)}>{domain.title}</h2>
+		<header {...stylex.props(pane.head, isPage && pane.headPage)}>
+			<HeadRow domain={domain} position={position} total={total} />
+			<h2 {...stylex.props(pane.title, isPage && pane.titlePage)}>
+				{domain.title}
+			</h2>
 			<p {...stylex.props(pane.summary)}>{domain.summary}</p>
 			<div
 				{...stylex.props(
@@ -91,6 +138,11 @@ export function DomainHead({
 				<div {...stylex.props(pane.consequence, pane.verify)}>
 					<span {...stylex.props(pane.label)}>Verify</span>
 					{domain.verify}
+				</div>
+			)}
+			{isPage && (
+				<div {...stylex.props(pane.pageActions)}>
+					<OpenCodeButton />
 				</div>
 			)}
 		</header>

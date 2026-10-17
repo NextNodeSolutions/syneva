@@ -82,7 +82,8 @@ export function diffOptions(
 		onLineSelected: handleDiffSelection,
 		onLineSelectionEnd: handleDiffSelection,
 		onPostRender: handlePostRender,
-		unsafeCSS: `[data-code]{scrollbar-gutter:auto}${isPreviewing ? PREVIEW_CSS : ''}`,
+		// Pierre's header wrapper is flattened so our header's blocks sit straight in the diff's flow: the name bar can then stick to the scroller for the whole file (a sticky box only holds within its parent).
+		unsafeCSS: `[data-code]{scrollbar-gutter:auto}[data-diffs-header]{display:contents}${isPreviewing ? PREVIEW_CSS : ''}`,
 		renderCustomHeader: slotDiffHeader,
 	}
 }

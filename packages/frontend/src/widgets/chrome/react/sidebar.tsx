@@ -14,7 +14,7 @@ import { chromeCtx } from '../context'
 import { GuidePending } from './guide-pending'
 import { glyph, row, sidebar } from './sidebar.styles'
 import { ChangedIcon, StateBadge } from './tree-badges'
-import { Chevron, indentStyle, MovedFrom } from './tree-parts'
+import { activateOnKey, Chevron, indentStyle, MovedFrom } from './tree-parts'
 
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { Style } from '@shared/lib/cx'
@@ -133,6 +133,7 @@ function TreeRowNode({
 			{...stylex.props(rowStyles(node, isActive))}
 			data-key={node.key}
 			onClick={() => S.rowClick?.(node)}
+			onKeyDown={event => activateOnKey(event, () => S.rowClick?.(node))}
 		>
 			{node.kind === 'dir' && <DirRowBody node={node} />}
 			{(node.kind === 'file' || node.kind === 'test') && (
@@ -237,6 +238,7 @@ export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 				S.treeDrawerOpen && sidebar.drawerOpen,
 				hidden && sidebar.hidden,
 			)}
+			data-morph="tree"
 		>
 			{guided && <TreeTabs />}
 			{!guided && S.state?.guideExpected && <GuidePending />}

@@ -14,6 +14,7 @@ import { RefChip } from './ref-chip'
 
 import type { GuideDomain } from '@entities/review/guide/model'
 import type { ReviewState } from '@entities/review/model'
+import type { Style } from '@shared/lib/cx'
 import type { ReactElement, ReactNode } from 'react'
 
 export function Section({
@@ -234,9 +235,15 @@ export function Related({
 	)
 }
 
-export function StaleBanner({ reasons }: { reasons: string[] }): ReactElement {
+export function StaleBanner({
+	reasons,
+	css,
+}: {
+	reasons: string[]
+	css?: Style | undefined
+}): ReactElement {
 	return (
-		<div {...stylex.props(pane.stale)} role="status">
+		<div {...stylex.props(pane.stale, css)} role="status">
 			<Icon id="gly-warn" />
 			<span>
 				<b>Explanation out of date.</b> {reasons.join('; ')}. The prose

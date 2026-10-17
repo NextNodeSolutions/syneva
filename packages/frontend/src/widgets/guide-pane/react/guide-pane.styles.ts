@@ -20,6 +20,48 @@ export const pane = stylex.create({
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line-strong'],
 	},
+	// The explanation as a page: the sheet the reviewer reads before any code opens, centered on the paper the project level draws on, scrolling as one with its head.
+	page: {
+		flex: '1 1 auto',
+		minWidth: 0,
+		minHeight: 0,
+		overflow: 'auto',
+		paddingBlock: '32px',
+		paddingInline: '30px',
+		backgroundColor: color['--paper'],
+		backgroundImage: `linear-gradient(${color['--grid']} 1px, transparent 1px), linear-gradient(90deg, ${color['--grid']} 1px, transparent 1px)`,
+		backgroundSize: '48px 48px',
+	},
+	sheet: {
+		width: 'min(960px, 100%)',
+		marginInline: 'auto',
+		display: 'flex',
+		flexDirection: 'column',
+		backgroundColor: color['--white'],
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: color['--line-strong'],
+	},
+	headPage: {
+		maxHeight: 'none',
+		overflowY: 'visible',
+		paddingBlock: '20px',
+		paddingInline: '28px',
+	},
+	titlePage: {
+		marginTop: '10px',
+		fontSize: '26px',
+		letterSpacing: '-.035em',
+	},
+	stalePage: { marginInline: '28px' },
+	pageActions: { marginTop: '14px' },
+	bodyPage: {
+		flex: 'none',
+		overflow: 'visible',
+		paddingBlock: '18px',
+		paddingInline: '28px',
+		paddingBottom: '32px',
+	},
 	head: {
 		flexShrink: 0,
 		// Stacked, the pane's height is capped: a long summary, consequence and verify would fill it and clip the body, so the head takes at most half and scrolls on its own.

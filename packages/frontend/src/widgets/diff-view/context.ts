@@ -17,6 +17,8 @@ export interface DiffStoreView {
 	composerBody: string
 	editingCommentId: string | null
 	overviewOpen: boolean
+	codeOpen: boolean
+	cursorTick: number
 	expandedDirs: Set<string>
 	collapsedDirs: Set<string>
 	golineBuffer: string
@@ -37,8 +39,6 @@ export interface DiffStoreView {
 	toggleFileComposer?: () => void
 	selectFile?: (i: number) => void
 	previewFile?: (path: string) => void
-	startGuided?: () => void
-	selectDomain?: (id: string) => void
 	noteResolved?: (ref: NoteThreadRef) => void
 }
 

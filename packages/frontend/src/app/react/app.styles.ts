@@ -76,6 +76,12 @@ export const app = stylex.create({
 		backgroundColor: color['--paper'],
 		display: { default: 'block', [media.tablet]: 'none' },
 	},
+	// The reading surface's paper while its chunk loads, filling the center as the surface will.
+	readingSpace: {
+		flex: '1 1 auto',
+		minHeight: 0,
+		backgroundColor: color['--paper'],
+	},
 	center: {
 		minWidth: 0,
 		minHeight: 0,

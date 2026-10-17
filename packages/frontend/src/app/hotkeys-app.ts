@@ -2,6 +2,7 @@ import {
 	cmdShift,
 	enter,
 	inComposer,
+	inDomainPage,
 	inNotes,
 	inOverview,
 	key,
@@ -9,72 +10,14 @@ import {
 	shift,
 } from '@app/hotkey-matchers'
 import { guideInputs, hasGuide } from '@entities/review/guide/guide'
-import {
-	closeComposer,
-	closeFileComposer,
-} from '@features/manage-comment/composer'
+import { queries } from '@syneva/design-system/media.stylex'
 import { askConfirm } from '@widgets/dialogs/confirm'
-import { cursorReset, cursorSelection } from '@widgets/diff-view/cursor'
-import { golineActive, golineCancel } from '@widgets/diff-view/cursor-goline'
 
+import { escape } from './escape'
+import { toggleTree } from './facade/layout-motion'
 import { S } from './store'
 
 import type { Hotkey } from '@app/hotkey-matchers'
-
-// The Esc cascade closes the topmost overlay one press each.
-function closeTopOverlay(): boolean {
-	if (S.confirmMsg) {
-		S.confirmMsg = ''
-		return true
-	}
-	if (S.sendOpen) {
-		S.sendOpen = false
-		S.sendNote = ''
-		return true
-	}
-	if (S.settingsOpen) {
-		S.settingsOpen = false
-		return true
-	}
-	// The Reset dropdown is the shallowest overlay - nothing behind it closes.
-	if (S.resetMenuOpen) {
-		S.setResetMenu?.(false)
-		return true
-	}
-	return false
-}
-
-function escape(): void {
-	if (golineActive()) {
-		golineCancel()
-		return
-	}
-	if (closeTopOverlay()) return
-	// Esc clears the query first, so closing the panel (which would discard the search with it) stays a deliberate second press.
-	if (S.notesOpen && S.notesQuery) {
-		S.setNotesQuery?.('')
-		return
-	}
-	if (S.notesOpen) {
-		S.notesOpen = false
-		return
-	}
-	if (S.fileComposerOpen) {
-		closeFileComposer()
-		return
-	}
-	if (S.composerOpen || S.editingCommentId) {
-		cursorReset()
-		closeComposer()
-		return
-	}
-	if (cursorSelection()) {
-		cursorReset()
-		return
-	}
-	// Closes only once every transient surface above it is gone, so Esc dismisses a composer/modal opened over the drawer first.
-	if (S.treeDrawerOpen) S.treeDrawerOpen = false
-}
 
 export const HOTKEYS_NOTES: Hotkey[] = [
 	{
@@ -161,6 +104,14 @@ export const HOTKEYS_APP: Hotkey[] = [
 		run: () => S.startGuided?.(),
 	},
 	{
+		combo: '↵',
+		desc: 'Open the code of the domain',
+		group: 'Navigate',
+		test: enter,
+		when: inDomainPage,
+		run: () => S.openCode?.(),
+	},
+	{
 		combo: '⇧H',
 		desc: 'Hide approved changes (multi-round)',
 		group: 'View',
@@ -188,11 +139,15 @@ export const HOTKEYS_APP: Hotkey[] = [
 	},
 	{
 		combo: '⇧B',
-		desc: 'Files drawer (narrow screens)',
+		desc: 'Show / hide the file tree',
 		group: 'View',
 		when: navigable,
 		test: shift('B'),
-		run: () => (S.treeDrawerOpen = !S.treeDrawerOpen),
+		run: () => {
+			if (window.matchMedia(queries.tablet).matches)
+				S.treeDrawerOpen = !S.treeDrawerOpen
+			else toggleTree()
+		},
 	},
 	{
 		combo: '⇧R',

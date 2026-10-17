@@ -42,13 +42,16 @@ export interface ChromeStoreView {
 	sendNote: string
 	sidebarTab: 'tree' | 'walkthrough'
 	treeDrawerOpen: boolean
+	treeFolded: boolean
 	fileView: 'rendered' | 'source'
 	diffScrolled: boolean
 	domainId: string | null
 	guidePaneOpen: boolean
+	codeOpen: boolean
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	markdownTick: number
+	cursorTick: number
 	domainComposer: { domainId: string; blockId?: string | undefined } | null
 	domainComposerBody: string
 
@@ -89,6 +92,10 @@ export interface ChromeStoreView {
 	guideStale?(): boolean
 	openOverview?(): void
 	startGuided?(): void
+	openCode?(): void
+	closeCode?(): void
+	filePosition?(): { index: number | null; total: number } | null
+	changePosition?(): { index: number | null; total: number } | null
 	showGuideBar?(): boolean
 	curFileName?(): string
 	guideNext?(): void

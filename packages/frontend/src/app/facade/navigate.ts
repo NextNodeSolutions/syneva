@@ -2,6 +2,7 @@ import { currentFileOrNull, fileFinished } from '@entities/review/changes'
 import { fetchPreviewFile } from '@entities/review/file/api'
 import { peekContents, prefetchContents } from '@entities/review/file/contents'
 import { defaultFileView } from '@entities/review/file/file-summary'
+import { domainsOwningPath } from '@entities/review/guide/domains'
 import { guideInputs, hasGuide, navOrder } from '@entities/review/guide/guide'
 import { nextUnreviewed } from '@entities/review/guide/seek'
 import { deferRender, render } from '@pages/desk/render'
@@ -10,6 +11,13 @@ import { cursorReset } from '@widgets/diff-view/cursor'
 import { D } from '@widgets/diff-view/runtime'
 
 import { S, toast } from '../store'
+
+import {
+	enterCode,
+	foldTreeForCode,
+	isReading,
+	moveLayout,
+} from './layout-motion'
 
 import type { FileRow } from '@entities/review/file/tree-rows'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
@@ -45,7 +53,8 @@ function installSpanJump(): void {
 			return
 		}
 		const shown = currentFileOrNull(state.files, S.preview, S.fileIndex)
-		const isShown = shown?.path === span.path && !S.overviewOpen
+		const isShown =
+			shown?.path === span.path && !S.overviewOpen && S.codeOpen
 		if (!isShown) S.selectFile?.(index)
 		// A cited line lives in the source rows: the rendered Markdown view has none to land on.
 		if (S.fileView === 'rendered') {
@@ -60,22 +69,37 @@ function installSpanJump(): void {
 // Bumped by every selection that replaces the rendered file and by every preview request; an in-flight preview whose token is no longer current is discarded, so a late response can't overwrite a newer selection.
 let navGeneration = 0
 
+function selectFile(i: number): void {
+	const { state } = S
+	if (i < 0 || !state?.files[i]) return
+	S.treeDrawerOpen = false
+	// The file already on screen as the diff stays as it is: a second click on its row would drop the cursor and rebuild the diff for nothing.
+	if (i === S.fileIndex && !S.preview && S.codeOpen && !S.overviewOpen) return
+	navGeneration++ // invalidate any in-flight preview for the file being left
+	S.overviewOpen = false
+	S.codeOpen = true
+	S.preview = null
+	S.diffScrolled = false // the new file renders at the top (see render.ts) - hide the floating action
+	S.fileIndex = i
+	S.fileView = defaultFileView(state.files[i], S.settings.markdownView)
+	followFile(state, state.files[i].path)
+	D.fileDiff = null
+	cursorReset()
+	deferRender()
+	warmNextFile()
+}
+
+// The explanation beside the code is the file's: a file opened from the tree or by the file keys switches it to the first domain that owns the file, unless the current one does. A file no domain owns keeps the explanation as it was.
+function followFile(state: ReviewState, path: string): void {
+	const owners = domainsOwningPath(state.guide, path)
+	if (!owners.length || owners.some(domain => domain.id === S.domainId))
+		return
+	S.domainId = owners[0]?.id ?? S.domainId
+}
+
 function installFileSelection(): void {
-	S.selectFile = i => {
-		const { state } = S
-		if (i < 0 || !state?.files[i]) return
-		navGeneration++ // invalidate any in-flight preview for the file being left
-		S.treeDrawerOpen = false
-		S.overviewOpen = false
-		S.preview = null
-		S.diffScrolled = false // the new file renders at the top (see render.ts) - hide the floating action
-		S.fileIndex = i
-		S.fileView = defaultFileView(state.files[i], S.settings.markdownView)
-		D.fileDiff = null
-		cursorReset()
-		deferRender()
-		warmNextFile()
-	}
+	// From the reading, a file opens as the one motion (layout-motion); from the code it is the plain switch.
+	S.selectFile = i => enterCode(() => selectFile(i))
 	S.previewFile = path => {
 		void openPreview(path)
 	}
@@ -90,11 +114,22 @@ export async function openPreview(
 	const preview = await readPreviewFile(path, side)
 	if (gen !== navGeneration) return
 	if (!preview) return
-	if (jump) setPendingJump(jump)
-	S.overviewOpen = false
-	S.preview = preview
-	D.fileDiff = null
-	cursorReset()
+	const show = (): void => {
+		if (jump) setPendingJump(jump)
+		S.overviewOpen = false
+		S.codeOpen = true
+		S.preview = preview
+		D.fileDiff = null
+		cursorReset()
+	}
+	if (isReading()) {
+		await moveLayout(() => {
+			foldTreeForCode()
+			show()
+		})
+		return
+	}
+	show()
 	await render()
 }
 
@@ -146,7 +181,24 @@ async function warmFile(file: ReviewFile): Promise<void> {
 	}
 }
 
+// Where the shown file stands in the order the file keys walk: the walkthrough's, or the tree's rows; a preview has no place in either.
+function filePosition(): { index: number | null; total: number } | null {
+	if (!S.state) return null
+	const shown = currentFileOrNull(S.state.files, S.preview, S.fileIndex)
+	if (walkthroughActive()) {
+		const order = navOrder(guideInputs(S))
+		const at = S.preview ? -1 : order.indexOf(S.fileIndex)
+		return { index: at >= 0 ? at + 1 : null, total: order.length }
+	}
+	const rows = (S.treeRows?.() ?? []).filter(
+		(row): row is FileRow => row.kind === 'file' || row.kind === 'test',
+	)
+	const at = rows.findIndex(row => row.path === shown?.path)
+	return { index: at >= 0 ? at + 1 : null, total: rows.length }
+}
+
 function installFileStepping(): void {
+	S.filePosition = filePosition
 	// One dispatch for "open the file this tree row points at": stepInView's tree fallthrough and the explicit tree-order keys share it, so the two can never drift apart.
 	const openTreeRow = (dir: 1 | -1): void => {
 		const row = nextInTree(dir)

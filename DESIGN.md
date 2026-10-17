@@ -232,7 +232,7 @@ Each signal is a triad — text tone, tint fill, rule — and a surface that car
 
 ### Neutral
 
-- **Paper** (#f6f6f0): the chrome's ground — top bar, sidebar, guide bar, notes panel, file headers; the hub's sidebar and its page ground.
+- **Paper** (#f6f6f0): the chrome's ground — top bar, sidebar, position strip, notes panel, file headers; the hub's sidebar and its page ground.
 - **White** (#ffffff): reading surfaces and tiles — the diff canvas, thread and composer cards, fields, dialogs, menus, outlined controls; the hub's stations, cards, stat tiles and popovers.
 - **Field** (#eef0e7): hover rows and quiet controls under the pointer, a nav entry under the pointer.
 - **Grid** (#e4e7dc): the ruled grid field behind the desk's page-like states (the overview, the closed-desk cover) and under the hub's circuit band, as a 24px field.
@@ -294,7 +294,9 @@ The hub runs a step larger than the desk: it is read in one look between two pie
 
 A fixed application frame, not a scrolling page: a 48px top bar above the workspace (`--left-width` tree | 1px resizable rule | diff column | optional notes column at `--notes-width`). Every column scrolls on its own; the desk does not.
 
-Bars that touch share a height: the sidebar's tab strip, the guide bar and the notes head are 40px (`deskSize.subbar`), so their bottom rules read as one line across the seams. The churn counts (+added / −removed) keep a 5px gap on every surface that prints them.
+Bars that touch share a height: the sidebar's tab strip, the position strip and the notes head are 40px (`deskSize.subbar`), so their bottom rules read as one line across the seams. The churn counts (+added / −removed) keep a 5px gap on every surface that prints them.
+
+The position strip, under the top bar on a guided desk, is the one place the reading's moves live: the project level, then each level the reviewer is in as a name and a count (domain 1/9 · file 2/10 · change 4/8) with a step either side; the file and change levels appear once the code is open, and the strip's far end holds what acts on the code (the file comment, the explanation's toggle). Only the digits change a group's width, so a step stays under the pointer across repeated clicks. The explanation's head keeps a single move, Back, shown only when there is somewhere to go back to.
 
 Below 1100px (`media.tablet`) the tree and the notes panel leave the grid and return as drawers under the top bar, over a paper scrim.
 
@@ -334,7 +336,7 @@ The hub keeps every corner square. The circuit's stations are ruled white tiles 
 
 Controls compose the design system's recipes (`@syneva/design-system/controls.styles`: `control.base` + a tone, `field`, `caption`, `tag`, `dot`) with the desk's sizes and review tones (`deskControl`).
 
-- **Buttons.** Compact (28px) in the top bar and dialogs, mini (22px) inside rows. Tones: `primary` (solid petrol: Send to agent, confirm), `outlined` (white tile, strong rule, petrol on hover), `quiet` (no tile until hovered), `ask` / `request` / `resolve` / `caution` (the review's tints), `keep` (solid green verdict) and `undo` (a plain tile — removing a change is a decision, not a warning), `dangerHint` (destructive intent shows only under the pointer). Every action that has a key carries its kbd chip.
+- **Buttons.** Compact (28px) in the top bar and dialogs, mini (22px) inside rows. Tones: `primary` (solid petrol: Send to agent, confirm), `outlined` (white tile, strong rule, petrol on hover), `quiet` (no tile until hovered), `ask` / `request` / `resolve` / `caution` (the review's tints), `keep` (solid green verdict) and `undo` (a plain tile — removing a change is a decision, not a warning), `dangerHint` (destructive intent shows only under the pointer). Every action that has a key carries its kbd chip; the position strip's steps are the exception, naming their key in the tooltip so a group's width holds.
 - **Segmented register.** A ruled white tile of exclusive choices (Split / Stacked, Rendered / Source, a notes lens); the chosen one sits on the petrol wash.
 - **Tabs.** Underlined, the chosen one ruled in petrol on the strip's bottom rule (Tree / Walkthrough, Settings / Shortcuts).
 - **Tags and counts.** Square mono text on its tint (`tag`): a thread's intent, a note's status, an open count.

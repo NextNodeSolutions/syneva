@@ -9,12 +9,15 @@ export const diffArea = stylex.create({
 		minHeight: 0,
 		display: 'flex',
 	},
+	hidden: { display: 'none' },
 	scroller: {
 		position: 'relative',
 		flex: '1',
 		minHeight: 0,
 		minWidth: 0,
 		overflow: 'auto',
+		// The file's name bar is pinned at the top of this scroller (file-header.styles): a row scrolled into view lands under its edge, not under the bar.
+		scrollPaddingTop: '42px',
 		backgroundColor: color['--white'],
 		fontFamily: font['--sans'],
 		fontSize: deskVars['--code-size'],
