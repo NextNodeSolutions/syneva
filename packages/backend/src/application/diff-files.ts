@@ -152,8 +152,17 @@ async function stampFile(
 	}
 }
 
-// The title and stableKey are what the UI groups by and Decision keys on: derived once, here.
-function changeForBlock(input: {
+// Where a block anchored on the new side removes from: only a block with both sides records it.
+function removedFrom(
+	firstAdd: DiffLine | undefined,
+	firstDelete: DiffLine | undefined,
+): { removedLine: number } | undefined {
+	if (!firstAdd || !firstDelete?.oldLine) return undefined
+	return { removedLine: firstDelete.oldLine }
+}
+
+// The title and stableKey are what the UI groups by and Decision keys on: derived once, here, for git's blocks and for the pieces the hub cuts them into (change-split.ts).
+export function changeForBlock(input: {
 	filePath: string
 	hunk: DiffHunk
 	hunkIndex: number
@@ -175,6 +184,7 @@ function changeForBlock(input: {
 		lineNumber,
 		// The block's last line on its side: what a guide's member or reference overlaps.
 		endLine: lineNumber + Math.max(firstAdd ? added : removed, 1) - 1,
+		...removedFrom(firstAdd, firstDelete),
 		stableKey,
 		stageable: input.isStageable,
 		contentHash: hash(changeBlockContent(input.block)),

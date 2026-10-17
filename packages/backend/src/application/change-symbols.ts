@@ -1,8 +1,7 @@
-// Every changed block named by the code it sits in: both sides of each outlined file read in one batch (the revisions the diff was taken over), parsed once per content, and each block mapped to its enclosing declaration.
+// Every changed block named by the code it sits in: both sides of each outlined file read in one batch (the revisions the diff was taken over), parsed once per content (side-outlines.ts), each block cut at the declarations it crosses (change-split.ts) and mapped to its enclosing declaration.
 import path from 'node:path'
 
 import { changeKey } from '../domain/change-blocks.js'
-import { hash } from '../domain/identity.js'
 import {
 	blockDeclarations,
 	changeTrivia,
@@ -11,40 +10,17 @@ import {
 import { symbolLinks } from '../domain/symbol-links.js'
 import { symbolOnSides } from '../domain/symbol-sides.js'
 
+import { splitChanges } from './change-split.js'
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
 import { needsRemovedSide, removedSpan, withTrivia } from './replaced-trivia.js'
+import { outlineFor, sideKey } from './side-outlines.js'
 
-import type { ChangeTrivia, SourceOutline } from '../domain/outline.js'
+import type { ChangeTrivia } from '../domain/outline.js'
 import type { ChangeState, ReviewFile, ReviewState } from '../domain/review.js'
 import type { LinkSource } from '../domain/symbol-links.js'
 import type { GitPort } from './ports.js'
-
-type Side = ChangeState['side']
-type SideTexts = Map<string, string>
-
-function sideKey(side: Side, filePath: string): string {
-	return `${side}\0${filePath}`
-}
-
-// Process-global: a reload re-reads the sides but re-parses only what changed (the key is the content's hash), and two desks over one repo share the work.
-const OUTLINE_CACHE_CAP = 2000
-const outlineCache = new Map<string, SourceOutline | null>()
-
-function outlineOf(
-	filePath: string,
-	text: string,
-	git: GitPort,
-): SourceOutline | null {
-	const key = `${outlineLanguage(filePath)}\0${hash(text)}`
-	if (outlineCache.has(key)) return outlineCache.get(key) ?? null
-	const outline = git.parser.outline(filePath, text)
-	outlineCache.set(key, outline)
-	const oldest = outlineCache.keys().next().value
-	if (outlineCache.size > OUTLINE_CACHE_CAP && oldest)
-		outlineCache.delete(oldest)
-	return outline
-}
+import type { Side, SideTexts } from './side-outlines.js'
 
 // Both sides of every outlined file a block changes: a block is named on its own side, and its declaration is looked up on the other side too, so the desk can read the brick before and after (a side that does not exist, an added or deleted file's, reads as missing). Oversized files stay unnamed: parsing them would cost what their summary card saves.
 function wantedSides(state: ReviewState): Map<ReviewFile, Set<Side>> {
@@ -137,17 +113,6 @@ async function readFileDeskSides(
 	)
 }
 
-function outlineFor(
-	side: Side,
-	filePath: string,
-	texts: SideTexts,
-	git: GitPort,
-): SourceOutline | null {
-	const text = texts.get(sideKey(side, filePath))
-	if (!text) return null
-	return outlineOf(filePath, text, git)
-}
-
 // A replacement block is trivia only when what it removes is too: `runTask()` turned into `// runTask()` adds a comment but deletes code. Import outranks comment, as in changeTrivia.
 function replacedTrivia(
 	state: ReviewState,
@@ -227,7 +192,7 @@ async function oldSidesFor(
 	return await removedSides(state, pending, git)
 }
 
-// The blocks named, then linked: each block learns which other changed declarations its own declaration references.
+// The blocks cut at their declarations, named, then linked: each block learns which other changed declarations its own declaration references.
 export async function nameChanges(
 	state: ReviewState,
 	git: GitPort,
@@ -237,7 +202,9 @@ export async function nameChanges(
 		state.mode === 'file'
 			? await readFileDeskSides(state, git)
 			: await readSides(state, wantedSides(state), git)
-	const named = state.changes.map(change => namedChange(change, texts, git))
+	const named = splitChanges(state, texts, git).map(change =>
+		namedChange(change, texts, git),
+	)
 	const links = symbolLinks(named.flatMap(entry => entry.link ?? []))
 	const changes = named.map(entry => entry.change)
 	const oldTexts = await oldSidesFor(
