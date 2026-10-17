@@ -1,6 +1,11 @@
+import { CHANGE_WORDS } from '@shared/ui/change-mark.styles'
 import * as stylex from '@stylexjs/stylex'
 
-import type { ModelElementKind } from '@entities/review/guide/system-model'
+import type { ChangeMark } from '@entities/review/guide/model'
+import type {
+	ModelElement,
+	ModelElementKind,
+} from '@entities/review/guide/system-model'
 import type { StaticStyle } from '@shared/lib/cx'
 import type { ReactElement } from 'react'
 
@@ -25,6 +30,20 @@ const PATHS: Record<ModelElementKind, string> = {
 	store: 'M2.5 3.5c0-1 2-1.8 4.5-1.8s4.5.8 4.5 1.8-2 1.8-4.5 1.8-4.5-.8-4.5-1.8v7c0 1 2 1.8 4.5 1.8s4.5-.8 4.5-1.8v-7',
 	queue: 'M3.5 4.5h7a2.5 2.5 0 0 1 0 5h-7a2.5 2.5 0 0 1 0-5zM5.5 7h3',
 	external: 'M8 1.5h4.5V6M12.5 1.5 6.5 7.5M10.5 9v3.5h-9v-9H5',
+}
+
+// What a screen reader hears for a part: its name, its kind, what the change does to it (on a raised drawing, the change its floor shows).
+export function spokenName(
+	element: ModelElement,
+	change: ChangeMark | undefined = element.change,
+): string {
+	return [
+		element.label,
+		KIND_WORDS[element.kind],
+		change && CHANGE_WORDS[change],
+	]
+		.filter(Boolean)
+		.join(', ')
 }
 
 export function KindGlyph({

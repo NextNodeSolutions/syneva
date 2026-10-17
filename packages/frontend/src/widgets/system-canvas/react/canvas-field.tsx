@@ -8,6 +8,7 @@ import {
 	ReactFlow,
 	useReactFlow,
 	useStore,
+	useStoreApi,
 } from '@xyflow/react'
 
 import { layoutCanvas } from '../layout/canvas-layout'
@@ -30,6 +31,10 @@ import type { Scene } from '../layout/scene'
 const GRID = 24
 const FIT = { padding: 0.06, maxZoom: 1 }
 
+// What a screen reader hears after a part's name: the keys that work on it. React Flow's own words speak of moving and deleting nodes, which nothing here does, and it reads its keyboard-disabled words while the keyboard is on, so both say the same.
+const PART_KEYS =
+	'Enter or Space selects the part and shows it under the drawing; Escape clears the selection.'
+
 // Nothing moves or wires: the drawing is ELK's. Drag pans, a pinch or Ctrl and the wheel zoom, the wheel alone keeps scrolling the overview.
 const FLOW = {
 	nodeTypes: { element: ElementNode, container: ContainerNode },
@@ -50,17 +55,42 @@ const FLOW = {
 	deleteKeyCode: null,
 	selectionKeyCode: null,
 	multiSelectionKeyCode: null,
+	ariaLabelConfig: {
+		'node.a11yDescription.default': PART_KEYS,
+		'node.a11yDescription.keyboardDisabled': PART_KEYS,
+	},
 } as const
 
+const paneWidth = (state: ReactFlowState): number => state.width
 const paneHeight = (state: ReactFlowState): number => state.height
+const flowNode = (state: ReactFlowState): HTMLDivElement | null => state.domNode
 
-// React Flow fits the drawing once, on its first measure: a field that grows or shrinks with the window fits it again.
+// Esc on a part clears the selection and leaves the focus on the part. React Flow's own Escape blurs the part, dropping the keyboard out of the drawing, and selects a part that was not selected; this listener takes the key on its way down to the part, before React Flow sees it, and the key ends there.
+function EscapeClears(): null {
+	const store = useStoreApi()
+	const flow = useStore(flowNode)
+	useEffect(() => {
+		const clear = (event: KeyboardEvent): void => {
+			const { target } = event
+			if (event.key !== 'Escape' || !(target instanceof Element)) return
+			if (!target.closest('[data-id]')) return
+			event.stopPropagation()
+			store.getState().unselectNodesAndEdges()
+		}
+		flow?.addEventListener('keydown', clear, true)
+		return () => flow?.removeEventListener('keydown', clear, true)
+	}, [flow, store])
+	return null
+}
+
+// React Flow fits the drawing once, on its first measure: a field that grows or shrinks with the window fits it again, across as well as down. A drawing that fits at full size keeps the field's height as the window narrows, so a refit on the height alone left it at its old offset, cut at the field's right edge.
 function RefitOnResize(): null {
+	const width = useStore(paneWidth)
 	const height = useStore(paneHeight)
 	const { fitView } = useReactFlow()
 	useEffect(() => {
-		if (height > 0) void fitView(FIT)
-	}, [fitView, height])
+		if (width > 0 && height > 0) void fitView(FIT)
+	}, [fitView, width, height])
 	return null
 }
 
@@ -123,6 +153,7 @@ export function CanvasField({
 					patternClassName={cx(canvas.gridLine)}
 				/>
 				<RefitOnResize />
+				<EscapeClears />
 			</ReactFlow>
 		</div>
 	)

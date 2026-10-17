@@ -1,25 +1,24 @@
 import * as stylex from '@stylexjs/stylex'
 
 import { linkText } from '../layout/scene'
-import { project } from '../projection/camera'
 
 import { useCanvasActions } from './canvas-actions'
-import { isLinkWorded, useCanvasFocus } from './canvas-focus'
+import { useCanvasFocus } from './canvas-focus'
 import { ChangeTag } from './change-tag'
 import { DomainNumbers } from './domain-numbers'
-import { KIND_WORDS, KindGlyph } from './kind-glyph'
+import { KindGlyph, spokenName } from './kind-glyph'
 import { link as linkStyles } from './link.styles'
-import { nameAnchor, slabCorner } from './name-anchor'
+import { slabCorner } from './name-anchor'
 import { projection as styles } from './projection.styles'
-import { nameBox, wordsAt } from './words-place'
+import { raisedLabels } from './raised-labels'
 
-import type { ReactElement } from 'react'
+import type { KeyboardEvent, ReactElement } from 'react'
 import type { Selection } from '../model'
-import type { Deck, Raised, RaisedLink, RaisedPart } from '../projection/raised'
+import type { Deck, Raised, RaisedPart } from '../projection/raised'
+import type { NameLabel, WordsLabel } from './raised-labels'
 import type { View } from './solid-shape'
-import type { Box } from './words-place'
 
-// The name's button: the part's kind, name and change, spoken with the deck it is on.
+// The name's button: the part's kind, name and change, spoken as on the plan, then the floor it stands on.
 function NameButton({
 	part,
 	deck,
@@ -32,17 +31,18 @@ function NameButton({
 	onSelect: () => void
 }): ReactElement {
 	const { element } = part
-	const where = deck.name ? `, ${deck.name}` : ''
+	const where = deck.name ? `, on the ${deck.name} floor` : ''
 	return (
 		<button
 			type="button"
 			aria-pressed={isSelected}
-			aria-label={`${element.label}, ${KIND_WORDS[element.kind]}${where}`}
+			aria-label={`${spokenName(element, part.mark)}${where}`}
 			onClick={onSelect}
 			{...stylex.props(styles.nameButton)}
 		>
 			<KindGlyph kind={element.kind} />
 			<span
+				title={element.label}
 				{...stylex.props(
 					styles.nameText,
 					part.mark === 'removed' && styles.struck,
@@ -55,28 +55,18 @@ function NameButton({
 	)
 }
 
-// A changed block that wears no numbers on a face carries them after its name, outside the name's button (a button holds no other).
-function hasNumbers(part: RaisedPart): boolean {
-	return !part.solid.isPlatform && Boolean(part.mark) && !part.isNumbered
-}
-
+// A part's name where the labels' layout set it, its domains' numbers after it (outside the name's button: a button holds no other) when no face carries them.
 function PartName({
-	part,
-	deck,
-	view,
+	label,
 	selection,
-	rank,
 }: {
-	part: RaisedPart
-	deck: Deck
-	view: View
+	label: NameLabel
 	selection: Selection
-	rank: number
 }): ReactElement {
 	const focus = useCanvasFocus()
 	const actions = useCanvasActions()
+	const { part, at, lift } = label
 	const { id } = part.element
-	const anchor = nameAnchor(part, deck.isHanging, view)
 	const tone = focus.toneOf(id)
 	const isSelected = selection.selected === id
 	return (
@@ -86,10 +76,10 @@ function PartName({
 			{...stylex.props(
 				styles.name,
 				part.solid.isPlatform && styles.plaque,
-				anchor.isUnder
-					? styles.under(anchor.at.x, anchor.at.y)
-					: styles.above(anchor.at.x, anchor.at.y),
-				styles.stack(rank),
+				label.isUnder
+					? styles.under(at.x, at.y + lift)
+					: styles.above(at.x, at.y + lift),
+				styles.stack(label.rank),
 				part.isQuiet && styles.nameQuiet,
 				tone === 'lit' && styles.nameLit,
 				tone === 'dim' && styles.nameDim,
@@ -98,42 +88,30 @@ function PartName({
 		>
 			<NameButton
 				part={part}
-				deck={deck}
+				deck={label.deck}
 				isSelected={isSelected}
 				onSelect={() => selection.onSelect(id)}
 			/>
-			{hasNumbers(part) && (
+			{label.hasNumbers && (
 				<DomainNumbers domains={focus.domainsOf(part.element)} />
 			)}
 		</span>
 	)
 }
 
-// A link's words on the stretch of its route no name covers (words-place.ts): a step's number always, its words when the link is news or looked at. A step stacks over every name (the path is what a dynamic view is for); other words go under them.
+// A link's step number and words where the labels' layout set them, over every name: a stretch no name covers, or, for words the reviewer looks at or a step's number with no free stretch, the one least covered. A route with no point for its words says nothing at all: a link ELK gave no label, and every link of the 3D view's far floor, which steps back silent.
 function LinkWords({
-	raised,
-	view,
+	label,
 	over,
-	names,
 }: {
-	raised: RaisedLink
-	view: View
-	// The stack a step's words take, above every name.
+	label: WordsLabel
+	// The stack the words take, above every name.
 	over: number
-	names: readonly Box[]
-}): ReactElement | null {
+}): ReactElement {
 	const focus = useCanvasFocus()
-	const { link, route } = raised
+	const { raised, at } = label
+	const { link } = raised
 	const tone = focus.linkTone(link)
-	const isWorded = raised.isWorded || isLinkWorded(link, tone)
-	if (!isWorded && !link.step) return null
-	const at = wordsAt(
-		route.label && project(view.camera, view.floor, route.label),
-		route.points.map(point => project(view.camera, view.floor, point)),
-		linkText(link),
-		names,
-	)
-	if (!at) return null
 	return (
 		<span
 			{...stylex.props(
@@ -142,15 +120,13 @@ function LinkWords({
 				(Boolean(raised.mark) || tone === 'lit') && linkStyles.labelLit,
 				raised.isQuiet && styles.nameQuiet,
 				tone === 'dim' && linkStyles.labelDim,
-				Boolean(link.step) && styles.stack(over),
+				styles.stack(over),
 			)}
 		>
 			{link.step && (
 				<span {...stylex.props(linkStyles.number)}>{link.step}</span>
 			)}
-			{isWorded && (
-				<span {...stylex.props(styles.nameText)}>{linkText(link)}</span>
-			)}
+			{label.hasWords && <span>{linkText(link)}</span>}
 		</span>
 	)
 }
@@ -175,32 +151,7 @@ function DeckName({
 	)
 }
 
-type Named = { part: RaisedPart; deck: Deck }
-
-// The named parts, their stacking by nearness (a nearer name overlaps a farther one) and the boxes their chips take, which the links' words keep off.
-function namedParts(
-	raised: Raised,
-	view: View,
-): { named: Named[]; ranks: Map<string, number>; names: Box[] } {
-	const named = raised.decks.flatMap(deck =>
-		deck.parts.filter(part => part.isNamed).map(part => ({ part, deck })),
-	)
-	const anchored = named.map(entry => ({
-		entry,
-		anchor: nameAnchor(entry.part, entry.deck.isHanging, view),
-	}))
-	const ranks = new Map(
-		anchored
-			.toSorted((a, b) => a.anchor.at.depth - b.anchor.at.depth)
-			.map(({ entry }, rank) => [entry.part.key, rank]),
-	)
-	const names = anchored.map(({ entry, anchor }) =>
-		nameBox(anchor.at, entry.part.element.label, anchor.isUnder),
-	)
-	return { named, ranks, names }
-}
-
-// The names over the raised drawing, each part's a button: Tab reaches every named part, Enter selects it.
+// The names over the raised drawing, each part's a button: Tab reaches every named part, Enter selects it, Esc clears the selection and the focus stays on the name (with nothing selected, Esc goes on to the desk).
 export function RaisedNames({
 	raised,
 	view,
@@ -210,33 +161,30 @@ export function RaisedNames({
 	view: View
 	selection: Selection
 }): ReactElement {
-	const links = [
-		...raised.decks.flatMap(deck => deck.links),
-		...raised.overlay,
-	]
-	const { named, ranks, names } = namedParts(raised, view)
+	const focus = useCanvasFocus()
+	const { names, words } = raisedLabels(raised, view, focus)
+	const clear = (event: KeyboardEvent): void => {
+		if (event.key !== 'Escape' || !selection.selected) return
+		event.stopPropagation()
+		selection.onSelect(null)
+	}
 	return (
-		<div {...stylex.props(styles.names)}>
+		<div onKeyDown={clear} {...stylex.props(styles.names)}>
 			{raised.decks.map(deck => (
 				<DeckName key={deck.id} deck={deck} view={view} />
 			))}
-			{links.map(entry => (
+			{words.map(label => (
 				<LinkWords
-					key={entry.key}
-					raised={entry}
-					view={view}
-					over={named.length}
-					names={names}
+					key={label.raised.key}
+					label={label}
+					over={names.length}
 				/>
 			))}
-			{named.map(({ part, deck }) => (
+			{names.map(label => (
 				<PartName
-					key={part.key}
-					part={part}
-					deck={deck}
-					view={view}
+					key={label.part.key}
+					label={label}
 					selection={selection}
-					rank={ranks.get(part.key) ?? 0}
 				/>
 			))}
 		</div>

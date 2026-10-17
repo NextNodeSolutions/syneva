@@ -1,3 +1,4 @@
+import { isMotionReduced } from '@shared/lib/motion'
 import { Button } from '@shared/ui/button'
 import { deskControl } from '@shared/ui/desk-control.styles'
 import { tip } from '@shared/ui/tip.styles'
@@ -14,7 +15,12 @@ import type { Projection } from '../model'
 import type { CanvasScene } from './use-canvas-scene'
 import type { OrbitHold } from './use-orbit'
 
-const ZOOM = { duration: 160 }
+const ZOOM_MS = 160
+
+// The plan's zoom eases, unless the reviewer asked for less motion: then it jumps, as the 3D view's poses do.
+const zoom = (): { duration: number } => ({
+	duration: isMotionReduced() ? 0 : ZOOM_MS,
+})
 
 function Zoom(): ReactElement {
 	const flow = useReactFlow()
@@ -24,7 +30,7 @@ function Zoom(): ReactElement {
 				size="small"
 				css={[deskControl.mini, deskControl.iconMini]}
 				aria-label="Zoom out"
-				onClick={() => void flow.zoomOut(ZOOM)}
+				onClick={() => void flow.zoomOut(zoom())}
 			>
 				<ZoomGlyph isIn={false} />
 			</Button>
@@ -32,14 +38,14 @@ function Zoom(): ReactElement {
 				size="small"
 				css={[deskControl.mini, deskControl.iconMini]}
 				aria-label="Zoom in"
-				onClick={() => void flow.zoomIn(ZOOM)}
+				onClick={() => void flow.zoomIn(zoom())}
 			>
 				<ZoomGlyph isIn />
 			</Button>
 			<Button
 				size="small"
 				css={deskControl.mini}
-				onClick={() => void flow.fitView({ ...ZOOM, padding: 0.06 })}
+				onClick={() => void flow.fitView({ ...zoom(), padding: 0.06 })}
 			>
 				Fit
 			</Button>
@@ -47,7 +53,7 @@ function Zoom(): ReactElement {
 	)
 }
 
-// Three projections, three purposes, each said in its tooltip: the map that leads into the review, the tiers that place the change in the architecture, the two floors that show what it does to the system.
+// Three projections, three purposes, each said in its tooltip and after its name to a screen reader (the name it shows comes first, so a voice command that says it finds it): the map that leads into the review, the tiers that place the change in the architecture, the two floors that show what it does to the system.
 const PROJECTIONS: { id: Projection; title: string; purpose: string }[] = [
 	{
 		id: 'plan',
@@ -87,7 +93,7 @@ function Projections({
 					key={entry.id}
 					size="small"
 					aria-pressed={entry.id === projection}
-					aria-label={entry.purpose}
+					aria-label={`${entry.title}, ${entry.purpose}`}
 					data-tip={entry.purpose}
 					css={[
 						deskControl.mini,
@@ -113,11 +119,11 @@ export function CanvasToolbar({
 	views: readonly ModelView[]
 	current: Pick<
 		CanvasScene,
-		'view' | 'onView' | 'projection' | 'onProjection'
+		'viewId' | 'onView' | 'projection' | 'onProjection'
 	>
 	hold: OrbitHold
 }): ReactElement {
-	const viewId = current.view?.id ?? null
+	const { viewId } = current
 	const tabs = [
 		{ id: null, title: 'System' },
 		...views.map(view => ({ id: view.id, title: view.title })),

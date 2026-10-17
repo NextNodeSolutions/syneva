@@ -16,7 +16,8 @@ import type { RaisedPart } from '../projection/raised'
 import type { Solid } from '../projection/solids'
 import type { Tone } from './canvas-focus'
 
-export type View = { camera: Camera; floor: Size }
+// How a raised drawing is seen: the camera, the floor it looks at, and the field it is framed in.
+export type View = { camera: Camera; floor: Size; field: Size }
 
 const FILL = { top: styles.top, side: styles.side, end: styles.end }
 const MARK: Record<ChangeMark, Record<FaceKind, StaticStyle>> = {

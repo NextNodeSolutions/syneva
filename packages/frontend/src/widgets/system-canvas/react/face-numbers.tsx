@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 
-import { faceFrame } from '../projection/face-frame'
+import { faceFrame, PLATE, plateLeft, plateTop } from '../projection/face-frame'
 
 import { useCanvasActions } from './canvas-actions'
 import { useCanvasFocus } from './canvas-focus'
@@ -11,10 +11,7 @@ import type { MouseEvent, ReactElement } from 'react'
 import type { Camera, Size } from '../projection/camera'
 import type { RaisedPart } from '../projection/raised'
 
-// In the face's own units: the square a number is painted in, the space between two, and the inset from the face's edge.
-const SQUARE = 22
-const STEP = 27
-const INSET = 10
+// In the face's own units, under the plate's top: the number's baseline.
 const BASELINE = 16
 const HALF = 0.5
 
@@ -31,7 +28,7 @@ export function FaceNumbers({
 	const domains = focus.domainsOf(part.element)
 	if (!domains.length) return null
 	const frame = faceFrame(part.solid, view)
-	const top = Math.max(0, (frame.height - SQUARE) * HALF)
+	const top = plateTop(frame.height)
 	const open = (event: MouseEvent, id: string): void => {
 		event.stopPropagation()
 		actions.onOpen(id)
@@ -48,14 +45,14 @@ export function FaceNumbers({
 				>
 					<title>{domainTitle(domain)}</title>
 					<rect
-						x={INSET + index * STEP}
+						x={plateLeft(index)}
 						y={top}
-						width={SQUARE}
-						height={SQUARE}
+						width={PLATE.square}
+						height={PLATE.square}
 						{...stylex.props(faceNumber.square)}
 					/>
 					<text
-						x={INSET + index * STEP + SQUARE * HALF}
+						x={plateLeft(index) + PLATE.square * HALF}
 						y={top + BASELINE}
 						{...stylex.props(faceNumber.text)}
 					>

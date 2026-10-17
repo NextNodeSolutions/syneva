@@ -55,6 +55,7 @@ function liftSolid(solid: Solid, frame: Frame): Solid {
 	}
 }
 
+// The far floor's routes lose their words' point, so the floor says nothing.
 function liftRoute(route: Route, frame: Frame): Route {
 	const at = (point: Point3): Point3 => ({
 		x: point.x,
