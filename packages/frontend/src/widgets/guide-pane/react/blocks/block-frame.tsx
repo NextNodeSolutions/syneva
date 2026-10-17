@@ -19,6 +19,7 @@ const KIND_LABELS: Record<ExplanationBlock['kind'], string> = {
 	sequence: 'Sequence',
 	flow: 'Data flow',
 	'data-model': 'Data model',
+	api: 'API',
 }
 
 function BlockRefs({

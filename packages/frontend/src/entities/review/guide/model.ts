@@ -139,6 +139,29 @@ export type DataModelBlock = BlockBase & {
 	relations: DataRelation[]
 }
 
+export type ApiMethod =
+	| 'GET'
+	| 'POST'
+	| 'PUT'
+	| 'PATCH'
+	| 'DELETE'
+	| 'EVENT'
+	| 'COMMAND'
+	| 'RPC'
+
+export type ApiEndpoint = {
+	id: string
+	method: ApiMethod
+	path: string
+	summary?: string | undefined
+	change?: ChangeMark | undefined
+	ref?: string | undefined
+	request?: DataField[] | undefined
+	response?: DataField[] | undefined
+}
+
+export type ApiBlock = BlockBase & { kind: 'api'; endpoints: ApiEndpoint[] }
+
 export type ExplanationBlock =
 	| ProseBlock
 	| BeforeAfterBlock
@@ -146,6 +169,7 @@ export type ExplanationBlock =
 	| SequenceBlock
 	| FlowBlock
 	| DataModelBlock
+	| ApiBlock
 
 export type GuideDomain = {
 	id: string

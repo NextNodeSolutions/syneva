@@ -4,6 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import { RefChip } from '../ref-chip'
 
+import { ApiView } from './api-block'
 import { BlockBoundary } from './block-boundary'
 import { BlockFrame } from './block-frame'
 import { block as styles } from './block.styles'
@@ -148,6 +149,12 @@ export function ExplanationBlockView({
 		return (
 			<BlockFrame domain={domain} block={block} actions={actions}>
 				<BeforeAfter domain={domain} block={block} />
+			</BlockFrame>
+		)
+	if (block.kind === 'api')
+		return (
+			<BlockFrame domain={domain} block={block} actions={actions}>
+				<ApiView domain={domain} block={block} />
 			</BlockFrame>
 		)
 	return <DiagramBody domain={domain} block={block} actions={actions} />
