@@ -33,7 +33,7 @@ export function cursorPlace(): CodePlace | undefined {
 	}
 }
 
-// The domain's change the cursor sits in, in reading order, and the brick it belongs to; no index between its blocks or with the code closed.
+// The domain's change the cursor sits in, in reading order, and the brick under the cursor; no index between its blocks or with the code closed.
 export function changePosition(): {
 	index: number | null
 	total: number
@@ -45,10 +45,12 @@ export function changePosition(): {
 	const ordered = orderedDomainChanges(domain, state)
 	const place = cursorPlace()
 	const current = place ? changeAt(ordered, place) : undefined
+	// The brick is the cursor's whichever domain owns its block: the name is the brick view's one control, and f cuts to a block of another domain all the same.
+	const under = place ? changeAt(state.changes, place) : undefined
 	return {
 		index: current ? ordered.indexOf(current) + 1 : null,
 		total: ordered.length,
 		// The brick view names the brick it draws wherever the cursor stands in it, a context row included.
-		brick: D.focus?.brick.name ?? (current ? brickNameOf(current) : null),
+		brick: D.focus?.brick.name ?? (under ? brickNameOf(under) : null),
 	}
 }
