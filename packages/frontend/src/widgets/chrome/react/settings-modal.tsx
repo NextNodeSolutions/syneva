@@ -33,7 +33,7 @@ function ShortcutsPane(): ReactElement {
 					{grp.items.map(binding => (
 						<div
 							{...stylex.props(settings.key)}
-							key={binding.combo}
+							key={`${binding.combo} ${binding.desc}`}
 						>
 							<Kbd keys={binding.combo} />
 							<span>{binding.desc}</span>
