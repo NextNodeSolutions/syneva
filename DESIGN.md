@@ -286,7 +286,7 @@ The hub runs a step larger than the desk: it is read in one look between two pie
 
 **The Two-Voice Rule.** Geist typesets the chrome; Geist Mono typesets anything that is code, a path, a count, a timestamp or a label. No third font. Key hints (kbd) stay in the sans so system key symbols render at cap height.
 
-**The Sentence-Case Rule.** Labels read as sentences, like the site's: "Send to agent", "Mark reviewed", "Load diff anyway".
+**The Sentence-Case Rule.** Labels read as sentences, like the site's: "Send to agent", "Approve", "Load diff anyway".
 
 **The Tabular Figure Rule.** A number that changes under the reviewer's eyes is set in tabular numerals (or in the mono), so a count that ticks never moves the words beside it.
 

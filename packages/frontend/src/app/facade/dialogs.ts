@@ -60,7 +60,7 @@ function reviewReceipt(): string {
 		plural(lines, 'changed line'),
 		comments ? plural(comments, 'comment') : '',
 		questions ? plural(questions, 'question') : '',
-		rejections ? plural(rejections, 'rejected hunk') : '',
+		rejections ? plural(rejections, 'change to undo') : '',
 	]
 		.filter(Boolean)
 		.join(', ')
@@ -89,7 +89,7 @@ function installSendBindings(): void {
 		const extras = [
 			comments ? plural(comments, 'comment') : '',
 			questions ? plural(questions, 'question') : '',
-			rejections ? plural(rejections, 'rejected hunk') : '',
+			rejections ? plural(rejections, 'change to undo') : '',
 		].filter(Boolean)
 		const what = files === 1 ? 'the file' : `all ${files} files`
 		const tail = extras.length ? extras.join(', ') : 'all clean'
