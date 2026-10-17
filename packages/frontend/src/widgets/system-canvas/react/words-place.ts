@@ -1,76 +1,157 @@
-import type { ScreenPoint } from '../projection/camera'
+import { coverOf, isInside, overlaps } from './chip-box'
+import { wordsSize } from './chip-size'
 
-// Where a link's words go on a raised drawing. ELK placed each label for the plan, where nothing floats; on a raised drawing every block's name floats over it (under it, hanging), so words left at ELK's point can land under a name. The words move along their route to the first stretch no name covers: ELK's point first, then the middle of each leg, the longest leg first.
+import type { ScreenPoint, Size } from '../projection/camera'
+import type { Box } from './chip-box'
 
-export type Box = { x: number; y: number; width: number; height: number }
+// Where the links' words go on a raised drawing. ELK placed each label for the plan, where nothing floats; raised, the parts' names float over the blocks, the tiers paint the domains' plates on the fronts, the decks' names stand at their corners, and two links' words can meet. A link's words take the first stretch of its route that none of them covers, and that no words placed before them take: ELK's point first, then the middle of each leg, the longest leg first, then every eighth of the way along each, the nearest the middle first. Where no stretch is free, a step keeps its number, which takes the least room, and the words go unsaid; the inspector under the drawing lists every step whole. Words the reviewer is looking at (a link of the part they point at) are placed first and always said, beside their route when no stretch of it is free.
 
-// A chip's size estimated from its text: the chips are HTML, laid out only after this decides where they go. Small type runs about 6.5 px a character; a name carries its kind glyph and its change tag beside the text.
-const CHAR_PX = 6.5
-const NAME_EXTRA_PX = 70
-const NAME_HEIGHT = 26
-const UNDER_GAP = 4
-const WORDS_EXTRA_PX = 8
-const WORDS_HEIGHT = 18
+export type WordsSpot = {
+	preferred: ScreenPoint
+	// The route as the camera sees it.
+	points: readonly ScreenPoint[]
+	// The words it says, empty when it only shows its number.
+	text: string
+	hasNumber: boolean
+	isLooked: boolean
+}
+
+export type WordsPlace = { at: ScreenPoint; hasWords: boolean }
+
 const HALF = 0.5
+// The stops along a leg besides its middle, every eighth of the way, the nearest the middle first.
+const EIGHTHS = 8
+const STOPS = Array.from(
+	{ length: EIGHTHS - 1 },
+	(_, index) => (index + 1) / EIGHTHS,
+)
+	.filter(t => t !== HALF)
+	.toSorted((a, b) => Math.abs(a - HALF) - Math.abs(b - HALF))
 
-export function nameBox(at: ScreenPoint, text: string, isUnder: boolean): Box {
-	const width = text.length * CHAR_PX + NAME_EXTRA_PX
+function along(from: ScreenPoint, to: ScreenPoint, t: number): ScreenPoint {
 	return {
-		x: at.x - width * HALF,
-		y: isUnder ? at.y + UNDER_GAP : at.y - NAME_HEIGHT,
-		width,
-		height: NAME_HEIGHT,
+		x: from.x + (to.x - from.x) * t,
+		y: from.y + (to.y - from.y) * t,
+		depth: from.depth + (to.depth - from.depth) * t,
 	}
 }
 
-function wordsBox(at: ScreenPoint, text: string): Box {
-	const width = text.length * CHAR_PX + WORDS_EXTRA_PX
-	return {
-		x: at.x - width * HALF,
-		y: at.y - WORDS_HEIGHT * HALF,
-		width,
-		height: WORDS_HEIGHT,
-	}
-}
-
-function overlaps(a: Box, b: Box): boolean {
-	return (
-		a.x < b.x + b.width &&
-		b.x < a.x + a.width &&
-		a.y < b.y + b.height &&
-		b.y < a.y + a.height
-	)
-}
-
-type Leg = { middle: ScreenPoint; length: number }
-
-function legsOf(points: readonly ScreenPoint[]): Leg[] {
-	return points
+function candidatesOf(spot: WordsSpot): ScreenPoint[] {
+	const legs = spot.points
 		.slice(1)
-		.map((to, index) => {
-			const from = points[index] ?? to
-			return {
-				middle: {
-					x: (from.x + to.x) * HALF,
-					y: (from.y + to.y) * HALF,
-					depth: (from.depth + to.depth) * HALF,
-				},
-				length: Math.hypot(to.x - from.x, to.y - from.y),
-			}
-		})
-		.toSorted((a, b) => b.length - a.length)
+		.map((to, index) => ({ from: spot.points[index] ?? to, to }))
+		.toSorted(
+			(a, b) =>
+				Math.hypot(b.to.x - b.from.x, b.to.y - b.from.y) -
+				Math.hypot(a.to.x - a.from.x, a.to.y - a.from.y),
+		)
+	return [
+		spot.preferred,
+		...legs.map(leg => along(leg.from, leg.to, HALF)),
+		...STOPS.flatMap(t => legs.map(leg => along(leg.from, leg.to, t))),
+	]
 }
 
-// The first candidate no name covers; ELK's point when every stretch is covered.
-export function wordsAt(
-	preferred: ScreenPoint,
-	points: readonly ScreenPoint[],
-	text: string,
-	names: readonly Box[],
+function boxAt(at: ScreenPoint, size: Size): Box {
+	return {
+		x: at.x - size.width * HALF,
+		y: at.y - size.height * HALF,
+		width: size.width,
+		height: size.height,
+	}
+}
+
+type Room = { taken: readonly Box[]; field: Size }
+
+function freeAt(
+	candidates: readonly ScreenPoint[],
+	size: Size,
+	room: Room,
+): ScreenPoint | undefined {
+	return candidates.find(at => {
+		const box = boxAt(at, size)
+		return (
+			isInside(box, room.field) &&
+			!room.taken.some(other => overlaps(box, other))
+		)
+	})
+}
+
+function leastCovered(
+	candidates: readonly ScreenPoint[],
+	size: Size,
+	room: Room,
 ): ScreenPoint {
-	const candidates = [preferred, ...legsOf(points).map(leg => leg.middle)]
-	const free = candidates.find(
-		at => !names.some(name => overlaps(wordsBox(at, text), name)),
+	const cover = (at: ScreenPoint): number =>
+		coverOf(boxAt(at, size), room.taken)
+	return candidates.reduce((best, at) =>
+		cover(at) < cover(best) ? at : best,
 	)
-	return free ?? preferred
+}
+
+// Words that must show (a step's number, the words the reviewer looks at) with no free stop on their route: the same stops, their height or width aside (over, under, either side, then the corners of each stop in turn), before they settle over a name.
+const AIR = 2
+const RING = [
+	[0, -1],
+	[0, 1],
+	[-1, 0],
+	[1, 0],
+	[-1, -1],
+	[1, -1],
+	[-1, 1],
+	[1, 1],
+] as const
+
+function aside(candidates: readonly ScreenPoint[], size: Size): ScreenPoint[] {
+	const across = size.width + AIR
+	const down = size.height + AIR
+	return candidates.flatMap(at =>
+		RING.map(([dx, dy]) => ({
+			depth: at.depth,
+			x: at.x + dx * across,
+			y: at.y + dy * down,
+		})),
+	)
+}
+
+function placeOne(spot: WordsSpot, room: Room): WordsPlace | undefined {
+	const candidates = candidatesOf(spot)
+	const full = wordsSize(spot.text, spot.hasNumber)
+	const free = freeAt(candidates, full, room)
+	if (free) return { at: free, hasWords: Boolean(spot.text) }
+	if (spot.isLooked)
+		return {
+			at:
+				freeAt(aside(candidates, full), full, room) ??
+				leastCovered(candidates, full, room),
+			hasWords: true,
+		}
+	if (!spot.hasNumber) return undefined
+	const number = wordsSize('', true)
+	return {
+		at:
+			freeAt(candidates, number, room) ??
+			freeAt(aside(candidates, number), number, room) ??
+			leastCovered(candidates, number, room),
+		hasWords: false,
+	}
+}
+
+// Each spot's place, in the order given (the first placed have the pick); none for words with no free stretch and nothing they must show.
+export function placeWords(
+	spots: readonly WordsSpot[],
+	room: Room,
+): (WordsPlace | undefined)[] {
+	const taken = [...room.taken]
+	return spots.map(spot => {
+		const place = placeOne(spot, { taken, field: room.field })
+		if (place)
+			taken.push(
+				boxAt(
+					place.at,
+					wordsSize(place.hasWords ? spot.text : '', spot.hasNumber),
+				),
+			)
+		return place
+	})
 }

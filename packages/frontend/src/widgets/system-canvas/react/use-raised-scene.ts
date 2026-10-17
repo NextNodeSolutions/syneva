@@ -48,7 +48,7 @@ export function useTierScene(
 	return {
 		height: size.height,
 		raised,
-		view: { camera, floor: raised.floor },
+		view: { camera, floor: raised.floor, field: size },
 		paints: paintOrder(raised, camera),
 	}
 }
@@ -78,7 +78,7 @@ export function useOrbitScene(
 	return {
 		height: size.height,
 		raised,
-		view: { camera, floor: raised.floor },
+		view: { camera, floor: raised.floor, field: size },
 		paints: paintOrder(raised, camera),
 	}
 }
