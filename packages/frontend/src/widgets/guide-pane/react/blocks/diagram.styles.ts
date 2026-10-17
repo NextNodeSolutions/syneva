@@ -49,7 +49,15 @@ export const diagram = stylex.create({
 		strokeWidth: 1.2,
 	},
 	edgeLinked: { stroke: color['--accent'] },
-	edgeText: { fill: color['--muted'], fontSize: '10px' },
+	// A halo in the frame's colour keeps a label legible where it meets a line.
+	edgeText: {
+		fill: color['--muted'],
+		fontSize: '10px',
+		paintOrder: 'stroke',
+		stroke: color['--white'],
+		strokeWidth: 3,
+		strokeLinejoin: 'round',
+	},
 	edgeTextLinked: { fill: color['--accent'], textDecoration: 'underline' },
 	lifeline: { stroke: color['--line'], strokeDasharray: '3 3' },
 	marker: { fill: color['--line-strong'] },

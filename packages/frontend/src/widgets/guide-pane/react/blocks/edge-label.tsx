@@ -10,7 +10,11 @@ import type { GuideDomain } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
 
 // Where a label sits: its anchor point and whether the text is centred on it or starts there.
-export type LabelSpot = { x: number; y: number; anchor?: 'middle' | 'start' }
+export type LabelSpot = {
+	x: number
+	y: number
+	anchor?: 'middle' | 'start' | 'end'
+}
 
 // An edge's label; with a reference the label is the control, like a node.
 export function EdgeLabel({

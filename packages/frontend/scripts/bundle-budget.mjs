@@ -30,8 +30,10 @@ export const INITIAL_UI_BYTES_LIMIT = 415_000
 // 408 KB) - the explanation pane, the diagrams, the navigator and the guide decoders ride lazy
 // chunks and never count here. The total is mostly shiki's grammar set (one lazy chunk per
 // grammar), Pierre's worker (~210 KB) and the oniguruma wasm; the initial limit guards the cold
-// open, the total only catches a wholesale new dependency.
-const TOTAL_UI_BYTES_LIMIT = 11_500_000
+// open, the total only catches a wholesale new dependency. ELK (the graph diagrams' layout engine,
+// ~1.6 MB, in the diagrams' lazy chunk: loaded by the first flow or state diagram on screen, never
+// by a review without one) moved it from 11.5 MB to 13 MB.
+const TOTAL_UI_BYTES_LIMIT = 13_000_000
 
 export function checkBundleBudget(outputs, entry) {
 	const initialLimit = INITIAL_UI_BYTES_LIMIT
