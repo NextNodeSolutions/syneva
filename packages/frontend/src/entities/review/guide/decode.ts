@@ -13,6 +13,7 @@ import { RISK_ORDER } from '@syneva/contracts/guide'
 
 import { decodeBlock } from './decode-blocks'
 import { optList, optStrings } from './decode-fields'
+import { decodeModel } from './decode-model'
 
 import type {
 	CodeSpan,
@@ -163,6 +164,7 @@ export function decodeGuide(raw: unknown, ctx: Ctx): Guide {
 		domains: requiredArray(o, 'domains', ctx.endpoint).map(entry =>
 			decodeDomain(entry, ctx),
 		),
+		model: decodeModel(o.model, ctx),
 		baseDiffHash: optString(o, 'baseDiffHash', ctx.endpoint),
 	}
 }
