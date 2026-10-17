@@ -1,6 +1,7 @@
 import { LAYERED_OPTIONS, runElk } from '@shared/lib/graph-layout'
 
 import { LINK_LABEL_HEIGHT } from './element-size'
+import { clearLabels } from './label-side'
 
 import type { Point, Rect } from '@shared/lib/graph-layout'
 import type { ElkExtendedEdge, ElkNode } from 'elkjs/lib/elk.bundled.js'
@@ -160,10 +161,11 @@ async function laidOut(
 	direction: Direction,
 ): Promise<CanvasLayout> {
 	const laid = await runElk(elkGraph(input, direction))
+	const boxes = readBoxes(laid, undefined)
 	return {
 		direction,
-		boxes: readBoxes(laid, undefined),
-		links: (laid.edges ?? []).map(readLink),
+		boxes,
+		links: clearLabels(boxes, (laid.edges ?? []).map(readLink)),
 		width: Math.ceil(laid.width ?? 0),
 		height: Math.ceil(laid.height ?? 0),
 	}
