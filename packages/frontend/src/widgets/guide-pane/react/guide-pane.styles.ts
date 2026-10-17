@@ -147,6 +147,23 @@ export const pane = stylex.create({
 		textUnderlineOffset: '3px',
 	},
 	list: { margin: 0, padding: 0, listStyle: 'none' },
+	// A span to read line by line: the red rule marks it as the one place the visuals do not settle.
+	critical: {
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'flex-start',
+		gap: '4px',
+		marginBottom: '6px',
+		paddingBlock: '6px',
+		paddingInline: '10px',
+		borderLeftWidth: '3px',
+		borderLeftStyle: 'solid',
+		borderLeftColor: color['--red'],
+		backgroundColor: color['--red-tint'],
+		fontSize: deskText.body,
+		lineHeight: 1.5,
+		color: color['--ink'],
+	},
 	claim: {
 		display: 'flex',
 		gap: '8px',
