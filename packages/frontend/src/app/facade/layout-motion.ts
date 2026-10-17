@@ -11,7 +11,8 @@ import { S } from '../store'
 // Long enough for a cached file to paint, short enough that a fetch never holds the screen.
 const SETTLE_MS = 320
 
-let isMoving = false
+let pendingMoves: (() => void)[] | null = null
+let activeTransition: ViewTransition | null = null
 // The reviewer who brought the tree back by hand keeps it; until then the code opened from the reading folds it, so the explanation and the code share the width.
 let isTreeKept = false
 // Set while the tree is folded only because the code opened: the reading the code closes onto brings it back, so a level reads as the reviewer left it. A tree folded by hand stays folded.
@@ -23,9 +24,7 @@ export function isReading(): boolean {
 
 function canTransition(): boolean {
 	return (
-		!isMoving &&
-		!isMotionReduced() &&
-		typeof document.startViewTransition === 'function'
+		!isMotionReduced() && typeof document.startViewTransition === 'function'
 	)
 }
 
@@ -44,20 +43,35 @@ function applyMove(move: () => void): void {
 
 // Applies a move that changes what the center shows, and renders: as one motion when the browser can play it, at once otherwise. A move applied while another plays joins it.
 export function moveLayout(move: () => void): Promise<void> {
+	if (pendingMoves && activeTransition) {
+		pendingMoves.push(move)
+		return activeTransition.updateCallbackDone.catch(() => undefined)
+	}
+	activeTransition?.skipTransition()
 	if (!canTransition()) {
 		applyMove(move)
 		return render()
 	}
-	isMoving = true
+	pendingMoves = [move]
 	const transition = document.startViewTransition(async () => {
-		try {
-			flushSync(() => applyMove(move))
-		} finally {
-			isMoving = false
-		}
+		const moves = pendingMoves ?? []
+		pendingMoves = null
+		flushSync(() => moves.forEach(applyMove))
 		await Promise.race([render(), settle()])
 	})
+	activeTransition = transition
+	void finishTransition(transition)
 	return transition.updateCallbackDone.catch(() => undefined)
+}
+
+async function finishTransition(transition: ViewTransition): Promise<void> {
+	try {
+		await transition.finished
+	} catch {
+		return
+	} finally {
+		if (activeTransition === transition) activeTransition = null
+	}
 }
 
 export function foldTreeForCode(): void {

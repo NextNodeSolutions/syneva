@@ -26,12 +26,25 @@ export type CanvasScene = {
 type Picked = { view: string | null; id: string | null }
 
 // The view the reviewer chose (the system, or one of the paths), how it is drawn (flat, isometric, in 3D) and the part they selected in it; choosing another view clears the selection, another projection keeps it.
+function keyOfScene(scene: Scene): string {
+	return fingerprint(
+		JSON.stringify({
+			elements: [...scene.elements.values()],
+			links: scene.links,
+		}),
+	)
+}
+
 export function useCanvasScene(model: GuideModel): CanvasScene {
 	const [viewId, setViewId] = useState<string | null>(null)
 	const [picked, setPicked] = useState<Picked>({ view: null, id: null })
 	const [projection, setProjection] = useState<Projection>('plan')
-	const shownId = useDeferredValue(viewId)
-	const view = model.views?.find(entry => entry.id === shownId)
+	const activeId = model.views?.some(entry => entry.id === viewId)
+		? viewId
+		: null
+	const deferredId = useDeferredValue(activeId)
+	const view = model.views?.find(entry => entry.id === deferredId)
+	const shownId = view?.id ?? null
 	const scene = useMemo(
 		() => (view ? viewScene(model, view) : systemScene(model)),
 		[model, view],
@@ -40,16 +53,26 @@ export function useCanvasScene(model: GuideModel): CanvasScene {
 		(id: string | null) => setPicked({ view: shownId, id }),
 		[shownId],
 	)
-	const onView = useCallback((id: string | null) => {
-		setViewId(id)
-		setPicked({ view: id, id: null })
-	}, [])
+	const onView = useCallback(
+		(id: string | null) => {
+			if (id === activeId) return
+			setViewId(id)
+			setPicked({ view: id, id: null })
+		},
+		[activeId],
+	)
+	const sceneKey = useMemo(() => keyOfScene(scene), [scene])
 	return {
-		viewId,
+		viewId: activeId,
 		view,
 		scene,
-		sceneKey: fingerprint(JSON.stringify(scene.input)),
-		selected: picked.view === shownId ? picked.id : null,
+		sceneKey,
+		selected:
+			picked.view === shownId &&
+			picked.id &&
+			scene.elements.has(picked.id)
+				? picked.id
+				: null,
 		onSelect,
 		onView,
 		projection,

@@ -94,7 +94,22 @@ function RefitOnResize(): null {
 	return null
 }
 
-// The part under the pointer goes up to the canvas, which traces its links.
+function FlowSelection({ selected }: { selected: string | null }): null {
+	const { getNodes, setNodes } = useReactFlow()
+	useEffect(() => {
+		if (
+			getNodes().every(
+				node => Boolean(node.selected) === (node.id === selected),
+			)
+		)
+			return
+		setNodes(nodes =>
+			nodes.map(node => ({ ...node, selected: node.id === selected })),
+		)
+	}, [selected, getNodes, setNodes])
+	return null
+}
+
 function useNodeHover(): {
 	onNodeMouseEnter: (event: unknown, entered: Node) => void
 	onNodeMouseLeave: () => void
@@ -153,6 +168,7 @@ export function CanvasField({
 					patternClassName={cx(canvas.gridLine)}
 				/>
 				<RefitOnResize />
+				<FlowSelection selected={selected} />
 				<EscapeClears />
 			</ReactFlow>
 		</div>
