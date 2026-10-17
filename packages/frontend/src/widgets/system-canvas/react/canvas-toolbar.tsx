@@ -113,11 +113,11 @@ export function CanvasToolbar({
 	views: readonly ModelView[]
 	current: Pick<
 		CanvasScene,
-		'view' | 'onView' | 'projection' | 'onProjection'
+		'viewId' | 'onView' | 'projection' | 'onProjection'
 	>
 	hold: OrbitHold
 }): ReactElement {
-	const viewId = current.view?.id ?? null
+	const { viewId } = current
 	const tabs = [
 		{ id: null, title: 'System' },
 		...views.map(view => ({ id: view.id, title: view.title })),
