@@ -1,8 +1,4 @@
-import {
-	currentChanges,
-	fromDisplayLine,
-	currentFileOrNull,
-} from '@entities/review/changes'
+import { fromDisplayLine } from '@entities/review/changes'
 import { acceptChange } from '@features/decide-change/decisions'
 import { openCommentComposer } from '@features/manage-comment/selection'
 import { mergeRows } from '@shared/diff-renderer/cursor-rows'
@@ -13,6 +9,7 @@ import { render } from '@shared/lib/render-scheduler'
 
 import { markBrickAt } from './brick-mark'
 import { diffCtx } from './context'
+import { changeAtRow } from './cursor-change'
 import { D } from './runtime'
 
 import type { ChangeState, ReviewComment } from '@entities/review/model'
@@ -203,24 +200,10 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 	diffCtx().toast(dir === 1 ? 'No more changes' : 'No previous changes')
 }
 
-function cursorChange(): ChangeState | null {
-	const cursor = cur
-	if (!cursor) return null
-	return (
-		currentChanges(
-			diffCtx().S.state,
-			currentFileOrNull(
-				diffCtx().S.state?.files,
-				diffCtx().S.preview,
-				diffCtx().S.fileIndex,
-			),
-		).find(
-			c =>
-				c.side === cursor.side &&
-				cursor.line >= (c.displayLineNumber ?? c.lineNumber) &&
-				cursor.line <= (c.displayEndLine ?? c.endLine ?? c.lineNumber),
-		) ?? null
-	)
+// The change the cursor sits in, on either side of its block; null between blocks or without a cursor.
+export function changeUnderCursor(): ChangeState | null {
+	if (!cur) return null
+	return changeAtRow(cur)
 }
 
 export function cursorComment(): void {
@@ -232,7 +215,7 @@ export function cursorComment(): void {
 
 export function cursorVerdict(status: 'accepted' | 'rejected'): void {
 	if (!cur) ensureCursor()
-	const change = cursorChange()
+	const change = changeUnderCursor()
 	if (!change) {
 		diffCtx().toast('No change under the cursor')
 		return
