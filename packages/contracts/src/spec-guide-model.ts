@@ -14,10 +14,14 @@ export const MODEL_FIELD_SPEC = `- model? - the system the domains change, drawn
     arriving): { id, title, description?, domains?, steps: [{ from, to, label, change? }] (1..30) }.
   \`change\` marks what the changeset does to an element, a relation or a step, as in blocks.`
 
-export const MODEL_RULE_SPEC = `- Draw the system once: a \`model\` holds the parts the changeset touches and the parts they talk to
-  (a handful to a few dozen elements, never one per file), each changed element naming its
-  domains, and a view for each path the change alters end to end. It is what the reviewer reads
-  first: the model and the critical spans alone should tell what changed and where it can break.`
+export const MODEL_RULE_SPEC = `- Draw the system once, bounded at the top, detailed along its paths: a \`model\` holds the
+  parts the changeset touches and the parts they talk to (a handful to a few dozen elements,
+  never one per file), each changed element naming its domains, and a view for each path the
+  change alters, told end to end as numbered steps. The top level carries what exists, what
+  changed and which paths move; a path's step-by-step detail stays one level down, in the domains
+  that own its code - the model is never where those blocks are repeated. The model is what the
+  reviewer reads first: its parts, its paths and the critical spans alone should tell what
+  changed and where it can break.`
 
 export const MODEL_EXAMPLE_SPEC = `A model: the checkout path a payment change runs through, its new webhook as a view:
 {"model":{"elements":[{"id":"buyer","kind":"actor","label":"Buyer"},
