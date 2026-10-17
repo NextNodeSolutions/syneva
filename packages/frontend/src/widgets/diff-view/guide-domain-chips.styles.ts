@@ -9,4 +9,10 @@ export const domainChips = stylex.create({
 		color: color['--accent'],
 		whiteSpace: 'nowrap',
 	},
+	// Identifiers in their own case, a size up: lowercase at the caption's size is too small to read.
+	identifiers: {
+		fontSize: deskText.small,
+		textTransform: 'none',
+		letterSpacing: 0,
+	},
 })
