@@ -9,7 +9,7 @@ import type {
 	LayoutOptions,
 } from 'elkjs/lib/elk.bundled.js'
 
-// The graph diagrams (flow, state) are laid out by ELK's layered algorithm: layers ordered to cut crossings, edges routed orthogonally between the boxes, labels placed on their edge and counted in the drawing's size. It rides the diagrams' lazy chunk, so a review without a diagram never loads it.
+// The graph diagrams (flow, state, data model) and the system canvas are laid out by ELK's layered algorithm: layers ordered to cut crossings, edges routed orthogonally between the boxes, labels placed on their edge and counted in the drawing's size. Only lazy chunks import it, so a review that draws no graph never loads it.
 
 export type GraphNodeInput = {
 	id: string
@@ -47,7 +47,7 @@ export type GraphLayout = {
 const LABEL_HEIGHT = 12
 const CACHE_LIMIT = 200
 
-const OPTIONS: LayoutOptions = {
+export const LAYERED_OPTIONS: LayoutOptions = {
 	'elk.algorithm': 'layered',
 	'elk.edgeRouting': 'ORTHOGONAL',
 	'elk.padding': '[top=10,left=10,bottom=10,right=10]',
@@ -72,7 +72,7 @@ const cache = new Map<string, Promise<GraphLayout>>()
 function elkGraph(input: GraphInput): ElkNode {
 	return {
 		id: 'root',
-		layoutOptions: { ...OPTIONS, 'elk.direction': input.direction },
+		layoutOptions: { ...LAYERED_OPTIONS, 'elk.direction': input.direction },
 		children: input.nodes.map(node => ({
 			id: node.id,
 			width: node.width,
@@ -142,9 +142,14 @@ function readLayout(input: GraphInput, laid: ElkNode): GraphLayout {
 	}
 }
 
-async function runLayout(input: GraphInput): Promise<GraphLayout> {
+// The engine itself, for a caller that builds its own ELK graph (the canvas nests elements inside their parents).
+export async function runElk(graph: ElkNode): Promise<ElkNode> {
 	engine ??= new ELK()
-	const laidGraph = await engine.layout(elkGraph(input))
+	return engine.layout(graph)
+}
+
+async function runLayout(input: GraphInput): Promise<GraphLayout> {
+	const laidGraph = await runElk(elkGraph(input))
 	return readLayout(input, laidGraph)
 }
 
