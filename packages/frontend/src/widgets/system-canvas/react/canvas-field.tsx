@@ -1,4 +1,4 @@
-import { use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { use, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { cx } from '@shared/lib/cx'
 import * as stylex from '@stylexjs/stylex'
@@ -20,11 +20,7 @@ import { flowElements } from './flow-elements'
 import { LinkEdge } from './link-edge'
 import { useFieldSize } from './use-field-size'
 
-import type {
-	Node,
-	OnSelectionChangeParams,
-	ReactFlowState,
-} from '@xyflow/react'
+import type { Node, NodeChange, ReactFlowState } from '@xyflow/react'
 import type { ReactElement } from 'react'
 import type { Scene } from '../layout/scene'
 
@@ -94,7 +90,20 @@ function RefitOnResize(): null {
 	return null
 }
 
-// The part under the pointer goes up to the canvas, which traces its links.
+function selectChanged(
+	changes: NodeChange[],
+	onSelect: (id: string | null) => void,
+): void {
+	const picked = changes.find(
+		change => change.type === 'select' && change.selected,
+	)
+	if (picked?.type === 'select') {
+		onSelect(picked.id)
+		return
+	}
+	if (changes.some(change => change.type === 'select')) onSelect(null)
+}
+
 function useNodeHover(): {
 	onNodeMouseEnter: (event: unknown, entered: Node) => void
 	onNodeMouseLeave: () => void
@@ -120,17 +129,14 @@ export function CanvasField({
 	onSelect: (id: string | null) => void
 }): ReactElement {
 	const layout = use(layoutCanvas(scene.input))
-	const [initial] = useState(selected)
 	const fieldRef = useRef<HTMLDivElement | null>(null)
 	const { height } = useFieldSize(fieldRef, layout)
 	const { nodes, edges } = useMemo(
-		() => flowElements(scene, layout, initial),
-		[scene, layout, initial],
+		() => flowElements(scene, layout, selected),
+		[scene, layout, selected],
 	)
-	const onSelectionChange = useCallback(
-		({ nodes: picked }: OnSelectionChangeParams) => {
-			onSelect(picked[0]?.id ?? null)
-		},
+	const onNodesChange = useCallback(
+		(changes: NodeChange[]) => selectChanged(changes, onSelect),
 		[onSelect],
 	)
 	const hover = useNodeHover()
@@ -141,9 +147,9 @@ export function CanvasField({
 		>
 			<ReactFlow
 				{...FLOW}
-				defaultNodes={nodes}
-				defaultEdges={edges}
-				onSelectionChange={onSelectionChange}
+				nodes={nodes}
+				edges={edges}
+				onNodesChange={onNodesChange}
 				onNodeMouseEnter={hover.onNodeMouseEnter}
 				onNodeMouseLeave={hover.onNodeMouseLeave}
 			>

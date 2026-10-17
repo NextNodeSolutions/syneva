@@ -31,6 +31,8 @@ export function OrbitField({
 			onPointerMove={hold.onPointerMove}
 			onPointerUp={hold.onPointerUp}
 			onPointerCancel={hold.onPointerUp}
+			onLostPointerCapture={hold.onPointerUp}
+			onClickCapture={hold.onClickCapture}
 			{...stylex.props(
 				canvas.field,
 				canvas.fieldHeight(orbit.height),
