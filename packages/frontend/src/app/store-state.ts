@@ -64,6 +64,8 @@ export interface Store {
 	// The guided review's position: the selected domain (its explanation beside the diff), the pane's visibility, the block details the reviewer opened, and where a reference follow came from (Back).
 	domainId: string | null
 	guidePaneOpen: boolean
+	// Whether the code is open in the center: a domain opened from the project level reads full width until a span, a reference or Enter opens its code beside it; Esc closes the code back onto the reading.
+	codeOpen: boolean
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	// Bumped when the Markdown engine (lazy) lands or repaints, so React prose re-renders with it.
@@ -113,6 +115,8 @@ export interface Store {
 	guideStale?: () => boolean
 	openOverview?: () => void
 	startGuided?: () => void
+	openCode?: () => void
+	closeCode?: () => void
 	showGuideBar?: () => boolean
 	curFileName?: () => string
 	guideNext?: () => void

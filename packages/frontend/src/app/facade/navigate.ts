@@ -45,7 +45,8 @@ function installSpanJump(): void {
 			return
 		}
 		const shown = currentFileOrNull(state.files, S.preview, S.fileIndex)
-		const isShown = shown?.path === span.path && !S.overviewOpen
+		const isShown =
+			shown?.path === span.path && !S.overviewOpen && S.codeOpen
 		if (!isShown) S.selectFile?.(index)
 		// A cited line lives in the source rows: the rendered Markdown view has none to land on.
 		if (S.fileView === 'rendered') {
@@ -67,6 +68,7 @@ function installFileSelection(): void {
 		navGeneration++ // invalidate any in-flight preview for the file being left
 		S.treeDrawerOpen = false
 		S.overviewOpen = false
+		S.codeOpen = true
 		S.preview = null
 		S.diffScrolled = false // the new file renders at the top (see render.ts) - hide the floating action
 		S.fileIndex = i
@@ -92,6 +94,7 @@ export async function openPreview(
 	if (!preview) return
 	if (jump) setPendingJump(jump)
 	S.overviewOpen = false
+	S.codeOpen = true
 	S.preview = preview
 	D.fileDiff = null
 	cursorReset()

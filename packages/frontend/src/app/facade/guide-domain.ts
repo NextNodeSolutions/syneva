@@ -23,10 +23,11 @@ import type { GuideReturnPoint } from '@entities/review/guide/return-point'
 
 // The guided review's moves: select a domain (its explanation beside its first change), step domains and a domain's changes, follow a reference to its exact code and come back. Every move lands through jumpToSpan, so the real diff and the virtual navigator do the landing.
 
-const PANE_BODY = '[data-guide-pane-body]'
+// The explanation's scroller: the reading surface when the domain reads full width (it wraps the body, so document order finds it first), the pane's body beside the code.
+const PANE_SCROLLER = '[data-reading], [data-guide-pane-body]'
 
 function paneBody(): HTMLElement | null {
-	return document.querySelector<HTMLElement>(PANE_BODY)
+	return document.querySelector<HTMLElement>(PANE_SCROLLER)
 }
 
 // The diff file on screen, by path; null while a preview is shown.
@@ -38,6 +39,7 @@ function shownDiffPath(): string | null {
 function currentPoint(): GuideReturnPoint {
 	return {
 		domainId: S.domainId,
+		codeOpen: S.codeOpen,
 		filePath: shownDiffPath(),
 		previewPath: S.preview?.path ?? null,
 		previewSide: S.preview?.previewSide,
@@ -51,26 +53,50 @@ function rememberPosition(): void {
 	S.guideReturn = pushReturnPoint(S.guideReturn, currentPoint())
 }
 
-function openDomainEntry(domainId: string): void {
+function openDomainEntry(domainId: string): boolean {
 	const { state } = S
 	const domain = domainById(state, domainId)
-	if (!state || !domain) return
+	if (!state || !domain) return false
 	const entry = domainEntry(domain, state)
-	if (!entry) return
+	if (!entry) return false
 	if ('span' in entry) {
 		S.jumpToSpan?.(entry.span)
-		return
+		return true
 	}
 	const index = state.files.findIndex(file => file.path === entry.path)
-	if (index >= 0) S.selectFile?.(index)
+	if (index < 0) return false
+	S.selectFile?.(index)
+	return true
 }
 
+// A domain opened from the project level reads full width first; one reached beside the code (the next domain, a related one) keeps the code open and lands on its first change.
 function selectDomain(domainId: string): void {
+	if (S.overviewOpen) S.codeOpen = false
 	S.domainId = domainId
 	S.overviewOpen = false
 	S.guideReturn = []
-	openDomainEntry(domainId)
+	if (S.codeOpen) openDomainEntry(domainId)
+	else void render()
 	requestAnimationFrame(() => paneBody()?.scrollTo({ top: 0 }))
+}
+
+// Enter on the domain's reading: its code opens beside it, on its first change; a domain that owns no change opens the file on hand.
+function openCode(): void {
+	const domainId = S.domainId ?? orderedDomains(S.state?.guide)[0]?.id
+	if (!domainId) return
+	S.domainId = domainId
+	S.codeOpen = true
+	if (!openDomainEntry(domainId)) S.selectFile?.(S.fileIndex)
+}
+
+// Esc on the code: it closes back onto the domain's reading; without a domain, onto the project level.
+function closeCode(): void {
+	if (!S.domainId) {
+		S.openOverview?.()
+		return
+	}
+	S.codeOpen = false
+	void render()
 }
 
 function stepDomain(direction: 1 | -1): void {
@@ -135,6 +161,14 @@ function followReference(domainId: string, refId: string): void {
 // The file (or preview) is shown and rendered first: opening one resets the cursor and the diff's scroll, so the saved position only lands once that render is done.
 async function restore(point: GuideReturnPoint): Promise<void> {
 	S.domainId = point.domainId
+	if (!point.codeOpen) {
+		S.codeOpen = false
+		await render()
+		requestAnimationFrame(() =>
+			paneBody()?.scrollTo({ top: point.paneScroll }),
+		)
+		return
+	}
 	if (point.previewPath) {
 		if (
 			S.preview?.path !== point.previewPath ||
@@ -170,6 +204,8 @@ function guideBack(): void {
 
 export function installGuideDomainBindings(): void {
 	S.selectDomain = selectDomain
+	S.openCode = openCode
+	S.closeCode = closeCode
 	S.stepDomain = stepDomain
 	S.stepDomainChange = stepDomainChange
 	S.followReference = followReference

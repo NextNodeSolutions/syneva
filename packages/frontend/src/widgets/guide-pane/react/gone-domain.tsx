@@ -37,7 +37,7 @@ export function GoneDomainPane({
 					>
 						target gone
 					</span>
-					<HeadNav canGoBack={S.guideReturn.length > 0} />
+					<HeadNav canGoBack={S.guideReturn.length > 0} canClose />
 				</div>
 				<h2 {...stylex.props(pane.title)}>{target.domainTitle}</h2>
 				<p {...stylex.props(pane.summary)}>

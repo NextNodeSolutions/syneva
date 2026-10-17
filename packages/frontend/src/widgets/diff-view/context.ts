@@ -17,6 +17,7 @@ export interface DiffStoreView {
 	composerBody: string
 	editingCommentId: string | null
 	overviewOpen: boolean
+	codeOpen: boolean
 	expandedDirs: Set<string>
 	collapsedDirs: Set<string>
 	golineBuffer: string

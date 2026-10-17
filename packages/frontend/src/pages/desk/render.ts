@@ -62,9 +62,10 @@ function detachDiffInstance(): void {
 	D.lineMap = null
 }
 
-// While the reading surface covers the center (React draws it beside the diff's scroller), the code leaves the scroller: the next file then lands in an empty one, and nothing of the file left behind survives a reading.
+// While the reading surface covers the center (React draws it beside the diff's scroller: the project level, or a domain read full width before its code opens), the code leaves the scroller: the next file then lands in an empty one, and nothing of the file left behind survives a reading.
 function renderGuideOverview(): boolean {
-	if (!(diffCtx().S.overviewOpen && hasGuide(guideInputs(diffCtx().S))))
+	const { S } = diffCtx()
+	if (!(S.overviewOpen || !S.codeOpen) || !hasGuide(guideInputs(S)))
 		return false
 	cursorReset()
 	detachDiffInstance()

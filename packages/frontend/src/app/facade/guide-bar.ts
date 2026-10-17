@@ -23,14 +23,14 @@ export function installGuideBindings(): void {
 		S.overviewOpen = true
 		void render()
 	}
-	// Start opens the highest-risk domain (its explanation beside its first change); a guide whose domains own no change falls back to the first file in guide order.
+	// Start opens the highest-risk domain's reading (selectDomain leaves the overview itself, which is how it knows to read before the code); a guide without a domain falls back to the first file in guide order.
 	S.startGuided = () => {
-		S.overviewOpen = false
 		const [first] = orderedDomains(S.state?.guide)
 		if (first) {
 			S.selectDomain?.(first.id)
 			return
 		}
+		S.overviewOpen = false
 		S.selectFile?.(firstGuideIndex(guideInputs(S)))
 	}
 	// The ACTIVE pane's sorting decides the order; the Overview is the position before the first file, so Next enters it and Prev lands on the last one.

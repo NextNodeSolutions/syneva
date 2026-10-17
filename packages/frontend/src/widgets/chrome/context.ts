@@ -46,6 +46,7 @@ export interface ChromeStoreView {
 	diffScrolled: boolean
 	domainId: string | null
 	guidePaneOpen: boolean
+	codeOpen: boolean
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	markdownTick: number
@@ -89,6 +90,8 @@ export interface ChromeStoreView {
 	guideStale?(): boolean
 	openOverview?(): void
 	startGuided?(): void
+	openCode?(): void
+	closeCode?(): void
 	showGuideBar?(): boolean
 	curFileName?(): string
 	guideNext?(): void

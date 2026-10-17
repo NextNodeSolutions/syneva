@@ -20,8 +20,14 @@ const square = [
 	tip.host,
 ]
 
-// The pane's moves, the same on every head: back to where the reviewer was, the neighbouring domains, hiding the pane.
-export function HeadNav({ canGoBack }: { canGoBack: boolean }): ReactElement {
+// The pane's moves, the same on every head: back to where the reviewer was, the neighbouring domains, and beside the code, hiding the pane (a domain read full width has nothing to hide).
+export function HeadNav({
+	canGoBack,
+	canClose,
+}: {
+	canGoBack: boolean
+	canClose: boolean
+}): ReactElement {
 	const { S } = chromeCtx()
 	return (
 		<span {...stylex.props(pane.navs)}>
@@ -50,14 +56,16 @@ export function HeadNav({ canGoBack }: { canGoBack: boolean }): ReactElement {
 			>
 				<Kbd keys="d" />
 			</button>
-			<button
-				{...stylex.props(square, tip.end)}
-				data-tip="Hide explanation (g)"
-				aria-label="Hide explanation"
-				onClick={() => S.toggleGuidePane?.()}
-			>
-				<Icon id="gly-close" />
-			</button>
+			{canClose && (
+				<button
+					{...stylex.props(square, tip.end)}
+					data-tip="Hide explanation (g)"
+					aria-label="Hide explanation"
+					onClick={() => S.toggleGuidePane?.()}
+				>
+					<Icon id="gly-close" />
+				</button>
+			)}
 		</span>
 	)
 }

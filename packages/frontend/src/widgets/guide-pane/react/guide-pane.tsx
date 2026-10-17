@@ -3,7 +3,6 @@ import { orderedDomains } from '@entities/review/guide/domains'
 import {
 	domainById,
 	domainProgress,
-	isDomainDrafted,
 	isDomainStale,
 	staleReasons,
 } from '@entities/review/guide/resolution'
@@ -34,16 +33,24 @@ import type { GuideDomain } from '@entities/review/guide/model'
 import type { ReviewState } from '@entities/review/model'
 import type { ReactElement } from 'react'
 
+// Where the explanation is drawn: the column beside the code, or the page the domain reads as, full width, before its code opens.
+export type GuideLayout = 'column' | 'page'
+
 function DomainBody({
 	domain,
 	state,
+	layout,
 }: {
 	domain: GuideDomain
 	state: ReviewState
+	layout: GuideLayout
 }): ReactElement {
 	const progress = domainProgress(domain, state.changes)
 	return (
-		<div {...stylex.props(pane.body)} data-guide-pane-body="">
+		<div
+			{...stylex.props(pane.body, layout === 'page' && pane.bodyPage)}
+			data-guide-pane-body=""
+		>
 			<Prerequisites domain={domain} state={state} />
 			<CriticalSpans domain={domain} state={state} />
 			<Section
@@ -127,9 +134,48 @@ function EmptyPane(): ReactElement {
 	)
 }
 
-// The explanation column: the selected domain beside the real diff. Nothing here approves anything; the verdict controls stay on the code.
-export function GuidePane(): ReactElement {
+function DomainPane({ layout }: { layout: GuideLayout }): ReactElement {
 	const { S } = chromeCtx()
+	const { state } = S
+	const gone = goneThreads(state, S.domainId)
+	const [firstGone] = gone
+	if (firstGone)
+		return <GoneDomainPane target={firstGone.target} threads={gone} />
+	const domain = selectedDomain(state, S.domainId)
+	if (!state || !domain) return <EmptyPane />
+	const domains = orderedDomains(state.guide)
+	const isStale = isDomainStale(state, domain.id)
+	const isPage = layout === 'page'
+	return (
+		<aside
+			{...stylex.props(isPage ? pane.sheet : pane.aside)}
+			aria-label="Explanation"
+			data-guide-pane=""
+			data-guide-controls=""
+		>
+			<DomainHead
+				domain={domain}
+				position={domains.indexOf(domain) + 1}
+				total={domains.length}
+				layout={layout}
+			/>
+			{isStale && (
+				<StaleBanner
+					reasons={staleReasons(state, domain.id)}
+					css={isPage ? pane.stalePage : undefined}
+				/>
+			)}
+			<DomainBody domain={domain} state={state} layout={layout} />
+		</aside>
+	)
+}
+
+// The explanation of the selected domain: the column beside the real diff, or the page it reads as before its code opens. Nothing here approves anything; the verdict controls stay on the code.
+export function GuidePane({
+	layout = 'column',
+}: {
+	layout?: GuideLayout
+}): ReactElement {
 	useStoreFields(
 		'state',
 		'domainId',
@@ -141,33 +187,11 @@ export function GuidePane(): ReactElement {
 		'domainComposer',
 		'domainComposerBody',
 	)
-	const { state } = S
-	const gone = goneThreads(state, S.domainId)
-	const [firstGone] = gone
-	if (firstGone)
-		return <GoneDomainPane target={firstGone.target} threads={gone} />
-	const domain = selectedDomain(state, S.domainId)
-	if (!state || !domain) return <EmptyPane />
-	const domains = orderedDomains(state.guide)
-	const isStale = isDomainStale(state, domain.id)
-	return (
-		<aside
-			{...stylex.props(pane.aside)}
-			aria-label="Explanation"
-			data-guide-pane=""
-			data-guide-controls=""
-		>
-			<DomainHead
-				domain={domain}
-				position={domains.indexOf(domain) + 1}
-				total={domains.length}
-				isStale={isStale}
-				isDrafted={isDomainDrafted(state, domain.id)}
-			/>
-			{isStale && (
-				<StaleBanner reasons={staleReasons(state, domain.id)} />
-			)}
-			<DomainBody domain={domain} state={state} />
-		</aside>
-	)
+	if (layout === 'page')
+		return (
+			<div {...stylex.props(pane.page)} data-reading="">
+				<DomainPane layout={layout} />
+			</div>
+		)
+	return <DomainPane layout={layout} />
 }
