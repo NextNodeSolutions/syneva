@@ -159,22 +159,31 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 	return row
 }
 
-function fileHeader(file: FileDiffMetadata): HTMLElement {
+// The pinned bar around the name row, then the block that scrolls away under it, only when it has something to say.
+function headerBlocks(
+	row: HTMLElement,
+	below: (HTMLElement | null)[],
+): HTMLElement[] {
+	const bar = document.createElement('div')
+	bar.className = cx(diffHeader.bar)
+	bar.appendChild(row)
+	const rest = below.filter(part => part !== null)
+	if (!rest.length) return [bar]
 	const wrap = document.createElement('div')
 	wrap.className = cx(diffHeader.header)
-	wrap.appendChild(headerRow(file))
-	const guide = currentDomainRows(diffHeader.guide)
-	if (guide) wrap.appendChild(guide)
-	const fc = fileCommentSection()
-	if (fc) wrap.appendChild(fc)
-	const strip = unanchoredStrip()
-	if (strip) wrap.appendChild(strip)
-	return wrap
+	wrap.append(...rest)
+	return [bar, wrap]
 }
 
-function previewHeader(): HTMLElement {
-	const wrap = document.createElement('div')
-	wrap.className = cx(diffHeader.header)
+function fileHeader(file: FileDiffMetadata): HTMLElement[] {
+	return headerBlocks(headerRow(file), [
+		currentDomainRows(diffHeader.guide),
+		fileCommentSection(),
+		unanchoredStrip(),
+	])
+}
+
+function previewHeader(): HTMLElement[] {
 	const row = document.createElement('div')
 	row.className = cx(diffHeader.row)
 	row.appendChild(changeIcon('file'))
@@ -196,10 +205,7 @@ function previewHeader(): HTMLElement {
 	tag.className = cx(caption.base, diffHeader.readonly)
 	tag.textContent = 'Unchanged'
 	row.appendChild(tag)
-	wrap.appendChild(row)
-	const section = fileCommentSection()
-	if (section) wrap.appendChild(section)
-	return wrap
+	return headerBlocks(row, [fileCommentSection()])
 }
 
 // The host is refilled on every render pass from the live store: approval, blockers and file comments change without the diff changing, and must not cost Pierre a row rebuild; display:contents keeps the host out of the slot's layout.
@@ -215,6 +221,9 @@ export function refreshDiffHeader(
 	isPreviewing: boolean,
 ): void {
 	headerHost.replaceChildren(
-		isPreviewing ? previewHeader() : fileHeader(file),
+		...(isPreviewing ? previewHeader() : fileHeader(file)),
 	)
+	// Pierre slots the custom header into a block of its own inside its (flattened) header; flattened too, so the bar's sticky box is the whole diff, not that block.
+	const slot = headerHost.parentElement
+	if (slot) slot.style.display = 'contents'
 }
