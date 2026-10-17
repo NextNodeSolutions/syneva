@@ -72,8 +72,10 @@ let navGeneration = 0
 function selectFile(i: number): void {
 	const { state } = S
 	if (i < 0 || !state?.files[i]) return
-	navGeneration++ // invalidate any in-flight preview for the file being left
 	S.treeDrawerOpen = false
+	// The file already on screen as the diff stays as it is: a second click on its row would drop the cursor and rebuild the diff for nothing.
+	if (i === S.fileIndex && !S.preview && S.codeOpen && !S.overviewOpen) return
+	navGeneration++ // invalidate any in-flight preview for the file being left
 	S.overviewOpen = false
 	S.codeOpen = true
 	S.preview = null
