@@ -28,6 +28,11 @@ export const DOMAIN_FIELDS_SPEC = `  - id (required) - stable identity ([A-Za-z0
   - evidence? (≤ 12) - [{ text, refs? }]: the facts the risk rests on, each citing reference ids
     when it can; a claim without refs reads as your word alone.
   - unknowns? (≤ 12) - what you could not establish; say so rather than guess.
+  - critical? (≤ 8) - [{ ref, why }]: the few changed spans the reviewer must read line by line
+    whatever the diagrams say: money moving (a charge, a refund, an amount's unit), access granted
+    (auth, permissions, tokens), data destroyed or exposed (a migration, a delete, a query's
+    scope). \`ref\` names one of the domain's "changed" references, \`why\` (≤ 1000) what a wrong
+    line there costs. The desk's visual level shows these spans as code and nothing else.
   - blocks (required, 0..12) - the explanation, in YOUR order and YOUR choice of form; every block
     has id (unique in the domain), title?, refs? (reference ids), detail? (≤ 20000, Markdown,
     collapsed until opened: longer reasoning, assumptions, failure cases) and a kind:
@@ -59,6 +64,10 @@ export const AUTHORING_RULES_SPEC = `- Group by changed behavior, across files: 
   behavioral difference, "prose" when a paragraph says it best. No form is required, a diagram is
   not expected everywhere, and the same long template in every domain is wrong: a one-line change
   gets a sentence.
+- Mark what must be read as code: a span goes in \`critical\` when one wrong line there costs money,
+  access or data and no diagram can show it is right. Keep it rare (most domains have none) and
+  tight (the lines that decide, not the whole file): a critical list that grows to cover the
+  domain says nothing.
 - Reference the facts: the key claims of an explanation and every diagram element that stands for
   code carry a \`ref\` the reviewer can click; a claim without one reads as your word. Keep the
   first read short (summary, consequence, a block or two) and put the long reasoning in

@@ -52,6 +52,9 @@ export type GuideCrossReference = {
 // A risk claim and the references that back it; a claim without refs is the agent's word alone and reads as such.
 export type GuideEvidence = { text: string; refs?: string[] | undefined }
 
+// Changed code the reviewer must read line by line whatever the explanation says (money moving, access granted, data deleted): the visual level shows these spans as code and nothing else. `ref` names one of the domain's `changed` references, `why` says what a wrong line there costs.
+export type GuideCritical = { ref: string; why: string }
+
 type BlockBase = {
 	id: string
 	title?: string | undefined
@@ -154,6 +157,7 @@ export type GuideDomain = {
 	related?: GuideCrossReference[] | undefined
 	evidence?: GuideEvidence[] | undefined
 	unknowns?: string[] | undefined
+	critical?: GuideCritical[] | undefined
 	// Agent-chosen, in the agent's order; empty when the summary says it all.
 	blocks: ExplanationBlock[]
 	// Tie order among domains of the same risk (ascending); the array position when absent.
@@ -197,6 +201,7 @@ export const GUIDE_LIMITS = {
 	membersPerDomain: 400,
 	referencesPerDomain: 60,
 	blocksPerDomain: 12,
+	criticalPerDomain: 8,
 	diagramNodes: 40,
 	diagramEdges: 80,
 	overviewChars: 3000,
