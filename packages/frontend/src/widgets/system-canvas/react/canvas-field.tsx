@@ -31,6 +31,10 @@ import type { Scene } from '../layout/scene'
 const GRID = 24
 const FIT = { padding: 0.06, maxZoom: 1 }
 
+// What a screen reader hears after a part's name: the keys that work on it. React Flow's own words speak of moving and deleting nodes, which nothing here does, and it reads its keyboard-disabled words while the keyboard is on, so both say the same.
+const PART_KEYS =
+	'Enter or Space selects the part and shows it under the drawing; Escape clears the selection.'
+
 // Nothing moves or wires: the drawing is ELK's. Drag pans, a pinch or Ctrl and the wheel zoom, the wheel alone keeps scrolling the overview.
 const FLOW = {
 	nodeTypes: { element: ElementNode, container: ContainerNode },
@@ -51,6 +55,10 @@ const FLOW = {
 	deleteKeyCode: null,
 	selectionKeyCode: null,
 	multiSelectionKeyCode: null,
+	ariaLabelConfig: {
+		'node.a11yDescription.default': PART_KEYS,
+		'node.a11yDescription.keyboardDisabled': PART_KEYS,
+	},
 } as const
 
 const paneWidth = (state: ReactFlowState): number => state.width
