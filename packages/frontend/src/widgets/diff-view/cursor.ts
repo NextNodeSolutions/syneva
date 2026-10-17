@@ -203,7 +203,12 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 		cursorJumpTo(far.side, far.line)
 		return
 	}
-	diffCtx().toast(dir === 1 ? 'No more changes' : 'No previous changes')
+	// The keys walk the file on screen, and the review usually goes on in other files: the toast says where the changes ran out, not that the review has none left.
+	diffCtx().toast(
+		dir === 1
+			? 'No more changes in this file'
+			: 'No previous changes in this file',
+	)
 }
 
 // The change the cursor sits in, on either side of its block; null between blocks or without a cursor.
