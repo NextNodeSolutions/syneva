@@ -47,8 +47,9 @@ function hasNumbers(part: RaisedPart): boolean {
 	return !part.solid.isPlatform && Boolean(part.mark) && !part.isNumbered
 }
 
+// The names in the order Tab reaches them: the top floor first, as the eye reads the floors down (the decks are built from the bottom up).
 function namesOf(raised: Raised, view: View, focus: CanvasFocus): NameLabel[] {
-	const spots = raised.decks.flatMap(deck =>
+	const spots = raised.decks.toReversed().flatMap(deck =>
 		deck.parts
 			.filter(part => part.isNamed)
 			.map(part => {
