@@ -17,6 +17,7 @@ import { D } from '@widgets/diff-view/runtime'
 
 import { S, toast } from '../store'
 
+import { foldTreeForCode, isReading, moveLayout } from './layout-motion'
 import { openPreview } from './navigate'
 
 import type { GuideReturnPoint } from '@entities/review/guide/return-point'
@@ -69,34 +70,41 @@ function openDomainEntry(domainId: string): boolean {
 	return true
 }
 
-// A domain opened from the project level reads full width first; one reached beside the code (the next domain, a related one) keeps the code open and lands on its first change.
+// A domain opened from the project level reads full width first; one reached beside the code (the next domain, a related one) keeps the code open and lands on its first change. From a reading the move plays as the motion (a cross-fade between two readings); beside the code it is plain.
 function selectDomain(domainId: string): void {
-	if (S.overviewOpen) S.codeOpen = false
-	S.domainId = domainId
-	S.overviewOpen = false
-	S.guideReturn = []
-	if (S.codeOpen) openDomainEntry(domainId)
-	else void render()
+	const move = (): void => {
+		if (S.overviewOpen) S.codeOpen = false
+		S.domainId = domainId
+		S.overviewOpen = false
+		S.guideReturn = []
+		if (S.codeOpen) openDomainEntry(domainId)
+	}
+	if (isReading()) void moveLayout(move)
+	else move()
 	requestAnimationFrame(() => paneBody()?.scrollTo({ top: 0 }))
 }
 
-// Enter on the domain's reading: its code opens beside it, on its first change; a domain that owns no change opens the file on hand.
+// Enter on the domain's reading: its code opens beside it, on its first change, as the one motion; a domain that owns no change opens the file on hand.
 function openCode(): void {
 	const domainId = S.domainId ?? orderedDomains(S.state?.guide)[0]?.id
 	if (!domainId) return
-	S.domainId = domainId
-	S.codeOpen = true
-	if (!openDomainEntry(domainId)) S.selectFile?.(S.fileIndex)
+	void moveLayout(() => {
+		foldTreeForCode()
+		S.domainId = domainId
+		S.codeOpen = true
+		openDomainEntry(domainId)
+	})
 }
 
-// Esc on the code: it closes back onto the domain's reading; without a domain, onto the project level.
+// Esc on the code: it closes back onto the domain's reading, the motion played backwards; without a domain, onto the project level.
 function closeCode(): void {
 	if (!S.domainId) {
 		S.openOverview?.()
 		return
 	}
-	S.codeOpen = false
-	void render()
+	void moveLayout(() => {
+		S.codeOpen = false
+	})
 }
 
 function stepDomain(direction: 1 | -1): void {
@@ -158,23 +166,34 @@ function followReference(domainId: string, refId: string): void {
 	S.jumpToSpan?.(reference)
 }
 
-// The file (or preview) is shown and rendered first: opening one resets the cursor and the diff's scroll, so the saved position only lands once that render is done.
-async function restore(point: GuideReturnPoint): Promise<void> {
-	S.domainId = point.domainId
-	if (!point.codeOpen) {
+// A point on the domain's reading: the code closes onto it (the motion backwards when it was open) and the reading scrolls to where it was.
+async function restoreReading(point: GuideReturnPoint): Promise<void> {
+	const move = (): void => {
+		S.domainId = point.domainId
 		S.codeOpen = false
+	}
+	if (S.codeOpen) await moveLayout(move)
+	else {
+		move()
 		await render()
-		requestAnimationFrame(() =>
-			paneBody()?.scrollTo({ top: point.paneScroll }),
-		)
+	}
+	requestAnimationFrame(() => paneBody()?.scrollTo({ top: point.paneScroll }))
+}
+
+// The file (or preview) is shown and rendered first: opening one resets the cursor and the diff's scroll, so the saved position only lands once that render is done - at once after it, before any later pass could move it.
+async function restore(point: GuideReturnPoint): Promise<void> {
+	if (!point.codeOpen) {
+		await restoreReading(point)
 		return
 	}
 	if (point.previewPath) {
+		S.domainId = point.domainId
 		if (
 			S.preview?.path !== point.previewPath ||
 			S.preview.previewSide !== point.previewSide
 		)
 			await openPreview(point.previewPath, point.previewSide)
+		else await render()
 	} else {
 		const index =
 			S.state?.files.findIndex(file => file.path === point.filePath) ?? -1
@@ -182,14 +201,22 @@ async function restore(point: GuideReturnPoint): Promise<void> {
 			toast('That file is no longer in the review')
 			return
 		}
-		if (S.fileIndex !== index || S.preview) S.selectFile?.(index)
+		const move = (): void => {
+			S.domainId = point.domainId
+			S.codeOpen = true
+			if (S.fileIndex !== index || S.preview) S.selectFile?.(index)
+			if (point.cursor)
+				cursorSyncTo(point.cursor.side, point.cursor.lineNumber)
+		}
+		if (isReading()) await moveLayout(move)
+		else {
+			move()
+			await render()
+		}
 	}
 	if (point.cursor) cursorSyncTo(point.cursor.side, point.cursor.lineNumber)
-	await render()
-	requestAnimationFrame(() => {
-		paneBody()?.scrollTo({ top: point.paneScroll })
-		$('diff').scrollTo({ top: point.diffScroll })
-	})
+	paneBody()?.scrollTo({ top: point.paneScroll })
+	$('diff').scrollTo({ top: point.diffScroll })
 }
 
 function guideBack(): void {

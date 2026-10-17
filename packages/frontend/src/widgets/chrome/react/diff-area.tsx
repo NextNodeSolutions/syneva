@@ -26,7 +26,10 @@ export function DiffArea({ hidden }: { hidden: boolean }): ReactElement {
 	const fab = S.diffScrolled ? (S.fabState?.() ?? null) : null
 	const objections = fab === 'changes'
 	return (
-		<div {...stylex.props(diffArea.area, hidden && diffArea.hidden)}>
+		<div
+			{...stylex.props(diffArea.area, hidden && diffArea.hidden)}
+			data-morph="code"
+		>
 			<div id="diff" {...stylex.props(diffArea.scroller)} />
 			<div id="ovr" hidden {...stylex.props(diffArea.ruler)} />
 			{fab && (

@@ -10,9 +10,11 @@ import {
 	shift,
 } from '@app/hotkey-matchers'
 import { guideInputs, hasGuide } from '@entities/review/guide/guide'
+import { queries } from '@syneva/design-system/media.stylex'
 import { askConfirm } from '@widgets/dialogs/confirm'
 
 import { escape } from './escape'
+import { toggleTree } from './facade/layout-motion'
 import { S } from './store'
 
 import type { Hotkey } from '@app/hotkey-matchers'
@@ -137,11 +139,15 @@ export const HOTKEYS_APP: Hotkey[] = [
 	},
 	{
 		combo: '⇧B',
-		desc: 'Files drawer (narrow screens)',
+		desc: 'Show / hide the file tree',
 		group: 'View',
 		when: navigable,
 		test: shift('B'),
-		run: () => (S.treeDrawerOpen = !S.treeDrawerOpen),
+		run: () => {
+			if (window.matchMedia(queries.tablet).matches)
+				S.treeDrawerOpen = !S.treeDrawerOpen
+			else toggleTree()
+		},
 	},
 	{
 		combo: '⇧R',

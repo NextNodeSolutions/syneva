@@ -116,10 +116,10 @@ function columns(shape: Shape): Style {
 }
 
 function Workspace(): ReactElement {
-	const hasNoTree = isTreeless(S)
-	const level = readingLevel()
-	// Under the tablet width the explanation stacks under the guide bar, above the diff; wider, it is the column between the tree and the diff.
+	// Under the tablet width the explanation stacks under the guide bar, above the diff, and the tree is a drawer; wider, the explanation is the column between the tree and the diff, and the tree can fold away.
 	const isUnderTablet = useMediaQuery(queries.tablet)
+	const hasNoTree = isTreeless(S) || (S.treeFolded && !isUnderTablet)
+	const level = readingLevel()
 	const isGuideColumn = level.isPaneOpen && !isUnderTablet
 	const pane = (
 		<Suspense fallback={<div {...stylex.props(app.guideSpace)} />}>
@@ -169,6 +169,7 @@ export function App(): ReactElement {
 		'guidePaneOpen',
 		'overviewOpen',
 		'codeOpen',
+		'treeFolded',
 	)
 	const isClosed = S.deskClosed && !S.isRefreshRequired
 	return (

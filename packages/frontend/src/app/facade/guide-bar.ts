@@ -10,7 +10,8 @@ import {
 	nextFileIndex,
 	showGuideBar,
 } from '@entities/review/guide/guide'
-import { render } from '@shared/lib/render-scheduler'
+
+import { moveLayout } from './layout-motion'
 
 // guideInputs(S) is the one builder; these bindings read the store at each evaluation through it.
 
@@ -19,9 +20,12 @@ export function installGuideBindings(): void {
 	S.showGuideBar = () => showGuideBar(guideInputs(S))
 	S.guideStale = () => guideStale(guideInputs(S))
 	S.curFileName = () => currentFileName(guideInputs(S))
+	// From the code the project level opens as the one motion; from a domain's page the two readings cross-fade.
 	S.openOverview = () => {
-		S.overviewOpen = true
-		void render()
+		if (S.overviewOpen) return
+		void moveLayout(() => {
+			S.overviewOpen = true
+		})
 	}
 	// Start opens the highest-risk domain's reading (selectDomain leaves the overview itself, which is how it knows to read before the code); a guide without a domain falls back to the first file in guide order.
 	S.startGuided = () => {

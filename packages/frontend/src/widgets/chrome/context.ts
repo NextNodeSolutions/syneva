@@ -42,6 +42,7 @@ export interface ChromeStoreView {
 	sendNote: string
 	sidebarTab: 'tree' | 'walkthrough'
 	treeDrawerOpen: boolean
+	treeFolded: boolean
 	fileView: 'rendered' | 'source'
 	diffScrolled: boolean
 	domainId: string | null

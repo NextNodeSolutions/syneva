@@ -146,12 +146,15 @@ function DomainPane({ layout }: { layout: GuideLayout }): ReactElement {
 	const domains = orderedDomains(state.guide)
 	const isStale = isDomainStale(state, domain.id)
 	const isPage = layout === 'page'
+	// The column is the morphing element; on the page, its wrapper is.
+	const isColumn = !isPage
 	return (
 		<aside
 			{...stylex.props(isPage ? pane.sheet : pane.aside)}
 			aria-label="Explanation"
 			data-guide-pane=""
 			data-guide-controls=""
+			data-morph={isColumn ? 'reading' : undefined}
 		>
 			<DomainHead
 				domain={domain}
@@ -189,7 +192,11 @@ export function GuidePane({
 	)
 	if (layout === 'page')
 		return (
-			<div {...stylex.props(pane.page)} data-reading="">
+			<div
+				{...stylex.props(pane.page)}
+				data-reading=""
+				data-morph="reading"
+			>
 				<DomainPane layout={layout} />
 			</div>
 		)

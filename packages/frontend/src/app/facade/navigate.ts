@@ -11,6 +11,13 @@ import { D } from '@widgets/diff-view/runtime'
 
 import { S, toast } from '../store'
 
+import {
+	enterCode,
+	foldTreeForCode,
+	isReading,
+	moveLayout,
+} from './layout-motion'
+
 import type { FileRow } from '@entities/review/file/tree-rows'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
 import type { Side } from '@shared/diff-renderer/types'
@@ -61,23 +68,26 @@ function installSpanJump(): void {
 // Bumped by every selection that replaces the rendered file and by every preview request; an in-flight preview whose token is no longer current is discarded, so a late response can't overwrite a newer selection.
 let navGeneration = 0
 
+function selectFile(i: number): void {
+	const { state } = S
+	if (i < 0 || !state?.files[i]) return
+	navGeneration++ // invalidate any in-flight preview for the file being left
+	S.treeDrawerOpen = false
+	S.overviewOpen = false
+	S.codeOpen = true
+	S.preview = null
+	S.diffScrolled = false // the new file renders at the top (see render.ts) - hide the floating action
+	S.fileIndex = i
+	S.fileView = defaultFileView(state.files[i], S.settings.markdownView)
+	D.fileDiff = null
+	cursorReset()
+	deferRender()
+	warmNextFile()
+}
+
 function installFileSelection(): void {
-	S.selectFile = i => {
-		const { state } = S
-		if (i < 0 || !state?.files[i]) return
-		navGeneration++ // invalidate any in-flight preview for the file being left
-		S.treeDrawerOpen = false
-		S.overviewOpen = false
-		S.codeOpen = true
-		S.preview = null
-		S.diffScrolled = false // the new file renders at the top (see render.ts) - hide the floating action
-		S.fileIndex = i
-		S.fileView = defaultFileView(state.files[i], S.settings.markdownView)
-		D.fileDiff = null
-		cursorReset()
-		deferRender()
-		warmNextFile()
-	}
+	// From the reading, a file opens as the one motion (layout-motion); from the code it is the plain switch.
+	S.selectFile = i => enterCode(() => selectFile(i))
 	S.previewFile = path => {
 		void openPreview(path)
 	}
@@ -92,12 +102,22 @@ export async function openPreview(
 	const preview = await readPreviewFile(path, side)
 	if (gen !== navGeneration) return
 	if (!preview) return
-	if (jump) setPendingJump(jump)
-	S.overviewOpen = false
-	S.codeOpen = true
-	S.preview = preview
-	D.fileDiff = null
-	cursorReset()
+	const show = (): void => {
+		if (jump) setPendingJump(jump)
+		S.overviewOpen = false
+		S.codeOpen = true
+		S.preview = preview
+		D.fileDiff = null
+		cursorReset()
+	}
+	if (isReading()) {
+		await moveLayout(() => {
+			foldTreeForCode()
+			show()
+		})
+		return
+	}
+	show()
 	await render()
 }
 

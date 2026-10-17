@@ -237,6 +237,7 @@ export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 				S.treeDrawerOpen && sidebar.drawerOpen,
 				hidden && sidebar.hidden,
 			)}
+			data-morph="tree"
 		>
 			{guided && <TreeTabs />}
 			{!guided && S.state?.guideExpected && <GuidePending />}

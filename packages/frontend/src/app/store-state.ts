@@ -49,6 +49,8 @@ export interface Store {
 	overviewOpen: boolean
 	sidebarTab: 'tree' | 'walkthrough'
 	treeDrawerOpen: boolean
+	// The tree folded away at desk width (the drawer is the narrow screens' tree): folded by the code opening from the reading, or by hand.
+	treeFolded: boolean
 	fileView: 'rendered' | 'source'
 	diffScrolled: boolean
 	foldExpanded: Set<string>

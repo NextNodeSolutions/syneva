@@ -17,6 +17,7 @@ export function ReadingSurface(): ReactElement {
 		<div
 			{...stylex.props(reading.surface)}
 			data-reading=""
+			data-morph="reading"
 			data-guide-controls=""
 		>
 			<ProjectLevel state={state} />

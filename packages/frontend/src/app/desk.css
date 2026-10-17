@@ -51,3 +51,63 @@
 		transition: none !important;
 	}
 }
+
+/* The desk's one layout motion (app/facade/layout-motion.ts). The reading - the project level, a domain read full width, the explanation column beside the code - keeps one name across layouts, so the browser carries its box from full width into its column and back; the code slides in beside it or leaves, and the tree folds away or returns. Everything else swaps at once: the root's own crossfade would ghost the chrome over itself. */
+:where([data-morph='reading']) {
+	view-transition-name: reading;
+}
+:where([data-morph='code']) {
+	view-transition-name: code;
+}
+:where([data-morph='tree']) {
+	view-transition-name: tree;
+}
+::view-transition-group(reading),
+::view-transition-old(reading),
+::view-transition-new(reading) {
+	animation-duration: 400ms;
+	animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+::view-transition-new(code):only-child {
+	animation: 400ms cubic-bezier(0.2, 0, 0, 1) both desk-code-in;
+}
+::view-transition-old(code):only-child {
+	animation: 240ms cubic-bezier(0.2, 0, 0, 1) both desk-code-out;
+}
+::view-transition-old(tree):only-child {
+	animation: 240ms cubic-bezier(0.2, 0, 0, 1) both desk-tree-out;
+}
+::view-transition-new(tree):only-child {
+	animation: 400ms cubic-bezier(0.2, 0, 0, 1) both desk-tree-in;
+}
+::view-transition-old(root) {
+	display: none;
+}
+::view-transition-new(root),
+::view-transition-group(root) {
+	animation: none;
+}
+@keyframes desk-code-in {
+	from {
+		opacity: 0;
+		transform: translateX(40px);
+	}
+}
+@keyframes desk-code-out {
+	to {
+		opacity: 0;
+		transform: translateX(40px);
+	}
+}
+@keyframes desk-tree-out {
+	to {
+		opacity: 0;
+		transform: translateX(-24px);
+	}
+}
+@keyframes desk-tree-in {
+	from {
+		opacity: 0;
+		transform: translateX(-24px);
+	}
+}
