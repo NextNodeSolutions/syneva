@@ -43,12 +43,15 @@ function currentFile(): ReviewFile | null {
 	)
 }
 
+// A deferred render that a direct render overtook has nothing left to paint: the direct one read the same or a newer store, and running the deferred one after it would rebuild the diff a second time and drop the scroll a restore just set.
 export function deferRender(): void {
 	if (isDeferredRenderPending) return
 	isDeferredRenderPending = true
+	const scheduledAt = renderSequence
 	requestAnimationFrame(() =>
 		requestAnimationFrame(() => {
 			isDeferredRenderPending = false
+			if (renderSequence !== scheduledAt) return
 			void render()
 		}),
 	)
