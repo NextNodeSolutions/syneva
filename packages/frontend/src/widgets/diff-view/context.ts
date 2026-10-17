@@ -37,8 +37,6 @@ export interface DiffStoreView {
 	toggleFileComposer?: () => void
 	selectFile?: (i: number) => void
 	previewFile?: (path: string) => void
-	startGuided?: () => void
-	selectDomain?: (id: string) => void
 	noteResolved?: (ref: NoteThreadRef) => void
 }
 

@@ -12,7 +12,8 @@ import { diffArea } from './diff-area.styles'
 
 import type { ReactElement } from 'react'
 
-export function DiffArea(): ReactElement {
+// The code's area: the diff scroller the render funnel paints into, its overview ruler and the floating sign-off. Hidden, it keeps its DOM (the scroller is reached by id) and only leaves the layout.
+export function DiffArea({ hidden }: { hidden: boolean }): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields(
 		'state',
@@ -25,7 +26,7 @@ export function DiffArea(): ReactElement {
 	const fab = S.diffScrolled ? (S.fabState?.() ?? null) : null
 	const objections = fab === 'changes'
 	return (
-		<div {...stylex.props(diffArea.area)}>
+		<div {...stylex.props(diffArea.area, hidden && diffArea.hidden)}>
 			<div id="diff" {...stylex.props(diffArea.scroller)} />
 			<div id="ovr" hidden {...stylex.props(diffArea.ruler)} />
 			{fab && (

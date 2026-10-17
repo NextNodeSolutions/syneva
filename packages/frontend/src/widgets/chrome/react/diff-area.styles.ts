@@ -9,6 +9,7 @@ export const diffArea = stylex.create({
 		minHeight: 0,
 		display: 'flex',
 	},
+	hidden: { display: 'none' },
 	scroller: {
 		position: 'relative',
 		flex: '1',

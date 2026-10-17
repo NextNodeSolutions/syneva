@@ -37,7 +37,21 @@ const GuidePane = lazy(async () => {
 	return { default: module.GuidePane }
 })
 
+// The reading surface (the guide's levels, the system canvas behind them) is another: a guided desk loads it when the reviewer opens the overview, and the diff's own chrome never carries it.
+const ReadingSurface = lazy(async () => {
+	const module = await import('@pages/desk/react/reading-surface')
+	return { default: module.ReadingSurface }
+})
+
 type Shape = { isTreeless: boolean; isGuideOpen: boolean; isNotesOpen: boolean }
+
+function Reading(): ReactElement {
+	return (
+		<Suspense fallback={<div {...stylex.props(app.readingSpace)} />}>
+			<ReadingSurface />
+		</Suspense>
+	)
+}
 
 // One static grid template per shape: StyleX compiles each ahead of time, and the tablet rule collapses every one to the diff alone.
 function columns(shape: Shape): Style {
@@ -55,8 +69,9 @@ function columns(shape: Shape): Style {
 
 function Workspace(): ReactElement {
 	const hasNoTree = isTreeless(S)
-	const isGuideOpen =
-		(S.hasGuide?.() ?? false) && S.guidePaneOpen && !S.overviewOpen
+	const hasGuide = S.hasGuide?.() ?? false
+	const isReading = hasGuide && S.overviewOpen
+	const isGuideOpen = hasGuide && S.guidePaneOpen && !S.overviewOpen
 	// Under the tablet width the explanation stacks under the guide bar, above the diff; wider, it is the column between the tree and the diff.
 	const isUnderTablet = useMediaQuery(queries.tablet)
 	const isGuideColumn = isGuideOpen && !isUnderTablet
@@ -92,7 +107,9 @@ function Workspace(): ReactElement {
 			<section {...stylex.props(app.center)}>
 				<GuideBar />
 				{isGuideOpen && isUnderTablet && pane}
-				<DiffArea />
+				{isReading && <Reading />}
+				{/* The diff's scroller stays in the DOM while the reading covers it: the render funnel paints into it by id and the next file lands in it the moment the reading closes. */}
+				<DiffArea hidden={isReading} />
 			</section>
 			{S.notesOpen && <NotesPanel />}
 		</main>

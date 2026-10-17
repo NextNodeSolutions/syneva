@@ -634,6 +634,7 @@ export default defineConfig({
 				'packages/frontend/src/widgets/guide-pane/react/**',
 				'packages/frontend/src/widgets/hub-shell/react/**',
 				'packages/frontend/src/widgets/system-canvas/react/**',
+				'packages/frontend/src/pages/desk/react/**',
 				'packages/frontend/src/pages/dashboard/**/*.tsx',
 				'packages/frontend/src/entities/hub/use-hub.ts',
 				'packages/frontend/src/pages/dashboard/use-document-title.ts',

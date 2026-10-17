@@ -2,7 +2,7 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-export const overview = stylex.create({
+export const project = stylex.create({
 	page: {
 		minHeight: '100%',
 		display: 'grid',
@@ -36,6 +36,9 @@ export const overview = stylex.create({
 	},
 	sub: { marginBottom: '18px' },
 	stale: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '6px',
 		marginTop: '12px',
 		marginBottom: '18px',
 		paddingBlock: '8px',
