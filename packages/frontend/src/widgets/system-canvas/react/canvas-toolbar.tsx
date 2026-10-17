@@ -1,10 +1,10 @@
 import { isMotionReduced } from '@shared/lib/motion'
 import { Button } from '@shared/ui/button'
 import { deskControl } from '@shared/ui/desk-control.styles'
-import { tip } from '@shared/ui/tip.styles'
 import * as stylex from '@stylexjs/stylex'
 import { useReactFlow } from '@xyflow/react'
 
+import { PURPOSES } from './canvas-legend'
 import { canvas } from './canvas.styles'
 import { ZoomGlyph } from './glyphs'
 import { PoseSwitch } from './pose-switch'
@@ -16,8 +16,7 @@ import type { CanvasScene } from './use-canvas-scene'
 import type { OrbitHold } from './use-orbit'
 
 const ZOOM_MS = 160
-
-// The plan's zoom eases, unless the reviewer asked for less motion: then it jumps, as the 3D view's poses do.
+const PROJECTIONS: Projection[] = ['plan', 'iso', 'orbit']
 const zoom = (): { duration: number } => ({
 	duration: isMotionReduced() ? 0 : ZOOM_MS,
 })
@@ -28,7 +27,7 @@ function Zoom(): ReactElement {
 		<span {...stylex.props(canvas.zoom)}>
 			<Button
 				size="small"
-				css={[deskControl.mini, deskControl.iconMini]}
+				css={[deskControl.compact, deskControl.iconMini]}
 				aria-label="Zoom out"
 				onClick={() => void flow.zoomOut(zoom())}
 			>
@@ -36,7 +35,7 @@ function Zoom(): ReactElement {
 			</Button>
 			<Button
 				size="small"
-				css={[deskControl.mini, deskControl.iconMini]}
+				css={[deskControl.compact, deskControl.iconMini]}
 				aria-label="Zoom in"
 				onClick={() => void flow.zoomIn(zoom())}
 			>
@@ -44,43 +43,21 @@ function Zoom(): ReactElement {
 			</Button>
 			<Button
 				size="small"
-				css={deskControl.mini}
+				css={deskControl.compact}
 				onClick={() => void flow.fitView({ ...zoom(), padding: 0.06 })}
 			>
-				Fit
+				Fit map
 			</Button>
 		</span>
 	)
 }
 
-// Three projections, three purposes, each said in its tooltip and after its name to a screen reader (the name it shows comes first, so a voice command that says it finds it): the map that leads into the review, the tiers that place the change in the architecture, the two floors that show what it does to the system.
-const PROJECTIONS: { id: Projection; title: string; purpose: string }[] = [
-	{
-		id: 'plan',
-		title: 'Plan',
-		purpose:
-			'Map: the parts the change lives in, and the way into its domains',
-	},
-	{
-		id: 'iso',
-		title: 'Iso',
-		purpose:
-			'Tiers: where the change sits, from the interface down to the data',
-	},
-	{
-		id: 'orbit',
-		title: '3D',
-		purpose:
-			'Before \u2192 after: the system before the change, under the system after it',
-	},
-]
-
 function Projections({
-	projection,
-	onProjection,
+	current,
+	hold,
 }: {
-	projection: Projection
-	onProjection: (projection: Projection) => void
+	current: CanvasScene
+	hold: OrbitHold
 }): ReactElement {
 	return (
 		<span
@@ -88,76 +65,88 @@ function Projections({
 			role="group"
 			aria-label="Projection"
 		>
-			{PROJECTIONS.map(entry => (
+			{PROJECTIONS.map(id => (
 				<Button
-					key={entry.id}
+					key={id}
 					size="small"
-					aria-pressed={entry.id === projection}
-					aria-label={`${entry.title}, ${entry.purpose}`}
-					data-tip={entry.purpose}
+					aria-pressed={id === current.projection}
+					title={PURPOSES[id].line}
 					css={[
-						deskControl.mini,
-						tip.host,
-						tip.end,
-						entry.id === projection && canvas.tabOn,
+						deskControl.compact,
+						id === current.projection && canvas.tabOn,
 					]}
-					onClick={() => onProjection(entry.id)}
+					onClick={() => {
+						hold.stop()
+						current.onProjection(id)
+					}}
 				>
-					{entry.title}
+					{PURPOSES[id].tab}
 				</Button>
 			))}
 		</span>
 	)
 }
 
-// The system view, then each path the guide tells step by step; the chosen one on the wash inside a petrol hairline. Then, at the bar's end, the projection's own control (the plan's zoom, the 3D view's before and after) and how the scene is drawn; the switch keeps its place as the control before it changes (the 3D view keeps its turning in its corner).
+function Paths({
+	views,
+	current,
+	hold,
+}: {
+	views: readonly ModelView[]
+	current: CanvasScene
+	hold: OrbitHold
+}): ReactElement | null {
+	if (!views.length) return null
+	const paths = [{ id: null, title: 'Whole system' }, ...views]
+	return (
+		<div
+			{...stylex.props(canvas.paths)}
+			role="group"
+			aria-label="Follow a path"
+		>
+			<span {...stylex.props(canvas.pathLabel)}>Follow a path</span>
+			{paths.map(path => (
+				<Button
+					key={path.id ?? ''}
+					size="small"
+					aria-pressed={path.id === current.viewId}
+					css={[
+						deskControl.compact,
+						path.id === current.viewId && canvas.tabOn,
+					]}
+					onClick={() => {
+						hold.stop()
+						current.onView(path.id)
+					}}
+				>
+					{path.title}
+				</Button>
+			))}
+		</div>
+	)
+}
+
 export function CanvasToolbar({
 	views,
 	current,
 	hold,
 }: {
 	views: readonly ModelView[]
-	current: Pick<
-		CanvasScene,
-		'viewId' | 'onView' | 'projection' | 'onProjection'
-	>
+	current: CanvasScene
 	hold: OrbitHold
 }): ReactElement {
-	const { viewId } = current
-	const tabs = [
-		{ id: null, title: 'System' },
-		...views.map(view => ({ id: view.id, title: view.title })),
-	]
 	return (
-		<div {...stylex.props(canvas.toolbar)}>
-			<span
-				{...stylex.props(canvas.tabs)}
-				role="group"
-				aria-label="Views"
-			>
-				{tabs.map(tab => (
-					<Button
-						key={tab.id ?? ''}
-						size="small"
-						aria-pressed={tab.id === viewId}
-						css={[
-							deskControl.mini,
-							tab.id === viewId && canvas.tabOn,
-						]}
-						onClick={() => current.onView(tab.id)}
-					>
-						{tab.title}
-					</Button>
-				))}
-			</span>
-			<span {...stylex.props(canvas.end)}>
-				{current.projection === 'plan' && <Zoom />}
-				{current.projection === 'orbit' && <PoseSwitch hold={hold} />}
-				<Projections
-					projection={current.projection}
-					onProjection={current.onProjection}
-				/>
-			</span>
-		</div>
+		<>
+			<div {...stylex.props(canvas.toolbar)}>
+				<Projections current={current} hold={hold} />
+				<span {...stylex.props(canvas.end)}>
+					{current.projection === 'plan' && <Zoom />}
+					{current.projection === 'orbit' && (
+						<PoseSwitch hold={hold} />
+					)}
+				</span>
+			</div>
+			<Paths views={views} current={current} hold={hold} />
+		</>
 	)
 }

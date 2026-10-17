@@ -2,11 +2,9 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// The canvas is a ruled panel in the overview: its views and zoom on a paper bar, the system on the 24px grid field, what is selected or pointed at in a white strip under it.
-export const FIELD_HEIGHT = 460
-
 export const canvas = stylex.create({
 	root: {
+		containerType: 'inline-size',
 		marginBottom: '20px',
 		backgroundColor: color['--white'],
 		borderWidth: '1px',
@@ -17,9 +15,9 @@ export const canvas = stylex.create({
 		display: 'flex',
 		flexWrap: 'wrap',
 		alignItems: 'center',
-		gap: '6px',
-		paddingBlock: '6px',
-		paddingInline: '8px',
+		gap: '12px',
+		paddingBlock: '10px',
+		paddingInline: '12px',
 		backgroundColor: color['--paper'],
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
@@ -30,6 +28,24 @@ export const canvas = stylex.create({
 		flexWrap: 'wrap',
 		gap: '4px',
 		minWidth: 0,
+	},
+	paths: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '6px',
+		overflowX: 'auto',
+		paddingBlock: '8px',
+		paddingInline: '12px',
+		whiteSpace: 'nowrap',
+		borderBottomWidth: '1px',
+		borderBottomStyle: 'solid',
+		borderBottomColor: color['--line'],
+	},
+	pathLabel: {
+		flexShrink: 0,
+		marginInlineEnd: '8px',
+		fontSize: deskText.small,
+		color: color['--muted'],
 	},
 	tabOn: {
 		color: color['--accent'],
@@ -48,7 +64,6 @@ export const canvas = stylex.create({
 	},
 	field: {
 		position: 'relative',
-		height: `${FIELD_HEIGHT}px`,
 		backgroundColor: color['--paper'],
 	},
 	fieldHeight: (height: number) => ({ height: `${height}px` }),

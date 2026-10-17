@@ -49,7 +49,7 @@ const GROUP_PADDING = '[top=60,left=16,bottom=16,right=16]'
 const CACHE_LIMIT = 40
 
 // The box the canvas fits a layout into on a wide overview: of the two directions, the one drawn larger in it wins (a deep chain reads down, a wide fan across), down on a tie as C4 diagrams read.
-export const REFERENCE = { width: 1060, height: 760 }
+export const REFERENCE = { width: 1060, height: 520 }
 
 const OPTIONS = {
 	...LAYERED_OPTIONS,

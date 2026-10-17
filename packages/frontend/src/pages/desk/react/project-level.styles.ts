@@ -8,8 +8,8 @@ export const project = stylex.create({
 		display: 'grid',
 		alignItems: 'start',
 		justifyItems: 'center',
-		paddingBlock: '48px',
-		paddingInline: '30px',
+		paddingBlock: '24px',
+		paddingInline: '24px',
 		backgroundColor: color['--paper'],
 		backgroundImage: `linear-gradient(${color['--grid']} 1px, transparent 1px), linear-gradient(90deg, ${color['--grid']} 1px, transparent 1px)`,
 		backgroundSize: '48px 48px',
@@ -80,15 +80,21 @@ export const project = stylex.create({
 		borderColor: color['--line'],
 	},
 	intent: {
+		maxWidth: '75ch',
 		marginBottom: '18px',
 		fontSize: deskText.title,
 		lineHeight: 1.6,
 		color: color['--ink'],
 	},
 	label: { marginBottom: '8px' },
-	// A guide that draws its system widens the page for the drawing; the slot holds the drawing's height while its chunk loads.
-	cardWide: { width: 'min(1120px, 100%)' },
-	canvasSlot: { minHeight: '560px', marginBottom: '20px' },
+	cardWide: {
+		width: '100%',
+		maxWidth: '1440px',
+		padding: 0,
+		borderWidth: 0,
+		backgroundColor: 'transparent',
+	},
+	canvasSlot: { minHeight: '660px', marginBottom: '24px' },
 	number: {
 		minWidth: '14px',
 		fontFamily: font['--mono'],
@@ -124,6 +130,7 @@ export const project = stylex.create({
 	},
 	domainHead: {
 		display: 'flex',
+		flexWrap: 'wrap',
 		alignItems: 'center',
 		gap: '10px',
 	},
@@ -142,6 +149,7 @@ export const project = stylex.create({
 		color: color['--muted'],
 	},
 	actions: {
+		marginBottom: '20px',
 		display: 'flex',
 		alignItems: 'center',
 		gap: '12px',

@@ -7,36 +7,36 @@ import type { ChangeMark } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
 import type { Projection } from '../model'
 
-// Each projection says in one line what it is for: the map to find the way in, the tiers to see where in the architecture the change sits, the two floors to see what it does to the system as a whole.
-export const PURPOSES: Record<Projection, { name: string; line: string }> = {
+export const PURPOSES: Record<
+	Projection,
+	{ tab: string; name: string; line: string }
+> = {
 	plan: {
-		name: 'Map',
-		line: 'Every part inside the system that holds it. Point at one to trace its links; a number opens its domain.',
+		tab: '2D · Flow',
+		name: 'Follow the flow',
+		line: 'Choose a path to walk through one behavior. Select a part to read its role and the explanation behind its change.',
 	},
 	iso: {
-		name: 'Tiers',
-		line: 'Each part on the floor of its tier, the interface over the services over the data; a change raises its part.',
+		tab: 'Iso · Layers',
+		name: 'Place the change',
+		line: "Interface, services and data sit on separate layers, inferred from each part's kind. Select a part to read its role and open its explanation.",
 	},
 	orbit: {
-		name: 'Before \u2192 after',
-		line: 'The system after the change over the system before it; look under the top floor to see what was there.',
+		tab: '3D · Changes',
+		name: 'Compare structure',
+		line: 'After is above Before. New parts exist only after, removed parts only before. A changed part can keep its position. Its explanation says what behaves differently.',
 	},
 }
 
 const MARKS: ChangeMark[] = ['added', 'changed', 'removed']
 
-// The projection's purpose, then the change marks it paints (the one strong colour) and the domain number that leads down to the code.
-export function CanvasLegend({
-	projection,
-}: {
-	projection: Projection
-}): ReactElement {
-	const purpose = PURPOSES[projection]
+export function CanvasLegend(): ReactElement {
 	return (
-		<p {...stylex.props(legend.line)}>
-			<span {...stylex.props(legend.name)}>{purpose.name}</span>
-			<span {...stylex.props(legend.text)}>{purpose.line}</span>
-			<span {...stylex.props(legend.keys)} aria-hidden="true">
+		<p {...stylex.props(legend.line)} aria-label="Change marks">
+			<span {...stylex.props(legend.text)}>
+				Select a part to read its explanation.
+			</span>
+			<span {...stylex.props(legend.keys)}>
 				{MARKS.map(mark => (
 					<span key={mark} {...stylex.props(legend.key)}>
 						<span {...stylex.props(legend.swatch, legend[mark])} />
@@ -45,7 +45,7 @@ export function CanvasLegend({
 				))}
 				<span {...stylex.props(legend.key)}>
 					<span {...stylex.props(legend.number)}>1</span>
-					domain
+					explanation
 				</span>
 			</span>
 		</p>

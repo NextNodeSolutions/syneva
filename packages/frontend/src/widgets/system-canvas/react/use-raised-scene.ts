@@ -35,7 +35,7 @@ export function useTierScene(
 	field: RefObject<HTMLDivElement | null>,
 ): RaisedScene {
 	const layout = use(layoutCanvas(scene.input))
-	const size = useFieldSize(field, layout)
+	const size = useFieldSize(field)
 	const raised = useMemo(() => tierRaised(scene, layout), [scene, layout])
 	const extent = useMemo(() => extentOf(raised), [raised])
 	// Framed on what stands in it, not on its box: the floors step up to the right, so the box's far corners are empty.
@@ -60,7 +60,7 @@ export function useOrbitScene(
 	hold: OrbitHold,
 ): RaisedScene {
 	const layout = use(layoutCanvas(scene.input))
-	const size = useFieldSize(field, layout)
+	const size = useFieldSize(field)
 	const turn = turnFor(layout.direction)
 	const orbit = {
 		turn: turn + hold.orbit.turn,

@@ -13,7 +13,6 @@ export type CanvasScene = {
 	viewId: string | null
 	view: ModelView | undefined
 	scene: Scene
-	// React Flow keeps its nodes once given: a new scene (another view, a new model) is a new field, keyed by this.
 	sceneKey: string
 	selected: string | null
 	onSelect: (id: string | null) => void

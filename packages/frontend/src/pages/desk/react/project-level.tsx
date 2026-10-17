@@ -239,6 +239,7 @@ export function ProjectLevel({ state }: { state: ReviewState }): ReactElement {
 				)}
 			>
 				<ProjectHead state={state} />
+				<StartButton />
 				{model && (
 					<div {...stylex.props(project.canvasSlot)}>
 						<Suspense fallback={null}>
@@ -252,7 +253,6 @@ export function ProjectLevel({ state }: { state: ReviewState }): ReactElement {
 					</div>
 				)}
 				<DomainList state={state} onFocus={setFocusDomain} />
-				<StartButton />
 			</div>
 		</div>
 	)
