@@ -118,9 +118,13 @@ function columns(shape: Shape): Style {
 function Workspace(): ReactElement {
 	// Under the tablet width the explanation stacks under the guide bar, above the diff, and the tree is a drawer; wider, the explanation is the column between the tree and the diff, and the tree can fold away.
 	const isUnderTablet = useMediaQuery(queries.tablet)
+	const isUnderLaptop = useMediaQuery(queries.laptop)
 	const hasNoTree = isTreeless(S) || (S.treeFolded && !isUnderTablet)
 	const level = readingLevel()
 	const isGuideColumn = level.isPaneOpen && !isUnderTablet
+	// The notes float over the code where a column of their own would squeeze it: under the tablet width always, under the laptop width once the explanation column is on screen too.
+	const isNotesFloating =
+		S.notesOpen && (isUnderTablet || (isUnderLaptop && isGuideColumn))
 	const pane = (
 		<Suspense fallback={<div {...stylex.props(app.guideSpace)} />}>
 			<GuidePane />
@@ -133,7 +137,7 @@ function Workspace(): ReactElement {
 				columns({
 					isTreeless: hasNoTree,
 					isGuideOpen: isGuideColumn,
-					isNotesOpen: S.notesOpen,
+					isNotesOpen: S.notesOpen && !isNotesFloating,
 				}),
 			)}
 		>
@@ -154,7 +158,7 @@ function Workspace(): ReactElement {
 				level={level}
 				stackedPane={level.isPaneOpen && isUnderTablet ? pane : null}
 			/>
-			{S.notesOpen && <NotesPanel />}
+			{S.notesOpen && <NotesPanel isFloating={isNotesFloating} />}
 		</main>
 	)
 }

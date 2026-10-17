@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 
 // One home for every query: StyleX resolves defineConsts only from a .stylex.ts (a plain-module import is not static to it); style keys wrap these, runtime matchMedia() reads them bare.
 const QUERY = {
+	laptop: '(max-width: 1500px)',
 	tablet: '(max-width: 1100px)',
 	narrow: '(max-width: 900px)',
 	stacked: '(max-width: 750px)',
@@ -18,6 +19,7 @@ export const queries = stylex.defineConsts(QUERY)
 
 // Width queries are max-width ranges declared widest first, and StyleX keeps the last matching query.
 export const media = stylex.defineConsts({
+	laptop: `@media ${QUERY.laptop}`,
 	tablet: `@media ${QUERY.tablet}`,
 	narrow: `@media ${QUERY.narrow}`,
 	stacked: `@media ${QUERY.stacked}`,

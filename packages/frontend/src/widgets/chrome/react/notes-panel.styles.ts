@@ -1,6 +1,5 @@
 import { deskSize, deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
-import { media } from '@syneva/design-system/media.stylex'
 import {
 	color,
 	duration,
@@ -20,16 +19,18 @@ export const notes = stylex.create({
 		backgroundColor: color['--paper'],
 		borderLeftWidth: '1px',
 		borderLeftStyle: 'solid',
-		borderLeftColor: {
-			default: color['--line'],
-			[media.tablet]: color['--line-strong'],
-		},
-		position: { default: null, [media.tablet]: 'fixed' },
-		top: { default: null, [media.tablet]: deskSize.topbar },
-		right: { default: null, [media.tablet]: 0 },
-		bottom: { default: null, [media.tablet]: 0 },
-		width: { default: null, [media.tablet]: 'min(86vw, 360px)' },
-		zIndex: { default: null, [media.tablet]: 30 },
+		borderLeftColor: color['--line'],
+	},
+	// Over the code's right edge, a drawer like the tree's, when the desk is too narrow for a column of its own (app.tsx decides, from the width and the columns on screen).
+	floating: {
+		borderLeftColor: color['--line-strong'],
+		position: 'fixed',
+		top: deskSize.topbar,
+		right: 0,
+		bottom: 0,
+		width: 'min(86vw, 360px)',
+		zIndex: 30,
+		boxShadow: `-12px 0 24px -16px ${color['--ink']}`,
 	},
 	head: {
 		flexShrink: 0,
