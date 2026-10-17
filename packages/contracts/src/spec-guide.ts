@@ -43,6 +43,21 @@ export const DOMAIN_FIELDS_SPEC = `  - id (required) - stable identity ([A-Za-z0
     - "sequence": { participants: [{ id, label }] (1..40), steps: [{ from, to, label, ref? }] (1..80) }.
     - "flow" (dependency / data flow): { nodes: [{ id, label, ref?, note? }] (1..40),
       edges: [{ from, to, label? }] (≤ 80) }.
+    - "data-model" (tables, types, documents): { entities: [{ id, label, ref?, change?,
+      fields?: [field] (≤ 30) }] (1..40), relations?: [{ from, to, label?, cardinality?, change? }]
+      (≤ 80) }; a field is { name, type?, change?, note?, ref? }; cardinality "1-1" | "1-n" |
+      "n-1" | "n-n".
+    - "api" (routes, events, commands): { endpoints: [{ id, method, path, summary?, change?,
+      ref?, request?: [field], response?: [field] }] (1..20) }; method "GET" | "POST" | "PUT" |
+      "PATCH" | "DELETE" | "EVENT" | "COMMAND" | "RPC".
+    - "wireframe" (a screen the change touches): { surface?: "desktop" | "mobile" | "panel" |
+      "dialog", before?: element, after: element }; an element is { el, label?, change?, ref?,
+      children?: [element] } (≤ 80 per sketch, ≤ 8 deep), el one of screen, header, sidebar, main,
+      footer, row, column, card, dialog, tabs, list, item, table (containers) or title, text,
+      button, input, select, checkbox, image, badge, toast, divider. Leave \`before\` out for a new
+      screen.
+    \`change\` ("added" | "changed" | "removed") marks what the change does to an entity, a field,
+    a relation, an endpoint or an element; left out, it is unchanged context drawn for orientation.
     Every \`ref\` names one of the domain's references, every edge end a declared node. A ref'd
     element is what the reviewer clicks to land on the code.
   - order? - the tie order among domains of the same risk.`
@@ -61,9 +76,10 @@ export const AUTHORING_RULES_SPEC = `- Group by changed behavior, across files: 
   what the reviewer must know.
 - Choose the form by what it explains: "state" for transitions, "sequence" for the order of
   exchanges between participants, "flow" for dependencies and data movement, "before-after" for a
-  behavioral difference, "prose" when a paragraph says it best. No form is required, a diagram is
-  not expected everywhere, and the same long template in every domain is wrong: a one-line change
-  gets a sentence.
+  behavioral difference, "data-model" when tables or types change, "api" when a contract a caller
+  depends on changes, "wireframe" when what a user sees changes, "prose" when a paragraph says it
+  best. No form is required, a diagram is not expected everywhere, and the same long template in
+  every domain is wrong: a one-line change gets a sentence.
 - Mark what must be read as code: a span goes in \`critical\` when one wrong line there costs money,
   access or data and no diagram can show it is right. Keep it rare (most domains have none) and
   tight (the lines that decide, not the whole file): a critical list that grows to cover the
