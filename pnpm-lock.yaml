@@ -183,6 +183,9 @@ importers:
       dompurify:
         specifier: ^3.4.8
         version: 3.4.8
+      elkjs:
+        specifier: 0.12.0
+        version: 0.12.0
       markdown-it:
         specifier: ^14.2.0
         version: 14.2.0
@@ -3450,6 +3453,9 @@ packages:
 
   electron-to-chromium@1.5.434:
     resolution: {integrity: sha512-7EeFW9OLf1NN9NKQP9xdOE/XKqjxv7JDPP6AEAkHli11+Fae1OaLoNuAf13hQv1PPNtuES0pLQSPk2+fS3s8ww==}
+
+  elkjs@0.12.0:
+    resolution: {integrity: sha512-YZcKynxVxYoKIOEpywEPwCFdg+BTbxQRNf3pbwdDCvc8O3kQD8bmIwSxKU1eOTVc4Xo+VG9Te+575mlfvOrhEQ==}
 
   emmet@2.4.11:
     resolution: {integrity: sha512-23QPJB3moh/U9sT4rQzGgeyyGIrcM+GH5uVYg2C6wZIxAIJq7Ng3QLT79tl8FUwDXhyq9SusfknOrofAKqvgyQ==}
@@ -8836,6 +8842,8 @@ snapshots:
       safe-buffer: 5.2.1
 
   electron-to-chromium@1.5.434: {}
+
+  elkjs@0.12.0: {}
 
   emmet@2.4.11:
     dependencies:
