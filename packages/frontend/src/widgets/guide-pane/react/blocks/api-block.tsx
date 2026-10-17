@@ -1,9 +1,13 @@
+import {
+	CHANGE_SIGNS,
+	CHANGE_WORDS,
+	changeTone,
+} from '@shared/ui/change-mark.styles'
 import * as stylex from '@stylexjs/stylex'
 
 import { RefChip } from '../ref-chip'
 
 import { api } from './api-block.styles'
-import { CHANGE_SIGNS, CHANGE_WORDS, changeTone } from './change-mark.styles'
 
 import type {
 	ApiBlock,
