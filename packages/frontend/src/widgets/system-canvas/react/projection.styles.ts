@@ -70,6 +70,7 @@ export const projection = stylex.create({
 		textTransform: 'uppercase',
 		color: color['--muted'],
 	},
+	// A name longer than the chip ends in an ellipsis and reads whole in its title and the inspector, as on the plan's tiles; a link's words are never cut (nothing else says them on the drawing).
 	nameText: { overflow: 'hidden', textOverflow: 'ellipsis' },
 	struck: { textDecoration: 'line-through' },
 	nameLit: { borderColor: color['--accent'] },
@@ -115,7 +116,6 @@ export const projection = stylex.create({
 		display: 'inline-flex',
 		alignItems: 'center',
 		gap: '4px',
-		maxWidth: '180px',
 		paddingInline: '4px',
 		backgroundColor: color['--paper'],
 		fontFamily: font['--sans'],

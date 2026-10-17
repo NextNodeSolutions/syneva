@@ -43,6 +43,7 @@ function NameButton({
 		>
 			<KindGlyph kind={element.kind} />
 			<span
+				title={element.label}
 				{...stylex.props(
 					styles.nameText,
 					part.mark === 'removed' && styles.struck,
@@ -147,9 +148,7 @@ function LinkWords({
 			{link.step && (
 				<span {...stylex.props(linkStyles.number)}>{link.step}</span>
 			)}
-			{isWorded && (
-				<span {...stylex.props(styles.nameText)}>{linkText(link)}</span>
-			)}
+			{isWorded && <span>{linkText(link)}</span>}
 		</span>
 	)
 }
