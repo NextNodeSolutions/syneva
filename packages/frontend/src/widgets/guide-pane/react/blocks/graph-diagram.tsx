@@ -6,11 +6,12 @@ import { labelAnchor, layoutGraph, routePath } from '../../layout/graph-layout'
 import { edgeKeys } from '../../layout/keys'
 
 import { ARROW_END, ArrowMarker } from './arrow-marker'
+import { changeStroke } from './change-mark.styles'
 import { DiagramNode } from './diagram-node'
 import { diagram } from './diagram.styles'
 import { EdgeLabel } from './edge-label'
 
-import type { GuideDomain } from '@entities/review/guide/model'
+import type { ChangeMark, GuideDomain } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
 import type { GraphInput, LaidEdge, Rect } from '../../layout/graph-layout'
 
@@ -21,16 +22,19 @@ export type GraphNodeView = {
 	shape?: 'initial' | 'final' | undefined
 }
 
-function GraphEdge({
+// One routed edge and its label; a change mark recolours the line (a removed one also dashes it).
+export function GraphEdge({
 	domain,
 	laid,
 	label,
 	refId,
+	change,
 }: {
 	domain: GuideDomain
 	laid: LaidEdge
 	label: string | undefined
-	refId: string | undefined
+	refId?: string | undefined
+	change?: ChangeMark | undefined
 }): ReactElement {
 	const at = labelAnchor(laid)
 	return (
@@ -38,7 +42,10 @@ function GraphEdge({
 			<path
 				d={routePath(laid.points)}
 				markerEnd={ARROW_END}
-				{...stylex.props(diagram.edgePath)}
+				{...stylex.props(
+					diagram.edgePath,
+					change && changeStroke[change],
+				)}
 			/>
 			{at && (
 				<EdgeLabel

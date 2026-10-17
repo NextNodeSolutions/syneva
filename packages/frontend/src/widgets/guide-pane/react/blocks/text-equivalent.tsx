@@ -3,9 +3,12 @@ import * as stylex from '@stylexjs/stylex'
 import { lineKeys } from '../../layout/keys'
 import { RefChip } from '../ref-chip'
 
+import { CHANGE_WORDS } from './change-mark.styles'
 import { diagram } from './diagram.styles'
 
 import type {
+	ChangeMark,
+	DataModelBlock,
 	ExplanationBlock,
 	GuideDomain,
 } from '@entities/review/guide/model'
@@ -13,7 +16,7 @@ import type { ReactElement } from 'react'
 
 type DiagramBlock = Extract<
 	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
+	{ kind: 'state' | 'sequence' | 'flow' | 'data-model' }
 >
 
 type Line = { text: string; refId?: string | undefined }
@@ -52,6 +55,7 @@ function nodeLines(
 
 // The diagram as sentences, its kept nodes then one per edge, in the block's order: what a screen reader and a reviewer without the drawing read, and what shows while the diagram chunk loads.
 function lines(block: DiagramBlock): Line[] {
+	if (block.kind === 'data-model') return modelLines(block)
 	if (block.kind === 'state')
 		return [
 			...nodeLines(block.states, block.transitions),
@@ -62,7 +66,38 @@ function lines(block: DiagramBlock): Line[] {
 	return edgeLines(block)
 }
 
-function edgeLines(block: DiagramBlock): Line[] {
+function marked(text: string, change: ChangeMark | undefined): string {
+	return change ? `${text} (${CHANGE_WORDS[change]})` : text
+}
+
+// Each entity with its fields and what the change does to them, then each relation.
+function modelLines(block: DataModelBlock): Line[] {
+	return [
+		...block.entities.map(entity => ({
+			text: `${marked(entity.label, entity.change)}: ${
+				entity.fields
+					.map(field =>
+						marked(
+							field.type
+								? `${field.name} ${field.type}`
+								: field.name,
+							field.change,
+						),
+					)
+					.join(', ') || 'no field shown'
+			}`,
+			refId: entity.ref,
+		})),
+		...block.relations.map(relation => ({
+			text: marked(
+				`${labelOf(block.entities, relation.from)} → ${labelOf(block.entities, relation.to)}${relation.cardinality ? ` ${relation.cardinality}` : ''}${relation.label ? ` (${relation.label})` : ''}`,
+				relation.change,
+			),
+		})),
+	]
+}
+
+function edgeLines(block: Exclude<DiagramBlock, DataModelBlock>): Line[] {
 	if (block.kind === 'state')
 		return block.transitions.map(transition => ({
 			text: `${labelOf(block.states, transition.from)} → ${labelOf(block.states, transition.to)}${transition.label ? ` on ${transition.label}` : ''}`,

@@ -104,12 +104,48 @@ export type FlowBlock = BlockBase & {
 	edges: FlowEdge[]
 }
 
+// What an element of a block is to the changeset; absent, it is unchanged context.
+export type ChangeMark = 'added' | 'changed' | 'removed'
+
+export type DataField = {
+	name: string
+	type?: string | undefined
+	change?: ChangeMark | undefined
+	note?: string | undefined
+	ref?: string | undefined
+}
+
+export type DataEntity = {
+	id: string
+	label: string
+	ref?: string | undefined
+	change?: ChangeMark | undefined
+	fields: DataField[]
+}
+
+export type Cardinality = '1-1' | '1-n' | 'n-1' | 'n-n'
+
+export type DataRelation = {
+	from: string
+	to: string
+	label?: string | undefined
+	cardinality?: Cardinality | undefined
+	change?: ChangeMark | undefined
+}
+
+export type DataModelBlock = BlockBase & {
+	kind: 'data-model'
+	entities: DataEntity[]
+	relations: DataRelation[]
+}
+
 export type ExplanationBlock =
 	| ProseBlock
 	| BeforeAfterBlock
 	| StateBlock
 	| SequenceBlock
 	| FlowBlock
+	| DataModelBlock
 
 export type GuideDomain = {
 	id: string

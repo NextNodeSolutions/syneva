@@ -1,3 +1,4 @@
+import { DataModelDiagram } from './data-model-diagram'
 import { FlowDiagram } from './flow-diagram'
 import { SequenceDiagram } from './sequence-diagram'
 import { StateDiagram } from './state-diagram'
@@ -10,7 +11,7 @@ import type { ReactElement } from 'react'
 
 type DiagramBlock = Extract<
 	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
+	{ kind: 'state' | 'sequence' | 'flow' | 'data-model' }
 >
 
 // The diagrams' own chunk: loaded by the first diagram block on screen, never by a review without one.
@@ -25,5 +26,7 @@ export function Diagram({
 		return <StateDiagram domain={domain} block={block} />
 	if (block.kind === 'sequence')
 		return <SequenceDiagram domain={domain} block={block} />
+	if (block.kind === 'data-model')
+		return <DataModelDiagram domain={domain} block={block} />
 	return <FlowDiagram domain={domain} block={block} />
 }

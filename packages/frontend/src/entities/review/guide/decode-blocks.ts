@@ -8,6 +8,7 @@ import {
 } from '@shared/api/decode'
 
 import { optStrings } from './decode-fields'
+import { decodeDataModel } from './decode-structures'
 
 import type {
 	BeforeAfterSide,
@@ -25,6 +26,7 @@ const BLOCK_KINDS = [
 	'state',
 	'sequence',
 	'flow',
+	'data-model',
 ] as const
 
 type BlockBase = Pick<ExplanationBlock, 'id' | 'title' | 'refs' | 'detail'>
@@ -183,6 +185,7 @@ const DECODERS: Record<(typeof BLOCK_KINDS)[number], BlockDecoder> = {
 	state: decodeState,
 	sequence: decodeSequence,
 	flow: decodeFlow,
+	'data-model': decodeDataModel,
 }
 
 export function decodeBlock(raw: unknown, ctx: Ctx): ExplanationBlock {

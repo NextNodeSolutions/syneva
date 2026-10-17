@@ -79,7 +79,7 @@ function BeforeAfter({
 
 type DiagramBlock = Extract<
 	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
+	{ kind: 'state' | 'sequence' | 'flow' | 'data-model' }
 >
 
 function DiagramBody({
