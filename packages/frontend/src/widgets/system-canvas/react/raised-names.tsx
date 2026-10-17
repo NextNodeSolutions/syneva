@@ -109,7 +109,7 @@ function PartName({
 	)
 }
 
-// A link's words on the stretch of its route no name covers (words-place.ts): a step's number always, its words when the link is news or looked at. A step stacks over every name (the path is what a dynamic view is for); other words go under them.
+// A link's words on the stretch of its route no name covers (words-place.ts): a step's number always, its words when the link is news or looked at. A step stacks over every name (the path is what a dynamic view is for); other words go under them. A route with no point for its words says nothing at all: a link ELK gave no label, and every link of the 3D view's far floor, which steps back silent.
 function LinkWords({
 	raised,
 	view,
@@ -126,14 +126,13 @@ function LinkWords({
 	const { link, route } = raised
 	const tone = focus.linkTone(link)
 	const isWorded = raised.isWorded || isLinkWorded(link, tone)
-	if (!isWorded && !link.step) return null
+	if (!route.label || (!isWorded && !link.step)) return null
 	const at = wordsAt(
-		route.label && project(view.camera, view.floor, route.label),
+		project(view.camera, view.floor, route.label),
 		route.points.map(point => project(view.camera, view.floor, point)),
 		linkText(link),
 		names,
 	)
-	if (!at) return null
 	return (
 		<span
 			{...stylex.props(

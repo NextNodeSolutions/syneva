@@ -63,17 +63,14 @@ function legsOf(points: readonly ScreenPoint[]): Leg[] {
 
 // The first candidate no name covers; ELK's point when every stretch is covered.
 export function wordsAt(
-	preferred: ScreenPoint | undefined,
+	preferred: ScreenPoint,
 	points: readonly ScreenPoint[],
 	text: string,
 	names: readonly Box[],
-): ScreenPoint | undefined {
-	const candidates = [
-		...(preferred ? [preferred] : []),
-		...legsOf(points).map(leg => leg.middle),
-	]
+): ScreenPoint {
+	const candidates = [preferred, ...legsOf(points).map(leg => leg.middle)]
 	const free = candidates.find(
 		at => !names.some(name => overlaps(wordsBox(at, text), name)),
 	)
-	return free ?? preferred ?? candidates[0]
+	return free ?? preferred
 }

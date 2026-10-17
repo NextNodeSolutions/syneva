@@ -23,7 +23,7 @@ export type Solid = {
 export type Route = {
 	id: string
 	points: Point3[]
-	// Where the link's words sit, on the ground under ELK's label box.
+	// Where the link's words sit, on the ground under ELK's label box; a route without one says nothing (a link ELK gave no label, a far floor's).
 	label?: Point3 | undefined
 }
 
