@@ -47,7 +47,7 @@ function Zoom(): ReactElement {
 	)
 }
 
-// Three projections, three purposes, each said in its tooltip: the map that leads into the review, the tiers that place the change in the architecture, the two floors that show what it does to the system.
+// Three projections, three purposes, each said in its tooltip and after its name to a screen reader (the name it shows comes first, so a voice command that says it finds it): the map that leads into the review, the tiers that place the change in the architecture, the two floors that show what it does to the system.
 const PROJECTIONS: { id: Projection; title: string; purpose: string }[] = [
 	{
 		id: 'plan',
@@ -87,7 +87,7 @@ function Projections({
 					key={entry.id}
 					size="small"
 					aria-pressed={entry.id === projection}
-					aria-label={entry.purpose}
+					aria-label={`${entry.title}, ${entry.purpose}`}
 					data-tip={entry.purpose}
 					css={[
 						deskControl.mini,
