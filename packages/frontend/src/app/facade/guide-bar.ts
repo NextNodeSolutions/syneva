@@ -11,7 +11,7 @@ import {
 	showGuideBar,
 } from '@entities/review/guide/guide'
 
-import { moveLayout } from './layout-motion'
+import { moveLayout, toggleTree } from './layout-motion'
 
 // guideInputs(S) is the one builder; these bindings read the store at each evaluation through it.
 
@@ -21,6 +21,7 @@ export function installGuideBindings(): void {
 	S.guideStale = () => guideStale(guideInputs(S))
 	S.curFileName = () => currentFileName(guideInputs(S))
 	// From the code the project level opens as the one motion; from a domain's page the two readings cross-fade.
+	S.toggleTree = toggleTree
 	S.openOverview = () => {
 		if (S.overviewOpen) return
 		void moveLayout(() => {

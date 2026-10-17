@@ -23,7 +23,7 @@ export function staticBundleBytes(outputs, entry) {
 	return bytes
 }
 
-export const INITIAL_UI_BYTES_LIMIT = 420_000
+export const INITIAL_UI_BYTES_LIMIT = 424_000
 // React 19 (~134 KB minified) + StyleX class maps/runtime leave the 133 KB gzip cold payload within
 // 6% of before; the limit sat just above the measured 392 KB, then moved to 415 KB for the guided
 // review's cold chrome (the domain moves, the position strip's steps, the keys: ~8 KB measured at
@@ -32,7 +32,9 @@ export const INITIAL_UI_BYTES_LIMIT = 420_000
 // slot, its lazy import and the domain numbers, ~1 KB measured at 415.9 KB): React Flow and the
 // canvas itself ride their own lazy chunk - and to 420 KB for the brick under the cursor (its name
 // on the wire and in the strip, the rule down the gutter, the row-to-block mapping on both sides of
-// a replacement: ~3 KB measured at 417.7 KB). The total is mostly shiki's grammar set (one lazy chunk per
+// a replacement: ~3 KB measured at 417.7 KB) - and to 424 KB for the desk's polish (the reset
+// confirmation, the notes' floating decision, the folded tree's button, questions counted apart from
+// comments, the focus a mouse click releases: ~1.7 KB measured at 419.8 KB). The total is mostly shiki's grammar set (one lazy chunk per
 // grammar), Pierre's worker (~210 KB) and the oniguruma wasm; the initial limit guards the cold
 // open, the total only catches a wholesale new dependency. ELK (the graph diagrams' layout engine,
 // ~1.6 MB, in the diagrams' lazy chunk: loaded by the first flow or state diagram on screen, never

@@ -28,6 +28,7 @@ function reviewStats(): {
 	files: number
 	lines: number
 	comments: number
+	questions: number
 	rejections: number
 } {
 	const { outOfFlow } = flowIndex(S.state, {
@@ -36,12 +37,16 @@ function reviewStats(): {
 	const scope = (S.state?.files ?? []).filter(f => !outOfFlow.has(f.path))
 	let lines = 0
 	for (const f of scope) lines += reviewLineCount(f)
+	const notes = (S.state?.comments ?? []).filter(
+		c => c.role === 'user' && c.status === 'open',
+	)
+	// A question goes out as an open question, not a comment: the count names the two apart, as the Notes panel lists them.
+	const questions = notes.filter(c => c.intent === 'question').length
 	return {
 		files: scope.length,
 		lines,
-		comments: (S.state?.comments ?? []).filter(
-			c => c.role === 'user' && c.status === 'open',
-		).length,
+		comments: notes.length - questions,
+		questions,
 		rejections: (S.state?.changes ?? []).filter(
 			c => c.status === 'rejected',
 		).length,
@@ -49,12 +54,13 @@ function reviewStats(): {
 }
 
 function reviewReceipt(): string {
-	const { files, lines, comments, rejections } = reviewStats()
+	const { files, lines, comments, questions, rejections } = reviewStats()
 	return [
 		plural(files, 'file'),
 		plural(lines, 'changed line'),
 		comments ? plural(comments, 'comment') : '',
-		rejections ? plural(rejections, 'rejected hunk') : '',
+		questions ? plural(questions, 'question') : '',
+		rejections ? plural(rejections, 'change to undo') : '',
 	]
 		.filter(Boolean)
 		.join(', ')
@@ -79,10 +85,11 @@ export function installDialogBindings(): void {
 
 function installSendBindings(): void {
 	S.promptFinish = () => {
-		const { files, lines, comments, rejections } = reviewStats()
+		const { files, lines, comments, questions, rejections } = reviewStats()
 		const extras = [
 			comments ? plural(comments, 'comment') : '',
-			rejections ? plural(rejections, 'rejected hunk') : '',
+			questions ? plural(questions, 'question') : '',
+			rejections ? plural(rejections, 'change to undo') : '',
 		].filter(Boolean)
 		const what = files === 1 ? 'the file' : `all ${files} files`
 		const tail = extras.length ? extras.join(', ') : 'all clean'
@@ -121,7 +128,17 @@ function installResetBinding(): void {
 		void render()
 		toast(RESET_TOASTS[scope])
 	}
+	S.confirmReset = scope => {
+		askConfirm(RESET_QUESTIONS[scope], () => void S.reset?.(scope))
+	}
 	installSendAction()
+}
+
+const RESET_QUESTIONS: Record<ResetScope, string> = {
+	review: 'Reset the review? Every decision and sign-off clears; the notes stay.',
+	approved:
+		'Reset the approved files? Their sign-offs and decisions clear; the rest of the review and the notes stay.',
+	all: 'Reset everything? Every decision, sign-off and note clears.',
 }
 
 const RESET_TOASTS: Record<ResetScope, string> = {

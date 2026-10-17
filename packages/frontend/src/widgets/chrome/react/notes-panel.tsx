@@ -187,7 +187,33 @@ function NotesBody({
 	)
 }
 
-export function NotesPanel(): ReactElement {
+// The search field takes focus on every search tick, and the cursor's row scrolls into view as it moves. Open state lives in the store so the Esc cascade can close it (hotkeys-app) and a store bump mid-menu can't strand a closed-over local flag.
+function useNotesFocus(
+	searchTick: number,
+	cursor: number,
+): {
+	inputRef: RefObject<HTMLInputElement | null>
+	bodyRef: RefObject<HTMLDivElement | null>
+} {
+	const inputRef = useRef<HTMLInputElement | null>(null)
+	const bodyRef = useRef<HTMLDivElement | null>(null)
+	useEffect(() => {
+		if (searchTick > 0) inputRef.current?.focus()
+	}, [searchTick])
+	useEffect(() => {
+		if (cursor > 0)
+			bodyRef.current
+				?.querySelector('[data-cursor]')
+				?.scrollIntoView({ block: 'nearest' })
+	}, [cursor])
+	return { inputRef, bodyRef }
+}
+
+export function NotesPanel({
+	isFloating = false,
+}: {
+	isFloating?: boolean
+}): ReactElement {
 	const { S } = chromeCtx()
 	useStoreFields(
 		'state',
@@ -203,26 +229,14 @@ export function NotesPanel(): ReactElement {
 	const view = { query: S.notesQuery, lens: S.notesLens }
 	const { questions, comments, flat } = notesPanelView(S.state, view)
 	const threads = visibleDomainThreads(S.state, view)
-	const inputRef = useRef<HTMLInputElement | null>(null)
-	const searchTick = S.notesSearchTick
-	const cursor = S.notesCursor
 	const filtered = Boolean(S.notesQuery.trim()) || S.notesLens !== 'all'
-
-	useEffect(() => {
-		if (searchTick > 0) inputRef.current?.focus()
-	}, [searchTick])
-
-	// Open state lives in the store so the Esc cascade can close it (hotkeys-app) and a store bump mid-menu can't strand a closed-over local flag.
-	const bodyRef = useRef<HTMLDivElement | null>(null)
-	useEffect(() => {
-		if (cursor > 0)
-			bodyRef.current
-				?.querySelector('[data-cursor]')
-				?.scrollIntoView({ block: 'nearest' })
-	}, [cursor])
+	const { inputRef, bodyRef } = useNotesFocus(
+		S.notesSearchTick,
+		S.notesCursor,
+	)
 
 	return (
-		<aside {...stylex.props(styles.aside)}>
+		<aside {...stylex.props(styles.aside, isFloating && styles.floating)}>
 			<NotesHead
 				unresolved={
 					unresolvedNoteCount(notes) + openDomainThreadCount(S.state)

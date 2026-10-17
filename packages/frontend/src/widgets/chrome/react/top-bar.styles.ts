@@ -78,6 +78,8 @@ export const topBar = stylex.create({
 		display: { default: 'none', [media.tablet]: 'inline-flex' },
 		marginLeft: '-6px',
 	},
+	// The tree folded away (wider than the tablet width) keeps this button as its one mouse control.
+	navToggleFolded: { display: 'inline-flex' },
 	navToggleHidden: { display: 'none' },
 	lenses: {
 		display: 'flex',

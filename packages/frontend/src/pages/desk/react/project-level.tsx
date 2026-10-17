@@ -98,7 +98,7 @@ function DomainRow({
 	)
 }
 
-// Changes the guide does not own (after a reload exposed them): pending, never folded into a domain, and named where the reviewer finds them - the Walkthrough groups whole files, so a block in a file a domain already names never reaches Other and is pointed to by its file instead.
+// Changes the guide does not own (after a reload exposed them): pending, never folded into a domain, and named where the reviewer finds them - a block by its file, a whole-file operation in the Guide tab's list of what the guide leaves out.
 function UnassignedNote({
 	state,
 }: {
@@ -113,7 +113,7 @@ function UnassignedNote({
 			? `${changes.length} changed ${changes.length === 1 ? 'block' : 'blocks'} (in ${paths.join(', ')})`
 			: '',
 		files
-			? `${files} file ${files === 1 ? 'operation' : 'operations'} (under Other in the Walkthrough)`
+			? `${files} file ${files === 1 ? 'operation' : 'operations'} (listed in the Guide tab)`
 			: '',
 	].filter(Boolean)
 	return (

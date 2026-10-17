@@ -67,6 +67,7 @@ export interface ChromeStoreView {
 	followReference?(domainId: string, refId: string): void
 	guideBack?(): void
 	toggleGuidePane?(): void
+	toggleTree?(): void
 	toggleBlockDetail?(key: string): void
 	openDomainComposer?(domainId: string, blockId?: string): void
 	closeDomainComposer?(): void
@@ -116,7 +117,7 @@ export interface ChromeStoreView {
 	saveComment?(): void
 	ask?(): void
 	requestChange?(): void
-	reset?(scope: ResetScope): Promise<void>
+	confirmReset?(scope: ResetScope): void
 	resetMenuOpen: boolean
 	setResetMenu?(open: boolean): void
 	send?(overallNote?: string): Promise<void>

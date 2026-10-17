@@ -93,6 +93,7 @@ export interface Store {
 	followReference?: (domainId: string, refId: string) => void
 	guideBack?: () => void
 	toggleGuidePane?: () => void
+	toggleTree?: () => void
 	toggleBlockDetail?: (key: string) => void
 	openDomainComposer?: (domainId: string, blockId?: string) => void
 	closeDomainComposer?: () => void
@@ -142,6 +143,8 @@ export interface Store {
 	ask?: () => void
 	requestChange?: () => void
 	reset?: (scope: ResetScope) => Promise<void>
+	// Every reset asks first, whichever control starts it: one press clears what the review took to decide, and Reset all the notes with it.
+	confirmReset?: (scope: ResetScope) => void
 	resetMenuOpen: boolean
 	setResetMenu?: (open: boolean) => void
 	send?: (overallNote?: string) => Promise<void>

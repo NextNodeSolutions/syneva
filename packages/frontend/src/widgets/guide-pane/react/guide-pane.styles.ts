@@ -86,7 +86,13 @@ export const pane = stylex.create({
 		textTransform: 'uppercase',
 		color: color['--muted'],
 	},
-	navs: { marginLeft: 'auto', display: 'flex', gap: '4px' },
+	// Back (24px with its key) shows up once a reference is followed: it overhangs the row's tags instead of growing the row, so the explanation under it does not drop 4px the moment it appears.
+	navs: {
+		marginLeft: 'auto',
+		marginBlock: '-3px',
+		display: 'flex',
+		gap: '4px',
+	},
 	title: {
 		marginTop: '6px',
 		marginBottom: '4px',

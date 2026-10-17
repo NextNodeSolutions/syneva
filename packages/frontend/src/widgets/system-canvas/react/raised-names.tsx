@@ -11,11 +11,13 @@ import { KIND_WORDS, KindGlyph } from './kind-glyph'
 import { link as linkStyles } from './link.styles'
 import { nameAnchor, slabCorner } from './name-anchor'
 import { projection as styles } from './projection.styles'
+import { nameBox, wordsAt } from './words-place'
 
 import type { ReactElement } from 'react'
 import type { Selection } from '../model'
 import type { Deck, Raised, RaisedLink, RaisedPart } from '../projection/raised'
 import type { View } from './solid-shape'
+import type { Box } from './words-place'
 
 // The name's button: the part's kind, name and change, spoken with the deck it is on.
 function NameButton({
@@ -107,23 +109,31 @@ function PartName({
 	)
 }
 
-// A link's words where its route says them: a step's number always, its words when the link is news or looked at. A step stacks over every name (the path is what a dynamic view is for); other words go under them.
+// A link's words on the stretch of its route no name covers (words-place.ts): a step's number always, its words when the link is news or looked at. A step stacks over every name (the path is what a dynamic view is for); other words go under them.
 function LinkWords({
 	raised,
 	view,
 	over,
+	names,
 }: {
 	raised: RaisedLink
 	view: View
 	// The stack a step's words take, above every name.
 	over: number
+	names: readonly Box[]
 }): ReactElement | null {
 	const focus = useCanvasFocus()
 	const { link, route } = raised
 	const tone = focus.linkTone(link)
 	const isWorded = raised.isWorded || isLinkWorded(link, tone)
-	if (!route.label || (!isWorded && !link.step)) return null
-	const at = project(view.camera, view.floor, route.label)
+	if (!isWorded && !link.step) return null
+	const at = wordsAt(
+		route.label && project(view.camera, view.floor, route.label),
+		route.points.map(point => project(view.camera, view.floor, point)),
+		linkText(link),
+		names,
+	)
+	if (!at) return null
 	return (
 		<span
 			{...stylex.props(
@@ -165,7 +175,32 @@ function DeckName({
 	)
 }
 
-// The names over the raised drawing, each part's a button: Tab reaches every named part, Enter selects it. Stacked by nearness, so a nearer name overlaps a farther one.
+type Named = { part: RaisedPart; deck: Deck }
+
+// The named parts, their stacking by nearness (a nearer name overlaps a farther one) and the boxes their chips take, which the links' words keep off.
+function namedParts(
+	raised: Raised,
+	view: View,
+): { named: Named[]; ranks: Map<string, number>; names: Box[] } {
+	const named = raised.decks.flatMap(deck =>
+		deck.parts.filter(part => part.isNamed).map(part => ({ part, deck })),
+	)
+	const anchored = named.map(entry => ({
+		entry,
+		anchor: nameAnchor(entry.part, entry.deck.isHanging, view),
+	}))
+	const ranks = new Map(
+		anchored
+			.toSorted((a, b) => a.anchor.at.depth - b.anchor.at.depth)
+			.map(({ entry }, rank) => [entry.part.key, rank]),
+	)
+	const names = anchored.map(({ entry, anchor }) =>
+		nameBox(anchor.at, entry.part.element.label, anchor.isUnder),
+	)
+	return { named, ranks, names }
+}
+
+// The names over the raised drawing, each part's a button: Tab reaches every named part, Enter selects it.
 export function RaisedNames({
 	raised,
 	view,
@@ -179,16 +214,7 @@ export function RaisedNames({
 		...raised.decks.flatMap(deck => deck.links),
 		...raised.overlay,
 	]
-	const named = raised.decks.flatMap(deck =>
-		deck.parts.filter(part => part.isNamed).map(part => ({ part, deck })),
-	)
-	const near = ({ part, deck }: (typeof named)[number]): number =>
-		nameAnchor(part, deck.isHanging, view).at.depth
-	const ranks = new Map(
-		named
-			.toSorted((a, b) => near(a) - near(b))
-			.map((entry, rank) => [entry.part.key, rank]),
-	)
+	const { named, ranks, names } = namedParts(raised, view)
 	return (
 		<div {...stylex.props(styles.names)}>
 			{raised.decks.map(deck => (
@@ -200,6 +226,7 @@ export function RaisedNames({
 					raised={entry}
 					view={view}
 					over={named.length}
+					names={names}
 				/>
 			))}
 			{named.map(({ part, deck }) => (

@@ -286,7 +286,7 @@ The hub runs a step larger than the desk: it is read in one look between two pie
 
 **The Two-Voice Rule.** Geist typesets the chrome; Geist Mono typesets anything that is code, a path, a count, a timestamp or a label. No third font. Key hints (kbd) stay in the sans so system key symbols render at cap height.
 
-**The Sentence-Case Rule.** Labels read as sentences, like the site's: "Send to agent", "Mark reviewed", "Load diff anyway".
+**The Sentence-Case Rule.** Labels read as sentences, like the site's: "Send to agent", "Approve", "Load diff anyway".
 
 **The Tabular Figure Rule.** A number that changes under the reviewer's eyes is set in tabular numerals (or in the mono), so a count that ticks never moves the words beside it.
 
@@ -348,7 +348,7 @@ Controls compose the design system's recipes (`@syneva/design-system/controls.st
 
 - **Buttons.** Compact (28px) in the top bar and dialogs, mini (22px) inside rows. Tones: `primary` (solid petrol: Send to agent, confirm), `outlined` (white tile, strong rule, petrol on hover), `quiet` (no tile until hovered), `ask` / `request` / `resolve` / `caution` (the review's tints), `keep` (solid green verdict) and `undo` (a plain tile — removing a change is a decision, not a warning), `dangerHint` (destructive intent shows only under the pointer). Every action that has a key carries its kbd chip; the position strip's steps are the exception, naming their key in the tooltip so a group's width holds.
 - **Segmented register.** A ruled white tile of exclusive choices (Split / Stacked, Rendered / Source, a notes lens); the chosen one sits on the petrol wash.
-- **Tabs.** Underlined, the chosen one ruled in petrol on the strip's bottom rule (Tree / Walkthrough, Settings / Shortcuts).
+- **Tabs.** Underlined, the chosen one ruled in petrol on the strip's bottom rule (Tree / Guide, Settings / Shortcuts).
 - **Tags and counts.** Square mono text on its tint (`tag`): a thread's intent, a note's status, an open count.
 - **Fields.** White wells under a strong rule; focus turns the rule petrol with a 3px wash halo. Selects draw their own chevron.
 - **Tooltip.** Fast (0.18s), inverted ink on paper, square, under the control (`tip`).
