@@ -83,6 +83,9 @@ export const overview = stylex.create({
 		color: color['--ink'],
 	},
 	label: { marginBottom: '8px' },
+	// A guide that draws its system widens the page for the drawing; the slot holds the drawing's height while its chunk loads.
+	cardWide: { width: 'min(1120px, 100%)' },
+	canvasSlot: { minHeight: '560px', marginBottom: '20px' },
 	number: {
 		minWidth: '14px',
 		fontFamily: font['--mono'],
