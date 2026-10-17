@@ -196,12 +196,34 @@ export const coverage = stylex.create({
 		color: color['--ink'],
 		cursor: 'pointer',
 	},
+	// One file of the domain: its row, then its spans when it owns more than one block.
+	file: {
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: 'transparent',
+	},
 	current: {
 		borderColor: color['--accent-line'],
-		backgroundColor: {
-			default: color['--wash'],
-			':hover': color['--wash'],
+		backgroundColor: color['--wash'],
+	},
+	spans: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		gap: '4px',
+		paddingInline: '8px',
+		paddingBottom: '6px',
+		fontFamily: font['--mono'],
+		fontSize: '11.5px',
+	},
+	chip: {
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: {
+			default: 'transparent',
+			':hover': color['--line-strong'],
 		},
+		cursor: 'pointer',
 	},
 	path: {
 		display: 'flex',
