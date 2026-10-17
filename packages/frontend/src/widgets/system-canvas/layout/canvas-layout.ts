@@ -31,7 +31,11 @@ export type LaidBox = Rect & {
 
 export type LaidLink = { id: string; points: Point[]; label?: Rect | undefined }
 
+export type Direction = 'DOWN' | 'RIGHT'
+
 export type CanvasLayout = {
+	// The way the links run: down, entering a part from its top, or across, from its left.
+	direction: Direction
 	// Parents before their children, as React Flow wants them.
 	boxes: LaidBox[]
 	links: LaidLink[]
@@ -42,8 +46,6 @@ export type CanvasLayout = {
 // Room above a group's children for its head: its name and badges, then its kind and change.
 const GROUP_PADDING = '[top=60,left=16,bottom=16,right=16]'
 const CACHE_LIMIT = 40
-
-type Direction = 'DOWN' | 'RIGHT'
 
 // The box the canvas fits a layout into on a wide overview: of the two directions, the one drawn larger in it wins (a deep chain reads down, a wide fan across), down on a tie as C4 diagrams read.
 export const REFERENCE = { width: 1060, height: 760 }
@@ -159,6 +161,7 @@ async function laidOut(
 ): Promise<CanvasLayout> {
 	const laid = await runElk(elkGraph(input, direction))
 	return {
+		direction,
 		boxes: readBoxes(laid, undefined),
 		links: (laid.edges ?? []).map(readLink),
 		width: Math.ceil(laid.width ?? 0),

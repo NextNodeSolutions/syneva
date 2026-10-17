@@ -16,7 +16,7 @@ import { canvas } from './canvas.styles'
 import { ContainerNode, ElementNode } from './element-node'
 import { flowElements } from './flow-elements'
 import { LinkEdge } from './link-edge'
-import { useFieldHeight } from './use-field-size'
+import { useFieldSize } from './use-field-size'
 
 import type { OnSelectionChangeParams, ReactFlowState } from '@xyflow/react'
 import type { ReactElement } from 'react'
@@ -69,7 +69,7 @@ export function CanvasField({
 }): ReactElement {
 	const layout = use(layoutCanvas(scene.input))
 	const fieldRef = useRef<HTMLDivElement | null>(null)
-	const height = useFieldHeight(fieldRef, layout)
+	const { height } = useFieldSize(fieldRef, layout)
 	const { nodes, edges } = useMemo(
 		() => flowElements(scene, layout),
 		[scene, layout],
