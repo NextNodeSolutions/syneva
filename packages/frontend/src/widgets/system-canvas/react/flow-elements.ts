@@ -1,8 +1,5 @@
-import { CHANGE_WORDS } from '@shared/ui/change-mark.styles'
+import { spokenName } from './kind-glyph'
 
-import { KIND_WORDS } from './kind-glyph'
-
-import type { ModelElement } from '@entities/review/guide/system-model'
 import type { CanvasLayout } from '../layout/canvas-layout'
 import type { Scene } from '../layout/scene'
 import type { ContainerFlowNode, ElementFlowNode } from './element-node'
@@ -11,17 +8,6 @@ import type { LinkFlowEdge } from './link-edge'
 export type FlowElements = {
 	nodes: (ElementFlowNode | ContainerFlowNode)[]
 	edges: LinkFlowEdge[]
-}
-
-// What a screen reader hears for a part: its name, its kind, what the change does to it.
-function spokenName(element: ModelElement): string {
-	return [
-		element.label,
-		KIND_WORDS[element.kind],
-		element.change && CHANGE_WORDS[element.change],
-	]
-		.filter(Boolean)
-		.join(', ')
 }
 
 // The laid-out scene as React Flow's nodes and edges: fixed boxes nobody drags or wires, each a button a reviewer can select by pointer or keyboard, each link drawn from its own route.

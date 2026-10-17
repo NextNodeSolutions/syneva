@@ -6,7 +6,7 @@ import { useCanvasActions } from './canvas-actions'
 import { useCanvasFocus } from './canvas-focus'
 import { ChangeTag } from './change-tag'
 import { DomainNumbers } from './domain-numbers'
-import { KIND_WORDS, KindGlyph } from './kind-glyph'
+import { KindGlyph, spokenName } from './kind-glyph'
 import { link as linkStyles } from './link.styles'
 import { slabCorner } from './name-anchor'
 import { projection as styles } from './projection.styles'
@@ -18,7 +18,7 @@ import type { Deck, Raised, RaisedPart } from '../projection/raised'
 import type { NameLabel, WordsLabel } from './raised-labels'
 import type { View } from './solid-shape'
 
-// The name's button: the part's kind, name and change, spoken with the deck it is on.
+// The name's button: the part's kind, name and change, spoken as on the plan, then the floor it stands on.
 function NameButton({
 	part,
 	deck,
@@ -31,12 +31,12 @@ function NameButton({
 	onSelect: () => void
 }): ReactElement {
 	const { element } = part
-	const where = deck.name ? `, ${deck.name}` : ''
+	const where = deck.name ? `, on the ${deck.name} floor` : ''
 	return (
 		<button
 			type="button"
 			aria-pressed={isSelected}
-			aria-label={`${element.label}, ${KIND_WORDS[element.kind]}${where}`}
+			aria-label={`${spokenName(element, part.mark)}${where}`}
 			onClick={onSelect}
 			{...stylex.props(styles.nameButton)}
 		>
