@@ -8,11 +8,13 @@ import type { CanvasLayout } from '../layout/canvas-layout'
 const MIN_HEIGHT = 320
 const PADDING = 24
 
-// The field is as tall as the drawing needs at the scale its width allows (never above full size), between a floor that keeps a small system from looking lost and the tallest the overview gives it; a narrower window lowers it with the drawing.
-export function useFieldHeight(
+export type FieldSize = { width: number; height: number }
+
+// The field is as tall as the drawing needs at the scale its width allows (never above full size), between a floor that keeps a small system from looking lost and the tallest the overview gives it; a narrower window lowers it with the drawing. Every projection of a scene shares that height, so switching between them never moves the page.
+export function useFieldSize(
 	field: RefObject<HTMLDivElement | null>,
 	layout: CanvasLayout,
-): number {
+): FieldSize {
 	const [width, setWidth] = useState(REFERENCE.width)
 	useLayoutEffect(() => {
 		const element = field.current
@@ -28,8 +30,11 @@ export function useFieldHeight(
 		width: Math.max(1, width - PADDING),
 		height: REFERENCE.height,
 	})
-	return Math.min(
-		REFERENCE.height,
-		Math.max(MIN_HEIGHT, Math.ceil(layout.height * scale) + PADDING),
-	)
+	return {
+		width,
+		height: Math.min(
+			REFERENCE.height,
+			Math.max(MIN_HEIGHT, Math.ceil(layout.height * scale) + PADDING),
+		),
+	}
 }

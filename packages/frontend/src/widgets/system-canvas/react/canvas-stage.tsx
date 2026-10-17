@@ -5,6 +5,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import { CanvasField } from './canvas-field'
 import { canvas } from './canvas.styles'
+import { ProjectedField } from './projected-field'
 
 import type { ReactElement } from 'react'
 import type { CanvasScene } from './use-canvas-scene'
@@ -23,7 +24,7 @@ function CanvasFailed({ onFail }: { onFail: () => void }): ReactElement {
 	)
 }
 
-// The field for the current scene: an empty field of the same height while ELK lays it out, the failure line should it throw.
+// The field for the current scene in the chosen projection: an empty field of the same height while ELK lays it out, the failure line should it throw.
 export function CanvasStage({
 	current,
 	onFail,
@@ -34,11 +35,22 @@ export function CanvasStage({
 	return (
 		<BlockBoundary fallback={<CanvasFailed onFail={onFail} />}>
 			<Suspense fallback={<div {...stylex.props(canvas.field)} />}>
-				<CanvasField
-					key={current.sceneKey}
-					scene={current.scene}
-					onSelect={current.onSelect}
-				/>
+				{current.projection === 'plan' ? (
+					<CanvasField
+						key={current.sceneKey}
+						scene={current.scene}
+						selected={current.selected}
+						onSelect={current.onSelect}
+					/>
+				) : (
+					<ProjectedField
+						key={`${current.projection}:${current.sceneKey}`}
+						scene={current.scene}
+						mode={current.projection}
+						selected={current.selected}
+						onSelect={current.onSelect}
+					/>
+				)}
 			</Suspense>
 		</BlockBoundary>
 	)

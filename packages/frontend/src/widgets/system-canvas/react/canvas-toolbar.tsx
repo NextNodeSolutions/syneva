@@ -4,26 +4,14 @@ import * as stylex from '@stylexjs/stylex'
 import { useReactFlow } from '@xyflow/react'
 
 import { canvas } from './canvas.styles'
+import { ZoomGlyph } from './glyphs'
 
 import type { ModelView } from '@entities/review/guide/system-model'
 import type { ReactElement } from 'react'
+import type { Projection } from '../model'
+import type { CanvasScene } from './use-canvas-scene'
 
 const ZOOM = { duration: 160 }
-
-function ZoomGlyph({ isIn }: { isIn: boolean }): ReactElement {
-	return (
-		<svg
-			width="12"
-			height="12"
-			viewBox="0 0 12 12"
-			stroke="currentColor"
-			strokeWidth="1.4"
-			aria-hidden="true"
-		>
-			<path d={isIn ? 'M2 6h8M6 2v8' : 'M2 6h8'} />
-		</svg>
-	)
-}
 
 function Zoom(): ReactElement {
 	const flow = useReactFlow()
@@ -56,16 +44,56 @@ function Zoom(): ReactElement {
 	)
 }
 
-// The system view, then each path the guide tells step by step; the chosen one on the wash inside a petrol hairline.
+const PROJECTIONS: { id: Projection; title: string; label: string }[] = [
+	{ id: 'plan', title: 'Plan', label: 'Flat plan' },
+	{ id: 'iso', title: 'Iso', label: 'Isometric' },
+	{ id: 'orbit', title: '3D', label: 'In 3D, to turn' },
+]
+
+function Projections({
+	projection,
+	onProjection,
+}: {
+	projection: Projection
+	onProjection: (projection: Projection) => void
+}): ReactElement {
+	return (
+		<span
+			{...stylex.props(canvas.tabs)}
+			role="group"
+			aria-label="Projection"
+		>
+			{PROJECTIONS.map(entry => (
+				<Button
+					key={entry.id}
+					size="small"
+					aria-pressed={entry.id === projection}
+					aria-label={entry.label}
+					css={[
+						deskControl.mini,
+						entry.id === projection && canvas.tabOn,
+					]}
+					onClick={() => onProjection(entry.id)}
+				>
+					{entry.title}
+				</Button>
+			))}
+		</span>
+	)
+}
+
+// The system view, then each path the guide tells step by step; the chosen one on the wash inside a petrol hairline. Then, at the bar's end, the plan's zoom and how the scene is drawn; the switch keeps its place when the zoom goes (the 3D view keeps its own controls in its corner).
 export function CanvasToolbar({
 	views,
-	viewId,
-	onView,
+	current,
 }: {
 	views: readonly ModelView[]
-	viewId: string | null
-	onView: (id: string | null) => void
+	current: Pick<
+		CanvasScene,
+		'view' | 'onView' | 'projection' | 'onProjection'
+	>
 }): ReactElement {
+	const viewId = current.view?.id ?? null
 	const tabs = [
 		{ id: null, title: 'System' },
 		...views.map(view => ({ id: view.id, title: view.title })),
@@ -86,13 +114,19 @@ export function CanvasToolbar({
 							deskControl.mini,
 							tab.id === viewId && canvas.tabOn,
 						]}
-						onClick={() => onView(tab.id)}
+						onClick={() => current.onView(tab.id)}
 					>
 						{tab.title}
 					</Button>
 				))}
 			</span>
-			<Zoom />
+			<span {...stylex.props(canvas.end)}>
+				{current.projection === 'plan' && <Zoom />}
+				<Projections
+					projection={current.projection}
+					onProjection={current.onProjection}
+				/>
+			</span>
 		</div>
 	)
 }

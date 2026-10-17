@@ -11,7 +11,11 @@ export type FlowElements = {
 }
 
 // The laid-out scene as React Flow's nodes and edges: fixed boxes nobody drags or wires, each a button a reviewer can select by pointer or keyboard, each link drawn from its own route.
-export function flowElements(scene: Scene, layout: CanvasLayout): FlowElements {
+export function flowElements(
+	scene: Scene,
+	layout: CanvasLayout,
+	selected: string | null,
+): FlowElements {
 	const routes = new Map(layout.links.map(laid => [laid.id, laid]))
 	return {
 		nodes: layout.boxes.flatMap(
@@ -27,6 +31,7 @@ export function flowElements(scene: Scene, layout: CanvasLayout): FlowElements {
 					data: { element },
 					draggable: false,
 					connectable: false,
+					selected: box.id === selected,
 					ariaRole: 'button',
 					ariaLabel: `${element.label}, ${KIND_WORDS[element.kind]}`,
 				} as const

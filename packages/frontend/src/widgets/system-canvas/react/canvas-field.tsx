@@ -1,4 +1,4 @@
-import { use, useCallback, useEffect, useMemo, useRef } from 'react'
+import { use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { cx } from '@shared/lib/cx'
 import * as stylex from '@stylexjs/stylex'
@@ -16,7 +16,7 @@ import { canvas } from './canvas.styles'
 import { ContainerNode, ElementNode } from './element-node'
 import { flowElements } from './flow-elements'
 import { LinkEdge } from './link-edge'
-import { useFieldHeight } from './use-field-size'
+import { useFieldSize } from './use-field-size'
 
 import type { OnSelectionChangeParams, ReactFlowState } from '@xyflow/react'
 import type { ReactElement } from 'react'
@@ -62,17 +62,21 @@ function RefitOnResize(): null {
 // One laid-out scene in React Flow, which owns the viewport; selecting a part (pointer, or Tab then Enter) is the one thing it changes, and that goes up to the canvas.
 export function CanvasField({
 	scene,
+	selected,
 	onSelect,
 }: {
 	scene: Scene
+	// The part already selected in another projection: React Flow starts with it selected.
+	selected: string | null
 	onSelect: (id: string | null) => void
 }): ReactElement {
 	const layout = use(layoutCanvas(scene.input))
+	const [initial] = useState(selected)
 	const fieldRef = useRef<HTMLDivElement | null>(null)
-	const height = useFieldHeight(fieldRef, layout)
+	const { height } = useFieldSize(fieldRef, layout)
 	const { nodes, edges } = useMemo(
-		() => flowElements(scene, layout),
-		[scene, layout],
+		() => flowElements(scene, layout, initial),
+		[scene, layout, initial],
 	)
 	const onSelectionChange = useCallback(
 		({ nodes: picked }: OnSelectionChangeParams) => {
