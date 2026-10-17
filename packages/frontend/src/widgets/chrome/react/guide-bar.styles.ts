@@ -11,7 +11,7 @@ export const guideBar = stylex.create({
 		gap: '6px',
 		height: deskSize.subbar,
 		paddingInline: '10px',
-		overflow: 'hidden',
+		// Not clipped: the tips the steps and the brick carry draw below the bar. The brick's name is the one width that moves and it clips inside its own box.
 		backgroundColor: color['--paper'],
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
