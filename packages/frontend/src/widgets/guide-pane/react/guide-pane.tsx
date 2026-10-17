@@ -29,6 +29,7 @@ import {
 	StaleBanner,
 	Unknowns,
 } from './pane-sections'
+import { placeTop, rememberPlace } from './scroll-place'
 
 import type { DomainThread } from '@entities/review/domain-threads'
 import type { GuideDomain } from '@entities/review/guide/model'
@@ -43,24 +44,17 @@ type ScrollMemory = readonly [
 	onScroll: (event: UIEvent<HTMLElement>) => void,
 ]
 
-const lastScroll: Partial<
-	Record<GuideLayout, { domainId: string; top: number }>
-> = {}
-
-// The scroller remembers where the domain it shows was left, per layout: the explanation hidden and shown again, or the page left for the project level and reopened, comes back to the same place; another domain starts at the top.
+// The scroller comes back to where the domain's reading was left, in this layout or carried over from the other (scroll-place.ts); another domain starts at the top.
 function useScrollMemory(layout: GuideLayout, domainId: string): ScrollMemory {
 	const attach = useCallback(
 		(element: HTMLElement | null) => {
 			if (!element) return
-			const last = lastScroll[layout]
-			element.scrollTo({
-				top: last?.domainId === domainId ? last.top : 0,
-			})
+			element.scrollTo({ top: placeTop(layout, domainId, element) })
 		},
 		[layout, domainId],
 	)
 	const onScroll = (event: UIEvent<HTMLElement>): void => {
-		lastScroll[layout] = { domainId, top: event.currentTarget.scrollTop }
+		rememberPlace(layout, domainId, event.currentTarget)
 	}
 	return [attach, onScroll]
 }
