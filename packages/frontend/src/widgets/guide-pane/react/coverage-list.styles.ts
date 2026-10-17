@@ -32,24 +32,23 @@ export const coverage = stylex.create({
 		borderColor: color['--accent-line'],
 		backgroundColor: color['--wash'],
 	},
-	spans: {
+	// A brick's row sits one step in from its file's, under the path's name.
+	brick: {
 		display: 'flex',
-		flexWrap: 'wrap',
-		alignItems: 'center',
-		gap: '4px',
-		paddingInline: '8px',
-		paddingBottom: '6px',
-		fontFamily: font['--mono'],
-		fontSize: '11.5px',
+		paddingBlock: '3px',
+		paddingLeft: '22px',
 	},
-	chip: {
-		borderWidth: '1px',
-		borderStyle: 'solid',
-		borderColor: {
-			default: 'transparent',
-			':hover': color['--line-strong'],
-		},
-		cursor: 'pointer',
+	kind: {
+		flexShrink: 0,
+		fontSize: '10px',
+		letterSpacing: '.04em',
+		color: color['--muted'],
+	},
+	brickName: {
+		minWidth: 0,
+		overflow: 'hidden',
+		textOverflow: 'ellipsis',
+		whiteSpace: 'nowrap',
 	},
 	path: {
 		display: 'flex',

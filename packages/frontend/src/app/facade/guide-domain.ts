@@ -1,4 +1,5 @@
 import { currentFileOrNull, fromDisplayLine } from '@entities/review/changes'
+import { brickNameOf } from '@entities/review/guide/brick-name'
 import { orderedDomains } from '@entities/review/guide/domains'
 import {
 	changeAt,
@@ -136,8 +137,12 @@ function cursorPlace(): CodePlace | undefined {
 	}
 }
 
-// The domain's change the cursor sits in, in reading order; null between its blocks or with the code closed.
-function changePosition(): { index: number | null; total: number } | null {
+// The domain's change the cursor sits in, in reading order, and the brick it belongs to; no index between its blocks or with the code closed.
+function changePosition(): {
+	index: number | null
+	total: number
+	brick: string | null
+} | null {
 	const { state } = S
 	const domain = S.domainId ? domainById(state, S.domainId) : undefined
 	if (!state || !domain) return null
@@ -147,6 +152,7 @@ function changePosition(): { index: number | null; total: number } | null {
 	return {
 		index: current ? ordered.indexOf(current) + 1 : null,
 		total: ordered.length,
+		brick: current ? brickNameOf(current) : null,
 	}
 }
 

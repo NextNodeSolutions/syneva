@@ -95,7 +95,11 @@ export interface ChromeStoreView {
 	openCode?(): void
 	closeCode?(): void
 	filePosition?(): { index: number | null; total: number } | null
-	changePosition?(): { index: number | null; total: number } | null
+	changePosition?(): {
+		index: number | null
+		total: number
+		brick: string | null
+	} | null
 	showGuideBar?(): boolean
 	curFileName?(): string
 	guideNext?(): void

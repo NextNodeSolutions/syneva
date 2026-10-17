@@ -33,6 +33,17 @@ export const guideBar = stylex.create({
 		color: color['--muted'],
 	},
 	number: { color: color['--ink'] },
+	// The brick under the cursor, after the change count: the one label whose width moves, so it comes last.
+	brick: {
+		minWidth: 0,
+		overflow: 'hidden',
+		textOverflow: 'ellipsis',
+		whiteSpace: 'nowrap',
+		paddingLeft: '2px',
+		fontFamily: font['--mono'],
+		fontSize: deskText.label,
+		color: color['--ink'],
+	},
 	rule: {
 		width: '1px',
 		height: '16px',

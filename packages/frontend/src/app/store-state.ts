@@ -123,7 +123,12 @@ export interface Store {
 	closeCode?: () => void
 	// Where the reviewer is at each level, for the position strip: the file in the active order, the domain's change under the cursor (null between its blocks).
 	filePosition?: () => { index: number | null; total: number } | null
-	changePosition?: () => { index: number | null; total: number } | null
+	changePosition?: () => {
+		index: number | null
+		total: number
+		// The brick the change under the cursor sits in, by name.
+		brick: string | null
+	} | null
 	showGuideBar?: () => boolean
 	curFileName?: () => string
 	guideNext?: () => void

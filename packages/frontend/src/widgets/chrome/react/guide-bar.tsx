@@ -184,6 +184,14 @@ function CodeLevels(): ReactElement {
 						keys={[',', '.']}
 						onStep={direction => S.stepDomainChange?.(direction)}
 					/>
+					{change.brick && (
+						<span
+							{...stylex.props(strip.brick)}
+							title="The brick under the cursor"
+						>
+							{change.brick}
+						</span>
+					)}
 				</>
 			)}
 		</>

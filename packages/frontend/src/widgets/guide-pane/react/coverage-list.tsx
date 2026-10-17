@@ -1,37 +1,20 @@
 import { currentFileOrNull } from '@entities/review/changes'
+import { bricksOf } from '@entities/review/guide/bricks'
 import {
 	changeSpan,
 	changesByFile,
 	orderedDomainChanges,
 } from '@entities/review/guide/navigation'
 import * as stylex from '@stylexjs/stylex'
-import { tag } from '@syneva/design-system/controls.styles'
 
 import { chromeCtx } from '../../chrome/context'
 
+import { BrickRow, Verdict } from './coverage-brick'
 import { coverage } from './coverage-list.styles'
 
 import type { GuideDomain } from '@entities/review/guide/model'
 import type { ChangeState, ReviewState } from '@entities/review/model'
 import type { ReactElement } from 'react'
-
-const VERDICT = {
-	pending: { label: 'Pending', style: tag.neutral },
-	accepted: { label: 'Kept', style: tag.green },
-	rejected: { label: 'Undone', style: tag.amber },
-} as const
-
-const MINUS = '\u2212'
-const EN_DASH = '\u2013'
-
-function spanLabel(change: ChangeState): string {
-	const sign = change.side === 'deletions' ? MINUS : '+'
-	const end =
-		change.endLine && change.endLine !== change.lineNumber
-			? `${EN_DASH}${change.endLine}`
-			: ''
-	return `${sign}${change.lineNumber}${end}`
-}
 
 // The folder gives way, the file name never does: a long path ellipsizes its directories, not what the reviewer scans for.
 function PathLabel({ path }: { path: string }): ReactElement {
@@ -46,62 +29,19 @@ function PathLabel({ path }: { path: string }): ReactElement {
 	)
 }
 
-// A file's verdict in one tag: every change kept, every change decided with some undone, or how many are still open.
-function FileVerdict({
-	changes,
-}: {
-	changes: readonly ChangeState[]
-}): ReactElement {
-	const decided = changes.filter(change => change.status !== 'pending')
-	if (decided.length < changes.length)
-		return (
-			<span {...stylex.props(tag.base, tag.neutral, coverage.verdict)}>
-				{decided.length}/{changes.length}
-			</span>
-		)
-	const verdict = changes.some(change => change.status === 'rejected')
-		? VERDICT.rejected
-		: VERDICT.accepted
-	return (
-		<span {...stylex.props(tag.base, verdict.style, coverage.verdict)}>
-			{verdict.label}
-		</span>
-	)
-}
-
-// One span of a file's changes, tinted by its verdict; the click lands on it in the real diff.
-function SpanChip({ change }: { change: ChangeState }): ReactElement {
-	const { S } = chromeCtx()
-	const verdict = VERDICT[change.status]
-	return (
-		<button
-			{...stylex.props(tag.base, verdict.style, coverage.chip)}
-			data-unit={change.id}
-			title={`${spanLabel(change)} · ${verdict.label}`}
-			onClick={() => S.jumpToSpan?.(changeSpan(change))}
-		>
-			{spanLabel(change)}
-		</button>
-	)
-}
-
 function selectFile(state: ReviewState, path: string): void {
 	const { S } = chromeCtx()
 	const index = state.files.findIndex(file => file.path === path)
 	if (index >= 0) S.selectFile?.(index)
 }
 
-// What the file row says beside the path: the one span, how many spans follow, or the whole-file operation alone.
-function scopeLabel(
-	changes: readonly ChangeState[],
-	single: ChangeState | undefined,
-): string {
-	if (single) return spanLabel(single)
+// What the file row says beside the path: how many blocks the domain owns in it, or the whole-file operation alone.
+function scopeLabel(changes: readonly ChangeState[]): string {
 	if (!changes.length) return 'whole file'
-	return `${changes.length} changes`
+	return changes.length === 1 ? '1 block' : `${changes.length} blocks`
 }
 
-// One file the domain touches, however many blocks it owns there: the path once, then its spans. A single change keeps the one-line row; the head of a longer list lands on the file's first change.
+// One file the domain touches: the path once, then its bricks - the declarations its blocks sit in, each a row the reviewer lands on. The head of the list lands on the file's first block.
 function FileGroup({
 	path,
 	changes,
@@ -117,12 +57,11 @@ function FileGroup({
 }): ReactElement {
 	const { S } = chromeCtx()
 	const [first] = changes
-	const single = changes.length === 1 && !isWholeFile ? first : undefined
+	const bricks = bricksOf(changes)
 	return (
 		<div {...stylex.props(coverage.file, isCurrent && coverage.current)}>
 			<button
 				{...stylex.props(coverage.row)}
-				data-unit={single?.id}
 				onClick={() =>
 					first
 						? S.jumpToSpan?.(changeSpan(first))
@@ -131,27 +70,23 @@ function FileGroup({
 			>
 				<PathLabel path={path} />
 				<span {...stylex.props(coverage.lines)}>
-					{scopeLabel(changes, single)}
+					{scopeLabel(changes)}
 				</span>
-				{changes.length > 0 && <FileVerdict changes={changes} />}
+				{changes.length > 0 && <Verdict changes={changes} />}
 			</button>
-			{!single && changes.length > 0 && (
-				<div {...stylex.props(coverage.spans)}>
-					{changes.map(change => (
-						<SpanChip key={change.id} change={change} />
-					))}
-					{isWholeFile && (
-						<span {...stylex.props(coverage.lines)}>
-							whole file
-						</span>
-					)}
-				</div>
+			{bricks.map(brick => (
+				<BrickRow key={brick.key} brick={brick} />
+			))}
+			{isWholeFile && changes.length > 0 && (
+				<span {...stylex.props(coverage.brick, coverage.lines)}>
+					whole file
+				</span>
 			)}
 		</div>
 	)
 }
 
-// The changed code the domain owns, one entry per file in reading order: its changed blocks as spans, then the whole-file operations no block carries.
+// The changed code the domain owns, one entry per file in reading order: its bricks, then the whole-file operations no block carries.
 export function CoverageList({
 	domain,
 	state,

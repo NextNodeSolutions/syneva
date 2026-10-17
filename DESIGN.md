@@ -296,7 +296,7 @@ A fixed application frame, not a scrolling page: a 48px top bar above the worksp
 
 Bars that touch share a height: the sidebar's tab strip, the position strip and the notes head are 40px (`deskSize.subbar`), so their bottom rules read as one line across the seams. The churn counts (+added / −removed) keep a 5px gap on every surface that prints them.
 
-The position strip, under the top bar on a guided desk, is the one place the reading's moves live: the project level, then each level the reviewer is in as a name and a count (domain 1/9 · file 2/10 · change 4/8) with a step either side; the file and change levels appear once the code is open, and the strip's far end holds what acts on the code (the file comment, the explanation's toggle). Only the digits change a group's width, so a step stays under the pointer across repeated clicks. The explanation's head keeps a single move, Back, shown only when there is somewhere to go back to.
+The position strip, under the top bar on a guided desk, is the one place the reading's moves live: the project level, then each level the reviewer is in as a name and a count (domain 1/9 · file 2/10 · change 4/8) with a step either side, then the brick under the cursor by name; the file and change levels appear once the code is open, and the strip's far end holds what acts on the code (the file comment, the explanation's toggle). Only the digits change a group's width, so a step stays under the pointer across repeated clicks. The explanation's head keeps a single move, Back, shown only when there is somewhere to go back to.
 
 Below 1100px (`media.tablet`) the tree and the notes panel leave the grid and return as drawers under the top bar, over a paper scrim.
 
