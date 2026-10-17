@@ -65,7 +65,14 @@ export const DOMAIN_FIELDS_SPEC = `  - id (required) - stable identity ([A-Za-z0
     element is what the reviewer clicks to land on the code.
   - order? - the tie order among domains of the same risk.`
 
-export const AUTHORING_RULES_SPEC = `- Group by changed behavior, across files: one domain per coherent behavior the changeset changes,
+export const AUTHORING_RULES_SPEC = `- Write for a reviewer who never opens the code: each sentence says what happens, in the
+  words of the change's own world (the customer, the webhook retry, the \`orders\` table, the
+  response body), and behavior is told as it runs, before and after: what a request gets now,
+  what it got before, where the two ever differ. The reviewer decides from the words and opens a
+  ref only to check a claim against the span it stands on; a sentence that takes the diff beside
+  it to follow, or one that stays true however the code fails ("handles the cases"), has failed
+  at the one job the guide has.
+- Group by changed behavior, across files: one domain per coherent behavior the changeset changes,
   never per folder or file; two independent behaviors in one file are two domains. Every changed
   unit has exactly one owning domain - shared context is a "context" reference or a \`related\`
   entry, never a second owner. Own the operations without text too (a rename, an untracked
@@ -73,28 +80,35 @@ export const AUTHORING_RULES_SPEC = `- Group by changed behavior, across files: 
 - Rank by risk from consequences: say what breaks and for whom (which users, data, money,
   availability), how far the change reaches (one path, every request, every worker) and cite the
   code that shows it (\`evidence\` with refs). Keep impact and uncertainty apart: what you could not
-  establish goes in \`unknowns\`, never into a lower risk; no numbers you cannot back (no
-  "95% safe", no severity scores). Highest risk first; a domain the reviewer needs another read
-  for names it in \`prerequisites\` - that one is summarized beside it, so keep the dependency to
-  what the reviewer must know.
+  establish goes in \`unknowns\` beside what would settle it (the trace you did not run, the race
+  you could not rule out), never into a lower risk; no numbers you cannot back (no "95% safe", no
+  severity scores). Highest risk first; a domain the reviewer needs another read for names it in
+  \`prerequisites\` - that one is summarized beside it, so keep the dependency to what the reviewer
+  must know.
 - Choose the form by what it explains: "state" for transitions, "sequence" for the order of
   exchanges between participants, "flow" for dependencies and data movement, "before-after" for a
   behavioral difference, "data-model" when tables or types change, "api" when a contract a caller
   depends on changes, "wireframe" when what a user sees changes, "prose" when a paragraph says it
   best. No form is required, a diagram is not expected everywhere, and the same long template in
   every domain is wrong: a one-line change gets a sentence.
+- Keep a diagram a causal chain, small enough to hold in one glance: it walks one cause to one
+  outcome (this loop and where it exits, this path and what it opens), every edge names the event
+  or data that moves, and every element stands for code a ref lands on. Boxes beyond the story
+  are decoration the reader must clear, and a diagram that needs its own explanation is the wrong
+  form - say it in prose.
 ${MODEL_RULE_SPEC}
 - Mark what must be read as code: a span goes in \`critical\` when one wrong line there costs money,
-  access or data and no diagram can show it is right. Keep it rare (most domains have none) and
-  tight (the lines that decide, not the whole file): a critical list that grows to cover the
-  domain says nothing.
-- Reference the facts: the key claims of an explanation and every diagram element that stands for
-  code carry a \`ref\` the reviewer can click; a claim without one reads as your word. Keep the
-  first read short (summary, consequence, a block or two) and put the long reasoning in
-  \`detail\`. Separate facts (what the code does, cited), assumptions (what you believe without a
-  citation - say so) and rationale (why the change is right). Always say what the reviewer should
-  verify. Never write that code is approved, tested or checked unless the guide cites the evidence
-  (the test, the run): the reviewer approves, the guide explains.`
+  access or data and no diagram can show it is right. \`why\` says the cost precisely - what a
+  wrong line there does to whom (a retried webhook charges the card twice), never "could cause
+  issues" - and the spans stay rare (most domains have none) and tight (the lines that decide,
+  not the whole file): a critical list that grows to cover the domain says nothing.
+- Reference the facts: every claim an explanation leans on carries a \`ref\` the reviewer can
+  click; a claim without one reads as your word, and the risk's weight is anchored by
+  \`evidence\` with refs. Keep the first read short (summary, consequence, a block or two) and put
+  the long reasoning in \`detail\`. Separate facts (what the code does, cited), assumptions (what
+  you believe without a citation - say so) and rationale (why the change is right). Always say
+  what the reviewer should verify. Never write that code is approved, tested or checked unless the
+  guide cites the evidence (the test, the run): the reviewer approves, the guide explains.`
 
 export const GUIDE_SPEC = `## The guide - a risk-ranked explanation of the changeset
 A guide is the review's reading order AND its explanation: the coherent behaviors the changeset
@@ -118,7 +132,9 @@ One JSON object:
   scratch, copy \`mode\` and \`fingerprint\` from the inventory (below) of exactly the source you
   open. The desk refuses a guide whose fingerprint is not its diff's, so references are never read
   against another revision.
-- overview (required, ≤ 3000 chars, Markdown) - what the changeset does and why, in a short paragraph.
+- overview (required, ≤ 3000 chars, Markdown) - what the changeset does and why, in a short
+  paragraph that maps the whole: the behaviors it alters and who feels them, every behavior's
+  telling left to the domain that owns it.
 - domains (required array, ≤ 60; empty only on an empty changeset) - one per coherent changed
   behavior, NOT per folder or file:
 ${DOMAIN_FIELDS_SPEC}
