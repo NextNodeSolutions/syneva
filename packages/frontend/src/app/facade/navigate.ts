@@ -18,6 +18,7 @@ import {
 	isReading,
 	moveLayout,
 } from './layout-motion'
+import { readingStep } from './reading-step'
 
 import type { FileRow } from '@entities/review/file/tree-rows'
 import type { PreviewFile, ReviewState } from '@entities/review/model'
@@ -143,10 +144,21 @@ function nextInWalkthrough(dir: 1 | -1): number | null {
 	return order[(pos + dir + order.length) % order.length] ?? null
 }
 
-function nextInTree(dir: 1 | -1): FileRow | null {
-	const rows = (S.treeRows?.() ?? []).filter(
+function treeFiles(): FileRow[] {
+	return (S.treeRows?.() ?? []).filter(
 		(row): row is FileRow => row.kind === 'file' || row.kind === 'test',
 	)
+}
+
+// The tree's files in its order, as file indices: a row only previewed has none.
+function treeOrder(): number[] {
+	return treeFiles()
+		.map(row => row.fileIndex)
+		.filter((i): i is number => typeof i === 'number')
+}
+
+function nextInTree(dir: 1 | -1): FileRow | null {
+	const rows = treeFiles()
 	if (!rows.length) return null
 	const shown = currentFileOrNull(
 		S.state?.files,
@@ -189,9 +201,7 @@ function filePosition(): { index: number | null; total: number } | null {
 		const at = S.preview ? -1 : order.indexOf(S.fileIndex)
 		return { index: at >= 0 ? at + 1 : null, total: order.length }
 	}
-	const rows = (S.treeRows?.() ?? []).filter(
-		(row): row is FileRow => row.kind === 'file' || row.kind === 'test',
-	)
+	const rows = treeFiles()
 	const at = rows.findIndex(row => row.path === shown?.path)
 	return { index: at >= 0 ? at + 1 : null, total: rows.length }
 }
@@ -200,6 +210,11 @@ function installFileStepping(): void {
 	S.filePosition = filePosition
 	// One dispatch for "open the file this tree row points at": stepInView's tree fallthrough and the explicit tree-order keys share it, so the two can never drift apart.
 	const openTreeRow = (dir: 1 | -1): void => {
+		const fromReading = readingStep(dir, treeOrder())
+		if (fromReading !== null) {
+			S.selectFile?.(fromReading)
+			return
+		}
 		const row = nextInTree(dir)
 		if (!row) return
 		if (typeof row.fileIndex === 'number') S.selectFile?.(row.fileIndex)
@@ -218,7 +233,9 @@ function installFileStepping(): void {
 			return
 		}
 		if (walkthroughActive()) {
-			const target = nextInWalkthrough(dir)
+			const target =
+				readingStep(dir, navOrder(guideInputs(S))) ??
+				nextInWalkthrough(dir)
 			if (target !== null) S.selectFile?.(target)
 			return
 		}
@@ -238,13 +255,7 @@ function installSignOffAdvance(): void {
 		if (!state) return
 		const order = walkthroughActive()
 			? navOrder(guideInputs(S))
-			: (S.treeRows?.() ?? [])
-					.filter(
-						(row): row is FileRow =>
-							row.kind === 'file' || row.kind === 'test',
-					)
-					.map(row => row.fileIndex)
-					.filter((i): i is number => typeof i === 'number')
+			: treeOrder()
 		const next = nextUnreviewed(order, S.fileIndex, i => {
 			const f = state.files[i]
 			return !f || fileFinished(state, f.path)
