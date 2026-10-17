@@ -5,6 +5,7 @@ import {
 } from '@syneva/contracts/spec-guide'
 
 import { prunedLinks } from '../domain/guide-compose-context.js'
+import { prunedModel } from '../domain/guide-model-links.js'
 import { resolveOwnership } from '../domain/guide-ownership.js'
 import { domainPacket } from '../domain/guide-packets.js'
 import { isMechanicalDomain, sourceOf } from '../domain/guide-redraft.js'
@@ -118,6 +119,7 @@ export function guideAuthoring(
 			domains: pendingDomains.map(({ domain }) =>
 				withoutMembers(prunedLinks(domain, live)),
 			),
+			model: prunedModel(guide.model, live),
 		},
 		overviewDrafted: guideResolution.overviewDrafted ?? false,
 		pending: pendingDomains.map(entry => entry.pending),

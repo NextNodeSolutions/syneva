@@ -1,6 +1,6 @@
 // The keys the guide schema knows, per object. Nothing an agent writes is silently ignored: a key outside its object's list is refused by name (guide-parse.ts onlyKeys), so a typo in an optional field cannot drop it. A new field is an entry here and its reader, never a silent passthrough.
 export const GUIDE_KEYS = {
-	guide: ['format', 'source', 'overview', 'domains', 'baseDiffHash'],
+	guide: ['format', 'source', 'overview', 'domains', 'model', 'baseDiffHash'],
 	source: ['mode', 'fingerprint', 'head', 'base', 'staged', 'path'],
 	domain: [
 		'id',
@@ -57,4 +57,18 @@ export const GUIDE_KEYS = {
 	],
 	wireframe: ['surface', 'before', 'after'],
 	wireframeNode: ['el', 'label', 'change', 'ref', 'children'],
+	model: ['elements', 'relations', 'views'],
+	modelElement: [
+		'id',
+		'kind',
+		'label',
+		'description',
+		'technology',
+		'parent',
+		'change',
+		'domains',
+	],
+	modelRelation: ['from', 'to', 'label', 'technology', 'change'],
+	modelView: ['id', 'title', 'description', 'domains', 'steps'],
+	modelStep: ['from', 'to', 'label', 'change'],
 } as const

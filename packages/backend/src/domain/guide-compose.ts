@@ -12,6 +12,7 @@ import {
 } from './guide-compose-context.js'
 import { textOf } from './guide-compose-text.js'
 import { draftMembers } from './guide-draft-members.js'
+import { modelLinkIssues, prunedModel } from './guide-model-links.js'
 import { GUIDE_FORMAT, GUIDE_LIMITS } from './guide-shapes.js'
 
 import type {
@@ -178,7 +179,7 @@ function contextOf(
 	return { ...context, heirs: heirsOf(posted.domains, context) }
 }
 
-// What the composed guide breaks: ownership claims, the posted domains' links to domains it does not hold, and its size.
+// What the composed guide breaks: ownership claims, the posted domains' and model's links to domains it does not hold, and its size.
 function composedIssues(
 	posted: AuthoredGuide,
 	context: ComposeContext,
@@ -189,6 +190,7 @@ function composedIssues(
 		...context.claims.issues,
 		...context.issues,
 		...domainLinkIssues(posted.domains, ids),
+		...modelLinkIssues(posted.model, ids),
 	]
 	if (placed.length > GUIDE_LIMITS.domains)
 		issues.push({
@@ -222,6 +224,7 @@ export function composeGuide(
 			source: posted.source,
 			overview: posted.overview,
 			domains,
+			model: posted.model ?? prunedModel(current?.guide.model, ids),
 		},
 		touched: new Set(
 			placed

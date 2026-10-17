@@ -1,4 +1,5 @@
 // Structural mirror of packages/contracts/src/guide.ts (domain may not import contracts): the validator builds these field by field, the projection and the store serialize them whole - keep both sides in sync.
+import type { GuideModel } from './guide-model-shapes.js'
 import type {
 	ApiBlock,
 	DataModelBlock,
@@ -171,6 +172,7 @@ export type Guide = {
 	source: GuideSource
 	overview: string
 	domains: GuideDomain[]
+	model?: GuideModel | undefined
 	baseDiffHash?: string | undefined
 }
 
@@ -190,6 +192,11 @@ export const GUIDE_LIMITS = {
 	endpoints: 20,
 	wireframeNodes: 80,
 	wireframeDepth: 8,
+	modelElements: 60,
+	modelRelations: 120,
+	modelViews: 12,
+	viewSteps: 30,
+	modelDepth: 3,
 	overviewChars: 3000,
 	markdownChars: 20_000,
 	textChars: 1000,
