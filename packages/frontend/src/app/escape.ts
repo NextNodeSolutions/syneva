@@ -52,6 +52,11 @@ function closeTransient(): boolean {
 		closeComposer()
 		return true
 	}
+	// Closes once the composers are gone, so Esc dismisses a composer/modal opened over the drawer first; but the drawer lies over the code, so it goes before the brick view and the cursor under it, which a press would otherwise change unseen.
+	if (S.treeDrawerOpen) {
+		S.treeDrawerOpen = false
+		return true
+	}
 	// The brick view sits under the composers and above the cursor: the press draws the whole file back around the cursor's row.
 	if (S.brickFocus && D.focus) {
 		S.toggleBrickFocus?.()
@@ -59,11 +64,6 @@ function closeTransient(): boolean {
 	}
 	if (cursorSelection()) {
 		cursorReset()
-		return true
-	}
-	// Closes only once every transient surface above it is gone, so Esc dismisses a composer/modal opened over the drawer first.
-	if (S.treeDrawerOpen) {
-		S.treeDrawerOpen = false
 		return true
 	}
 	return false
