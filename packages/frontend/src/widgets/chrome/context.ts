@@ -116,7 +116,7 @@ export interface ChromeStoreView {
 	saveComment?(): void
 	ask?(): void
 	requestChange?(): void
-	reset?(scope: ResetScope): Promise<void>
+	confirmReset?(scope: ResetScope): void
 	resetMenuOpen: boolean
 	setResetMenu?(open: boolean): void
 	send?(overallNote?: string): Promise<void>

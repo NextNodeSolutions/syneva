@@ -11,7 +11,6 @@ import {
 } from '@app/hotkey-matchers'
 import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 import { queries } from '@syneva/design-system/media.stylex'
-import { askConfirm } from '@widgets/dialogs/confirm'
 
 import { escape } from './escape'
 import { toggleTree } from './facade/layout-motion'
@@ -155,11 +154,7 @@ export const HOTKEYS_APP: Hotkey[] = [
 		group: 'App',
 		test: shift('R'),
 		when: navigable,
-		run: () =>
-			askConfirm(
-				'Reset the review? Every decision and sign-off clears; the notes stay.',
-				() => void S.reset?.('review'),
-			),
+		run: () => S.confirmReset?.('review'),
 	},
 	{
 		combo: '⇧S',

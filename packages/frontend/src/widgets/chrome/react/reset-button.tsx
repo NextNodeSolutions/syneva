@@ -18,7 +18,7 @@ function ResetMenu(): ReactElement {
 	const close = (): void => S.setResetMenu?.(false)
 	const run = (scope: 'approved' | 'all'): void => {
 		close()
-		void S.reset?.(scope)
+		S.confirmReset?.(scope)
 	}
 	return (
 		<>
@@ -68,7 +68,7 @@ export function ResetButton(): ReactElement {
 				data-tip="Reset review - keeps the notes (⇧R)"
 				onClick={() => {
 					close()
-					void S.reset?.('review')
+					S.confirmReset?.('review')
 				}}
 			>
 				Reset review

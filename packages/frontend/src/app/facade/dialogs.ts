@@ -128,7 +128,17 @@ function installResetBinding(): void {
 		void render()
 		toast(RESET_TOASTS[scope])
 	}
+	S.confirmReset = scope => {
+		askConfirm(RESET_QUESTIONS[scope], () => void S.reset?.(scope))
+	}
 	installSendAction()
+}
+
+const RESET_QUESTIONS: Record<ResetScope, string> = {
+	review: 'Reset the review? Every decision and sign-off clears; the notes stay.',
+	approved:
+		'Reset the approved files? Their sign-offs and decisions clear; the rest of the review and the notes stay.',
+	all: 'Reset everything? Every decision, sign-off and note clears.',
 }
 
 const RESET_TOASTS: Record<ResetScope, string> = {
