@@ -1,6 +1,7 @@
 import { use, useMemo } from 'react'
 
 import { layoutCanvas } from '../layout/canvas-layout'
+import { beforeAfter, sideOf } from '../projection/before-after'
 import {
 	fitCamera,
 	fitPoints,
@@ -9,12 +10,10 @@ import {
 	TIERS_TURN,
 	turnFor,
 } from '../projection/camera'
-import { planRaised } from '../projection/plan-raised'
 import { extentOf, paintOrder } from '../projection/raised'
 import { tierRaised } from '../projection/tier-raised'
 
 import { useFieldSize } from './use-field-size'
-import { useOrbit } from './use-orbit'
 
 import type { RefObject } from 'react'
 import type { Scene } from '../layout/scene'
@@ -54,24 +53,32 @@ export function useTierScene(
 	}
 }
 
-// The plan raised and turned by the reviewer's orbit.
+// The system before and after, turned by the reviewer's hold from the turn the plan's flow reads best at. The floors are rebuilt only when the camera crosses from over them to under them: which floor is near decides what steps back and what keeps its name.
 export function useOrbitScene(
 	scene: Scene,
 	field: RefObject<HTMLDivElement | null>,
-): RaisedScene & { hold: OrbitHold } {
+	hold: OrbitHold,
+): RaisedScene {
 	const layout = use(layoutCanvas(scene.input))
 	const size = useFieldSize(field, layout)
-	const raised = useMemo(() => planRaised(scene, layout), [scene, layout])
 	const turn = turnFor(layout.direction)
-	const hold = useOrbit(turn, ISO_TILT)
+	const orbit = {
+		turn: turn + hold.orbit.turn,
+		tilt: hold.orbit.tilt,
+		zoom: hold.orbit.zoom,
+	}
+	const isDown = sideOf(hold.orbit.tilt) === 'after'
+	const raised = useMemo(
+		() => beforeAfter(scene, layout, isDown),
+		[scene, layout, isDown],
+	)
 	const stage = { floor: raised.floor, top: raised.top, field: size }
 	const fitted = fitCamera({ turn, tilt: ISO_TILT }, stage)
-	const camera = orbitCamera(fitted, hold.orbit, stage)
+	const camera = orbitCamera(fitted, orbit, stage)
 	return {
 		height: size.height,
 		raised,
 		view: { camera, floor: raised.floor },
 		paints: paintOrder(raised, camera),
-		hold,
 	}
 }

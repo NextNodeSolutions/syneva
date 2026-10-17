@@ -18,7 +18,7 @@ export const PURPOSES: Record<Projection, { name: string; line: string }> = {
 		line: 'Each part on the floor of its tier, the interface over the services over the data; a change raises its part.',
 	},
 	orbit: {
-		name: 'Before → after',
+		name: 'Before \u2192 after',
 		line: 'The system after the change over the system before it; look under the top floor to see what was there.',
 	},
 }

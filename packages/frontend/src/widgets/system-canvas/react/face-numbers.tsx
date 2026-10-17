@@ -18,7 +18,7 @@ const INSET = 10
 const BASELINE = 16
 const HALF = 0.5
 
-// The numbers of the domains that change a part, painted on its front like plates on a building (on its top when it stands too low): the way down to the review, in the tiers. Pointing at one lights its domain, choosing it opens the domain; the keyboard reaches the same domains through the inspector.
+// The numbers of the domains that change a part, painted on its front like plates on a building (a block too low for them carries them in its name): the way down to the review, in the tiers. Pointing at one lights its domain, choosing it opens the domain; the keyboard reaches the same domains through the inspector.
 export function FaceNumbers({
 	part,
 	view,

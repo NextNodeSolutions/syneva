@@ -12,12 +12,16 @@ import type { ReactElement } from 'react'
 import type { Scene } from '../layout/scene'
 import type { Projection, Selection } from '../model'
 import type { CanvasScene } from './use-canvas-scene'
+import type { OrbitHold } from './use-orbit'
 
-// Each projection's field. The field is keyed by the scene: React Flow keeps its nodes once given, and an orbit starts from its own pose on a new scene.
-const FIELDS: Record<
-	Projection,
-	(props: Selection & { scene: Scene }) => ReactElement
-> = { plan: CanvasField, iso: TierField, orbit: OrbitField }
+type FieldProps = Selection & { scene: Scene; hold: OrbitHold }
+
+// Each projection's field, keyed by the scene: React Flow keeps its nodes once given. The 3D camera's hold is the canvas's, so it keeps its pose from one view to the next.
+const FIELDS: Record<Projection, (props: FieldProps) => ReactElement> = {
+	plan: CanvasField,
+	iso: TierField,
+	orbit: OrbitField,
+}
 
 // In place of a drawing that threw: says so, and opens the sentences under it.
 function CanvasFailed({ onFail }: { onFail: () => void }): ReactElement {
@@ -36,9 +40,11 @@ function CanvasFailed({ onFail }: { onFail: () => void }): ReactElement {
 // The field for the current scene in the chosen projection: an empty field of the same height while ELK lays it out, the failure line should it throw.
 export function CanvasStage({
 	current,
+	hold,
 	onFail,
 }: {
 	current: CanvasScene
+	hold: OrbitHold
 	onFail: () => void
 }): ReactElement {
 	const Chosen = FIELDS[current.projection]
@@ -50,6 +56,7 @@ export function CanvasStage({
 					scene={current.scene}
 					selected={current.selected}
 					onSelect={current.onSelect}
+					hold={hold}
 				/>
 			</Suspense>
 		</BlockBoundary>

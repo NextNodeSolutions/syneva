@@ -1,5 +1,6 @@
 import { isTier, placeOf } from '../layout/tiers'
 
+import { NUMBER_ROOM } from './face-frame'
 import {
 	blockOf,
 	holdersOf,
@@ -49,7 +50,10 @@ function partOf(
 		level,
 		isQuiet: false,
 		isNamed: true,
-		isNumbered: !solid.isPlatform && Boolean(element.domains?.length),
+		isNumbered:
+			!solid.isPlatform &&
+			solid.top - solid.base >= NUMBER_ROOM &&
+			Boolean(element.domains?.length),
 	}
 }
 

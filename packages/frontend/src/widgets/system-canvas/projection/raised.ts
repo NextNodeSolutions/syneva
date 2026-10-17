@@ -4,7 +4,7 @@ import { nearness } from './faces'
 import type { ChangeMark } from '@entities/review/guide/model'
 import type { ModelElement } from '@entities/review/guide/system-model'
 import type { SceneLink } from '../layout/scene'
-import type { Camera, Point3, Size } from './camera'
+import type { Angles, Camera, Point3, Size } from './camera'
 import type { Route, Solid } from './solids'
 
 // A raised drawing is a stack of decks: floors the parts stand on (or hang under), the links run over them, and what joins one deck to another. Each projection builds its own (the tiers, the system before and after); this module only paints them, back to front, for whatever camera looks at them.
@@ -89,8 +89,8 @@ export function extentOf(raised: Raised): Point3[] {
 	]
 }
 
-export function isLookingDown(camera: Camera): boolean {
-	return isFacing(camera, UP)
+export function isLookingDown(angles: Angles): boolean {
+	return isFacing(angles, UP)
 }
 
 function toPaint(part: RaisedPart): Paint {

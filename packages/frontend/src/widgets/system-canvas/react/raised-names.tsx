@@ -107,13 +107,16 @@ function PartName({
 	)
 }
 
-// A link's words where its route says them: a step's number always, its words when the link is news or looked at.
+// A link's words where its route says them: a step's number always, its words when the link is news or looked at. A step stacks over every name (the path is what a dynamic view is for); other words go under them.
 function LinkWords({
 	raised,
 	view,
+	over,
 }: {
 	raised: RaisedLink
 	view: View
+	// The stack a step's words take, above every name.
+	over: number
 }): ReactElement | null {
 	const focus = useCanvasFocus()
 	const { link, route } = raised
@@ -129,6 +132,7 @@ function LinkWords({
 				(Boolean(raised.mark) || tone === 'lit') && linkStyles.labelLit,
 				raised.isQuiet && styles.nameQuiet,
 				tone === 'dim' && linkStyles.labelDim,
+				Boolean(link.step) && styles.stack(over),
 			)}
 		>
 			{link.step && (
@@ -191,7 +195,12 @@ export function RaisedNames({
 				<DeckName key={deck.id} deck={deck} view={view} />
 			))}
 			{links.map(entry => (
-				<LinkWords key={entry.key} raised={entry} view={view} />
+				<LinkWords
+					key={entry.key}
+					raised={entry}
+					view={view}
+					over={named.length}
+				/>
 			))}
 			{named.map(({ part, deck }) => (
 				<PartName

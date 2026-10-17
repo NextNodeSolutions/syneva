@@ -6,11 +6,13 @@ import { useReactFlow } from '@xyflow/react'
 
 import { canvas } from './canvas.styles'
 import { ZoomGlyph } from './glyphs'
+import { PoseSwitch } from './pose-switch'
 
 import type { ModelView } from '@entities/review/guide/system-model'
 import type { ReactElement } from 'react'
 import type { Projection } from '../model'
 import type { CanvasScene } from './use-canvas-scene'
+import type { OrbitHold } from './use-orbit'
 
 const ZOOM = { duration: 160 }
 
@@ -102,16 +104,18 @@ function Projections({
 	)
 }
 
-// The system view, then each path the guide tells step by step; the chosen one on the wash inside a petrol hairline. Then, at the bar's end, the plan's zoom and how the scene is drawn; the switch keeps its place when the zoom goes (the 3D view keeps its own controls in its corner).
+// The system view, then each path the guide tells step by step; the chosen one on the wash inside a petrol hairline. Then, at the bar's end, the projection's own control (the plan's zoom, the 3D view's before and after) and how the scene is drawn; the switch keeps its place as the control before it changes (the 3D view keeps its turning in its corner).
 export function CanvasToolbar({
 	views,
 	current,
+	hold,
 }: {
 	views: readonly ModelView[]
 	current: Pick<
 		CanvasScene,
 		'view' | 'onView' | 'projection' | 'onProjection'
 	>
+	hold: OrbitHold
 }): ReactElement {
 	const viewId = current.view?.id ?? null
 	const tabs = [
@@ -142,6 +146,7 @@ export function CanvasToolbar({
 			</span>
 			<span {...stylex.props(canvas.end)}>
 				{current.projection === 'plan' && <Zoom />}
+				{current.projection === 'orbit' && <PoseSwitch hold={hold} />}
 				<Projections
 					projection={current.projection}
 					onProjection={current.onProjection}

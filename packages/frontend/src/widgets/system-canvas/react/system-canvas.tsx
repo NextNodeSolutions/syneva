@@ -4,6 +4,8 @@ import { useCallback, useMemo, useState } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { ReactFlowProvider } from '@xyflow/react'
 
+import { POSE_TILT } from '../projection/before-after'
+
 import { CanvasActionsContext } from './canvas-actions'
 import { CanvasFocusContext, canvasFocus } from './canvas-focus'
 import { CanvasLegend } from './canvas-legend'
@@ -13,7 +15,9 @@ import { canvas } from './canvas.styles'
 import { Inspector } from './inspector'
 import { ModelText } from './model-text'
 import { useCanvasScene } from './use-canvas-scene'
+import { useOrbit } from './use-orbit'
 
+import type { ModelView } from '@entities/review/guide/system-model'
 import type { ReactElement } from 'react'
 import type { SystemCanvasProps } from '../model'
 import type { CanvasActions } from './canvas-actions'
@@ -33,6 +37,26 @@ function useHovered(
 		[field],
 	)
 	return [hover.field === field ? hover.id : null, onHover]
+}
+
+// The bar, the legend and the field, with the 3D camera's hold: a drag re-renders this much and no more. The camera starts over the floors, on the system after.
+function CanvasFrame({
+	views,
+	current,
+	onFail,
+}: {
+	views: readonly ModelView[]
+	current: CanvasScene
+	onFail: () => void
+}): ReactElement {
+	const hold = useOrbit(0, POSE_TILT.after)
+	return (
+		<>
+			<CanvasToolbar views={views} current={current} hold={hold} />
+			<CanvasLegend projection={current.projection} />
+			<CanvasStage current={current} hold={hold} onFail={onFail} />
+		</>
+	)
 }
 
 // The visual level: the system the changeset lives in, drawn before any code. The agent's model laid out by ELK, drawn flat by React Flow with the desk's own tiles and rules, or raised from the same layout into an isometric or a 3D drawing; the parts a change touches carry its mark and the numbers of the domains that make it, and every domain leads on to its review.
@@ -62,11 +86,10 @@ export function SystemCanvas({
 			{...stylex.props(canvas.root)}
 		>
 			<ReactFlowProvider>
-				<CanvasToolbar views={model.views ?? []} current={current} />
-				<CanvasLegend projection={current.projection} />
 				<CanvasActionsContext value={actions}>
 					<CanvasFocusContext value={focus}>
-						<CanvasStage
+						<CanvasFrame
+							views={model.views ?? []}
 							current={current}
 							onFail={() => setFailed(true)}
 						/>

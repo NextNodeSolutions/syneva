@@ -2,10 +2,10 @@ import { routesOf, solidsOf } from './solids'
 
 import type { CanvasLayout } from '../layout/canvas-layout'
 import type { Scene } from '../layout/scene'
-import type { Raised, RaisedLink, RaisedPart } from './raised'
+import type { RaisedLink, RaisedPart } from './raised'
 import type { Route, Solid } from './solids'
 
-// The plan raised as it lies: one deck, its containers as platforms and its parts as blocks on ELK's layout, its links over the ground they cross. The parts and links a deck shows are the caller's to choose.
+// The plan raised as it lies, ready to stand on a floor: its containers as platforms and its parts as blocks on ELK's layout, its links over the ground they cross, each in the change the model gives it. Which of them a floor shows, and how loud, is the floor's to choose.
 
 export type PlanDeck = {
 	solids: Solid[]
@@ -70,25 +70,4 @@ export function planLinks(
 			},
 		]
 	})
-}
-
-// The plan raised whole, on one deck with no slab of its own.
-export function planRaised(scene: Scene, layout: CanvasLayout): Raised {
-	const deck = planDeck(layout)
-	return {
-		floor: { width: layout.width, height: layout.height },
-		top: deck.top,
-		decks: [
-			{
-				id: 'plan',
-				name: '',
-				slabs: [],
-				parts: planParts(scene, layout, deck.solids),
-				links: planLinks(scene, deck.routes),
-				isHanging: false,
-			},
-		],
-		overlay: [],
-		traces: [],
-	}
 }
