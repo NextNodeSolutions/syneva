@@ -1,4 +1,5 @@
 import { deskName } from '@entities/review/desk-name'
+import { useMediaQuery } from '@shared/lib/use-media-query'
 import { deskControl } from '@shared/ui/desk-control.styles'
 import { Icon } from '@shared/ui/icon'
 import { tip } from '@shared/ui/tip.styles'
@@ -9,6 +10,7 @@ import {
 	MARK_VIEW_BOX,
 } from '@syneva/design-system/brand'
 import { control } from '@syneva/design-system/controls.styles'
+import { queries } from '@syneva/design-system/media.stylex'
 import { press } from '@syneva/design-system/press.styles'
 
 import { chromeCtx } from '../context'
@@ -22,6 +24,8 @@ import type { ReactElement } from 'react'
 export function BrandBlock(): ReactElement {
 	const { S } = chromeCtx()
 	const name = S.state ? deskName(S.state) : ''
+	// Under the tablet width the tree is a drawer this button slides out; wider, it is the column this button brings back once folded (the key's ⇧B).
+	const isDrawer = useMediaQuery(queries.tablet)
 	return (
 		<div {...stylex.props(topBar.brand)}>
 			<button
@@ -32,13 +36,15 @@ export function BrandBlock(): ReactElement {
 					control.quiet,
 					deskControl.iconCompact,
 					topBar.navToggle,
+					S.treeFolded && topBar.navToggleFolded,
 					isTreeless(S) && topBar.navToggleHidden,
 					tip.host,
 				)}
 				data-tip="Files (⇧B)"
 				aria-label="Toggle file tree"
 				onClick={() => {
-					S.treeDrawerOpen = !S.treeDrawerOpen
+					if (isDrawer) S.treeDrawerOpen = !S.treeDrawerOpen
+					else S.toggleTree?.()
 				}}
 			>
 				<Icon id="gly-menu" />

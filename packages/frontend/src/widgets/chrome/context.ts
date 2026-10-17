@@ -67,6 +67,7 @@ export interface ChromeStoreView {
 	followReference?(domainId: string, refId: string): void
 	guideBack?(): void
 	toggleGuidePane?(): void
+	toggleTree?(): void
 	toggleBlockDetail?(key: string): void
 	openDomainComposer?(domainId: string, blockId?: string): void
 	closeDomainComposer?(): void
