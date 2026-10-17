@@ -3,11 +3,12 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { parseArgs } from '@syneva/backend/adapters/inbound/cli/args'
+import { flagText, parseArgs } from '@syneva/backend/adapters/inbound/cli/args'
 import {
 	runStart,
 	SIGNAL_EXIT_CODE,
 } from '@syneva/backend/adapters/inbound/cli/start'
+import { DEFAULT_HUB_PORT } from '@syneva/backend/adapters/inbound/http/options'
 import { createServer } from 'vite'
 
 import type {
@@ -23,6 +24,8 @@ const PAGE_SHELLS = path.join(FRONTEND_ROOT, 'src/app')
 const LOOPBACK = '127.0.0.1'
 const HTTP_OK = 200
 const USER_ARG_START_INDEX = 2
+// Vite's HMR socket is its own server (middleware mode): its port follows the hub's, so two dev hubs on two ports do not fight over Vite's fixed default (24678), which left the second one's pages without live reload.
+const HMR_PORT_OFFSET = 20_000
 
 // Read from source on every request; Vite swaps in the source entry + HMR client (sourceEntriesPlugin).
 function servePage(
@@ -67,6 +70,13 @@ process.on('exit', code => {
 	if (code === SIGNAL_EXIT_CODE) process.exitCode = 0
 })
 
+const args = parseArgs([
+	'--no-open',
+	...process.argv.slice(USER_ARG_START_INDEX),
+])
+const hubPort = Number(
+	flagText(args, 'port') ?? process.env.SYNEVA_PORT ?? DEFAULT_HUB_PORT,
+)
 const vite = await createServer({
 	root: FRONTEND_ROOT,
 	appType: 'custom',
@@ -75,14 +85,14 @@ const vite = await createServer({
 	// Vite wipes the terminal before each HMR line, taking the hub's own output with it.
 	clearScreen: false,
 	// The hub's server is the origin; Vite keeps only its HMR socket, on loopback.
-	server: { middlewareMode: true, hmr: { host: LOOPBACK } },
+	server: {
+		middlewareMode: true,
+		hmr: { host: LOOPBACK, port: hubPort + HMR_PORT_OFFSET },
+	},
 })
 
 // --no-open keeps a watch restart from popping a new dashboard tab; the URL is announced.
-await runStart(
-	parseArgs(['--no-open', ...process.argv.slice(USER_ARG_START_INDEX)]),
-	viteUi(vite),
-)
+await runStart(args, viteUi(vite))
 
 // runStart holds the process while the hub serves; returning = it never bound (the machine's hub likely answers the port already).
 process.stderr.write(
