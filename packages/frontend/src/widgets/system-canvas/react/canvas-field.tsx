@@ -52,15 +52,17 @@ const FLOW = {
 	multiSelectionKeyCode: null,
 } as const
 
+const paneWidth = (state: ReactFlowState): number => state.width
 const paneHeight = (state: ReactFlowState): number => state.height
 
-// React Flow fits the drawing once, on its first measure: a field that grows or shrinks with the window fits it again.
+// React Flow fits the drawing once, on its first measure: a field that grows or shrinks with the window fits it again, across as well as down. A drawing that fits at full size keeps the field's height as the window narrows, so a refit on the height alone left it at its old offset, cut at the field's right edge.
 function RefitOnResize(): null {
+	const width = useStore(paneWidth)
 	const height = useStore(paneHeight)
 	const { fitView } = useReactFlow()
 	useEffect(() => {
-		if (height > 0) void fitView(FIT)
-	}, [fitView, height])
+		if (width > 0 && height > 0) void fitView(FIT)
+	}, [fitView, width, height])
 	return null
 }
 
