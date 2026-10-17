@@ -18,7 +18,7 @@ import { ResetButton } from './reset-button'
 import { ReviewProgress } from './review-progress'
 import { topBar } from './top-bar.styles'
 
-import type { ReactElement } from 'react'
+import type { MouseEvent, ReactElement } from 'react'
 
 function Lens({
 	on,
@@ -188,9 +188,16 @@ function TopActions(): ReactElement {
 	)
 }
 
+// A button pressed with the mouse gives its focus back: the desk's keys are the page's (Enter opens, Esc closes), and a focused button would take the next Enter for a second press and show its ring after Esc. A key press keeps focus where it is: event.detail counts clicks and is 0 for a key.
+function releaseMouseFocus(event: MouseEvent<HTMLElement>): void {
+	if (event.detail === 0 || !(event.target instanceof Element)) return
+	const button = event.target.closest('button')
+	if (button instanceof HTMLButtonElement) button.blur()
+}
+
 export function TopBar(): ReactElement {
 	return (
-		<header {...stylex.props(topBar.bar)}>
+		<header {...stylex.props(topBar.bar)} onClick={releaseMouseFocus}>
 			<BrandBlock />
 			<TopLenses />
 			<TopActions />
