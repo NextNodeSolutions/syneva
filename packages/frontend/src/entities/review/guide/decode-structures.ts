@@ -9,6 +9,8 @@ import {
 	API_METHODS,
 	CARDINALITIES,
 	CHANGE_MARKS,
+	WIREFRAME_ELEMENTS,
+	WIREFRAME_SURFACES,
 } from '@syneva/contracts/guide-structures'
 
 import { optList } from './decode-fields'
@@ -20,9 +22,11 @@ import type {
 	DataField,
 	DataModelBlock,
 	ExplanationBlock,
+	WireframeBlock,
+	WireframeNode,
 } from './model'
 
-// The structural blocks' wire shapes onto the entity model: the data model and the API. The hub validated them; this checks types and names.
+// The structural blocks' wire shapes onto the entity model: the data model, the API and the wireframe. The hub validated them; this checks types and names.
 
 type Ctx = { endpoint: string }
 type BlockBase = Pick<ExplanationBlock, 'id' | 'title' | 'refs' | 'detail'>
@@ -123,5 +127,38 @@ export function decodeApi(
 		endpoints: requiredArray(o, 'endpoints', ctx.endpoint).map(entry =>
 			decodeEndpoint(entry, ctx),
 		),
+	}
+}
+
+function decodeWireframeNode(raw: unknown, ctx: Ctx): WireframeNode {
+	const o = assertObject(raw, ctx.endpoint, 'wireframe element')
+	return {
+		el: enumValue(o.el, ctx.endpoint, WIREFRAME_ELEMENTS, 'wireframe.el'),
+		label: optString(o, 'label', ctx.endpoint),
+		change: optChange(o, ctx),
+		ref: optString(o, 'ref', ctx.endpoint),
+		children: optList(o, 'children', ctx, child =>
+			decodeWireframeNode(child, ctx),
+		),
+	}
+}
+
+// Left out, a wireframe has no before (a new screen).
+function optWireframe(raw: unknown, ctx: Ctx): WireframeNode | undefined {
+	if (raw === null || typeof raw === 'undefined') return undefined
+	return decodeWireframeNode(raw, ctx)
+}
+
+export function decodeWireframe(
+	o: Record<string, unknown>,
+	ctx: Ctx,
+	base: BlockBase,
+): WireframeBlock {
+	return {
+		...base,
+		kind: 'wireframe',
+		surface: optEnum(o, 'surface', ctx, WIREFRAME_SURFACES),
+		before: optWireframe(o.before, ctx),
+		after: decodeWireframeNode(o.after, ctx),
 	}
 }

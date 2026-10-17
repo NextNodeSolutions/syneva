@@ -162,6 +162,48 @@ export type ApiEndpoint = {
 
 export type ApiBlock = BlockBase & { kind: 'api'; endpoints: ApiEndpoint[] }
 
+export type WireframeElement =
+	| 'screen'
+	| 'header'
+	| 'sidebar'
+	| 'main'
+	| 'footer'
+	| 'row'
+	| 'column'
+	| 'card'
+	| 'dialog'
+	| 'tabs'
+	| 'list'
+	| 'item'
+	| 'table'
+	| 'title'
+	| 'text'
+	| 'button'
+	| 'input'
+	| 'select'
+	| 'checkbox'
+	| 'image'
+	| 'badge'
+	| 'toast'
+	| 'divider'
+
+export type WireframeNode = {
+	el: WireframeElement
+	label?: string | undefined
+	change?: ChangeMark | undefined
+	ref?: string | undefined
+	children?: WireframeNode[] | undefined
+}
+
+export type WireframeSurface = 'desktop' | 'mobile' | 'panel' | 'dialog'
+
+export type WireframeBlock = BlockBase & {
+	kind: 'wireframe'
+	surface?: WireframeSurface | undefined
+	before?: WireframeNode | undefined
+	after: WireframeNode
+}
+
 export type ExplanationBlock =
 	| ProseBlock
 	| BeforeAfterBlock
@@ -170,6 +212,7 @@ export type ExplanationBlock =
 	| FlowBlock
 	| DataModelBlock
 	| ApiBlock
+	| WireframeBlock
 
 export type GuideDomain = {
 	id: string

@@ -11,6 +11,7 @@ import { block as styles } from './block.styles'
 import { diagram } from './diagram.styles'
 import { MarkdownHtml } from './markdown-html'
 import { TextEquivalent } from './text-equivalent'
+import { WireframeView } from './wireframe-block'
 
 import type {
 	BeforeAfterBlock,
@@ -155,6 +156,12 @@ export function ExplanationBlockView({
 		return (
 			<BlockFrame domain={domain} block={block} actions={actions}>
 				<ApiView domain={domain} block={block} />
+			</BlockFrame>
+		)
+	if (block.kind === 'wireframe')
+		return (
+			<BlockFrame domain={domain} block={block} actions={actions}>
+				<WireframeView domain={domain} block={block} />
 			</BlockFrame>
 		)
 	return <DiagramBody domain={domain} block={block} actions={actions} />
