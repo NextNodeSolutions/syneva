@@ -11,6 +11,7 @@ import { $ } from '@shared/lib/dom'
 import { notifyStateMutation } from '@shared/lib/reactive'
 import { render } from '@shared/lib/render-scheduler'
 
+import { markBrickAt } from './brick-mark'
 import { diffCtx } from './context'
 import { D } from './runtime'
 
@@ -80,11 +81,13 @@ function paint(r: Row): void {
 		{ start: r.line, end: r.line, side: r.side },
 		{ notify: false },
 	)
+	markBrickAt({ side: r.side, line: r.line })
 	diffCtx().S.cursorTick++
 }
 
 function hide(): void {
 	D.instance?.setSelectedLines(null, { notify: false })
+	markBrickAt(null)
 	diffCtx().S.cursorTick++
 }
 
