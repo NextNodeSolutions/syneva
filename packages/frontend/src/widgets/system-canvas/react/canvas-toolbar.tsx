@@ -1,5 +1,6 @@
 import { Button } from '@shared/ui/button'
 import { deskControl } from '@shared/ui/desk-control.styles'
+import { tip } from '@shared/ui/tip.styles'
 import * as stylex from '@stylexjs/stylex'
 import { useReactFlow } from '@xyflow/react'
 
@@ -44,10 +45,26 @@ function Zoom(): ReactElement {
 	)
 }
 
-const PROJECTIONS: { id: Projection; title: string; label: string }[] = [
-	{ id: 'plan', title: 'Plan', label: 'Flat plan' },
-	{ id: 'iso', title: 'Iso', label: 'Isometric' },
-	{ id: 'orbit', title: '3D', label: 'In 3D, to turn' },
+// Three projections, three purposes, each said in its tooltip: the map that leads into the review, the tiers that place the change in the architecture, the two floors that show what it does to the system.
+const PROJECTIONS: { id: Projection; title: string; purpose: string }[] = [
+	{
+		id: 'plan',
+		title: 'Plan',
+		purpose:
+			'Map: the parts the change lives in, and the way into its domains',
+	},
+	{
+		id: 'iso',
+		title: 'Iso',
+		purpose:
+			'Tiers: where the change sits, from the interface down to the data',
+	},
+	{
+		id: 'orbit',
+		title: '3D',
+		purpose:
+			'Before \u2192 after: the system before the change, under the system after it',
+	},
 ]
 
 function Projections({
@@ -68,9 +85,12 @@ function Projections({
 					key={entry.id}
 					size="small"
 					aria-pressed={entry.id === projection}
-					aria-label={entry.label}
+					aria-label={entry.purpose}
+					data-tip={entry.purpose}
 					css={[
 						deskControl.mini,
+						tip.host,
+						tip.end,
 						entry.id === projection && canvas.tabOn,
 					]}
 					onClick={() => onProjection(entry.id)}

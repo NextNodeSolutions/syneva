@@ -1,10 +1,12 @@
 import '../system-canvas.css'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { ReactFlowProvider } from '@xyflow/react'
 
+import { CanvasActionsContext } from './canvas-actions'
 import { CanvasFocusContext, canvasFocus } from './canvas-focus'
+import { CanvasLegend } from './canvas-legend'
 import { CanvasStage } from './canvas-stage'
 import { CanvasToolbar } from './canvas-toolbar'
 import { canvas } from './canvas.styles'
@@ -14,6 +16,24 @@ import { useCanvasScene } from './use-canvas-scene'
 
 import type { ReactElement } from 'react'
 import type { SystemCanvasProps } from '../model'
+import type { CanvasActions } from './canvas-actions'
+import type { CanvasScene } from './use-canvas-scene'
+
+// The part under the pointer, remembered with the field it was in: a field that goes (another view, another projection) takes its hover with it, even when the pointer never left it.
+function useHovered(
+	current: CanvasScene,
+): [string | null, (id: string | null) => void] {
+	const field = `${current.projection}:${current.sceneKey}`
+	const [hover, setHover] = useState<{ field: string; id: string | null }>({
+		field,
+		id: null,
+	})
+	const onHover = useCallback(
+		(id: string | null) => setHover({ field, id }),
+		[field],
+	)
+	return [hover.field === field ? hover.id : null, onHover]
+}
 
 // The visual level: the system the changeset lives in, drawn before any code. The agent's model laid out by ELK, drawn flat by React Flow with the desk's own tiles and rules, or raised from the same layout into an isometric or a 3D drawing; the parts a change touches carry its mark and the numbers of the domains that make it, and every domain leads on to its review.
 export function SystemCanvas({
@@ -24,16 +44,16 @@ export function SystemCanvas({
 }: SystemCanvasProps): ReactElement {
 	const current = useCanvasScene(model)
 	const [pointed, setPointed] = useState<string | null>(null)
+	const [hovered, onHover] = useHovered(current)
 	const [hasFailed, setFailed] = useState(false)
-	const focus = canvasFocus(
-		current.scene,
-		domains,
-		current.selected,
-		pointed ?? focusDomain,
-	)
-	const actions = useMemo(
-		() => ({ onFocus: setPointed, onOpen: onOpenDomain }),
-		[onOpenDomain],
+	const focus = canvasFocus(current.scene, domains, {
+		selected: current.selected,
+		hovered,
+		domain: pointed ?? focusDomain,
+	})
+	const actions = useMemo<CanvasActions>(
+		() => ({ onFocus: setPointed, onOpen: onOpenDomain, onHover }),
+		[onOpenDomain, onHover],
 	)
 	return (
 		<section
@@ -43,12 +63,15 @@ export function SystemCanvas({
 		>
 			<ReactFlowProvider>
 				<CanvasToolbar views={model.views ?? []} current={current} />
-				<CanvasFocusContext value={focus}>
-					<CanvasStage
-						current={current}
-						onFail={() => setFailed(true)}
-					/>
-				</CanvasFocusContext>
+				<CanvasLegend projection={current.projection} />
+				<CanvasActionsContext value={actions}>
+					<CanvasFocusContext value={focus}>
+						<CanvasStage
+							current={current}
+							onFail={() => setFailed(true)}
+						/>
+					</CanvasFocusContext>
+				</CanvasActionsContext>
 				<Inspector
 					scene={current.scene}
 					view={current.view}

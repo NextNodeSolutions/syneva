@@ -6,7 +6,7 @@ import { nearness } from '../projection/faces'
 
 import { useCanvasFocus } from './canvas-focus'
 import { ChangeTag } from './change-tag'
-import { DomainBadges } from './domain-badges'
+import { DomainNumbers } from './domain-numbers'
 import { KIND_WORDS, KindGlyph } from './kind-glyph'
 import { link as linkStyles } from './link.styles'
 import { projection as styles } from './projection.styles'
@@ -64,10 +64,7 @@ function NameBody({
 				{element.label}
 			</span>
 			{!isPlatform && <ChangeTag change={element.change} />}
-			<DomainBadges
-				domains={focus.domainsOf(element)}
-				css={styles.nameBadges}
-			/>
+			<DomainNumbers domains={focus.domainsOf(element)} />
 		</>
 	)
 }
