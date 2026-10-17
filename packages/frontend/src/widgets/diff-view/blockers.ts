@@ -17,12 +17,7 @@ import { cursorJumpTo } from './cursor'
 import { D } from './runtime'
 
 import type { Decision } from '@entities/review/model'
-import type { FileDiffMetadata } from '@pierre/diffs'
 import type { Side } from '@shared/diff-renderer/types'
-
-type HunkPart = NonNullable<
-	FileDiffMetadata['hunks'][number]['hunkContent']
->[number]
 
 const PREVIEW_MAX = 64
 const PREVIEW_HEAD = 63
@@ -76,33 +71,17 @@ export function fileBlockers(path: string): Blocker[] {
 	return out
 }
 
-function partAt(hunkIndex: number, changeIndex: number): HunkPart | undefined {
-	return D.fileDiff?.hunks.at(hunkIndex)?.hunkContent.at(changeIndex)
-}
-
+// The rejected change's first rendered line, as the last render stamped it (syncDisplayAnchors); a record whose block is gone lands on its own line, renumbered.
 function decisionDisplayPos(d: Decision): { side: Side; line: number } {
 	const ch = diffCtx()
 		.requireState()
 		.changes.find(c => c.id === d.key)
-	const changeIndex = ch?.changeIndex
-	const part =
-		ch && typeof changeIndex === 'number'
-			? partAt(ch.hunkIndex, changeIndex)
-			: undefined
-	if (!ch || !part)
+	if (!ch?.displayLineNumber)
 		return {
 			side: d.side,
 			line: toDisplayLine(d.side, d.lineNumber, D.lineMap),
 		}
-	if (part.type === 'change')
-		return {
-			side: ch.side,
-			line:
-				(ch.side === 'additions'
-					? part.additionLineIndex
-					: part.deletionLineIndex) + 1,
-		}
-	return { side: 'additions', line: part.additionLineIndex + 1 }
+	return { side: ch.side, line: ch.displayLineNumber }
 }
 
 export function jumpToBlocker(b: Blocker): void {

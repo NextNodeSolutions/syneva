@@ -1,4 +1,5 @@
 import type { AnnotationMeta } from '@entities/review/annotations'
+import type { ChangeParts } from '@entities/review/change/change-parts'
 import type { FileDiff, FileDiffMetadata } from '@pierre/diffs'
 import type { LineMap } from '@shared/diff-renderer/linemap'
 import type { Side } from '@shared/diff-renderer/types'
@@ -19,6 +20,8 @@ export type DiffHolder = {
 	virtual: VirtualNav | null
 	fileDiff: FileDiffMetadata | null
 	lineMap: LineMap | null
+	// The parts of the rendered diff each of the shown file's changes owns (change-parts.ts), by change id.
+	parts: ChangeParts | null
 }
 
 // Imperative-island state kept OUT of the reactive store: the @pierre/diffs instance does internal element/identity checks that a reactive store proxy breaks (e.g. ResizeManager ownership). Plain object.
@@ -27,6 +30,7 @@ export const D: DiffHolder = {
 	virtual: null,
 	fileDiff: null,
 	lineMap: null,
+	parts: null,
 }
 
 export function releaseDiffInstance(): void {

@@ -1,6 +1,6 @@
 import type { ChangeState, Decision, ReviewFile, ReviewState } from '../model'
 
-// The desk's one change set, read once per loaded state: the hub's cut (its ids, spans and order) for every file it diffed, and one whole-file block for each hunk-less add (an untracked file, which git's diff leaves out, so the hub cuts nothing for it - the block is the one Pierre draws for an add).
+// The desk's one change set, read once per loaded state: the hub's cut (its ids, spans and order) for every file it diffed, and one whole-file block for each hunk-less add (an untracked file, which git's diff leaves out, so the hub cuts nothing for it - the block is the one Pierre draws for an add). Opening, scrolling or deciding a file never cuts it again (change-parts.ts maps it onto what Pierre draws).
 
 type ChangeSetInput = Pick<
 	ReviewState,
