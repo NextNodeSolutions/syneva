@@ -55,7 +55,7 @@ function brickTitle(brick: Brick): string {
 	return `${head} · before: ${rangeLabel(brick.symbol.before)} · after: ${rangeLabel(brick.symbol.after)}`
 }
 
-// One brick of a file: its kind and name, how many blocks it holds, its verdict; the click lands on its first block in the real diff.
+// One brick of a file: its kind and name, how many blocks it holds, its verdict; the click lands on its first block with the code cut to the brick (the brick view).
 export function BrickRow({ brick }: { brick: Brick }): ReactElement {
 	const { S } = chromeCtx()
 	const [first] = brick.changes
@@ -66,7 +66,7 @@ export function BrickRow({ brick }: { brick: Brick }): ReactElement {
 			data-brick={brick.key}
 			data-unit={brick.changes.length === 1 ? first?.id : undefined}
 			title={brickTitle(brick)}
-			onClick={() => first && S.jumpToSpan?.(changeSpan(first))}
+			onClick={() => first && S.focusBrick?.(changeSpan(first))}
 		>
 			{kind && <span {...stylex.props(coverage.kind)}>{kind}</span>}
 			<span

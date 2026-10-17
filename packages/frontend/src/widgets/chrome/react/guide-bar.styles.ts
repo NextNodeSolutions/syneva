@@ -33,16 +33,17 @@ export const guideBar = stylex.create({
 		color: color['--muted'],
 	},
 	number: { color: color['--ink'] },
-	// The brick under the cursor, after the change count: the one label whose width moves, so it comes last.
+	// The brick under the cursor, after the change count: the one label whose width moves, so it comes last. A control (the brick view's toggle) that reads as the label it was: the name clips inside it, so the tip below it is not clipped with it.
 	brick: {
+		minWidth: 0,
+		fontFamily: font['--mono'],
+		fontSize: deskText.label,
+	},
+	brickName: {
 		minWidth: 0,
 		overflow: 'hidden',
 		textOverflow: 'ellipsis',
 		whiteSpace: 'nowrap',
-		paddingLeft: '2px',
-		fontFamily: font['--mono'],
-		fontSize: deskText.label,
-		color: color['--ink'],
 	},
 	rule: {
 		width: '1px',

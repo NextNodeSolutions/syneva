@@ -48,6 +48,7 @@ export function changePosition(): {
 	return {
 		index: current ? ordered.indexOf(current) + 1 : null,
 		total: ordered.length,
-		brick: current ? brickNameOf(current) : null,
+		// The brick view names the brick it draws wherever the cursor stands in it, a context row included.
+		brick: D.focus?.brick.name ?? (current ? brickNameOf(current) : null),
 	}
 }

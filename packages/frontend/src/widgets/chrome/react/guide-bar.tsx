@@ -155,6 +155,30 @@ function StaleNotice(): ReactElement {
 	)
 }
 
+// The brick under the cursor, named after the change count, is the brick view's one way in (and out): pressed while the code is cut to it.
+function BrickButton({ name }: { name: string }): ReactElement {
+	const { S } = chromeCtx()
+	return (
+		<button
+			{...stylex.props(
+				press.control,
+				control.base,
+				S.brickFocus ? deskControl.ask : control.quiet,
+				deskControl.mini,
+				tip.host,
+				strip.brick,
+			)}
+			data-tip={
+				S.brickFocus ? 'Whole file (f)' : 'Focus on this brick (f)'
+			}
+			aria-pressed={S.brickFocus}
+			onClick={() => S.toggleBrickFocus?.()}
+		>
+			<span {...stylex.props(strip.brickName)}>{name}</span>
+		</button>
+	)
+}
+
 // The levels the code sits in, shown once the code is open: the file in the active order, and the domain's change under the cursor.
 function CodeLevels(): ReactElement {
 	const { S } = chromeCtx()
@@ -184,14 +208,7 @@ function CodeLevels(): ReactElement {
 						keys={[',', '.']}
 						onStep={direction => S.stepDomainChange?.(direction)}
 					/>
-					{change.brick && (
-						<span
-							{...stylex.props(strip.brick)}
-							title="The brick under the cursor"
-						>
-							{change.brick}
-						</span>
-					)}
+					{change.brick && <BrickButton name={change.brick} />}
 				</>
 			)}
 		</>
@@ -213,6 +230,7 @@ export function GuideBar(): ReactElement {
 		'preview',
 		'sidebarTab',
 		'cursorTick',
+		'brickFocus',
 	)
 	if (!(S.showGuideBar?.() ?? false)) return <></>
 	const isCode = S.codeOpen && !S.overviewOpen
