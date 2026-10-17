@@ -1,5 +1,6 @@
 // The guide's section of the agent contract (spec.ts splices it in): the schema an agent writes to, its limits, and the examples it can start from.
 import { GUIDE_EXAMPLES_SPEC } from './spec-guide-examples.js'
+import { MODEL_FIELD_SPEC, MODEL_RULE_SPEC } from './spec-guide-model.js'
 
 // A domain's fields and the authoring rules are their own constants: the spec prints them once, and every code packet an agent explains a domain from (guide-authoring.ts) carries the same text.
 export const DOMAIN_FIELDS_SPEC = `  - id (required) - stable identity ([A-Za-z0-9][A-Za-z0-9._:-]*, ≤ 80): feedback and the reviewer's
@@ -82,6 +83,7 @@ export const AUTHORING_RULES_SPEC = `- Group by changed behavior, across files: 
   depends on changes, "wireframe" when what a user sees changes, "prose" when a paragraph says it
   best. No form is required, a diagram is not expected everywhere, and the same long template in
   every domain is wrong: a one-line change gets a sentence.
+${MODEL_RULE_SPEC}
 - Mark what must be read as code: a span goes in \`critical\` when one wrong line there costs money,
   access or data and no diagram can show it is right. Keep it rare (most domains have none) and
   tight (the lines that decide, not the whole file): a critical list that grows to cover the
@@ -120,6 +122,7 @@ One JSON object:
 - domains (required array, ≤ 60; empty only on an empty changeset) - one per coherent changed
   behavior, NOT per folder or file:
 ${DOMAIN_FIELDS_SPEC}
+${MODEL_FIELD_SPEC}
 - baseDiffHash - stamped by the desk on attach; leave it out.
 Unknown keys anywhere are refused by name: nothing you write is silently ignored.
 

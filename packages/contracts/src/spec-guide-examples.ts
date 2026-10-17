@@ -1,4 +1,6 @@
 // The guide spec's examples (spec-guide.ts splices them in): whole guides and domains an agent can start from.
+import { MODEL_EXAMPLE_SPEC } from './spec-guide-model.js'
+
 export const GUIDE_EXAMPLES_SPEC = `A domain spanning two files, pointing at supporting context:
 {"format":"syneva-guide/2","source":{"mode":"repo","fingerprint":"5b3d9c0a1e2f4a6b"},
  "overview":"Rate limiting moves from a per-process counter to the shared store so every worker sees the same budget.",
@@ -46,6 +48,8 @@ A state diagram whose elements reach the code:
  "blocks":[{"id":"states","kind":"state",
    "states":[{"id":"live","label":"Live","isInitial":true},{"id":"closing","label":"Closing","ref":"drain"},{"id":"gone","label":"Gone","isFinal":true}],
    "transitions":[{"from":"live","to":"closing","label":"close()"},{"from":"closing","to":"gone","label":"after grace","ref":"grace"}]}]}
+
+${MODEL_EXAMPLE_SPEC}
 
 An empty changeset:
 {"format":"syneva-guide/2","source":{"mode":"repo","fingerprint":"e3b0c44298fc1c14"},

@@ -1,5 +1,6 @@
 // The guide: an externally authored, risk-ranked explanation of the coherent behaviors a changeset changes.
 // Syneva validates and renders it, never writes it; the backend domain mirrors these shapes (domain/guide-shapes.ts) - keep both sides in sync.
+import type { GuideModel } from './guide-model.js'
 import type {
 	ApiBlock,
 	DataModelBlock,
@@ -194,6 +195,8 @@ export type Guide = {
 	overview: string
 	// Empty on an empty changeset, never otherwise.
 	domains: GuideDomain[]
+	// The system the domains change, drawn as the visual level; a posted guide without one keeps the desk's.
+	model?: GuideModel | undefined
 	// Stamped by the desk on attach: the diff the guide describes; a reload advancing past it is what the lifecycle re-resolves against.
 	baseDiffHash?: string | undefined
 }
@@ -216,6 +219,11 @@ export const GUIDE_LIMITS = {
 	endpoints: 20,
 	wireframeNodes: 80,
 	wireframeDepth: 8,
+	modelElements: 60,
+	modelRelations: 120,
+	modelViews: 12,
+	viewSteps: 30,
+	modelDepth: 3,
 	overviewChars: 3000,
 	markdownChars: 20_000,
 	textChars: 1000,
