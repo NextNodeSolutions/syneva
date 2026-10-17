@@ -4,21 +4,36 @@ import { domainChanges } from './resolution'
 import type { ChangeState, ReviewState } from '../model'
 import type { CodeSpan, GuideDomain } from './model'
 
-// The changes a domain owns in reading order: file order, then the block's position on its side - what next/previous change steps through and what Start opens.
+// A place in the review's code: a file, a side and a raw line on it - a change's start, or where the cursor sits.
+export type CodePlace = {
+	path: string
+	side: 'additions' | 'deletions'
+	lineNumber: number
+}
+
+export type FileOrder = Map<string, number>
+
+export function fileOrderOf(state: ReviewState): FileOrder {
+	return new Map(state.files.map((file, index) => [file.path, index]))
+}
+
+// The reading order of two places: file order, then the side (what was removed before what came), then the line.
+function comparePlaces(a: CodePlace, b: CodePlace, order: FileOrder): number {
+	const byFile = (order.get(a.path) ?? 0) - (order.get(b.path) ?? 0)
+	if (byFile !== 0) return byFile
+	if (a.side !== b.side) return a.side === 'deletions' ? -1 : 1
+	return a.lineNumber - b.lineNumber
+}
+
+// The changes a domain owns in reading order - what next/previous change steps through and what Start opens.
 export function orderedDomainChanges(
 	domain: GuideDomain,
 	state: ReviewState,
 ): ChangeState[] {
-	const fileOrder = new Map(
-		state.files.map((file, index) => [file.path, index]),
+	const order = fileOrderOf(state)
+	return domainChanges(domain, state.changes).toSorted((a, b) =>
+		comparePlaces(a, b, order),
 	)
-	return domainChanges(domain, state.changes).toSorted((a, b) => {
-		const byFile =
-			(fileOrder.get(a.path) ?? 0) - (fileOrder.get(b.path) ?? 0)
-		if (byFile !== 0) return byFile
-		if (a.side !== b.side) return a.side === 'deletions' ? -1 : 1
-		return a.lineNumber - b.lineNumber
-	})
 }
 
 // One entry per file in first-seen order, its changes kept in the order given: a domain that touches one file ten times reads as one file with ten spans, not ten rows of the same path.
@@ -74,7 +89,7 @@ export function neighbourDomainId(
 // The owned change the cursor sits in, by file and raw line on its side.
 export function changeAt(
 	changes: readonly ChangeState[],
-	at: { path: string; side: 'additions' | 'deletions'; lineNumber: number },
+	at: CodePlace,
 ): ChangeState | undefined {
 	return changes.find(
 		change =>
@@ -85,13 +100,27 @@ export function changeAt(
 	)
 }
 
+// The owned change after (or before) a place: from inside an owned block, the next block in reading order, wrapping around; from between two blocks or outside the domain's files, the first block past the place (or the last before it), so the step never leaps back to the domain's start. With no place (no cursor), the first or the last.
 export function neighbourChange(
 	ordered: readonly ChangeState[],
-	current: ChangeState | undefined,
+	at: CodePlace | undefined,
 	direction: 1 | -1,
+	order: FileOrder,
 ): ChangeState | undefined {
 	if (!ordered.length) return undefined
-	const position = current ? ordered.indexOf(current) : -1
-	if (position < 0) return direction === 1 ? ordered[0] : ordered.at(-1)
-	return ordered[(position + direction + ordered.length) % ordered.length]
+	if (!at) return direction === 1 ? ordered[0] : ordered.at(-1)
+	const current = changeAt(ordered, at)
+	if (current) {
+		const position = ordered.indexOf(current)
+		return ordered[(position + direction + ordered.length) % ordered.length]
+	}
+	if (direction === 1)
+		return (
+			ordered.find(change => comparePlaces(change, at, order) > 0) ??
+			ordered[0]
+		)
+	return (
+		ordered.findLast(change => comparePlaces(change, at, order) < 0) ??
+		ordered.at(-1)
+	)
 }

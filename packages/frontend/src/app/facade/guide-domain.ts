@@ -1,9 +1,9 @@
 import { currentFileOrNull, fromDisplayLine } from '@entities/review/changes'
 import { orderedDomains } from '@entities/review/guide/domains'
 import {
-	changeAt,
 	changeSpan,
 	domainEntry,
+	fileOrderOf,
 	neighbourChange,
 	neighbourDomainId,
 	orderedDomainChanges,
@@ -20,6 +20,7 @@ import { S, toast } from '../store'
 import { foldTreeForCode, isReading, moveLayout } from './layout-motion'
 import { openPreview } from './navigate'
 
+import type { CodePlace } from '@entities/review/guide/navigation'
 import type { GuideReturnPoint } from '@entities/review/guide/return-point'
 
 // The guided review's moves: select a domain (its explanation beside its first change), step domains and a domain's changes, follow a reference to its exact code and come back. Every move lands through jumpToSpan, so the real diff and the virtual navigator do the landing.
@@ -116,18 +117,17 @@ function stepDomain(direction: 1 | -1): void {
 	toast(`Domain ${position + 1} of ${domains.length}`)
 }
 
-// The owned change the cursor sits in, when the shown file is one of the domain's. The cursor holds displayed lines, the changes raw ones: a decided block above shifts the two apart.
-function currentOwnedChange(domainId: string): ReturnType<typeof changeAt> {
+// Where the cursor sits in the diff file on screen, as a raw line: the cursor holds displayed lines, the changes raw ones, and a decided block above shifts the two apart. Null on a preview or without a cursor.
+function cursorPlace(): CodePlace | undefined {
 	const { state } = S
-	const domain = domainById(state, domainId)
 	const shown = currentFileOrNull(state?.files, S.preview, S.fileIndex)
 	const cursor = cursorSelection()
-	if (!state || !domain || !shown || !cursor) return undefined
-	return changeAt(orderedDomainChanges(domain, state), {
+	if (!shown || !cursor || S.preview || !S.codeOpen) return undefined
+	return {
 		path: shown.path,
 		side: cursor.side,
 		lineNumber: fromDisplayLine(cursor.side, cursor.lineNumber, D.lineMap),
-	})
+	}
 }
 
 function stepDomainChange(direction: 1 | -1): void {
@@ -139,8 +139,9 @@ function stepDomainChange(direction: 1 | -1): void {
 	const ordered = orderedDomainChanges(domain, state)
 	const next = neighbourChange(
 		ordered,
-		currentOwnedChange(domain.id),
+		cursorPlace(),
 		direction,
+		fileOrderOf(state),
 	)
 	if (!next) {
 		toast('This domain owns no changed block')
