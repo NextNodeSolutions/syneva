@@ -1,15 +1,18 @@
 import { Button } from '@shared/ui/button'
 import { deskControl } from '@shared/ui/desk-control.styles'
+import { tip } from '@shared/ui/tip.styles'
 import * as stylex from '@stylexjs/stylex'
 import { useReactFlow } from '@xyflow/react'
 
 import { canvas } from './canvas.styles'
 import { ZoomGlyph } from './glyphs'
+import { PoseSwitch } from './pose-switch'
 
 import type { ModelView } from '@entities/review/guide/system-model'
 import type { ReactElement } from 'react'
 import type { Projection } from '../model'
 import type { CanvasScene } from './use-canvas-scene'
+import type { OrbitHold } from './use-orbit'
 
 const ZOOM = { duration: 160 }
 
@@ -44,10 +47,26 @@ function Zoom(): ReactElement {
 	)
 }
 
-const PROJECTIONS: { id: Projection; title: string; label: string }[] = [
-	{ id: 'plan', title: 'Plan', label: 'Flat plan' },
-	{ id: 'iso', title: 'Iso', label: 'Isometric' },
-	{ id: 'orbit', title: '3D', label: 'In 3D, to turn' },
+// Three projections, three purposes, each said in its tooltip: the map that leads into the review, the tiers that place the change in the architecture, the two floors that show what it does to the system.
+const PROJECTIONS: { id: Projection; title: string; purpose: string }[] = [
+	{
+		id: 'plan',
+		title: 'Plan',
+		purpose:
+			'Map: the parts the change lives in, and the way into its domains',
+	},
+	{
+		id: 'iso',
+		title: 'Iso',
+		purpose:
+			'Tiers: where the change sits, from the interface down to the data',
+	},
+	{
+		id: 'orbit',
+		title: '3D',
+		purpose:
+			'Before \u2192 after: the system before the change, under the system after it',
+	},
 ]
 
 function Projections({
@@ -68,9 +87,12 @@ function Projections({
 					key={entry.id}
 					size="small"
 					aria-pressed={entry.id === projection}
-					aria-label={entry.label}
+					aria-label={entry.purpose}
+					data-tip={entry.purpose}
 					css={[
 						deskControl.mini,
+						tip.host,
+						tip.end,
 						entry.id === projection && canvas.tabOn,
 					]}
 					onClick={() => onProjection(entry.id)}
@@ -82,16 +104,18 @@ function Projections({
 	)
 }
 
-// The system view, then each path the guide tells step by step; the chosen one on the wash inside a petrol hairline. Then, at the bar's end, the plan's zoom and how the scene is drawn; the switch keeps its place when the zoom goes (the 3D view keeps its own controls in its corner).
+// The system view, then each path the guide tells step by step; the chosen one on the wash inside a petrol hairline. Then, at the bar's end, the projection's own control (the plan's zoom, the 3D view's before and after) and how the scene is drawn; the switch keeps its place as the control before it changes (the 3D view keeps its turning in its corner).
 export function CanvasToolbar({
 	views,
 	current,
+	hold,
 }: {
 	views: readonly ModelView[]
 	current: Pick<
 		CanvasScene,
 		'view' | 'onView' | 'projection' | 'onProjection'
 	>
+	hold: OrbitHold
 }): ReactElement {
 	const viewId = current.view?.id ?? null
 	const tabs = [
@@ -122,6 +146,7 @@ export function CanvasToolbar({
 			</span>
 			<span {...stylex.props(canvas.end)}>
 				{current.projection === 'plan' && <Zoom />}
+				{current.projection === 'orbit' && <PoseSwitch hold={hold} />}
 				<Projections
 					projection={current.projection}
 					onProjection={current.onProjection}

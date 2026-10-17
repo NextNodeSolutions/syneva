@@ -32,6 +32,9 @@ export const ISO_TILT = 60
 const TURN_DOWN = -135
 const TURN_RIGHT = -45
 
+// The tiers are seen from their front left: the floors' fronts, where the drops between them run, face the viewer, and each floor reads from its left end up to its right.
+export const TIERS_TURN = TURN_RIGHT
+
 // The floor turns so the side a link arrives at faces the viewer: ELK's links enter a part from its top when laid down and from its left when laid across, so either way the flow climbs up and to the right, into the scene, and every arrowhead stays in sight.
 export function turnFor(direction: Direction): number {
 	return direction === 'DOWN' ? TURN_DOWN : TURN_RIGHT
@@ -75,21 +78,19 @@ const CORNERS = [0, 1].flatMap(fx =>
 // What a camera frames: the floor, the height of the tallest thing on it, and the field it is drawn in.
 export type Stage = { floor: Size; top: number; field: Size }
 
-// The camera that fits the floor and everything standing on it into the field, centred.
-export function fitCamera(
+// The camera that fits the given points into the field, centred: the corners of a box, or of every volume a drawing holds when its box has empty corners.
+export function fitPoints(
 	angles: Angles,
-	{ floor, top, field }: Stage,
+	floor: Size,
+	points: readonly Point3[],
+	field: Size,
 ): Camera {
 	const probe = { ...angles, perspective: undefined, scale: 1 }
-	const points = CORNERS.map(({ fx, fy, fz }) =>
-		project({ ...probe, centerX: 0, centerY: 0 }, floor, {
-			x: floor.width * fx,
-			y: floor.height * fy,
-			z: top * fz,
-		}),
+	const seen = points.map(point =>
+		project({ ...probe, centerX: 0, centerY: 0 }, floor, point),
 	)
-	const xs = points.map(point => point.x)
-	const ys = points.map(point => point.y)
+	const xs = seen.map(point => point.x)
+	const ys = seen.map(point => point.y)
 	const left = Math.min(...xs)
 	const right = Math.max(...xs)
 	const high = Math.min(...ys)
@@ -105,6 +106,19 @@ export function fitCamera(
 		centerX: field.width * MIDDLE - scale * (left + right) * MIDDLE,
 		centerY: field.height * MIDDLE - scale * (high + low) * MIDDLE,
 	}
+}
+
+// The camera that fits the floor and everything standing on it into the field, centred.
+export function fitCamera(
+	angles: Angles,
+	{ floor, top, field }: Stage,
+): Camera {
+	const corners = CORNERS.map(({ fx, fy, fz }) => ({
+		x: floor.width * fx,
+		y: floor.height * fy,
+		z: top * fz,
+	}))
+	return fitPoints(angles, floor, corners, field)
 }
 
 export type Orbit = { turn: number; tilt: number; zoom: number }

@@ -2,7 +2,7 @@ import { deskText } from '@shared/ui/desk.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
-// An element is a white tile ruled like every card on the desk; what the change does to it is its rule's colour and a worded tag, never the hue alone.
+// An element is a white tile under one rule, like every card on the desk; a part the change touches takes its change's colour on that rule and a heavier left edge, the one strong colour on the map. Pointed at, a tile takes the palest petrol; selected, the wash and a 2px petrol frame drawn over its rule, so a tile never wears two borders.
 export const node = stylex.create({
 	tile: {
 		display: 'flex',
@@ -45,19 +45,6 @@ export const node = stylex.create({
 	},
 	containerHeadLit: { backgroundColor: color['--wash-tint'] },
 	containerHeadSelected: { backgroundColor: color['--wash'] },
-	// Lit or selected, a container keeps its body clear and takes only the hairline (its head takes the wash).
-	containerLit: {
-		outlineWidth: '1px',
-		outlineStyle: 'solid',
-		outlineColor: color['--accent'],
-		outlineOffset: '2px',
-	},
-	containerSelected: {
-		outlineWidth: '2px',
-		outlineStyle: 'solid',
-		outlineColor: color['--accent'],
-		outlineOffset: '2px',
-	},
 	head: {
 		display: 'flex',
 		alignItems: 'flex-start',
@@ -69,6 +56,7 @@ export const node = stylex.create({
 		marginTop: '2px',
 		color: color['--muted'],
 	},
+	// Two lines at most; a longer name ends in an ellipsis on the tile and reads whole in its title and the inspector.
 	label: {
 		display: '-webkit-box',
 		WebkitBoxOrient: 'vertical',
@@ -81,7 +69,7 @@ export const node = stylex.create({
 	},
 	containerName: {
 		flexGrow: 1,
-		lineHeight: '16px',
+		lineHeight: '17px',
 		minWidth: 0,
 		overflow: 'hidden',
 		fontFamily: font['--mono'],
@@ -93,64 +81,57 @@ export const node = stylex.create({
 		textOverflow: 'ellipsis',
 		color: color['--ink'],
 	},
+	// The kind and the technology wrap rather than cut: the tile is sized for two lines.
 	caption: {
+		fontFamily: font['--mono'],
+		fontSize: '10px',
+		lineHeight: '15px',
+		color: color['--muted'],
+		overflowWrap: 'anywhere',
+	},
+	containerCaption: {
 		display: 'flex',
 		alignItems: 'center',
 		gap: '6px',
-		minWidth: 0,
 		fontFamily: font['--mono'],
 		fontSize: '10px',
 		lineHeight: '16px',
 		color: color['--muted'],
 	},
-	captionText: {
-		overflow: 'hidden',
-		whiteSpace: 'nowrap',
-		textOverflow: 'ellipsis',
-	},
-	tag: { marginLeft: 'auto', flexShrink: 0, paddingBlock: 0 },
-	struck: { textDecoration: 'line-through' },
-	badges: {
+	footer: {
 		display: 'flex',
-		flexWrap: 'wrap',
-		gap: '3px',
+		alignItems: 'center',
+		gap: '6px',
 		marginTop: 'auto',
 	},
-	// A container's badges close its name's row, its kind and change take the row under it, so the head holds in the narrow box its parts leave it.
-	badgesInHead: { flexShrink: 0, marginTop: 0 },
-	badge: {
-		minWidth: '18px',
-		paddingBlock: 0,
-		paddingInline: '4px',
-		justifyContent: 'center',
-	},
-	toRead: {
-		borderBottomWidth: '2px',
-		borderBottomStyle: 'solid',
-		borderBottomColor: color['--red'],
-	},
-	// The domain the reviewer points at: its parts on the wash inside a petrol hairline, the rest stepped back.
-	lit: {
-		backgroundColor: color['--wash-tint'],
-		outlineWidth: '1px',
-		outlineStyle: 'solid',
-		outlineColor: color['--accent'],
-		outlineOffset: '2px',
-	},
-	dim: { opacity: 0.32 },
+	tag: { flexShrink: 0, paddingBlock: 0 },
+	numbersEnd: { marginLeft: 'auto' },
+	struck: { textDecoration: 'line-through' },
+	lit: { backgroundColor: color['--wash-tint'] },
+	dim: { opacity: 0.3 },
 	selected: {
 		backgroundColor: color['--wash'],
 		outlineWidth: '2px',
 		outlineStyle: 'solid',
 		outlineColor: color['--accent'],
-		outlineOffset: '2px',
+		outlineOffset: '-1px',
+	},
+	containerSelected: {
+		outlineWidth: '2px',
+		outlineStyle: 'solid',
+		outlineColor: color['--accent'],
+		outlineOffset: '-1px',
 	},
 	small: { fontSize: deskText.small },
 })
 
-// The tile's rule says what the change does to the element: added green, changed petrol, removed red and dashed.
+// The tile's rule says what the change does to the element: added green, changed petrol, removed red and dashed; the left edge carries it at 3px so it reads from across the map.
 export const tileChange = stylex.create({
-	added: { borderColor: color['--green'] },
-	changed: { borderColor: color['--accent'] },
-	removed: { borderColor: color['--red'], borderStyle: 'dashed' },
+	added: { borderColor: color['--green'], borderLeftWidth: '3px' },
+	changed: { borderColor: color['--accent'], borderLeftWidth: '3px' },
+	removed: {
+		borderColor: color['--red'],
+		borderStyle: 'dashed',
+		borderLeftWidth: '3px',
+	},
 })

@@ -12,13 +12,18 @@ import {
 
 import { layoutCanvas } from '../layout/canvas-layout'
 
+import { useCanvasActions } from './canvas-actions'
 import { canvas } from './canvas.styles'
 import { ContainerNode, ElementNode } from './element-node'
 import { flowElements } from './flow-elements'
 import { LinkEdge } from './link-edge'
 import { useFieldSize } from './use-field-size'
 
-import type { OnSelectionChangeParams, ReactFlowState } from '@xyflow/react'
+import type {
+	Node,
+	OnSelectionChangeParams,
+	ReactFlowState,
+} from '@xyflow/react'
 import type { ReactElement } from 'react'
 import type { Scene } from '../layout/scene'
 
@@ -59,6 +64,20 @@ function RefitOnResize(): null {
 	return null
 }
 
+// The part under the pointer goes up to the canvas, which traces its links.
+function useNodeHover(): {
+	onNodeMouseEnter: (event: unknown, entered: Node) => void
+	onNodeMouseLeave: () => void
+} {
+	const { onHover } = useCanvasActions()
+	const onNodeMouseEnter = useCallback(
+		(_event: unknown, entered: Node) => onHover(entered.id),
+		[onHover],
+	)
+	const onNodeMouseLeave = useCallback(() => onHover(null), [onHover])
+	return { onNodeMouseEnter, onNodeMouseLeave }
+}
+
 // One laid-out scene in React Flow, which owns the viewport; selecting a part (pointer, or Tab then Enter) is the one thing it changes, and that goes up to the canvas.
 export function CanvasField({
 	scene,
@@ -84,6 +103,7 @@ export function CanvasField({
 		},
 		[onSelect],
 	)
+	const hover = useNodeHover()
 	return (
 		<div
 			ref={fieldRef}
@@ -94,6 +114,8 @@ export function CanvasField({
 				defaultNodes={nodes}
 				defaultEdges={edges}
 				onSelectionChange={onSelectionChange}
+				onNodeMouseEnter={hover.onNodeMouseEnter}
+				onNodeMouseLeave={hover.onNodeMouseLeave}
 			>
 				<Background
 					variant={BackgroundVariant.Lines}

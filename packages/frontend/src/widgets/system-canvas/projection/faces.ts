@@ -3,7 +3,7 @@ import { isFacing, project } from './camera'
 import type { Camera, Point3, ScreenPoint, Size } from './camera'
 import type { Solid } from './solids'
 
-// A solid as the faces the camera sees: its top always (the camera looks down), and each side that turns toward the viewer. Sides along the floor's x axis and along its y axis take two shades, so a block's edges read without any outline.
+// A solid as the faces the camera sees: the cap turned toward it (the top from above, the underside from below) and each side that turns toward the viewer. Sides along the floor's x axis and along its y axis take two shades, so a block's edges read without any outline. A cap keeps the kind 'top' from below too: it is the face a part is read by, whichever way the camera looks.
 
 export type FaceKind = 'top' | 'side' | 'end'
 
@@ -51,6 +51,8 @@ const SIDES: SideSpec[] = [
 	},
 ]
 
+const UP = { x: 0, y: 0, z: 1 }
+
 const TOP: Corner[] = [
 	{ fx: 0, fy: 0 },
 	{ fx: 1, fy: 0 },
@@ -78,9 +80,10 @@ export function facesOf(solid: Solid, camera: Camera, floor: Size): Face[] {
 			}
 		},
 	)
+	const cap = isFacing(camera, UP) ? solid.top : solid.base
 	const top = {
 		kind: 'top' as const,
-		points: TOP.map(entry => seen(corner(solid, entry, solid.top))),
+		points: TOP.map(entry => seen(corner(solid, entry, cap))),
 	}
 	return [...sides, top]
 }
@@ -96,26 +99,4 @@ export function nearness(solid: Solid, camera: Camera, floor: Size): number {
 		y: solid.y + solid.length * MIDDLE,
 		z: solid.base,
 	}).depth
-}
-
-// The painter's order: platforms first, each under what it holds, then the links laid over them (drawn by the caller), then the blocks from the farthest to the nearest, so a nearer block covers a farther one.
-export function paintOrder(
-	solids: readonly Solid[],
-	camera: Camera,
-	floor: Size,
-): { platforms: Solid[]; blocks: Solid[] } {
-	const byNearness = (a: Solid, b: Solid): number =>
-		a.base - b.base ||
-		nearness(a, camera, floor) - nearness(b, camera, floor)
-	return {
-		platforms: solids
-			.filter(solid => solid.isPlatform)
-			.toSorted(byNearness),
-		blocks: solids
-			.filter(solid => !solid.isPlatform)
-			.toSorted(
-				(a, b) =>
-					nearness(a, camera, floor) - nearness(b, camera, floor),
-			),
-	}
 }

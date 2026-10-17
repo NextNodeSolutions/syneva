@@ -6,13 +6,14 @@ import { EdgeLabelRenderer } from '@xyflow/react'
 import { linkText } from '../layout/scene'
 
 import { arrowHead } from './arrow-head'
-import { useCanvasFocus } from './canvas-focus'
+import { isLinkWorded, useCanvasFocus } from './canvas-focus'
 import { link as styles } from './link.styles'
 
 import type { Point, Rect } from '@shared/lib/graph-layout'
 import type { Edge, EdgeProps } from '@xyflow/react'
 import type { ReactElement } from 'react'
 import type { SceneLink } from '../layout/scene'
+import type { Tone } from './canvas-focus'
 
 export type LinkData = {
 	link: SceneLink
@@ -21,15 +22,16 @@ export type LinkData = {
 }
 export type LinkFlowEdge = Edge<LinkData, 'link'>
 
+// The words ELK set beside the line, shown only when the link is news or looked at; the room stays reserved either way, so pointing at a part never moves the drawing.
 function LinkLabel({
 	data,
 	tone,
 }: {
 	data: LinkData
-	tone: string
+	tone: Tone
 }): ReactElement | null {
 	const { label, link } = data
-	if (!label) return null
+	if (!label || !isLinkWorded(link, tone)) return null
 	const text = linkText(link)
 	return (
 		<EdgeLabelRenderer>
@@ -38,7 +40,7 @@ function LinkLabel({
 				{...stylex.props(
 					styles.label,
 					styles.at(label.x, label.y, label.width, label.height),
-					tone === 'lit' && styles.labelLit,
+					(Boolean(link.change) || tone === 'lit') && styles.labelLit,
 					tone === 'dim' && styles.labelDim,
 				)}
 			>

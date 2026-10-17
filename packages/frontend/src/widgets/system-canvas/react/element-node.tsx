@@ -1,9 +1,11 @@
 import * as stylex from '@stylexjs/stylex'
 import { Handle, Position } from '@xyflow/react'
 
+import { hasFooter } from '../layout/element-size'
+
 import { useCanvasFocus } from './canvas-focus'
 import { ChangeTag } from './change-tag'
-import { DomainBadges } from './domain-badges'
+import { DomainNumbers } from './domain-numbers'
 import { KIND_WORDS, KindGlyph } from './kind-glyph'
 import { node, tileChange } from './node.styles'
 
@@ -15,16 +17,10 @@ export type ElementData = { element: ModelElement }
 export type ElementFlowNode = Node<ElementData, 'element'>
 export type ContainerFlowNode = Node<ElementData, 'container'>
 
-function Caption({ element }: { element: ModelElement }): ReactElement {
-	const words = [KIND_WORDS[element.kind], element.technology]
+export function captionOf(element: ModelElement): string {
+	return [KIND_WORDS[element.kind], element.technology]
 		.filter(Boolean)
 		.join(' · ')
-	return (
-		<span {...stylex.props(node.caption)}>
-			<span {...stylex.props(node.captionText)}>{words}</span>
-			<ChangeTag change={element.change} css={node.tag} />
-		</span>
-	)
 }
 
 // Links are drawn from ELK's route, so the handles only let React Flow accept them (system-canvas.css hides them).
@@ -42,6 +38,21 @@ function Handles(): ReactElement {
 				isConnectable={false}
 			/>
 		</>
+	)
+}
+
+// The tile's last row, for a part the change touches: what the change does, in words, then the numbers of the domains that make it.
+function Footer({ element }: { element: ModelElement }): ReactElement | null {
+	const focus = useCanvasFocus()
+	if (!hasFooter(element)) return null
+	return (
+		<span {...stylex.props(node.footer)}>
+			<ChangeTag change={element.change} css={node.tag} />
+			<DomainNumbers
+				domains={focus.domainsOf(element)}
+				css={node.numbersEnd}
+			/>
+		</span>
 	)
 }
 
@@ -67,6 +78,7 @@ export function ElementNode({
 			<span {...stylex.props(node.head)}>
 				<KindGlyph kind={element.kind} css={node.glyph} />
 				<span
+					title={element.label}
 					{...stylex.props(
 						node.label,
 						element.change === 'removed' && node.struck,
@@ -75,8 +87,8 @@ export function ElementNode({
 					{element.label}
 				</span>
 			</span>
-			<Caption element={element} />
-			<DomainBadges domains={focus.domainsOf(element)} />
+			<span {...stylex.props(node.caption)}>{captionOf(element)}</span>
+			<Footer element={element} />
 		</div>
 	)
 }
@@ -94,7 +106,6 @@ export function ContainerNode({
 			{...stylex.props(
 				node.container,
 				element.change && tileChange[element.change],
-				tone === 'lit' && node.containerLit,
 				tone === 'dim' && node.dim,
 				selected && node.containerSelected,
 			)}
@@ -109,15 +120,18 @@ export function ContainerNode({
 			>
 				<span {...stylex.props(node.head)}>
 					<KindGlyph kind={element.kind} css={node.glyph} />
-					<span {...stylex.props(node.containerName)}>
+					<span
+						title={element.label}
+						{...stylex.props(node.containerName)}
+					>
 						{element.label}
 					</span>
-					<DomainBadges
-						domains={focus.domainsOf(element)}
-						css={node.badgesInHead}
-					/>
+					<DomainNumbers domains={focus.domainsOf(element)} />
 				</span>
-				<Caption element={element} />
+				<span {...stylex.props(node.containerCaption)}>
+					{captionOf(element)}
+					<ChangeTag change={element.change} css={node.tag} />
+				</span>
 			</span>
 		</div>
 	)
