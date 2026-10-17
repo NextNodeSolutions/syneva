@@ -79,7 +79,6 @@ function selectFile(i: number): void {
 	S.overviewOpen = false
 	S.codeOpen = true
 	S.preview = null
-	S.diffScrolled = false // the new file renders at the top (see render.ts) - hide the floating action
 	S.fileIndex = i
 	S.fileView = defaultFileView(state.files[i], S.settings.markdownView)
 	followFile(state, state.files[i].path)

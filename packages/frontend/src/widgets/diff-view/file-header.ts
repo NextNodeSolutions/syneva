@@ -1,21 +1,14 @@
 import { currentFile } from '@entities/review/changes'
-import { fileFinished, fileObjections } from '@entities/review/changes'
 import { currentSplittable } from '@entities/review/file/contents'
 import { movedFrom } from '@entities/review/file/renames'
-import {
-	approveCurrentFile,
-	resetReview,
-} from '@features/decide-change/decisions'
 import { cx } from '@shared/lib/cx'
 import { deskControl, segmented } from '@shared/ui/desk-control.styles'
 import { iconHtml } from '@shared/ui/icon-html'
-import { kbdHtml } from '@shared/ui/kbd-html'
 import { tip } from '@shared/ui/tip.styles'
 import { caption, control } from '@syneva/design-system/controls.styles'
-import { kbd } from '@syneva/design-system/inline.styles'
 import { press } from '@syneva/design-system/press.styles'
 
-import { blockersChip } from './blockers'
+import { brickCard } from './brick-card'
 import { changeIcon, churnCounts } from './change-kind'
 import {
 	fileCommentButton,
@@ -25,6 +18,7 @@ import { unanchoredStrip } from './comment-thread/strip'
 import { diffCtx } from './context'
 import { diffHeader } from './file-header.styles'
 import { currentDomainRows } from './guide-domain-chips'
+import { headerActions } from './header-actions'
 
 import type { FileDiffMetadata } from '@pierre/diffs'
 
@@ -48,6 +42,13 @@ function layoutToggle(): HTMLElement {
 	return wrap
 }
 
+function splitToggle(): HTMLElement | null {
+	const file =
+		diffCtx().S.preview ?? diffCtx().S.state?.files[diffCtx().S.fileIndex]
+	if (!currentSplittable(file)) return null
+	return layoutToggle()
+}
+
 function openEditorButton(): HTMLElement {
 	const b = document.createElement('button')
 	b.className = cx(
@@ -62,50 +63,6 @@ function openEditorButton(): HTMLElement {
 	b.innerHTML = iconHtml('gly-open-editor', diffHeader.editorIcon)
 	b.addEventListener('click', () => void diffCtx().S.openInEditor?.())
 	return b
-}
-
-export function headerActions(): HTMLElement {
-	const wrap = document.createElement('span')
-	const filePath = currentFile(
-		diffCtx().S.state?.files,
-		diffCtx().S.preview,
-		diffCtx().S.fileIndex,
-	).path
-	const reset = (): HTMLElement => {
-		const b = document.createElement('button')
-		b.className = cx(
-			press.control,
-			control.base,
-			deskControl.mini,
-			diffHeader.undo,
-		)
-		b.textContent = 'Reset'
-		b.addEventListener('click', () => void resetReview(filePath))
-		return b
-	}
-	const chip = blockersChip()
-	if (fileFinished(diffCtx().S.state, filePath)) {
-		if (chip) wrap.appendChild(chip)
-		wrap.appendChild(reset())
-	} else {
-		const objections = fileObjections(diffCtx().S.state, filePath)
-		if (diffCtx().S.state?.decisionFiles?.includes(filePath))
-			wrap.appendChild(reset())
-		if (chip) wrap.appendChild(chip)
-		const button = document.createElement('button')
-		button.className = cx(
-			press.control,
-			control.base,
-			deskControl.mini,
-			objections ? deskControl.caution : deskControl.keep,
-		)
-		button.innerHTML = objections
-			? `Mark reviewed${kbdHtml('⇧A', kbd.onTint)}`
-			: `Approve${kbdHtml('⇧A', kbd.onFill)}`
-		button.addEventListener('click', () => void approveCurrentFile())
-		wrap.appendChild(button)
-	}
-	return wrap
 }
 
 function diffCounts(file: FileDiffMetadata): HTMLElement {
@@ -139,13 +96,8 @@ function headerRow(file: FileDiffMetadata): HTMLElement {
 		moved.textContent = `moved from ${from}`
 		row.appendChild(moved)
 	}
-	if (
-		currentSplittable(
-			diffCtx().S.preview ??
-				diffCtx().S.state?.files[diffCtx().S.fileIndex],
-		)
-	)
-		row.appendChild(layoutToggle())
+	const layout = splitToggle()
+	if (layout) row.appendChild(layout)
 	const fc = fileCommentButton('header')
 	if (fc) row.appendChild(fc)
 	row.appendChild(openEditorButton())
@@ -175,7 +127,14 @@ function headerBlocks(
 	return [bar, wrap]
 }
 
+// The brick view (L3) puts the brick's card in the name row's place; under it only what still speaks to the reader there - the file's comments (and their composer), the comments whose lines are gone - not the domains the whole file sits in.
 function fileHeader(file: FileDiffMetadata): HTMLElement[] {
+	const { focus } = diffCtx().D
+	if (focus)
+		return headerBlocks(brickCard(focus.brick, splitToggle()), [
+			fileCommentSection(),
+			unanchoredStrip(),
+		])
 	return headerBlocks(headerRow(file), [
 		currentDomainRows(diffHeader.guide),
 		fileCommentSection(),

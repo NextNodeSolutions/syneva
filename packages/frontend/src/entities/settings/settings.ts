@@ -20,7 +20,8 @@ export const DEFAULT_SETTINGS: Settings = {
 	unchangedLines: 'collapse',
 	hideReviewed: false,
 	progressBy: 'lines',
-	sidebarDefault: 'tree',
+	// A guided desk reads by domain first: its sidebar opens on the guide's domains, the file tree one tab (w) away. An unguided desk has only the tree.
+	sidebarDefault: 'walkthrough',
 	markdownView: 'auto',
 	stageOnAccept: false,
 	editorCommand: '',

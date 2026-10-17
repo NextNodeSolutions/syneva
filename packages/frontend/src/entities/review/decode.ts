@@ -9,10 +9,13 @@ import {
 	optEnum,
 	optNumber,
 	optString,
+	optional,
 	enumValue,
 } from '@shared/api/decode'
 import { DecodeError } from '@shared/api/decode'
 
+import { deskChangeSet } from './change/change-set'
+import { decodeChangeSymbol, decodeChangeTrivia } from './decode-change-symbol'
 import { decodeDomainComments } from './decode-domain-comments'
 import { guideDecoders } from './guide/decode-lazy'
 
@@ -76,6 +79,10 @@ export function decodeChange(raw: unknown, ctx: Ctx): ChangeState {
 		lineNumber: requiredNumber(o, 'lineNumber', ctx.endpoint),
 		endLine: optNumber(o, 'endLine', ctx.endpoint),
 		title: requiredString(o, 'title', ctx.endpoint),
+		symbol: optional(o, 'symbol', ctx.endpoint, rawSymbol =>
+			decodeChangeSymbol(rawSymbol, ctx.endpoint),
+		),
+		trivia: decodeChangeTrivia(o, ctx.endpoint),
 		stableKey: optString(o, 'stableKey', ctx.endpoint),
 		status: enumValue(
 			o.status,
@@ -141,11 +148,12 @@ function decodeGuideFields(
 	}
 }
 
+// The hub's change records come with their verdicts read off the decision records (change-set.ts): the model's status is the verdict the reviewer gave.
 export function decodeReviewState(raw: unknown, endpoint: string): ReviewState {
 	const ctx = { endpoint }
 	const o = assertObject(raw, endpoint, 'review state')
 	const { guide, guideResolution } = decodeGuideFields(o, ctx)
-	return {
+	const state: ReviewState = {
 		root: requiredString(o, 'root', endpoint),
 		session: requiredString(o, 'session', endpoint),
 		mode: enumValue(o.mode, endpoint, MODES, 'review state.mode'),
@@ -184,6 +192,7 @@ export function decodeReviewState(raw: unknown, endpoint: string): ReviewState {
 			decodeReviewFile(f, ctx),
 		),
 	}
+	return { ...state, changes: deskChangeSet(state) }
 }
 
 function decodeStringRecord(

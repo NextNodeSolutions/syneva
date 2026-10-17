@@ -6,7 +6,8 @@ export type LineMap = {
 	fromDisplay(side: Side, line: number): number
 }
 
-type Break = { after: number; delta: number } // raw lines > `after` shift by `delta`
+// Raw lines > `after` shift by `delta`; a cut band's own lines (`after + 1 .. after - delta`) are not drawn at all, so the first drawn raw line past a cut break is `after - delta + 1`, not `after + 1`.
+type Break = { after: number; delta: number; cut?: true }
 type HunkPart = NonNullable<
 	FileDiffMetadata['hunks'][number]['hunkContent']
 >[number]
@@ -33,10 +34,12 @@ function pushBreak(
 		breaks.deletions.push({
 			after: part.deletionLineIndex,
 			delta: -dels,
+			cut: true,
 		})
 		breaks.additions.push({
 			after: part.additionLineIndex,
 			delta: -adds,
+			cut: true,
 		})
 		return
 	}
@@ -85,7 +88,9 @@ export function buildLineMap(
 		for (let i = bs.length - 1; i >= 0; i--) {
 			const b = bs[i]
 			if (!b) continue
-			if (line > b.after + prefix) return line - prefix
+			// The piece past a break starts at its first drawn raw line plus the shift through the break; past a cut band that line is the one after the band, so the band's own delta is not part of the start.
+			const start = b.after + prefix - (b.cut ? b.delta : 0)
+			if (line > start) return line - prefix
 			prefix -= b.delta
 		}
 		return line

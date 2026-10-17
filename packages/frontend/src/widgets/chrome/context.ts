@@ -44,10 +44,10 @@ export interface ChromeStoreView {
 	treeDrawerOpen: boolean
 	treeFolded: boolean
 	fileView: 'rendered' | 'source'
-	diffScrolled: boolean
 	domainId: string | null
 	guidePaneOpen: boolean
 	codeOpen: boolean
+	brickFocus: boolean
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	markdownTick: number
@@ -59,6 +59,8 @@ export interface ChromeStoreView {
 	selectFile?(i: number): void
 	previewFile?(path: string): void
 	jumpToSpan?(span: CodeSpan): void
+	toggleBrickFocus?(): void
+	focusBrick?(span: CodeSpan): void
 	selectDomain?(id: string): void
 	stepDomain?(direction: 1 | -1): void
 	stepDomainChange?(direction: 1 | -1): void
@@ -84,7 +86,6 @@ export interface ChromeStoreView {
 	approveFile?(): void
 	hasReviewed?(): boolean
 	toggleHideReviewed?(): void
-	fabState?(): 'clean' | 'changes' | null
 	applySettings?(): void
 	openSettings?(): void
 	closeSettings?(): void
@@ -95,7 +96,11 @@ export interface ChromeStoreView {
 	openCode?(): void
 	closeCode?(): void
 	filePosition?(): { index: number | null; total: number } | null
-	changePosition?(): { index: number | null; total: number } | null
+	changePosition?(): {
+		index: number | null
+		total: number
+		brick: string | null
+	} | null
 	showGuideBar?(): boolean
 	curFileName?(): string
 	guideNext?(): void

@@ -189,6 +189,14 @@ export const HOTKEYS_DIFF: Hotkey[] = [
 		run: () => S.setStyle?.(S.diffStyle === 'split' ? 'unified' : 'split'),
 	},
 	{
+		combo: 'f',
+		desc: 'Brick view / whole file',
+		group: 'View',
+		test: key('f'),
+		when: inDiff,
+		run: () => S.toggleBrickFocus?.(),
+	},
+	{
 		combo: 'm',
 		desc: 'Rendered / source (markdown)',
 		group: 'View',

@@ -63,6 +63,7 @@ function detachDiffInstance(): void {
 	releaseDiffInstance()
 	D.fileDiff = null
 	D.lineMap = null
+	D.focus = null
 }
 
 // While the reading surface covers the center (React draws it beside the diff's scroller: the project level, or a domain read full width before its code opens), the code leaves the scroller: the next file then lands in an empty one, and nothing of the file left behind survives a reading.

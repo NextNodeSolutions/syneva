@@ -90,7 +90,8 @@ export function revealLine(side: Side, rawLine: number): void {
 	if (featureCtx().diffInstance()?.options.expandUnchanged) return
 	const fd = featureCtx().fileDiff()
 	const inst = featureCtx().diffInstance()
-	if (!fd || !inst) return
+	// The brick view draws a cut of the file (a partial diff): it holds no collapsed run to open, and its arrays hold the brick's rows only.
+	if (!fd || !inst || fd.isPartial) return
 	const loc = locateDisplayLine(
 		fd,
 		side,

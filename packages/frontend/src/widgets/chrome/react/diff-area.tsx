@@ -1,30 +1,11 @@
-import { useStoreFields } from '@shared/lib/use-store-version'
-import { deskControl } from '@shared/ui/desk-control.styles'
-import { Kbd } from '@shared/ui/kbd'
 import * as stylex from '@stylexjs/stylex'
-import { control } from '@syneva/design-system/controls.styles'
-import { kbd } from '@syneva/design-system/inline.styles'
-import { press } from '@syneva/design-system/press.styles'
-
-import { chromeCtx } from '../context'
 
 import { diffArea } from './diff-area.styles'
 
 import type { ReactElement } from 'react'
 
-// The code's area: the diff scroller the render funnel paints into, its overview ruler and the floating sign-off. Hidden, it keeps its DOM (the scroller is reached by id) and only leaves the layout.
+// The code's area: the diff scroller the render funnel paints into and its overview ruler. The file's sign-off lives on the name bar pinned at the scroller's top (file-header.ts), so nothing floats over the code. Hidden, it keeps its DOM (the scroller is reached by id) and only leaves the layout.
 export function DiffArea({ hidden }: { hidden: boolean }): ReactElement {
-	const { S } = chromeCtx()
-	useStoreFields(
-		'state',
-		'fileIndex',
-		'preview',
-		'overviewOpen',
-		'settings',
-		'diffScrolled',
-	)
-	const fab = S.diffScrolled ? (S.fabState?.() ?? null) : null
-	const objections = fab === 'changes'
 	return (
 		<div
 			{...stylex.props(diffArea.area, hidden && diffArea.hidden)}
@@ -32,21 +13,6 @@ export function DiffArea({ hidden }: { hidden: boolean }): ReactElement {
 		>
 			<div id="diff" {...stylex.props(diffArea.scroller)} />
 			<div id="ovr" hidden {...stylex.props(diffArea.ruler)} />
-			{fab && (
-				<button
-					{...stylex.props(
-						press.control,
-						control.base,
-						deskControl.mini,
-						objections ? deskControl.caution : deskControl.keep,
-						diffArea.fab,
-					)}
-					onClick={() => S.approveFile?.()}
-				>
-					{objections ? 'Mark reviewed' : 'Approve'}
-					<Kbd keys="⇧A" css={objections ? kbd.onTint : kbd.onFill} />
-				</button>
-			)}
 		</div>
 	)
 }

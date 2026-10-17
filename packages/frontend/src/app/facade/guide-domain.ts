@@ -1,7 +1,5 @@
-import { currentFileOrNull, fromDisplayLine } from '@entities/review/changes'
 import { orderedDomains } from '@entities/review/guide/domains'
 import {
-	changeAt,
 	changeSpan,
 	domainEntry,
 	fileOrderOf,
@@ -14,14 +12,13 @@ import { pushReturnPoint } from '@entities/review/guide/return-point'
 import { $ } from '@shared/lib/dom'
 import { render } from '@shared/lib/render-scheduler'
 import { cursorSelection, cursorSyncTo } from '@widgets/diff-view/cursor'
-import { D } from '@widgets/diff-view/runtime'
 
 import { S, toast } from '../store'
 
+import { changePosition, cursorPlace } from './guide-position'
 import { foldTreeForCode, isReading, moveLayout } from './layout-motion'
 import { openPreview } from './navigate'
 
-import type { CodePlace } from '@entities/review/guide/navigation'
 import type { GuideReturnPoint } from '@entities/review/guide/return-point'
 
 // The guided review's moves: select a domain (its explanation beside its first change), step domains and a domain's changes, follow a reference to its exact code and come back. Every move lands through jumpToSpan, so the real diff and the virtual navigator do the landing.
@@ -121,33 +118,6 @@ function domainSteppedFrom(): string | null {
 function stepDomain(direction: 1 | -1): void {
 	const next = neighbourDomainId(S.state, domainSteppedFrom(), direction)
 	if (next) selectDomain(next)
-}
-
-// Where the cursor sits in the diff file on screen, as a raw line: the cursor holds displayed lines, the changes raw ones, and a decided block above shifts the two apart. Null on a preview or without a cursor.
-function cursorPlace(): CodePlace | undefined {
-	const { state } = S
-	const shown = currentFileOrNull(state?.files, S.preview, S.fileIndex)
-	const cursor = cursorSelection()
-	if (!shown || !cursor || S.preview || !S.codeOpen) return undefined
-	return {
-		path: shown.path,
-		side: cursor.side,
-		lineNumber: fromDisplayLine(cursor.side, cursor.lineNumber, D.lineMap),
-	}
-}
-
-// The domain's change the cursor sits in, in reading order; null between its blocks or with the code closed.
-function changePosition(): { index: number | null; total: number } | null {
-	const { state } = S
-	const domain = S.domainId ? domainById(state, S.domainId) : undefined
-	if (!state || !domain) return null
-	const ordered = orderedDomainChanges(domain, state)
-	const place = cursorPlace()
-	const current = place ? changeAt(ordered, place) : undefined
-	return {
-		index: current ? ordered.indexOf(current) + 1 : null,
-		total: ordered.length,
-	}
 }
 
 function stepDomainChange(direction: 1 | -1): void {

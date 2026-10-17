@@ -41,7 +41,16 @@ export type SourceOutline = {
 // What a changed block is when it touches no code: only comments (with blank lines), or only import statements.
 export type ChangeTrivia = 'comment' | 'import'
 
-export type ChangeSymbol = { readonly name: string; readonly kind: SymbolKind }
+// 1-based, inclusive lines of one side of the diff.
+export type LineRange = { readonly startLine: number; readonly endLine: number }
+
+// The declaration a block sits in, with its lines on each side of the diff where that side holds it (mirror of the contract's): the brick the desk reads whole, before and after.
+export type ChangeSymbol = {
+	readonly name: string
+	readonly kind: SymbolKind
+	readonly before?: LineRange | undefined
+	readonly after?: LineRange | undefined
+}
 
 export type OutlineLanguage = 'script' | 'markdown'
 

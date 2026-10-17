@@ -1,4 +1,3 @@
-import { deriveChanges } from './change/change-derive'
 import { deriveFlowIndex } from './change/flow-index'
 import { pickCurrentFile } from './current-file'
 import { cur } from './file/contents'
@@ -6,6 +5,7 @@ import { cur } from './file/contents'
 import type { FileDiffMetadata } from '@pierre/diffs'
 import type { LineMap } from '@shared/diff-renderer/linemap'
 import type { Side } from '@shared/diff-renderer/types'
+import type { ChangeParts, PartPosition } from './change/change-parts'
 import type { FlowIndex } from './change/flow-index'
 import type {
 	ChangeState,
@@ -145,44 +145,70 @@ export function fileReviewState(
 	return fileObjections(state, path) ? 'changes-requested' : 'approved'
 }
 
-export function ensureChangesFromFileDiff(
-	diff: FileDiffMetadata | null | undefined,
-	state: ReviewState,
-	file: ReviewFile,
-): void {
-	if (!diff) return
-	const { path } = file
-	const previous = new Map(
-		state.changes.filter(c => c.path === path).map(c => [c.id, c]),
-	)
-	const derived = deriveChanges(diff, path, state.decisions, previous)
-	// The caller's live reactive store is this function's mutation target by
-	// contract - the assignment IS the API, not a side effect on a borrowed parameter.
-	// oxlint-disable-next-line eslint/no-param-reassign
-	state.changes = state.changes.filter(c => c.path !== path).concat(derived)
+type HunkEntry = FileDiffMetadata['hunks'][number]['hunkContent'][number]
+type Rows = { start: number; count: number }
+type DisplaySpan = { lineNumber: number; endLine: number }
+
+function isEntry(entry: HunkEntry | undefined): entry is HunkEntry {
+	return !!entry
 }
 
-// Refresh pending changes' display anchors from the replayed diff: the annotation for a block must sit at the line number @pierre will actually render, not the raw file line.
+// The rows an entry fills on one side of the rendered diff (start 0-based): a pending part's lines, or the context a resolved part turned into.
+function entryRows(entry: HunkEntry, side: Side): Rows {
+	const start =
+		side === 'additions' ? entry.additionLineIndex : entry.deletionLineIndex
+	if (entry.type === 'context') return { start, count: entry.lines }
+	return {
+		start,
+		count: side === 'additions' ? entry.additions : entry.deletions,
+	}
+}
+
+// Where Pierre drew the change on its side, first drawn row to last; a change whose parts hold no row on its side sits at its first part's line, and one that owns no part at its own lines, renumbered by the decided blocks above.
+function displaySpan(
+	resolved: FileDiffMetadata,
+	change: ChangeState,
+	positions: readonly PartPosition[],
+	lineMap: LineMap | null,
+): DisplaySpan {
+	const rows = positions
+		.map(at => resolved.hunks[at.hunkIndex]?.hunkContent[at.changeIndex])
+		.filter(isEntry)
+		.map(entry => entryRows(entry, change.side))
+	const drawn = rows.filter(row => row.count > 0)
+	if (drawn.length)
+		return {
+			lineNumber: Math.min(...drawn.map(row => row.start + 1)),
+			endLine: Math.max(...drawn.map(row => row.start + row.count)),
+		}
+	const [first] = rows
+	if (first) return { lineNumber: first.start + 1, endLine: first.start + 1 }
+	return {
+		lineNumber: toDisplayLine(change.side, change.lineNumber, lineMap),
+		endLine: toDisplayLine(
+			change.side,
+			change.endLine ?? change.lineNumber,
+			lineMap,
+		),
+	}
+}
+
+// Stamp each change's span in the rendered diff (resolved = the replayed parse, which keeps the parts' indices): its row must sit, and the cursor find it, at the lines Pierre actually renders, not the raw file lines.
 export function syncDisplayAnchors(
 	resolved: FileDiffMetadata,
-	changes: ChangeState[],
+	changes: readonly ChangeState[],
+	parts: ChangeParts,
+	lineMap: LineMap | null,
 ): void {
-	for (const c of changes) {
-		if (c.status !== 'pending') continue
-		if (typeof c.changeIndex !== 'number') continue
-		const hunk = resolved.hunks[c.hunkIndex]
-		const part = hunk?.hunkContent[c.changeIndex]
-		if (!part) continue
-		if (part.type !== 'change') continue
-		const lineNumber =
-			(c.side === 'additions'
-				? part.additionLineIndex
-				: part.deletionLineIndex) + 1
-		c.displayLineNumber = lineNumber
-		c.displayEndLine =
-			c.side === 'additions'
-				? part.additionLineIndex + (part.additions || 1)
-				: part.deletionLineIndex + (part.deletions || 1)
+	for (const change of changes) {
+		const span = displaySpan(
+			resolved,
+			change,
+			parts.get(change.id) ?? [],
+			lineMap,
+		)
+		change.displayLineNumber = span.lineNumber
+		change.displayEndLine = span.endLine
 	}
 }
 

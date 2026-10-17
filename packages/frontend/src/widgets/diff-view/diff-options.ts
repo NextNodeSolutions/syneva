@@ -46,7 +46,8 @@ function handlePostRender(
 	stampPaint(container)
 	requestAnimationFrame(restorePendingComposerFocus)
 	const { isPreviewing, isExpandedUnchanged } = currentDiffView()
-	if (!isPreviewing && isExpandedUnchanged) scheduleOverviewRuler()
+	if (!isPreviewing && isExpandedUnchanged && !D.focus)
+		scheduleOverviewRuler()
 }
 
 export function diffOptions(
@@ -70,9 +71,12 @@ export function diffOptions(
 		diffIndicators: isPreviewing
 			? 'none'
 			: diffCtx().S.settings.diffIndicators,
-		expandUnchanged: isExpandedUnchanged,
+		// The brick view's cut has nothing unchanged to open: its breaks are drawn as plain rules between the brick's pieces.
+		expandUnchanged: isExpandedUnchanged && !D.focus,
 		overflow: diffCtx().S.settings.overflow,
-		hunkSeparators: diffCtx().S.settings.hunkSeparators,
+		hunkSeparators: D.focus
+			? 'simple'
+			: diffCtx().S.settings.hunkSeparators,
 		lineDiffType: diffCtx().S.settings.lineDiffType,
 		enableLineSelection: true,
 		renderAnnotation,

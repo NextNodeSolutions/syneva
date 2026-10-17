@@ -32,7 +32,7 @@ export function changeStableKeyFromBlock(lines: readonly DiffLine[]): string {
 	const adds = lines.filter(line => line.kind === 'add')
 	const dels = lines.filter(line => line.kind === 'delete')
 	const side = adds.length > 0 ? 'additions' : 'deletions'
-	// Matches the client's derivation, so server-seeded and client-derived change ids line up.
+	// The desk keeps these ids as its one change set and maps them onto the diff it draws (frontend change-parts.ts) - it never cuts its own.
 	const start = side === 'additions' ? adds[0]?.newLine : dels[0]?.oldLine
 	const lineNumber = start ?? 0
 	return `${side}:${lineNumber}:${dels.length}:${adds.length}`

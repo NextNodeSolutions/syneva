@@ -26,8 +26,9 @@ const DomainNavigator = lazy(async () => {
 	return { default: module.DomainNavigator }
 })
 
+// The row lit is the file on screen: the reading levels (the overview, a domain's page) show no file, so no row lights there although a file index is always kept.
 function activePath(S: ReturnType<typeof chromeCtx>['S']): string | null {
-	if (S.overviewOpen) return null
+	if (S.overviewOpen || !S.codeOpen) return null
 	return S.preview?.path ?? S.state?.files.at(S.fileIndex)?.path ?? null
 }
 
@@ -220,6 +221,7 @@ export function Sidebar({ hidden }: { hidden: boolean }): ReactElement {
 		'fileIndex',
 		'preview',
 		'overviewOpen',
+		'codeOpen',
 		'domainId',
 		'sidebarTab',
 		'treeDrawerOpen',

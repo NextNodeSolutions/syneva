@@ -55,7 +55,15 @@ export const navigator = stylex.create({
 			':hover': color['--wash'],
 		},
 	},
-	top: { display: 'flex', alignItems: 'center', gap: '8px' },
+	top: { display: 'flex', alignItems: 'baseline', gap: '8px' },
+	// The title is what the reviewer scans the list by: whole, on its own line, the tags under it.
+	tags: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		gap: '4px',
+		marginTop: '4px',
+	},
 	index: {
 		fontFamily: font['--mono'],
 		fontSize: deskText.label,
@@ -64,11 +72,9 @@ export const navigator = stylex.create({
 	title: {
 		flex: '1 1 auto',
 		minWidth: 0,
-		overflow: 'hidden',
-		textOverflow: 'ellipsis',
-		whiteSpace: 'nowrap',
 		fontSize: '12.5px',
 		fontWeight: 500,
+		lineHeight: 1.3,
 	},
 	consequence: {
 		marginTop: '3px',

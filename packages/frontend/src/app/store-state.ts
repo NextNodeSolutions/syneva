@@ -52,7 +52,6 @@ export interface Store {
 	// The tree folded away at desk width (the drawer is the narrow screens' tree): folded by the code opening from the reading, or by hand.
 	treeFolded: boolean
 	fileView: 'rendered' | 'source'
-	diffScrolled: boolean
 	foldExpanded: Set<string>
 	// Per-session and never persisted - the oversized stamp is server-owned and re-derived on reload.
 	loadedOversized: Set<string>
@@ -68,6 +67,8 @@ export interface Store {
 	guidePaneOpen: boolean
 	// Whether the code is open in the center: a domain opened from the project level reads full width until a span, a reference or Enter opens its code beside it; Esc closes the code back onto the reading.
 	codeOpen: boolean
+	// The brick view (L3): the code shows only the brick the cursor is in, before and after. A mode of the code, so it holds across files; a view with no brick to cut (a preview, a rendered or oversized file, a pure rename) draws whole while it is on.
+	brickFocus: boolean
 	guideExpanded: Set<string>
 	guideReturn: GuideReturnPoint[]
 	// Bumped when the Markdown engine (lazy) lands or repaints, so React prose re-renders with it.
@@ -83,6 +84,9 @@ export interface Store {
 	previewFile?: (path: string) => void
 	// Land on original-side code: a guide reference's target or an owned block, in the diff or as a preview.
 	jumpToSpan?: (span: CodeSpan) => void
+	toggleBrickFocus?: () => void
+	// Land on a brick's block and read that brick alone: the explanation's way down from a domain to its bricks.
+	focusBrick?: (span: CodeSpan) => void
 	selectDomain?: (id: string) => void
 	stepDomain?: (direction: 1 | -1) => void
 	stepDomainChange?: (direction: 1 | -1) => void
@@ -109,7 +113,6 @@ export interface Store {
 	// The pref persists; hasReviewed gates the header toggle (nothing to distill on first sight).
 	hasReviewed?: () => boolean
 	toggleHideReviewed?: () => void
-	fabState?: () => 'clean' | 'changes' | null
 	splitApplies?: () => boolean
 	applySettings?: () => void
 	openInEditor?: () => Promise<void>
@@ -123,7 +126,12 @@ export interface Store {
 	closeCode?: () => void
 	// Where the reviewer is at each level, for the position strip: the file in the active order, the domain's change under the cursor (null between its blocks).
 	filePosition?: () => { index: number | null; total: number } | null
-	changePosition?: () => { index: number | null; total: number } | null
+	changePosition?: () => {
+		index: number | null
+		total: number
+		// The brick the change under the cursor sits in, by name.
+		brick: string | null
+	} | null
 	showGuideBar?: () => boolean
 	curFileName?: () => string
 	guideNext?: () => void

@@ -23,9 +23,9 @@ import {
 	hubKey,
 	hubSend,
 	resolveHubUrl,
-	startDetachedHub,
 	waitForHub,
 } from './hub-client.js'
+import { startDetachedHub } from './hub-spawn.js'
 
 import type { HubHandle, HubOptions } from '../http/options.js'
 import type { UiServer } from '../http/routes/static.js'

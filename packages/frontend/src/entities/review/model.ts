@@ -51,6 +51,29 @@ export type DomainComment = {
 	unanchored?: boolean | undefined
 }
 
+export type SymbolKind =
+	| 'function'
+	| 'class'
+	| 'method'
+	| 'interface'
+	| 'type'
+	| 'enum'
+	| 'variable'
+	| 'call'
+	| 'section'
+
+export type LineRange = { startLine: number; endLine: number }
+
+// The brick a changed block sits in: the declaration's name and kind, and its lines on each side of the diff where that side holds it (none before for a declaration the change adds, none after for one it removes).
+export type ChangeSymbol = {
+	name: string
+	kind: SymbolKind
+	before?: LineRange | undefined
+	after?: LineRange | undefined
+}
+
+export type ChangeTrivia = 'comment' | 'import'
+
 export type ChangeState = {
 	id: string
 	path: string
@@ -60,6 +83,8 @@ export type ChangeState = {
 	lineNumber: number
 	endLine?: number | undefined
 	title: string
+	symbol?: ChangeSymbol | undefined
+	trivia?: ChangeTrivia | undefined
 	stableKey?: string | undefined
 	status: 'pending' | 'accepted' | 'rejected'
 	stageable?: boolean | undefined

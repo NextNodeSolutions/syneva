@@ -1,8 +1,4 @@
-import {
-	currentChanges,
-	fromDisplayLine,
-	currentFileOrNull,
-} from '@entities/review/changes'
+import { fromDisplayLine } from '@entities/review/changes'
 import { acceptChange } from '@features/decide-change/decisions'
 import { openCommentComposer } from '@features/manage-comment/selection'
 import { mergeRows } from '@shared/diff-renderer/cursor-rows'
@@ -11,7 +7,9 @@ import { $ } from '@shared/lib/dom'
 import { notifyStateMutation } from '@shared/lib/reactive'
 import { render } from '@shared/lib/render-scheduler'
 
+import { markBrickAt } from './brick-mark'
 import { diffCtx } from './context'
+import { changeAtRow } from './cursor-change'
 import { D } from './runtime'
 
 import type { ChangeState, ReviewComment } from '@entities/review/model'
@@ -80,11 +78,13 @@ function paint(r: Row): void {
 		{ start: r.line, end: r.line, side: r.side },
 		{ notify: false },
 	)
+	markBrickAt({ side: r.side, line: r.line })
 	diffCtx().S.cursorTick++
 }
 
 function hide(): void {
 	D.instance?.setSelectedLines(null, { notify: false })
+	markBrickAt(null)
 	diffCtx().S.cursorTick++
 }
 
@@ -192,6 +192,12 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 			return
 		}
 	}
+	// The brick view draws one brick: past its last block the step goes on to the file's next block, and the cut follows it there.
+	const edge = dir === 1 ? D.focus?.next : D.focus?.prev
+	if (edge) {
+		diffCtx().S.jumpToSpan?.(edge)
+		return
+	}
 	const far = D.virtual?.farChangeStart(cur, dir)
 	if (far) {
 		cursorJumpTo(far.side, far.line)
@@ -200,24 +206,10 @@ export function cursorMoveHunk(dir: 1 | -1): void {
 	diffCtx().toast(dir === 1 ? 'No more changes' : 'No previous changes')
 }
 
-function cursorChange(): ChangeState | null {
-	const cursor = cur
-	if (!cursor) return null
-	return (
-		currentChanges(
-			diffCtx().S.state,
-			currentFileOrNull(
-				diffCtx().S.state?.files,
-				diffCtx().S.preview,
-				diffCtx().S.fileIndex,
-			),
-		).find(
-			c =>
-				c.side === cursor.side &&
-				cursor.line >= (c.displayLineNumber ?? c.lineNumber) &&
-				cursor.line <= (c.displayEndLine ?? c.endLine ?? c.lineNumber),
-		) ?? null
-	)
+// The change the cursor sits in, on either side of its block; null between blocks or without a cursor.
+export function changeUnderCursor(): ChangeState | null {
+	if (!cur) return null
+	return changeAtRow(cur)
 }
 
 export function cursorComment(): void {
@@ -229,7 +221,7 @@ export function cursorComment(): void {
 
 export function cursorVerdict(status: 'accepted' | 'rejected'): void {
 	if (!cur) ensureCursor()
-	const change = cursorChange()
+	const change = changeUnderCursor()
 	if (!change) {
 		diffCtx().toast('No change under the cursor')
 		return
