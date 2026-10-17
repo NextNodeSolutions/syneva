@@ -11,6 +11,7 @@ export const projection = stylex.create({
 		backgroundColor: color['--paper'],
 		userSelect: 'none',
 	},
+	orbit: { cursor: 'grab', touchAction: 'none' },
 	drawing: {
 		position: 'absolute',
 		inset: 0,
@@ -90,5 +91,25 @@ export const projection = stylex.create({
 		lineHeight: '16px',
 		color: color['--muted'],
 		whiteSpace: 'nowrap',
+	},
+	controls: {
+		position: 'absolute',
+		right: '8px',
+		bottom: '8px',
+		display: 'flex',
+		alignItems: 'center',
+		gap: '4px',
+		paddingBlock: '4px',
+		paddingInline: '6px',
+		backgroundColor: color['--white'],
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: color['--line'],
+		cursor: 'default',
+	},
+	hint: {
+		marginRight: '4px',
+		fontSize: deskText.small,
+		color: color['--muted'],
 	},
 })

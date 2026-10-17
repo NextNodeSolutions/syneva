@@ -20,7 +20,7 @@ export type CanvasScene = {
 	onProjection: (projection: Projection) => void
 }
 
-// The view the reviewer chose (the system, or one of the paths), how it is drawn (flat or isometric) and the part they selected in it; choosing another view clears the selection, another projection keeps it.
+// The view the reviewer chose (the system, or one of the paths), how it is drawn (flat, isometric, in 3D) and the part they selected in it; choosing another view clears the selection, another projection keeps it.
 export function useCanvasScene(model: GuideModel): CanvasScene {
 	const [viewId, setViewId] = useState<string | null>(null)
 	const [selected, setSelected] = useState<string | null>(null)

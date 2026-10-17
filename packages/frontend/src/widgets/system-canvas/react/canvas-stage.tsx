@@ -46,6 +46,7 @@ export function CanvasStage({
 					<ProjectedField
 						key={`${current.projection}:${current.sceneKey}`}
 						scene={current.scene}
+						mode={current.projection}
 						selected={current.selected}
 						onSelect={current.onSelect}
 					/>

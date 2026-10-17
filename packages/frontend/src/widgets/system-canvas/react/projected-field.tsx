@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import * as stylex from '@stylexjs/stylex'
 
 import { canvas } from './canvas.styles'
+import { OrbitControls } from './orbit-controls'
 import { ProjectedNames } from './projected-names'
 import { projection } from './projection.styles'
 import { RouteShape } from './route-shape'
@@ -11,7 +12,7 @@ import { useProjectedScene } from './use-projected-scene'
 
 import type { MouseEvent, ReactElement } from 'react'
 import type { Scene } from '../layout/scene'
-import type { Selection } from '../model'
+import type { Projection, Selection } from '../model'
 import type { Solid } from '../projection/solids'
 import type { ProjectedScene } from './use-projected-scene'
 
@@ -66,21 +67,34 @@ function Drawing({
 	)
 }
 
-// The scene raised: the same ELK layout as the plan, its containers as platforms and its parts as blocks, seen by an isometric camera that fits the field.
+// The scene raised: the same ELK layout as the plan, its containers as platforms and its parts as blocks, seen by an isometric camera that fits the field, or in perspective for the reviewer to turn.
 export function ProjectedField({
 	scene,
+	mode,
 	selected,
 	onSelect,
-}: Selection & { scene: Scene }): ReactElement {
+}: Selection & {
+	scene: Scene
+	mode: Exclude<Projection, 'plan'>
+}): ReactElement {
 	const fieldRef = useRef<HTMLDivElement | null>(null)
-	const raised = useProjectedScene(scene, fieldRef)
+	const isOrbit = mode === 'orbit'
+	const raised = useProjectedScene(scene, mode, fieldRef)
+	const { hold } = raised
 	return (
 		<div
 			ref={fieldRef}
+			{...(isOrbit && {
+				onPointerDown: hold.onPointerDown,
+				onPointerMove: hold.onPointerMove,
+				onPointerUp: hold.onPointerUp,
+				onPointerCancel: hold.onPointerUp,
+			})}
 			{...stylex.props(
 				canvas.field,
 				canvas.fieldHeight(raised.height),
 				projection.field,
+				isOrbit && projection.orbit,
 			)}
 		>
 			<Drawing
@@ -94,6 +108,7 @@ export function ProjectedField({
 				scene={scene}
 				selection={{ selected, onSelect }}
 			/>
+			{isOrbit && <OrbitControls hold={hold} />}
 		</div>
 	)
 }

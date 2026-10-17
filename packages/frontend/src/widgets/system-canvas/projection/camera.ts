@@ -27,7 +27,7 @@ const MIDDLE = 0.5
 const FIT_MARGIN = 32
 const MAX_SCALE = 1.25
 
-// The tilt of the classic 2:1 isometric drawing.
+// The tilt of the classic 2:1 isometric drawing; an orbit starts there too.
 export const ISO_TILT = 60
 const TURN_DOWN = -135
 const TURN_RIGHT = -45
@@ -104,5 +104,37 @@ export function fitCamera(
 		scale,
 		centerX: field.width * MIDDLE - scale * (left + right) * MIDDLE,
 		centerY: field.height * MIDDLE - scale * (high + low) * MIDDLE,
+	}
+}
+
+export type Orbit = { turn: number; tilt: number; zoom: number }
+
+// The eye's distance in field widths, and the room an orbit keeps so the drawing stays inside the field as it turns.
+const EYE_DISTANCE = 2.5
+const ORBIT_ROOM = 0.8
+
+// A camera turned and tilted by the reviewer, in perspective: the fitted scale with room to turn, times their zoom, the middle of the scene kept at the middle of the field.
+export function orbitCamera(
+	fitted: Camera,
+	orbit: Orbit,
+	stage: Stage,
+): Camera {
+	const probe = {
+		turn: orbit.turn,
+		tilt: orbit.tilt,
+		perspective: stage.field.width * EYE_DISTANCE,
+		scale: fitted.scale * ORBIT_ROOM * orbit.zoom,
+		centerX: 0,
+		centerY: 0,
+	}
+	const middle = project(probe, stage.floor, {
+		x: stage.floor.width * MIDDLE,
+		y: stage.floor.height * MIDDLE,
+		z: stage.top * MIDDLE,
+	})
+	return {
+		...probe,
+		centerX: stage.field.width * MIDDLE - middle.x,
+		centerY: stage.field.height * MIDDLE - middle.y,
 	}
 }
