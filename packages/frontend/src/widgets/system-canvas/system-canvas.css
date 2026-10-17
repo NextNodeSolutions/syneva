@@ -1,0 +1,112 @@
+/* React Flow draws the system canvas's viewport, pane and layers; these are the structural rules it needs to work, cut from its base.css down to layout and stripped of every colour, zero-specificity under the desk root so the canvas's own StyleX nodes, links and controls hold the whole look. It ships in the one styles.css and only ever matches inside the canvas. */
+
+:where([data-desk]) :where(.react-flow__container) {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+:where([data-desk]) :where(.react-flow__pane) {
+	z-index: 1;
+	touch-action: none;
+}
+
+:where([data-desk]) :where(.react-flow__pane.draggable) {
+	cursor: grab;
+}
+
+:where([data-desk]) :where(.react-flow__pane.dragging) {
+	cursor: grabbing;
+}
+
+:where([data-desk]) :where(.react-flow__viewport) {
+	z-index: 2;
+	transform-origin: 0 0;
+	pointer-events: none;
+}
+
+:where([data-desk]) :where(.react-flow__renderer) {
+	z-index: 4;
+}
+
+:where([data-desk]) :where(.react-flow__edges) {
+	position: absolute;
+}
+
+:where([data-desk]) :where(.react-flow__edges svg) {
+	position: absolute;
+	overflow: visible;
+	pointer-events: none;
+}
+
+:where([data-desk]) :where(.react-flow__edge) {
+	pointer-events: visibleStroke;
+}
+
+:where([data-desk]) :where(.react-flow__nodes) {
+	transform-origin: 0 0;
+	pointer-events: none;
+}
+
+:where([data-desk]) :where(.react-flow__node) {
+	position: absolute;
+	box-sizing: border-box;
+	transform-origin: 0 0;
+	pointer-events: all;
+	user-select: none;
+	cursor: pointer;
+}
+
+/* Links are drawn from ELK's route, not from the handles: they exist only so React Flow accepts the link, never seen or grabbed. */
+:where([data-desk]) :where(.react-flow__handle) {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* A link's words sit above every node, where ELK set them clear of the tiles: a container's head band would otherwise hide the words of a link that ends just under it. */
+:where([data-desk]) :where(.react-flow__edgelabel-renderer) {
+	position: absolute;
+	z-index: 10;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	user-select: none;
+}
+
+:where([data-desk]) :where(.react-flow__background) {
+	z-index: -1;
+	pointer-events: none;
+}
+
+:where([data-desk]) :where(.react-flow__panel) {
+	position: absolute;
+	z-index: 5;
+	margin: 6px;
+}
+
+:where([data-desk]) :where(.react-flow__panel.bottom) {
+	bottom: 0;
+}
+
+:where([data-desk]) :where(.react-flow__panel.right) {
+	right: 0;
+}
+
+:where([data-desk]) :where(.react-flow__attribution) {
+	font-size: 10px;
+	line-height: 1.4;
+}
+
+:where([data-desk]) :where(.react-flow__attribution a) {
+	color: var(--muted);
+	text-decoration: none;
+}

@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 type Props = { fallback: ReactNode; children: ReactNode }
 type State = { hasFailed: boolean }
 
-// React still hands error boundaries to class components only (getDerivedStateFromError has no hook form): this is the one class in the desk, the smallest one possible, so a block that fails to render keeps its text and leaves the rest of the pane, the diff and the verdict controls intact.
+// React still hands error boundaries to class components only (getDerivedStateFromError has no hook form): this is the one class in the desk, the smallest one possible, so a guide block or the system canvas that fails to render keeps its text and leaves the rest of the page, the diff and the verdict controls intact.
 export class BlockBoundary extends Component<Props, State> {
 	override state: State = { hasFailed: false }
 
