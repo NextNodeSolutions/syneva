@@ -36,10 +36,15 @@ export const canvas = stylex.create({
 		backgroundColor: color['--wash'],
 		borderColor: color['--accent'],
 	},
+	end: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '8px',
+		marginLeft: 'auto',
+	},
 	zoom: {
 		display: 'flex',
 		gap: '4px',
-		marginLeft: 'auto',
 	},
 	field: {
 		position: 'relative',

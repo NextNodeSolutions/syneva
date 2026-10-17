@@ -21,3 +21,12 @@ export type SystemCanvasProps = {
 	focusDomain: string | null
 	onOpenDomain: (id: string) => void
 }
+
+// How the scene is drawn: the plan React Flow lays flat, or the isometric drawing of the same graph raised into platforms and blocks.
+export type Projection = 'plan' | 'iso'
+
+// The part the reviewer selected, shared by every projection of the scene.
+export type Selection = {
+	selected: string | null
+	onSelect: (id: string | null) => void
+}

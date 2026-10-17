@@ -15,7 +15,7 @@ import { useCanvasScene } from './use-canvas-scene'
 import type { ReactElement } from 'react'
 import type { SystemCanvasProps } from '../model'
 
-// The visual level: the system the changeset lives in, drawn before any code. The agent's model laid out by ELK, drawn by React Flow with the desk's own tiles and rules; the parts a change touches carry its mark and the numbers of the domains that make it, and every domain leads on to its review.
+// The visual level: the system the changeset lives in, drawn before any code. The agent's model laid out by ELK, drawn flat by React Flow with the desk's own tiles and rules, or raised from the same layout into an isometric drawing; the parts a change touches carry its mark and the numbers of the domains that make it, and every domain leads on to its review.
 export function SystemCanvas({
 	model,
 	domains,
@@ -42,11 +42,7 @@ export function SystemCanvas({
 			{...stylex.props(canvas.root)}
 		>
 			<ReactFlowProvider>
-				<CanvasToolbar
-					views={model.views ?? []}
-					viewId={current.view?.id ?? null}
-					onView={current.onView}
-				/>
+				<CanvasToolbar views={model.views ?? []} current={current} />
 				<CanvasFocusContext value={focus}>
 					<CanvasStage
 						current={current}

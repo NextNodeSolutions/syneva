@@ -6,6 +6,7 @@ import { systemScene, viewScene } from '../layout/scene'
 
 import type { GuideModel, ModelView } from '@entities/review/guide/system-model'
 import type { Scene } from '../layout/scene'
+import type { Projection } from '../model'
 
 export type CanvasScene = {
 	view: ModelView | undefined
@@ -15,12 +16,15 @@ export type CanvasScene = {
 	selected: string | null
 	onSelect: (id: string | null) => void
 	onView: (id: string | null) => void
+	projection: Projection
+	onProjection: (projection: Projection) => void
 }
 
-// The view the reviewer chose (the system, or one of the paths) and the part they selected in it; choosing another view clears the selection.
+// The view the reviewer chose (the system, or one of the paths), how it is drawn (flat or isometric) and the part they selected in it; choosing another view clears the selection, another projection keeps it.
 export function useCanvasScene(model: GuideModel): CanvasScene {
 	const [viewId, setViewId] = useState<string | null>(null)
 	const [selected, setSelected] = useState<string | null>(null)
+	const [projection, setProjection] = useState<Projection>('plan')
 	const view = model.views?.find(entry => entry.id === viewId)
 	const scene = useMemo(
 		() => (view ? viewScene(model, view) : systemScene(model)),
@@ -37,5 +41,7 @@ export function useCanvasScene(model: GuideModel): CanvasScene {
 		selected,
 		onSelect: setSelected,
 		onView,
+		projection,
+		onProjection: setProjection,
 	}
 }
