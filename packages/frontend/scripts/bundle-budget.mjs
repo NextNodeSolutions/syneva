@@ -23,14 +23,16 @@ export function staticBundleBytes(outputs, entry) {
 	return bytes
 }
 
-export const INITIAL_UI_BYTES_LIMIT = 415_000
+export const INITIAL_UI_BYTES_LIMIT = 416_000
 // React 19 (~134 KB minified) + StyleX class maps/runtime leave the 133 KB gzip cold payload within
 // 6% of before; the limit sat just above the measured 392 KB, then moved to 415 KB for the guided
 // review's cold chrome (the domain moves, the guide bar's controls, the keys: ~8 KB measured at
 // 408 KB) - the explanation pane, the diagrams, the navigator and the guide decoders ride lazy
 // chunks and never count here. The total is mostly shiki's grammar set (one lazy chunk per
 // grammar), Pierre's worker (~210 KB) and the oniguruma wasm; the initial limit guards the cold
-// open, the total only catches a wholesale new dependency.
+// open, the total only catches a wholesale new dependency. 416 KB: the hub's plan page shares
+// the markdown engine with the desk, so the engine's two small dependencies leave ui.js for
+// shared chunks (~360 bytes of chunk overhead measured, no new code on the cold open).
 const TOTAL_UI_BYTES_LIMIT = 11_500_000
 
 export function checkBundleBudget(outputs, entry) {
