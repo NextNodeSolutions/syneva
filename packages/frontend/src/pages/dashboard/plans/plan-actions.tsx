@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { changePlanStatus, hubRefusal } from '@entities/hub/api'
+import { changePlanStatus, refusalMessage } from '@entities/hub/api'
 import { Button } from '@shared/ui/button'
 import { ButtonLink } from '@shared/ui/button-link'
 import * as stylex from '@stylexjs/stylex'
@@ -36,12 +36,6 @@ const MOVES: Record<PlanStatus, Move[]> = {
 	archived: [{ status: 'draft', label: 'Restore' }],
 }
 
-function refusalText(error: unknown): string {
-	const refusal = hubRefusal(error)
-	if (refusal.kind === 'refused') return refusal.reason
-	return 'The hub did not take the change. Try again.'
-}
-
 type StatusMove = {
 	busy: PlanStatusChange | null
 	failure: string | null
@@ -61,7 +55,12 @@ function useStatusMove(
 			onChanged(await changePlanStatus(id, status))
 			setFailure(null)
 		} catch (error) {
-			setFailure(refusalText(error))
+			setFailure(
+				refusalMessage(
+					error,
+					'The hub did not take the change. Try again.',
+				),
+			)
 		} finally {
 			setBusy(null)
 		}

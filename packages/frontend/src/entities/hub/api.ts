@@ -159,3 +159,15 @@ export function hubRefusal(error: unknown): HubRefusal {
 		return { kind: 'signed-out' }
 	return { kind: 'refused', reason: error.message }
 }
+
+// A refusal as the reviewer reads it beside the control that met it: the hub's own reason, a
+// signed-out browser, or `unanswered` (the hub did not answer, or its answer did not read).
+export function refusalMessage(
+	error: unknown,
+	unanswered = 'The hub did not answer.',
+): string {
+	const refusal = hubRefusal(error)
+	if (refusal.kind === 'refused') return refusal.reason
+	if (refusal.kind === 'signed-out') return 'This browser is signed out.'
+	return unanswered
+}

@@ -1,6 +1,4 @@
-import { useState } from 'react'
-
-import { hubRefusal, openHubDesk } from '@entities/hub/api'
+import { useOpenAndGo } from './use-open-and-go'
 
 import type { DeskClosed } from '@entities/hub/journal'
 
@@ -12,25 +10,16 @@ export type Reopen = {
 	reopen: (closed: DeskClosed) => Promise<void>
 }
 
-function failureOf(error: unknown): string {
-	const refusal = hubRefusal(error)
-	if (refusal.kind === 'refused') return refusal.reason
-	if (refusal.kind === 'signed-out') return 'This browser is signed out.'
-	return 'The hub did not answer.'
-}
-
 // Reopen a closed desk exactly as it was opened (its repository, session, mode, target, PR base
 // and path limit): the hub rebuilds it and merges its saved review back, then the page goes to
 // it.
 export function useReopen(): Reopen {
-	const [busyId, setBusyId] = useState<string | null>(null)
-	const [failures, setFailures] = useState<ReadonlyMap<string, string>>(
-		new Map(),
-	)
-	const reopen = async (closed: DeskClosed): Promise<void> => {
-		setBusyId(closed.deskId)
-		try {
-			const desk = await openHubDesk({
+	const { busyKey, failures, open } = useOpenAndGo()
+	return {
+		busyId: busyKey,
+		failures,
+		reopen: closed =>
+			open(closed.deskId, {
 				root: closed.root,
 				mode: closed.mode,
 				staged: closed.staged,
@@ -38,14 +27,6 @@ export function useReopen(): Reopen {
 				session: closed.session,
 				base: closed.base,
 				path: closed.pathFilter,
-			})
-			window.location.assign(desk.path)
-		} catch (error) {
-			setFailures(
-				was => new Map([...was, [closed.deskId, failureOf(error)]]),
-			)
-			setBusyId(null)
-		}
+			}),
 	}
-	return { busyId, failures, reopen }
 }
