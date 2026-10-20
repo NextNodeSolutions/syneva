@@ -4,6 +4,7 @@
 import type { JournalEvent } from '../domain/hub-journal.js'
 import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { SourceOutline } from '../domain/outline.js'
+import type { PlanRecord } from '../domain/plan.js'
 import type { ReviewState } from '../domain/review.js'
 
 // The filesystem facet implemented by the same adapter object as GitPort's workspace: application never imports node:fs and use-case signatures stay git-shaped.
@@ -112,4 +113,23 @@ export interface HubJournalPort {
 	readonly load: () => Promise<JournalEvent[]>
 	readonly append: (event: JournalEvent) => Promise<void>
 	readonly rewrite: (events: readonly JournalEvent[]) => Promise<void>
+}
+
+// The plan library (~/.syneva/hub/plans/<id>/): each plan's record and every version verbatim.
+// `load` reads every record that decodes (domain/plan) - a malformed one is skipped, a missing
+// library is an empty one. A version's text is written before the record that names it, so a
+// record never points at a version that is not on disk.
+export interface PlanStorePort {
+	readonly load: () => Promise<PlanRecord[]>
+	readonly save: (record: PlanRecord) => Promise<void>
+	readonly writeVersion: (
+		id: string,
+		version: number,
+		markdown: string,
+	) => Promise<void>
+	// null when the plan or the version is not on disk.
+	readonly readVersion: (
+		id: string,
+		version: number,
+	) => Promise<string | null>
 }
