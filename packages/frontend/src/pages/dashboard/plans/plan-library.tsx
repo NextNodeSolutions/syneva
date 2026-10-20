@@ -1,7 +1,10 @@
 import { plansByProject } from '@entities/hub/plan-model'
+import { AppLink } from '@shared/ui/app-link'
 import { sectionLabel } from '@shared/ui/section-label.styles'
 import { TextLink } from '@shared/ui/text-link'
 import * as stylex from '@stylexjs/stylex'
+import { planPagePath } from '@syneva/contracts/routes'
+import { focus } from '@syneva/design-system/controls.styles'
 
 import { displayRoot, plural, relativeTime } from '../format'
 import { closedList } from '../react/closed-desks.styles'
@@ -22,7 +25,12 @@ function PlanRow({ plan, now }: { plan: Plan; now: number }): ReactElement {
 	return (
 		<li {...stylex.props(planLibrary.row)} data-enter="rise">
 			<span>
-				<span {...stylex.props(planLibrary.title)}>{plan.title}</span>
+				<AppLink
+					href={planPagePath(plan.id)}
+					css={[focus.ring, planLibrary.title, planLibrary.titleLink]}
+				>
+					{plan.title}
+				</AppLink>
 				{plan.summary && (
 					<span {...stylex.props(planLibrary.summary)}>
 						{plan.summary}
@@ -74,7 +82,8 @@ function ProjectPlans({
 }
 
 // The plans the hub keeps, by repository: each with where it stands and how many versions the
-// agent posted. A plan outlives its desk; the desk link shows while one reviews it.
+// agent posted. A plan's title opens its page; it outlives its desk, whose link shows while
+// one reviews it.
 export function PlanLibrary({
 	view,
 	now,
