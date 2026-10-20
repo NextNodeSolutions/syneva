@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { changePlanStatus, refusalMessage } from '@entities/hub/api'
+import { nextStatuses } from '@entities/hub/plan-model'
 import { Button } from '@shared/ui/button'
 import { ButtonLink } from '@shared/ui/button-link'
 import * as stylex from '@stylexjs/stylex'
@@ -16,24 +17,15 @@ import type {
 } from '@entities/hub/plan-model'
 import type { ReactElement } from 'react'
 
-type Move = { status: PlanStatusChange; label: string }
+// A move named for what it does to the plan; back to draft reads as a restore from the archive.
+const MOVE_LABELS: Record<PlanStatusChange, string> = {
+	implemented: 'Mark implemented',
+	archived: 'Archive',
+	draft: 'Reopen',
+}
 
-// The reviewer's own word on a plan: built, set aside, or back on the table. Approval is not
-// among them: it only comes from a Send on the plan's desk.
-const MOVES: Record<PlanStatus, Move[]> = {
-	draft: [
-		{ status: 'implemented', label: 'Mark implemented' },
-		{ status: 'archived', label: 'Archive' },
-	],
-	approved: [
-		{ status: 'implemented', label: 'Mark implemented' },
-		{ status: 'archived', label: 'Archive' },
-	],
-	implemented: [
-		{ status: 'draft', label: 'Reopen' },
-		{ status: 'archived', label: 'Archive' },
-	],
-	archived: [{ status: 'draft', label: 'Restore' }],
+function moveLabel(to: PlanStatusChange, from: PlanStatus): string {
+	return to === 'draft' && from === 'archived' ? 'Restore' : MOVE_LABELS[to]
 }
 
 type StatusMove = {
@@ -120,7 +112,7 @@ export function PlanActions({
 	return (
 		<div {...stylex.props(planPage.actions)} data-enter="fade">
 			<PlanReviewAction plan={plan} tone="primary" deskPath={deskPath} />
-			{MOVES[plan.status].map(({ status, label }) => (
+			{nextStatuses(plan.status).map(status => (
 				<Button
 					key={status}
 					tone="outlined"
@@ -129,7 +121,7 @@ export function PlanActions({
 					disabled={busy !== null}
 					onClick={() => void move(status)}
 				>
-					{label}
+					{moveLabel(status, plan.status)}
 				</Button>
 			))}
 			<MarkdownActions markdown={markdown} path={plan.path} raw={raw} />

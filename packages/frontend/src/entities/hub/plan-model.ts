@@ -15,6 +15,20 @@ export type PlanStatus = (typeof PLAN_STATUSES)[number]
 // What the reviewer may set by hand: approval only ever comes from a Send on the plan's desk.
 export type PlanStatusChange = Exclude<PlanStatus, 'approved'>
 
+// Where the reviewer's own word can take a plan from where it stands: built, set aside, or back
+// on the table. Approval is not among them: it only comes from a Send on the plan's desk.
+const OPEN_MOVES: readonly PlanStatusChange[] = ['implemented', 'archived']
+const NEXT_STATUSES: Record<PlanStatus, readonly PlanStatusChange[]> = {
+	draft: OPEN_MOVES,
+	approved: OPEN_MOVES,
+	implemented: ['draft', 'archived'],
+	archived: ['draft'],
+}
+
+export function nextStatuses(status: PlanStatus): readonly PlanStatusChange[] {
+	return NEXT_STATUSES[status]
+}
+
 export type PlanVersion = {
 	number: number
 	postedAt: string
