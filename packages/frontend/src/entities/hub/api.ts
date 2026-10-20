@@ -94,15 +94,23 @@ export const fetchPlans = async (signal?: AbortSignal): Promise<Plan[]> =>
 		HUB_PATHS.plans,
 	)
 
+const NOT_FOUND = 404
+
+// Null when the hub keeps no plan with this id: the page says so rather than failing.
 export const fetchPlan = async (
 	id: string,
 	signal?: AbortSignal,
-): Promise<PlanDocument> => {
+): Promise<PlanDocument | null> => {
 	const endpoint = hubPlanPath(id)
-	return decodePlanDocument(
-		await hubApi(endpoint, { signal: signal ?? null }),
-		endpoint,
-	)
+	try {
+		return decodePlanDocument(
+			await hubApi(endpoint, { signal: signal ?? null }),
+			endpoint,
+		)
+	} catch (error) {
+		if (error instanceof ApiError && error.status === NOT_FOUND) return null
+		throw error
+	}
 }
 
 export const fetchPlanVersion = async (

@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 
-import { ApiError } from '@shared/api/client'
-
 import { fetchPlan } from './api'
 import { planSignature } from './plan-model'
 import { pollWhileVisible, READ_TIMEOUT_MS } from './poll'
@@ -16,8 +14,6 @@ export type PlanView =
 
 type Keep = (update: (held: PlanView) => PlanView) => void
 
-const NOT_FOUND = 404
-
 // A read that changed nothing keeps the view held: the markdown only changes with a new
 // version, which moves the plan's signature. A read older than the plan held (one in flight
 // while a status change answered) is dropped, so the change does not flick back.
@@ -31,9 +27,8 @@ function adopted(held: PlanView, document: PlanDocument): PlanView {
 	return { phase: 'read', document }
 }
 
-function unread(held: PlanView, error: unknown): PlanView {
-	if (error instanceof ApiError && error.status === NOT_FOUND)
-		return { phase: 'missing' }
+// A read that failed keeps the plan held: the next one may answer.
+function unread(held: PlanView): PlanView {
 	return held.phase === 'read' ? held : { phase: 'failed' }
 }
 
@@ -46,9 +41,11 @@ function followPlan(id: string, keep: Keep): () => void {
 				id,
 				AbortSignal.timeout(READ_TIMEOUT_MS),
 			)
-			keep(held => adopted(held, document))
-		} catch (error) {
-			keep(held => unread(held, error))
+			keep(held =>
+				document ? adopted(held, document) : { phase: 'missing' },
+			)
+		} catch {
+			keep(unread)
 		}
 	})
 }
