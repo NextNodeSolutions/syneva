@@ -329,11 +329,3 @@
 [data-prose='plan'] td code {
 	white-space: normal;
 }
-
-/* A plan's figure fits its field: the guide's renderers size an SVG to its layout, which a
-   sequence of five participants makes wider than the page; on a plan's page it scales down
-   to the field instead of scrolling out of sight (pages/dashboard/plans/plan-figure.tsx). */
-[data-plan-drawing] svg {
-	max-width: 100%;
-	height: auto;
-}

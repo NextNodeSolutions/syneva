@@ -126,9 +126,11 @@ function Edge({
 export function FlowDiagram({
 	refs,
 	block,
+	fit,
 }: {
 	refs: DiagramRefs
 	block: FlowBlock
+	fit?: boolean | undefined
 }): ReactElement {
 	const layout = layoutFlow(block)
 	const keys = edgeKeys(block.edges)
@@ -139,7 +141,7 @@ export function FlowDiagram({
 			height={layout.height}
 			role="img"
 			aria-label={`Data flow: ${block.title ?? ''}`}
-			{...stylex.props(diagram.svg)}
+			{...stylex.props(diagram.svg, fit === true && diagram.fit)}
 		>
 			<ArrowMarker />
 			{block.edges.map((edge, index) => (

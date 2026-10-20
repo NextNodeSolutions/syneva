@@ -107,10 +107,13 @@ export const PlanFigureView = memo(function PlanFigureView({
 						{...stylex.props(planFigure.mark, corner.style)}
 					/>
 				))}
-				<div {...stylex.props(planFigure.drawing)} data-plan-drawing>
+				<div {...stylex.props(planFigure.drawing)}>
 					<FallbackBoundary fallback={unDrawn}>
 						<Suspense fallback={null}>
-							<Diagram refs={NO_REFS} block={block} />
+							{/* The guide's renderers size an SVG to its layout, which a sequence of
+							five participants makes wider than the page: fitted, it scales down
+							to the field instead of scrolling out of sight. */}
+							<Diagram refs={NO_REFS} block={block} fit />
 						</Suspense>
 					</FallbackBoundary>
 				</div>
