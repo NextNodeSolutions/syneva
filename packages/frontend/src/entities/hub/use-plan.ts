@@ -19,11 +19,13 @@ type Keep = (update: (held: PlanView) => PlanView) => void
 const NOT_FOUND = 404
 
 // A read that changed nothing keeps the view held: the markdown only changes with a new
-// version, which moves the plan's signature.
+// version, which moves the plan's signature. A read older than the plan held (one in flight
+// while a status change answered) is dropped, so the change does not flick back.
 function adopted(held: PlanView, document: PlanDocument): PlanView {
 	if (
 		held.phase === 'read' &&
-		planSignature(held.document.plan) === planSignature(document.plan)
+		(planSignature(held.document.plan) === planSignature(document.plan) ||
+			document.plan.updatedAt < held.document.plan.updatedAt)
 	)
 		return held
 	return { phase: 'read', document }

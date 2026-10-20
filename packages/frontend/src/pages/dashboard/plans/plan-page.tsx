@@ -1,4 +1,4 @@
-import { use, useMemo, useRef, useState } from 'react'
+import { Suspense, use, useMemo, useRef, useState } from 'react'
 
 import { fetchPlanVersion } from '@entities/hub/api'
 import { latestVersion } from '@entities/hub/plan-model'
@@ -13,34 +13,38 @@ import { dashboardPage } from '../react/page.styles'
 
 import { PlanActions } from './plan-actions'
 import { readPlan } from './plan-document'
-import { PlanHero } from './plan-hero'
+import { PlanHero, scrollToFragment } from './plan-hero'
 import { planPage } from './plan-page.styles'
 import { PlanFacts, PlanVersions } from './plan-versions'
 
 import type { Plan, PlanDocument } from '@entities/hub/plan-model'
-import type { ReactElement } from 'react'
+import type { MouseEvent, ReactElement } from 'react'
+import type { PlanMarkdown } from '../markdown'
 
 type Older = { number: number; markdown: string }
 
 // An earlier version is read on request and held while the reviewer stays on it; the latest
-// is the plan's own, followed from the hub.
+// is the plan's own, followed from the hub. Only the last choice lands: a slow read the
+// reviewer has since moved on from is dropped.
 function useOlderVersion(id: string): {
 	older: Older | null
 	read: (version: number, latest: number) => Promise<void>
 } {
 	const [older, setOlder] = useState<Older | null>(null)
+	const lastAsked = useRef(0)
 	const read = async (version: number, latest: number): Promise<void> => {
+		lastAsked.current += 1
+		const asked = lastAsked.current
 		if (version === latest) {
 			setOlder(null)
 			return
 		}
 		try {
-			setOlder({
-				number: version,
-				markdown: await fetchPlanVersion(id, version),
-			})
+			const markdown = await fetchPlanVersion(id, version)
+			if (asked === lastAsked.current)
+				setOlder({ number: version, markdown })
 		} catch {
-			setOlder(null)
+			if (asked === lastAsked.current) setOlder(null)
 		}
 	}
 	return { older, read }
@@ -63,6 +67,16 @@ function OlderNotice({
 	)
 }
 
+// A fragment link in the body (a footnote and its way back) scrolls in place, like a section
+// link: left to the browser, it reaches the router's Back/Forward handling.
+function followFragment(event: MouseEvent<HTMLElement>): void {
+	if (!(event.target instanceof Element)) return
+	const href = event.target.closest('a')?.getAttribute('href')
+	if (!href?.startsWith('#') || href === '#') return
+	event.preventDefault()
+	scrollToFragment(href.slice(1))
+}
+
 function PlanArticle({
 	html,
 	older,
@@ -81,6 +95,7 @@ function PlanArticle({
 			)}
 			<div
 				data-prose="plan"
+				onClick={followFragment}
 				// The renderer is the trust boundary: no raw HTML, sanitized (plan-document.ts).
 				// oxlint-disable-next-line react/no-danger
 				dangerouslySetInnerHTML={{ __html: html }}
@@ -92,15 +107,17 @@ function PlanArticle({
 function PlanReading({
 	document,
 	adopt,
+	renderer,
 }: {
 	document: PlanDocument
 	adopt: (plan: Plan) => void
+	renderer: Promise<PlanMarkdown | null>
 }): ReactElement {
 	const { plan } = document
 	const latest = latestVersion(plan)?.number ?? 0
 	const { older, read } = useOlderVersion(plan.id)
 	const markdown = older?.markdown ?? document.markdown
-	const engine = use(planMarkdown())
+	const engine = use(renderer)
 	const revision = useMarkdownRevision()
 	const reading = useMemo(
 		() => readPlan(engine, markdown, plan.title),
@@ -142,12 +159,21 @@ export function PlanPage({ id }: { id: string }): ReactElement {
 	const root = useRef<HTMLDivElement>(null)
 	useEntrance(root, id)
 	const { view, adopt } = usePlan(id)
+	// The renderer loads beside the plan's first read, not after it.
+	const [renderer] = useState(planMarkdown)
+	const pending = <PageHead title="Plan" isPending />
 	return (
 		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			{view.phase === 'read' && (
-				<PlanReading document={view.document} adopt={adopt} />
+				<Suspense fallback={pending}>
+					<PlanReading
+						document={view.document}
+						adopt={adopt}
+						renderer={renderer}
+					/>
+				</Suspense>
 			)}
-			{view.phase === 'loading' && <PageHead title="Plan" isPending />}
+			{view.phase === 'loading' && pending}
 			{view.phase === 'missing' && (
 				<PageHead
 					title="Unknown plan"

@@ -9,19 +9,43 @@ import { planPage } from './plan-page.styles'
 import { PlanStatusTag } from './plan-status'
 
 import type { Plan } from '@entities/hub/plan-model'
-import type { MouseEvent, ReactElement, ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import type { PlanSection } from './plan-document'
 
 // A section link scrolls to its heading itself: a fragment navigation would reach the router's
 // Back/Forward handling, which restores the page's scroll and undoes the jump. The href stays
-// for a copied or opened link.
-function jumpTo(event: MouseEvent<HTMLAnchorElement>, id: string): void {
-	event.preventDefault()
+// for a copied or opened link. The plan's body follows its own fragment links (footnotes) the
+// same way.
+export function scrollToFragment(id: string): void {
 	const isCalm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 	document.getElementById(id)?.scrollIntoView({
 		behavior: isCalm ? 'auto' : 'smooth',
 		block: 'start',
 	})
+}
+
+function SectionLinks({
+	sections,
+}: {
+	sections: readonly PlanSection[]
+}): ReactElement {
+	return (
+		<nav aria-label="Sections" {...stylex.props(planPage.toc)}>
+			{sections.map(section => (
+				<a
+					key={section.id}
+					href={`#${section.id}`}
+					onClick={event => {
+						event.preventDefault()
+						scrollToFragment(section.id)
+					}}
+					{...stylex.props(planPage.tocLink)}
+				>
+					{section.title}
+				</a>
+			))}
+		</nav>
+	)
 }
 
 // The plan's head, as an RFC opens: where it belongs and where it stands, its title, what it
@@ -58,20 +82,7 @@ export function PlanHero({
 					{plan.summary}
 				</p>
 			)}
-			{sections.length > 1 && (
-				<nav aria-label="Sections" {...stylex.props(planPage.toc)}>
-					{sections.map(section => (
-						<a
-							key={section.id}
-							href={`#${section.id}`}
-							onClick={event => jumpTo(event, section.id)}
-							{...stylex.props(planPage.tocLink)}
-						>
-							{section.title}
-						</a>
-					))}
-				</nav>
-			)}
+			{sections.length > 1 && <SectionLinks sections={sections} />}
 			{children}
 		</header>
 	)

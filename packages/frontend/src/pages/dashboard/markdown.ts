@@ -13,7 +13,7 @@ export type PlanMarkdown = typeof MarkdownEngine
 // other's. Readers re-render when a lazily loaded grammar repaints a code block.
 const readers = new Set<() => void>()
 let revision = 0
-let loading: Promise<PlanMarkdown> | undefined
+let loading: Promise<PlanMarkdown | null> | undefined
 
 function repaint(): void {
 	revision += 1
@@ -34,17 +34,18 @@ async function loadEngine(): Promise<PlanMarkdown> {
 }
 
 // One load per page life, shared by every reader; a failed load is tried again on the next
-// page that asks.
-async function loadOnce(): Promise<PlanMarkdown> {
+// page that asks. It settles on null rather than rejecting: a reader suspends on it with no
+// error boundary above, so a rejection would unmount the whole dashboard.
+async function loadOnce(): Promise<PlanMarkdown | null> {
 	try {
 		return await loadEngine()
-	} catch (error) {
+	} catch {
 		loading = undefined
-		throw error
+		return null
 	}
 }
 
-export function planMarkdown(): Promise<PlanMarkdown> {
+export function planMarkdown(): Promise<PlanMarkdown | null> {
 	loading ??= loadOnce()
 	return loading
 }

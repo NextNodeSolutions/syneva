@@ -1,3 +1,5 @@
+import { esc } from '@shared/lib/esc'
+
 import type { PlanMarkdown } from '../markdown'
 
 // A plan's front matter (title, summary) is the record's, read by the hub: the page shows it
@@ -15,13 +17,16 @@ export type PlanReading = { html: string; sections: PlanSection[] }
 // The rendered body with its sections named: each h2 gets an id the table of contents links
 // to. A first h1 that only repeats the plan's title is dropped, since the page's head already
 // states it. Agent-authored markdown goes through the renderer with no raw HTML (the trust
-// boundary); this only adds ids and removes a heading.
+// boundary); this only adds ids and removes a heading. Without the renderer (its chunk did not
+// load) the body still reads, as its plain text.
 export function readPlan(
-	engine: PlanMarkdown,
+	engine: PlanMarkdown | null,
 	markdown: string,
 	title: string,
 ): PlanReading {
-	const html = engine.renderGuideMarkdown(planBody(markdown))
+	const body = planBody(markdown)
+	if (!engine) return { html: `<pre>${esc(body)}</pre>`, sections: [] }
+	const html = engine.renderGuideMarkdown(body)
 	const doc = new DOMParser().parseFromString(html, 'text/html')
 	const first = doc.body.firstElementChild
 	if (first?.tagName === 'H1' && first.textContent.trim() === title.trim())
