@@ -1,10 +1,23 @@
 import * as stylex from '@stylexjs/stylex'
-import { color, font } from '@syneva/design-system/tokens.stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
+
+import { planRowMarker } from './plan-library.stylex'
 
 // The library as index rows per repository: the plan's title, what it is about and its file,
 // then its status, where its review stands, its versions and last move, and Review; on a narrow
 // page the figures fold into one line under the title.
 const NARROW = '@container plans (max-width: 760px)'
+// The row lights the way the desk rows do: on hover with a fine pointer, or while its link
+// has the keyboard's focus.
+const WHITE_60 = `color-mix(in srgb, ${color['--white']} 60%, transparent)`
+const FOCUSED = ':has(a:focus-visible)'
+const rowHover = (): string => stylex.when.ancestor(':hover', planRowMarker)
 
 export const planLibrary = stylex.create({
 	root: {
@@ -33,8 +46,19 @@ export const planLibrary = stylex.create({
 		alignItems: 'center',
 		columnGap: '20px',
 		rowGap: '6px',
+		position: 'relative',
 		paddingBlock: '16px',
-		paddingInline: '4px',
+		paddingInline: '8px',
+		backgroundColor: {
+			default: null,
+			[FOCUSED]: WHITE_60,
+			[media.finePointer]: {
+				default: null,
+				':hover': WHITE_60,
+				[FOCUSED]: WHITE_60,
+			},
+		},
+		transition: `background-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
@@ -48,8 +72,17 @@ export const planLibrary = stylex.create({
 	},
 	titleLink: {
 		textDecoration: 'none',
-		color: { default: color['--ink'], ':hover': color['--accent'] },
+		color: {
+			default: color['--ink'],
+			[media.finePointer]: {
+				default: null,
+				[rowHover()]: color['--accent'],
+			},
+		},
 	},
+	// The title's link covers the row, so the whole row opens the plan's page; Review sits above
+	// it.
+	stretch: { position: 'absolute', inset: 0 },
 	summary: {
 		display: 'block',
 		marginTop: '3px',
@@ -97,6 +130,8 @@ export const planLibrary = stylex.create({
 		color: color['--muted'],
 	},
 	action: {
+		position: 'relative',
+		zIndex: 1,
 		display: 'flex',
 		flexWrap: 'wrap',
 		alignItems: 'center',

@@ -9,6 +9,7 @@ import { focus } from '@syneva/design-system/controls.styles'
 import { displayRoot, plural, relativeTime } from '../format'
 
 import { planLibrary } from './plan-library.styles'
+import { planRowMarker } from './plan-library.stylex'
 import { PlanReviewAction } from './plan-review-action'
 import { PlanStatusTag } from './plan-status'
 import { PlanTurn } from './plan-turn'
@@ -47,13 +48,17 @@ function PlanRow({ row, now }: { row: Row; now: number }): ReactElement {
 	const versions = plural(plan.versions.length, 'version')
 	const last = relativeTime(plan.updatedAt, now)
 	return (
-		<li {...stylex.props(planLibrary.row)} data-enter="rise">
+		<li {...stylex.props(planLibrary.row, planRowMarker)} data-enter="rise">
 			<span>
 				<AppLink
 					href={planPagePath(plan.id)}
 					css={[focus.ring, planLibrary.title, planLibrary.titleLink]}
 				>
 					{plan.title}
+					<span
+						aria-hidden="true"
+						{...stylex.props(planLibrary.stretch)}
+					/>
 				</AppLink>
 				{plan.summary && (
 					<span {...stylex.props(planLibrary.summary)}>
