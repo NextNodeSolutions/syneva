@@ -1,16 +1,12 @@
 import { sectionLabel } from '@shared/ui/section-label.styles'
 import * as stylex from '@stylexjs/stylex'
 
-import { displayRoot, SHORT_DATE } from '../format'
+import { displayRoot, shortDay } from '../format'
 
 import { planVersions } from './plan-versions.styles'
 
 import type { Plan, PlanVersion } from '@entities/hub/plan-model'
 import type { ReactElement } from 'react'
-
-function postedOn(at: string): string {
-	return SHORT_DATE.format(new Date(at))
-}
 
 function VersionItem({
 	version,
@@ -36,10 +32,10 @@ function VersionItem({
 					{`v${String(version.number)}`}
 				</span>
 				<span {...stylex.props(planVersions.meta)}>
-					{postedOn(version.postedAt)}
+					{shortDay(version.postedAt)}
 					{version.approvedAt && (
 						<span {...stylex.props(planVersions.approved)}>
-							{` · approved ${postedOn(version.approvedAt)}`}
+							{` · approved ${shortDay(version.approvedAt)}`}
 						</span>
 					)}
 				</span>
@@ -97,25 +93,7 @@ export function PlanFacts({ plan }: { plan: Plan }): ReactElement {
 		<div {...stylex.props(planVersions.facts)}>
 			<Fact label="File" text={plan.path} />
 			<Fact label="Repository" text={displayRoot(plan.root)} />
-			<Fact label="Kept since" text={postedOn(plan.createdAt)} />
+			<Fact label="Kept since" text={shortDay(plan.createdAt)} />
 		</div>
-	)
-}
-
-// What the head shows beside the plan: its versions, then where it lives.
-export function PlanMeta({
-	plan,
-	reading,
-	onRead,
-}: {
-	plan: Plan
-	reading: number
-	onRead: (version: number) => void
-}): ReactElement {
-	return (
-		<>
-			<PlanVersions plan={plan} reading={reading} onRead={onRead} />
-			<PlanFacts plan={plan} />
-		</>
 	)
 }

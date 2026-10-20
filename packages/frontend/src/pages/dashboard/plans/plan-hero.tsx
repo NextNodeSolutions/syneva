@@ -3,7 +3,7 @@ import { AppLink } from '@shared/ui/app-link'
 import * as stylex from '@stylexjs/stylex'
 import { DASHBOARD_PATHS } from '@syneva/contracts/routes'
 
-import { SHORT_DATE } from '../format'
+import { shortDay } from '../format'
 
 import { planPage } from './plan-page.styles'
 import { PlanStatusTag } from './plan-status'
@@ -35,7 +35,7 @@ function PlanEyebrow({ plan }: { plan: Plan }): ReactElement {
 			<span>{plan.project}</span>
 			{latest && (
 				<span>
-					{`v${String(latest.number)} · ${SHORT_DATE.format(new Date(latest.postedAt))}`}
+					{`v${String(latest.number)} · ${shortDay(latest.postedAt)}`}
 				</span>
 			)}
 			<PlanStatusTag status={plan.status} />

@@ -16,7 +16,7 @@ import { PlanBody, RawBody } from './plan-body'
 import { readPlan } from './plan-document'
 import { PlanHero } from './plan-hero'
 import { planPage } from './plan-page.styles'
-import { PlanMeta } from './plan-versions'
+import { PlanFacts, PlanVersions } from './plan-versions'
 
 import type { Plan, PlanDocument } from '@entities/hub/plan-model'
 import type { ReactElement } from 'react'
@@ -25,31 +25,39 @@ import type { PlanReading as PlanReadingParts } from './plan-document'
 
 type Older = { number: number; markdown: string }
 
+// A posted version never changes, so each is read from the hub once a page life, whichever
+// plan page asks again.
+const olderVersions = new Map<string, string>()
+
 // An earlier version is read on request and held while the reviewer stays on it; the latest
 // is the plan's own, followed from the hub. Only the last choice lands: a slow read the
 // reviewer has since moved on from is dropped.
 function useOlderVersion(id: string): {
 	older: Older | null
-	read: (version: number, latest: number) => Promise<void>
+	read: (version: number) => Promise<void>
+	back: () => void
 } {
 	const [older, setOlder] = useState<Older | null>(null)
 	const lastAsked = useRef(0)
-	const read = async (version: number, latest: number): Promise<void> => {
+	const back = (): void => {
+		lastAsked.current += 1
+		setOlder(null)
+	}
+	const read = async (version: number): Promise<void> => {
 		lastAsked.current += 1
 		const asked = lastAsked.current
-		if (version === latest) {
-			setOlder(null)
-			return
-		}
+		const key = `${id}@${String(version)}`
 		try {
-			const markdown = await fetchPlanVersion(id, version)
+			const markdown =
+				olderVersions.get(key) ?? (await fetchPlanVersion(id, version))
+			olderVersions.set(key, markdown)
 			if (asked === lastAsked.current)
 				setOlder({ number: version, markdown })
 		} catch {
 			if (asked === lastAsked.current) setOlder(null)
 		}
 	}
-	return { older, read }
+	return { older, read, back }
 }
 
 function OlderNotice({
@@ -98,16 +106,12 @@ function PlanReading({
 }: PlanReadingProps): ReactElement {
 	const { plan } = document
 	const latest = latestVersion(plan)?.number ?? 0
-	const { older, read } = useOlderVersion(plan.id)
+	const { older, read, back } = useOlderVersion(plan.id)
 	const markdown = older?.markdown ?? document.markdown
 	const reading = useReading(renderer, markdown, plan.title)
 	const [isRaw, setRaw] = useState(false)
 	const notice = older && (
-		<OlderNotice
-			older={older}
-			latest={latest}
-			onBack={() => void read(latest, latest)}
-		/>
+		<OlderNotice older={older} latest={latest} onBack={back} />
 	)
 	return (
 		<>
@@ -116,11 +120,17 @@ function PlanReading({
 				// The raw file has no section bands to scroll to.
 				sections={isRaw ? [] : reading.sections}
 				meta={
-					<PlanMeta
-						plan={plan}
-						reading={older?.number ?? latest}
-						onRead={version => void read(version, latest)}
-					/>
+					<>
+						<PlanVersions
+							plan={plan}
+							reading={older?.number ?? latest}
+							onRead={version => {
+								if (version === latest) back()
+								else void read(version)
+							}}
+						/>
+						<PlanFacts plan={plan} />
+					</>
 				}
 			>
 				<PlanActions

@@ -26,6 +26,11 @@ export const SHORT_DATE = new Intl.DateTimeFormat(undefined, {
 	day: 'numeric',
 })
 
+// The day a hub timestamp (ISO) falls on, short: when a plan's version was posted or approved.
+export function shortDay(at: string): string {
+	return SHORT_DATE.format(new Date(at))
+}
+
 // "1 desk" / "3 desks"; a noun whose plural is not its singular plus s names it ("repository",
 // "repositories").
 export function plural(
