@@ -4,24 +4,26 @@ import { fetchPlanVersion } from '@entities/hub/api'
 import { latestVersion } from '@entities/hub/plan-model'
 import { usePlan } from '@entities/hub/use-plan'
 import { useEntrance } from '@shared/lib/use-entrance'
+import { loadMarkdown, renderPlanMarkdown } from '@shared/markdown'
+import { useMarkdownRevision } from '@shared/markdown/use-markdown-revision'
 import { Notice } from '@shared/ui/notice'
 import { TextButton } from '@shared/ui/text-button'
 import * as stylex from '@stylexjs/stylex'
 
-import { planMarkdown, useMarkdownRevision } from '../markdown'
 import { PageHead } from '../react/page-head'
 import { dashboardPage } from '../react/page.styles'
 
 import { PlanActions } from './plan-actions'
 import { PlanBody, RawBody } from './plan-body'
 import { readPlan } from './plan-document'
+import { preloadDiagram } from './plan-figure'
+import { hasFigures } from './plan-figures'
 import { PlanHero } from './plan-hero'
 import { planPage } from './plan-page.styles'
 import { PlanFacts, PlanVersions } from './plan-versions'
 
 import type { Plan, PlanDocument } from '@entities/hub/plan-model'
 import type { ReactElement } from 'react'
-import type { PlanMarkdown } from '../markdown'
 import type { PlanReading as PlanReadingParts } from './plan-document'
 
 type Older = { number: number; markdown: string }
@@ -84,26 +86,27 @@ function OlderNotice({
 	)
 }
 
-// The renderer is the one PlanPage started loading; null when its chunk did not load.
+// The renderer is the one PlanPage started loading; false when its chunk did not load, and
+// the plan then reads as its plain text.
 function useReading(
-	renderer: Promise<PlanMarkdown | null>,
+	renderer: Promise<boolean>,
 	markdown: string,
 	title: string,
 ): PlanReadingParts {
-	const engine = use(renderer)
+	const isRendered = use(renderer)
 	const revision = useMarkdownRevision()
 	return useMemo(
-		() => readPlan(engine, markdown, title),
-		// The revision is the renderer's: its output changes when it loads or repaints.
+		() => readPlan(isRendered ? renderPlanMarkdown : null, markdown, title),
+		// The revision is the renderer's: its output changes when it repaints.
 		// oxlint-disable-next-line react/exhaustive-deps
-		[engine, markdown, title, revision],
+		[isRendered, markdown, title, revision],
 	)
 }
 
 type PlanReadingProps = {
 	document: PlanDocument
 	adopt: (plan: Plan) => void
-	renderer: Promise<PlanMarkdown | null>
+	renderer: Promise<boolean>
 }
 
 function PlanReading({
@@ -115,6 +118,9 @@ function PlanReading({
 	const latest = latestVersion(plan)?.number ?? 0
 	const { older, read, back } = useOlderVersion(plan.id)
 	const markdown = older?.markdown ?? document.markdown
+	// Started before the reading waits on the renderer, so the drawing loads beside it: an
+	// idempotent preload, the one side effect this render has.
+	if (hasFigures(markdown)) void preloadDiagram()
 	const reading = useReading(renderer, markdown, plan.title)
 	const [isRaw, setRaw] = useState(false)
 	const notice = older && (
@@ -162,7 +168,7 @@ export function PlanPage({ id }: { id: string }): ReactElement {
 	useEntrance(root, id)
 	const { view, adopt } = usePlan(id)
 	// The renderer loads beside the plan's first read, not after it.
-	const [renderer] = useState(planMarkdown)
+	const [renderer] = useState(loadMarkdown)
 	const pending = <PageHead title="Plan" isPending />
 	return (
 		<div ref={root} {...stylex.props(dashboardPage.root)}>

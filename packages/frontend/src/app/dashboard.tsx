@@ -5,10 +5,11 @@ import { createRoot } from 'react-dom/client'
 
 import { fetchHubPrefs } from '@entities/settings/api'
 import { applyAppearance, DEFAULT_SETTINGS } from '@entities/settings/settings'
-import { keepCodeTheme } from '@pages/dashboard/code-theme'
 import { Dashboard } from '@pages/dashboard/react/dashboard'
 import { $ } from '@shared/lib/dom'
 import { routeInPage } from '@shared/lib/router'
+import { configureMarkdownRuntime } from '@shared/markdown/runtime-config'
+import { repaintMarkdownReaders } from '@shared/markdown/use-markdown-revision'
 import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
@@ -38,7 +39,14 @@ async function boot(): Promise<void> {
 	)
 	const settings = { ...DEFAULT_SETTINGS, ...prefs?.settings }
 	applyAppearance(settings)
-	keepCodeTheme(settings.theme)
+	// A plan's page renders markdown, in the reviewer's code theme; it reads no repository's
+	// images (a plan's renderer leaves them as written).
+	configureMarkdownRuntime({
+		getTheme: () => settings.theme,
+		onLoaded: repaintMarkdownReaders,
+		onLoadError: () => {},
+		repoImageSrc: src => src,
+	})
 	routeInPage()
 	const root = $('root')
 	const { className } = stylex.props(documentRoot.base)

@@ -23,6 +23,8 @@ let md: MarkdownIt | null = null
 let mdFile: MarkdownIt | null = null
 // A second renderer with breaks: true so a single newline a reviewer types renders as a line break (people write comments as chat); file/guide markdown keeps the standard soft-break behavior, so hard-wrapped prose is not shredded.
 let mdComment: MarkdownIt | null = null
+// A plan's renderer: guide prose, whose figures stay its placeholders (figureFence).
+let mdPlan: MarkdownIt | null = null
 let requestedTheme = ''
 // Comment bodies re-render on every poll tick and each edit mints a fresh id:updatedAt key, so the cache would grow without bound (an orphaned entry per edit); an LRU keeps it bounded like the other UI caches (both cap at 30).
 const COMMENT_CACHE_CAP = 30
@@ -40,6 +42,27 @@ function sourceLine(mdi: MarkdownIt): void {
 type MarkdownFlavor = {
 	isBreakOnNewline?: boolean
 	canCarryRawHtml?: boolean
+	hasFigures?: boolean
+}
+
+// The info string a plan's figure fence opens with (a diagram block in the guide's JSON shape).
+const FIGURE_LANGUAGE = 'syneva'
+
+type RenderRule = NonNullable<MarkdownIt['renderer']['rules']['fence']>
+
+// A plan's figure fence at the body's top level renders as a placeholder carrying its source,
+// unhighlighted: the plan page cuts the rendered body at it and draws the figure there, so the
+// body still renders in one pass (its footnotes and link references reach across figures).
+// The placeholder is a code block, so a figure that is not drawn still reads as its source;
+// one nested in a list or a quote stays a plain code block.
+function figureFence(fence: RenderRule | undefined): RenderRule {
+	return (...args) => {
+		const [tokens, index, options, , self] = args
+		const token = tokens[index]
+		if (token?.level === 0 && token.info.trim() === FIGURE_LANGUAGE)
+			return `<pre data-plan-figure><code>${esc(token.content)}</code></pre>\n`
+		return fence ? fence(...args) : self.renderToken(tokens, index, options)
+	}
 }
 
 function buildMd(
@@ -56,6 +79,10 @@ function buildMd(
 		.use(taskLists, { label: true })
 		.use(fromHighlighter(highlighter, { theme }))
 		.use(sourceLine)
+	if (flavor.hasFigures)
+		renderer.renderer.rules.fence = figureFence(
+			renderer.renderer.rules.fence,
+		)
 	const { highlight } = renderer.options
 	if (highlight)
 		renderer.options.highlight = withLazyLanguages(highlight, highlighter)
@@ -132,6 +159,7 @@ async function applyTheme(theme: string): Promise<boolean> {
 	md = buildMd(highlighter, theme)
 	mdFile = buildMd(highlighter, theme, { canCarryRawHtml: true })
 	mdComment = buildMd(highlighter, theme, { isBreakOnNewline: true })
+	mdPlan = buildMd(highlighter, theme, { hasFigures: true })
 	return true
 }
 
@@ -167,6 +195,13 @@ export function renderFileMarkdown(text: string): string {
 export function renderGuideMarkdown(text: string): string {
 	if (!md) return `<p>${esc(text)}</p>`
 	return rewriteRepoImages(DOMPurify.sanitize(md.render(text || '')))
+}
+
+// A plan reads as guide prose whose figure fences stay placeholders (figureFence). Its images
+// are not the repository's: a plan's page has no repository to resolve them against.
+export function renderPlanMarkdown(text: string): string {
+	if (!mdPlan) return `<pre>${esc(text)}</pre>`
+	return DOMPurify.sanitize(mdPlan.render(text || ''))
 }
 
 const NON_REPO_SRC = /^(https?:|data:|blob:|\/)/i

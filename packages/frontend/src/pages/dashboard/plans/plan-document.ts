@@ -1,10 +1,5 @@
 import { esc } from '@shared/lib/esc'
 
-import { markFigures } from './plan-figures'
-
-import type { PlanMarkdown } from '../markdown'
-import type { MarkedFigure, PlanFigure } from './plan-figures'
-
 // A plan's front matter (title, summary) is the record's, read by the hub: the page shows it
 // in its head, so the body starts after it.
 const FRONT_MATTER = /^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/
@@ -17,11 +12,12 @@ export function planBody(markdown: string): string {
 // its heading without the number the author may have written into it.
 export type PlanSection = { id: string; number: string; title: string }
 
-// Each part keyed by its place in the body, which is what it is while the reading lasts; a
-// figure carries its number for the caption.
+// Each part keyed by its place in its section, which is what it is while the reading lasts; a
+// figure carries its source, parsed where it is drawn (plan-figure.tsx), and its number across
+// the body for the caption.
 export type ReadPart =
 	| { key: string; kind: 'html'; html: string }
-	| { key: string; kind: 'figure'; figure: PlanFigure; number: number }
+	| { key: string; kind: 'figure'; source: string; number: number }
 
 // The heading's rendered inline markup (code, a link, a footnote reference) is kept for the
 // band's headline; the table of contents reads its text.
@@ -82,45 +78,45 @@ function sectionOf(
 	}
 }
 
-// Parts are keyed and figures numbered across the whole body, not per section.
+// The placeholder the renderer leaves for a figure fence (renderPlanMarkdown), at the top level.
+function figureSource(node: ChildNode): string | null {
+	if (node instanceof Element && node.matches('pre[data-plan-figure]'))
+		return node.textContent.trimEnd()
+	return null
+}
+
+// Figures are numbered across the whole body, not per section.
 type Cutter = (nodes: readonly ChildNode[]) => ReadPart[]
 
-// A chunk's nodes cut at its figures' markers (plan-figures.ts), in order; prose left blank
-// between two figures is dropped.
-function figureCutter(figures: readonly MarkedFigure[]): Cutter {
-	const byMarker = new Map(figures.map(entry => [entry.marker, entry.figure]))
-	let keys = 0
+// A chunk's nodes cut at its figures' placeholders, in order; prose left blank between two
+// figures is dropped.
+function figureCutter(): Cutter {
 	let numbered = 0
 	return nodes => {
 		const parts: ReadPart[] = []
+		const key = (): string => `part-${String(parts.length)}`
 		let prose = ''
 		const flush = (): void => {
 			if (prose.trim())
-				parts.push({
-					key: `part-${String(keys++)}`,
-					kind: 'html',
-					html: prose,
-				})
+				parts.push({ key: key(), kind: 'html', html: prose })
 			prose = ''
 		}
 		for (const node of nodes) {
-			const figure =
-				node instanceof HTMLParagraphElement
-					? byMarker.get(node.textContent.trim())
-					: undefined
-			if (figure) {
-				flush()
-				parts.push({
-					key: `part-${String(keys++)}`,
-					kind: 'figure',
-					figure,
-					number: ++numbered,
-				})
-			} else
+			const source = figureSource(node)
+			if (source === null)
 				prose +=
 					node instanceof Element
 						? node.outerHTML
 						: esc(node.textContent ?? '')
+			else {
+				flush()
+				parts.push({
+					key: key(),
+					kind: 'figure',
+					source,
+					number: ++numbered,
+				})
+			}
 		}
 		flush()
 		return parts
@@ -133,12 +129,12 @@ function figureCutter(figures: readonly MarkedFigure[]): Cutter {
 // rendered body and drops a heading. Without the renderer (its chunk did not load) the body
 // still reads, as its plain text in one part, figures' sources included.
 export function readPlan(
-	engine: PlanMarkdown | null,
+	render: ((markdown: string) => string) | null,
 	markdown: string,
 	title: string,
 ): PlanReading {
 	const body = planBody(markdown)
-	if (!engine)
+	if (!render)
 		return {
 			intro: [
 				{
@@ -149,13 +145,9 @@ export function readPlan(
 			],
 			sections: [],
 		}
-	const marked = markFigures(body)
-	const doc = new DOMParser().parseFromString(
-		engine.renderGuideMarkdown(marked.markdown),
-		'text/html',
-	)
+	const doc = new DOMParser().parseFromString(render(body), 'text/html')
 	dropTitle(doc.body, title)
-	const cut = figureCutter(marked.figures)
+	const cut = figureCutter()
 	const reading: PlanReading = { intro: [], sections: [] }
 	for (const chunk of chunksOf(doc.body)) {
 		if (chunk.heading === null) {

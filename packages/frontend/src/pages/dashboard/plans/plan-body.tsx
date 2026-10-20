@@ -19,7 +19,7 @@ function followFragment(event: MouseEvent<HTMLElement>): void {
 
 function PartView({ part }: { part: ReadPart }): ReactElement {
 	if (part.kind === 'figure')
-		return <PlanFigureView figure={part.figure} number={part.number} />
+		return <PlanFigureView source={part.source} number={part.number} />
 	return (
 		<div
 			data-prose="plan"
