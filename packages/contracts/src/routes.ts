@@ -40,6 +40,7 @@ export const HUB_PATHS = {
 	desks: '/api/hub/desks',
 	inventory: '/api/hub/inventory',
 	journal: '/api/hub/journal',
+	plans: '/api/hub/plans',
 	settings: '/api/hub/settings',
 	shutdown: '/api/hub/shutdown',
 	login: '/login',
@@ -94,4 +95,17 @@ export function deskApiBase(id: string): string {
 
 export function hubDeskPath(id: string): string {
 	return `${HUB_PATHS.desks}/${id}`
+}
+
+// The plan library's routes: one plan, one of its versions, its status.
+export function hubPlanPath(id: string): string {
+	return `${HUB_PATHS.plans}/${id}`
+}
+
+export function hubPlanVersionPath(id: string, version: number): string {
+	return `${hubPlanPath(id)}/versions/${String(version)}`
+}
+
+export function hubPlanStatusPath(id: string): string {
+	return `${hubPlanPath(id)}/status`
 }
