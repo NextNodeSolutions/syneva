@@ -96,7 +96,7 @@ function planDeskOf(desk: HubDesk): PlanDeskRef | null {
 	const { plan, target, root } = desk.record
 	if (!plan || !target) return null
 	const fileHash = desk.ctx.state.files[0]?.contentHash
-	return { deskId: desk.id, root, file: target, fileHash }
+	return { root, file: target, fileHash }
 }
 
 // The plan a plan desk reviews (its id in the library), read off the record alone.

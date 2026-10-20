@@ -4,6 +4,9 @@ import type { ReviewMode } from './review.js'
 
 // Enough to key a per-repo review dir and a desk id, short enough to stay readable inside a path or a URL.
 const HASH_LENGTH = 16
+// Every id the hub derives (desk, project, plan) is one of its hex digests; the range leaves
+// room for a longer digest without ever admitting a path segment.
+const HEX_ID = /^[a-f0-9]{8,64}$/
 
 // sha1 over "blob <byteLen>\0" + bytes - the exact bytes git hashes, so this equals `git hash-object` and matches `git diff --raw`: committed sides need no re-hash.
 // SHA-1 only (git's default): on a rare sha256 repo working sides use this while committed sides carry real OIDs - internally consistent per file, so staleness stays correct. Pure, so the diff assembly can hash without the adapter.
@@ -22,6 +25,12 @@ export function hash(text: string): string {
 		.update(text)
 		.digest('hex')
 		.slice(0, HASH_LENGTH)
+}
+
+// Whether a string can be an id the hub derived: anything else never names a desk or a plan, nor
+// reaches a path.
+export function isHexId(id: string): boolean {
+	return HEX_ID.test(id)
 }
 
 // Anything outside [A-Za-z0-9._-] collapses to '-', so `--session "pr 123/foo"` can never escape the review dir; a name that cleans away to nothing still names a desk (fixed fallback).

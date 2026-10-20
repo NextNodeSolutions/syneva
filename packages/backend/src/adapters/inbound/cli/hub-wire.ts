@@ -12,6 +12,31 @@ export function readDesks(body: unknown): DeskSummary[] {
 	})
 }
 
+// A plan as `syneva plans` lists it: the fields the CLI acts on are checked, the rest of the
+// summary rides along untouched, and the CLI adds the plan's page.
+export type ListedPlan = Record<string, unknown> & {
+	id: string
+	root: string
+	url?: string
+}
+
+export function readPlans(body: unknown): ListedPlan[] {
+	if (typeof body !== 'object' || body === null || !('plans' in body))
+		return []
+	const { plans } = body
+	if (!Array.isArray(plans)) return []
+	return plans.flatMap(entry => {
+		if (typeof entry !== 'object' || entry === null) return []
+		const plan: Record<string, unknown> = Object.fromEntries(
+			Object.entries(entry),
+		)
+		const { id, root } = plan
+		if (typeof id !== 'string' || typeof root !== 'string') return []
+		// Narrowed in place: the entry is copied once.
+		return [Object.assign(plan, { id, root })]
+	})
+}
+
 // The fields the CLI acts on; the rest of the summary rides along untouched for `syneva desks` output.
 export function readDesk(entry: unknown): DeskSummary | null {
 	if (typeof entry !== 'object' || entry === null) return null

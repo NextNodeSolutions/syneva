@@ -31,6 +31,12 @@ export function isMode(raw: unknown): raw is ReviewMode {
 	return raw === 'repo' || raw === 'file' || raw === 'pr'
 }
 
+// An object's own fields to read one by one; null when it is not an object.
+export function fieldsOf(raw: unknown): Record<string, unknown> | null {
+	if (typeof raw !== 'object' || raw === null) return null
+	return Object.fromEntries(Object.entries(raw))
+}
+
 export function nonEmptyString(raw: unknown): string | null {
 	if (typeof raw !== 'string' || !raw.length) return null
 	return raw
@@ -43,10 +49,8 @@ export function optionalString(raw: unknown): string | undefined {
 
 // null when it is not a complete record: a desk that cannot be rebuilt from its own parameters is dropped rather than half-restored.
 export function decodeHubDeskRecord(raw: unknown): HubDeskRecord | null {
-	if (typeof raw !== 'object' || raw === null) return null
-	const record: Record<string, unknown> = Object.fromEntries(
-		Object.entries(raw),
-	)
+	const record = fieldsOf(raw)
+	if (!record) return null
 	const id = nonEmptyString(record.id)
 	const root = nonEmptyString(record.root)
 	const session = nonEmptyString(record.session)
@@ -82,10 +86,8 @@ export function decodeHubRegistry(raw: unknown): HubDeskRecord[] {
 
 // A truthy url alone proves nothing - the pid must be a positive integer and the strings present, so a corrupt lock degrades to "no hub recorded" (the CLI then probes the default origin) rather than to a half-valid one.
 export function decodeHubLock(raw: unknown): HubLock | null {
-	if (typeof raw !== 'object' || raw === null) return null
-	const record: Record<string, unknown> = Object.fromEntries(
-		Object.entries(raw),
-	)
+	const record = fieldsOf(raw)
+	if (!record) return null
 	const { pid } = record
 	if (typeof pid !== 'number' || !Number.isInteger(pid) || pid <= 0)
 		return null

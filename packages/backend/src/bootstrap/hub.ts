@@ -54,19 +54,16 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 	const log = options.log ?? hubLog
 	// One journal for the hub's desks to record into and the dashboard to read; one plan library
 	// for its plan desks to post into.
-	const records: HubRecords = {
-		journal: createHubJournal(nodeHubJournal, log),
-		plans: createPlanLibrary(nodePlanStore, nodeGit.workspace, log),
-	}
-	const { journal } = records
-	const hub = wireHub(options, records, log)
+	const journal = createHubJournal(nodeHubJournal, log)
+	const plans = createPlanLibrary(nodePlanStore, nodeGit.workspace, log)
+	const hub = wireHub(options, { journal, plans }, log)
 	const server = http.createServer()
 	server.on(
 		'request',
 		createHubRequestHandler({
 			hub,
 			journal,
-			plans: records.plans,
+			plans,
 			settings: nodeSettings,
 			guard,
 			// The origin guard re-reads the port per request: server.address() is populated only once the socket is bound.
@@ -91,12 +88,10 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 	}
 }
 
-// What the hub records as it runs, beside its desks.
-type HubRecords = { journal: HubJournal; plans: PlanLibrary }
-
+// The records are what the hub keeps as it runs, beside its desks.
 function wireHub(
 	options: HubOptions,
-	{ journal, plans }: HubRecords,
+	{ journal, plans }: { journal: HubJournal; plans: PlanLibrary },
 	log: (line: string) => void,
 ): Hub {
 	return createHub(

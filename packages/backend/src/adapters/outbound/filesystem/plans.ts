@@ -1,10 +1,15 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
+import { isHexId } from '../../../domain/identity.js'
 import { decodePlanRecord } from '../../../domain/plan.js'
 
 import { hubDir } from './hub.js'
-import { writeFileAtomic } from './persistence.js'
+import {
+	isMissingFile,
+	writeFileAtomic,
+	writeJsonAtomic,
+} from './persistence.js'
 
 import type { PlanStorePort } from '../../../application/ports.js'
 import type { PlanRecord } from '../../../domain/plan.js'
@@ -13,16 +18,14 @@ import type { PlanRecord } from '../../../domain/plan.js'
 // record and each version as it was posted.
 const PLANS_DIR = 'plans'
 const RECORD_FILE = 'plan.json'
-const JSON_INDENT = 2
-// Ids are the hub's own hex digests; anything else must never reach a path.
-const PLAN_ID = /^[a-f0-9]{8,64}$/
 
 function plansDir(): string {
 	return path.join(hubDir(), PLANS_DIR)
 }
 
 function planDir(id: string): string {
-	if (!PLAN_ID.test(id)) throw new Error(`Not a plan id: ${id}`)
+	// Ids are the hub's own hex digests; anything else must never reach a path.
+	if (!isHexId(id)) throw new Error(`Not a plan id: ${id}`)
 	return path.join(plansDir(), id)
 }
 
@@ -30,26 +33,15 @@ function versionFile(id: string, version: number): string {
 	return path.join(planDir(id), `v${String(version)}.md`)
 }
 
-function isMissing(error: unknown): boolean {
-	return (
-		typeof error === 'object' &&
-		error !== null &&
-		'code' in error &&
-		error.code === 'ENOENT'
-	)
-}
-
 async function loadPlans(): Promise<PlanRecord[]> {
 	let ids: string[]
 	try {
 		ids = await fs.readdir(plansDir())
 	} catch (error) {
-		if (isMissing(error)) return [] // no plan yet
+		if (isMissingFile(error)) return [] // no plan yet
 		throw error
 	}
-	const records = await Promise.all(
-		ids.filter(id => PLAN_ID.test(id)).map(loadPlan),
-	)
+	const records = await Promise.all(ids.filter(isHexId).map(loadPlan))
 	return records.filter(record => record !== null)
 }
 
@@ -62,7 +54,7 @@ async function loadPlan(id: string): Promise<PlanRecord | null> {
 	try {
 		text = await fs.readFile(path.join(planDir(id), RECORD_FILE), 'utf8')
 	} catch (error) {
-		if (isMissing(error)) return null
+		if (isMissingFile(error)) return null
 		throw error
 	}
 	let parsed: unknown
@@ -79,10 +71,7 @@ async function loadPlan(id: string): Promise<PlanRecord | null> {
 async function savePlan(record: PlanRecord): Promise<void> {
 	const dir = planDir(record.id)
 	await fs.mkdir(dir, { recursive: true })
-	await writeFileAtomic(
-		path.join(dir, RECORD_FILE),
-		`${JSON.stringify(record, null, JSON_INDENT)}\n`,
-	)
+	await writeJsonAtomic(path.join(dir, RECORD_FILE), record)
 }
 
 async function writeVersion(
@@ -101,7 +90,7 @@ async function readVersion(
 	try {
 		return await fs.readFile(versionFile(id, version), 'utf8')
 	} catch (error) {
-		if (isMissing(error)) return null
+		if (isMissingFile(error)) return null
 		throw error
 	}
 }

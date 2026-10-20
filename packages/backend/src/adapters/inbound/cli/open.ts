@@ -153,7 +153,7 @@ function planField(
 	return {
 		plan: {
 			id: desk.plan,
-			url: `${hub.url}${planPagePath(desk.plan).slice(1)}`,
+			url: hubEndpoint(hub.url, planPagePath(desk.plan)),
 		},
 	}
 }

@@ -3,7 +3,8 @@ import { HUB_PATHS, planPagePath } from '@syneva/contracts/routes'
 import { printJson } from '../../outbound/console.js'
 
 import { resolveRoot } from './args.js'
-import { connectHub, hubGet } from './hub-client.js'
+import { connectHub, hubEndpoint, hubGet } from './hub-client.js'
+import { readPlans } from './hub-wire.js'
 
 import type { CliArgs } from './args.js'
 
@@ -18,14 +19,16 @@ export async function runPlans(args: CliArgs): Promise<void> {
 		printJson({ ok: false, hub: null, plans: [] })
 		return
 	}
-	const response = await hubGet(hub, HUB_PATHS.plans)
-	const root = await scopeOf(args)
+	const [response, root] = await Promise.all([
+		hubGet(hub, HUB_PATHS.plans),
+		scopeOf(args),
+	])
 	const isListed = response.status === HTTP_OK
-	const plans = plansOf(isListed ? response.body : null).filter(
+	const plans = readPlans(isListed ? response.body : null).filter(
 		plan => !root || plan.root === root,
 	)
 	for (const plan of plans)
-		plan.url = `${hub.url}${planPagePath(plan.id).slice(1)}`
+		plan.url = hubEndpoint(hub.url, planPagePath(plan.id))
 	printJson({ ok: isListed, hub: hub.url, plans })
 }
 
@@ -33,27 +36,4 @@ export async function runPlans(args: CliArgs): Promise<void> {
 async function scopeOf(args: CliArgs): Promise<string | undefined> {
 	if (args.all === true) return undefined
 	return resolveRoot(args)
-}
-
-type ListedPlan = Record<string, unknown> & {
-	id: string
-	root: string
-	url?: string
-}
-
-// The fields the CLI acts on are checked; the rest of each plan rides along untouched.
-function plansOf(body: unknown): ListedPlan[] {
-	if (typeof body !== 'object' || body === null || !('plans' in body))
-		return []
-	const { plans } = body
-	if (!Array.isArray(plans)) return []
-	return plans.flatMap(entry => {
-		if (typeof entry !== 'object' || entry === null) return []
-		const plan: Record<string, unknown> = Object.fromEntries(
-			Object.entries(entry),
-		)
-		const { id, root } = plan
-		if (typeof id !== 'string' || typeof root !== 'string') return []
-		return [{ ...plan, id, root }]
-	})
 }

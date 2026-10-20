@@ -1,6 +1,7 @@
 import { HUB_PATHS, deskPagePath } from '@syneva/contracts/routes'
 
 import { planSummary } from '../../../application/plan-library.js'
+import { isHexId } from '../../../domain/identity.js'
 import { isPlanStatusChange } from '../../../domain/plan.js'
 
 import { deskPlanId } from './hosted-desk.js'
@@ -29,8 +30,7 @@ export type PlanRouteDeps = { hub: Hub; plans: PlanLibrary }
 
 type PlanRequest = { req: IncomingMessage; res: ServerResponse; url: URL }
 
-// A plan id is the hex digest the hub derives (domain/identity planId); a version is 1-based.
-const PLAN_ID = /^[a-f0-9]{8,64}$/
+// A version is 1-based.
 const VERSION = /^[1-9]\d*$/
 // /<id>/versions/<n>: the two segments after the plan's id.
 const VERSION_SEGMENTS = 2
@@ -65,7 +65,7 @@ export async function handlePlanApi(
 	const [id = '', ...rest] = pathname
 		.slice(HUB_PATHS.plans.length + 1)
 		.split('/')
-	if (!PLAN_ID.test(id)) return false
+	if (!isHexId(id)) return false
 	return dispatchPlan(deps, request, id, rest)
 }
 

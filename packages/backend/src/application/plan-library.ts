@@ -17,11 +17,10 @@ import type { PlanRecord, PlanStatusChange } from '../domain/plan.js'
 import type { DeskEventDraft } from './journal.js'
 import type { PlanStorePort, WorkspacePort } from './ports.js'
 
-// A plan desk as the library knows it: the desk, its repository, the plan file it reviews
-// (absolute, as the desk was opened on it) and that file's stamp on the desk at the event
+// A plan desk as the library knows it: its repository, the plan file it reviews (absolute, as
+// the desk was opened on it) and that file's stamp on the desk at the event
 // (ReviewFile.contentHash; undefined when the desk shows no file).
 export type PlanDeskRef = {
-	deskId: string
 	root: string
 	file: string
 	fileHash: string | undefined
@@ -138,28 +137,20 @@ function onceLoaded(
 	log: (line: string) => void,
 ): () => Promise<Map<string, PlanRecord>> {
 	let loading: Promise<Map<string, PlanRecord>> | null = null
-	const forget = (): void => {
-		loading = null
+	const load = async (): Promise<Map<string, PlanRecord>> => {
+		try {
+			for (const record of await store.load())
+				records.set(record.id, record)
+			return records
+		} catch (error) {
+			loading = null
+			log(`plans: unreadable: ${errorMessage(error)}`)
+			throw error
+		}
 	}
 	return () => {
-		loading ??= loadInto(store, records, log, forget)
+		loading ??= load()
 		return loading
-	}
-}
-
-async function loadInto(
-	store: PlanStorePort,
-	records: Map<string, PlanRecord>,
-	log: (line: string) => void,
-	forget: () => void,
-): Promise<Map<string, PlanRecord>> {
-	try {
-		for (const record of await store.load()) records.set(record.id, record)
-		return records
-	} catch (error) {
-		forget()
-		log(`plans: unreadable: ${errorMessage(error)}`)
-		throw error
 	}
 }
 
@@ -168,14 +159,17 @@ async function postVersion(
 	desk: PlanDeskRef,
 	at: string,
 ): Promise<void> {
-	const markdown = await shelf.workspace.readFile(desk.file)
-	if (markdown === null) return // the file is gone: its desk says so, the record keeps what it had
 	const file = planFileOf(desk.root, desk.file)
 	const known = (await shelf.load()).get(file.id) ?? null
+	// The desk still shows the latest version (a reload that changed nothing in the plan): the
+	// same content, so no version to post and no file to read.
+	if (desk.fileHash && known?.versions.at(-1)?.fileHash === desk.fileHash)
+		return
+	const markdown = await shelf.workspace.readFile(desk.file)
+	if (markdown === null) return // the file is gone: its desk says so, the record keeps what it had
 	const posting = {
 		...file,
 		root: desk.root,
-		deskId: desk.deskId,
 		markdown,
 		contentHash: hash(markdown),
 		fileHash: desk.fileHash,

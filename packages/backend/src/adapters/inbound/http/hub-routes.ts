@@ -157,7 +157,7 @@ export function closeDeskRoute(
 
 // GET /api/hub/journal[?after=<seq>][&limit=<n>] - what happened on the hub (HubJournalResponse).
 export async function readJournal(
-	deps: HubRouteDeps,
+	deps: Pick<HubRouteDeps, 'journal'>,
 	res: ServerResponse,
 	url: URL,
 ): Promise<void> {
@@ -175,14 +175,14 @@ export async function readJournal(
 // The display preferences (~/.syneva/settings.json), read and written exactly as a desk's
 // /settings routes do (routes/desk.ts): the dashboard has no desk base to reach them under.
 export async function serveHubSettings(
-	deps: HubRouteDeps,
+	deps: Pick<HubRouteDeps, 'settings'>,
 	res: ServerResponse,
 ): Promise<void> {
 	json(res, HTTP_OK, await deps.settings.read())
 }
 
 export async function saveHubSettings(
-	deps: HubRouteDeps,
+	deps: Pick<HubRouteDeps, 'settings'>,
 	req: IncomingMessage,
 	res: ServerResponse,
 ): Promise<void> {

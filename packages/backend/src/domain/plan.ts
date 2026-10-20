@@ -6,7 +6,7 @@
 // PlanRecord is a structural mirror of packages/contracts/src/plans.ts (domain may not import
 // contracts): the application maps one onto the other (application/plan-library.ts).
 
-import { nonEmptyString, optionalString } from './hub-registry.js'
+import { fieldsOf, nonEmptyString, optionalString } from './hub-registry.js'
 import { markdownOutline } from './outline-markdown.js'
 
 export type PlanStatus = 'draft' | 'approved' | 'implemented' | 'archived'
@@ -35,8 +35,6 @@ export type PlanRecord = {
 	readonly summary?: string | undefined
 	readonly status: PlanStatus
 	readonly versions: readonly PlanVersion[]
-	// The desk that last posted a version: the plan's page reviews it there.
-	readonly deskId: string
 	readonly createdAt: string
 	readonly updatedAt: string
 }
@@ -46,7 +44,6 @@ export type PlanPosting = {
 	readonly id: string
 	readonly root: string
 	readonly path: string
-	readonly deskId: string
 	readonly markdown: string
 	readonly contentHash: string
 	readonly fileHash: string | undefined
@@ -118,7 +115,6 @@ export function postPlanVersion(
 		summary: heading.summary,
 		status: 'draft',
 		versions: [...(record?.versions ?? []), version],
-		deskId: posting.deskId,
 		createdAt: record?.createdAt ?? posting.at,
 		updatedAt: posting.at,
 	}
@@ -174,18 +170,16 @@ function isPlanStatus(raw: unknown): raw is PlanStatus {
 // null when it is not a complete record: a plan whose versions cannot be read is dropped rather
 // than half-listed.
 export function decodePlanRecord(raw: unknown): PlanRecord | null {
-	const record = recordOf(raw)
+	const record = fieldsOf(raw)
 	if (!record) return null
 	const id = nonEmptyString(record.id)
 	const root = nonEmptyString(record.root)
 	const path = nonEmptyString(record.path)
 	const title = nonEmptyString(record.title)
-	const deskId = nonEmptyString(record.deskId)
 	const createdAt = nonEmptyString(record.createdAt)
 	const updatedAt = nonEmptyString(record.updatedAt)
 	const versions = decodeVersions(record.versions)
-	if (!id || !root || !path || !title || !deskId || !createdAt || !updatedAt)
-		return null
+	if (!id || !root || !path || !title || !createdAt || !updatedAt) return null
 	if (!versions?.length || !isPlanStatus(record.status)) return null
 	return {
 		id,
@@ -195,7 +189,6 @@ export function decodePlanRecord(raw: unknown): PlanRecord | null {
 		summary: optionalString(record.summary),
 		status: record.status,
 		versions,
-		deskId,
 		createdAt,
 		updatedAt,
 	}
@@ -215,7 +208,7 @@ function decodeVersions(raw: unknown): PlanVersion[] | null {
 }
 
 function decodeVersion(raw: unknown): PlanVersion | null {
-	const record = recordOf(raw)
+	const record = fieldsOf(raw)
 	if (!record) return null
 	const { number } = record
 	const contentHash = nonEmptyString(record.contentHash)
@@ -231,9 +224,4 @@ function decodeVersion(raw: unknown): PlanVersion | null {
 		title,
 		approvedAt: optionalString(record.approvedAt),
 	}
-}
-
-function recordOf(raw: unknown): Record<string, unknown> | null {
-	if (typeof raw !== 'object' || raw === null) return null
-	return Object.fromEntries(Object.entries(raw))
 }
