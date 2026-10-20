@@ -1,23 +1,16 @@
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
-import {
-	color,
-	duration,
-	ease,
-	font,
-} from '@syneva/design-system/tokens.stylex'
+import { color, font } from '@syneva/design-system/tokens.stylex'
 
-import { planRowMarker } from './plan-library.stylex'
+import { deskRowMarker } from '../react/desk-row.stylex'
 
 // The library as index rows per repository: the plan's title, what it is about and its file,
 // then its status, where its review stands, its versions and last move, and Review; on a narrow
-// page the figures fold into one line under the title.
+// page the figures fold into one line under the title. A row is the shared index row
+// (react/index-row.styles.ts), lit as a desk row is (rowLight), its title answering the row's
+// hover through the desk row's marker.
 const NARROW = '@container plans (max-width: 760px)'
-// The row lights the way the desk rows do: on hover with a fine pointer, or while its link
-// has the keyboard's focus.
-const WHITE_60 = `color-mix(in srgb, ${color['--white']} 60%, transparent)`
-const FOCUSED = ':has(a:focus-visible)'
-const rowHover = (): string => stylex.when.ancestor(':hover', planRowMarker)
+const rowHover = (): string => stylex.when.ancestor(':hover', deskRowMarker)
 
 export const planLibrary = stylex.create({
 	root: {
@@ -37,38 +30,13 @@ export const planLibrary = stylex.create({
 	},
 	projectName: { color: color['--ink'] },
 	row: {
-		display: 'grid',
 		gridTemplateColumns: {
 			default:
 				'minmax(0, 3fr) minmax(0, 0.8fr) minmax(0, 1.3fr) minmax(0, 1.1fr) auto',
 			[NARROW]: 'minmax(0, 1fr) auto',
 		},
-		alignItems: 'center',
-		columnGap: '20px',
-		rowGap: '6px',
 		position: 'relative',
-		paddingBlock: '16px',
 		paddingInline: '8px',
-		backgroundColor: {
-			default: null,
-			[FOCUSED]: WHITE_60,
-			[media.finePointer]: {
-				default: null,
-				':hover': WHITE_60,
-				[FOCUSED]: WHITE_60,
-			},
-		},
-		transition: `background-color ${duration['--duration-medium']} ${ease['--ease-out']}`,
-		borderBottomWidth: '1px',
-		borderBottomStyle: 'solid',
-		borderBottomColor: color['--line'],
-	},
-	title: {
-		display: 'block',
-		fontSize: '15px',
-		fontWeight: 500,
-		letterSpacing: '-.01em',
-		color: color['--ink'],
 	},
 	titleLink: {
 		textDecoration: 'none',

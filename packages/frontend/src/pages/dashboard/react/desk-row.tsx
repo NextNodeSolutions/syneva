@@ -12,7 +12,7 @@ import { CloseControl } from './close-control'
 import { CloseWarning } from './close-warning'
 import { DeskCell } from './desk-cell'
 import { DeskReview } from './desk-review'
-import { deskArrival, deskRow } from './desk-row.styles'
+import { deskArrival, deskRow, rowLight } from './desk-row.styles'
 import { deskRowMarker } from './desk-row.stylex'
 import { DeskStage } from './desk-stage'
 
@@ -85,6 +85,7 @@ export function DeskRow({
 			data-enter="rise"
 			{...stylex.props(
 				deskRow.row,
+				rowLight.lit,
 				isArmed && deskRow.armed,
 				look.hasArrived && deskArrival.row,
 				deskRowMarker,

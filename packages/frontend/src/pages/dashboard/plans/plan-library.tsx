@@ -9,9 +9,11 @@ import { planPagePath } from '@syneva/contracts/routes'
 import { focus } from '@syneva/design-system/controls.styles'
 
 import { displayRoot, plural, relativeTime } from '../format'
+import { rowLight } from '../react/desk-row.styles'
+import { deskRowMarker } from '../react/desk-row.stylex'
+import { indexRow } from '../react/index-row.styles'
 
 import { planLibrary } from './plan-library.styles'
-import { planRowMarker } from './plan-library.stylex'
 import { PlanReviewAction } from './plan-review-action'
 import { PlanStatusTag } from './plan-status'
 import { PlanTurn } from './plan-turn'
@@ -51,11 +53,19 @@ function PlanRow({ row, now }: { row: Row; now: number }): ReactElement {
 	const versions = plural(plan.versions.length, 'version')
 	const last = relativeTime(plan.updatedAt, now)
 	return (
-		<li {...stylex.props(planLibrary.row, planRowMarker)} data-enter="rise">
+		<li
+			{...stylex.props(
+				indexRow.row,
+				planLibrary.row,
+				rowLight.lit,
+				deskRowMarker,
+			)}
+			data-enter="rise"
+		>
 			<span>
 				<AppLink
 					href={planPagePath(plan.id)}
-					css={[focus.ring, planLibrary.title, planLibrary.titleLink]}
+					css={[focus.ring, indexRow.name, planLibrary.titleLink]}
 				>
 					{plan.title}
 					<span
