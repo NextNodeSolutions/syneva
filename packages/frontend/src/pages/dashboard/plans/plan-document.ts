@@ -1,9 +1,9 @@
 import { esc } from '@shared/lib/esc'
 
-import { splitFigures } from './plan-figures'
+import { markFigures } from './plan-figures'
 
 import type { PlanMarkdown } from '../markdown'
-import type { PlanFigure } from './plan-figures'
+import type { MarkedFigure, PlanFigure } from './plan-figures'
 
 // A plan's front matter (title, summary) is the record's, read by the hub: the page shows it
 // in its head, so the body starts after it.
@@ -22,37 +22,67 @@ export type ReadPart =
 
 export type PlanReading = { parts: ReadPart[]; sections: PlanSection[] }
 
-type Named = { html: string; sections: PlanSection[] }
-
-// One prose part with its sections named: each h2 gets an id the table of contents links to,
-// numbered on from `start`. A leading h1 that only repeats the plan's title is dropped, since
-// the page's head already states it.
-function nameSections(
-	html: string,
-	start: number,
-	title: string | null,
-): Named {
-	const doc = new DOMParser().parseFromString(html, 'text/html')
-	const first = doc.body.firstElementChild
-	if (
-		title &&
-		first?.tagName === 'H1' &&
-		first.textContent.trim() === title.trim()
-	)
+// The rendered body's sections named: each h2 gets an id the table of contents links to. A
+// first h1 that only repeats the plan's title is dropped, since the page's head already
+// states it.
+function nameSections(body: HTMLElement, title: string): PlanSection[] {
+	const first = body.firstElementChild
+	if (first?.tagName === 'H1' && first.textContent.trim() === title.trim())
 		first.remove()
 	const sections: PlanSection[] = []
-	for (const heading of doc.body.querySelectorAll('h2')) {
-		const id = `section-${String(start + sections.length + 1)}`
+	for (const heading of body.querySelectorAll('h2')) {
+		const id = `section-${String(sections.length + 1)}`
 		heading.setAttribute('id', id)
 		sections.push({ id, title: heading.textContent.trim() })
 	}
-	return { html: doc.body.innerHTML, sections }
+	return sections
+}
+
+// The rendered body cut at its figures' markers (plan-figures.ts), in order; prose left blank
+// between two figures is dropped.
+function cutAtFigures(
+	body: HTMLElement,
+	figures: readonly MarkedFigure[],
+): ReadPart[] {
+	const byMarker = new Map(figures.map(entry => [entry.marker, entry.figure]))
+	const parts: ReadPart[] = []
+	let prose = ''
+	const flush = (): void => {
+		if (prose.trim())
+			parts.push({
+				key: `part-${String(parts.length)}`,
+				kind: 'html',
+				html: prose,
+			})
+		prose = ''
+	}
+	for (const node of body.childNodes) {
+		const figure =
+			node instanceof HTMLParagraphElement
+				? byMarker.get(node.textContent.trim())
+				: undefined
+		if (figure) {
+			flush()
+			parts.push({
+				key: `part-${String(parts.length)}`,
+				kind: 'figure',
+				figure,
+			})
+		} else
+			prose +=
+				node instanceof Element
+					? node.outerHTML
+					: esc(node.textContent ?? '')
+	}
+	flush()
+	return parts
 }
 
 // The body as rendered prose and figures, in order. Agent-authored markdown goes through the
-// renderer with no raw HTML (the trust boundary); naming sections only adds ids and removes a
-// heading. Without the renderer (its chunk did not load) the body still reads, as its plain
-// text in one part, figures' sources included.
+// renderer with no raw HTML (the trust boundary), in one pass so footnotes and link references
+// reach across figures; naming sections only adds ids and removes a heading. Without the
+// renderer (its chunk did not load) the body still reads, as its plain text in one part,
+// figures' sources included.
 export function readPlan(
 	engine: PlanMarkdown | null,
 	markdown: string,
@@ -70,23 +100,13 @@ export function readPlan(
 			],
 			sections: [],
 		}
-	const reading: PlanReading = { parts: [], sections: [] }
-	for (const part of splitFigures(body)) {
-		const key = `part-${String(reading.parts.length)}`
-		if (part.kind === 'figure') {
-			reading.parts.push({ key, ...part })
-			continue
-		}
-		const isFirst = !reading.parts.length
-		const named = nameSections(
-			engine.renderGuideMarkdown(part.markdown),
-			reading.sections.length,
-			isFirst ? title : null,
-		)
-		reading.parts.push({ key, kind: 'html', html: named.html })
-		reading.sections.push(...named.sections)
-	}
-	return reading
+	const marked = markFigures(body)
+	const doc = new DOMParser().parseFromString(
+		engine.renderGuideMarkdown(marked.markdown),
+		'text/html',
+	)
+	const sections = nameSections(doc.body, title)
+	return { parts: cutAtFigures(doc.body, marked.figures), sections }
 }
 
 // The plan's markdown as a file the reviewer keeps, named after the plan's own file.

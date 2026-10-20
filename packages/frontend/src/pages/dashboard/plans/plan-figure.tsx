@@ -94,7 +94,7 @@ export function PlanFigureView({
 					</BlockBoundary>
 				</div>
 			</div>
-			{(block.title ?? block.detail) && (
+			{(Boolean(block.title) || Boolean(block.detail)) && (
 				<figcaption {...stylex.props(planFigure.caption)}>
 					{block.title && (
 						<span {...stylex.props(planFigure.captionTitle)}>
