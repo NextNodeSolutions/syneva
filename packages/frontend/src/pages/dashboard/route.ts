@@ -1,6 +1,7 @@
 import {
 	DASHBOARD_PATHS,
 	isDashboardPath,
+	PLAN_PAGE_PREFIX,
 	PROJECT_PAGE_PREFIX,
 } from '@syneva/contracts/routes'
 
@@ -12,6 +13,7 @@ export type DashboardPage =
 	| { kind: 'projects' }
 	| { kind: 'project'; id: string }
 	| { kind: 'plans' }
+	| { kind: 'plan'; id: string }
 	| { kind: 'settings' }
 	| { kind: 'hub' }
 	| { kind: 'missing' }
@@ -32,5 +34,7 @@ export function pageOf(pathname: string): DashboardPage {
 			kind: 'project',
 			id: pathname.slice(PROJECT_PAGE_PREFIX.length),
 		}
+	if (pathname.startsWith(PLAN_PAGE_PREFIX))
+		return { kind: 'plan', id: pathname.slice(PLAN_PAGE_PREFIX.length) }
 	return BY_PATH[pathname] ?? { kind: 'missing' }
 }

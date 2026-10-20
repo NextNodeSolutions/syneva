@@ -54,7 +54,8 @@ export const JOURNAL_READ_MAX = 2000
 
 // The dashboard's pages: the hub serves the dashboard's page shell at each of them (and at
 // every project page under PROJECT_PAGE_PREFIX), and the dashboard routes between them in the
-// browser, so each is also a URL that survives a reload or a shared link.
+// browser, so each is also a URL that survives a reload or a shared link. Every plan page under
+// PLAN_PAGE_PREFIX is one too.
 export const DASHBOARD_PATHS = {
 	overview: '/',
 	reviews: '/reviews',
@@ -69,6 +70,9 @@ export const PROJECT_PAGE_PREFIX = '/projects/'
 // One plan's page: /plans/<planId> (PlanSummary.id).
 export const PLAN_PAGE_PREFIX = '/plans/'
 
+// A project or plan id is the hex digest the hub derives; anything else never names one.
+const PAGE_ID = /^[a-f0-9]{8,64}$/
+
 export function planPagePath(planId: string): string {
 	return `${PLAN_PAGE_PREFIX}${planId}`
 }
@@ -81,10 +85,10 @@ export function projectPagePath(projectId: string): string {
 // Whether the hub answers this path with the dashboard's page shell.
 export function isDashboardPath(pathname: string): boolean {
 	if (Object.values<string>(DASHBOARD_PATHS).includes(pathname)) return true
-	const rest = pathname.slice(PROJECT_PAGE_PREFIX.length)
-	return (
-		pathname.startsWith(PROJECT_PAGE_PREFIX) &&
-		/^[a-f0-9]{8,64}$/.test(rest)
+	return [PROJECT_PAGE_PREFIX, PLAN_PAGE_PREFIX].some(
+		prefix =>
+			pathname.startsWith(prefix) &&
+			PAGE_ID.test(pathname.slice(prefix.length)),
 	)
 }
 
