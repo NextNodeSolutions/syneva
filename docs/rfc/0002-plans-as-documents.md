@@ -24,7 +24,7 @@ type PlanStatus = 'draft' | 'approved' | 'implemented' | 'archived'
 
 type PlanVersion = {
 	number: number            // 1..n, in posting order
-	contentHash: string       // the same content never makes a second version
+	contentHash: string       // equal to the latest version's: no new version (a revert to an older text is one)
 	postedAt: string
 	title: string
 	approvedAt?: string       // set by the round whose Send approved the file
@@ -46,7 +46,7 @@ type PlanRecord = {
 
 - **A plan desk** is a file desk opened with `syneva open plan <path>` (the open body carries `plan: true`). It is the same desk a file desk is, same session, same id, same review, same events; the hub records it as a plan in its registry, so a restart keeps it one.
 - **Identity.** A plan is stable per repo + path, so reopening the file reuses the record, as a second open reuses a desk.
-- **Versions.** The plan library observes its desks' events, the way the journal does, when they happen: an open or a reload of a plan desk reads the file and posts a version if its content changed. Identical content posts nothing.
+- **Versions.** The plan library observes its desks' events, the way the journal does, when they happen: an open or a reload of a plan desk reads the file and posts a version if its content differs from the latest version's. Content identical to the latest posts nothing; a revert to an older version's text posts a new version, so an approval always lands on the text that was reviewed.
 - **Status.** `draft` while the latest version is not approved; `approved` when a Send approves the file (the latest version gets `approvedAt`); a new version after that is a draft again. `implemented` and `archived` are the reviewer's, set from the plan's page (`POST /api/hub/plans/:id/status`); a new version brings an archived or implemented plan back to draft, since someone is working on it again.
 - **Store.** `~/.syneva/hub/plans/<planId>/plan.json` and `v<n>.md` (each version verbatim). The working file stays where the agent wrote it; whether a team commits it is its choice, the record does not depend on git.
 - **Nothing is edited in Syneva.** The record grows by versions and a status; the text is always a file someone wrote.

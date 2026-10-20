@@ -15,7 +15,7 @@ October 2026 (Workers, D1, R2, Queues, Durable Objects pricing and limits pages)
   on port 4747. `createHubRequestHandler` (`adapters/inbound/http/router.ts`) is the single
   request entry point: Host/Origin guard, then the access guard (`--key`, Bearer header or
   signed-in cookie), then dispatch: dashboard page shells, desk page shell, hub API
-  (`/api/hub/*`), dashboard API (journal, settings), per-desk API (`/api/desks/<id>/*`, 22
+  (`/api/hub/*`), dashboard API (journal, settings), per-desk API (`/api/desks/<id>/*`, 23
   routes in `routes.ts`), UI assets last.
 - **The desk registry** (`adapters/inbound/http/hub.ts`, `createHub`) is a `Map<deskId, HubDesk>`.
   Opens are serialized. A desk id is `hash(root + "\n" + session)` (`domain/identity.ts`), so an
@@ -55,7 +55,7 @@ connection state.
 
 | Layer | Node coupling | Verdict |
 |---|---|---|
-| `domain/`, `application/` | only `node:path` and `node:crypto` (sha1, sha256, randomUUID); no third-party dependency | portable as is: both modules exist on Workers under `nodejs_compat` |
+| `domain/`, `application/` | only `node:path` and `node:crypto` (sha1, sha256, randomUUID) plus the `Buffer` global (byte lengths, `blobOid`); no third-party dependency | portable as is: all three exist on Workers under `nodejs_compat` |
 | `adapters/inbound/http/*` | `IncomingMessage` / `ServerResponse` in every route; `res.on('finish')` hooks on send, stop, shutdown | the one real blocker: must move to Fetch `Request` / `Response` |
 | `adapters/outbound/*` | `node:fs`, `child_process` (git, gh, the editor), `oxc-parser` native binding | local by nature |
 | `adapters/inbound/cli`, `adapters/inbound/pi`, `bootstrap` | `process`, spawn, lock files | local by nature |
@@ -108,8 +108,8 @@ apps/landing          unchanged
 
 Dependency rule, enforced by oxlint: `core` and `frontend` import nothing from `local` or
 `web`; `local` and `web` import `core` and `contracts`; `frontend` imports `contracts` only.
-The core's only `node:*` imports are `node:path` and `node:crypto` (both available on Workers
-under `nodejs_compat`); `node:fs`, `node:http`, `node:child_process`, `node:os` and the
+The core's only `node:*` imports are `node:path` and `node:crypto`, and its only Node global is
+`Buffer` (all three available on Workers under `nodejs_compat`); `node:fs`, `node:http`, `node:child_process`, `node:os` and the
 `process` global are refused in core by a `no-restricted-imports` / `no-restricted-globals`
 override with a stated reason.
 
@@ -136,7 +136,7 @@ override with a stated reason.
 `packages/local`:
 
 - `adapters/outbound/**` (git, filesystem, editor, source, package-registry, console,
-  platform-open), unchanged.
+  and `src/platform-open.ts`), unchanged.
 - A `node-server.ts` adapter: `IncomingMessage` to `Request`, `Response` to `ServerResponse`
   (streaming bodies), `afterResponse` effects on `finish`, the strict bind of `listen.ts`.
 - `routes/static.ts` (reads the built bundle from disk), `adapters/inbound/cli/**`,
@@ -240,6 +240,11 @@ request never waits on the bridge, exactly as it never waits on a journal write.
 
 A pulse is what `/poll` answers today (hash, guide, resolution, comments, threads, status): a
 few KB, a few hundred KB on a big guided desk, pushed only when the revision or the status moved.
+Two fields move with time, not with an event, and the push must not chase them: the agent
+activity expires on its 90 s TTL, so the mirror keeps its `at` and the web applies the same TTL
+when it answers; a summary's `lastActivityAt` moves on every desk request (a local tab's
+`/poll` included), so it alone never marks a desk dirty and rides the next push or heartbeat,
+at 30 s granularity.
 
 ```mermaid
 sequenceDiagram
@@ -265,22 +270,30 @@ invocation the Worker polls `tunnel WHERE hub_id = ? AND state = 'pending'` ever
 the hub is watched (`hubs.watched_until > now`, refreshed at most every 10 s by any browser read
 of that hub) and every 2 s otherwise, claims rows atomically (`UPDATE ... WHERE state =
 'pending'`, D1 runs one query at a time per database) and answers `{ requests: [...] }`, or
-`[]` at the deadline. The 1000-queries cap ends the invocation by itself; the hub loops.
+`[]` at the deadline (25 s is about 100 queries hot, well under the 1000-queries cap); the hub
+loops.
 
 **The relay**, for one browser request:
 
 1. The browser calls `GET /api/desks/<webId>/state`. The Worker resolves `webId` to
    `(hub, deskId)`, checks the hub belongs to the signed-in user, inserts a `tunnel` row (body
-   inline up to 1 MB, in R2 above; D1 rows are capped at 2 MB) and polls that row's state every
-   200 ms, up to 30 s.
+   inline up to 1 MB, in R2 above; D1 rows are capped at 2 MB), with `deadlineAt` 30 s out, and
+   polls that row's state every 200 ms until then. The hub holds no R2 credential: a body in R2
+   reaches it through `GET /bridge/v1/bodies/<id>` (Bearer hub token), and the Worker does every
+   R2 read and write.
 2. The hub's inbox call returns the request. The probe builds a trusted `Request` and
    dispatches it **in process** to the core router: no loopback HTTP, the Host/Origin guard
    skipped because the channel itself is authenticated, the path allowlist enforced on both
-   ends. It posts the answer: `POST /bridge/v1/responses/<id>` with status, content type and
-   body (R2 above 1 MB).
+   ends. A request already past its `deadlineAt` is dropped unrun. It posts the answer:
+   `POST /bridge/v1/responses/<id>` with status, content type and body; the Worker stores a body
+   above 1 MB in R2 itself.
 3. The waiting invocation sees `state = 'answered'`, returns the body to the browser and
-   deletes the row. Past 30 s it answers 504 `HUB_TIMEOUT`; an offline hub gets 503
-   `HUB_OFFLINE` at once, without a row.
+   deletes the row. At the deadline it flips the row to `expired` in one conditional `UPDATE ...
+   WHERE state = 'pending'`: if that wins, the hub never sees the request and the answer is 504
+   `HUB_TIMEOUT`; if the row was already claimed, the action may still run, the answer is 504
+   `HUB_TIMEOUT_CLAIMED` (the tab says the action may have run and re-reads before a retry), and
+   a late `responses/<id>` is discarded. An offline hub gets 503 `HUB_OFFLINE` at once, without
+   a row.
 
 Round trip: one inbox tick (up to 250 ms) + the hub's work + one response tick (up to 200 ms),
 about 0.4 to 0.7 s. Opening a desk on the web costs the prefs (web), the state and the tree
@@ -317,9 +330,10 @@ times fewer Worker requests. That is the phase 3 optimization, not a prerequisit
 frontend's polling works unchanged against the web from day one.
 
 **Why not have the push answer carry the inbox** (one `sync` call per tick, no long-poll)? When
-someone is watching, the hub would call the web four times a second: about 10 million requests
-a month per hub, $3 each. The long-poll keeps the waiting inside one invocation where the
-tick is a D1 read, a thousand times cheaper.
+someone is watching, the hub would call the web four times a second: about 3.5 million requests
+a month per hub watched 8 h a day (about $1), 10 million if watched around the clock. The
+long-poll keeps the waiting inside one invocation where the tick is a D1 read, about 300 times
+cheaper than a request.
 
 ### 4.5 The hub API on the web, route by route
 
@@ -329,7 +343,7 @@ tick is a D1 read, a thousand times cheaper.
 | `GET /api/hub/desks` | the registry | the mirror: every desk of the user's hubs, each with `hub: { id, name, online }` |
 | `POST /api/hub/desks` | open | relayed to the hub the body names (`hubId`; the New review dialog picks it) |
 | `DELETE /api/hub/desks/<id>` | close | relayed |
-| `POST /api/hub/inventory` | build | relayed |
+| `POST /api/hub/inventory` | build | relayed to the hub the body names (`hubId`, as for an open) |
 | `GET /api/hub/journal` | the journal tail | the mirror: one seq per user, merged across hubs |
 | `GET`/`POST /api/hub/settings`, `/api/desks/<id>/settings` | `~/.syneva/settings.json` | D1 `user_settings`: the prefs follow the user across devices |
 | `GET /api/desks/<id>/poll` | the desk | the mirrored pulse: same `?instance=` check, same refresh event |
@@ -340,10 +354,14 @@ tick is a D1 read, a thousand times cheaper.
 ### 4.6 Ids, seqs, settings
 
 - Web desk id: `hash(hubId + "\n" + deskId)`, 16 hex characters, so it fits `DESK_ID` and
-  `/d/<id>/` unchanged; `path` is rewritten at ingest; `desks(web_id, hub_id, desk_id)` maps
-  back. Two laptops with the same repo path and branch never collide.
-- Journal: `journal(user_id, seq)` is monotonic per user; `(hub_id, hub_seq)` is unique. The
-  dashboard's `after=` cursor and `latest` keep their meaning.
+  `/d/<id>/` unchanged; `deskId` and `path` are rewritten at ingest, in summaries and in
+  journal events alike; `desks(web_id, hub_id, desk_id)` maps back. Two laptops with the same
+  repo path and branch never collide.
+- Web project id: `hash(hubId + "\n" + projectId)`, rewritten at ingest the same way, since a
+  local `projectId` is `hash(root)` and two laptops with the same root would otherwise share one
+  project page.
+- Journal: `journal(user_id, seq)` is monotonic per user; `(hub_id, hub_seq)` is unique; an
+  event's `seq` is rewritten to the user's seq at ingest. The dashboard's `after=` cursor and `latest` keep their meaning.
 - `serverInstanceId` passes through the pulse: a restarted local hub shows the same refresh
   notice on the web as on the local tab.
 - Settings are per user on the web and per machine locally; the contract is identical.
@@ -375,8 +393,12 @@ tick is a D1 read, a thousand times cheaper.
 - Transit: a relayed body rests in D1 or R2 between the hub's answer and the browser's read
   (seconds), deleted on delivery, swept by a cron after 60 s; encrypted at rest by Cloudflare.
   The mirror holds what the dashboard shows and nothing else. Phase 3: end-to-end encryption
-  with a per-hub key held by the browser (the Worker relays ciphertext): the cloud cannot read
-  your code. No telemetry, as today.
+  with a per-hub key held by the browser (the Worker relays ciphertext). That alone does not keep
+  the cloud from your code: a GET carries its path and query in clear and no body, so a Worker
+  could still forge `/file-contents` or open a file desk; the browser must also sign every
+  relayed request with that key and the probe refuse an unsigned one, and the mirror's pulses
+  (guide, comments) must be encrypted the same way. Only then can the cloud not read your code.
+  No telemetry, as today.
 - The rate limiter binding guards sign-in, pairing and push, as it guards the signup today.
 
 ### 4.9 Cost and ceilings
@@ -394,10 +416,10 @@ One paired hub online 24/7, one dashboard tab and one desk tab open 8 h a day:
 | Dashboard tab polling (2 reads every 2 s) | 864k requests | $0.26 + $0.03 CPU |
 | Desk tab polling (1 read every 1.5 s) | 576k requests | $0.17 + $0.02 CPU |
 | Relayed actions (about 100 a day) | 3k requests, 3k R2 ops at most | under $0.02 |
-| **Total per active user** | | **about $0.35 to $0.65** |
+| **Total per active user** | about 1.6M requests | **about $0.55 to $0.65** |
 
 Browser polling dominates; SSE for browser tabs (phase 3) brings it to about $0.10. The 10
-million included requests absorb the first ten or so such users entirely. For reference, a
+million included requests absorb the first six or so such users entirely. For reference, a
 Durable Object with hibernating WebSockets would cost a few cents per user; the cost the
 decision protects against is a bug, not the list price: one object kept awake 24/7 by a
 non-hibernating connection costs about $4 a month, times however many objects are stuck. The
