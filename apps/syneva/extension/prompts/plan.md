@@ -4,17 +4,17 @@ argument-hint: "<what to plan>"
 ---
 Plan **$ARGUMENTS** and review the plan interactively through **Syneva**: the plan lands in a browser desk where the human accepts/demands changes and asks questions; you revise the plan live. Iterate until the plan is approved — this command produces a plan, not an implementation.
 
-Treat **`syneva spec`** as the authoritative contract — run it once before your first Syneva review this session (file mode, await/comment/reload loop, ReviewResult). `syneva` is installed by the syneva pi package (shim in `~/.pi/agent/bin`); if it is missing, tell the user and offer the upstream fallback `pnpm add -g syneva`.
+Treat **`syneva spec`** as the authoritative contract — run it once before your first Syneva review this session (plan mode, await/comment/reload loop, ReviewResult). `syneva` is installed by the syneva pi package (shim in `~/.pi/agent/bin`); if it is missing, tell the user and offer the upstream fallback `pnpm add -g syneva`.
 
 1. **Investigate** the repository enough to plan concretely: relevant files, existing patterns, tests/checks, constraints. Do not write code yet.
-2. **Write the plan** (English) to `<repo>/.pi/syneva/plans/<slug>.md` where `<slug>` is from the request (kebab-case, ≤40 chars; if the file already exists, suffix `-$EPOCHSECONDS`). `mkdir -p` first. Sections: **Goal**, **Context** (what exists, relevant constraints), **Approach** (steps with rationale, in order), **Files touched** (per file: what changes and why), **Risks / open questions**, **Verification** (how each step proves done). If the repo has AGENTS.md, honor it.
+2. **Write the plan** (English) to `<repo>/.pi/syneva/plans/<slug>.md` where `<slug>` is from the request (kebab-case, ≤40 chars; if the file already exists, suffix `-$EPOCHSECONDS`). `mkdir -p` first. Open it with front matter naming the plan (`title:` and a one-sentence `summary:` between `---` lines): the hub's plan library lists it by them. Sections: **Goal**, **Context** (what exists, relevant constraints), **Approach** (steps with rationale, in order), **Files touched** (per file: what changes and why), **Risks / open questions**, **Verification** (how each step proves done). Where a state machine, an exchange or a pipeline reads better drawn, add a figure: a ```` ```syneva ```` fence holding one `state`, `sequence` or `flow` block in the guide's JSON shape (`syneva spec`). If the repo has AGENTS.md, honor it.
 3. **Keep the plan invisible to git**: if in a git repo and the path is not already ignored (check `git check-ignore -q .pi/syneva/plans/<slug>.md`), append one line `.pi/syneva/plans/` to `.git/info/exclude` (never touch tracked `.gitignore` for this).
-4. **Open the desk on the hub** (file mode, which needs no guide; the command returns at once and starts the hub in the background when none runs):
+4. **Open the plan on the hub** (a plan desk: a file desk the hub also keeps in its plan library, version by version; it needs no guide, and the command returns at once and starts the hub in the background when none runs):
    ```bash
-   syneva open file .pi/syneva/plans/<slug>.md | tee /tmp/syneva-<slug>.json
+   syneva open plan .pi/syneva/plans/<slug>.md | tee /tmp/syneva-<slug>.json
    url=$(jq -r .url /tmp/syneva-<slug>.json); echo "${url:-open failed - read the command's stderr}"
    ```
-   Report the printed URL to the user.
+   Report the printed URL to the user, and the plan's own page (`jq -r .plan.url`), where every version stays readable.
 5. **Attach the owning Pi session** with `syneva_agent` as documented in `syneva spec`, then return control. Never delegate waiting to a one-shot subagent. If the tool is unavailable, report the missing native attachment rather than claim the desk will wake an idle agent. Incoming native messages point to the complete event JSON; read it before handling the event:
    - `question` event: read-only answering — comment replies at path/lineNumber/side, no file edits, no implementation chatter. Long work → `syneva status --body "…"`.
    - `review` event: the plan was judged — `requestedChanges[]` → **edit the plan file** at those points between rounds (this file is the artifact edit target; never repo code); `rejected[]` → remove/rework those parts; `accepted`/`approvedFiles` → keep; `openQuestions[]` → answer read-only first. Regenerate/annotate the plan file, then `syneva reload` so the desk re-reads it in the same tab.

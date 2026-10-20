@@ -28,7 +28,8 @@ Reach for Syneva when the user should review something turn-by-turn: **code chan
 Three ways to open a review desk (each returns at once with the desk's URL; the desk stays alive on the hub across rounds):
 
 - **Changes you made** → `syneva open --session <id>` (working tree; `--diff staged` for staged only).
-- **A markdown plan / single artifact** → `syneva open file <path>`.
+- **A markdown plan** → `syneva open plan <path>`: the hub keeps each version and its approval in its plan library (`syneva plans`).
+- **A single artifact** → `syneva open file <path>`.
 - **A branch / PR** → `syneva open pr <ref>`.
 
 `open` is idempotent: a second open of the same repo+session reloads the live desk into its tab instead of opening another. `syneva desks` lists the repo's live desks (the human may have opened one from the dashboard before you had changes).
