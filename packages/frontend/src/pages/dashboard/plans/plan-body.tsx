@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 
+import { Band } from './plan-band'
 import { planBody } from './plan-body.styles'
 import { PlanFigureView } from './plan-figure'
 
@@ -34,23 +35,17 @@ function Parts({ parts }: { parts: readonly ReadPart[] }): ReactElement {
 function SectionBand({ section }: { section: ReadSection }): ReactElement {
 	const headingId = `${section.id}-title`
 	return (
-		<section
-			id={section.id}
-			aria-labelledby={headingId}
-			{...stylex.props(planBody.band)}
-		>
-			<div {...stylex.props(planBody.inner)}>
-				<p {...stylex.props(planBody.eyebrow)}>{section.number}</p>
-				<h2
-					id={headingId}
-					{...stylex.props(planBody.heading)}
-					// The heading as rendered, its inline code and links kept (plan-document.ts).
-					// oxlint-disable-next-line react/no-danger
-					dangerouslySetInnerHTML={{ __html: section.html }}
-				/>
-				<Parts parts={section.parts} />
-			</div>
-		</section>
+		<Band as="section" id={section.id} labelledBy={headingId}>
+			<p {...stylex.props(planBody.eyebrow)}>{section.number}</p>
+			<h2
+				id={headingId}
+				{...stylex.props(planBody.heading)}
+				// The heading as rendered, its inline code and links kept (plan-document.ts).
+				// oxlint-disable-next-line react/no-danger
+				dangerouslySetInnerHTML={{ __html: section.html }}
+			/>
+			<Parts parts={section.parts} />
+		</Band>
 	)
 }
 
@@ -67,12 +62,10 @@ export function PlanBody({
 	return (
 		<article {...stylex.props(planBody.root)}>
 			{(hasIntro || notice) && (
-				<div {...stylex.props(planBody.band)}>
-					<div {...stylex.props(planBody.inner)}>
-						{notice}
-						<Parts parts={reading.intro} />
-					</div>
-				</div>
+				<Band>
+					{notice}
+					<Parts parts={reading.intro} />
+				</Band>
 			)}
 			{reading.sections.map(section => (
 				<SectionBand key={section.id} section={section} />
@@ -92,12 +85,10 @@ export function RawBody({
 }): ReactElement {
 	return (
 		<article {...stylex.props(planBody.root)}>
-			<div {...stylex.props(planBody.band)}>
-				<div {...stylex.props(planBody.inner)}>
-					{notice}
-					<pre {...stylex.props(planBody.raw)}>{markdown}</pre>
-				</div>
-			</div>
+			<Band>
+				{notice}
+				<pre {...stylex.props(planBody.raw)}>{markdown}</pre>
+			</Band>
 		</article>
 	)
 }

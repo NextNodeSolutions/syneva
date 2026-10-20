@@ -5,6 +5,7 @@ import { DASHBOARD_PATHS } from '@syneva/contracts/routes'
 
 import { shortDay } from '../format'
 
+import { Band } from './plan-band'
 import { planPage } from './plan-page.styles'
 import { PlanStatusTag } from './plan-status'
 
@@ -75,28 +76,26 @@ export function PlanHero({
 	children: ReactNode
 }): ReactElement {
 	return (
-		<header {...stylex.props(planPage.hero)}>
-			<div {...stylex.props(planPage.heroFrame)}>
-				<div {...stylex.props(planPage.heroMain)}>
-					<PlanEyebrow plan={plan} />
-					<h1 {...stylex.props(planPage.title)} data-enter="rise">
-						{plan.title}
-					</h1>
-					{plan.summary && (
-						<p {...stylex.props(planPage.lede)} data-enter="rise">
-							{plan.summary}
-						</p>
-					)}
-					<PlanToc sections={sections} />
-					{children}
-				</div>
-				<aside
-					{...stylex.props(planPage.heroMeta)}
-					aria-label="Versions"
-				>
-					{meta}
-				</aside>
+		<Band
+			as="header"
+			css={{ band: planPage.hero, frame: planPage.heroFrame }}
+		>
+			<div {...stylex.props(planPage.heroMain)}>
+				<PlanEyebrow plan={plan} />
+				<h1 {...stylex.props(planPage.title)} data-enter="rise">
+					{plan.title}
+				</h1>
+				{plan.summary && (
+					<p {...stylex.props(planPage.lede)} data-enter="rise">
+						{plan.summary}
+					</p>
+				)}
+				<PlanToc sections={sections} />
+				{children}
 			</div>
-		</header>
+			<aside {...stylex.props(planPage.heroMeta)} aria-label="Versions">
+				{meta}
+			</aside>
+		</Band>
 	)
 }
