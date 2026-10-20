@@ -1,28 +1,39 @@
 import { useRef } from 'react'
 
+import { turnOf } from '@entities/hub/turn'
 import { usePlans } from '@entities/hub/use-plans'
 import { useEntrance } from '@shared/lib/use-entrance'
 import * as stylex from '@stylexjs/stylex'
 
 import { plural } from '../format'
-import { groupsByTurn } from '../overview/groups'
 import { listPage } from '../react/list-page.styles'
-import { LiveAndClosed } from '../react/live-and-closed'
 import { PageHead } from '../react/page-head'
 import { dashboardPage } from '../react/page.styles'
 import { PhasePage } from '../react/phase-page'
 
 import { PlanLibrary } from './plan-library'
-import { planLibrary } from './plan-library.styles'
 
+import type { HubDesk } from '@entities/hub/model'
+import type { PlansView } from '@entities/hub/use-plans'
 import type { ReactElement } from 'react'
 import type { DashboardState, Listed } from '../use-dashboard'
 
-const EMPTY_PLANS =
-	'No plan under review. Your agent opens one with syneva open plan <path>, or the /plan prompt.'
+// The page's lede counts what the library holds and how many of its plans wait on the reviewer.
+function ledeOf(library: PlansView, desks: readonly HubDesk[]): string {
+	const what =
+		'The plans your agent hands you before it writes code, each kept version by version and reviewed on its own desk.'
+	if (library.phase !== 'read' || !library.plans.length) return what
+	const waiting = desks.filter(
+		desk => desk.plan && turnOf(desk) === 'yours',
+	).length
+	const count = plural(library.plans.length, 'plan')
+	if (!waiting) return `${count}. ${what}`
+	return `${count}, ${String(waiting)} waiting on you. ${what}`
+}
 
-// A plan is reviewed as one file (`syneva open plan`, the /plan prompt's desk): the file desks,
-// by turn, and the ones closed before them; then the library, every plan the hub keeps.
+// A plan lives in the library: its desk is where it is reviewed, so the page lists plans, each
+// with its desk's turn, rather than desks. A file desk that is not a plan is a review like any
+// other, listed with the reviews.
 function PlansListed({
 	dashboard,
 	listed,
@@ -32,23 +43,16 @@ function PlansListed({
 }): ReactElement {
 	const root = useRef<HTMLDivElement>(null)
 	useEntrance(root, 'plans')
-	const plans = listed.desks.filter(desk => desk.mode === 'file')
 	const library = usePlans()
 	return (
 		<div ref={root} {...stylex.props(dashboardPage.root)}>
-			<PageHead
-				title="Plans"
-				lede={`${plural(plans.length, 'plan')} under review: the files your agent hands you before it writes code (a plan, a PRD, an issue), each on its own desk, and the library that keeps every version.`}
-			/>
-			<LiveAndClosed
-				dashboard={dashboard}
-				groups={groupsByTurn(plans, dashboard.since)}
-				texts={{ empty: EMPTY_PLANS, closed: 'Closed plans' }}
-				isKept={closed => closed.mode === 'file'}
-				css={[listPage.body, planLibrary.flush]}
-			/>
+			<PageHead title="Plans" lede={ledeOf(library, listed.desks)} />
 			<div {...stylex.props(listPage.body)}>
-				<PlanLibrary view={library} now={dashboard.hub.now} />
+				<PlanLibrary
+					view={library}
+					desks={listed.desks}
+					now={dashboard.hub.now}
+				/>
 			</div>
 		</div>
 	)
