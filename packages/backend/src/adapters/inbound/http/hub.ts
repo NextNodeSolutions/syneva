@@ -198,13 +198,15 @@ async function reuseDesk(
 	if (outcome.kind === 'invalid-guide')
 		return { ok: false, code: 'INVALID_GUIDE', reason: outcome.reason }
 	live.ctx.commit(outcome.state)
-	// The record first: the reload's event reaches the plan library when this open makes the desk a plan desk.
-	await keepOpenPreferences(state.desks, live.id, query, state.persist)
+	// The record first (in memory), the registry write after the event: a failed write never
+	// leaves a reloaded desk unrecorded.
+	const isRecordChanged = keepOpenPreferences(state.desks, live.id, query)
 	live.ctx.recordEvent({
 		kind: 'desk-reloaded',
 		...reviewScope(outcome.state),
 	})
 	state.io.log(`desk reloaded ${live.id} (${live.record.root})`)
+	if (isRecordChanged) await state.persist()
 	return { ok: true, desk: live, outcome: 'reloaded' }
 }
 

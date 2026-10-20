@@ -18,6 +18,9 @@ export type PlanVersion = {
 	readonly number: number
 	// The content's digest: the same content never makes a second version.
 	readonly contentHash: string
+	// The file's stamp on the desk that posted it (ReviewFile.contentHash): a Send approves this
+	// version only from a desk showing this content.
+	readonly fileHash?: string | undefined
 	readonly postedAt: string
 	readonly title: string
 	readonly approvedAt?: string | undefined
@@ -46,6 +49,7 @@ export type PlanPosting = {
 	readonly deskId: string
 	readonly markdown: string
 	readonly contentHash: string
+	readonly fileHash: string | undefined
 	readonly at: string
 }
 
@@ -102,6 +106,7 @@ export function postPlanVersion(
 	const version: PlanVersion = {
 		number: (latest?.number ?? 0) + 1,
 		contentHash: posting.contentHash,
+		fileHash: posting.fileHash,
 		postedAt: posting.at,
 		title: heading.title,
 	}
@@ -119,12 +124,20 @@ export function postPlanVersion(
 	}
 }
 
-// A Send that approved the plan's file approves its latest version: the one the reviewer read
-// (a version posts when its desk opens or reloads, before anything is sent). An implemented plan
-// stays implemented; a version already approved is left as it was (null: nothing changed).
-export function approvePlan(record: PlanRecord, at: string): PlanRecord | null {
+// A Send that approved the plan's file approves its latest version when the approving desk shows
+// that version's content (`fileHash`, the desk's stamp of the file): a version posts when its desk
+// opens or reloads, before anything is sent, but another desk on the same file (another session)
+// may have posted a newer one the reviewer never read here. An implemented plan stays
+// implemented; a version already approved, or not the one on the desk, is left as it was (null:
+// nothing changed).
+export function approvePlan(
+	record: PlanRecord,
+	at: string,
+	fileHash: string | undefined,
+): PlanRecord | null {
 	const latest = record.versions.at(-1)
 	if (!latest || latest.approvedAt) return null
+	if (!fileHash || latest.fileHash !== fileHash) return null
 	return {
 		...record,
 		status: record.status === 'implemented' ? 'implemented' : 'approved',
@@ -213,6 +226,7 @@ function decodeVersion(raw: unknown): PlanVersion | null {
 	return {
 		number,
 		contentHash,
+		fileHash: optionalString(record.fileHash),
 		postedAt,
 		title,
 		approvedAt: optionalString(record.approvedAt),

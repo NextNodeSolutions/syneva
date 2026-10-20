@@ -91,19 +91,27 @@ export function hostDesk(
 	return desk
 }
 
+// A file desk reviews one file: its stamp is the content the reviewer has on screen.
 function planDeskOf(desk: HubDesk): PlanDeskRef | null {
 	const { plan, target, root } = desk.record
 	if (!plan || !target) return null
-	return { deskId: desk.id, root, file: target }
+	const fileHash = desk.ctx.state.files[0]?.contentHash
+	return { deskId: desk.id, root, file: target, fileHash }
+}
+
+// The plan a plan desk reviews (its id in the library), read off the record alone.
+export function deskPlanId(desk: HubDesk): string | undefined {
+	const { plan, target, root } = desk.record
+	if (!plan || !target) return undefined
+	return planFileOf(root, target).id
 }
 
 export function summarize(desk: HubDesk): DeskSummary {
-	const plan = planDeskOf(desk)
 	return {
 		...deskSummary(desk.id, desk.ctx.state, desk.ctx.status(), {
 			openedAt: desk.liveness.openedAt,
 			lastActivityAt: desk.liveness.lastActivityAt(),
 		}),
-		plan: plan ? planFileOf(plan.root, plan.file).id : undefined,
+		plan: deskPlanId(desk),
 	}
 }

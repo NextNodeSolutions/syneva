@@ -21,17 +21,18 @@ export function liveRecords(desks: Map<string, HubDesk>): HubDeskRecord[] {
 }
 
 // The record is what a restart rebuilds from: a reopen that changed the guide expectation, or
-// made the desk a plan desk, must outlive the hub too.
-export async function keepOpenPreferences(
+// made the desk a plan desk, must outlive the hub too. Applied in memory here (true when it
+// changed, so the caller writes the registry), before the reload's event: that event reaches
+// the plan library when this open makes the desk a plan desk.
+export function keepOpenPreferences(
 	desks: Map<string, HubDesk>,
 	id: string,
 	query: DeskQuery,
-	persist: () => Promise<void>,
-): Promise<void> {
+): boolean {
 	const desk = desks.get(id)
-	if (!desk) return
+	if (!desk) return false
 	const record = reopenedRecord(desk.record, query)
-	if (record === desk.record) return
+	if (record === desk.record) return false
 	desk.record = record
-	await persist()
+	return true
 }

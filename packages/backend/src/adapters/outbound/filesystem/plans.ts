@@ -54,20 +54,26 @@ async function loadPlans(): Promise<PlanRecord[]> {
 }
 
 // A record that does not decode is left on disk and out of the library: a foreign or torn file
-// costs that plan's listing, never the library's.
+// costs that plan's listing, never the library's. A folder without a record (a version written,
+// its record not) holds no plan yet. Any other read failure is thrown, never taken for an absent
+// plan: the next post would restart it at version 1 over what is on disk.
 async function loadPlan(id: string): Promise<PlanRecord | null> {
+	let text: string
 	try {
-		const text = await fs.readFile(
-			path.join(planDir(id), RECORD_FILE),
-			'utf8',
-		)
-		const parsed: unknown = JSON.parse(text)
-		const record = decodePlanRecord(parsed)
-		if (record?.id !== id) return null
-		return record
-	} catch {
-		return null
+		text = await fs.readFile(path.join(planDir(id), RECORD_FILE), 'utf8')
+	} catch (error) {
+		if (isMissing(error)) return null
+		throw error
 	}
+	let parsed: unknown
+	try {
+		parsed = JSON.parse(text)
+	} catch {
+		return null // torn or foreign: skipped, as the port says
+	}
+	const record = decodePlanRecord(parsed)
+	if (record?.id !== id) return null
+	return record
 }
 
 async function savePlan(record: PlanRecord): Promise<void> {

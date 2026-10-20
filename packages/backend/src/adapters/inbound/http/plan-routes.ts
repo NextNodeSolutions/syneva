@@ -1,8 +1,9 @@
-import { HUB_PATHS } from '@syneva/contracts/routes'
+import { HUB_PATHS, deskPagePath } from '@syneva/contracts/routes'
 
 import { planSummary } from '../../../application/plan-library.js'
 import { isPlanStatusChange } from '../../../domain/plan.js'
 
+import { deskPlanId } from './hosted-desk.js'
 import {
 	HTTP_NOT_FOUND,
 	HTTP_OK,
@@ -92,13 +93,13 @@ async function dispatchPlan(
 	return true
 }
 
-// The live plan desks by plan: the desk a plan's page sends the reviewer to.
+// The live plan desks by plan: the desk a plan's page sends the reviewer to. Read off each
+// desk's record, not its full summary (a listing would otherwise project every desk's review).
 function liveDesksByPlan(hub: Hub): Map<string, PlanDesk> {
 	const desks = new Map<string, PlanDesk>()
 	for (const desk of hub.listDesks()) {
-		const summary = hub.summary(desk)
-		if (summary.plan)
-			desks.set(summary.plan, { id: summary.id, path: summary.path })
+		const plan = deskPlanId(desk)
+		if (plan) desks.set(plan, { id: desk.id, path: deskPagePath(desk.id) })
 	}
 	return desks
 }

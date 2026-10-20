@@ -17,9 +17,15 @@ import type { PlanRecord, PlanStatusChange } from '../domain/plan.js'
 import type { DeskEventDraft } from './journal.js'
 import type { PlanStorePort, WorkspacePort } from './ports.js'
 
-// A plan desk as the library knows it: the desk, its repository and the plan file it reviews
-// (absolute, as the desk was opened on it).
-export type PlanDeskRef = { deskId: string; root: string; file: string }
+// A plan desk as the library knows it: the desk, its repository, the plan file it reviews
+// (absolute, as the desk was opened on it) and that file's stamp on the desk at the event
+// (ReviewFile.contentHash; undefined when the desk shows no file).
+export type PlanDeskRef = {
+	deskId: string
+	root: string
+	file: string
+	fileHash: string | undefined
+}
 
 // The hub's plan library (RFC 0002): the record of every plan a plan desk reviewed. It observes
 // its desks' events the way the journal does, when they happen - an open or a reload posts the
@@ -122,16 +128,21 @@ async function settle(
 }
 
 // Loaded on first use inside the queue, like the journal: only the hub that serves requests
-// reads the library. An unreadable library starts empty - the record is never what the hub needs
-// to run.
+// reads the library. An unreadable library is never taken for an empty one: a post would then
+// start the plan over at version 1 and overwrite the record and the versions on disk. The
+// failure is logged and thrown (the event's write is dropped, a read fails), and the next use
+// tries again - the record is never what the hub needs to run.
 function onceLoaded(
 	store: PlanStorePort,
 	records: Map<string, PlanRecord>,
 	log: (line: string) => void,
 ): () => Promise<Map<string, PlanRecord>> {
 	let loading: Promise<Map<string, PlanRecord>> | null = null
+	const forget = (): void => {
+		loading = null
+	}
 	return () => {
-		loading ??= loadInto(store, records, log)
+		loading ??= loadInto(store, records, log, forget)
 		return loading
 	}
 }
@@ -140,13 +151,16 @@ async function loadInto(
 	store: PlanStorePort,
 	records: Map<string, PlanRecord>,
 	log: (line: string) => void,
+	forget: () => void,
 ): Promise<Map<string, PlanRecord>> {
 	try {
 		for (const record of await store.load()) records.set(record.id, record)
+		return records
 	} catch (error) {
-		log(`plans: unreadable, starting empty: ${errorMessage(error)}`)
+		forget()
+		log(`plans: unreadable: ${errorMessage(error)}`)
+		throw error
 	}
-	return records
 }
 
 async function postVersion(
@@ -164,6 +178,7 @@ async function postVersion(
 		deskId: desk.deskId,
 		markdown,
 		contentHash: hash(markdown),
+		fileHash: desk.fileHash,
 		at,
 	}
 	const next = postPlanVersion(known, posting, path.basename(desk.file))
@@ -180,7 +195,7 @@ async function approveLatest(
 ): Promise<void> {
 	const { id } = planFileOf(desk.root, desk.file)
 	const known = (await shelf.load()).get(id)
-	const next = known && approvePlan(known, at)
+	const next = known && approvePlan(known, at, desk.fileHash)
 	if (next) await keep(shelf, next)
 }
 
