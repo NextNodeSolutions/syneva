@@ -1,0 +1,144 @@
+/* A plan read like an RFC (pages/dashboard/plans/plan-body.tsx): prose across its section's
+   centred frame (the band draws the rule and the headline, the frame bounds the line), quiet list
+   markers, a blockquote as the key point on the wash, inline code on the wash with no box around
+   it. Laid over the shared prose (shared/markdown/prose.css): only the dashboard loads this sheet,
+   after that one, so its rules win at equal specificity. A top-level h2 never reaches the prose
+   (the page cuts the body into sections there and draws the heading itself), and code in a fence
+   keeps the shared `pre code` reset, which outranks the inline code below. */
+[data-prose='plan'] {
+	font-size: 16px;
+	line-height: 1.7;
+}
+
+[data-prose='plan'] h1,
+[data-prose='plan'] h2,
+[data-prose='plan'] h3,
+[data-prose='plan'] h4 {
+	font-weight: 500;
+	text-wrap: balance;
+}
+
+[data-prose='plan'] h1 {
+	margin: 40px 0 0;
+	font-size: 24px;
+	letter-spacing: -0.03em;
+	line-height: 1.2;
+}
+
+[data-prose='plan'] h3 {
+	margin: 36px 0 0;
+	font-size: 17px;
+	letter-spacing: -0.01em;
+}
+
+[data-prose='plan'] h4 {
+	margin: 24px 0 0;
+	font-size: 15px;
+}
+
+/* The band's headline sits right above the first part; prose after a figure keeps its spacing. */
+[data-prose='plan'] > :first-child {
+	margin-top: 14px;
+}
+
+[data-prose='plan'] p,
+[data-prose='plan'] ul,
+[data-prose='plan'] ol,
+[data-prose='plan'] blockquote,
+[data-prose='plan'] pre,
+[data-prose='plan'] table {
+	margin: 14px 0 0;
+	text-wrap: pretty;
+}
+
+[data-prose='plan'] ul,
+[data-prose='plan'] ol {
+	padding-left: 20px;
+	list-style-position: outside;
+}
+
+[data-prose='plan'] ul {
+	list-style-type: disc;
+}
+
+[data-prose='plan'] ol {
+	list-style-type: decimal;
+}
+
+[data-prose='plan'] li {
+	margin: 7px 0;
+}
+
+[data-prose='plan'] li::marker {
+	color: var(--muted);
+}
+
+[data-prose='plan'] li > p {
+	margin: 0;
+}
+
+[data-prose='plan'] strong {
+	font-weight: 600;
+}
+
+[data-prose='plan'] code {
+	font-size: 0.88em;
+	padding: 1px 5px;
+	border: 0;
+	background: var(--wash);
+	color: var(--ink);
+}
+
+[data-prose='plan'] blockquote {
+	margin-top: 22px;
+	padding: 14px 18px;
+	border-left: 2px solid var(--accent);
+	background: var(--wash-tint);
+	color: var(--ink);
+}
+
+[data-prose='plan'] blockquote > :first-child {
+	margin-top: 0;
+}
+
+[data-prose='plan'] pre {
+	padding: 14px 18px;
+	border: 1px solid var(--line);
+	background: var(--white);
+	font-size: 12.5px;
+	line-height: 1.55;
+}
+
+[data-prose='plan'] table {
+	display: block;
+	width: 100%;
+	margin-top: 22px;
+	overflow-x: auto;
+	font-size: 13.5px;
+	line-height: 1.45;
+}
+
+[data-prose='plan'] th {
+	padding: 10px 16px 8px 0;
+	border: 0;
+	border-bottom: 1px solid var(--line-strong);
+	font-family: var(--mono);
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	white-space: nowrap;
+	color: var(--muted);
+	text-align: left;
+}
+
+[data-prose='plan'] td {
+	padding: 10px 16px 10px 0;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	vertical-align: top;
+}
+
+[data-prose='plan'] td code {
+	white-space: normal;
+}

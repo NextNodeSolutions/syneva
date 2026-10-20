@@ -1,6 +1,7 @@
 import '@syneva/design-system/fonts.css'
-// A plan's page renders markdown (pages/dashboard/plans).
+// A plan's page renders markdown (pages/dashboard/plans), its own variant over the shared one.
 import '@shared/markdown/prose.css'
+import '@pages/dashboard/plans/plan-prose.css'
 import { createRoot } from 'react-dom/client'
 
 import { fetchHubPrefs } from '@entities/settings/api'
