@@ -14,6 +14,7 @@ import {
 import { runDesks } from '../adapters/inbound/cli/desks.js'
 import { runInventory } from '../adapters/inbound/cli/inventory.js'
 import { runOpen } from '../adapters/inbound/cli/open.js'
+import { runPlans } from '../adapters/inbound/cli/plans.js'
 import { runReload } from '../adapters/inbound/cli/reload.js'
 import {
 	runHubStatus,
@@ -38,12 +39,14 @@ Hub:
 Desks:
   syneva open [--diff working|staged] [--path <p>]   Open (or reload) a desk over the working-tree/staged diff
   syneva open file <path>           Open a desk over a single file or artifact (tracked or not)
+  syneva open plan <path>           Open a plan's desk: a file desk the hub keeps in its plan library (versions, status)
   syneva open pr <ref|number|url>   Open a desk over a branch's commits vs its merge-base
   syneva inventory [file <path> | pr <ref>] [--diff staged] [--path <p>]
                                     Print the review source a guide is authored against (fingerprint, files, changed units)
   syneva desks [--all]              List this repo's live desks (--all: the whole hub) with their URLs
+  syneva plans [--all]              List this repo's plans in the hub's plan library (--all: every repo)
   syneva close [--session <id>|--all]  Close this repo's desk(s); idempotent (alias: stop)
-  (syneva / syneva file / syneva pr are shorthands for syneva open … and start a hub when none runs)
+  (syneva / syneva file / syneva plan / syneva pr are shorthands for syneva open … and start a hub when none runs)
 
 Agent loop:
   syneva await [--timeout <s>]      Block for the next desk event (question | review | closed)
@@ -114,6 +117,8 @@ async function dispatch(
 			return dispatchInventory(first, second, args)
 		case 'file':
 			return runOpen('file', first, args)
+		case 'plan':
+			return runOpen('file', first, args, { plan: true })
 		case 'pr':
 			return runOpen('pr', first, args)
 		case null:
@@ -130,6 +135,8 @@ async function dispatchAgentCommand(sub: string, args: CliArgs): Promise<void> {
 	switch (sub) {
 		case 'desks':
 			return runDesks(args)
+		case 'plans':
+			return runPlans(args)
 		case 'comment':
 			return runComment(args)
 		case 'status':
@@ -152,10 +159,11 @@ function dispatchOpen(
 	args: CliArgs,
 ): Promise<void> {
 	if (first === 'file') return runOpen('file', second, args)
+	if (first === 'plan') return runOpen('file', second, args, { plan: true })
 	if (first === 'pr') return runOpen('pr', second, args)
 	if (first) {
 		warn(
-			`Unknown open target "${first}". Use: syneva open | syneva open file <path> | syneva open pr <ref>.`,
+			`Unknown open target "${first}". Use: syneva open | syneva open file <path> | syneva open plan <path> | syneva open pr <ref>.`,
 		)
 		process.exitCode = 1
 		return Promise.resolve()
@@ -182,7 +190,7 @@ function dispatchInventory(
 
 function unknownCommand(sub: string): void {
 	warn(
-		`Unknown command "${sub}". Use: start | hub [stop] | open [file <path> | pr <ref>] | inventory [file <path> | pr <ref>] | desks | await | comment | status | reload | close | spec.`,
+		`Unknown command "${sub}". Use: start | hub [stop] | open [file <path> | plan <path> | pr <ref>] | inventory [file <path> | pr <ref>] | desks | plans | await | comment | status | reload | close | spec.`,
 	)
 	process.exitCode = 1
 }

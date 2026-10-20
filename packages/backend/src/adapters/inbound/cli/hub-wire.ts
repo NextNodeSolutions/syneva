@@ -44,6 +44,7 @@ export function readDesk(entry: unknown): DeskSummary | null {
 		agentListening: record.agentListening === true,
 		agentActivity: null,
 		path: record.path,
+		plan: typeof record.plan === 'string' ? record.plan : undefined,
 	}
 }
 

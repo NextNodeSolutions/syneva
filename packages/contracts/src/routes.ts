@@ -66,6 +66,13 @@ export const DASHBOARD_PATHS = {
 
 export const PROJECT_PAGE_PREFIX = '/projects/'
 
+// One plan's page: /plans/<planId> (PlanSummary.id).
+export const PLAN_PAGE_PREFIX = '/plans/'
+
+export function planPagePath(planId: string): string {
+	return `${PLAN_PAGE_PREFIX}${planId}`
+}
+
 // One project's page: /projects/<projectId> (DeskSummary.projectId).
 export function projectPagePath(projectId: string): string {
 	return `${PROJECT_PAGE_PREFIX}${projectId}`
