@@ -1,4 +1,4 @@
-import { latestVersion, plansByProject } from '@entities/hub/plan-model'
+import { plansByProject } from '@entities/hub/plan-model'
 import { sectionLabel } from '@shared/ui/section-label.styles'
 import { TextLink } from '@shared/ui/text-link'
 import * as stylex from '@stylexjs/stylex'
@@ -19,7 +19,6 @@ const EMPTY_LIBRARY =
 function PlanRow({ plan, now }: { plan: Plan; now: number }): ReactElement {
 	const versions = plural(plan.versions.length, 'version')
 	const last = relativeTime(plan.updatedAt, now)
-	const approved = latestVersion(plan)?.approvedAt
 	return (
 		<li {...stylex.props(planLibrary.row)} data-enter="rise">
 			<span>
@@ -44,7 +43,7 @@ function PlanRow({ plan, now }: { plan: Plan; now: number }): ReactElement {
 				)}
 			</span>
 			<span {...stylex.props(planLibrary.folded)}>
-				{`${versions} · ${approved ? 'approved' : 'moved'} ${last}`}
+				{`${versions} · moved ${last}`}
 			</span>
 		</li>
 	)
