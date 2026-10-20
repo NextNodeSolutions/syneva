@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 
+import { planDesks } from '@entities/hub/plan-model'
 import { turnOf } from '@entities/hub/turn'
 import { usePlans } from '@entities/hub/use-plans'
 import { useEntrance } from '@shared/lib/use-entrance'
@@ -23,8 +24,8 @@ function ledeOf(library: PlansView, desks: readonly HubDesk[]): string {
 	const what =
 		'The plans your agent hands you before it writes code, each kept version by version and reviewed on its own desk.'
 	if (library.phase !== 'read' || !library.plans.length) return what
-	const waiting = desks.filter(
-		desk => desk.plan && turnOf(desk) === 'yours',
+	const waiting = planDesks(desks).filter(
+		desk => turnOf(desk) === 'yours',
 	).length
 	const count = plural(library.plans.length, 'plan')
 	if (!waiting) return `${count}. ${what}`

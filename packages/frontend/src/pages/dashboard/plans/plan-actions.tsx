@@ -69,23 +69,58 @@ function useStatusMove(
 	return { busy, failure, move }
 }
 
+type RawToggle = { isRaw: boolean; toggle: () => void }
+
+// The plan as its markdown: read raw in place, or kept as a file named after the plan's own.
+function MarkdownActions({
+	markdown,
+	path,
+	raw,
+}: {
+	markdown: string
+	path: string
+	raw: RawToggle
+}): ReactElement {
+	return (
+		<>
+			<Button
+				tone="quiet"
+				size="small"
+				aria-pressed={raw.isRaw}
+				onClick={raw.toggle}
+			>
+				{raw.isRaw ? 'Read rendered' : 'View raw markdown'}
+			</Button>
+			<ButtonLink
+				{...markdownDownload(markdown, path)}
+				tone="quiet"
+				size="small"
+			>
+				Download markdown
+			</ButtonLink>
+		</>
+	)
+}
+
 // Review first (the plan's desk, open or opened again), then the reviewer's own word on its
 // status, then the plan as its markdown: read raw in place, or kept as a file.
 export function PlanActions({
 	plan,
+	deskPath,
 	markdown,
 	onChanged,
 	raw,
 }: {
 	plan: Plan
+	deskPath: string | null
 	markdown: string
 	onChanged: (plan: Plan) => void
-	raw: { isRaw: boolean; toggle: () => void }
+	raw: RawToggle
 }): ReactElement {
 	const { busy, failure, move } = useStatusMove(plan.id, onChanged)
 	return (
 		<div {...stylex.props(planPage.actions)} data-enter="fade">
-			<PlanReviewAction plan={plan} tone="primary" />
+			<PlanReviewAction plan={plan} tone="primary" deskPath={deskPath} />
 			{MOVES[plan.status].map(({ status, label }) => (
 				<Button
 					key={status}
@@ -98,21 +133,7 @@ export function PlanActions({
 					{label}
 				</Button>
 			))}
-			<Button
-				tone="quiet"
-				size="small"
-				aria-pressed={raw.isRaw}
-				onClick={raw.toggle}
-			>
-				{raw.isRaw ? 'Read rendered' : 'View raw markdown'}
-			</Button>
-			<ButtonLink
-				{...markdownDownload(markdown, plan.path)}
-				tone="quiet"
-				size="small"
-			>
-				Download markdown
-			</ButtonLink>
+			<MarkdownActions markdown={markdown} path={plan.path} raw={raw} />
 			{failure && (
 				<span role="alert" {...stylex.props(planPage.failure)}>
 					{failure}

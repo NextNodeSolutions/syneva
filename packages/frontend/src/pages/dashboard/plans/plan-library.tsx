@@ -1,4 +1,4 @@
-import { plansByProject } from '@entities/hub/plan-model'
+import { deskOfPlan, plansByProject } from '@entities/hub/plan-model'
 import { TURNS, turnOf } from '@entities/hub/turn'
 import { AppLink } from '@shared/ui/app-link'
 import { sectionLabel } from '@shared/ui/section-label.styles'
@@ -15,14 +15,14 @@ import { PlanStatusTag } from './plan-status'
 import { PlanTurn } from './plan-turn'
 
 import type { HubDesk } from '@entities/hub/model'
-import type { Plan, PlanProject } from '@entities/hub/plan-model'
+import type { Plan, PlanDeskJoin, PlanProject } from '@entities/hub/plan-model'
 import type { PlansView } from '@entities/hub/use-plans'
 import type { ReactElement } from 'react'
 
 const EMPTY_LIBRARY =
 	'No plan kept yet. Your agent adds one with syneva open plan <path>, or the /plan prompt: every version it posts lands here.'
 
-type Row = { plan: Plan; desk: HubDesk | undefined }
+type Row = PlanDeskJoin & { plan: Plan }
 
 // A plan's place in its project: the ones waiting on the reviewer first, in the order the
 // round runs, then the ones with no desk open; the most recently moved first within each.
@@ -32,10 +32,7 @@ function rank(row: Row): number {
 
 function rowsOf(project: PlanProject, desks: readonly HubDesk[]): Row[] {
 	return project.plans
-		.map(plan => ({
-			plan,
-			desk: desks.find(desk => desk.plan === plan.id),
-		}))
+		.map(plan => ({ plan, ...deskOfPlan(plan, desks) }))
 		.toSorted(
 			(a, b) =>
 				rank(a) - rank(b) ||
@@ -44,7 +41,7 @@ function rowsOf(project: PlanProject, desks: readonly HubDesk[]): Row[] {
 }
 
 function PlanRow({ row, now }: { row: Row; now: number }): ReactElement {
-	const { plan, desk } = row
+	const { plan, desk, path } = row
 	const versions = plural(plan.versions.length, 'version')
 	const last = relativeTime(plan.updatedAt, now)
 	return (
@@ -75,11 +72,7 @@ function PlanRow({ row, now }: { row: Row; now: number }): ReactElement {
 				{...stylex.props(planLibrary.figure)}
 			>{`${versions} · ${last}`}</span>
 			<span {...stylex.props(planLibrary.action)}>
-				<PlanReviewAction
-					plan={plan}
-					tone="outlined"
-					deskPath={desk?.path ?? plan.deskPath}
-				/>
+				<PlanReviewAction plan={plan} tone="outlined" deskPath={path} />
 			</span>
 			<span {...stylex.props(planLibrary.folded)}>
 				{`${versions} · moved ${last}`}

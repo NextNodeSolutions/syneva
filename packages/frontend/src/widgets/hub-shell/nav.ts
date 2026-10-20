@@ -1,4 +1,5 @@
 import { groupByProject } from '@entities/hub/model'
+import { planDesks } from '@entities/hub/plan-model'
 import { turnCounts } from '@entities/hub/turn'
 import {
 	DASHBOARD_PATHS,
@@ -90,6 +91,6 @@ export function navCountsOf(
 		yours: turnCounts(desks).yours,
 		reviews: desks.length,
 		projects: groupByProject(desks).length,
-		plans: desks.filter(desk => desk.plan !== null).length,
+		plans: planDesks(desks).length,
 	}
 }

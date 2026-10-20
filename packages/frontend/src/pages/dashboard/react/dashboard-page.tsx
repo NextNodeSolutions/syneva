@@ -13,6 +13,7 @@ import { SettingsPage } from '../settings/settings-page'
 import { MissingPage } from './missing-page'
 import { PageHead } from './page-head'
 
+import type { HubDesk } from '@entities/hub/model'
 import type { ReactElement } from 'react'
 import type { DashboardPage as Page } from '../route'
 import type { DashboardState } from '../use-dashboard'
@@ -23,6 +24,9 @@ const PlanPage = lazy(async () => {
 	const module = await import('../plans/plan-page')
 	return { default: module.PlanPage }
 })
+
+// Before the hub's first listing a plan's page knows of no live desk but the library's own.
+const NO_DESKS: readonly HubDesk[] = []
 
 // A page that fails to render, or whose chunk does not load (the hub was upgraded under an
 // open tab), says so in its place: the sidebar and every other page stay.
@@ -55,7 +59,10 @@ function PageContent({
 	if (page.kind === 'plan')
 		return (
 			<Suspense fallback={null}>
-				<PlanPage id={page.id} />
+				<PlanPage
+					id={page.id}
+					desks={dashboard.listed?.desks ?? NO_DESKS}
+				/>
 			</Suspense>
 		)
 	if (page.kind === 'settings') return <SettingsPage />

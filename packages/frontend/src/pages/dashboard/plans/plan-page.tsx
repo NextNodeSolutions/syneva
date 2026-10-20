@@ -1,13 +1,10 @@
 import { Suspense, use, useMemo, useRef, useState } from 'react'
 
-import { fetchPlanVersion } from '@entities/hub/api'
-import { latestVersion } from '@entities/hub/plan-model'
+import { deskOfPlan, latestVersion } from '@entities/hub/plan-model'
 import { usePlan } from '@entities/hub/use-plan'
 import { useEntrance } from '@shared/lib/use-entrance'
 import { loadMarkdown, renderPlanMarkdown } from '@shared/markdown'
 import { useMarkdownRevision } from '@shared/markdown/use-markdown-revision'
-import { Notice } from '@shared/ui/notice'
-import { TextButton } from '@shared/ui/text-button'
 import * as stylex from '@stylexjs/stylex'
 
 import { PageHead } from '../react/page-head'
@@ -19,72 +16,13 @@ import { readPlan } from './plan-document'
 import { preloadDiagram } from './plan-figure'
 import { hasFigures } from './plan-figures'
 import { PlanHero } from './plan-hero'
-import { planPage } from './plan-page.styles'
+import { OlderNotice, useOlderVersion } from './plan-older'
 import { PlanFacts, PlanVersions } from './plan-versions'
 
+import type { HubDesk } from '@entities/hub/model'
 import type { Plan, PlanDocument } from '@entities/hub/plan-model'
 import type { ReactElement } from 'react'
 import type { PlanReading as PlanReadingParts } from './plan-document'
-
-type Older = { number: number; markdown: string }
-
-// A posted version never changes, so each is read from the hub once a page life, whichever
-// plan page asks again.
-const olderVersions = new Map<string, string>()
-
-// An earlier version is read on request and held while the reviewer stays on it; the latest
-// is the plan's own, followed from the hub. Only the last choice lands: a slow read the
-// reviewer has since moved on from is dropped.
-function useOlderVersion(id: string): {
-	older: Older | null
-	read: (version: number) => Promise<void>
-	back: () => void
-} {
-	const [older, setOlder] = useState<Older | null>(null)
-	const lastAsked = useRef(0)
-	const back = (): void => {
-		lastAsked.current += 1
-		setOlder(null)
-	}
-	const read = async (version: number): Promise<void> => {
-		lastAsked.current += 1
-		const asked = lastAsked.current
-		const key = `${id}@${String(version)}`
-		try {
-			const markdown =
-				olderVersions.get(key) ?? (await fetchPlanVersion(id, version))
-			olderVersions.set(key, markdown)
-			if (asked === lastAsked.current)
-				setOlder({ number: version, markdown })
-		} catch {
-			if (asked === lastAsked.current) setOlder(null)
-		}
-	}
-	return { older, read, back }
-}
-
-function OlderNotice({
-	older,
-	latest,
-	onBack,
-}: {
-	older: Older
-	latest: number
-	onBack: () => void
-}): ReactElement {
-	return (
-		<div {...stylex.props(planPage.notice)}>
-			<Notice
-				tone="amber"
-				rule="amber"
-				role="status"
-				lead={`You are reading version ${String(older.number)} of ${String(latest)}.`}
-			>
-				<TextButton onClick={onBack}>Back to the latest</TextButton>
-			</Notice>
-		</div>
-	)
-}
 
 // The renderer is the one PlanPage started loading; false when its chunk did not load, and
 // the plan then reads as its plain text.
@@ -105,18 +43,20 @@ function useReading(
 
 type PlanReadingProps = {
 	document: PlanDocument
+	desks: readonly HubDesk[]
 	adopt: (plan: Plan) => void
 	renderer: Promise<boolean>
 }
 
 function PlanReading({
 	document,
+	desks,
 	adopt,
 	renderer,
 }: PlanReadingProps): ReactElement {
 	const { plan } = document
 	const latest = latestVersion(plan)?.number ?? 0
-	const { older, read, back } = useOlderVersion(plan.id)
+	const { older, choose, back } = useOlderVersion(plan.id, latest)
 	const markdown = older?.markdown ?? document.markdown
 	// Started before the reading waits on the renderer, so the drawing loads beside it: an
 	// idempotent preload, the one side effect this render has.
@@ -137,10 +77,7 @@ function PlanReading({
 						<PlanVersions
 							plan={plan}
 							reading={older?.number ?? latest}
-							onRead={version => {
-								if (version === latest) back()
-								else void read(version)
-							}}
+							onRead={choose}
 						/>
 						<PlanFacts plan={plan} />
 					</>
@@ -148,6 +85,7 @@ function PlanReading({
 			>
 				<PlanActions
 					plan={plan}
+					deskPath={deskOfPlan(plan, desks).path}
 					markdown={markdown}
 					onChanged={adopt}
 					raw={{ isRaw, toggle: () => setRaw(was => !was) }}
@@ -163,7 +101,14 @@ function PlanReading({
 }
 
 // One plan from the hub's library, read like an RFC. A plan the hub does not keep says so.
-export function PlanPage({ id }: { id: string }): ReactElement {
+// `desks` is the hub's listing, ahead of the library on which desk is live (deskOfPlan).
+export function PlanPage({
+	id,
+	desks,
+}: {
+	id: string
+	desks: readonly HubDesk[]
+}): ReactElement {
 	const root = useRef<HTMLDivElement>(null)
 	useEntrance(root, id)
 	const { view, adopt } = usePlan(id)
@@ -176,6 +121,7 @@ export function PlanPage({ id }: { id: string }): ReactElement {
 				<Suspense fallback={pending}>
 					<PlanReading
 						document={view.document}
+						desks={desks}
 						adopt={adopt}
 						renderer={renderer}
 					/>
