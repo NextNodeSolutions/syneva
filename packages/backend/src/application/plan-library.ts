@@ -58,14 +58,21 @@ export function planFileOf(root: string, file: string): PlanFile {
 	return { id: planId(root, relative), path: relative }
 }
 
-// The library's state: the store, the records once loaded, and how they load.
+// The library's state: the store, the records once loaded, and how they load; and the text of
+// every version read or written in this hub's life. A version is written once and never
+// rewritten, so its text held in memory stays its text: a plan's page polls its latest version
+// every few seconds, and none of those reads goes back to the disk.
 type Shelf = {
 	store: PlanStorePort
 	workspace: Pick<WorkspacePort, 'readFile'>
 	log: (line: string) => void
 	records: Map<string, PlanRecord>
 	load: () => Promise<Map<string, PlanRecord>>
+	texts: Map<string, string>
 }
+
+const textKey = (id: string, version: number): string =>
+	`${id}@${String(version)}`
 
 export function createPlanLibrary(
 	store: PlanStorePort,
@@ -79,6 +86,7 @@ export function createPlanLibrary(
 		log,
 		records,
 		load: onceLoaded(store, records, log),
+		texts: new Map(),
 	}
 	const serialize = createSerializer()
 	const run = (task: () => Promise<void>, what: string): void => {
@@ -104,10 +112,7 @@ export function createPlanLibrary(
 			),
 		get: id => serialize(async () => (await shelf.load()).get(id) ?? null),
 		readVersion: (id, version) =>
-			serialize(async () => {
-				if (!(await shelf.load()).has(id)) return null
-				return shelf.store.readVersion(id, version)
-			}),
+			serialize(() => readVersion(shelf, id, version)),
 		changeStatus: (id, change) =>
 			serialize(() => changeStatus(shelf, id, change)),
 	}
@@ -178,8 +183,25 @@ async function postVersion(
 	const next = postPlanVersion(known, posting, path.basename(desk.file))
 	if (!next) return
 	const latest = next.versions.at(-1)
-	if (latest) await shelf.store.writeVersion(next.id, latest.number, markdown)
+	if (latest) {
+		await shelf.store.writeVersion(next.id, latest.number, markdown)
+		shelf.texts.set(textKey(next.id, latest.number), markdown)
+	}
 	await keep(shelf, next)
+}
+
+async function readVersion(
+	shelf: Shelf,
+	id: string,
+	version: number,
+): Promise<string | null> {
+	if (!(await shelf.load()).has(id)) return null
+	const key = textKey(id, version)
+	// An empty version is a text like any other: held by key, not by truthiness.
+	if (shelf.texts.has(key)) return shelf.texts.get(key) ?? null
+	const markdown = await shelf.store.readVersion(id, version)
+	if (markdown !== null) shelf.texts.set(key, markdown)
+	return markdown
 }
 
 async function approveLatest(
