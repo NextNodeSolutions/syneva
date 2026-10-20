@@ -7,11 +7,25 @@ export const LINE_HEIGHT = 13
 // Room kept on every line for a linked node's arrow, so a node wraps the same whether its reference resolves or not, and the layout (which does not know) sizes it right.
 const ARROW_CHARS = 2
 
+// Where a word too long for a line is best cut: after a path's slash, a dot, a dash or an
+// underscore, so `~/.syneva/hub/plans` breaks into readable pieces rather than mid-name.
+const SOFT_BREAK = /[/.\-_]/u
+
+function cutAt(word: string, size: number): number {
+	for (let at = size; at > 1; at--)
+		if (SOFT_BREAK.test(word.charAt(at - 1))) return at
+	return size
+}
+
 function chunks(word: string, size: number): string[] {
 	const parts: string[] = []
-	for (let start = 0; start < word.length; start += size)
-		parts.push(word.slice(start, start + size))
-	return parts
+	let rest = word
+	while (rest.length > size) {
+		const at = cutAt(rest, size)
+		parts.push(rest.slice(0, at))
+		rest = rest.slice(at)
+	}
+	return [...parts, rest]
 }
 
 // Words fill a line until the next would overflow it; a word longer than a whole line is cut.
