@@ -12,16 +12,16 @@ import { PageHead } from '../react/page-head'
 import { dashboardPage } from '../react/page.styles'
 
 import { PlanActions } from './plan-actions'
+import { PlanBody } from './plan-body'
 import { readPlan } from './plan-document'
-import { PlanFigureView } from './plan-figure'
-import { PlanHero, scrollToFragment } from './plan-hero'
+import { PlanHero } from './plan-hero'
 import { planPage } from './plan-page.styles'
 import { PlanFacts, PlanVersions } from './plan-versions'
 
 import type { Plan, PlanDocument } from '@entities/hub/plan-model'
-import type { MouseEvent, ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import type { PlanMarkdown } from '../markdown'
-import type { ReadPart } from './plan-document'
+import type { PlanReading as PlanReadingParts } from './plan-document'
 
 type Older = { number: number; markdown: string }
 
@@ -69,107 +69,72 @@ function OlderNotice({
 	)
 }
 
-// A fragment link in the body (a footnote and its way back) scrolls in place, like a section
-// link: left to the browser, it reaches the router's Back/Forward handling.
-function followFragment(event: MouseEvent<HTMLElement>): void {
-	if (!(event.target instanceof Element)) return
-	const href = event.target.closest('a')?.getAttribute('href')
-	if (!href?.startsWith('#') || href === '#') return
-	event.preventDefault()
-	scrollToFragment(href.slice(1))
-}
-
-// Prose that follows a figure keeps its own top spacing: as the first child of its own part
-// it would otherwise lose it (prose.css).
-function PlanPartView({
-	part,
-	follows,
-}: {
-	part: ReadPart
-	follows: boolean
-}): ReactElement {
-	if (part.kind === 'figure') return <PlanFigureView figure={part.figure} />
-	return (
-		<div
-			data-prose="plan"
-			data-follows={follows || undefined}
-			// The renderer is the trust boundary: no raw HTML, sanitized (plan-document.ts).
-			// oxlint-disable-next-line react/no-danger
-			dangerouslySetInnerHTML={{ __html: part.html }}
-		/>
+// The renderer is the one PlanPage started loading; null when its chunk did not load.
+function useReading(
+	renderer: Promise<PlanMarkdown | null>,
+	markdown: string,
+	title: string,
+): PlanReadingParts {
+	const engine = use(renderer)
+	const revision = useMarkdownRevision()
+	return useMemo(
+		() => readPlan(engine, markdown, title),
+		// The revision is the renderer's: its output changes when it loads or repaints.
+		// oxlint-disable-next-line react/exhaustive-deps
+		[engine, markdown, title, revision],
 	)
 }
 
-function PlanArticle({
-	parts,
-	older,
-	latest,
-	onBack,
-}: {
-	parts: readonly ReadPart[]
-	older: Older | null
-	latest: number
-	onBack: () => void
-}): ReactElement {
-	return (
-		// Delegated over every part: a footnote and its way back can sit in different parts.
-		<article {...stylex.props(planPage.article)} onClick={followFragment}>
-			{older && (
-				<OlderNotice older={older} latest={latest} onBack={onBack} />
-			)}
-			{parts.map((part, index) => (
-				<PlanPartView key={part.key} part={part} follows={index > 0} />
-			))}
-		</article>
-	)
+type PlanReadingProps = {
+	document: PlanDocument
+	adopt: (plan: Plan) => void
+	renderer: Promise<PlanMarkdown | null>
 }
 
 function PlanReading({
 	document,
 	adopt,
 	renderer,
-}: {
-	document: PlanDocument
-	adopt: (plan: Plan) => void
-	renderer: Promise<PlanMarkdown | null>
-}): ReactElement {
+}: PlanReadingProps): ReactElement {
 	const { plan } = document
 	const latest = latestVersion(plan)?.number ?? 0
 	const { older, read } = useOlderVersion(plan.id)
 	const markdown = older?.markdown ?? document.markdown
-	const engine = use(renderer)
-	const revision = useMarkdownRevision()
-	const reading = useMemo(
-		() => readPlan(engine, markdown, plan.title),
-		// The revision is the renderer's: its output changes when it loads or repaints.
-		// oxlint-disable-next-line react/exhaustive-deps
-		[engine, markdown, plan.title, revision],
-	)
+	const reading = useReading(renderer, markdown, plan.title)
 	return (
 		<>
-			<PlanHero plan={plan} sections={reading.sections}>
+			<PlanHero
+				plan={plan}
+				sections={reading.sections}
+				meta={
+					<>
+						<PlanVersions
+							plan={plan}
+							reading={older?.number ?? latest}
+							onRead={version => void read(version, latest)}
+						/>
+						<PlanFacts plan={plan} />
+					</>
+				}
+			>
 				<PlanActions
 					plan={plan}
 					markdown={markdown}
 					onChanged={adopt}
 				/>
 			</PlanHero>
-			<div {...stylex.props(planPage.layout)}>
-				<PlanArticle
-					parts={reading.parts}
-					older={older}
-					latest={latest}
-					onBack={() => void read(latest, latest)}
-				/>
-				<aside {...stylex.props(planPage.aside)}>
-					<PlanVersions
-						plan={plan}
-						reading={older?.number ?? latest}
-						onRead={version => void read(version, latest)}
-					/>
-					<PlanFacts plan={plan} />
-				</aside>
-			</div>
+			<PlanBody
+				reading={reading}
+				notice={
+					older && (
+						<OlderNotice
+							older={older}
+							latest={latest}
+							onBack={() => void read(latest, latest)}
+						/>
+					)
+				}
+			/>
 		</>
 	)
 }

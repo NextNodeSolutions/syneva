@@ -60,10 +60,14 @@ function Sentences({ block }: { block: DiagramBlock }): ReactElement {
 	)
 }
 
+// A figure is numbered in the plan's order, as an RFC numbers its figures, so the prose can
+// point at one ("figure 2").
 export function PlanFigureView({
 	figure,
+	number,
 }: {
 	figure: PlanFigure
+	number: number
 }): ReactElement {
 	if (!figure.ok)
 		return <InvalidFigure reason={figure.reason} source={figure.source} />
@@ -89,17 +93,18 @@ export function PlanFigureView({
 					</BlockBoundary>
 				</div>
 			</div>
-			{(Boolean(block.title) || Boolean(block.detail)) && (
-				<figcaption {...stylex.props(planFigure.caption)}>
-					{block.title && (
+			<figcaption {...stylex.props(planFigure.caption)}>
+				{`Fig. ${String(number)}`}
+				{block.title && (
+					<>
+						{' · '}
 						<span {...stylex.props(planFigure.captionTitle)}>
 							{block.title}
 						</span>
-					)}
-					{block.title && block.detail && ' · '}
-					{block.detail}
-				</figcaption>
-			)}
+					</>
+				)}
+				{block.detail && ` · ${block.detail}`}
+			</figcaption>
 			<Sentences block={block} />
 		</figure>
 	)

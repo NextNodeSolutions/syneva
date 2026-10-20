@@ -179,12 +179,12 @@
 	margin: 6px 0;
 }
 
-/* A plan read like an RFC: a reading measure, sections opened by a rule and a headline, quiet
-   list markers, a blockquote as the key point on the wash. */
+/* A plan read like an RFC: prose across its section's centred frame (the band draws the rule and
+   the headline, the frame bounds the line), quiet list markers, a blockquote as the key
+   point on the wash, inline code on the wash with no box around it. */
 [data-prose='plan'] {
-	max-width: 74ch;
-	font-size: 15.5px;
-	line-height: 1.65;
+	font-size: 16px;
+	line-height: 1.7;
 }
 
 [data-prose='plan'] h1,
@@ -195,40 +195,16 @@
 	text-wrap: balance;
 }
 
-[data-prose='plan'] h1 {
-	margin: 40px 0 0;
-	font-size: 28px;
-	letter-spacing: -0.035em;
-}
-
+[data-prose='plan'] h1,
 [data-prose='plan'] h2 {
-	margin: 48px 0 0;
-	padding-top: 30px;
-	border-top: 1px solid var(--line);
-	font-size: 25px;
-	letter-spacing: -0.035em;
-	line-height: 1.15;
-	scroll-margin-top: 24px;
-}
-
-[data-prose='plan'] > h2:first-child {
-	padding-top: 0;
-	border-top: 0;
-}
-
-/* Prose after a figure: its first block keeps its spacing, a section keeps its rule. */
-[data-prose='plan'][data-follows] > :first-child {
-	margin-top: 14px;
-}
-
-[data-prose='plan'][data-follows] > h2:first-child {
-	margin-top: 48px;
-	padding-top: 30px;
-	border-top: 1px solid var(--line);
+	margin: 40px 0 0;
+	font-size: 24px;
+	letter-spacing: -0.03em;
+	line-height: 1.2;
 }
 
 [data-prose='plan'] h3 {
-	margin: 32px 0 0;
+	margin: 36px 0 0;
 	font-size: 17px;
 	letter-spacing: -0.01em;
 }
@@ -236,6 +212,12 @@
 [data-prose='plan'] h4 {
 	margin: 24px 0 0;
 	font-size: 15px;
+}
+
+/* The band's headline sits right above the first part; prose after a figure keeps its spacing. */
+[data-prose='plan'] > :first-child,
+[data-prose='plan'][data-follows] > :first-child {
+	margin-top: 14px;
 }
 
 [data-prose='plan'] p,
@@ -270,40 +252,81 @@
 	color: var(--muted);
 }
 
+[data-prose='plan'] li > p {
+	margin: 0;
+}
+
+[data-prose='plan'] strong {
+	font-weight: 600;
+}
+
+[data-prose='plan'] code {
+	font-size: 0.88em;
+	padding: 1px 5px;
+	border: 0;
+	background: var(--wash);
+	color: var(--ink);
+}
+
 [data-prose='plan'] blockquote {
+	margin-top: 22px;
 	padding: 14px 18px;
 	border-left: 2px solid var(--accent);
 	background: var(--wash-tint);
 	color: var(--ink);
 }
 
+[data-prose='plan'] blockquote > :first-child {
+	margin-top: 0;
+}
+
 [data-prose='plan'] pre {
 	padding: 14px 18px;
+	border: 1px solid var(--line);
 	background: var(--white);
 	font-size: 12.5px;
 	line-height: 1.55;
 }
 
+[data-prose='plan'] pre code {
+	padding: 0;
+	background: none;
+	font-size: inherit;
+}
+
 [data-prose='plan'] table {
+	display: block;
 	width: 100%;
+	margin-top: 22px;
+	overflow-x: auto;
+	border: 0;
+	border-collapse: collapse;
 	font-size: 13.5px;
 	line-height: 1.45;
 }
 
 [data-prose='plan'] th {
+	padding: 10px 16px 8px 0;
+	border: 0;
+	border-bottom: 1px solid var(--line-strong);
 	font-family: var(--mono);
 	font-size: 11px;
 	font-weight: 500;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
+	white-space: nowrap;
 	color: var(--muted);
 	text-align: left;
+	background: none;
 }
 
-[data-prose='plan'] th,
 [data-prose='plan'] td {
-	padding: 9px 12px 9px 0;
+	padding: 10px 16px 10px 0;
 	border: 0;
 	border-bottom: 1px solid var(--line);
 	vertical-align: top;
+}
+
+[data-prose='plan'] td code {
+	white-space: normal;
 }

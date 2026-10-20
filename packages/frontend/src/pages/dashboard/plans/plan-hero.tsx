@@ -24,11 +24,34 @@ export function scrollToFragment(id: string): void {
 	})
 }
 
-function SectionLinks({
+// Where the plan belongs and where it stands.
+function PlanEyebrow({ plan }: { plan: Plan }): ReactElement {
+	const latest = latestVersion(plan)
+	return (
+		<p {...stylex.props(planPage.eyebrow)} data-enter="rise">
+			<AppLink href={DASHBOARD_PATHS.plans} css={planPage.crumb}>
+				Plans
+			</AppLink>
+			<span>{plan.project}</span>
+			{latest && (
+				<span>
+					{`v${String(latest.number)} · ${SHORT_DATE.format(new Date(latest.postedAt))}`}
+				</span>
+			)}
+			<PlanStatusTag status={plan.status} />
+		</p>
+	)
+}
+
+const MIN_SECTIONS = 2
+
+// The way through the plan's sections, each under its number; a single section needs none.
+function PlanToc({
 	sections,
 }: {
 	sections: readonly PlanSection[]
-}): ReactElement {
+}): ReactElement | null {
+	if (sections.length < MIN_SECTIONS) return null
 	return (
 		<nav aria-label="Sections" {...stylex.props(planPage.toc)}>
 			{sections.map(section => (
@@ -41,6 +64,9 @@ function SectionLinks({
 					}}
 					{...stylex.props(planPage.tocLink)}
 				>
+					<span {...stylex.props(planPage.tocNumber)}>
+						{section.number}
+					</span>
 					{section.title}
 				</a>
 			))}
@@ -49,41 +75,42 @@ function SectionLinks({
 }
 
 // The plan's head, as an RFC opens: where it belongs and where it stands, its title, what it
-// is about, the way through its sections, and what the reviewer can do with it.
+// is about, the way through its sections, and what the reviewer can do with it; its versions
+// and where it lives beside it.
 export function PlanHero({
 	plan,
 	sections,
+	meta,
 	children,
 }: {
 	plan: Plan
 	sections: readonly PlanSection[]
+	meta: ReactNode
 	children: ReactNode
 }): ReactElement {
-	const latest = latestVersion(plan)
 	return (
 		<header {...stylex.props(planPage.hero)}>
-			<p {...stylex.props(planPage.eyebrow)} data-enter="rise">
-				<AppLink href={DASHBOARD_PATHS.plans} css={planPage.crumb}>
-					Plans
-				</AppLink>
-				<span>{plan.project}</span>
-				{latest && (
-					<span>
-						{`v${String(latest.number)} · ${SHORT_DATE.format(new Date(latest.postedAt))}`}
-					</span>
-				)}
-				<PlanStatusTag status={plan.status} />
-			</p>
-			<h1 {...stylex.props(planPage.title)} data-enter="rise">
-				{plan.title}
-			</h1>
-			{plan.summary && (
-				<p {...stylex.props(planPage.lede)} data-enter="rise">
-					{plan.summary}
-				</p>
-			)}
-			{sections.length > 1 && <SectionLinks sections={sections} />}
-			{children}
+			<div {...stylex.props(planPage.heroFrame)}>
+				<div {...stylex.props(planPage.heroMain)}>
+					<PlanEyebrow plan={plan} />
+					<h1 {...stylex.props(planPage.title)} data-enter="rise">
+						{plan.title}
+					</h1>
+					{plan.summary && (
+						<p {...stylex.props(planPage.lede)} data-enter="rise">
+							{plan.summary}
+						</p>
+					)}
+					<PlanToc sections={sections} />
+					{children}
+				</div>
+				<aside
+					{...stylex.props(planPage.heroMeta)}
+					aria-label="Versions"
+				>
+					{meta}
+				</aside>
+			</div>
 		</header>
 	)
 }

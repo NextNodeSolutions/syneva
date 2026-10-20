@@ -3,20 +3,35 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 
 import { pageInset } from '../react/page.stylex'
 
+import { planFrame } from './plan-frame.stylex'
+
 // A plan read like the RFCs it is modelled on: a mono eyebrow, the title as a headline, its
-// summary as the lede and its sections as a table of contents; then the body beside its
-// versions. On a narrow page the versions follow the body.
+// summary as the lede and its sections as a table of contents, its versions beside them; then
+// the body in bands (plan-body.styles.ts). On a narrow page the versions follow the head.
 const NARROW = '@container page (max-width: 980px)'
 
 export const planPage = stylex.create({
 	hero: {
-		paddingTop: '44px',
-		paddingBottom: '30px',
+		paddingTop: '56px',
+		paddingBottom: '40px',
 		paddingInline: pageInset.gutter,
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
 	},
+	heroFrame: {
+		display: 'grid',
+		maxWidth: planFrame.width,
+		marginInline: 'auto',
+		gridTemplateColumns: {
+			default: 'minmax(0, 1fr) 240px',
+			[NARROW]: 'minmax(0, 1fr)',
+		},
+		gap: '36px 64px',
+		alignItems: 'start',
+	},
+	heroMain: { minWidth: 0 },
+	heroMeta: { display: 'grid', gap: '24px', minWidth: 0 },
 	eyebrow: {
 		display: 'flex',
 		flexWrap: 'wrap',
@@ -38,16 +53,16 @@ export const planPage = stylex.create({
 	},
 	title: {
 		marginTop: '14px',
-		maxWidth: '18em',
-		fontSize: 'clamp(30px, 4vw, 46px)',
+		maxWidth: '16em',
+		fontSize: 'clamp(34px, 4.4vw, 54px)',
 		fontWeight: 500,
 		letterSpacing: '-.04em',
-		lineHeight: 1.06,
+		lineHeight: 1.05,
 		textWrap: 'balance',
 	},
 	lede: {
-		marginTop: '16px',
-		maxWidth: '62ch',
+		marginTop: '18px',
+		maxWidth: '72ch',
 		fontSize: '16.5px',
 		lineHeight: 1.6,
 		color: color['--muted'],
@@ -57,7 +72,7 @@ export const planPage = stylex.create({
 		display: 'flex',
 		flexWrap: 'wrap',
 		gap: '8px 20px',
-		marginTop: '24px',
+		marginTop: '28px',
 		fontFamily: font['--mono'],
 		fontSize: '12.5px',
 	},
@@ -72,6 +87,7 @@ export const planPage = stylex.create({
 			':hover': color['--accent'],
 		},
 	},
+	tocNumber: { marginRight: '8px', color: color['--accent'] },
 	actions: {
 		display: 'flex',
 		flexWrap: 'wrap',
@@ -80,19 +96,6 @@ export const planPage = stylex.create({
 		marginTop: '26px',
 	},
 	failure: { fontSize: '13px', color: color['--red'] },
-	layout: {
-		display: 'grid',
-		gridTemplateColumns: {
-			default: 'minmax(0, 1fr) 240px',
-			[NARROW]: 'minmax(0, 1fr)',
-		},
-		gap: '28px 56px',
-		alignItems: 'start',
-		paddingTop: '36px',
-		paddingBottom: '64px',
-		paddingInline: pageInset.gutter,
-	},
-	article: { minWidth: 0 },
 	notice: {
 		display: 'flex',
 		flexWrap: 'wrap',
@@ -106,12 +109,6 @@ export const planPage = stylex.create({
 		borderLeftColor: color['--amber'],
 		backgroundColor: color['--amber-tint'],
 		fontSize: '13.5px',
-	},
-	aside: {
-		position: { default: 'sticky', [NARROW]: 'static' },
-		top: '24px',
-		display: 'grid',
-		gap: '28px',
 	},
 	empty: {
 		paddingTop: '44px',
