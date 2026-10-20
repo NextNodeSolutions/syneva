@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 
 import { onActivationKey } from './diagram-node'
+import { linkOf } from './diagram-refs'
 import { diagram } from './diagram.styles'
 
 import type { ReactElement } from 'react'
@@ -22,8 +23,7 @@ export function EdgeLabel({
 	refId?: string | undefined
 }): ReactElement | null {
 	if (!label) return null
-	const status = refId ? refs.statusOf(refId) : null
-	const isLinked = status !== null && status !== 'unresolved'
+	const { isLinked } = linkOf(refs, refId)
 	const activate = (): void => {
 		if (refId) refs.follow(refId)
 	}

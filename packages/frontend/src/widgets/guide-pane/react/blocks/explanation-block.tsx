@@ -16,6 +16,7 @@ import { TextEquivalent } from './text-equivalent'
 import type {
 	BeforeAfterBlock,
 	BeforeAfterSide,
+	DiagramBlock,
 	ExplanationBlock,
 	GuideDomain,
 } from '@entities/review/guide/model'
@@ -79,11 +80,6 @@ function BeforeAfter({
 		</div>
 	)
 }
-
-type DiagramBlock = Extract<
-	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
->
 
 // A guide domain's references as its diagrams read them: resolved against the desk's review,
 // followed through the same validated action every chip uses.

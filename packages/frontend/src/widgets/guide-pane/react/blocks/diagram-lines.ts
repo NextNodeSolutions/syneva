@@ -1,11 +1,28 @@
-import type { ExplanationBlock } from '@entities/review/guide/model'
+import type { DiagramBlock } from '@entities/review/guide/model'
 
 // A diagram as sentences, apart from any drawing or desk: the guide's text equivalent reads it,
 // and so does a plan's figure.
-export type DiagramBlock = Extract<
-	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
->
+
+type GraphNode = {
+	id: string
+	label: string
+	ref?: string | undefined
+	note?: string | undefined
+}
+
+type Graph = {
+	nodes: readonly GraphNode[]
+	edges: readonly { from: string; to: string }[]
+}
+
+// Any diagram's nodes and edges under one name, whatever its kind calls them.
+export function graphOf(block: DiagramBlock): Graph {
+	if (block.kind === 'state')
+		return { nodes: block.states, edges: block.transitions }
+	if (block.kind === 'sequence')
+		return { nodes: block.participants, edges: block.steps }
+	return { nodes: block.nodes, edges: block.edges }
+}
 
 export type Line = { text: string; refId?: string | undefined }
 
@@ -17,15 +34,7 @@ function labelOf(
 }
 
 // A node gets its own sentence when the edges would lose it: it links to code, carries a note, or no edge touches it.
-function nodeLines(
-	nodes: readonly {
-		id: string
-		label: string
-		ref?: string | undefined
-		note?: string | undefined
-	}[],
-	edges: readonly { from: string; to: string }[],
-): Line[] {
+function nodeLines({ nodes, edges }: Graph): Line[] {
 	return nodes
 		.filter(
 			node =>
@@ -41,16 +50,10 @@ function nodeLines(
 		}))
 }
 
-// The diagram as sentences, its kept nodes then one per edge, in the block's order: what a screen reader and a reviewer without the drawing read, and what shows while the diagram chunk loads.
+// The diagram as sentences, its kept nodes then one per edge, in the block's order: what a screen reader and a reviewer without the drawing read, and what shows while the diagram chunk loads. A sequence's participants are its lifelines, never sentences of their own.
 export function lines(block: DiagramBlock): Line[] {
-	if (block.kind === 'state')
-		return [
-			...nodeLines(block.states, block.transitions),
-			...edgeLines(block),
-		]
-	if (block.kind === 'flow')
-		return [...nodeLines(block.nodes, block.edges), ...edgeLines(block)]
-	return edgeLines(block)
+	if (block.kind === 'sequence') return edgeLines(block)
+	return [...nodeLines(graphOf(block)), ...edgeLines(block)]
 }
 
 function edgeLines(block: DiagramBlock): Line[] {

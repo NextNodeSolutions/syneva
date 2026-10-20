@@ -108,6 +108,9 @@ export type ExplanationBlock =
 	| SequenceBlock
 	| FlowBlock
 
+// The blocks drawn as a diagram: nodes and the edges between them.
+export type DiagramBlock = StateBlock | SequenceBlock | FlowBlock
+
 export type GuideDomain = {
 	id: string
 	title: string

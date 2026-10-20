@@ -6,9 +6,8 @@ import { RefChip } from '../ref-chip'
 import { lines } from './diagram-lines'
 import { diagram } from './diagram.styles'
 
-import type { GuideDomain } from '@entities/review/guide/model'
+import type { DiagramBlock, GuideDomain } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
-import type { DiagramBlock } from './diagram-lines'
 
 export function TextEquivalent({
 	domain,

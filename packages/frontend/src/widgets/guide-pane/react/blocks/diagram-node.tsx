@@ -2,11 +2,12 @@ import * as stylex from '@stylexjs/stylex'
 
 import { LINE_HEIGHT, nodeLines } from '../../layout/node-label'
 
+import { linkOf } from './diagram-refs'
 import { diagram } from './diagram.styles'
 
 import type { StaticStyle } from '@shared/lib/cx'
 import type { KeyboardEvent, ReactElement } from 'react'
-import type { DiagramRefs } from './diagram-refs'
+import type { DiagramRefs, Link } from './diagram-refs'
 
 export type Box = { x: number; y: number; width: number; height: number }
 
@@ -29,16 +30,6 @@ export function onActivationKey(
 	}
 }
 
-type Link = {
-	status: 'resolved' | 'stale' | 'unresolved' | null
-	isLinked: boolean
-}
-
-function linkOf(refs: DiagramRefs, refId: string | undefined): Link {
-	const status = refId ? refs.statusOf(refId) : null
-	return { status, isLinked: status !== null && status !== 'unresolved' }
-}
-
 function shapeStyles(
 	link: Link,
 	shape: 'initial' | 'final' | undefined,
@@ -52,23 +43,19 @@ function shapeStyles(
 	]
 }
 
-function nodeLabel(
-	label: string,
-	refId: string | undefined,
-	link: Link,
-): string {
-	if (!refId || link.status === null) return label
+function nodeLabel(label: string, link: Link): string {
+	if (link.status === null) return label
 	return `${label}${link.isLinked ? ', opens the code' : ', target unresolved'}`
 }
 
 // The ARIA button a referenced element becomes: pointer and keyboard both call followReference, the same validated action every chip uses.
 function buttonProps(
 	refs: DiagramRefs,
-	refId: string | undefined,
 	link: Link,
 	ariaLabel: string,
 ): Record<string, unknown> {
-	if (typeof refId !== 'string' || link.status === null) return {}
+	if (link.status === null) return {}
+	const { refId } = link
 	const activate = (): void => refs.follow(refId)
 	return {
 		role: 'button',
@@ -135,7 +122,7 @@ export function DiagramNode({
 	return (
 		<g
 			{...stylex.props(link.isLinked && diagram.linked)}
-			{...buttonProps(refs, refId, link, nodeLabel(label, refId, link))}
+			{...buttonProps(refs, link, nodeLabel(label, link))}
 		>
 			<rect
 				x={box.x}

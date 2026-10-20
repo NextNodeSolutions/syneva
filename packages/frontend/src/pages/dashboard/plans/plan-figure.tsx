@@ -1,14 +1,16 @@
 import { lazy, Suspense } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
+import { lineKeys } from '@widgets/guide-pane/layout/keys'
 import { BlockBoundary } from '@widgets/guide-pane/react/blocks/block-boundary'
 import { lines } from '@widgets/guide-pane/react/blocks/diagram-lines'
 import { NO_REFS } from '@widgets/guide-pane/react/blocks/diagram-refs'
 
 import { planFigure } from './plan-figure.styles'
 
+import type { DiagramBlock } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
-import type { FigureBlock, PlanFigure } from './plan-figures'
+import type { PlanFigure } from './plan-figures'
 
 // The guide's renderers, in their own chunk: a plan without a figure never loads them.
 const Diagram = lazy(async () => {
@@ -40,25 +42,18 @@ function InvalidFigure({
 	)
 }
 
-// Two edges can read alike, so a sentence is keyed by its text and how often it came before.
-function sentencesOf(block: FigureBlock): { key: string; text: string }[] {
-	const seen = new Map<string, number>()
-	return lines(block).map(({ text }) => {
-		const count = seen.get(text) ?? 0
-		seen.set(text, count + 1)
-		return { key: `${text}#${String(count)}`, text }
-	})
-}
-
 // The figure as sentences: what a screen reader reads, and what a reader without the drawing
-// opens.
-function Sentences({ block }: { block: FigureBlock }): ReactElement {
+// opens. The desk's TextEquivalent reads the same lines but sits in a guide pane's frame and
+// carries the domain's chips; a plan's sentences take the page's RFC styling instead.
+function Sentences({ block }: { block: DiagramBlock }): ReactElement {
+	const sentences = lines(block)
+	const keys = lineKeys(sentences)
 	return (
 		<details {...stylex.props(planFigure.sentences)}>
 			<summary {...stylex.props(planFigure.summary)}>As text</summary>
 			<ul {...stylex.props(planFigure.sentenceList)}>
-				{sentencesOf(block).map(sentence => (
-					<li key={sentence.key}>{sentence.text}</li>
+				{sentences.map((sentence, index) => (
+					<li key={keys[index]}>{sentence.text}</li>
 				))}
 			</ul>
 		</details>

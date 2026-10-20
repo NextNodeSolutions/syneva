@@ -1,14 +1,10 @@
 import { decodeBlock } from '@entities/review/guide/decode-blocks'
+import { graphOf } from '@widgets/guide-pane/react/blocks/diagram-lines'
 
-import type { ExplanationBlock } from '@entities/review/guide/model'
-
-export type FigureBlock = Extract<
-	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
->
+import type { DiagramBlock } from '@entities/review/guide/model'
 
 export type PlanFigure =
-	| { ok: true; block: FigureBlock; source: string }
+	| { ok: true; block: DiagramBlock; source: string }
 	| { ok: false; reason: string; source: string }
 
 // A fence opens with three or more backticks or tildes (at most three spaces in), and closes
@@ -23,31 +19,18 @@ function closes(line: string, marker: string): boolean {
 	return run.startsWith(marker.charAt(0)) && run.length >= marker.length
 }
 
-function edgesOf(block: FigureBlock): { from: string; to: string }[] {
-	if (block.kind === 'state') return block.transitions
-	if (block.kind === 'sequence') return block.steps
-	return block.edges
-}
-
-function idsOf(block: FigureBlock): Set<string> {
-	if (block.kind === 'state')
-		return new Set(block.states.map(node => node.id))
-	if (block.kind === 'sequence')
-		return new Set(block.participants.map(node => node.id))
-	return new Set(block.nodes.map(node => node.id))
-}
-
 // What the drawing cannot place: an edge naming a node the figure does not declare.
-function unplaced(block: FigureBlock): string | null {
-	const ids = idsOf(block)
-	const stray = edgesOf(block)
+function unplaced(block: DiagramBlock): string | null {
+	const { nodes, edges } = graphOf(block)
+	const ids = new Set(nodes.map(node => node.id))
+	const stray = edges
 		.flatMap(edge => [edge.from, edge.to])
 		.find(id => !ids.has(id))
 	if (!stray) return null
 	return `"${stray}" is not one of its nodes`
 }
 
-function decodeFigure(json: unknown, index: number): FigureBlock | string {
+function decodeFigure(json: unknown, index: number): DiagramBlock | string {
 	const raw =
 		typeof json === 'object' && json !== null && !Array.isArray(json)
 			? { id: `figure-${String(index)}`, ...json }
