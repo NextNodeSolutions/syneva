@@ -13,6 +13,7 @@ import { dashboardPage } from '../react/page.styles'
 
 import { PlanActions } from './plan-actions'
 import { readPlan } from './plan-document'
+import { PlanFigureView } from './plan-figure'
 import { PlanHero, scrollToFragment } from './plan-hero'
 import { planPage } from './plan-page.styles'
 import { PlanFacts, PlanVersions } from './plan-versions'
@@ -20,6 +21,7 @@ import { PlanFacts, PlanVersions } from './plan-versions'
 import type { Plan, PlanDocument } from '@entities/hub/plan-model'
 import type { MouseEvent, ReactElement } from 'react'
 import type { PlanMarkdown } from '../markdown'
+import type { ReadPart } from './plan-document'
 
 type Older = { number: number; markdown: string }
 
@@ -77,29 +79,47 @@ function followFragment(event: MouseEvent<HTMLElement>): void {
 	scrollToFragment(href.slice(1))
 }
 
+// Prose that follows a figure keeps its own top spacing: as the first child of its own part
+// it would otherwise lose it (prose.css).
+function PlanPartView({
+	part,
+	follows,
+}: {
+	part: ReadPart
+	follows: boolean
+}): ReactElement {
+	if (part.kind === 'figure') return <PlanFigureView figure={part.figure} />
+	return (
+		<div
+			data-prose="plan"
+			data-follows={follows || undefined}
+			// The renderer is the trust boundary: no raw HTML, sanitized (plan-document.ts).
+			// oxlint-disable-next-line react/no-danger
+			dangerouslySetInnerHTML={{ __html: part.html }}
+		/>
+	)
+}
+
 function PlanArticle({
-	html,
+	parts,
 	older,
 	latest,
 	onBack,
 }: {
-	html: string
+	parts: readonly ReadPart[]
 	older: Older | null
 	latest: number
 	onBack: () => void
 }): ReactElement {
 	return (
-		<article {...stylex.props(planPage.article)}>
+		// Delegated over every part: a footnote and its way back can sit in different parts.
+		<article {...stylex.props(planPage.article)} onClick={followFragment}>
 			{older && (
 				<OlderNotice older={older} latest={latest} onBack={onBack} />
 			)}
-			<div
-				data-prose="plan"
-				onClick={followFragment}
-				// The renderer is the trust boundary: no raw HTML, sanitized (plan-document.ts).
-				// oxlint-disable-next-line react/no-danger
-				dangerouslySetInnerHTML={{ __html: html }}
-			/>
+			{parts.map((part, index) => (
+				<PlanPartView key={part.key} part={part} follows={index > 0} />
+			))}
 		</article>
 	)
 }
@@ -136,7 +156,7 @@ function PlanReading({
 			</PlanHero>
 			<div {...stylex.props(planPage.layout)}>
 				<PlanArticle
-					html={reading.html}
+					parts={reading.parts}
 					older={older}
 					latest={latest}
 					onBack={() => void read(latest, latest)}
