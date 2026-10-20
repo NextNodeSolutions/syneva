@@ -66,6 +66,7 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		createHubRequestHandler({
 			hub,
 			journal,
+			plans: records.plans,
 			settings: nodeSettings,
 			guard,
 			// The origin guard re-reads the port per request: server.address() is populated only once the socket is bound.

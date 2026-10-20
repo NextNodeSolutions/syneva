@@ -18,6 +18,7 @@ import type {
 	OpenDeskResponse,
 } from '@syneva/contracts/hub'
 import type { HubJournal, JournalQuery } from '../../../application/journal.js'
+import type { PlanLibrary } from '../../../application/plan-library.js'
 import type { SettingsPort } from '../../../application/ports.js'
 import type { ApiFailure } from './failure.js'
 import type { Hub } from './hub.js'
@@ -25,6 +26,7 @@ import type { Hub } from './hub.js'
 export type HubRouteDeps = {
 	hub: Hub
 	journal: HubJournal
+	plans: PlanLibrary
 	settings: SettingsPort
 	version: string
 	keyRequired: boolean

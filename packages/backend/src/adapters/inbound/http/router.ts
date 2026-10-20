@@ -9,6 +9,7 @@ import {
 import { errorMessage } from '../../../application/errors.js'
 
 import { originAllowed } from './binding.js'
+import { handleDashboardApi } from './dashboard-api.js'
 import { DOCS } from './failure.js'
 import {
 	HTTP_BAD_REQUEST,
@@ -27,9 +28,6 @@ import {
 	listDesks,
 	openDeskRoute,
 	readDesk,
-	readJournal,
-	saveHubSettings,
-	serveHubSettings,
 	shutdownHub,
 } from './hub-routes.js'
 import { DESK_NOT_OPEN, NOTHING_HERE, notFoundPage } from './pages.js'
@@ -221,21 +219,6 @@ async function handleHubApi(
 	if (!DESK_ID.test(id)) return false
 	if (method === 'GET') readDesk(deps, res, id)
 	else if (method === 'DELETE') closeDeskRoute(deps, res, id)
-	else return false
-	return true
-}
-
-async function handleDashboardApi(
-	deps: HubRouterDeps,
-	{ req, res, url }: StaticRequest,
-): Promise<boolean> {
-	if (url.pathname === HUB_PATHS.journal && req.method === 'GET') {
-		await readJournal(deps, res, url)
-		return true
-	}
-	if (url.pathname !== HUB_PATHS.settings) return false
-	if (req.method === 'GET') await serveHubSettings(deps, res)
-	else if (req.method === 'POST') await saveHubSettings(deps, req, res)
 	else return false
 	return true
 }
