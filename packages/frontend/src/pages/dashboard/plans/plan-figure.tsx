@@ -1,9 +1,9 @@
 import { lazy, memo, Suspense, useMemo } from 'react'
 
+import { FallbackBoundary } from '@shared/ui/fallback-boundary'
 import { Notice } from '@shared/ui/notice'
 import * as stylex from '@stylexjs/stylex'
 import { lineKeys } from '@widgets/guide-pane/layout/keys'
-import { BlockBoundary } from '@widgets/guide-pane/react/blocks/block-boundary'
 import { lines } from '@widgets/guide-pane/react/blocks/diagram-lines'
 import { NO_REFS } from '@widgets/guide-pane/react/blocks/diagram-refs'
 
@@ -108,11 +108,11 @@ export const PlanFigureView = memo(function PlanFigureView({
 					/>
 				))}
 				<div {...stylex.props(planFigure.drawing)} data-plan-drawing>
-					<BlockBoundary fallback={unDrawn}>
+					<FallbackBoundary fallback={unDrawn}>
 						<Suspense fallback={null}>
 							<Diagram refs={NO_REFS} block={block} />
 						</Suspense>
-					</BlockBoundary>
+					</FallbackBoundary>
 				</div>
 			</div>
 			<figcaption {...stylex.props(planFigure.caption)}>

@@ -1,12 +1,12 @@
 import { lazy, Suspense, useState } from 'react'
 
 import { referenceStatus } from '@entities/review/guide/resolution'
+import { FallbackBoundary } from '@shared/ui/fallback-boundary'
 import * as stylex from '@stylexjs/stylex'
 
 import { chromeCtx } from '../../../chrome/context'
 import { RefChip } from '../ref-chip'
 
-import { BlockBoundary } from './block-boundary'
 import { BlockFrame } from './block-frame'
 import { block as styles } from './block.styles'
 import { diagram } from './diagram.styles'
@@ -113,7 +113,7 @@ function DiagramBody({
 			actions={actions}
 		>
 			{!hasFailed && (
-				<BlockBoundary
+				<FallbackBoundary
 					fallback={<FailureFlag onFail={() => setFailed(true)} />}
 				>
 					<Suspense fallback={null}>
@@ -121,7 +121,7 @@ function DiagramBody({
 							<Diagram refs={domainRefs(domain)} block={block} />
 						</div>
 					</Suspense>
-				</BlockBoundary>
+				</FallbackBoundary>
 			)}
 			{text}
 		</BlockFrame>

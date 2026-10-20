@@ -1,5 +1,7 @@
 import { lazy, Suspense } from 'react'
 
+import { FallbackBoundary } from '@shared/ui/fallback-boundary'
+
 import { HubPage } from '../hub/hub-page'
 import { OverviewPage } from '../overview/react/overview-page'
 import { PlansPage } from '../plans/plans-page'
@@ -17,28 +19,52 @@ import type { DashboardState } from '../use-dashboard'
 
 // A plan's page brings the markdown renderer's front half and the reading layout: it loads
 // when a plan is opened, so the dashboard's cold open stays the listings' alone.
-// A chunk that fails to load (the hub was upgraded under an open tab) says so instead of
-// throwing: no error boundary sits above, so a rejection would unmount the whole dashboard.
 const PlanPage = lazy(async () => {
-	try {
-		const module = await import('../plans/plan-page')
-		return { default: module.PlanPage }
-	} catch {
-		return { default: PlanPageUnavailable }
-	}
+	const module = await import('../plans/plan-page')
+	return { default: module.PlanPage }
 })
 
-function PlanPageUnavailable(): ReactElement {
+// A page that fails to render, or whose chunk does not load (the hub was upgraded under an
+// open tab), says so in its place: the sidebar and every other page stay.
+function PageUnavailable(): ReactElement {
 	return (
 		<PageHead
-			title="Plan"
+			title="Could not load"
 			lede="This page could not load from the hub. Reload to try again."
 		/>
 	)
 }
 
-// The page the URL names, keyed by it: a move to another page mounts it afresh, so its own
-// entrance plays and its scroll starts at the top.
+function pageKey(page: Page): string {
+	return 'id' in page ? `${page.kind}/${page.id}` : page.kind
+}
+
+function PageContent({
+	page,
+	dashboard,
+}: {
+	page: Page
+	dashboard: DashboardState
+}): ReactElement {
+	if (page.kind === 'overview') return <OverviewPage dashboard={dashboard} />
+	if (page.kind === 'reviews') return <ReviewsPage dashboard={dashboard} />
+	if (page.kind === 'projects') return <ProjectsPage dashboard={dashboard} />
+	if (page.kind === 'project')
+		return <ProjectPage id={page.id} dashboard={dashboard} />
+	if (page.kind === 'plans') return <PlansPage dashboard={dashboard} />
+	if (page.kind === 'plan')
+		return (
+			<Suspense fallback={null}>
+				<PlanPage id={page.id} />
+			</Suspense>
+		)
+	if (page.kind === 'settings') return <SettingsPage />
+	if (page.kind === 'hub') return <HubPage dashboard={dashboard} />
+	return <MissingPage />
+}
+
+// The page the URL names, keyed by it: a move to another page mounts it afresh (its own
+// entrance plays, its scroll starts at the top) and clears a failure the last one met.
 export function DashboardPage({
 	page,
 	dashboard,
@@ -46,23 +72,9 @@ export function DashboardPage({
 	page: Page
 	dashboard: DashboardState
 }): ReactElement {
-	if (page.kind === 'overview')
-		return <OverviewPage key="overview" dashboard={dashboard} />
-	if (page.kind === 'reviews')
-		return <ReviewsPage key="reviews" dashboard={dashboard} />
-	if (page.kind === 'projects')
-		return <ProjectsPage key="projects" dashboard={dashboard} />
-	if (page.kind === 'project')
-		return <ProjectPage key={page.id} id={page.id} dashboard={dashboard} />
-	if (page.kind === 'plans')
-		return <PlansPage key="plans" dashboard={dashboard} />
-	if (page.kind === 'plan')
-		return (
-			<Suspense key={page.id} fallback={null}>
-				<PlanPage id={page.id} />
-			</Suspense>
-		)
-	if (page.kind === 'settings') return <SettingsPage key="settings" />
-	if (page.kind === 'hub') return <HubPage key="hub" dashboard={dashboard} />
-	return <MissingPage key="missing" />
+	return (
+		<FallbackBoundary key={pageKey(page)} fallback={<PageUnavailable />}>
+			<PageContent page={page} dashboard={dashboard} />
+		</FallbackBoundary>
+	)
 }
