@@ -42,6 +42,11 @@ export function projectId(root: string): string {
 	return hash(root)
 }
 
+// A plan's identity is deterministic per repo root + plan file (relative to the root): reopening the file reaches the same record across desks, sessions and hub restarts, and two repos holding the same file name never share one.
+export function planId(root: string, planPath: string): string {
+	return hash(`${root}\nplan:${planPath}`)
+}
+
 // Default session per mode: <branch> / file-<path> / pr-<ref>, overridable.
 // Pure: the CLI and the hub derive the same name for the same inputs, which is what makes an open idempotent across the two entry points.
 export function deskSession(
