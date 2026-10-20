@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { deskOfPlan, plansByProject } from '@entities/hub/plan-model'
 import { TURNS, turnOf } from '@entities/hub/turn'
 import { AppLink } from '@shared/ui/app-link'
@@ -24,11 +26,15 @@ const EMPTY_LIBRARY =
 
 type Row = PlanDeskJoin & { plan: Plan }
 
+const NO_PLANS: readonly Plan[] = []
+
 // A plan's place in its project: the ones waiting on the reviewer first, in the order the
 // round runs, then the ones with no desk open; the most recently moved first within each.
 function rank(row: Row): number {
 	return row.desk ? TURNS.indexOf(turnOf(row.desk)) : TURNS.length
 }
+
+type ProjectRows = { project: PlanProject; rows: Row[] }
 
 function rowsOf(project: PlanProject, desks: readonly HubDesk[]): Row[] {
 	return project.plans
@@ -81,13 +87,22 @@ function PlanRow({ row, now }: { row: Row; now: number }): ReactElement {
 	)
 }
 
+// The library by repository, each plan joined to its live desk and ranked.
+function shelvesOf(
+	plans: readonly Plan[],
+	desks: readonly HubDesk[],
+): ProjectRows[] {
+	return plansByProject(plans).map(project => ({
+		project,
+		rows: rowsOf(project, desks),
+	}))
+}
+
 function ProjectPlans({
-	project,
-	desks,
+	shelf: { project, rows },
 	now,
 }: {
-	project: PlanProject
-	desks: readonly HubDesk[]
+	shelf: ProjectRows
 	now: number
 }): ReactElement {
 	return (
@@ -99,7 +114,7 @@ function ProjectPlans({
 				<span title={project.root}>{displayRoot(project.root)}</span>
 			</h2>
 			<ul>
-				{rowsOf(project, desks).map(row => (
+				{rows.map(row => (
 					<PlanRow key={row.plan.id} row={row} now={now} />
 				))}
 			</ul>
@@ -119,6 +134,10 @@ export function PlanLibrary({
 	desks: readonly HubDesk[]
 	now: number
 }): ReactElement | null {
+	const plans = view.phase === 'read' ? view.plans : NO_PLANS
+	// Grouped and joined again only when the library or the listing moves, not on every render
+	// the dashboard's other state brings.
+	const shelves = useMemo(() => shelvesOf(plans, desks), [plans, desks])
 	if (view.phase === 'loading') return null
 	if (view.phase === 'failed')
 		return (
@@ -127,15 +146,14 @@ export function PlanLibrary({
 				its own.
 			</p>
 		)
-	if (!view.plans.length)
+	if (!plans.length)
 		return <p {...stylex.props(planLibrary.empty)}>{EMPTY_LIBRARY}</p>
 	return (
 		<div {...stylex.props(planLibrary.root)} data-enter="fade">
-			{plansByProject(view.plans).map(project => (
+			{shelves.map(shelf => (
 				<ProjectPlans
-					key={project.projectId}
-					project={project}
-					desks={desks}
+					key={shelf.project.projectId}
+					shelf={shelf}
 					now={now}
 				/>
 			))}
