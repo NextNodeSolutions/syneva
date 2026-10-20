@@ -48,6 +48,9 @@ repo has several desks. Each repo+session is ONE desk with ONE stable URL (/d/<i
   keeps in its plan library, under ~/.syneva/hub/plans. Every open or reload whose content changed
   posts a new version; a round that approves the file approves that version. The open JSON adds
   plan {id, url}. Front matter (title, summary) names the plan; else its first heading does.
+  A figure is a fence whose language is syneva, holding one state, sequence or flow block in the
+  guide's JSON shape (The guide, below; id optional, ref ignored): the plan's page draws it. One
+  that does not read shows as its source under a notice - it never refuses the plan.
 - pr - \`syneva open pr <ref>\` (shorthand: \`syneva pr <ref>\`): a branch's commits vs merge-base.
   <ref> = branch | PR number | GitHub URL (number/URL resolved via \`gh\`, which must be
   installed+authed). The branch is checked out once the open is admitted - its diff is read by ref
