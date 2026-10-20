@@ -1,4 +1,8 @@
-# RFC 0002 — Plans as documents
+---
+title: "RFC 0002 · Plans as documents"
+summary: A plan becomes a document the hub keeps, not a file a desk looks at once. Every version, its status and its figures, read in the hub's own typography, locally and later on the web.
+---
+# RFC 0002 · Plans as documents
 
 Status: accepted, phase 1 in progress · 2026-10-20 · builds on RFC 0001 (core · local · web).
 
@@ -14,6 +18,10 @@ Later the plan becomes live: the agent and the reviewer go back and forth on the
 - The Plans page lists the file desks, live and closed. The journal keeps the rounds as lines.
 - Once the desk closes, what remains is the file on disk (untracked, unversioned) and the journal lines. Nothing says which version was approved, what it led to, or where a project's plans are. A mermaid fence renders as a code block.
 - What this builds on, all existing: the markdown engine (markdown-it with a source line per block, Shiki through Pierre's highlighter, DOMPurify), the guide's typed explanation blocks (`state`, `sequence`, `flow`) and their renderers in `widgets/guide-pane`, the project identity (`projectId`), the journal's rule (record when it happens), and the hub's design language (`DESIGN.md`).
+
+```syneva
+{"kind": "flow", "title": "Today", "detail": "a plan is a file a desk looks at once; once the desk closes, nothing says which version was approved", "nodes": [{"id": "prompt", "label": "/plan", "note": "writes the file, hidden from git"}, {"id": "desk", "label": "file desk", "note": "rounds, comments, verdicts"}, {"id": "closed", "label": "desk closed", "note": "the file and journal lines"}, {"id": "missing", "label": "what is missing", "note": "approved version, status, project"}], "edges": [{"from": "prompt", "to": "desk", "label": "syneva open file"}, {"from": "desk", "to": "closed", "label": "close"}, {"from": "closed", "to": "missing", "label": "nothing kept"}]}
+```
 
 ## 3. The record
 
@@ -51,6 +59,10 @@ type PlanRecord = {
 - **Store.** `~/.syneva/hub/plans/<planId>/plan.json` and `v<n>.md` (each version verbatim). The working file stays where the agent wrote it; whether a team commits it is its choice, the record does not depend on git.
 - **Nothing is edited in Syneva.** The record grows by versions and a status; the text is always a file someone wrote.
 
+```syneva
+{"kind": "state", "title": "A plan's status", "detail": "Send approves the latest version; any new version is a draft again", "states": [{"id": "draft", "label": "draft", "isInitial": true}, {"id": "approved", "label": "approved"}, {"id": "implemented", "label": "implemented"}, {"id": "archived", "label": "archived", "isFinal": true}], "transitions": [{"from": "draft", "to": "approved", "label": "Send approves the file"}, {"from": "approved", "to": "implemented", "label": "reviewer"}, {"from": "implemented", "to": "archived", "label": "reviewer"}, {"from": "approved", "to": "draft", "label": "new version"}, {"from": "implemented", "to": "draft", "label": "new version"}]}
+```
+
 ## 4. The document
 
 The agent-facing format stays markdown, so every harness can write it.
@@ -66,6 +78,10 @@ The agent-facing format stays markdown, so every harness can write it.
 - **CLI.** `syneva open plan <path>` (shorthand `syneva plan <path>`) opens or reloads the plan's desk and prints `plan: { id, url }` with the open's usual JSON. `syneva plans [--all]` lists the repo's plans (the hub's with `--all`).
 - **HTTP.** `GET /api/hub/plans` (every record, newest first, each with its live desk if any), `GET /api/hub/plans/:id` (the record with the latest version's markdown), `GET /api/hub/plans/:id/versions/:n` (one version's markdown), `POST /api/hub/plans/:id/status`. The desk routes are untouched; `DeskSummary.plan` names a plan desk's plan.
 - **Dashboard.** `/plans` is the library: by project, each plan with its status, its versions, its last move and its live desk. `/plans/<id>` is the document: the eyebrow (project, status, version, date), the title as the page's headline, the summary as its lede, the table of contents, the sections through the markdown engine and the figures, then the versions and the actions (review on its desk, mark implemented, archive, restore, download the markdown).
+
+```syneva
+{"kind": "flow", "title": "Tomorrow", "detail": "the desk stays the place of review; the library is what remains when it closes", "nodes": [{"id": "agent", "label": "agent · /plan", "note": "markdown, front matter, figures"}, {"id": "desk", "label": "plan desk", "note": "the same desk, one round at a time"}, {"id": "library", "label": "plan library", "note": "~/.syneva/hub/plans"}, {"id": "pages", "label": "/plans and /plans/<id>", "note": "the library and the document"}], "edges": [{"from": "agent", "to": "desk", "label": "syneva open plan"}, {"from": "desk", "to": "library", "label": "a version per open or reload"}, {"from": "desk", "to": "library", "label": "Send approves it"}, {"from": "library", "to": "pages", "label": "read"}]}
+```
 
 ## 6. Local and web
 
