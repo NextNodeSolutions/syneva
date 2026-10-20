@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { fetchPlans } from './api'
+import { planSignature } from './plan-model'
 import { pollWhileVisible, READ_TIMEOUT_MS } from './poll'
 
 import type { Plan } from './plan-model'
@@ -12,16 +13,10 @@ export type PlansView =
 
 type Keep = (update: (held: PlansView) => PlansView) => void
 
-// What makes two reads of the library the same for the page: who is listed, at which move,
-// in which status and on which desk.
+// Two reads of the library are the same for the page when every plan reads the same, in the
+// same order.
 function signature(plans: readonly Plan[]): string {
-	return plans
-		.map(plan =>
-			[plan.id, plan.updatedAt, plan.status, plan.deskPath ?? ''].join(
-				' ',
-			),
-		)
-		.join('\n')
+	return plans.map(planSignature).join('\n')
 }
 
 // A read that changed nothing keeps the view held, so the page does not render again.
