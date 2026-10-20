@@ -52,7 +52,11 @@ export type PlanPosting = {
 
 export type PlanHeading = { title: string; summary?: string | undefined }
 
-const FRONT_MATTER = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/
+// The leading `---` block, closed by a `---` line (spaces after it allowed). The plan's page
+// cuts the same block off the body it renders (frontend pages/dashboard/plans/plan-document.ts,
+// the same pattern there): keep the two identical, or the page and the record disagree on
+// whether a plan has front matter. Domain does not import contracts, so it is not shared.
+const FRONT_MATTER = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/
 const FRONT_MATTER_FIELD = /^([A-Za-z_][\w-]*)\s*:\s*(.*)$/
 const QUOTED = /^(["'])(?<inner>.*)\1$/
 
@@ -66,11 +70,6 @@ export function planHeading(markdown: string, fileName: string): PlanHeading {
 		markdownOutline(markdown).declarations[0]?.name ??
 		fileName
 	return { title, summary: fields.get('summary') }
-}
-
-// The text a reader sees under the front matter (the block itself is metadata, not prose).
-export function planBody(markdown: string): string {
-	return markdown.replace(FRONT_MATTER, '')
 }
 
 function frontMatterOf(markdown: string): Map<string, string> {
