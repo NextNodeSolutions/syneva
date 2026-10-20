@@ -9,7 +9,6 @@ import { diagram } from './diagram.styles'
 import { EdgeLabel } from './edge-label'
 
 import type {
-	GuideDomain,
 	StateBlock,
 	StateNode,
 	StateTransition,
@@ -17,6 +16,7 @@ import type {
 import type { ReactElement } from 'react'
 import type { Placed } from '../../layout/flow-layout'
 import type { StateRoute } from '../../layout/state-layout'
+import type { DiagramRefs } from './diagram-refs'
 
 const LABEL_LIFT = 6
 const HALF = 2
@@ -33,11 +33,11 @@ function shapeOf(state: StateNode): 'initial' | 'final' | undefined {
 
 // A transition on its own level: up (or down) from the source, along the level, back into the target, its label on the level.
 function BracketTransition({
-	domain,
+	refs,
 	transition,
 	route,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	transition: StateTransition
 	route: Extract<StateRoute, { kind: 'bracket' }>
 }): ReactElement {
@@ -49,7 +49,7 @@ function BracketTransition({
 				{...stylex.props(diagram.edgePath)}
 			/>
 			<EdgeLabel
-				domain={domain}
+				refs={refs}
 				at={{ x: (route.x1 + route.x2) / HALF, y: route.labelY }}
 				label={transition.label}
 				refId={transition.ref}
@@ -60,13 +60,13 @@ function BracketTransition({
 
 // A transition to the next state runs straight between the neighbours; the layout sends every other one around the row.
 function Transition({
-	domain,
+	refs,
 	transition,
 	route,
 	nodes,
 	nodeHeight,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	transition: StateTransition
 	route: StateRoute | undefined
 	nodes: readonly Placed[]
@@ -75,7 +75,7 @@ function Transition({
 	if (route?.kind === 'bracket')
 		return (
 			<BracketTransition
-				domain={domain}
+				refs={refs}
 				transition={transition}
 				route={route}
 			/>
@@ -95,7 +95,7 @@ function Transition({
 				{...stylex.props(diagram.edgePath)}
 			/>
 			<EdgeLabel
-				domain={domain}
+				refs={refs}
 				at={{ x: (x1 + to.x) / HALF, y: y - LABEL_LIFT }}
 				label={transition.label}
 				refId={transition.ref}
@@ -105,10 +105,10 @@ function Transition({
 }
 
 export function StateDiagram({
-	domain,
+	refs,
 	block,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	block: StateBlock
 }): ReactElement {
 	const layout = layoutStates(block)
@@ -126,7 +126,7 @@ export function StateDiagram({
 			{block.transitions.map((transition, index) => (
 				<Transition
 					key={keys[index]}
-					domain={domain}
+					refs={refs}
 					transition={transition}
 					route={layout.routes[index]}
 					nodes={layout.nodes}
@@ -136,7 +136,7 @@ export function StateDiagram({
 			{block.states.map(state => (
 				<DiagramNode
 					key={state.id}
-					domain={domain}
+					refs={refs}
 					box={{
 						...placed(layout.nodes, state.id),
 						width: STATE_NODE.width,

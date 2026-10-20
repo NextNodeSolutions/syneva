@@ -1,14 +1,12 @@
-import { referenceStatus } from '@entities/review/guide/resolution'
 import * as stylex from '@stylexjs/stylex'
 
-import { chromeCtx } from '../../../chrome/context'
 import { LINE_HEIGHT, nodeLines } from '../../layout/node-label'
 
 import { diagram } from './diagram.styles'
 
-import type { GuideDomain } from '@entities/review/guide/model'
 import type { StaticStyle } from '@shared/lib/cx'
 import type { KeyboardEvent, ReactElement } from 'react'
+import type { DiagramRefs } from './diagram-refs'
 
 export type Box = { x: number; y: number; width: number; height: number }
 
@@ -36,11 +34,8 @@ type Link = {
 	isLinked: boolean
 }
 
-function linkOf(domain: GuideDomain, refId: string | undefined): Link {
-	const { S } = chromeCtx()
-	const status = refId
-		? referenceStatus(S.state, domain.id, refId).status
-		: null
+function linkOf(refs: DiagramRefs, refId: string | undefined): Link {
+	const status = refId ? refs.statusOf(refId) : null
 	return { status, isLinked: status !== null && status !== 'unresolved' }
 }
 
@@ -62,24 +57,24 @@ function nodeLabel(
 	refId: string | undefined,
 	link: Link,
 ): string {
-	if (!refId) return label
+	if (!refId || link.status === null) return label
 	return `${label}${link.isLinked ? ', opens the code' : ', target unresolved'}`
 }
 
 // The ARIA button a referenced element becomes: pointer and keyboard both call followReference, the same validated action every chip uses.
 function buttonProps(
-	domain: GuideDomain,
+	refs: DiagramRefs,
 	refId: string | undefined,
+	link: Link,
 	ariaLabel: string,
 ): Record<string, unknown> {
-	if (typeof refId !== 'string') return {}
-	const { S } = chromeCtx()
-	const activate = (): void => S.followReference?.(domain.id, refId)
+	if (typeof refId !== 'string' || link.status === null) return {}
+	const activate = (): void => refs.follow(refId)
 	return {
 		role: 'button',
 		tabIndex: 0,
 		'aria-label': ariaLabel,
-		'data-ref': `${domain.id}:${refId}`,
+		'data-ref': refs.hookOf(refId),
 		onClick: activate,
 		onKeyDown: onActivationKey(activate),
 	}
@@ -124,23 +119,23 @@ function NodeText({
 
 // A node of any diagram: a labelled box, its label wrapped to the box; with a reference it is a button (pointer and keyboard both call followReference, the same validated action every chip uses), outlined in petrol and saying so.
 export function DiagramNode({
-	domain,
+	refs,
 	box,
 	label,
 	refId,
 	shape,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	box: Box
 	label: string
 	refId?: string | undefined
 	shape?: 'initial' | 'final' | undefined
 }): ReactElement {
-	const link = linkOf(domain, refId)
+	const link = linkOf(refs, refId)
 	return (
 		<g
 			{...stylex.props(link.isLinked && diagram.linked)}
-			{...buttonProps(domain, refId, nodeLabel(label, refId, link))}
+			{...buttonProps(refs, refId, link, nodeLabel(label, refId, link))}
 		>
 			<rect
 				x={box.x}
