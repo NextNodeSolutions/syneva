@@ -14,7 +14,7 @@ import { reloadDesk } from '../../../application/reload-desk.js'
 import { nowIso } from '../../../application/time.js'
 
 import { hostDesk, summarize } from './hosted-desk.js'
-import { liveDesk, liveRecords } from './hub-desks.js'
+import { keepOpenPreferences, liveDesk, liveRecords } from './hub-desks.js'
 import { inventoryOf } from './hub-inventory.js'
 import { queryOf, recordOf, sameSource } from './hub-records.js'
 
@@ -198,26 +198,14 @@ async function reuseDesk(
 	if (outcome.kind === 'invalid-guide')
 		return { ok: false, code: 'INVALID_GUIDE', reason: outcome.reason }
 	live.ctx.commit(outcome.state)
+	// The record first: the reload's event reaches the plan library when this open makes the desk a plan desk.
+	await keepOpenPreferences(state.desks, live.id, query, state.persist)
 	live.ctx.recordEvent({
 		kind: 'desk-reloaded',
 		...reviewScope(outcome.state),
 	})
 	state.io.log(`desk reloaded ${live.id} (${live.record.root})`)
-	await keepGuidePreference(state, live.id, query)
 	return { ok: true, desk: live, outcome: 'reloaded' }
-}
-
-// The record is what a restart rebuilds from: a reopen that changed the guide expectation must outlive the hub too.
-async function keepGuidePreference(
-	state: HubState,
-	id: string,
-	query: DeskQuery,
-): Promise<void> {
-	const desk = state.desks.get(id)
-	const noGuide = query.noGuide || undefined
-	if (!desk || desk.record.noGuide === noGuide) return
-	desk.record = { ...desk.record, noGuide }
-	await state.persist()
 }
 
 // The checkout a pr open ends with happens here, once admitted; the desk then builds at the admitted head. The desk it replaces stays live until the new one is built, so a failed checkout or build leaves it reviewable.

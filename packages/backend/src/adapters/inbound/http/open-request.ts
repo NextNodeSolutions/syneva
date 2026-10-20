@@ -52,6 +52,11 @@ export function parseOpenRequest(body: unknown): ParsedOpen {
 	const target = optionalText(record, 'target')
 	if (mode === 'file' && !target)
 		return { error: 'file mode requires `target` (the file to review).' }
+	const plan = record.plan === true
+	if (plan && mode !== 'file')
+		return {
+			error: 'a plan is opened in file mode (`target` is the plan file).',
+		}
 	let guide: AuthoredGuide | undefined
 	// A posted `guide` key is a posted guide, null included: it is validated, never ignored.
 	if ('guide' in record) {
@@ -70,6 +75,7 @@ export function parseOpenRequest(body: unknown): ParsedOpen {
 			staged: record.staged === true,
 			pathFilter: optionalText(record, 'path'),
 			noGuide: record.noGuide === true,
+			plan,
 		},
 		guide,
 	}

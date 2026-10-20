@@ -24,12 +24,15 @@ import {
 	nodeHubRegistry,
 } from '../adapters/outbound/filesystem/hub.js'
 import { nodeReviewStore } from '../adapters/outbound/filesystem/persistence.js'
+import { nodePlanStore } from '../adapters/outbound/filesystem/plans.js'
 import { nodeGit } from '../adapters/outbound/git/repo.js'
 import { createHubJournal } from '../application/journal.js'
+import { createPlanLibrary } from '../application/plan-library.js'
 
 import type { Hub } from '../adapters/inbound/http/hub.js'
 import type { HubHandle, HubOptions } from '../adapters/inbound/http/options.js'
 import type { HubJournal } from '../application/journal.js'
+import type { PlanLibrary } from '../application/plan-library.js'
 
 const DEFAULT_STATUS_TTL_MS = 90_000
 
@@ -49,9 +52,14 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		publicUrl?.protocol === 'https:',
 	)
 	const log = options.log ?? hubLog
-	// One journal for the hub's desks to record into and the dashboard to read.
-	const journal = createHubJournal(nodeHubJournal, log)
-	const hub = wireHub(options, journal, log)
+	// One journal for the hub's desks to record into and the dashboard to read; one plan library
+	// for its plan desks to post into.
+	const records: HubRecords = {
+		journal: createHubJournal(nodeHubJournal, log),
+		plans: createPlanLibrary(nodePlanStore, nodeGit.workspace, log),
+	}
+	const { journal } = records
+	const hub = wireHub(options, records, log)
 	const server = http.createServer()
 	server.on(
 		'request',
@@ -82,9 +90,12 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 	}
 }
 
+// What the hub records as it runs, beside its desks.
+type HubRecords = { journal: HubJournal; plans: PlanLibrary }
+
 function wireHub(
 	options: HubOptions,
-	journal: HubJournal,
+	{ journal, plans }: HubRecords,
 	log: (line: string) => void,
 ): Hub {
 	return createHub(
@@ -95,6 +106,7 @@ function wireHub(
 			editor: editorPort(options.runEditorCommand),
 			registry: nodeHubRegistry,
 			journal,
+			plans,
 			statusTtlMs: options.statusTtlMs ?? DEFAULT_STATUS_TTL_MS,
 			log,
 		},

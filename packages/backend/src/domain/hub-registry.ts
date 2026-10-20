@@ -14,6 +14,8 @@ export type HubDeskRecord = {
 	readonly pathFilter?: string | undefined
 	// The open said --no-guide: a restore rebuilds the same expectation.
 	readonly noGuide?: boolean | undefined
+	// A plan desk (`syneva open plan`): its events feed the plan library, across restarts too.
+	readonly plan?: true | undefined
 	readonly openedAt: string
 }
 
@@ -61,6 +63,7 @@ export function decodeHubDeskRecord(raw: unknown): HubDeskRecord | null {
 		staged: record.staged === true,
 		pathFilter: optionalString(record.pathFilter),
 		noGuide: record.noGuide === true ? true : undefined,
+		plan: record.plan === true ? true : undefined,
 		openedAt,
 	}
 }

@@ -27,6 +27,8 @@ export type DeskQuery = {
 	pathFilter?: string | undefined
 	// The reviewer wants no guide on this repo or pr desk (otherwise the desk expects one).
 	noGuide: boolean
+	// A file desk over a plan: the plan library keeps its versions (file mode only).
+	plan?: boolean | undefined
 }
 
 // A pr identity also carries the resolved head (the commit its diff is read from before any checkout) and the checkout an admitted open then runs.

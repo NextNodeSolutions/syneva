@@ -2,12 +2,17 @@ import { createActivity } from '../../../application/activity.js'
 import { deskIdentity, deskSummary } from '../../../application/desk-summary.js'
 import { createEventStream } from '../../../application/events.js'
 import { journalSubject } from '../../../application/journal.js'
+import { planFileOf } from '../../../application/plan-library.js'
 
 import { createDeskContext } from './context.js'
 import { createDeskLiveness } from './liveness.js'
 
 import type { DeskSummary } from '@syneva/contracts/hub'
 import type { HubJournal } from '../../../application/journal.js'
+import type {
+	PlanDeskRef,
+	PlanLibrary,
+} from '../../../application/plan-library.js'
 import type {
 	EditorPort,
 	GitPort,
@@ -38,12 +43,15 @@ export type HostedDeskIo = {
 	settings: SettingsPort
 	editor: EditorPort
 	journal: HubJournal
+	plans: PlanLibrary
 	statusTtlMs: number
 }
 
 // A desk over the hub's collaborators. `close` is the hub's: it alone drops a desk from its
 // registry. The desk's journal binding names the desk as the hub lists it at the moment of each
-// event, so a route records what happened and never who it happened to.
+// event, so a route records what happened and never who it happened to. A plan desk's events
+// also reach the plan library, read off the record at that moment (a reopen may make a file
+// desk a plan desk).
 export function hostDesk(
 	io: HostedDeskIo,
 	review: ReviewState,
@@ -75,15 +83,27 @@ export function hostDesk(
 					},
 					verdicts,
 				)
+				const plan = planDeskOf(desk)
+				if (plan) io.plans.observe(plan, draft, verdicts)
 			},
 		}),
 	}
 	return desk
 }
 
+function planDeskOf(desk: HubDesk): PlanDeskRef | null {
+	const { plan, target, root } = desk.record
+	if (!plan || !target) return null
+	return { deskId: desk.id, root, file: target }
+}
+
 export function summarize(desk: HubDesk): DeskSummary {
-	return deskSummary(desk.id, desk.ctx.state, desk.ctx.status(), {
-		openedAt: desk.liveness.openedAt,
-		lastActivityAt: desk.liveness.lastActivityAt(),
-	})
+	const plan = planDeskOf(desk)
+	return {
+		...deskSummary(desk.id, desk.ctx.state, desk.ctx.status(), {
+			openedAt: desk.liveness.openedAt,
+			lastActivityAt: desk.liveness.lastActivityAt(),
+		}),
+		plan: plan ? planFileOf(plan.root, plan.file).id : undefined,
+	}
 }

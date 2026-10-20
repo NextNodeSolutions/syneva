@@ -18,6 +18,7 @@ export function recordOf(
 		staged: query.staged,
 		pathFilter: query.pathFilter,
 		noGuide: query.noGuide || undefined,
+		plan: query.plan === true || undefined,
 		openedAt: nowIso(),
 	}
 }
@@ -32,6 +33,7 @@ export function queryOf(record: HubDeskRecord): DeskQuery {
 		staged: record.staged,
 		pathFilter: record.pathFilter,
 		noGuide: record.noGuide === true,
+		plan: record.plan === true,
 	}
 }
 
@@ -48,4 +50,17 @@ export function sameSource(
 		(record.pathFilter ?? '') === (query.pathFilter ?? '') &&
 		(record.target ?? '') === (identity.target ?? '')
 	)
+}
+
+// What a reopen changes in the record: the guide expectation follows the open's words; a plan
+// desk stays one (`syneva open plan` makes a file desk a plan desk, a plain reopen never undoes
+// it). The same record when nothing changed, so the caller writes the registry only when needed.
+export function reopenedRecord(
+	record: HubDeskRecord,
+	query: DeskQuery,
+): HubDeskRecord {
+	const noGuide = query.noGuide || undefined
+	const plan = record.plan ?? (query.plan === true || undefined)
+	if (record.noGuide === noGuide && record.plan === plan) return record
+	return { ...record, noGuide, plan }
 }
