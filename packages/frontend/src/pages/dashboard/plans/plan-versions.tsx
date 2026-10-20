@@ -101,3 +101,21 @@ export function PlanFacts({ plan }: { plan: Plan }): ReactElement {
 		</div>
 	)
 }
+
+// What the head shows beside the plan: its versions, then where it lives.
+export function PlanMeta({
+	plan,
+	reading,
+	onRead,
+}: {
+	plan: Plan
+	reading: number
+	onRead: (version: number) => void
+}): ReactElement {
+	return (
+		<>
+			<PlanVersions plan={plan} reading={reading} onRead={onRead} />
+			<PlanFacts plan={plan} />
+		</>
+	)
+}

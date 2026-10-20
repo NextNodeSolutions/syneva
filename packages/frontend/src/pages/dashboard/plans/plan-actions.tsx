@@ -7,6 +7,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import { markdownDownload } from './plan-document'
 import { planPage } from './plan-page.styles'
+import { PlanReviewAction } from './plan-review-action'
 
 import type {
 	Plan,
@@ -68,28 +69,23 @@ function useStatusMove(
 	return { busy, failure, move }
 }
 
+// Review first (the plan's desk, open or opened again), then the reviewer's own word on its
+// status, then the plan as its markdown: read raw in place, or kept as a file.
 export function PlanActions({
 	plan,
 	markdown,
 	onChanged,
+	raw,
 }: {
 	plan: Plan
 	markdown: string
 	onChanged: (plan: Plan) => void
+	raw: { isRaw: boolean; toggle: () => void }
 }): ReactElement {
 	const { busy, failure, move } = useStatusMove(plan.id, onChanged)
 	return (
 		<div {...stylex.props(planPage.actions)} data-enter="fade">
-			{plan.deskPath && (
-				<ButtonLink
-					href={plan.deskPath}
-					tone="primary"
-					size="small"
-					arrow
-				>
-					Open its desk
-				</ButtonLink>
-			)}
+			<PlanReviewAction plan={plan} tone="primary" />
 			{MOVES[plan.status].map(({ status, label }) => (
 				<Button
 					key={status}
@@ -102,6 +98,14 @@ export function PlanActions({
 					{label}
 				</Button>
 			))}
+			<Button
+				tone="quiet"
+				size="small"
+				aria-pressed={raw.isRaw}
+				onClick={raw.toggle}
+			>
+				{raw.isRaw ? 'Read rendered' : 'View raw markdown'}
+			</Button>
 			<ButtonLink
 				{...markdownDownload(markdown, plan.path)}
 				tone="quiet"

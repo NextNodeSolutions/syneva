@@ -35,4 +35,18 @@ export const planBody = stylex.create({
 		lineHeight: 1.15,
 		textWrap: 'balance',
 	},
+	raw: {
+		overflowX: 'auto',
+		paddingBlock: '20px',
+		paddingInline: '24px',
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		borderColor: color['--line'],
+		backgroundColor: color['--white'],
+		fontFamily: font['--mono'],
+		fontSize: '13px',
+		lineHeight: 1.65,
+		whiteSpace: 'pre-wrap',
+		overflowWrap: 'anywhere',
+	},
 })

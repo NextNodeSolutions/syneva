@@ -12,11 +12,11 @@ import { PageHead } from '../react/page-head'
 import { dashboardPage } from '../react/page.styles'
 
 import { PlanActions } from './plan-actions'
-import { PlanBody } from './plan-body'
+import { PlanBody, RawBody } from './plan-body'
 import { readPlan } from './plan-document'
 import { PlanHero } from './plan-hero'
 import { planPage } from './plan-page.styles'
-import { PlanFacts, PlanVersions } from './plan-versions'
+import { PlanMeta } from './plan-versions'
 
 import type { Plan, PlanDocument } from '@entities/hub/plan-model'
 import type { ReactElement } from 'react'
@@ -101,40 +101,39 @@ function PlanReading({
 	const { older, read } = useOlderVersion(plan.id)
 	const markdown = older?.markdown ?? document.markdown
 	const reading = useReading(renderer, markdown, plan.title)
+	const [isRaw, setRaw] = useState(false)
+	const notice = older && (
+		<OlderNotice
+			older={older}
+			latest={latest}
+			onBack={() => void read(latest, latest)}
+		/>
+	)
 	return (
 		<>
 			<PlanHero
 				plan={plan}
 				sections={reading.sections}
 				meta={
-					<>
-						<PlanVersions
-							plan={plan}
-							reading={older?.number ?? latest}
-							onRead={version => void read(version, latest)}
-						/>
-						<PlanFacts plan={plan} />
-					</>
+					<PlanMeta
+						plan={plan}
+						reading={older?.number ?? latest}
+						onRead={version => void read(version, latest)}
+					/>
 				}
 			>
 				<PlanActions
 					plan={plan}
 					markdown={markdown}
 					onChanged={adopt}
+					raw={{ isRaw, toggle: () => setRaw(was => !was) }}
 				/>
 			</PlanHero>
-			<PlanBody
-				reading={reading}
-				notice={
-					older && (
-						<OlderNotice
-							older={older}
-							latest={latest}
-							onBack={() => void read(latest, latest)}
-						/>
-					)
-				}
-			/>
+			{isRaw ? (
+				<RawBody markdown={markdown} />
+			) : (
+				<PlanBody reading={reading} notice={notice} />
+			)}
 		</>
 	)
 }
