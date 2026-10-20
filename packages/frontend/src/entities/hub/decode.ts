@@ -41,6 +41,7 @@ export function decodeHubDesk(raw: unknown, endpoint: string): HubDesk {
 		openedAt: requiredString(o, 'openedAt', endpoint),
 		lastActivityAt: requiredString(o, 'lastActivityAt', endpoint),
 		path: requiredString(o, 'path', endpoint),
+		plan: optString(o, 'plan', endpoint) ?? null,
 	}
 }
 

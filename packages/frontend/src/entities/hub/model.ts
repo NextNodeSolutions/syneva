@@ -26,6 +26,8 @@ export type HubDesk = {
 	openedAt: string
 	lastActivityAt: string
 	path: string
+	// The plan this desk reviews (`syneva open plan`): its id in the plan library.
+	plan: string | null
 }
 
 export type HubHealth = {
@@ -77,4 +79,6 @@ export type NewDeskInput = {
 	session?: string | undefined
 	base?: string | undefined
 	path?: string | undefined
+	// A file desk over a plan: the hub keeps its versions in the plan library.
+	plan?: boolean | undefined
 }
