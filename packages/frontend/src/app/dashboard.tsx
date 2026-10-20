@@ -1,8 +1,11 @@
 import '@syneva/design-system/fonts.css'
+// A plan's page renders markdown (pages/dashboard/plans).
+import '@shared/markdown/prose.css'
 import { createRoot } from 'react-dom/client'
 
 import { fetchHubPrefs } from '@entities/settings/api'
 import { applyAppearance, DEFAULT_SETTINGS } from '@entities/settings/settings'
+import { keepCodeTheme } from '@pages/dashboard/code-theme'
 import { Dashboard } from '@pages/dashboard/react/dashboard'
 import { $ } from '@shared/lib/dom'
 import { routeInPage } from '@shared/lib/router'
@@ -33,7 +36,9 @@ async function boot(): Promise<void> {
 	const prefs = await fetchHubPrefs(AbortSignal.timeout(PREFS_WAIT_MS)).catch(
 		() => null,
 	)
-	applyAppearance({ ...DEFAULT_SETTINGS, ...prefs?.settings })
+	const settings = { ...DEFAULT_SETTINGS, ...prefs?.settings }
+	applyAppearance(settings)
+	keepCodeTheme(settings.theme)
 	routeInPage()
 	const root = $('root')
 	const { className } = stylex.props(documentRoot.base)
