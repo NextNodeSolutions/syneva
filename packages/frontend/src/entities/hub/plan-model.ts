@@ -1,6 +1,8 @@
 // The hub's plan library as the dashboard holds it: decoded from the wire at api.ts, so the
 // pages never read a contract shape.
 
+import { projectName } from './model'
+
 import type { HubDesk } from './model'
 
 export const PLAN_STATUSES = [
@@ -78,17 +80,17 @@ export function planSignature(plan: Plan): string {
 	].join(' ')
 }
 
-// The library by repository, in the order the hub listed them (the most recently moved plan
-// first), so the project that moved last leads.
+// The library by repository (keyed and named as the desks are, projectName), in the order the
+// hub listed them (the most recently moved plan first), so the project that moved last leads.
 export function plansByProject(plans: readonly Plan[]): PlanProject[] {
 	const projects = new Map<string, PlanProject>()
 	for (const plan of plans) {
-		const held = projects.get(plan.projectId)
+		const held = projects.get(plan.root)
 		if (held) held.plans.push(plan)
 		else
-			projects.set(plan.projectId, {
+			projects.set(plan.root, {
 				projectId: plan.projectId,
-				project: plan.project,
+				project: projectName(plan),
 				root: plan.root,
 				plans: [plan],
 			})
