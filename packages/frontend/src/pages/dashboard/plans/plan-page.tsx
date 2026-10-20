@@ -4,6 +4,7 @@ import { fetchPlanVersion } from '@entities/hub/api'
 import { latestVersion } from '@entities/hub/plan-model'
 import { usePlan } from '@entities/hub/use-plan'
 import { useEntrance } from '@shared/lib/use-entrance'
+import { Notice } from '@shared/ui/notice'
 import { TextButton } from '@shared/ui/text-button'
 import * as stylex from '@stylexjs/stylex'
 
@@ -70,10 +71,16 @@ function OlderNotice({
 	onBack: () => void
 }): ReactElement {
 	return (
-		<p {...stylex.props(planPage.notice)} role="status">
-			{`You are reading version ${String(older.number)} of ${String(latest)}.`}
-			<TextButton onClick={onBack}>Back to the latest</TextButton>
-		</p>
+		<div {...stylex.props(planPage.notice)}>
+			<Notice
+				tone="amber"
+				rule="amber"
+				role="status"
+				lead={`You are reading version ${String(older.number)} of ${String(latest)}.`}
+			>
+				<TextButton onClick={onBack}>Back to the latest</TextButton>
+			</Notice>
+		</div>
 	)
 }
 

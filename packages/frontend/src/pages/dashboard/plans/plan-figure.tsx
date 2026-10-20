@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 
+import { Notice } from '@shared/ui/notice'
 import * as stylex from '@stylexjs/stylex'
 import { lineKeys } from '@widgets/guide-pane/layout/keys'
 import { BlockBoundary } from '@widgets/guide-pane/react/blocks/block-boundary'
@@ -35,8 +36,13 @@ function InvalidFigure({
 	source: string
 }): ReactElement {
 	return (
-		<div {...stylex.props(planFigure.invalid)} role="note">
-			{`This figure does not read: ${reason}.`}
+		<div {...stylex.props(planFigure.invalid)}>
+			<Notice
+				tone="amber"
+				rule="amber"
+				role="note"
+				lead={`This figure does not read: ${reason}.`}
+			/>
 			<pre {...stylex.props(planFigure.source)}>{source}</pre>
 		</div>
 	)

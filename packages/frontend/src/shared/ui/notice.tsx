@@ -12,17 +12,21 @@ import type {
 	ReactNode,
 } from 'react'
 
-type NoticeTone = 'petrol' | 'green' | 'red' | 'neutral'
+type NoticeTone = 'petrol' | 'green' | 'red' | 'amber' | 'neutral'
 
 type NoticeProps = {
 	tone: NoticeTone
 	lead: ReactNode
-	rule?: 'ink' | 'red' | undefined
+	rule?: 'ink' | 'red' | 'amber' | undefined
 	onDismiss?: ((event: MouseEvent<HTMLButtonElement>) => void) | undefined
 	children?: ReactNode
 } & Pick<ComponentPropsWithRef<'div'>, 'role'>
 
-const RULE_STYLE = { ink: notice.inkRule, red: notice.redRule } as const
+const RULE_STYLE = {
+	ink: notice.inkRule,
+	red: notice.redRule,
+	amber: notice.amberRule,
+} as const
 
 export function Notice({
 	tone,
