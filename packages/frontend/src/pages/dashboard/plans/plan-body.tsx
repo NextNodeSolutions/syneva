@@ -94,12 +94,19 @@ export function PlanBody({
 }
 
 // The plan as the agent wrote it, front matter and fences included: the file the desk reviews,
-// read in place without opening the desk.
-export function RawBody({ markdown }: { markdown: string }): ReactElement {
+// read in place without opening the desk. The notice (reading an earlier version) opens it too.
+export function RawBody({
+	markdown,
+	notice,
+}: {
+	markdown: string
+	notice: ReactNode
+}): ReactElement {
 	return (
 		<article {...stylex.props(planBody.root)}>
 			<div {...stylex.props(planBody.band)}>
 				<div {...stylex.props(planBody.inner)}>
+					{notice}
 					<pre {...stylex.props(planBody.raw)}>{markdown}</pre>
 				</div>
 			</div>

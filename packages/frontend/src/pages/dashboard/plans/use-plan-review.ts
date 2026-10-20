@@ -25,6 +25,7 @@ export function usePlanReview(plan: Plan): PlanReview {
 	const [failure, setFailure] = useState<string | null>(null)
 	const review = async (): Promise<void> => {
 		setBusy(true)
+		setFailure(null)
 		try {
 			const desk = await openHubDesk({
 				root: plan.root,

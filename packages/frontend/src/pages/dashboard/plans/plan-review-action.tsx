@@ -10,17 +10,21 @@ import type { ReactElement } from 'react'
 
 // Where a plan is reviewed: its desk, open now or opened again. The desk is the review itself
 // (comments, verdicts, the Send that approves a version), not a view of the file.
+// `deskPath` is the live desk the caller already knows of (the listing's own poll), ahead of the
+// library's, which can lag it: a desk still open is never reopened (a reload) to be reached.
 export function PlanReviewAction({
 	plan,
 	tone,
+	deskPath = plan.deskPath,
 }: {
 	plan: Plan
 	tone: 'primary' | 'outlined'
+	deskPath?: string | null | undefined
 }): ReactElement {
 	const { busy, failure, review } = usePlanReview(plan)
-	if (plan.deskPath)
+	if (deskPath)
 		return (
-			<ButtonLink href={plan.deskPath} tone={tone} size="small" arrow>
+			<ButtonLink href={deskPath} tone={tone} size="small" arrow>
 				Review
 			</ButtonLink>
 		)

@@ -75,7 +75,11 @@ function PlanRow({ row, now }: { row: Row; now: number }): ReactElement {
 				{...stylex.props(planLibrary.figure)}
 			>{`${versions} · ${last}`}</span>
 			<span {...stylex.props(planLibrary.action)}>
-				<PlanReviewAction plan={plan} tone="outlined" />
+				<PlanReviewAction
+					plan={plan}
+					tone="outlined"
+					deskPath={desk?.path ?? plan.deskPath}
+				/>
 			</span>
 			<span {...stylex.props(planLibrary.folded)}>
 				{`${versions} · moved ${last}`}

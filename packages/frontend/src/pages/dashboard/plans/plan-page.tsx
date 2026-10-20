@@ -113,7 +113,8 @@ function PlanReading({
 		<>
 			<PlanHero
 				plan={plan}
-				sections={reading.sections}
+				// The raw file has no section bands to scroll to.
+				sections={isRaw ? [] : reading.sections}
 				meta={
 					<PlanMeta
 						plan={plan}
@@ -130,7 +131,7 @@ function PlanReading({
 				/>
 			</PlanHero>
 			{isRaw ? (
-				<RawBody markdown={markdown} />
+				<RawBody markdown={markdown} notice={notice} />
 			) : (
 				<PlanBody reading={reading} notice={notice} />
 			)}
