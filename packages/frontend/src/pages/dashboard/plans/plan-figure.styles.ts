@@ -54,7 +54,11 @@ export const planFigure = stylex.create({
 		borderBottomWidth: '1px',
 		borderRightWidth: '1px',
 	},
-	drawing: { position: 'relative' },
+	drawing: {
+		position: 'relative',
+		display: 'flex',
+		justifyContent: 'center',
+	},
 	caption: {
 		marginTop: '14px',
 		maxWidth: '86ch',

@@ -85,7 +85,7 @@ export function PlanFigureView({
 						{...stylex.props(planFigure.mark, corner.style)}
 					/>
 				))}
-				<div {...stylex.props(planFigure.drawing)}>
+				<div {...stylex.props(planFigure.drawing)} data-plan-drawing>
 					<BlockBoundary fallback={unDrawn}>
 						<Suspense fallback={null}>
 							<Diagram refs={NO_REFS} block={block} />
