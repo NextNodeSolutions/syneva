@@ -12,18 +12,6 @@ import type { Plan } from '@entities/hub/plan-model'
 import type { ReactElement, ReactNode } from 'react'
 import type { PlanSection } from './plan-document'
 
-// A section link scrolls to its heading itself: a fragment navigation would reach the router's
-// Back/Forward handling, which restores the page's scroll and undoes the jump. The href stays
-// for a copied or opened link. The plan's body follows its own fragment links (footnotes) the
-// same way.
-export function scrollToFragment(id: string): void {
-	const isCalm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-	document.getElementById(id)?.scrollIntoView({
-		behavior: isCalm ? 'auto' : 'smooth',
-		block: 'start',
-	})
-}
-
 // Where the plan belongs and where it stands.
 function PlanEyebrow({ plan }: { plan: Plan }): ReactElement {
 	const latest = latestVersion(plan)
@@ -46,6 +34,8 @@ function PlanEyebrow({ plan }: { plan: Plan }): ReactElement {
 const MIN_SECTIONS = 2
 
 // The way through the plan's sections, each under its number; a single section needs none.
+// A plain fragment link: the browser scrolls the page column to the band, and the router
+// leaves a fragment move alone (shared/lib/router.ts).
 function PlanToc({
 	sections,
 }: {
@@ -58,10 +48,6 @@ function PlanToc({
 				<a
 					key={section.id}
 					href={`#${section.id}`}
-					onClick={event => {
-						event.preventDefault()
-						scrollToFragment(section.id)
-					}}
 					{...stylex.props(planPage.tocLink)}
 				>
 					<span {...stylex.props(planPage.tocNumber)}>

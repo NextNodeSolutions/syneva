@@ -24,8 +24,14 @@ let isRoutingInPage = false
 // not scroll and the document does).
 let pageColumn: Element | null = null
 
+// The place the pages last rendered. A popstate that leaves it as it is moved only the URL's
+// fragment (a section or a footnote link): the browser scrolls to its target itself, in the
+// page column too, and the page has nothing to render or restore.
+let renderedPlace = ''
+
 export function routeInPage(): void {
 	isRoutingInPage = true
+	renderedPlace = placeKey()
 	// The page restores its own scroll: the browser's would land before the page it restores
 	// has rendered.
 	window.history.scrollRestoration = 'manual'
@@ -49,11 +55,13 @@ function scrollTopOf(state: unknown): number {
 }
 
 function emit(): void {
+	renderedPlace = placeKey()
 	for (const listener of listeners) listener()
 }
 
 // Back or Forward: the page the entry names, then its scroll as it was left.
 function onPop(): void {
+	if (placeKey() === renderedPlace) return
 	flushSync(emit)
 	scroller()?.scrollTo({ top: scrollTopOf(window.history.state) })
 }

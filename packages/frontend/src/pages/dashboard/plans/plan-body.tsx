@@ -2,20 +2,9 @@ import * as stylex from '@stylexjs/stylex'
 
 import { planBody } from './plan-body.styles'
 import { PlanFigureView } from './plan-figure'
-import { scrollToFragment } from './plan-hero'
 
-import type { MouseEvent, ReactElement, ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import type { PlanReading, ReadPart, ReadSection } from './plan-document'
-
-// A fragment link in the body (a footnote and its way back) scrolls in place, like a section
-// link: left to the browser, it reaches the router's Back/Forward handling.
-function followFragment(event: MouseEvent<HTMLElement>): void {
-	if (!(event.target instanceof Element)) return
-	const href = event.target.closest('a')?.getAttribute('href')
-	if (!href?.startsWith('#') || href === '#') return
-	event.preventDefault()
-	scrollToFragment(href.slice(1))
-}
 
 function PartView({ part }: { part: ReadPart }): ReactElement {
 	if (part.kind === 'figure')
@@ -76,8 +65,7 @@ export function PlanBody({
 }): ReactElement {
 	const hasIntro = reading.intro.length > 0
 	return (
-		// Delegated over every part: a footnote and its way back sit in different sections.
-		<article {...stylex.props(planBody.root)} onClick={followFragment}>
+		<article {...stylex.props(planBody.root)}>
 			{(hasIntro || notice) && (
 				<div {...stylex.props(planBody.band)}>
 					<div {...stylex.props(planBody.inner)}>
