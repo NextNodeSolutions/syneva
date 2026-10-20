@@ -17,21 +17,12 @@ function followFragment(event: MouseEvent<HTMLElement>): void {
 	scrollToFragment(href.slice(1))
 }
 
-// Prose that follows a figure keeps its own top spacing: as the first child of its own part
-// it would otherwise lose it (prose.css).
-function PartView({
-	part,
-	follows,
-}: {
-	part: ReadPart
-	follows: boolean
-}): ReactElement {
+function PartView({ part }: { part: ReadPart }): ReactElement {
 	if (part.kind === 'figure')
 		return <PlanFigureView figure={part.figure} number={part.number} />
 	return (
 		<div
 			data-prose="plan"
-			data-follows={follows || undefined}
 			// The renderer is the trust boundary: no raw HTML, sanitized (plan-document.ts).
 			// oxlint-disable-next-line react/no-danger
 			dangerouslySetInnerHTML={{ __html: part.html }}
@@ -42,8 +33,8 @@ function PartView({
 function Parts({ parts }: { parts: readonly ReadPart[] }): ReactElement {
 	return (
 		<>
-			{parts.map((part, index) => (
-				<PartView key={part.key} part={part} follows={index > 0} />
+			{parts.map(part => (
+				<PartView key={part.key} part={part} />
 			))}
 		</>
 	)
@@ -61,9 +52,13 @@ function SectionBand({ section }: { section: ReadSection }): ReactElement {
 		>
 			<div {...stylex.props(planBody.inner)}>
 				<p {...stylex.props(planBody.eyebrow)}>{section.number}</p>
-				<h2 id={headingId} {...stylex.props(planBody.heading)}>
-					{section.title}
-				</h2>
+				<h2
+					id={headingId}
+					{...stylex.props(planBody.heading)}
+					// The heading as rendered, its inline code and links kept (plan-document.ts).
+					// oxlint-disable-next-line react/no-danger
+					dangerouslySetInnerHTML={{ __html: section.html }}
+				/>
 				<Parts parts={section.parts} />
 			</div>
 		</section>

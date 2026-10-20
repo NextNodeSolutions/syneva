@@ -215,8 +215,7 @@
 }
 
 /* The band's headline sits right above the first part; prose after a figure keeps its spacing. */
-[data-prose='plan'] > :first-child,
-[data-prose='plan'][data-follows] > :first-child {
+[data-prose='plan'] > :first-child {
 	margin-top: 14px;
 }
 

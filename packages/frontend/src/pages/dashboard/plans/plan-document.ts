@@ -23,7 +23,9 @@ export type ReadPart =
 	| { key: string; kind: 'html'; html: string }
 	| { key: string; kind: 'figure'; figure: PlanFigure; number: number }
 
-export type ReadSection = PlanSection & { parts: ReadPart[] }
+// The heading's rendered inline markup (code, a link, a footnote reference) is kept for the
+// band's headline; the table of contents reads its text.
+export type ReadSection = PlanSection & { html: string; parts: ReadPart[] }
 
 // What comes before the first section, then the sections.
 export type PlanReading = { intro: ReadPart[]; sections: ReadSection[] }
@@ -54,14 +56,29 @@ function chunksOf(body: HTMLElement): Chunk[] {
 	return chunks
 }
 
-function sectionOf(heading: Element, index: number): PlanSection {
-	const text = heading.textContent.trim()
+// A number the author wrote at the head of a heading is the section's own only when it is its
+// place: "2026 roadmap" keeps its year, and a heading numbered out of order keeps its number
+// in its title rather than giving two sections the same eyebrow.
+function dropWrittenNumber(heading: Element, position: number): void {
+	const first = heading.firstChild
+	if (!(first instanceof Text)) return
+	const text = first.data.trimStart()
 	const written = WRITTEN_NUMBER.exec(text)
-	const number = written?.groups?.number ?? String(index + 1)
+	if (written && Number(written.groups?.number) === position)
+		first.data = text.slice(written[0].length)
+}
+
+function sectionOf(
+	heading: Element,
+	index: number,
+): Omit<ReadSection, 'parts'> {
+	const position = index + 1
+	dropWrittenNumber(heading, position)
 	return {
-		id: `section-${String(index + 1)}`,
-		number: number.padStart(NUMBER_WIDTH, '0'),
-		title: written ? text.slice(written[0].length) : text,
+		id: `section-${String(position)}`,
+		number: String(position).padStart(NUMBER_WIDTH, '0'),
+		title: heading.textContent.trim(),
+		html: heading.innerHTML,
 	}
 }
 
