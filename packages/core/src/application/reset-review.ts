@@ -1,3 +1,5 @@
+import { deskStaging } from './capabilities.js'
+
 import type { ResetScope } from '@syneva/contracts/review'
 import type { ReviewState } from '../domain/review.js'
 import type { GitPort } from './ports.js'
@@ -47,12 +49,13 @@ export function resetReviewPatch(
 	return patch
 }
 
-// One unstage for every path (`git restore --staged` takes many pathspecs); pr mode has no working-tree index to restore and a hub without staging no index at all (skip the git work entirely: the reset is the review's own records).
+// One unstage for every path (`git restore --staged` takes many pathspecs). A desk that cannot stage (deskStaging) has no index of its own to restore: the reset is the review's own records.
 export async function unstageReviewedFiles(
 	state: ReviewState,
 	git: GitPort,
 	paths: readonly string[] = state.files.map(file => file.path),
 ): Promise<void> {
-	if (state.mode === 'pr' || !git.staging || !paths.length) return
-	await git.staging.unstage(state.root, paths)
+	const staging = deskStaging(state, git)
+	if (!staging || !paths.length) return
+	await staging.unstage(state.root, paths)
 }

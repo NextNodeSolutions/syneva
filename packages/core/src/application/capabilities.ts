@@ -1,7 +1,7 @@
 // What a hub's GitPort offers beyond a branch on GitHub, asked for where a use case needs it.
 import type { DeskCapabilities } from '@syneva/contracts/browser'
 import type { ReviewState } from '../domain/review.js'
-import type { GitPort, WorkingTreePort } from './ports.js'
+import type { GitPort, StagingPort, WorkingTreePort } from './ports.js'
 
 // Why a repo or file desk does not open on a hub without a working tree (rootProblem answers it).
 export const NO_WORKING_TREE =
@@ -15,13 +15,25 @@ export function requireWorkingTree(git: GitPort): WorkingTreePort {
 	throw new Error(NO_WORKING_TREE)
 }
 
+// The index a desk may write, the one answer to whether it stages: its capability, its staging
+// routes and its reset all ask here. A pr desk reviews commits and stages nothing, even on a hub
+// whose git could (its root is the user's clone, whose index is the user's); a hub without a
+// working tree has no index at all.
+export function deskStaging(
+	state: ReviewState,
+	git: GitPort,
+): StagingPort | undefined {
+	if (state.mode === 'pr') return undefined
+	return git.staging
+}
+
 // What the tab is told the desk can do. Constant for a desk's life (its mode and its hub's port),
 // so the state body cached per revision never carries a stale answer.
 export function deskCapabilities(
 	state: ReviewState,
 	git: GitPort,
 ): DeskCapabilities {
-	return { staging: state.mode !== 'pr' && !!git.staging }
+	return { staging: !!deskStaging(state, git) }
 }
 
 // The files a desk's picker lists: what the index tracks on a clone, else every file of the

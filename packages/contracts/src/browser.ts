@@ -23,9 +23,9 @@ export type BrowserReviewFile = {
 }
 
 // What a desk can do beyond recording verdicts, fixed for its life by its mode and its hub.
-// `staging`: whether accepting may write the git index (/stage, /stage-change, /unstage). False on
-// a pr desk (its commits stage nothing) and on a hub without a working tree, where /stage and
-// /stage-change answer STAGING_DISABLED (and /unstage too on such a hub).
+// `staging`: whether the desk may write the git index (/stage, /stage-change, /unstage). False on
+// a pr desk (its commits stage nothing) and on a hub without a working tree, where all three
+// answer STAGING_DISABLED.
 export type DeskCapabilities = { staging: boolean }
 
 export type BrowserReviewState = {

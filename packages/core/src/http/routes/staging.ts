@@ -1,3 +1,4 @@
+import { deskStaging } from '../../application/capabilities.js'
 import {
 	stageChange,
 	stagePaths,
@@ -9,10 +10,11 @@ import type {
 	StageChangeRequest,
 	StagePathsRequest,
 } from '../../application/staging.js'
+import type { ReviewState } from '../../domain/review.js'
 import type { ApiFailure } from '../failure.js'
 import type { RouteRequest } from '../router.js'
 
-// PR changes are committed: accept/reject are approve/request-changes verdicts, so there is nothing to stage; both staging routes refuse identically.
+// PR changes are committed: accept/reject are approve/request-changes verdicts, so there is nothing to stage.
 const STAGING_DISABLED: ApiFailure = {
 	status: HTTP_CONFLICT,
 	code: 'STAGING_DISABLED',
@@ -20,9 +22,9 @@ const STAGING_DISABLED: ApiFailure = {
 	fix: 'PR changes are committed; accept/reject are approve/request-changes verdicts.',
 }
 
-// A hub whose GitPort has no staging (desks over a branch, not a clone) refuses every staging
-// route, /unstage included, with the same code: these routes are the browser's alone (not in the
-// agent contract), and the Decision records stay the verdict either way.
+// A hub whose GitPort has no staging (desks over a branch, not a clone), with the same code: these
+// routes are the browser's alone (not in the agent contract), and the Decision records stay the
+// verdict either way.
 const NO_STAGING: ApiFailure = {
 	status: HTTP_CONFLICT,
 	code: 'STAGING_DISABLED',
@@ -30,13 +32,19 @@ const NO_STAGING: ApiFailure = {
 	fix: 'Accept and reject still record the verdict; the desk state says capabilities.staging is false, so stage nothing.',
 }
 
+// Every staging route refuses a desk that cannot stage (deskStaging) before it reads a body or
+// runs git, /unstage included: on a pr desk the root is the user's clone, whose index the review
+// never wrote and must never restore.
+function stagingRefusal(state: ReviewState): ApiFailure {
+	return state.mode === 'pr' ? STAGING_DISABLED : NO_STAGING
+}
+
 export async function stageFiles({
 	ctx,
 	request,
 }: RouteRequest): Promise<Response> {
-	if (ctx.state.mode === 'pr') return fail(STAGING_DISABLED)
-	const { staging } = ctx.git
-	if (!staging) return fail(NO_STAGING)
+	const staging = deskStaging(ctx.state, ctx.git)
+	if (!staging) return fail(stagingRefusal(ctx.state))
 	return ctx.serialize(async (): Promise<Response> => {
 		const body: unknown = await readJsonBody(request)
 		// stagePaths returns the next root (the same one when nothing changed); persist + commit is what publishes it.
@@ -55,9 +63,8 @@ export async function stageOneChange({
 	ctx,
 	request,
 }: RouteRequest): Promise<Response> {
-	if (ctx.state.mode === 'pr') return fail(STAGING_DISABLED)
-	const { staging } = ctx.git
-	if (!staging) return fail(NO_STAGING)
+	const staging = deskStaging(ctx.state, ctx.git)
+	if (!staging) return fail(stagingRefusal(ctx.state))
 	return ctx.serialize(async (): Promise<Response> => {
 		const body: unknown = await readJsonBody(request)
 		const outcome = await stageChange(
@@ -84,8 +91,8 @@ export async function unstageFile({
 	ctx,
 	request,
 }: RouteRequest): Promise<Response> {
-	const { staging } = ctx.git
-	if (!staging) return fail(NO_STAGING)
+	const staging = deskStaging(ctx.state, ctx.git)
+	if (!staging) return fail(stagingRefusal(ctx.state))
 	return ctx.serialize(async (): Promise<Response> => {
 		const body: unknown = await readJsonBody(request)
 		const next = await unstagePath(
