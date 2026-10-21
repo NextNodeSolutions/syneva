@@ -5,6 +5,7 @@ import { groupByProject } from '@entities/hub/model'
 import { turnSince } from '@entities/hub/turn'
 import { useHub } from '@entities/hub/use-hub'
 import { useJournal } from '@entities/hub/use-journal'
+import { useNow } from '@shared/lib/use-now'
 import { navCountsOf } from '@widgets/hub-shell/nav'
 
 import { hubPhase } from './hub-phase'
@@ -30,8 +31,11 @@ export type Listed = Extract<HubPhase, { kind: 'listed' }>
 
 const NO_DESKS: readonly HubDesk[] = []
 
+// The hub as the dashboard reads it, and the clock its words that age read.
+export type DashboardHub = HubView & { now: number }
+
 export type DashboardState = {
-	hub: HubView
+	hub: DashboardHub
 	phase: HubPhase
 	listed: Listed | null
 	// Whether the hub answers: a stale listing shows with every pulse off.
@@ -52,7 +56,7 @@ export type DashboardState = {
 }
 
 export function useDashboard(): DashboardState {
-	const hub = useHub()
+	const hub = { ...useHub(), now: useNow() }
 	const journal = useJournal()
 	const toast = useCloseNotice()
 	const hold = useListHold()
@@ -62,14 +66,14 @@ export function useDashboard(): DashboardState {
 	const close = useDeskClose({
 		desks,
 		report: toast.show,
-		refresh: hub.refresh,
+		forget: hub.forget,
 	})
 	const newReview = useNewReviewDialog(phase)
 	useNewReviewShortcut({ open: newReview.offer, isQuiet: close.isArmed })
 	const projects = groupByProject(desks)
 	const navCounts = navCountsOf(listed?.desks ?? null)
 	useDocumentTitle(hub.status, navCounts?.yours ?? 0)
-	// Read from the events alone, which keep their identity across a poll that brought none.
+	// Read from the events alone, which keep their identity across frames that brought none.
 	const starts = useMemo(() => turnStarts(journal.events), [journal.events])
 	return {
 		hub,

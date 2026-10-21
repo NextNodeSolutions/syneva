@@ -2,13 +2,12 @@ import {
 	assertObject,
 	enumValue,
 	optString,
-	requiredArray,
 	requiredBoolean,
 	requiredNumber,
 	requiredString,
 } from '@shared/api/decode'
 
-import type { HubDesk, HubHealth } from './model'
+import type { HubDesk, HubHealth, HubIdentity } from './model'
 
 // The review modes a desk can be in, as the wire names them (the journal's events carry them
 // too).
@@ -57,11 +56,15 @@ function decodeActivity(
 	}
 }
 
-export function decodeHubDesks(raw: unknown, endpoint: string): HubDesk[] {
-	const o = assertObject(raw, endpoint, 'desk listing')
-	return requiredArray(o, 'desks', endpoint).map(entry =>
-		decodeHubDesk(entry, endpoint),
-	)
+export function decodeHubIdentity(raw: unknown, endpoint: string): HubIdentity {
+	const o = assertObject(raw, endpoint, 'hub identity')
+	return {
+		id: requiredString(o, 'id', endpoint),
+		name: requiredString(o, 'name', endpoint),
+		version: requiredString(o, 'version', endpoint),
+		instanceId: requiredString(o, 'instanceId', endpoint),
+		startedAt: requiredString(o, 'startedAt', endpoint),
+	}
 }
 
 export function decodeHubHealth(raw: unknown, endpoint: string): HubHealth {

@@ -35,7 +35,8 @@ export type DeskClose = {
 type DeskCloseDeps = {
 	desks: readonly HubDesk[]
 	report: (outcome: CloseOutcome) => void
-	refresh: () => Promise<void>
+	// The hub answered the desk closed: it leaves the listing now, before the stream says so.
+	forget: (deskId: string) => void
 }
 
 const NONE: ReadonlySet<string> = new Set()
@@ -77,7 +78,7 @@ async function closeOutcome(desk: HubDesk): Promise<CloseOutcome> {
 export function useDeskClose({
 	desks,
 	report,
-	refresh,
+	forget,
 }: DeskCloseDeps): DeskClose {
 	const { armedId, arm, disarm } = useArmedDesk(desks)
 	const { closingIds, begin, settle } = useClosingIds()
@@ -101,7 +102,7 @@ export function useDeskClose({
 		begin(desk.id)
 		const outcome = await closeOutcome(desk)
 		report(outcome)
-		await refresh()
+		if (outcome.result !== 'failed') forget(desk.id)
 		disarm(desk.id)
 		if (outcome.result === 'failed') {
 			settle(desk.id)

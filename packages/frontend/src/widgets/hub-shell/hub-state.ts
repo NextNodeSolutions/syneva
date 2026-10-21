@@ -1,4 +1,4 @@
-import type { HubStatus } from '@entities/hub/use-hub'
+import type { HubStatus } from '@entities/hub/link'
 import type { DotTone } from '@shared/ui/live-dot'
 
 // How the hub last answered, as the shell says it: the square's tone, whether it pulses (a

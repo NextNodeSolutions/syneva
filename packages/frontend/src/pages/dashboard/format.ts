@@ -6,7 +6,7 @@ export const MINUTES_PER_HOUR = 60
 const HOURS_PER_DAY = 24
 const JUST_NOW_SECONDS = 10
 
-// Coarse on purpose: the dashboard re-renders every poll, and a second-precise clock would flicker without informing.
+// Coarse on purpose: the dashboard's clock ticks every two seconds (useNow), and a second-precise word would flicker without informing.
 export function relativeTime(at: string | number, now: number): string {
 	const then = typeof at === 'number' ? at : Date.parse(at)
 	const elapsedSeconds = Math.max(0, Math.round((now - then) / MS_PER_SECOND))

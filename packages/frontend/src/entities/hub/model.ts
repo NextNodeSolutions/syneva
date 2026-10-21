@@ -30,6 +30,17 @@ export type HubDesk = {
 	plan: string | null
 }
 
+// Who the hub on the other end of the stream is: its first frame says it, and `instanceId`
+// changes on every start.
+export type HubIdentity = {
+	id: string
+	// The machine's hostname.
+	name: string
+	version: string
+	instanceId: string
+	startedAt: string
+}
+
 export type HubHealth = {
 	version: string
 	instanceId: string

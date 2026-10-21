@@ -8,13 +8,13 @@ import { sidebar } from './hub-sidebar.styles'
 import { ShellIcon } from './shell-icon'
 import { sidebarParts } from './sidebar-parts.styles'
 
-import type { HubStatus } from '@entities/hub/use-hub'
+import type { HubStatus } from '@entities/hub/link'
 import type { ReactElement } from 'react'
 import type { SidebarFold } from '../use-sidebar-fold'
 
 // The sidebar's foot: how the hub answers and which version it runs (the old footer bar's
 // facts), and the control that folds the sidebar to its rail ([ from anywhere). Only the state
-// word is a live region: it changes when the hub's answer does, never on a poll.
+// word is a live region: it changes when the hub's answer does, never on every frame.
 export function SidebarFoot({
 	status,
 	version,

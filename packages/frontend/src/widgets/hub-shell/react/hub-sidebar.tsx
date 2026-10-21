@@ -10,7 +10,7 @@ import { SidebarBrand } from './sidebar-brand'
 import { SidebarFoot } from './sidebar-foot'
 import { SidebarNav } from './sidebar-nav'
 
-import type { HubStatus } from '@entities/hub/use-hub'
+import type { HubStatus } from '@entities/hub/link'
 import type { ReactElement, ReactNode } from 'react'
 import type { NavCounts, NavId } from '../nav'
 import type { SidebarFold } from '../use-sidebar-fold'

@@ -7,7 +7,7 @@ import { HUB_STATE } from '../hub-state'
 import { hubIdentity } from './hub-identity.styles'
 import { sidebar } from './hub-sidebar.styles'
 
-import type { HubStatus } from '@entities/hub/use-hub'
+import type { HubStatus } from '@entities/hub/link'
 import type { ReactElement } from 'react'
 
 // Which hub this is and how it answers: a hub on this machine's loopback is the local one; one

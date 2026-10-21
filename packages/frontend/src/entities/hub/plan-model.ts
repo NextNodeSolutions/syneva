@@ -104,8 +104,8 @@ export function planDesks(desks: readonly HubDesk[]): HubDesk[] {
 }
 
 // A plan joined to its live desk: the one the hub's listing shows reviewing it, and the page
-// path that reaches it. The listing's poll is ahead of the library's, which can lag it, so the
-// listing's desk comes first and the library's own word (`deskPath`) stands in when the
+// path that reaches it. The listing's `desk` frames move with the desks while a plan's `plan`
+// frame only comes when the plan itself moves, so the listing's desk comes first and the library's own word (`deskPath`) stands in when the
 // listing shows none: a desk still open is linked, never reopened (a reload) to be reached.
 export type PlanDeskJoin = { desk: HubDesk | undefined; path: string | null }
 

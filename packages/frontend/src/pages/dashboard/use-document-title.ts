@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import type { HubStatus } from '@entities/hub/use-hub'
+import type { HubStatus } from '@entities/hub/link'
 
 const PAGE_TITLE = 'Syneva hub'
 

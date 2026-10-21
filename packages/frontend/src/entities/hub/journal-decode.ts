@@ -2,7 +2,6 @@ import {
 	assertObject,
 	enumValue,
 	optString,
-	requiredArray,
 	requiredBoolean,
 	requiredNumber,
 	requiredString,
@@ -12,7 +11,6 @@ import { MODES } from './decode'
 
 import type {
 	JournalEvent,
-	JournalRead,
 	JournalScope,
 	JournalSubject,
 	RoundVerdicts,
@@ -98,12 +96,10 @@ function decodeEvent(raw: unknown, endpoint: string): JournalEvent {
 	}
 }
 
-export function decodeJournal(raw: unknown, endpoint: string): JournalRead {
-	const o = assertObject(raw, endpoint, 'journal')
-	return {
-		events: requiredArray(o, 'events', endpoint).map(entry =>
-			decodeEvent(entry, endpoint),
-		),
-		latest: requiredNumber(o, 'latest', endpoint),
-	}
+// A batch of events as a journal frame carries them, oldest first.
+export function decodeJournalEvents(
+	raw: readonly unknown[],
+	endpoint: string,
+): JournalEvent[] {
+	return raw.map(entry => decodeEvent(entry, endpoint))
 }

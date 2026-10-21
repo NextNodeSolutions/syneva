@@ -4,7 +4,7 @@ import { pageHead } from './page-head.styles'
 
 import type { ReactElement, ReactNode } from 'react'
 
-// A page's head: its statement (the one h1, never a live region: a poll must not announce it
+// A page's head: its statement (the one h1, never a live region: an update must not announce it
 // again), the line under it, and the page's controls. `isPending` marks a statement still
 // waiting on the hub.
 export function PageHead({

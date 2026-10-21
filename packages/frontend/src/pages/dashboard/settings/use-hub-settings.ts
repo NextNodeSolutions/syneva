@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { onHubHello } from '@entities/hub/stream'
 import { fetchHubPrefs, persistHubPrefs } from '@entities/settings/api'
 import { applyAppearance, DEFAULT_SETTINGS } from '@entities/settings/settings'
 import { createSaver } from '@shared/lib/saver'
@@ -20,9 +21,6 @@ export type HubSettings = {
 }
 
 const DEFAULT_DIFF_STYLE: DiffStyle = 'split'
-// How soon a read the hub did not answer is tried again (a hub restarting, a hand-edited file
-// fixed in the meantime).
-const READ_RETRY_MS = 3000
 
 // The settings file as the hub holds it, folded over the defaults; nothing when the hub does not
 // answer. Never the defaults alone: each change writes the whole file back, so defaults taken
@@ -40,23 +38,24 @@ async function readSettings(): Promise<SavedPrefs | null> {
 	}
 }
 
-// Read the settings until the hub gives them, trying again READ_RETRY_MS after each failed
-// read. Returns the teardown.
+// Read the settings now, and again each time the hub's stream says hello again: a read only
+// fails when the hub does not answer (a corrupt file reads as the defaults), and the hello is the
+// hub answering again, so no timer re-asks. Returns the teardown.
 function readUntilAnswered(
 	onRead: (prefs: SavedPrefs | null) => void,
 ): () => void {
 	let isCurrent = true
-	let retry: ReturnType<typeof setTimeout> | undefined
 	const load = async (): Promise<void> => {
 		const read = await readSettings()
-		if (!isCurrent) return
-		onRead(read)
-		if (read === null) retry = setTimeout(() => void load(), READ_RETRY_MS)
+		if (isCurrent) onRead(read)
 	}
 	void load()
+	const stopFollowing = onHubHello(() => {
+		void load()
+	})
 	return (): void => {
 		isCurrent = false
-		clearTimeout(retry)
+		stopFollowing()
 	}
 }
 
@@ -97,17 +96,17 @@ export function useHubSettings(): HubSettings {
 	const [diffStyle, setDiffStyle] = useState<DiffStyle>(DEFAULT_DIFF_STYLE)
 	const [hasReadFailed, setHasReadFailed] = useState(false)
 	const [save, setSave] = useState<SaveState>('idle')
-	// oxlint-disable-next-line nextnode/no-use-effect -- reads the hub's settings file over HTTP until it answers
-	useEffect(
-		() =>
-			readUntilAnswered(read => {
-				setHasReadFailed(read === null)
-				if (!read) return
-				setSettings(read.settings)
-				setDiffStyle(read.diffStyle)
-			}),
-		[],
-	)
+	const isUnread = settings === null
+	// oxlint-disable-next-line nextnode/no-use-effect -- reads the hub's settings file over HTTP until it answers, again on each hello of the hub's stream
+	useEffect(() => {
+		if (!isUnread) return undefined
+		return readUntilAnswered(read => {
+			setHasReadFailed(read === null)
+			if (!read) return
+			setSettings(read.settings)
+			setDiffStyle(read.diffStyle)
+		})
+	}, [isUnread])
 	const change = useCallback(
 		(next: Partial<Settings>) => {
 			if (!settings) return

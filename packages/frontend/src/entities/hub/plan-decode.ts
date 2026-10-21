@@ -53,13 +53,6 @@ export function decodePlan(raw: unknown, endpoint: string): Plan {
 	}
 }
 
-export function decodePlans(raw: unknown, endpoint: string): Plan[] {
-	const o = assertObject(raw, endpoint, 'plan listing')
-	return requiredArray(o, 'plans', endpoint).map(plan =>
-		decodePlan(plan, endpoint),
-	)
-}
-
 export function decodePlanDocument(
 	raw: unknown,
 	endpoint: string,

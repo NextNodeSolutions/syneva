@@ -14,17 +14,18 @@ import type { BridgeFrame } from '@syneva/contracts/bridge'
 // its model to decode.
 type Kind = BridgeFrame['t']
 type Envelope<T extends Kind> = Extract<BridgeFrame, { t: T }>
-type Carrying<T extends Kind, K extends keyof Envelope<T>> = Omit<
-	Envelope<T>,
-	K
-> & { [P in K]: unknown }
+type Carrying<
+	T extends Kind,
+	K extends keyof Envelope<T>,
+	Payload = unknown,
+> = Omit<Envelope<T>, K> & { [P in K]: Payload }
 
 export type StreamFrame =
 	| Carrying<'hello', 'hub'>
 	| Carrying<'desk', 'desk'>
 	| Envelope<'closed'>
 	| Carrying<'pulse', 'pulse'>
-	| Carrying<'journal', 'events'>
+	| Carrying<'journal', 'events', readonly unknown[]>
 	| Carrying<'plan', 'plan'>
 	| Envelope<'snapshot-end'>
 	| Envelope<'hub'>

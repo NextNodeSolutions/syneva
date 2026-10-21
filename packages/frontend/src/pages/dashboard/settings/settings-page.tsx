@@ -21,7 +21,7 @@ import type { SaveState } from './use-hub-settings'
 // Shown while the hub has not given its settings: until it does, the page has nothing it could
 // write back, so it offers nothing to change.
 const READ_FAILED_WORDS =
-	'The hub did not give its settings. Trying again; nothing here changes them until it does.'
+	'The hub did not give its settings. This page reads them again once the hub answers; nothing here changes them until it does.'
 
 const SAVE_WORDS: Record<SaveState, string> = {
 	idle: 'Saved to ~/.syneva/settings.json on this hub, for every desk.',
