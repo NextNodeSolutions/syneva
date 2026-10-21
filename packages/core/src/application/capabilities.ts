@@ -7,12 +7,21 @@ import type { GitPort, StagingPort, WorkingTreePort } from './ports.js'
 export const NO_WORKING_TREE =
 	'This hub has no working tree: only a pr desk (a branch or a pull request) opens here.'
 
+// A repo or file desk's read of a working tree its hub lacks: the desk's mode conflicts with the
+// hub, so the routes answer it 409 NO_WORKING_TREE (http.ts failureOf), not an INTERNAL 500.
+export class NoWorkingTreeError extends Error {
+	constructor() {
+		super(NO_WORKING_TREE)
+		this.name = 'NoWorkingTreeError'
+	}
+}
+
 // Repo and file desks read the working tree and the index. rootProblem refuses them on a hub
-// without one before anything is built, so reaching here without it is a wiring error, never a
-// request to answer.
+// without one before anything is built, so reaching here without it is a broken invariant; it
+// still answers in the hub's error shape, through the routes' one error mapping.
 export function requireWorkingTree(git: GitPort): WorkingTreePort {
 	if (git.workingTree) return git.workingTree
-	throw new Error(NO_WORKING_TREE)
+	throw new NoWorkingTreeError()
 }
 
 // The index a desk may write, the one answer to whether it stages: its capability, its staging

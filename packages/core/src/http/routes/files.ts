@@ -1,3 +1,4 @@
+import { NoWorkingTreeError } from '../../application/capabilities.js'
 import { resolveContained } from '../../application/containment.js'
 import { readFileContents } from '../../application/contents.js'
 import { errorMessage } from '../../application/errors.js'
@@ -73,6 +74,8 @@ export async function serveFileContents({
 			newOid: file.contentHash || blobOid(newContents),
 		})
 	} catch (error) {
+		// A desk at odds with its hub is not a missing object: the router's mapping answers it.
+		if (error instanceof NoWorkingTreeError) throw error
 		// A git object that can't be read (e.g. rewritten/dropped by a rebase mid-session).
 		return fail({
 			status: HTTP_NOT_FOUND,

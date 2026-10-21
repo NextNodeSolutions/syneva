@@ -1,3 +1,4 @@
+import { NoWorkingTreeError } from '../application/capabilities.js'
 import { errorMessage } from '../application/errors.js'
 
 import { DOCS } from './failure.js'
@@ -100,7 +101,7 @@ export function fail(failure: ApiFailure): Response {
 	})
 }
 
-// The one place an unexpected throw becomes a response: a BodyDecodeError is the caller's bug (malformed/oversized body) and answers 400; anything else is an INTERNAL 500.
+// The one place an unexpected throw becomes a response: a BodyDecodeError is the caller's bug (malformed/oversized body) and answers 400; a NoWorkingTreeError is a repo or file desk on a hub without a working tree and answers 409; anything else is an INTERNAL 500.
 export function failureOf(error: unknown): Response {
 	if (error instanceof BodyDecodeError)
 		return fail({
@@ -108,6 +109,13 @@ export function failureOf(error: unknown): Response {
 			code: 'INVALID_JSON',
 			error: errorMessage(error),
 			fix: `Send a JSON body of the documented shape. See ${DOCS} for the routes.`,
+		})
+	if (error instanceof NoWorkingTreeError)
+		return fail({
+			status: HTTP_CONFLICT,
+			code: 'NO_WORKING_TREE',
+			error: errorMessage(error),
+			fix: 'Open repo and file desks on the hub that runs beside the clone; open this branch here as a pr desk.',
 		})
 	return fail({
 		status: HTTP_INTERNAL,

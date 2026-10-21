@@ -3,7 +3,7 @@ import path from 'node:path'
 import { contextKey } from '../domain/guide-reference-resolve.js'
 import { hash } from '../domain/identity.js'
 
-import { requireWorkingTree } from './capabilities.js'
+import { NoWorkingTreeError, requireWorkingTree } from './capabilities.js'
 import { repoPath, resolveContained } from './containment.js'
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
@@ -85,7 +85,9 @@ export async function readReviewedSide(
 		return side === 'additions'
 			? contents.newContents
 			: contents.oldContents
-	} catch {
+	} catch (error) {
+		// A side that cannot be read is null; a desk at odds with its hub is the request's answer.
+		if (error instanceof NoWorkingTreeError) throw error
 		return null
 	}
 }
