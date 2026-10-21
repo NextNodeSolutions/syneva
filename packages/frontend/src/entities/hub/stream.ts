@@ -1,8 +1,8 @@
 // The hub as the page knows it, fed by the hub's stream (RFC 0001, 4.6) and nothing else: the
-// hub's identity, its desks, their pulses, the journal and the plan library. One store and one
-// socket per page, opened by its first reader and closed with its last; the hooks read it through
-// useSyncExternalStore, the desk tab through subscribeHub. A dropped socket keeps everything as it
-// was (the page shows it stale) until the next snapshot replaces it whole.
+// hub's identity, its desks, their pulses, the journal, the plan library and its pairing. One
+// store and one socket per page, opened by its first reader and closed with its last; the hooks
+// read it through useSyncExternalStore, the desk tab through subscribeHub. A dropped socket keeps
+// everything as it was (the page shows it stale) until the next snapshot replaces it whole.
 import { DecodeError } from '@shared/api/decode'
 import { openHubStream } from '@shared/api/stream'
 import { createAnswerRetry } from '@shared/lib/answer-retry'
@@ -11,6 +11,7 @@ import { BRIDGE_PATHS } from '@syneva/contracts/bridge'
 import { fetchHubHealth } from './api'
 import { decodeHubDesk, decodeHubIdentity } from './decode'
 import { decodeJournalEvents } from './journal-decode'
+import { decodePairing } from './pairing'
 import { decodePlan } from './plan-decode'
 import {
 	emptySnapshot,
@@ -146,6 +147,10 @@ function apply(frame: StreamFrame): void {
 			return
 		case 'plan':
 			plan(decodePlan(frame.plan, SOCKET))
+			return
+		case 'pairing':
+			// Whole each time, and apart from the desks: taken at once, even mid-snapshot.
+			commit({ ...view, pairing: decodePairing(frame.pairing, SOCKET) })
 			return
 		case 'hub':
 			commit(withHub(view, frame))

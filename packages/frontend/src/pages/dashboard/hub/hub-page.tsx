@@ -16,6 +16,7 @@ import { pageSection } from '../react/section.styles'
 import { AgentsOnHub } from './agents-on-hub'
 import { FactList } from './fact-list'
 import { hubFacts } from './hub-facts'
+import { PairingSection } from './pairing-section'
 import { streamFacts } from './stream-facts'
 
 import type { HubLink } from '@entities/hub/link'
@@ -88,8 +89,8 @@ function HubHead({
 	)
 }
 
-// The hub itself: its health, this page's stream from it, the agents attached to it now, how an
-// agent opens a desk on it, and the whole journal.
+// The hub itself: its health, this page's stream from it, its pairing with the web, the agents
+// attached to it now, how an agent opens a desk on it, and the whole journal.
 export function HubPage({
 	dashboard,
 }: {
@@ -107,6 +108,7 @@ export function HubPage({
 			/>
 			<HealthSection health={health} now={now} />
 			<StreamSection link={dashboard.hub.link} now={now} />
+			<PairingSection now={now} />
 			<PageSection
 				title="Agents"
 				note="The agents attached now: parked on a desk waiting for you, or at work on what you sent."

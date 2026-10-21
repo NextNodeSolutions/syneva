@@ -4,6 +4,7 @@ import type { StreamState } from '@shared/api/stream'
 import type { JournalEvent } from './journal'
 import type { JournalFollow } from './journal-follow'
 import type { HubDesk, HubHealth, HubIdentity } from './model'
+import type { HubPairing } from './pairing'
 import type { Plan } from './plan-model'
 
 // What the hub's stream has told the page, as pure steps: each frame's effect on what it holds.
@@ -31,6 +32,8 @@ export type StreamView = {
 	// first snapshot is whole.
 	plans: Plan[] | null
 	health: HubHealth | null
+	// The hub's pairing with the web, as its last `pairing` frame said it.
+	pairing: HubPairing | null
 	// Counts the hub's hellos: a page that read something once and missed it reads again when the
 	// hub speaks again.
 	epoch: number
@@ -58,6 +61,7 @@ export const FIRST_VIEW: StreamView = {
 	journal: FIRST_FOLLOW,
 	plans: null,
 	health: null,
+	pairing: null,
 	epoch: 0,
 }
 

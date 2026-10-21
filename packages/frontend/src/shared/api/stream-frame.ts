@@ -10,8 +10,8 @@ import {
 import type { BridgeFrame } from '@syneva/contracts/bridge'
 
 // A frame as a tab reads it: its envelope checked against BridgeFrame here, its payload (the
-// hub's identity, a desk, a pulse, journal events, a plan) left unknown for the entity that owns
-// its model to decode.
+// hub's identity, a desk, a pulse, journal events, a plan, the hub's pairing) left unknown for
+// the entity that owns its model to decode.
 type Kind = BridgeFrame['t']
 type Envelope<T extends Kind> = Extract<BridgeFrame, { t: T }>
 type Carrying<
@@ -28,6 +28,7 @@ export type StreamFrame =
 	| Carrying<'journal', 'events', readonly unknown[]>
 	| Carrying<'plan', 'plan'>
 	| Envelope<'snapshot-end'>
+	| Carrying<'pairing', 'pairing'>
 	| Envelope<'hub'>
 
 // Decode failures name the stream's path, as an HTTP read names its route.
@@ -66,6 +67,7 @@ const READERS: ReadonlyMap<string, (o: Wire) => StreamFrame> = new Map<
 	],
 	['plan', o => ({ t: 'plan', hubId: hubIdOf(o), plan: o.plan })],
 	['snapshot-end', o => ({ t: 'snapshot-end', hubId: hubIdOf(o) })],
+	['pairing', o => ({ t: 'pairing', hubId: hubIdOf(o), pairing: o.pairing })],
 	[
 		'hub',
 		o => ({
