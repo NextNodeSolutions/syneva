@@ -1,6 +1,7 @@
 import { openEditor } from '@entities/review/api'
 import { currentFileOrNull, fromDisplayLine } from '@entities/review/changes'
 import { featureCtx } from '@features/context'
+import { ApiError } from '@shared/api/client'
 
 export async function openInEditor(): Promise<void> {
 	const file = currentFileOrNull(
@@ -22,7 +23,11 @@ export async function openInEditor(): Promise<void> {
 		const reply = await openEditor({ path: file.path, lineNumber })
 		const failure = reply.error ?? 'Could not open editor'
 		featureCtx().toast(reply.ok ? 'Opened in editor' : failure)
-	} catch {
-		featureCtx().toast('Could not open editor')
+	} catch (error) {
+		// A refusal carries the hub's sentence for the reviewer: the editor command to fix, or,
+		// from the web, that a file opens only in an editor its machine's settings name.
+		featureCtx().toast(
+			error instanceof ApiError ? error.message : 'Could not open editor',
+		)
 	}
 }
