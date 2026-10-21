@@ -71,7 +71,9 @@ pnpm dev                                       # wrangler dev (Miniflare) on htt
 
 ## Smoke
 
-`node test/web/smoke.mjs` (after `pnpm build`) runs the whole loop against `wrangler dev` with a scratch D1, a scratch local hub and the CLI: sign-in, pairing, the tab's socket, the relay, revocation, logout, the connected cap, the breaker, sign-out. `test/web/README.md` says what each check means; `node test/bridge/conformance.mjs` stays the probe's own check. The cost acceptance tests (RFC 6.7, T1 to T10) need the staging Worker and the Analytics API, and are not in this repo yet.
+`node test/web/smoke.mjs` (after `pnpm build`) runs the whole loop against `wrangler dev` with a scratch D1, a scratch local hub and the CLI: sign-in, pairing, the tab's socket, the relay, revocation, logout, the connected cap, the breaker, sign-out. `test/web/README.md` says what each check means; `node test/bridge/conformance.mjs` stays the probe's own check.
+
+`node test/web/cost/run.mjs` (after `pnpm build`) runs the cost acceptance tests of RFC 6.7, T1 to T10, with fake hubs against `wrangler dev`: floods and caps (T2), relay bounds (T4), concurrent streams (T5), the breaker (T6), and the parts of T1, T3 and T7 to T10 that need no edge or Analytics API as a dry run. What only a deployed Worker settles (the objects' active time, the Worker's request count, the edge rule, logs) the runner drives against `--staging <origin>` and prints as numbered reads for a person; `test/web/README.md` ("Cost tests") has the flags, the inputs and what each test checks. T1 runs again on staging on every change to `src/bridge/**`.
 
 ## Deviations from the RFC
 
