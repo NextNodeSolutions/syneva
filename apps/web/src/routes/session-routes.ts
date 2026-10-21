@@ -15,6 +15,7 @@ import { onlineHubIds, openTabSocket, tellRevoked } from '../user-hub-stub.js'
 
 import { upgradeRequired } from './hub-socket.js'
 import { relayRoute } from './relay.js'
+import { saturatedRefusal } from './saturated.js'
 import { settingsRoute } from './settings.js'
 
 import type { WebHub, WebHubsAnswer, WebMe } from '@syneva/contracts/web'
@@ -91,6 +92,10 @@ async function tabSocket(
 	if (url.pathname !== BRIDGE_PATHS.tabSocket || request.method !== 'GET')
 		return null
 	if (!isUpgrade(request)) return upgradeRequired()
-	const hubs = await hubsOfUser(env.DB, session.userId)
+	const [hubs, saturated] = await Promise.all([
+		hubsOfUser(env.DB, session.userId),
+		saturatedRefusal(env, 'upgrade'),
+	])
+	if (saturated) return saturated
 	return openTabSocket(env, session.userId, hubs)
 }

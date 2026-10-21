@@ -2,8 +2,9 @@
 // of the person's hubs as a `req` through their object, if the hub may answer it at all. Checked
 // here, in order, before the object is touched: the route is one a hub answers to the web
 // (contracts' isRelayable), the hub it names is the person's (by the web id's prefix in the path,
-// else the tab's pick in WEB_HUB_HEADER), the body is under `requestBodyBytes`. The
-// relay is bounded by `deadlineMs`: past it, the object is told to cancel and the tab gets 504.
+// else the tab's pick in WEB_HUB_HEADER), the body is under `requestBodyBytes`, the breaker is not
+// tripped. The relay is bounded by `deadlineMs`: past it, the object is told to cancel and the tab
+// gets 504.
 import {
 	BRIDGE_LIMITS,
 	RELAY_FAILURE_STATUS,
@@ -19,6 +20,8 @@ import { readText } from '../http/body.js'
 import { logFailure } from '../http/log.js'
 import { HTTP_NOT_FOUND } from '../http/status.js'
 import { cancelRelay, relayThrough } from '../user-hub-stub.js'
+
+import { saturatedRefusal } from './saturated.js'
 
 import type { RelayMethod } from '@syneva/contracts/bridge'
 import type { Session } from '../auth/session.js'
@@ -57,6 +60,8 @@ export async function relayRoute(
 	if (!hub) return fail(NO_SUCH_HUB)
 	const read = await readText(request, BRIDGE_LIMITS.requestBodyBytes)
 	if ('refusal' in read) return read.refusal
+	const saturated = await saturatedRefusal(env, 'relay')
+	if (saturated) return saturated
 	const id = crypto.randomUUID()
 	const deadline = AbortSignal.timeout(BRIDGE_LIMITS.deadlineMs)
 	try {

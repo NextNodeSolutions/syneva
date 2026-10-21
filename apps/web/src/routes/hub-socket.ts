@@ -1,7 +1,7 @@
 // GET /bridge/v1/ws: a paired hub's socket (RFC 4.3). Its token as a Bearer, looked up by digest
 // among the hubs not revoked (401 otherwise: the probe stops until `syneva login`), limited per
-// hub; then one D1 write (when it connected, RFC 6.3 R3) and the upgrade handed to the person's
-// object with who connects.
+// hub, refused while the breaker is tripped; then one D1 write (when it connected, RFC 6.3 R3)
+// and the upgrade handed to the person's object with who connects.
 import { BRIDGE_PATHS } from '@syneva/contracts/bridge'
 
 import { limitRefusal } from '../auth/limits.js'
@@ -13,6 +13,8 @@ import { iso } from '../http/call.js'
 import { isUpgrade } from '../http/guard.js'
 import { HTTP_UNAUTHORIZED, HTTP_UPGRADE_REQUIRED } from '../http/status.js'
 import { openHubSocket } from '../user-hub-stub.js'
+
+import { saturatedRefusal } from './saturated.js'
 
 import type { Call } from '../http/call.js'
 
@@ -36,6 +38,8 @@ export async function hubSocketRoute(call: Call): Promise<Response | null> {
 	// Its reconnects, whatever its backoff does: ten a minute.
 	const limited = await limitRefusal(env, 'hub-socket', hub.id)
 	if (limited) return limited
+	const saturated = await saturatedRefusal(env, 'upgrade')
+	if (saturated) return saturated
 	await touchHub(env.DB, hub.id, now)
 	return openHubSocket(env, { ...hub, lastSeenAt: iso(now) })
 }

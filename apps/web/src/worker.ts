@@ -14,6 +14,7 @@ import { HTTP_NO_CONTENT, HTTP_NOT_FOUND } from './http/status.js'
 import { notFoundPage } from './pages/not-found.js'
 import { healthRoute } from './routes/health.js'
 import { hubSocketRoute } from './routes/hub-socket.js'
+import { opsRoute } from './routes/ops.js'
 import { sessionRoute } from './routes/session-routes.js'
 import { shellRoute } from './routes/shells.js'
 
@@ -22,17 +23,19 @@ import type { Call, Route } from './http/call.js'
 export { UserHub } from './bridge/user-hub.js'
 
 const ROUTES: readonly Route[] = [
-	// 1. Sign-in and the device page (which reads its session itself).
+	// 1. Ops: a Bearer OPS_TOKEN, or 403 with nothing read.
+	opsRoute,
+	// 2. Sign-in and the device page (which reads its session itself).
 	signInRoute,
 	deviceRoute,
-	// 2. Pairing, by device code or the hub's token; the hub's socket, by its token.
+	// 3. Pairing, by device code or the hub's token; the hub's socket, by its token.
 	pairingRoute,
 	hubSocketRoute,
-	// 3. The health probe, as a hub answers it.
+	// 4. The health probe, as a hub answers it.
 	async call => healthRoute(call),
-	// 4. Everything under /api/ a session opens, the relay last.
+	// 5. Everything under /api/ a session opens, the relay last.
 	sessionRoute,
-	// 5. The pages: a shell for a cookie, sign-in for none.
+	// 6. The pages: a shell for a cookie, sign-in for none.
 	shellRoute,
 ]
 
