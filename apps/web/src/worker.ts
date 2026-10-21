@@ -4,7 +4,9 @@
 // than it must (ops by its token before D1, pairing by its code or its token, the hub's socket by
 // its token), then everything a session opens, the session read once before any object is
 // touched. Nothing logs a request it answered: the one log line is an unexpected throw.
+import { deviceRoute } from './auth/device.js'
 import { signInRoute } from './auth/magic-link.js'
+import { pairingRoute } from './auth/pairing.js'
 import { fail, html, INTERNAL } from './http/answer.js'
 import { isRead } from './http/call.js'
 import { logFailure } from './http/log.js'
@@ -20,9 +22,11 @@ import type { Call, Route } from './http/call.js'
 export { UserHub } from './bridge/user-hub.js'
 
 const ROUTES: readonly Route[] = [
-	// 1. Sign-in.
+	// 1. Sign-in and the device page (which reads its session itself).
 	signInRoute,
-	// 2. The hub's socket, by its token.
+	deviceRoute,
+	// 2. Pairing, by device code or the hub's token; the hub's socket, by its token.
+	pairingRoute,
 	hubSocketRoute,
 	// 3. The health probe, as a hub answers it.
 	async call => healthRoute(call),
