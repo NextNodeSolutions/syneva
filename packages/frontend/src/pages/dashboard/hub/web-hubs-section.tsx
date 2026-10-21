@@ -4,7 +4,6 @@ import { useHubList } from '@entities/hub/use-hubs'
 import { Button } from '@shared/ui/button'
 import { LiveDot } from '@shared/ui/live-dot'
 import * as stylex from '@stylexjs/stylex'
-import { color } from '@syneva/design-system/tokens.stylex'
 
 import { offlineWords } from '../hub-copy'
 import { PageSection } from '../react/page-section'
@@ -12,28 +11,11 @@ import { pageSection } from '../react/section.styles'
 
 import { FactList } from './fact-list'
 import { RevokeHubDialog } from './revoke-hub-dialog'
+import { hubRow } from './web-hubs-section.styles'
 
 import type { HubRef } from '@entities/hub/model'
 import type { ReactElement } from 'react'
 import type { Fact } from './fact-list'
-
-const hubRow = stylex.create({
-	row: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: '8px',
-		paddingBlock: '14px',
-		borderBottomWidth: '1px',
-		borderBottomStyle: 'solid',
-		borderBottomColor: color['--line'],
-	},
-	head: {
-		display: 'flex',
-		alignItems: 'center',
-		gap: '10px',
-	},
-	name: { flex: '1', minWidth: 0, fontSize: '14px', fontWeight: 500 },
-})
 
 const NOTE =
 	'The machines you paired with syneva login. Each keeps one socket open to the web while it runs; its desks are reviewed from here as long as it is online.'
