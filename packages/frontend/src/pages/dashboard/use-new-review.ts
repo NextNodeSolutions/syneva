@@ -31,6 +31,8 @@ export type NewReview = {
 	// when it is online, else the first online hub, null when none is.
 	hubs: readonly HubRef[]
 	hubId: string | null
+	// Whether the dialog asks for the hub (isHubAsked).
+	asksHub: boolean
 	setHub: (hubId: string) => void
 	setRoot: (root: string) => void
 	setSource: (source: Source) => void
@@ -77,16 +79,24 @@ export function hubToOpenOn(
 	return online.find(hub => hub.id === picked)?.id ?? online[0]?.id ?? null
 }
 
-function validate(
-	fields: Fields,
-	hubId: string | null,
-	hasHubs: boolean,
-): FieldErrors {
+// The stream names hubs and none of them can take the open. A page whose stream named none yet (a
+// local page before its hello) opens on its own hub.
+function isEveryHubOffline(hubs: readonly HubRef[]): boolean {
+	return hubs.length > 0 && hubs.every(hub => !hub.isOnline)
+}
+
+// The hub field shows when it has something to say: a choice (past one hub), or that no hub can
+// take the open, which is also its one error, so that error never stands on a field the dialog
+// leaves out. With one online hub the open goes to it and the field would only repeat the page.
+function isHubAsked(hubs: readonly HubRef[]): boolean {
+	return hubs.length > 1 || isEveryHubOffline(hubs)
+}
+
+function validate(fields: Fields, hubs: readonly HubRef[]): FieldErrors {
 	return {
-		...(hasHubs &&
-			!hubId && {
-				hub: 'None of your hubs is online. Start one on its machine, then open the desk.',
-			}),
+		...(isEveryHubOffline(hubs) && {
+			hub: 'None of your hubs is online. Start one on its machine, then open the desk.',
+		}),
 		...(!fields.root.trim() && {
 			root: "Name the repository's path on the hub's machine.",
 		}),
@@ -163,6 +173,7 @@ export function useNewReview(
 		fields,
 		hubs,
 		hubId,
+		asksHub: isHubAsked(hubs),
 		...setters,
 		errors,
 		refusal: desk.refusal,
@@ -170,7 +181,7 @@ export function useNewReview(
 		submit: event => {
 			event.preventDefault()
 			if (desk.isBusy) return
-			const found = validate(fields, hubId, hubs.length > 0)
+			const found = validate(fields, hubs)
 			setErrors(found)
 			const firstInvalid = FIELD_ORDER.find(key => found[key])
 			if (firstInvalid) {

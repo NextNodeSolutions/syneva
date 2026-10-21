@@ -22,9 +22,11 @@ function choiceOf(hub: HubRef, now: number): Choice<string> {
 	}
 }
 
-// Which of the person's hubs the desk opens on. Only when there is a choice: with one hub the
-// open goes to it and the field would only repeat the page. Offline hubs are listed, so the
-// reviewer sees where they are, but cannot be picked: the open would be relayed to nobody.
+// Which of the person's hubs the desk opens on, asked when there is a choice or when none of them
+// can take the open (use-new-review.ts). Offline hubs are listed, so the reviewer sees where they
+// are, but cannot be picked: the open would be relayed to nobody. With every hub offline no radio
+// can take the focus a failed submit sends to the first wrong field, so the error is announced as
+// it appears.
 export function NewReviewHub({
 	form,
 }: {
@@ -32,7 +34,7 @@ export function NewReviewHub({
 }): ReactElement | null {
 	const now = useNow()
 	const noteId = useId()
-	if (form.hubs.length <= 1) return null
+	if (!form.asksHub) return null
 	return (
 		<div>
 			<ChoiceField
@@ -42,7 +44,9 @@ export function NewReviewHub({
 				options={form.hubs.map(hub => choiceOf(hub, now))}
 				onChange={form.setHub}
 			/>
-			<FieldNote id={noteId} error={form.errors.hub} />
+			<div role="alert">
+				<FieldNote id={noteId} error={form.errors.hub} />
+			</div>
 		</div>
 	)
 }
