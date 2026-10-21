@@ -58,10 +58,16 @@ export async function checkSignedOutPages({ report, browser }) {
 }
 
 export async function checkSignedInPages({ report, browser }) {
-	const out = await guardedPage(browser, WEB_PATHS.logout)
+	const back = `${WEB_PATHS.device}?code=ABCD-EFGH`
+	const out = await guardedPage(
+		browser,
+		`${WEB_PATHS.logout}?next=${encodeURIComponent(back)}`,
+	)
 	report.check(
-		'the sign-out page is under the same policy',
-		out.response.status === HTTP_OK && !out.gap,
+		'the sign-out page is under the same policy, and keeps its `next` for sign-in',
+		out.response.status === HTTP_OK &&
+			!out.gap &&
+			out.text.includes(`name="next" value="${back}"`),
 		out.gap ?? `${out.response.status}`,
 	)
 	const shell = await browser.fetch('/reviews')

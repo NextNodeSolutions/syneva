@@ -14,7 +14,9 @@ import type { Call } from '../http/call.js'
 const SECONDS_PER_DAY = 86_400
 const SESSION_SECONDS = WEB_SESSION_DAYS * SECONDS_PER_DAY
 
-export type Session = SessionUser
+// `digest` names this browser's session (the row's key) to what binds an act to it (the device
+// page's approval proof).
+export type Session = SessionUser & { digest: string }
 
 // The session's cookie value, if the request carries one; nothing is checked yet.
 export function sessionCookie(request: Request): string | null {
@@ -35,7 +37,10 @@ export async function sessionOf({
 }: Call): Promise<Session | null> {
 	const id = sessionCookie(request)
 	if (!id) return null
-	return sessionUser(env.DB, await hmacHex(env.SESSION_SECRET, id), now)
+	const digest = await hmacHex(env.SESSION_SECRET, id)
+	const user = await sessionUser(env.DB, digest, now)
+	if (!user) return null
+	return { ...user, digest }
 }
 
 // A new session for this person: its row, and the Set-Cookie header that hands it over.

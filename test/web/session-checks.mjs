@@ -182,14 +182,21 @@ async function checkSession({ report, browser }) {
 export async function checkSignOut({ report, browser, web }) {
 	report.section('sign-out')
 	const before = browser.jar.cookie
-	const out = await browser.fetch(WEB_PATHS.logout, { method: 'POST' })
+	// As the device page's "not you?" signs out: sign-in lands back on the code.
+	const back = `${WEB_PATHS.device}?code=ABCD-EFGH`
+	const out = await browser.fetch(WEB_PATHS.logout, {
+		method: 'POST',
+		headers: { 'content-type': 'application/x-www-form-urlencoded' },
+		body: new URLSearchParams({ next: back }).toString(),
+	})
 	const cleared = browser.keep(out)
 	report.check(
-		'POST /logout is 303 to /login and clears the cookie',
+		'POST /logout clears the cookie, 303 to /login with its `next`',
 		out.status === HTTP_SEE_OTHER &&
-			out.headers.get('location') === WEB_PATHS.login &&
+			out.headers.get('location') ===
+				`${WEB_PATHS.login}?next=${encodeURIComponent(back)}` &&
 			/Max-Age=0/i.test(cleared),
-		`${out.status} ${cleared}`,
+		`${out.status} ${out.headers.get('location')} ${cleared}`,
 	)
 	const me = await fetch(new URL(WEB_PATHS.me, web.origin), {
 		headers: { cookie: before },

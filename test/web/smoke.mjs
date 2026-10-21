@@ -22,12 +22,8 @@ import { parseArgs } from 'node:util'
 import { startHub } from '../bridge/hub-process.mjs'
 import { createReport } from '../stream/report.mjs'
 
-import {
-	checkLogout,
-	checkPairing,
-	checkRevoke,
-	checkTab,
-} from './hub-checks.mjs'
+import { checkPairing } from './device-checks.mjs'
+import { checkLogout, checkRevoke, checkTab } from './hub-checks.mjs'
 import { checkOps } from './ops-checks.mjs'
 import { checkSignedInPages, checkSignedOutPages } from './page-checks.mjs'
 import { checkRelay } from './relay-checks.mjs'

@@ -62,6 +62,25 @@ export function followLink(browser, link, headers = {}) {
 	})
 }
 
+const PROOF_FIELD = /name="confirm" value="([^"]+)"/
+
+// The device page for a code, as the person opens it, with the approval proof its Approve holds.
+export async function openDevicePage(browser, userCode) {
+	const page = await browser.fetch(`${WEB_PATHS.device}?code=${userCode}`)
+	const text = await page.text()
+	const [, proof = ''] = PROOF_FIELD.exec(text) ?? []
+	return { page, text, proof }
+}
+
+// Approve, as the device page's button posts it (JSON, the same fields).
+export function approveDevice(browser, { userCode, proof }) {
+	return browser.post(WEB_PATHS.device, {
+		userCode,
+		approve: true,
+		confirm: proof,
+	})
+}
+
 // The cookie header the jar holds, if any.
 function cookieOf(jar) {
 	if (!jar.cookie) return undefined

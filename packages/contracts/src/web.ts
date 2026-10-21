@@ -26,7 +26,9 @@ export const WEB_PATHS = {
 	// with `?expired=1`, on either.
 	authCallback: '/auth/callback',
 	// GET ?code=<user code>: where `syneva login` sends the person (`DeviceCodeAnswer`'s
-	// `verificationUrl`), signed in; POST DeviceApprovalRequest approves or denies the code.
+	// `verificationUrl`), signed in: it names the hub (its name, its CLI version) and the account
+	// it would pair to, with a sign-out for the wrong one. POST DeviceApprovalRequest approves or
+	// denies the code; approving needs the `confirm` that page's Approve carries.
 	device: '/device',
 	// GET: who is signed in (WebMe); 401 otherwise.
 	me: '/api/web/me',
@@ -65,8 +67,15 @@ export type WebHub = {
 export type WebHubsAnswer = { hubs: WebHub[] }
 
 // POST /device: the code as printed (`XXXX-XXXX`, case and dashes ignored); `approve: false`
-// denies it, and the CLI stops asking with `DEVICE_DENIED`.
-export type DeviceApprovalRequest = { userCode: string; approve: boolean }
+// denies it, and the CLI stops asking with `DEVICE_DENIED`. `confirm` is the proof the device
+// page's Approve holds (the hidden field `confirm`, bound to this session and this code): an
+// approval without it is 403 `DEVICE_UNCONFIRMED`, so no hub pairs before the person has seen
+// whose account and which hub. A denial needs none.
+export type DeviceApprovalRequest = {
+	userCode: string
+	approve: boolean
+	confirm?: string | undefined
+}
 export type DeviceApprovalAnswer =
 	| { approved: true; hubName: string }
 	| { approved: false }

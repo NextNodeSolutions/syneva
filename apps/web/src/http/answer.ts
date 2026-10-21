@@ -70,12 +70,16 @@ export function seeOther(location: string, setCookie?: string): Response {
 
 // A page that needs a session sends a signed-out browser to the sign-in page, back here after.
 export function toSignIn(next: string): Response {
-	const location =
-		next === '/' ? '/login' : `/login?next=${encodeURIComponent(next)}`
 	return new Response(null, {
 		status: HTTP_FOUND,
-		headers: { location, 'cache-control': NO_STORE },
+		headers: { location: signInPath(next), 'cache-control': NO_STORE },
 	})
+}
+
+// The sign-in page, landing on `next` (a safe path) once signed in.
+export function signInPath(next: string): string {
+	if (next === '/') return '/login'
+	return `/login?next=${encodeURIComponent(next)}`
 }
 
 export const SIGNED_OUT: Failure = {

@@ -4,7 +4,7 @@
 import { MAGIC_LINK_MINUTES, WEB_PATHS } from '@syneva/contracts/web'
 
 import { insertLoginCode } from '../db/login-codes.js'
-import { fail, html, json, seeOther } from '../http/answer.js'
+import { fail, html, json, seeOther, signInPath } from '../http/answer.js'
 import { isRead, secondsAfter } from '../http/call.js'
 import { sameOriginRefusal } from '../http/guard.js'
 import { logFailure } from '../http/log.js'
@@ -163,12 +163,18 @@ async function refused(ask: LinkAsk, failure: Failure): Promise<Response> {
 	)
 }
 
+// Sign-in follows, landing on the form's `next`: "not you?" on the device page signs out, then
+// back to the same code once signed in as the right account.
 async function signOut(call: Call): Promise<Response> {
-	return seeOther(WEB_PATHS.login, await closeSession(call))
+	const posted = await readPosted(call.request)
+	if ('refusal' in posted) return posted.refusal
+	const next = safeNext(posted.fields.get('next'))
+	return seeOther(signInPath(next), await closeSession(call))
 }
 
 async function signOutConfirm(call: Call): Promise<Response> {
+	const next = safeNext(call.url.searchParams.get('next'))
 	const session = await sessionOf(call)
-	if (!session) return seeOther(WEB_PATHS.login)
-	return html(HTTP_OK, signOutPage(session.email))
+	if (!session) return seeOther(signInPath(next))
+	return html(HTTP_OK, signOutPage(session.email, next))
 }
