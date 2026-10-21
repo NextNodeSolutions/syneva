@@ -21,6 +21,9 @@ import { connectBridge, wireBridge } from './bridge.js'
 import { wireRecords } from './records.js'
 
 import type { HubIdentity } from '@syneva/contracts/bridge'
+import type { AccessGuard } from '@syneva/core/http/auth'
+import type { Binding } from '@syneva/core/http/binding'
+import type { HubRouter } from '@syneva/core/http/router'
 import type { Hub } from '@syneva/core/hub/hub'
 import type { LocalServer } from '../adapters/inbound/http/local-server.js'
 import type { HubHandle, HubOptions } from '../adapters/inbound/http/options.js'
@@ -29,23 +32,18 @@ import type { Bridge } from '../adapters/outbound/bridge/bridge.js'
 // Start the hub: bind, wire the collaborators, restore previously hosted desks, hand back the URLs; origin guard, access guard, desk registry and per-desk mutation mutexes all live behind this call.
 // Binding a taken port rejects (EADDRINUSE) - the CLI decides what that means (a hub already running is the normal case).
 export async function startHub(options: HubOptions): Promise<HubHandle> {
-	const host = options.host ?? DEFAULT_HOST
-	const publicUrl = options.publicUrl ? new URL(options.publicUrl) : undefined
-	const binding = resolveBinding(
-		host,
-		os.hostname(),
-		options.allowedHosts ?? [],
-		publicUrl?.host,
-	)
-	const guard = createAccessGuard(
-		options.key,
-		publicUrl?.protocol === 'https:',
-	)
+	const { host, publicUrl, binding, guard } = accessOf(options)
 	const log = options.log ?? hubLog
 	const records = wireRecords(options, log)
 	const { hub } = records
-	const bridge = wireBridge({ ...records, version: options.version }, log)
-	const { server, stream } = createLocalServer({
+	// The probe's relay dispatches into the server's router, which the server builds after the
+	// bridge (it pushes the bridge's pairing to its tabs): read when a relay asks, once listening.
+	let router: HubRouter | null = null
+	const bridge = wireBridge(
+		{ ...records, version: options.version, router: () => router },
+		log,
+	)
+	const local = createLocalServer({
 		...records,
 		settings: nodeSettings,
 		guard,
@@ -60,6 +58,8 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		bridge,
 		log,
 	})
+	router = local.router
+	const { server, stream } = local
 	await listenOn(server, options.port ?? DEFAULT_HUB_PORT, host)
 	void connectBridge(bridge, log)
 	await hub.restore()
@@ -72,6 +72,28 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		localUrl: `http://${binding.lockHost}:${port}/`,
 		close: () => closeHub({ server, stream }, bridge, hub),
 	}
+}
+
+// Where the hub binds and who it lets in: the origin guard's authorities, the access key.
+function accessOf(options: HubOptions): {
+	host: string
+	publicUrl: URL | undefined
+	binding: Binding
+	guard: AccessGuard
+} {
+	const host = options.host ?? DEFAULT_HOST
+	const publicUrl = options.publicUrl ? new URL(options.publicUrl) : undefined
+	const binding = resolveBinding(
+		host,
+		os.hostname(),
+		options.allowedHosts ?? [],
+		publicUrl?.host,
+	)
+	const guard = createAccessGuard(
+		options.key,
+		publicUrl?.protocol === 'https:',
+	)
+	return { host, publicUrl, binding, guard }
 }
 
 // Who the hub's stream says it is: the local hub, named after the machine.
@@ -90,7 +112,7 @@ function identityOf(hub: Hub, version: string): HubIdentity {
 // non-zero and re-checks the hub); the registry is written one last time so the next start
 // restores the same desks.
 async function closeHub(
-	{ server, stream }: LocalServer,
+	{ server, stream }: Pick<LocalServer, 'server' | 'stream'>,
 	bridge: Bridge,
 	hub: Hub,
 ): Promise<void> {

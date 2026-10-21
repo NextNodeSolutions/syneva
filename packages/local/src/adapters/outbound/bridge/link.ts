@@ -23,6 +23,8 @@ import type { AttemptEnd } from './policy.js'
 // outbox.
 export type RelayChannel = {
 	request(frame: Extract<BridgeFrame, { t: 'req' }>): void
+	// A `req` with an id but fields that do not read: answered 400, never dispatched.
+	malformed(id: string): void
 	cancel(id: string): void
 	// The socket closed: every request still in flight is aborted, its answer never sent.
 	close(): void
@@ -135,13 +137,17 @@ function startSession(
 	}
 }
 
+// What the web sends a hub, plus a `req` whose fields do not read (its id does: it is answered).
+type WebFrame = BridgeFrame | { t: 'malformed-req'; id: string }
+
 function received(
-	frame: BridgeFrame | null,
+	frame: WebFrame | null,
 	resnapshot: () => void,
 	relay: RelayChannel | undefined,
 ): void {
 	if (frame?.t === 'snapshot?') resnapshot()
 	else if (frame?.t === 'req') relay?.request(frame)
+	else if (frame?.t === 'malformed-req') relay?.malformed(frame.id)
 	else if (frame?.t === 'cancel') relay?.cancel(frame.id)
 }
 
@@ -177,7 +183,7 @@ function textOf(message: RawData): string {
 
 // The frames the web sends a hub; anything else (a kind a newer web sends, text that is no frame)
 // is passed over.
-function parsed(text: string): BridgeFrame | null {
+function parsed(text: string): WebFrame | null {
 	let raw: unknown
 	try {
 		raw = JSON.parse(text)
@@ -187,7 +193,7 @@ function parsed(text: string): BridgeFrame | null {
 	return webFrame(raw)
 }
 
-function webFrame(raw: unknown): BridgeFrame | null {
+function webFrame(raw: unknown): WebFrame | null {
 	if (typeof raw !== 'object' || raw === null || !('t' in raw)) return null
 	if (raw.t === 'snapshot?') return { t: 'snapshot?' }
 	if (!('id' in raw) || typeof raw.id !== 'string') return null
@@ -196,16 +202,17 @@ function webFrame(raw: unknown): BridgeFrame | null {
 	return requestFrame(raw.id, raw)
 }
 
-function requestFrame(id: string, raw: object): BridgeFrame | null {
+function requestFrame(id: string, raw: object): WebFrame {
 	const fields: Record<string, unknown> = Object.fromEntries(
 		Object.entries(raw),
 	)
 	const { method, path, query, body } = fields
+	const malformed = { t: 'malformed-req', id } as const
 	if (method !== 'GET' && method !== 'POST' && method !== 'DELETE')
-		return null
-	if (typeof path !== 'string' || typeof query !== 'string') return null
+		return malformed
+	if (typeof path !== 'string' || typeof query !== 'string') return malformed
 	if (typeof body === 'string')
 		return { t: 'req', id, method, path, query, body }
-	if ('body' in fields) return null
+	if ('body' in fields) return malformed
 	return { t: 'req', id, method, path, query }
 }

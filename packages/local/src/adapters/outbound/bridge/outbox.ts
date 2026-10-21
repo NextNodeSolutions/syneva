@@ -17,21 +17,22 @@ const BASE64_CHARACTERS = 4
 const BASE64_BYTES = 3
 // Raw bytes per chunk: their base64 is exactly `chunkBytes`, so a chunk frame, envelope
 // included, stays under `frameBytes`.
-const CHUNK_RAW_BYTES =
+export const CHUNK_RAW_BYTES =
 	(BRIDGE_LIMITS.chunkBytes / BASE64_CHARACTERS) * BASE64_BYTES
 
 export type Outbox = {
-	// `sent` runs once the frame is written to the socket (never when it closed first).
-	send(text: string, sent?: () => void): void
+	// `sent` runs once the frame is written to the socket (never when it closed first); a frame
+	// that answers a relay names it, so a cancel catches it while it waits.
+	send(text: string, sent?: () => void, relay?: string): void
 	// A relay's body after its `res { more: true }`: its chunks, the last one's `sent` runs
 	// `sent`.
 	stream(id: string, body: Uint8Array, sent: () => void): void
-	// A cancelled relay: its chunks still waiting never go.
+	// A cancelled relay: its frames still waiting never go.
 	drop(id: string): void
 	close(): void
 }
 
-// A chunk names its relay, so a cancel catches it even once it is next in line.
+// A relay's frame names it, so a cancel catches it even once it is next in line.
 type Outgoing = {
 	text: string
 	sent: (() => void) | undefined
@@ -43,8 +44,8 @@ type Body = { id: string; bytes: Uint8Array; offset: number; sent: () => void }
 export function createOutbox(socket: WebSocket): Outbox {
 	const lanes = new Lanes(socket)
 	return {
-		send(text, sent): void {
-			lanes.ordered.push({ text, sent })
+		send(text, sent, relay): void {
+			lanes.ordered.push({ text, sent, relay })
 			lanes.wake()
 		},
 		stream(id, bytes, sent): void {
@@ -79,8 +80,10 @@ class Lanes {
 	}
 
 	drop(id: string): void {
-		const at = this.bodies.findIndex(body => body.id === id)
-		if (at >= 0) this.bodies.splice(at, 1)
+		const body = this.bodies.findIndex(each => each.id === id)
+		if (body >= 0) this.bodies.splice(body, 1)
+		const answer = this.ordered.findIndex(each => each.relay === id)
+		if (answer >= 0) this.ordered.splice(answer, 1)
 		if (this.#next?.relay === id) this.#next = null
 	}
 

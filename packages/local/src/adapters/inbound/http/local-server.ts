@@ -16,7 +16,7 @@ import { createHubSocket, isHubSocketRequest } from './stream/hub-socket.js'
 
 import type { HubIdentity } from '@syneva/contracts/bridge'
 import type { Binding } from '@syneva/core/http/binding'
-import type { HubRouterDeps } from '@syneva/core/http/router'
+import type { HubRouter, HubRouterDeps } from '@syneva/core/http/router'
 import type { Bridge } from '../../outbound/bridge/bridge.js'
 import type { FetchServe, NodeUiMiddleware } from './node-adapter.js'
 import type { HubSocket } from './stream/hub-socket.js'
@@ -38,6 +38,8 @@ export type LocalServer = {
 	server: http.Server
 	// The hub's stream (GET /api/hub/ws), closed before the server on shutdown.
 	stream: HubSocket
+	// The router the server dispatches into: the probe's relay dispatches into it too.
+	router: HubRouter
 }
 
 // The local hub's HTTP server: the hub's router on the Fetch API, under node:http through the
@@ -92,7 +94,7 @@ export function createLocalServer(deps: LocalServerDeps): LocalServer {
 			reconnectRoute(reconnect, request, isFromLoopback),
 		)(req, res)
 	})
-	return { server, stream }
+	return { server, stream, router }
 }
 
 export function portOf(server: http.Server): number {

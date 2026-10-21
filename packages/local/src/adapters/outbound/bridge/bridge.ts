@@ -9,9 +9,11 @@ import type { Probe, ProbeDeps } from './probe.js'
 
 export type BridgeDeps = {
 	read: () => Promise<PairingRecord | null>
-	// The probe for a pairing, with everything but the pairing and its change listener.
-	probe: Omit<ProbeDeps, 'record' | 'onChange' | 'source'> & {
+	// The probe for a pairing, with everything but the pairing and its change listener: its
+	// stream's source and its relay are the pairing's (they speak its web hub id).
+	probe: Omit<ProbeDeps, 'record' | 'onChange' | 'source' | 'relay'> & {
 		source: (record: PairingRecord) => ProbeDeps['source']
+		relay: (record: PairingRecord) => ProbeDeps['relay']
 	}
 	log: (line: string) => void
 }
@@ -48,10 +50,11 @@ export function createBridge(deps: BridgeDeps): Bridge {
 		record = await readRecord()
 		changed()
 		if (!record) return state()
-		const { source, ...probeDeps } = deps.probe
+		const { source, relay, ...probeDeps } = deps.probe
 		probe = startProbe({
 			...probeDeps,
 			source: source(record),
+			relay: relay(record),
 			record,
 			onChange: changed,
 		})

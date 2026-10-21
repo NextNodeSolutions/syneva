@@ -57,9 +57,20 @@ export type HubRouterDeps = HubRouteDeps & {
 	ui: UiServer
 }
 
+// How one request reached the router. `direct`, every transport's own request: the Host/Origin
+// guard and the access guard (key, cookie) run first. `relayed-over-pairing`: a request the web
+// relayed over a paired hub's socket (RFC 0001, 4.5 step 3), which the hub's token authenticated
+// and which carries no Host, Origin, key or cookie of its own: both guards are skipped for that
+// request alone - never a switch on the router - after the probe let only the relayable paths
+// through (contracts/relay.ts); every route's own validation runs as for any request.
+export type RequestChannel = 'direct' | 'relayed-over-pairing'
+
 // The hub's request entry point, on the Fetch API: what a transport (local's node-adapter.ts, a Durable
-// Object) calls with each Request, and the Served it writes back.
-export type HubRouter = (request: Request) => Promise<Served>
+// Object, the probe's relay) calls with each Request, and the Served it writes back.
+export type HubRouter = (
+	request: Request,
+	channel?: RequestChannel,
+) => Promise<Served>
 
 const NOT_FOUND_JSON = {
 	status: HTTP_NOT_FOUND,
@@ -70,10 +81,10 @@ const NOT_FOUND_JSON = {
 
 // The origin guard for every route, the access guard, then dispatch (pages, hub API, per-desk API, assets) - and the one place an unexpected throw becomes a 500.
 export function createHubRouter(deps: HubRouterDeps): HubRouter {
-	return async request => {
+	return async (request, channel = 'direct') => {
 		const exchange = openExchange(request)
 		try {
-			const answered = await answer(deps, exchange.hub)
+			const answered = await answer(deps, exchange.hub, channel)
 			if (answered) return exchange.served(answered)
 			const missing = notFound(exchange.hub)
 			if (isRead(request)) return exchange.unclaimed(missing)
@@ -104,11 +115,12 @@ export function upgradeRefusal(
 async function answer(
 	deps: HubRouterDeps,
 	hub: HubRequest,
+	channel: RequestChannel,
 ): Promise<Response | null> {
-	const refused = originRefusal(hub.request, deps.authorities())
-	if (refused) return refused
-	const access = await accessStage(deps, hub)
-	if (access) return access
+	if (channel === 'direct') {
+		const guarded = await guardStage(deps, hub)
+		if (guarded) return guarded
+	}
 	const page = await dashboardPage(deps, hub)
 	if (page) return page
 	// The hub listens before it rebuilds its desks (a restart's tabs reconnect at once): a request naming a desk still being restored must not read as closed - its page as not found, its tab as closed, the listing as empty.
@@ -120,6 +132,17 @@ async function answer(
 		(await planApi(deps, hub)) ??
 		(await deskApi(deps, hub)) ??
 		(await uiAsset(deps, hub))
+	)
+}
+
+// A direct request's guards: the origin guard, then the access stage.
+async function guardStage(
+	deps: HubRouterDeps,
+	hub: HubRequest,
+): Promise<Response | null> {
+	return (
+		originRefusal(hub.request, deps.authorities()) ??
+		(await accessStage(deps, hub))
 	)
 }
 

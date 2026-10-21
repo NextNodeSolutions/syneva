@@ -1,11 +1,14 @@
 // The hub's pairing with the web, composed: bridge.json on disk, the probe speaking the hub's
-// stream with web ids (RFC 0001, 4.8) under the hub's own stream queue.
+// stream with web ids (RFC 0001, 4.8) under the hub's own stream queue, and answering the web's
+// relayed requests through the hub's own router.
 import { createBridge } from '../adapters/outbound/bridge/bridge.js'
+import { createRelay } from '../adapters/outbound/bridge/relay.js'
 import { readPairingRecord } from '../adapters/outbound/filesystem/bridge.js'
 
 import type { HubIdentity } from '@syneva/contracts/bridge'
 import type { HubJournal } from '@syneva/core/application/journal'
 import type { PlanLibrary } from '@syneva/core/application/plan-library'
+import type { HubRouter } from '@syneva/core/http/router'
 import type { Hub } from '@syneva/core/hub/hub'
 import type { Bridge } from '../adapters/outbound/bridge/bridge.js'
 import type { PairingRecord } from '../adapters/outbound/filesystem/bridge.js'
@@ -15,13 +18,15 @@ export type BridgeHub = {
 	journal: HubJournal
 	plans: PlanLibrary
 	version: string
+	// The hub's router, once the server built it: the relay dispatches into it.
+	router: () => HubRouter | null
 }
 
 export function wireBridge(
 	parts: BridgeHub,
 	log: (line: string) => void,
 ): Bridge {
-	const { hub, journal, plans, version } = parts
+	const { hub, journal, plans, version, router } = parts
 	return createBridge({
 		read: readPairingRecord,
 		probe: {
@@ -33,6 +38,8 @@ export function wireBridge(
 				journal,
 				plans,
 			}),
+			relay: record => outbox =>
+				createRelay({ hubId: record.hubId, router, log }, outbox),
 		},
 		log,
 	})
