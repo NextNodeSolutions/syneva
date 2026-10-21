@@ -11,10 +11,16 @@ import {
 import { admitOpen, reopenedState } from '../application/open-policy.js'
 import { checkoutPrTarget } from '../application/pr-target.js'
 import { reloadDesk } from '../application/reload-desk.js'
-import { nowIso } from '../application/time.js'
+import { nowIso, nowMs } from '../application/time.js'
 
 import { hostDesk, summarize } from './hosted-desk.js'
-import { keepOpenPreferences, liveDesk, liveRecords } from './hub-desks.js'
+import {
+	keepOpenPreferences,
+	liveDesk,
+	liveDesks,
+	liveRecords,
+	pruneClosed,
+} from './hub-desks.js'
 import { inventoryOf } from './hub-inventory.js'
 import { queryOf, recordOf, sameSource } from './hub-records.js'
 
@@ -26,9 +32,6 @@ import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { ReviewInventory } from '../domain/inventory.js'
 import type { ReviewState } from '../domain/review.js'
 import type { HostedDeskIo, HubDesk } from './hosted-desk.js'
-
-// The linger lets the `closed` event reach a parked waiter: its parked request is answered on the emission, but the transport needs a beat to write that answer out before the desk's routes answer 404.
-const CLOSED_EVENT_GRACE_MS = 150
 
 export type HubFailure = { ok: false; code: string; reason: string }
 
@@ -56,7 +59,7 @@ export type Hub = {
 	inventory(query: DeskQuery): Promise<InventoryOutcome>
 	getDesk(id: string): HubDesk | undefined
 	listDesks(): HubDesk[]
-	// Emit `closed` to the desk's parked waiter, then drop it after the grace; false when there is no such live desk (already closed is not an error - close is idempotent).
+	// Emit `closed` to the desk's parked waiter and write the registry without it; its entry goes once the grace is past (hub-desks.ts). False when there is no such live desk (already closed is not an error - close is idempotent).
 	closeDesk(id: string): boolean
 	// A hub restart reopens every desk the registry recorded; desks whose repo is gone or whose diff no longer builds are dropped, with the reason logged.
 	restore(): Promise<void>
@@ -80,7 +83,9 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 		desks,
 		io,
 		persist: () =>
-			serializeWrite(() => io.registry.save(liveRecords(desks))),
+			serializeWrite(() =>
+				io.registry.save(liveRecords(pruneClosed(desks, nowMs()))),
+			),
 	}
 	let restoring: Promise<void> = Promise.resolve()
 	return {
@@ -89,8 +94,8 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 		openDesk: (query, guide) =>
 			serializeOpen(() => openOrReuse(state, query, guide)),
 		inventory: query => serializeOpen(() => inventoryOf(state, query)),
-		getDesk: id => liveDesk(desks, id),
-		listDesks: () => [...desks.values()].filter(desk => !desk.closing),
+		getDesk: id => liveDesk(pruneClosed(desks, nowMs()), id),
+		listDesks: () => liveDesks(pruneClosed(desks, nowMs())),
 		closeDesk: id => closeDesk(state, id),
 		restore(): Promise<void> {
 			restoring = restoreAll(state)
@@ -111,19 +116,22 @@ async function restoreAll(state: HubState): Promise<void> {
 	await state.persist()
 }
 
+// The registry is written at once, without the desk: a hub stopped right after a close must not restore it.
 function closeDesk(state: HubState, id: string): boolean {
-	const desk = state.desks.get(id)
-	if (!desk || desk.closing) return false
+	if (!markClosed(state, id)) return false
+	void state.persist()
+	return true
+}
+
+function markClosed(state: HubState, id: string): boolean {
+	const desk = liveDesk(state.desks, id)
+	if (!desk) return false
 	desk.ctx.recordEvent(deskClosed(summarize(desk), desk.record))
-	desk.closing = true
+	desk.closedAt = nowMs()
 	desk.ctx.events.emit({ kind: 'closed', session: desk.record.session })
 	state.io.log(
 		`desk closed ${id} (${desk.record.root} · ${desk.record.session})`,
 	)
-	setTimeout(() => {
-		if (state.desks.get(id) === desk) state.desks.delete(id)
-		void state.persist()
-	}, CLOSED_EVENT_GRACE_MS)
 	return true
 }
 
@@ -235,8 +243,9 @@ async function createDesk(
 			code: built.code ?? 'NO_REVIEW',
 			reason: built.reason,
 		}
+	// The replaced desk's entry goes at once, and the registry is written once, with the new desk.
 	if (replaced) {
-		closeDesk(state, identity.id)
+		markClosed(state, identity.id)
 		state.desks.delete(identity.id)
 	}
 	const desk = registerDesk(state, built.state, recordOf(identity, query))

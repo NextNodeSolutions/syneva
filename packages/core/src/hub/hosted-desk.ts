@@ -29,7 +29,9 @@ export type HubDesk = {
 	readonly liveness: DeskLiveness
 	// Replaced (never mutated) when a reopen changes a rebuild parameter, such as --no-guide.
 	record: HubDeskRecord
-	closing: boolean
+	// When the hub closed it (epoch ms), null while it is live: a closed desk is gone to every
+	// caller at once and leaves the hub's map once its grace is past (hub-desks.ts).
+	closedAt: number | null
 }
 
 // What every hosted desk is wired from: the hub's capability ports, the agent-activity TTL and
@@ -60,7 +62,7 @@ export function hostDesk(
 		id: record.id,
 		liveness,
 		record,
-		closing: false,
+		closedAt: null,
 		ctx: createDeskContext(review, record.pathFilter, {
 			events: createEventStream(),
 			activity: createActivity(io.statusTtlMs),
