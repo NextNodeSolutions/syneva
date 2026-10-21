@@ -11,19 +11,24 @@ import { logFailure } from './http/log.js'
 import { HTTP_NO_CONTENT, HTTP_NOT_FOUND } from './http/status.js'
 import { notFoundPage } from './pages/not-found.js'
 import { healthRoute } from './routes/health.js'
+import { hubSocketRoute } from './routes/hub-socket.js'
 import { sessionRoute } from './routes/session-routes.js'
 import { shellRoute } from './routes/shells.js'
 
 import type { Call, Route } from './http/call.js'
 
+export { UserHub } from './bridge/user-hub.js'
+
 const ROUTES: readonly Route[] = [
 	// 1. Sign-in.
 	signInRoute,
-	// 2. The health probe, as a hub answers it.
+	// 2. The hub's socket, by its token.
+	hubSocketRoute,
+	// 3. The health probe, as a hub answers it.
 	async call => healthRoute(call),
-	// 3. Everything under /api/ a session opens.
+	// 4. Everything under /api/ a session opens.
 	sessionRoute,
-	// 4. The pages: a shell for a cookie, sign-in for none.
+	// 5. The pages: a shell for a cookie, sign-in for none.
 	shellRoute,
 ]
 
