@@ -25,11 +25,23 @@ export type Served = {
 	isUnclaimedRead: boolean
 }
 
-// One request as every route sees it: the request, its URL parsed once, and the one way to
-// defer work until the response is handed over (Served.afterSent).
+// How one request reached the router. `direct`, every transport's own request: the Host/Origin
+// guard and the access guard (key, cookie) run first. `relayed-over-pairing`: a request the web
+// relayed over a paired hub's socket (RFC 0001, 4.5 step 3), which the hub's token authenticated
+// and which carries no Host, Origin, key or cookie of its own: both guards are skipped for that
+// request alone - never a switch on the router - after the probe let only the relayable paths
+// through (contracts/relay.ts); every route's own validation runs as for any request.
+export type RequestChannel = 'direct' | 'relayed-over-pairing'
+
+// One request as every route sees it: the request, its URL parsed once, how it reached the
+// router, and the one way to defer work until the response is handed over (Served.afterSent).
+// A route reads `channel` where the web may do less than the machine: the trust boundary of a
+// relayed request is the web account, so what the machine keeps for itself (its own settings,
+// the programs it launches, the folders it serves) is never the web's to change.
 export type HubRequest = {
 	request: Request
 	url: URL
+	channel: RequestChannel
 	afterSent: (hook: () => void) => void
 }
 
@@ -40,11 +52,15 @@ export type Exchange = {
 }
 
 // The hooks run in the order the route registered them, all of them, once.
-export function openExchange(request: Request): Exchange {
+export function openExchange(
+	request: Request,
+	channel: RequestChannel = 'direct',
+): Exchange {
 	const hooks: Array<() => void> = []
 	const hub: HubRequest = {
 		request,
 		url: new URL(request.url),
+		channel,
 		afterSent: hook => {
 			hooks.push(hook)
 		},
