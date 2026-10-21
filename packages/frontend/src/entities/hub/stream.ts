@@ -39,9 +39,13 @@ let view: StreamView = FIRST_VIEW
 let stream: HubStream | null = null
 // The snapshot being read, from its hello to its snapshot-end; null between two.
 let snapshot: Snapshot | null = null
-// Desks the hub answered this page's close for, until their `closed` frame: a `desk` frame shaped
-// before the close and still on its way does not bring them back.
-const forgotten = new Set<string>()
+// Desks the hub answered this page's close for whose `closed` frame has not come yet, each with
+// the life it closed (its `openedAt`): a `desk` frame of that life, shaped before the close and
+// still on its way, does not bring it back. A desk's id is its repo and session, so the same
+// session opened again comes back on the same id: a `desk` frame of a newer life is that new desk,
+// shown at once, and ends the hold. The `closed` frame ends it too; a close whose `closed` frame
+// came before its answer holds nothing.
+const forgotten = new Map<string, string>()
 
 function commit(next: StreamView): void {
 	if (next === view) return
@@ -80,7 +84,9 @@ function desk(summary: HubDesk): void {
 		snapshot.desks.set(summary.id, summary)
 		return
 	}
-	if (!forgotten.has(summary.id)) commit(withDesk(view, summary))
+	if (forgotten.get(summary.id) === summary.openedAt) return
+	forgotten.delete(summary.id)
+	commit(withDesk(view, summary))
 }
 
 function closed(deskId: string): void {
@@ -167,10 +173,14 @@ export function hubView(): StreamView {
 	return view
 }
 
-// The hub answered this page's close: the desk leaves the listing now, before its `closed` frame.
-export function forgetDesk(deskId: string): void {
-	forgotten.add(deskId)
-	commit(withoutDesk(view, deskId))
+// The hub answered this page's close: the desk leaves the listing now, before its `closed` frame,
+// unless the stream already said more about its id - that frame came first (the desk is no longer
+// listed), or the session was opened again since (the id lists a newer life), which stays.
+export function forgetDesk(closedDesk: HubDesk): void {
+	const listed = view.listing.desks?.find(each => each.id === closedDesk.id)
+	if (listed?.openedAt !== closedDesk.openedAt) return
+	forgotten.set(closedDesk.id, closedDesk.openedAt)
+	commit(withoutDesk(view, closedDesk.id))
 }
 
 // Calls `listener` each time the hub says hello to this page again (a reconnect, a restarted

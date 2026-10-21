@@ -15,7 +15,7 @@ export type HubView = {
 	link: HubLink
 	// The hub answered this page's close: the desk leaves the listing now, its `closed` frame
 	// follows.
-	forget: (deskId: string) => void
+	forget: (desk: HubDesk) => void
 }
 
 // The hub's listing and how it answers, from the hub's stream. Each part is read on its own, so
