@@ -160,6 +160,11 @@ export const BRIDGE_LIMITS = {
 	journalPerFrame: 200,
 	backoffMinMs: 1_000,
 	backoffMaxMs: 60_000,
+	// What a client waits before its next attempt after a close code that names a wait (RFC 4.3):
+	// `rate` then takes the normal backoff, `tooMany` and `saturated` try again once it is over.
+	rateWaitMs: 30_000,
+	tooManyWaitMs: 60_000,
+	saturatedWaitMs: 300_000,
 } as const
 
 // The client policy per code is RFC 4.3's. `goingAway` is the standard code a hub closes its
