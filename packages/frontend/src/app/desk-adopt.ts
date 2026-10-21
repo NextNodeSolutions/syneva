@@ -24,6 +24,7 @@ async function loadReviewState(): Promise<ReviewState | null> {
 		if (!Array.isArray(server.comments)) return null
 		return server
 	} catch {
+		S.isRefreshRequired = true
 		return null
 	}
 }

@@ -47,7 +47,7 @@ export function DeskCovers(): ReactElement {
 			{notice === 'refresh' && (
 				<div {...stylex.props(covers.notice)} role="status">
 					<strong {...stylex.props(covers.noticeLead)}>
-						Desk restarted.
+						Desk needs a refresh.
 					</strong>{' '}
 					Finish pending actions and copy any unsaved text, then
 					refresh this tab to reconnect.
