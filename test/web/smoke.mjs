@@ -29,6 +29,7 @@ import {
 	checkTab,
 } from './hub-checks.mjs'
 import { checkOps } from './ops-checks.mjs'
+import { checkSignedInPages, checkSignedOutPages } from './page-checks.mjs'
 import { checkRelay } from './relay-checks.mjs'
 import { checkSignedOut, checkSignIn, checkSignOut } from './session-checks.mjs'
 import { createBrowser } from './web-client.mjs'
@@ -107,7 +108,9 @@ rmSync(scratch, { recursive: true, force: true })
 
 async function run() {
 	await checkSignedOut(context)
+	await checkSignedOutPages(context)
 	await checkSignIn(context)
+	await checkSignedInPages(context)
 	const hubId = await checkPairing(context)
 	const tab = hubId ? await checkTab(context, hubId) : null
 	if (tab) {

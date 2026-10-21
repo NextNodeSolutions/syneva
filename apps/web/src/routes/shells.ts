@@ -11,7 +11,7 @@ import {
 } from '@syneva/contracts/routes'
 
 import { sessionCookie } from '../auth/session.js'
-import { toSignIn } from '../http/answer.js'
+import { PAGE_GUARDS, toSignIn } from '../http/answer.js'
 import { isRead } from '../http/call.js'
 import { HTTP_MOVED_PERMANENTLY } from '../http/status.js'
 
@@ -41,8 +41,18 @@ export async function shellRoute(call: Call): Promise<Response | null> {
 	// The shell's own caching headers would let a signed-out browser reuse it; it is tiny.
 	const headers = new Headers(served.headers)
 	headers.set('cache-control', 'no-store')
+	for (const [name, value] of Object.entries(SHELL_GUARDS))
+		headers.set(name, value)
 	return new Response(served.body, { status: served.status, headers })
 }
+
+// A shell is never framed: a desk's Approve or Send under another site's transparent overlay acts
+// on the person's machine. The rest of its policy is the frontend's to say; this one directive
+// constrains nothing it loads.
+const SHELL_GUARDS = {
+	'content-security-policy': "frame-ancestors 'none'",
+	...PAGE_GUARDS,
+} as const
 
 function shellOf(
 	pathname: string,

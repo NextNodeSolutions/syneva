@@ -12,6 +12,7 @@ import { runCli, spawnCli } from '../bridge/hub-process.mjs'
 import { bridgeFile, isPairing, readLocal } from '../bridge/pairing-checks.mjs'
 import { openReader, socketUrl, waitFor } from '../stream/stream-client.mjs'
 
+import { pagePolicyGap } from './page-checks.mjs'
 import { HTTP_GONE, HTTP_OK } from './statuses.mjs'
 
 const CODE_LINE = /confirm the code ([A-Z0-9]{4}-[A-Z0-9]{4})/
@@ -45,6 +46,12 @@ export async function checkPairing(context) {
 			text.includes(os.hostname().slice(0, SHOWN_NAME_LENGTH)) &&
 			text.includes('Approve'),
 		`${page.status}`,
+	)
+	const gap = pagePolicyGap(page, text)
+	report.check(
+		"the device page is under the pages' policy: its Approve is never framed",
+		!gap,
+		gap ?? '',
 	)
 	const approved = await browser.post(WEB_PATHS.device, {
 		userCode,

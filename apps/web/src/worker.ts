@@ -55,7 +55,7 @@ export default {
 			now: new Date(),
 		}
 		try {
-			return (await answered(call, 0)) ?? notFound(call)
+			return (await answered(call, 0)) ?? (await notFound(call))
 		} catch (error) {
 			logFailure('unexpected', error)
 			return fail(INTERNAL)
@@ -71,7 +71,7 @@ async function answered(call: Call, index: number): Promise<Response | null> {
 }
 
 // What no route answered: a page for a browser's navigation, the JSON failure for the rest.
-function notFound({ request, url }: Call): Response {
+async function notFound({ request, url }: Call): Promise<Response> {
 	if (url.pathname === '/favicon.ico')
 		return new Response(null, { status: HTTP_NO_CONTENT })
 	const isNavigation =

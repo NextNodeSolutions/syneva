@@ -105,15 +105,18 @@ async function showCode(
 // How a POST is answered: a script reads the JSON (DeviceApprovalAnswer, or the error shape), a
 // form gets the page.
 type Reply = {
-	refused(failure: Failure, state: DeviceState): Response
-	answered(answer: DeviceApprovalAnswer, state: DeviceState): Response
+	refused(failure: Failure, state: DeviceState): Promise<Response>
+	answered(
+		answer: DeviceApprovalAnswer,
+		state: DeviceState,
+	): Promise<Response>
 }
 
 function replyOf(isJson: boolean): Reply {
 	return {
-		refused: (failure, state) =>
+		refused: async (failure, state) =>
 			isJson ? fail(failure) : page(state, failure.status),
-		answered: (answer, state) =>
+		answered: async (answer, state) =>
 			isJson ? json(HTTP_OK, answer) : page(state),
 	}
 }
@@ -212,6 +215,6 @@ function closedReason(code: DeviceCode, now: Date): string | null {
 	return null
 }
 
-function page(state: DeviceState, status = HTTP_OK): Response {
+function page(state: DeviceState, status = HTTP_OK): Promise<Response> {
 	return html(status, devicePage(state))
 }

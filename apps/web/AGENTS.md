@@ -47,6 +47,8 @@ A Cloudflare Worker and one Durable Object per account, `UserHub`. The RFC gives
 
 Two more invariants the code keeps: the Worker builds every object request from scratch (`user-hub-stub.ts`), so no client header named like an internal one (`x-syneva-object-*`) ever reaches the object; and a hub's stream frame reaches the tabs as the hub's own text, never re-encoded, once its hub id is the socket's (another hub's id closes it with 1008).
 
+The web's own pages (sign-in, sign-out, the device page, not found) go out under one policy (`pages/shell.ts`'s `pagePolicy`, sent by `http/answer.ts`'s `html`): `default-src 'none'`, the page's one inline sheet by its sha256 (no other style, no script at all), the faces from the assets, `form-action 'self'`, `frame-ancestors 'none'`, `base-uri 'none'`, plus `x-frame-options: DENY`, `nosniff` and `referrer-policy: no-referrer` (a sign-in link's token never leaves in a `Referer`). The frontend's shells get `frame-ancestors 'none'`, `DENY` and `nosniff` (`routes/shells.ts`): their own policy is the frontend's, but no other site frames a page whose buttons act on a machine. Every JSON answer is `nosniff`.
+
 ## D1
 
 `migrations/0001_identity.sql`: users, sessions (the cookie's HMAC under `SESSION_SECRET`), login codes (a token's sha256, its address, `next`, the client address's sha256), device codes (the device code's sha256, the user code, the token parked until the CLI takes it, once), hubs (the token's sha256, `last_seen_at` written when its socket opens, never per frame; a revoked hub keeps its row), user settings, the breaker row, the daily email counter. Timestamps are ISO strings. Expired rows are purged on the next write to the same table, never on a timer (no cron).

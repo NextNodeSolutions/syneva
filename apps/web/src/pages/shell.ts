@@ -1,7 +1,8 @@
 // The frame of the Worker's own pages (sign-in, the device page, sign-out, not found): core's
 // http/pages.ts frame and sheet, copied rather than imported (the Worker never imports core), so a
 // sign-in on the web reads like the local hub's key page. Tiny and dependency-free on purpose: no
-// script, one inline sheet, the faces from the static assets.
+// script, one inline sheet, the faces from the static assets, and the policy that allows exactly
+// that.
 import { STATIC_PATHS } from '@syneva/contracts/routes'
 
 // The :root values mirror @syneva/design-system's tokens, hand-kept in sync as core's are.
@@ -105,6 +106,35 @@ export function terminal(input: {
 <div class="term"><div class="tbar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>${escapeHtml(input.title)}</span></div>
 <pre>${lines}</pre></div>
 <figcaption>${escapeHtml(input.caption)}</figcaption></figure>`
+}
+
+// What a page may load, sent with every page (http/answer.ts's `html`, RFC 7): nothing by
+// default; its one inline sheet, named by its hash so no other style runs; the faces from the
+// assets; the favicon's data URI; forms that post to this web. No script runs at all, and no
+// frame may hold a page: the device page's Approve under a transparent overlay is a hub paired by
+// a click the person never meant. Hashed once per isolate: the sheet never changes.
+export function pagePolicy(): Promise<string> {
+	sheetPolicy ??= policyOf(STYLES)
+	return sheetPolicy
+}
+
+let sheetPolicy: Promise<string> | undefined
+
+async function policyOf(sheet: string): Promise<string> {
+	const digest = await crypto.subtle.digest(
+		'SHA-256',
+		new TextEncoder().encode(sheet),
+	)
+	const hash = btoa(String.fromCharCode(...new Uint8Array(digest)))
+	return [
+		"default-src 'none'",
+		`style-src 'sha256-${hash}'`,
+		"font-src 'self'",
+		'img-src data:',
+		"form-action 'self'",
+		"frame-ancestors 'none'",
+		"base-uri 'none'",
+	].join('; ')
 }
 
 export function page(input: { title: string; body: string }): string {

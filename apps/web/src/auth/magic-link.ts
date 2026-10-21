@@ -148,7 +148,7 @@ async function mailLink(
 }
 
 // A script reads the error shape; a form gets its page back, the refusal under the field.
-function refused(ask: LinkAsk, failure: Failure): Response {
+async function refused(ask: LinkAsk, failure: Failure): Promise<Response> {
 	if (ask.isJson) return fail(failure)
 	return html(
 		failure.status,
