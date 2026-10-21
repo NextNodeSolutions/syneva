@@ -71,6 +71,77 @@ const CORE_GLOBAL_BANS = [
 	),
 ]
 
+// apps/web's Worker runs per request and its UserHub object hibernates between frames (RFC 0001, 6.1 W4, 6.3 R2, R4): a timer anywhere in the bundle keeps an object awake and billed, so none is written; a grace period is a deadline compared on the next event.
+const WEB_TIMER_BANS = [
+	'setTimeout',
+	'setInterval',
+	'setImmediate',
+	'clearTimeout',
+	'clearInterval',
+	'queueMicrotask',
+].map(name => ({
+	name,
+	message:
+		'no timer in apps/web (RFC 0001, 6.1 W4, 6.3 R2): it keeps the object awake and billed. Compare a deadline on the next event; an outbound call takes AbortSignal.timeout.',
+}))
+
+const WEB_IMPORT_BANS = {
+	group: [
+		'@syneva/local',
+		'@syneva/local/**',
+		'@syneva/frontend',
+		'@syneva/frontend/**',
+	],
+	message:
+		'apps/web runs on Workers: it never imports the Node side (local) or the browser (frontend); their wire shapes are in @syneva/contracts.',
+}
+
+// The object (apps/web/src/bridge) is a switchboard that stores nothing and never calls out (RFC 0001, 6.3 R2-R4, R12): no fetch, no stream but the relay's, no storage, alarm or concurrency block, never a non-hibernating accept; its only imports are contracts, the runtime and its own folder.
+const BRIDGE_GLOBAL_BANS = [
+	...WEB_TIMER_BANS,
+	{
+		name: 'fetch',
+		message:
+			'the object makes no outbound call (RFC 0001, 6.3 R4): fetch, D1 and email belong to the Worker, which hands the object what it needs with the request.',
+	},
+]
+const BRIDGE_STREAM_BANS = [
+	'ReadableStream',
+	'WritableStream',
+	'TransformStream',
+].map(name => ({
+	name,
+	message:
+		'only bridge/relay.ts opens a stream (RFC 0001, 6.3 R5): the relay is the one bounded streaming response.',
+}))
+const BRIDGE_PROPERTY_BANS = [
+	[
+		'storage',
+		'the object never stores (RFC 0001, 6.3 R2): the paired hub is the truth.',
+	],
+	[
+		'setAlarm',
+		'no alarm (RFC 0001, 6.3 R2): an alarm wakes and bills the object.',
+	],
+	[
+		'blockConcurrencyWhile',
+		'no concurrency block (RFC 0001, 6.3 R2): the object holds no state to guard.',
+	],
+	[
+		'waitUntil',
+		'nothing outlives an event in the object (RFC 0001, 6.3 R2): work after the answer keeps it awake.',
+	],
+	[
+		'accept',
+		'ctx.acceptWebSocket only (RFC 0001, 6.3 R1): ws.accept() is never hibernatable.',
+	],
+].map(([property, message]) => ({ property, message }))
+const BRIDGE_IMPORT_BANS = {
+	group: ['**', '!@syneva/contracts/**', '!cloudflare:workers', '!./*'],
+	message:
+		'the object imports @syneva/contracts, cloudflare:workers and its own folder only (RFC 0001, 6.3 R12): bridge/internal.ts is what it shares with the Worker.',
+}
+
 // Layers run in layers.json order; sliced layers also ban their own alias (intra-slice imports are relative); the rules cover .astro frontmatter/scripts and the React islands (.tsx) too.
 const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
 const LANDING_MOTION_BAN = {
@@ -722,9 +793,68 @@ export default defineConfig({
 			},
 		},
 		{
-			// The stream's conformance check is a scenario: each step waits on the hub's answer to the one before, so its awaits are sequenced by design.
-			files: ['test/stream/*.mjs'],
+			// The stream's conformance check and the web's smoke are scenarios: each step waits on the answer to the one before, so their awaits are sequenced by design.
+			files: ['test/stream/*.mjs', 'test/web/*.mjs'],
 			rules: { 'eslint/no-await-in-loop': 'off' },
+		},
+		{
+			// apps/web outside the object: the Worker and its routes (RFC 0001, 6.3).
+			files: ['apps/web/src/**/*.ts'],
+			rules: {
+				'eslint/no-restricted-imports': [
+					'error',
+					{ patterns: [WEB_IMPORT_BANS] },
+				],
+				'eslint/no-restricted-globals': ['error', ...WEB_TIMER_BANS],
+			},
+		},
+		{
+			// The object: one effective declaration per rule (later overrides replace rules); its one log line is console.error, on a socket's error only.
+			files: ['apps/web/src/bridge/**/*.ts'],
+			rules: {
+				'eslint/no-restricted-imports': [
+					'error',
+					{ patterns: [BRIDGE_IMPORT_BANS] },
+				],
+				'eslint/no-restricted-globals': [
+					'error',
+					...BRIDGE_GLOBAL_BANS,
+					...BRIDGE_STREAM_BANS,
+				],
+				'eslint/no-restricted-properties': [
+					'error',
+					...BRIDGE_PROPERTY_BANS,
+				],
+				'eslint/no-console': ['error', { allow: ['error'] }],
+			},
+		},
+		{
+			// The relay is the object's one bounded streaming response.
+			files: ['apps/web/src/bridge/relay.ts'],
+			rules: {
+				'eslint/no-restricted-globals': [
+					'error',
+					...BRIDGE_GLOBAL_BANS,
+				],
+			},
+		},
+		{
+			// The Worker's one log boundary (an unexpected throw, a failed send), as the landing's log-failure.server.ts.
+			files: ['apps/web/src/http/log.ts'],
+			rules: { 'eslint/no-console': ['error', { allow: ['error'] }] },
+		},
+		{
+			// MAIL_TRANSPORT=log: the sign-in link goes to wrangler dev's stdout instead of an inbox (local only; a deploy sets RESEND_API_KEY).
+			files: ['apps/web/src/auth/mail.ts'],
+			rules: { 'eslint/no-console': ['error', { allow: ['log'] }] },
+		},
+		{
+			// wrangler's contract: the entry module default-exports the Worker's handler and exports the Durable Object class its config binds.
+			files: ['apps/web/src/worker.ts'],
+			rules: {
+				'import/no-default-export': 'off',
+				'nextnode/no-barrel-file': 'off',
+			},
 		},
 		{
 			// The landing Worker's one log boundary, as adapters/outbound/console.ts is local's: Workers Logs-style JSON.
