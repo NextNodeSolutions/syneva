@@ -722,6 +722,11 @@ export default defineConfig({
 			},
 		},
 		{
+			// The stream's conformance check is a scenario: each step waits on the hub's answer to the one before, so its awaits are sequenced by design.
+			files: ['test/stream/*.mjs'],
+			rules: { 'eslint/no-await-in-loop': 'off' },
+		},
+		{
 			// The landing Worker's one log boundary, as adapters/outbound/console.ts is local's: Workers Logs-style JSON.
 			files: [
 				'apps/landing/src/features/subscribe/model/log-failure.server.ts',
