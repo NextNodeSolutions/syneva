@@ -5,15 +5,16 @@ import {
 } from '../../application/capabilities.js'
 import { guideAuthoring } from '../../application/guide-authoring.js'
 import { buildInventory } from '../../domain/inventory.js'
-import { pollPayload } from '../../hub/desk-pulse.js'
+import { deskPulse, pollPayload } from '../../hub/desk-pulse.js'
 import { readJsonBody, json, jsonBody, HTTP_OK } from '../http.js'
 
 import type { BrowserRefreshEvent } from '@syneva/contracts/browser'
 import type { RouteRequest } from '../router.js'
 
 // Deprecated for the UI: the hub's stream (GET /api/hub/ws) pushes the same payload as a desk's
-// `pulse` frame when it changes (hub/desk-pulse.ts builds both). Kept one release for the CLI and
-// for anyone scripting the hub (RFC 0001, 4.6); the browser's 1.5s poll goes with the next change.
+// `pulse` frame when it changes (hub/desk-pulse.ts builds both; past a frame's bound the frame is
+// partial and GET /pulse serves it whole). Kept one release for the CLI and for anyone scripting
+// the hub (RFC 0001, 4.6); the browser's 1.5s poll goes with the next change.
 export async function servePoll({ ctx, url }: RouteRequest): Promise<Response> {
 	// A restarted desk may ship a different state contract: tell an already-loaded tab to refresh its bundle first; legacy clients without an instance token still receive the normal heartbeat.
 	const { searchParams } = url
@@ -24,6 +25,13 @@ export async function servePoll({ ctx, url }: RouteRequest): Promise<Response> {
 	}
 	// Keep the 1.5s heartbeat tiny and git-free; file summaries and changes only ride /state.
 	return json(HTTP_OK, { ...pollPayload(ctx.state), ...ctx.status() })
+}
+
+// GET /pulse: the desk's pulse whole, as a stream's `pulse` frame carries it when it fits. A tab
+// reads it when a frame brings a partial pulse whose digest it has not read yet (the parts left
+// out moved): pushed by the frame, never on a timer.
+export async function servePulse({ ctx }: RouteRequest): Promise<Response> {
+	return json(HTTP_OK, deskPulse(ctx))
 }
 
 export async function serveState({ ctx }: RouteRequest): Promise<Response> {

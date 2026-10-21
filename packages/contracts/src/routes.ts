@@ -12,6 +12,8 @@ export const STATIC_PATHS = {
 // Per-desk routes served under deskApiBase(id), which replaces the leading slash: /api/desks/<id>/state.
 export const API_PATHS = {
 	poll: '/poll',
+	// The desk's pulse whole (bridge.ts DeskPulse): what a stream's partial pulse leaves out.
+	pulse: '/pulse',
 	state: '/state',
 	settings: '/settings',
 	tree: '/tree',

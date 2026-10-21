@@ -6,6 +6,7 @@ import { isDeepStrictEqual } from 'node:util'
 import { BRIDGE_LIMITS } from '../../packages/contracts/dist/bridge.js'
 import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 
+import { agreesWithRoute, readPulse } from './pulse-oracle.mjs'
 import { settle } from './stream-client.mjs'
 
 // Arrival jitter the coalescing check forgives: the window is the hub's, measured at the reader.
@@ -33,15 +34,10 @@ export async function converge({ report, reader, driver }, { id, plan }) {
 		isDeepStrictEqual(latest(isLine(id))?.desk, listed.desk),
 	)
 	const plans = plan ? (await driver.json(HUB_PATHS.plans)).body.plans : []
-	const { serverInstanceId, ...polled } = latest(isPulse(id))?.pulse ?? {}
-	const [poll, state] = await Promise.all([
-		driver.json(`/api/desks/${id}/poll`),
-		driver.json(`/api/desks/${id}/state`),
-	])
+	const { body: pulse } = await readPulse(driver, id)
 	report.check(
-		'converged: the last pulse is /poll and /state instance',
-		isDeepStrictEqual(polled, poll.body) &&
-			serverInstanceId === state.body.serverInstanceId,
+		'converged: the last pulse is /pulse',
+		agreesWithRoute(latest(isPulse(id))?.pulse, pulse),
 	)
 	if (!plan) return
 	const record = plans.find(each => each.id === plan.id)

@@ -30,6 +30,24 @@ export type DeskPulse = PollPayload &
 		serverInstanceId: string
 	}
 
+// The part of a pulse whose size does not grow with the review: a hash, a flag, the desk's
+// status (its activity line is capped) and the instance id, a few hundred bytes whatever the desk
+// holds. Everything else - the guide, where it stands against the diff, the conversation - grows
+// with the review; a field added to DeskPulse joins those unless it is picked here.
+export type DeskPulseHead = Pick<
+	DeskPulse,
+	'baseDiffHash' | 'guideExpected' | 'serverInstanceId' | keyof DeskStatus
+>
+
+// A pulse whose whole frame would pass `frameBytes` (a long conversation, a large guide) travels
+// as its head and `partial`: frames are bounded by design, so such a desk neither goes unheard
+// nor closes its readers' sockets. `digest` moves whenever a part left out moves; a tab reads the
+// whole pulse at GET /api/desks/<id>/pulse (API_PATHS.pulse) when the digest is not the one it
+// last read, never on a timer. A whole pulse carries no `partial`.
+export type PartialDeskPulse = DeskPulseHead & {
+	partial: { digest: string }
+}
+
 export type RelayMethod = 'GET' | 'POST' | 'DELETE'
 
 export type RelayFailure =
@@ -44,8 +62,14 @@ export type BridgeFrame =
 	// A desk opened, reloaded or restored, or its summary changed.
 	| { t: 'desk'; hubId: string; desk: DeskSummary }
 	| { t: 'closed'; hubId: string; deskId: string }
-	// A desk's pulse changed: coalesced per desk, latest wins.
-	| { t: 'pulse'; hubId: string; deskId: string; pulse: DeskPulse }
+	// A desk's pulse changed: coalesced per desk, latest wins; partial when the whole would not fit
+	// a frame.
+	| {
+			t: 'pulse'
+			hubId: string
+			deskId: string
+			pulse: DeskPulse | PartialDeskPulse
+	  }
 	// Journal events once on disk, oldest first, each with its hub's own seq: a reader keys them
 	// on (hubId, seq), so a tail replayed after a reconnect deduplicates.
 	| { t: 'journal'; hubId: string; events: HubEvent[] }

@@ -6,6 +6,7 @@ import {
 	serveAuthoring,
 	serveInventory,
 	servePoll,
+	servePulse,
 	serveSettings,
 	serveState,
 	serveTree,
@@ -28,6 +29,7 @@ import type { RouteTable } from './router.js'
 // Dispatcher, origin/access guards and the 500 handler cover it with no further edits. Static assets and the hub's own API live with the dispatcher (router.ts), not here; the parked await-send is layered on by the local hub only (local's adapters/inbound/http/routes/await-send.ts).
 export const routes: RouteTable = {
 	[`GET ${API_PATHS.poll}`]: servePoll,
+	[`GET ${API_PATHS.pulse}`]: servePulse,
 	[`GET ${API_PATHS.state}`]: serveState,
 	[`GET ${API_PATHS.settings}`]: serveSettings,
 	[`POST ${API_PATHS.settings}`]: saveSettings,

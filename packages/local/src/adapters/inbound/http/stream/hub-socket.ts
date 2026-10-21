@@ -63,15 +63,15 @@ export function createHubSocket(hub: HubSocketDeps): HubSocket {
 	}
 }
 
-// An oversized frame is a bug said once per frame head, not once per reader: every tab that
-// reconnects meets the same frame again.
+// An oversized frame is a bug said once per frame head, not once per reader: every reader shapes
+// the same frame.
 function sayOnce(log: (line: string) => void): (head: string) => void {
 	const said = new Set<string>()
 	return head => {
 		if (said.has(head)) return
 		said.add(head)
 		log(
-			`stream: a frame over ${BRIDGE_LIMITS.frameBytes} bytes is never sent (${head}...); its readers close with ${CLOSE_CODES.rate}`,
+			`stream: a frame over ${BRIDGE_LIMITS.frameBytes} bytes is never sent (${head}...)`,
 		)
 	}
 }

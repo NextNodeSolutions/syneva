@@ -4,7 +4,7 @@ import { BRIDGE_LIMITS } from '@syneva/contracts/bridge'
 
 import { utf8ByteLength } from '../domain/utf8.js'
 
-import { deskPulse } from './desk-pulse.js'
+import { deskPulse, partialPulse } from './desk-pulse.js'
 import { liveDesksByPlan, planOnHub } from './hub-plans.js'
 
 import type { BridgeFrame, HubIdentity } from '@syneva/contracts/bridge'
@@ -45,13 +45,20 @@ export function deskText(source: StreamSource, desk: HubDesk): string {
 	return frameText({ t: 'desk', hubId, desk: source.hub.summary(desk) })
 }
 
+// A desk's pulse, whole when its frame fits `frameBytes`, else partial (desk-pulse.ts): every frame
+// a stream shapes stays under the bound, so a desk whose conversation outgrew a frame still has
+// its pulse travel, and no reader's socket closes over it (the web's object closes a hub socket
+// that sends a frame past the bound, and each reconnect's snapshot would meet the frame again).
 export function pulseText(source: StreamSource, desk: HubDesk): string {
-	return frameText({
+	const envelope = {
 		t: 'pulse',
 		hubId: source.identity.id,
 		deskId: desk.id,
-		pulse: deskPulse(desk.ctx),
-	})
+	} as const
+	const pulse = deskPulse(desk.ctx)
+	const whole = frameText({ ...envelope, pulse })
+	if (utf8ByteLength(whole) <= BRIDGE_LIMITS.frameBytes) return whole
+	return frameText({ ...envelope, pulse: partialPulse(pulse) })
 }
 
 // Each plan with the live desk reviewing it as the hub stands now (one read of the desks).

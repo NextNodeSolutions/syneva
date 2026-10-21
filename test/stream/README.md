@@ -14,7 +14,7 @@ node test/stream/conformance.mjs --hub http://127.0.0.1:47962 --key s3cret --shu
 ```
 
 Point it at a scratch hub, never the machine's own (port 4747): it opens and closes desks of its
-own (sessions `stream-check` and `stream-check-plan`, in a temporary git repo), archives the plan
+own (sessions `stream-check`, `stream-check-plan` and `stream-check-big`, in a temporary git repo), archives the plan
 it opens, opens `tabsPerUser` sockets at once, and with `--shutdown` stops the hub at the end. A
 tab already reading that hub counts against the socket cap, so keep none open. `--cli` names
 another CLI build (default `apps/syneva/dist/cli.js`); `--key` is the hub's access key, sent as a
@@ -31,8 +31,9 @@ It prints one line per check and exits 1 when any failed.
 - **Snapshot**, on connect and again after the events: `hello` first (the hub's id, `local`, and
   the identity `/api/hub/health` reports), one `desk` then one `pulse` per live desk, the journal
   tail, every plan, `snapshot-end`, every frame naming the hub and under `frameBytes`. Each part
-  equals its HTTP route read at the same moment: `/api/hub/desks`, each desk's `/poll` (and
-  `/state`'s instance id), `/api/hub/journal`, `/api/hub/plans`.
+  equals its HTTP route read at the same moment: `/api/hub/desks`, each desk's `/pulse` (whole, or
+  a partial pulse's head; `/pulse` itself is `/poll` and the instance id), `/api/hub/journal`,
+  `/api/hub/plans`.
 - **Events**, on the first reader as the CLI and the desk's API drive a round: `open` (a `desk`, its
   `pulse`, a `desk-opened` entry), `open plan` (the desk naming its plan, the plan's `plan` frame, a
   status change's), `comment` (`agent-replied`, a pulse with the comment), the reviewer's ask
@@ -43,6 +44,10 @@ It prints one line per check and exits 1 when any failed.
   hub; per desk, `desk` and `pulse` frames are at least `coalesceMs` apart.
 - **Deduplication**: a second reader's journal tail shares its `(hubId, seq)` keys with the first
   reader's events, each the same event, and ends where the first reader's stream did.
+- **An oversized desk**: a desk whose comments carry its pulse past `frameBytes` leaves the stream
+  open: the snapshot reaches `snapshot-end` with every frame under the bound, the desk's pulse is
+  partial (`/pulse`'s head and `partial.digest`, nothing else), `/pulse` answers it whole, a new
+  comment moves the digest and a status line alone does not.
 - **Limits**: a ping (`{"t":"p"}`) gets its pong (`{"t":"o"}`); any other text frame, and any binary
   frame, closes with 1003; 1000 frames sent at once close with 1008 within a second; past
   `tabsPerUser` open sockets, the next is accepted and closed with 1013 before any frame.

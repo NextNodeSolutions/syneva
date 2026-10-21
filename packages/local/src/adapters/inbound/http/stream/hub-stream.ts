@@ -66,18 +66,16 @@ async function begin(stream: {
 	if (snapshot.every(send)) pacer.start()
 }
 
-// A frame larger than the bridge allows is never sent: the journal splits its batches under it,
-// so only a desk's `desk` or `pulse` can be one, and the socket closes with `rate` (RFC 4.4: the
-// client backs off as after any rate close; /poll still serves that desk).
+// Core shapes every frame under `frameBytes` (a pulse past it travels partial, the journal splits
+// its batches), so a frame past it is a hub bug: said once per head and never sent, while the
+// stream goes on. Closing the socket would not help: every reconnect's snapshot would meet the
+// same frame again, and the tab would never stay connected.
 function sender(socket: WebSocket, oversized: (head: string) => void): Send {
 	return text => {
 		if (socket.readyState !== socket.OPEN) return false
-		if (Buffer.byteLength(text) > BRIDGE_LIMITS.frameBytes) {
+		if (Buffer.byteLength(text) > BRIDGE_LIMITS.frameBytes)
 			oversized(text.slice(0, FRAME_HEAD_CHARS))
-			socket.close(CLOSE_CODES.rate)
-			return false
-		}
-		socket.send(text)
+		else socket.send(text)
 		return true
 	}
 }

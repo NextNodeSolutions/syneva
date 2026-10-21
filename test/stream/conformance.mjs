@@ -11,6 +11,7 @@ import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 import { checkEvents, PLAN_SESSION } from './event-checks.mjs'
 import { createDriver, scratchRepo } from './hub-driver.mjs'
 import { checkGuards, checkLimits, checkShutdown } from './limit-checks.mjs'
+import { checkOversize } from './oversize-checks.mjs'
 import { createReport } from './report.mjs'
 import { checkSnapshot } from './snapshot-checks.mjs'
 import { closeReader, socketUrl } from './stream-client.mjs'
@@ -58,6 +59,7 @@ const second = await checkSnapshot(context, 'after the events')
 checkDedupe(first, second)
 await Promise.all([closeReader(first.reader), closeReader(second.reader)])
 await driver.cli(['close', '--session', PLAN_SESSION], repo.root)
+await checkOversize({ ...context, repo })
 await checkLimits(context)
 if (options.shutdown) await checkShutdown(context)
 

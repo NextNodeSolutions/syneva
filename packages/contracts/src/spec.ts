@@ -203,6 +203,9 @@ ${GUIDE_SPEC}
   shows a persistent refresh-required notice, never automatic navigation, and stops adopting the
   restored desk's state. Finish pending actions and copy unsaved text before manually refreshing.
   A closed desk answers 404 DESK_NOT_FOUND; the tab shows its desk-closed cover.
+- GET …/pulse answers the desk's pulse whole: …/poll's payload plus serverInstanceId. The tab
+  reads it when the hub's stream (GET /api/hub/ws) brings a partial pulse: a desk whose guide and
+  comments outgrow a stream frame (1 MiB).
 
 ## Settings & errors
 - The human's display prefs live in a desk panel (persisted to ~/.syneva/settings.json) - you

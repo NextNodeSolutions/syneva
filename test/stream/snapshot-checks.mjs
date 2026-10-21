@@ -1,6 +1,7 @@
 // A snapshot read against what the hub's HTTP routes answer at the same moment: `hello`, one
 // `desk` and one `pulse` per live desk (newest first), the journal tail, every plan,
-// `snapshot-end`, in that order, every frame naming the hub and under `frameBytes`.
+// `snapshot-end`, in that order, every frame naming the hub and under `frameBytes`; each pulse is
+// its desk's GET …/pulse, whole or partial (pulse-oracle.mjs).
 import { isDeepStrictEqual } from 'node:util'
 
 import {
@@ -9,6 +10,7 @@ import {
 } from '../../packages/contracts/dist/bridge.js'
 import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 
+import { agreesWithRoute, isPartial, readPulse } from './pulse-oracle.mjs'
 import { readSnapshot } from './stream-client.mjs'
 
 const SNAPSHOT_ORDER = /^(desk pulse )*(journal )*(plan )*snapshot-end$/
@@ -74,15 +76,16 @@ async function checkDesks(report, driver, frames) {
 		),
 	)
 	for (const pulse of pulses) {
-		const { serverInstanceId, ...polled } = pulse.pulse
-		const [poll, state] = await Promise.all([
+		const [whole, poll] = await Promise.all([
+			readPulse(driver, pulse.deskId),
 			driver.json(`/api/desks/${pulse.deskId}/poll`),
-			driver.json(`/api/desks/${pulse.deskId}/state`),
 		])
+		const { serverInstanceId, ...polled } = whole.body
 		report.check(
-			`pulse ${pulse.deskId} is its /poll and /state instance`,
-			isDeepStrictEqual(polled, poll.body) &&
-				serverInstanceId === state.body.serverInstanceId,
+			`pulse ${pulse.deskId} is its /pulse${isPartial(pulse.pulse) ? ' (partial)' : ''}, /poll and the instance`,
+			agreesWithRoute(pulse.pulse, whole.body) &&
+				typeof serverInstanceId === 'string' &&
+				isDeepStrictEqual(polled, poll.body),
 		)
 	}
 }

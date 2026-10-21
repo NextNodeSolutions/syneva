@@ -1,6 +1,7 @@
 import { browserDomainComment } from '../application/browser-state.js'
+import { hash } from '../domain/identity.js'
 
-import type { DeskPulse } from '@syneva/contracts/bridge'
+import type { DeskPulse, PartialDeskPulse } from '@syneva/contracts/bridge'
 import type { PollPayload } from '@syneva/contracts/browser'
 import type { ReviewState } from '../domain/review.js'
 import type { DeskContext } from './context.js'
@@ -20,11 +21,39 @@ export function pollPayload(state: ReviewState): PollPayload {
 }
 
 // A desk's pulse: what `/poll` serves (the review half and the desk's status) and the desk's
-// instance id, which a stream carries where `/poll` compares it through its query.
+// instance id, which a stream carries where `/poll` compares it through its query. GET …/pulse
+// serves it whole.
 export function deskPulse(ctx: DeskContext): DeskPulse {
 	return {
 		...pollPayload(ctx.state),
 		...ctx.status(),
 		serverInstanceId: ctx.instanceId,
+	}
+}
+
+// The pulse a frame carries when the whole one would not fit (contracts' PartialDeskPulse): its
+// head, and the digest of everything else - whatever DeskPulse holds beyond the head, a field
+// added later included - so the digest moves exactly when a part left out does, and a status
+// change alone never sends a tab to read the whole again.
+export function partialPulse(pulse: DeskPulse): PartialDeskPulse {
+	const {
+		baseDiffHash,
+		guideExpected,
+		serverInstanceId,
+		agentActivity,
+		agentListening,
+		queuedQuestions,
+		queuedReviews,
+		...leftOut
+	} = pulse
+	return {
+		baseDiffHash,
+		guideExpected,
+		serverInstanceId,
+		agentActivity,
+		agentListening,
+		queuedQuestions,
+		queuedReviews,
+		partial: { digest: hash(JSON.stringify(leftOut)) },
 	}
 }
