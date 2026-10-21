@@ -125,7 +125,9 @@ export async function resetReview(path: string): Promise<void> {
 		Object.entries(hashes).filter(([hashedPath]) => hashedPath !== path),
 	)
 	state.stagedFiles = state.stagedFiles.filter(p => p !== path)
-	await unstagePath(path)
+	// A desk that cannot stage has no index of its own to restore: a pr desk's root is the
+	// reviewer's clone, whose index the review never wrote.
+	if (state.capabilities.staging) await unstagePath(path)
 	deferRender()
 	featureCtx().toast('Reset review')
 	featureCtx().persist()
