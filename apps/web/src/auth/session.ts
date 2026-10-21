@@ -29,15 +29,29 @@ export function sessionCookie(request: Request): string | null {
 	return null
 }
 
-// The signed-in person, or null: absent, unknown or expired.
-export async function sessionOf({
+// What the cookie's session is kept under, the key every session read joins on; null without a
+// cookie, with nothing read.
+export async function sessionDigest({
 	request,
 	env,
-	now,
-}: Call): Promise<Session | null> {
+}: Call): Promise<string | null> {
 	const id = sessionCookie(request)
 	if (!id) return null
-	const digest = await hmacHex(env.SESSION_SECRET, id)
+	return hmacHex(env.SESSION_SECRET, id)
+}
+
+// The signed-in person, or null: absent, unknown or expired.
+export async function sessionOf(call: Call): Promise<Session | null> {
+	const digest = await sessionDigest(call)
+	if (!digest) return null
+	return sessionByDigest(call, digest)
+}
+
+// The session under `digest` (sessionDigest's), or null: unknown or expired.
+export async function sessionByDigest(
+	{ env, now }: Call,
+	digest: string,
+): Promise<Session | null> {
 	const user = await sessionUser(env.DB, digest, now)
 	if (!user) return null
 	return { ...user, digest }

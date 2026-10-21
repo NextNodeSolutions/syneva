@@ -14,11 +14,16 @@ import type { Call } from '../http/call.js'
 
 const SETTINGS_BYTES = 65_536
 
+// The paths answered here, which need the session alone (routes/session-routes.ts).
+export function isSettingsPath(pathname: string): boolean {
+	return pathname === HUB_PATHS.settings
+}
+
 export async function settingsRoute(
 	{ request, url, env, now }: Call,
 	session: Session,
 ): Promise<Response | null> {
-	if (url.pathname !== HUB_PATHS.settings) return null
+	if (!isSettingsPath(url.pathname)) return null
 	if (request.method === 'GET')
 		return json(
 			HTTP_OK,

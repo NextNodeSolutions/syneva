@@ -1,10 +1,11 @@
 // The HTTP relay, the Worker's half (RFC 4.5): any other /api/ request a session opens goes to one
 // of the person's hubs as a `req` through their object, if the hub may answer it at all. Checked
-// here, in order, before the object is touched: the route is one a hub answers to the web
-// (contracts' isRelayable), the hub it names is the person's (by the web id's prefix in the path,
-// else the tab's pick in WEB_HUB_HEADER), the body is under `requestBodyBytes`, the breaker is not
-// tripped. The relay is bounded by `deadlineMs`: past it, the object is told to cancel and the tab
-// gets 504.
+// here, in order, before the object is touched: the session, the route is one a hub answers to
+// the web (contracts' isRelayable), the hub it names is the person's (by the web id's prefix in
+// the path, else the tab's pick in WEB_HUB_HEADER), the body is under `requestBodyBytes`, the
+// breaker is not tripped. The session, the hub's row and the breaker are one D1 read
+// (db/session-reads.ts). The relay is bounded by `deadlineMs`: past it, the object is told to
+// cancel and the tab gets 504.
 import {
 	BRIDGE_LIMITS,
 	RELAY_FAILURE_STATUS,
@@ -14,17 +15,17 @@ import {
 import { isRelayable } from '@syneva/contracts/relay'
 import { DESK_API_PREFIX, HUB_PATHS } from '@syneva/contracts/routes'
 
-import { hubOfUser } from '../db/hubs.js'
-import { fail } from '../http/answer.js'
+import { relayRead } from '../db/session-reads.js'
+import { fail, SIGNED_OUT } from '../http/answer.js'
 import { readText } from '../http/body.js'
 import { logFailure } from '../http/log.js'
 import { HTTP_NOT_FOUND } from '../http/status.js'
 import { cancelRelay, relayThrough } from '../user-hub-stub.js'
 
-import { saturatedRefusal } from './saturated.js'
+import { sheddingRefusal } from './saturated.js'
 
 import type { RelayMethod } from '@syneva/contracts/bridge'
-import type { Session } from '../auth/session.js'
+import type { RelayAsk } from '../bridge/internal.js'
 import type { Failure } from '../http/answer.js'
 import type { Call } from '../http/call.js'
 
@@ -48,46 +49,69 @@ const NO_SUCH_HUB: Failure = {
 	fix: `Name a desk by its web id, or the hub in the ${WEB_HUB_HEADER} header.`,
 }
 
+// `digest` is the session's (auth/session.ts's sessionDigest), read here with the hub it names.
 export async function relayRoute(
 	call: Call,
-	session: Session,
+	digest: string,
 ): Promise<Response> {
-	const { request, url, env } = call
-	const method = relayMethod(request.method)
-	if (!method || !isRelayable(method, url.pathname)) return fail(NOT_RELAYED)
-	const hubId = hubNamed(url.pathname, request.headers)
-	const hub = hubId ? await hubOfUser(env.DB, session.userId, hubId) : null
-	if (!hub) return fail(NO_SUCH_HUB)
-	const read = await readText(request, BRIDGE_LIMITS.requestBodyBytes)
-	if ('refusal' in read) return read.refusal
-	const saturated = await saturatedRefusal(env, 'relay')
+	const { request, url, env, now } = call
+	const target = relayTarget(request, url)
+	const read = await relayRead(env.DB, {
+		digest,
+		hubId: target?.hubId ?? null,
+		now,
+	})
+	if (!read) return fail(SIGNED_OUT)
+	if (!target) return fail(NOT_RELAYED)
+	if (!read.hubId) return fail(NO_SUCH_HUB)
+	const body = await readText(request, BRIDGE_LIMITS.requestBodyBytes)
+	if ('refusal' in body) return body.refusal
+	const saturated = sheddingRefusal(read, 'relay')
 	if (saturated) return saturated
-	const id = crypto.randomUUID()
+	return relayed(call, read.userId, {
+		id: crypto.randomUUID(),
+		hubId: read.hubId,
+		method: target.method,
+		path: url.pathname,
+		query: url.search,
+		body: body.text || undefined,
+	})
+}
+
+async function relayed(
+	{ request, env, ctx }: Call,
+	userId: string,
+	ask: RelayAsk,
+): Promise<Response> {
 	const deadline = AbortSignal.timeout(BRIDGE_LIMITS.deadlineMs)
 	try {
 		return await relayThrough(
 			env,
-			session.userId,
-			{
-				id,
-				hubId: hub.id,
-				method,
-				path: url.pathname,
-				query: url.search,
-				body: read.text || undefined,
-			},
+			userId,
+			ask,
 			AbortSignal.any([deadline, request.signal]),
 		)
 	} catch (error) {
 		if (!deadline.aborted && !request.signal.aborted) throw error
 		// The object still holds the relay: it frees it and tells the hub, after this answer.
-		call.ctx.waitUntil(cancelQuietly(env, session.userId, id))
+		ctx.waitUntil(cancelQuietly(env, userId, ask.id))
 		return fail({
 			status: RELAY_FAILURE_STATUS.HUB_TIMEOUT,
 			code: 'HUB_TIMEOUT',
 			error: 'The hub did not answer in time.',
 		})
 	}
+}
+
+// What a relayable request asks: its method, and the hub it names (null when it names none);
+// null when no hub answers this route on the web.
+function relayTarget(
+	request: Request,
+	url: URL,
+): { method: RelayMethod; hubId: string | null } | null {
+	const method = relayMethod(request.method)
+	if (!method || !isRelayable(method, url.pathname)) return null
+	return { method, hubId: hubNamed(url.pathname, request.headers) }
 }
 
 function relayMethod(method: string): RelayMethod | null {

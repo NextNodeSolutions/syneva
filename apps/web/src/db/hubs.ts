@@ -41,19 +41,6 @@ export async function hubsOfUser(
 	return results
 }
 
-export async function hubOfUser(
-	db: D1Database,
-	userId: string,
-	hubId: string,
-): Promise<HubRow | null> {
-	return db
-		.prepare(
-			`SELECT ${COLUMNS} FROM hubs WHERE id = ? AND user_id = ? AND revoked_at IS NULL`,
-		)
-		.bind(hubId, userId)
-		.first<HubRow>()
-}
-
 export async function touchHub(
 	db: D1Database,
 	hubId: string,

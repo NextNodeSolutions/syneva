@@ -12,11 +12,17 @@ import {
 	deskApiBase,
 	HUB_PATHS,
 } from '../../packages/contracts/dist/routes.js'
+import { WEB_SESSION_COOKIE } from '../../packages/contracts/dist/web.js'
 import { scratchRepo } from '../stream/hub-driver.mjs'
 import { waitFor } from '../stream/stream-client.mjs'
 
 import { FRAME_WAIT_MS } from './hub-checks.mjs'
-import { HTTP_NOT_FOUND, HTTP_OK, HTTP_TOO_LARGE } from './statuses.mjs'
+import {
+	HTTP_NOT_FOUND,
+	HTTP_OK,
+	HTTP_TOO_LARGE,
+	HTTP_UNAUTHORIZED,
+} from './statuses.mjs'
 
 const SESSION = 'web-smoke'
 const SHOWN_BODY = 300
@@ -138,8 +144,27 @@ async function postRound({ report, browser, hub }, { hubId, tab, deskId }) {
 	)
 }
 
+// The session is read with the hub's row (one D1 read): an unknown one is still refused first.
+async function checkForged({ report, browser }, desk) {
+	const forged = await fetch(
+		new URL(`${desk}${API_PATHS.state}`, browser.origin),
+		{
+			headers: {
+				origin: browser.origin,
+				cookie: `${WEB_SESSION_COOKIE}=forged`,
+			},
+		},
+	)
+	report.check(
+		'a relay under a session that opens nothing is 401, before its hub is looked at',
+		forged.status === HTTP_UNAUTHORIZED,
+		`${forged.status}`,
+	)
+}
+
 async function checkRefusals({ report, browser }, { hubId, deskId }) {
 	const desk = deskApiBase(deskId)
+	await checkForged({ report, browser }, desk)
 	const poll = await browser.json(`${desk}${API_PATHS.poll}`)
 	report.check(
 		'a route no hub answers on the web is 404 NOT_RELAYED',

@@ -1,5 +1,6 @@
 // The smoke's browser: requests to the web with the session cookie it was handed and its own
 // origin, as a tab's same-origin fetch sends them; redirects are read, never followed.
+import { BRIDGE_PATHS } from '../../packages/contracts/dist/bridge.js'
 import {
 	WEB_PATHS,
 	WEB_SESSION_COOKIE,
@@ -79,6 +80,20 @@ export function approveDevice(browser, { userCode, proof }) {
 		approve: true,
 		confirm: proof,
 	})
+}
+
+// A hub paired over HTTP alone, as `syneva login` pairs one but with no socket after: a code,
+// approved on the device page, its token taken. Its row is live; it never connects.
+export async function pairSocketless(browser, name) {
+	const code = await browser.post(BRIDGE_PATHS.deviceCode, {
+		name,
+		version: 'smoke',
+	})
+	const { userCode = '', deviceCode = '' } = code.body ?? {}
+	const { proof } = await openDevicePage(browser, userCode)
+	await approveDevice(browser, { userCode, proof })
+	const taken = await browser.post(BRIDGE_PATHS.deviceToken, { deviceCode })
+	return taken.body?.hubId ?? null
 }
 
 // The cookie header the jar holds, if any.

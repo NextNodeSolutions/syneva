@@ -4,11 +4,14 @@
 import {
 	BRIDGE_PATHS,
 	CLOSE_CODES,
+	WEB_HUB_HEADER,
 } from '../../packages/contracts/dist/bridge.js'
+import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 import { openReader, socketUrl } from '../stream/stream-client.mjs'
 
 import { FRAME_WAIT_MS } from './hub-checks.mjs'
 import { HTTP_OK, HTTP_UNAVAILABLE } from './statuses.mjs'
+import { pairSocketless } from './web-client.mjs'
 
 export async function checkOps(context, tab) {
 	const { report, browser, secrets } = context
@@ -42,6 +45,7 @@ export async function checkOps(context, tab) {
 		refused === HTTP_UNAVAILABLE,
 		`${refused}`,
 	)
+	await checkShedRelay(context)
 	const clear = await browser.post(
 		BRIDGE_PATHS.opsBreaker,
 		{ tripped: false },
@@ -57,6 +61,24 @@ export async function checkOps(context, tab) {
 		'cleared, a tab upgrade opens again',
 		reopened === 'open',
 		`${reopened}`,
+	)
+}
+
+// The relay reads the breaker with the session and the hub's row: a live hub of the person's
+// (paired over HTTP, never connected) is refused for the breaker, not for being offline.
+async function checkShedRelay({ report, browser }) {
+	const hubId = await pairSocketless(browser, 'smoke-shed')
+	const shed = hubId
+		? await browser.json(HUB_PATHS.plans, {
+				headers: { [WEB_HUB_HEADER]: hubId },
+			})
+		: null
+	report.check(
+		'while tripped, a relay to a live hub of the person is 503 HUB_OFFLINE, the load shed',
+		shed?.status === HTTP_UNAVAILABLE &&
+			shed.body.code === 'HUB_OFFLINE' &&
+			/shedding/.test(shed.body.error),
+		JSON.stringify(shed?.body ?? { hubId }),
 	)
 }
 

@@ -1,12 +1,15 @@
 // Everything a session opens (RFC 4.7): who is signed in, their hubs, their settings, their tab's
 // socket and the relay to their hubs. One D1 read checks the session before anything else is read
-// or any object touched (R9); a mutation or an upgrade must also be same-origin. Pages are not
-// here (routes/shells.ts): a signed-out navigation is sent to sign in, an API call gets 401.
+// or any object touched (R9): the account's routes read it alone, the tab's socket and the relay
+// read it with what they open (db/session-reads.ts), so each pays one round trip. A mutation or an
+// upgrade must also be same-origin. Pages are not here (routes/shells.ts): a signed-out
+// navigation is sent to sign in, an API call gets 401.
 import { BRIDGE_PATHS, isWebHubId } from '@syneva/contracts/bridge'
 import { WEB_HUBS_PREFIX, WEB_PATHS } from '@syneva/contracts/web'
 
-import { sessionOf } from '../auth/session.js'
+import { sessionByDigest, sessionDigest } from '../auth/session.js'
 import { hubsOfUser, revokeHubOfUser } from '../db/hubs.js'
+import { tabRead } from '../db/session-reads.js'
 import { fail, json, SIGNED_OUT } from '../http/answer.js'
 import { isRead } from '../http/call.js'
 import { isUpgrade, sameOriginRefusal } from '../http/guard.js'
@@ -15,8 +18,8 @@ import { onlineHubIds, openTabSocket, tellRevoked } from '../user-hub-stub.js'
 
 import { upgradeRequired } from './hub-socket.js'
 import { relayRoute } from './relay.js'
-import { saturatedRefusal } from './saturated.js'
-import { settingsRoute } from './settings.js'
+import { sheddingRefusal } from './saturated.js'
+import { isSettingsPath, settingsRoute } from './settings.js'
 
 import type { WebHub, WebHubsAnswer, WebMe } from '@syneva/contracts/web'
 import type { Session } from '../auth/session.js'
@@ -33,16 +36,31 @@ const HUB_NOT_FOUND: Failure = {
 }
 
 export async function sessionRoute(call: Call): Promise<Response | null> {
-	if (!call.url.pathname.startsWith(API_PREFIX)) return null
+	const { pathname } = call.url
+	if (!pathname.startsWith(API_PREFIX)) return null
 	const refused = sameOriginRefusal(call)
 	if (refused) return refused
-	const session = await sessionOf(call)
+	const digest = await sessionDigest(call)
+	if (!digest) return fail(SIGNED_OUT)
+	if (pathname === BRIDGE_PATHS.tabSocket) return tabSocket(call, digest)
+	if (!isAccountPath(pathname)) return relayRoute(call, digest)
+	const session = await sessionByDigest(call, digest)
 	if (!session) return fail(SIGNED_OUT)
 	return (
 		(await webApi(call, session)) ??
 		(await settingsRoute(call, session)) ??
-		(await tabSocket(call, session)) ??
-		relayRoute(call, session)
+		relayRoute(call, digest)
+	)
+}
+
+// The routes answered from the account's own rows, which need the session alone; a method none
+// of them takes falls to the relay's refusal, as any route no hub answers.
+function isAccountPath(pathname: string): boolean {
+	return (
+		pathname === WEB_PATHS.me ||
+		pathname === WEB_PATHS.hubs ||
+		pathname.startsWith(WEB_HUBS_PREFIX) ||
+		isSettingsPath(pathname)
 	)
 }
 
@@ -83,19 +101,15 @@ async function webHubs(env: Env, session: Session): Promise<WebHubsAnswer> {
 	return { hubs }
 }
 
-// GET /api/hub/ws: the tab's socket, as a local hub serves it, with the person's live hubs.
-async function tabSocket(
-	call: Call,
-	session: Session,
-): Promise<Response | null> {
-	const { request, url, env } = call
-	if (url.pathname !== BRIDGE_PATHS.tabSocket || request.method !== 'GET')
-		return null
+// GET /api/hub/ws: the tab's socket, as a local hub serves it, with the person's live hubs, read
+// with the session and the breaker.
+async function tabSocket(call: Call, digest: string): Promise<Response> {
+	const { request, env, now } = call
+	if (request.method !== 'GET') return relayRoute(call, digest)
+	const read = await tabRead(env.DB, digest, now)
+	if (!read) return fail(SIGNED_OUT)
 	if (!isUpgrade(request)) return upgradeRequired()
-	const [hubs, saturated] = await Promise.all([
-		hubsOfUser(env.DB, session.userId),
-		saturatedRefusal(env, 'upgrade'),
-	])
+	const saturated = sheddingRefusal(read, 'upgrade')
 	if (saturated) return saturated
-	return openTabSocket(env, session.userId, hubs)
+	return openTabSocket(env, read.userId, read.hubs)
 }

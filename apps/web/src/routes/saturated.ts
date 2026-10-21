@@ -22,11 +22,20 @@ const SHED_RELAY: Failure = {
 	error: 'The web is shedding load: your hubs are out of reach for a few minutes.',
 }
 
+type Shed = 'upgrade' | 'relay'
+
 export async function saturatedRefusal(
 	env: Env,
-	what: 'upgrade' | 'relay',
+	what: Shed,
 ): Promise<Response | null> {
-	const breaker = await readBreaker(env.DB)
+	return sheddingRefusal(await readBreaker(env.DB), what)
+}
+
+// The same refusal, for a breaker already read (db/session-reads.ts reads it with the session).
+export function sheddingRefusal(
+	breaker: { tripped: boolean },
+	what: Shed,
+): Response | null {
 	if (!breaker.tripped) return null
 	return fail(what === 'relay' ? SHED_RELAY : SATURATED)
 }
