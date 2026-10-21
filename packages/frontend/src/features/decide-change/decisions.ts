@@ -76,8 +76,11 @@ export async function approveCurrentFile(): Promise<void> {
 	acceptPendingChanges(path)
 	markFileReviewed(path, file.contentHash)
 	const isClean = !fileObjections(featureCtx().S.state, path)
-	if (isClean && featureCtx().S.settings.stageOnAccept)
-		await stageApprovedFile(file, path)
+	// A desk that cannot stage (a pr desk, a hub without a working tree) keeps the verdict alone:
+	// its /stage would answer STAGING_DISABLED and abort the approval before it is saved.
+	const shouldStage =
+		featureCtx().S.settings.stageOnAccept && state.capabilities.staging
+	if (isClean && shouldStage) await stageApprovedFile(file, path)
 	featureCtx().persist()
 	const label = isClean ? 'Approved' : 'Marked reviewed'
 	const ix = flowIndex(featureCtx().S.state, {
