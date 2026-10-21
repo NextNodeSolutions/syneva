@@ -3,7 +3,7 @@
 // under the scratch directory, its secrets passed as --var. The sign-in mail goes to its stdout
 // (MAIL_TRANSPORT=log), where `link()` reads it.
 import { execFile, spawn } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -79,7 +79,49 @@ export async function startWeb({ scratch, port, vars }) {
 		STARTUP_MS,
 		'wrangler dev to answer',
 	)
-	return { origin, ...dev }
+	return { origin, ...dev, ...localState({ bin, env, persist }) }
+}
+
+// What the Worker left in its local state, read from outside it.
+function localState({ bin, env, persist }) {
+	return {
+		// Rows of the scratch D1, read as `wrangler d1 execute --local` reads them.
+		async query(sql) {
+			const { stdout } = await run(
+				process.execPath,
+				[
+					bin,
+					'd1',
+					'execute',
+					'DB',
+					'--local',
+					'--config',
+					CONFIG,
+					'--persist-to',
+					persist,
+					'--json',
+					'--command',
+					sql,
+				],
+				{ cwd: WEB_DIR, env },
+			)
+			const [answer] = JSON.parse(stdout)
+			return answer?.results ?? []
+		},
+		// Whether any file of the local state (D1's database and its WAL, the objects') holds
+		// `text`'s bytes: a row cleared or deleted can stay in a page, so this reads the files.
+		stateHolds(text) {
+			const files = readdirSync(persist, {
+				recursive: true,
+				withFileTypes: true,
+			}).filter(entry => entry.isFile())
+			return files.some(entry =>
+				readFileSync(path.join(entry.parentPath, entry.name)).includes(
+					text,
+				),
+			)
+		},
+	}
 }
 
 // Local only (Miniflare), on loopback, its state and secrets the smoke's own.

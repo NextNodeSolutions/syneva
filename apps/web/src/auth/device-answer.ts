@@ -1,16 +1,16 @@
 // The device page's answer (POST /device). Approving needs the proof the page's Approve carries
 // (approval-proof.ts): only once the person has seen the account and the hub does a code pair
-// anything. It draws the hub's web id (16 hex) and its token (32 random bytes), writes the hub's
-// row with the token's sha256 and parks the token for the CLI's next ask, all in one transaction;
-// denying marks the code, and the CLI stops with DEVICE_DENIED.
+// anything. It draws the hub's web id (16 hex) and marks the code approved for this account; the
+// CLI's next ask draws the token and writes the hub's row (device-token.ts). Denying marks the
+// code, and the CLI stops with DEVICE_DENIED.
 import { WEB_PATHS } from '@syneva/contracts/web'
 
 import {
 	approveDeviceCode,
 	deviceCode,
 	denyDeviceCode,
+	hubCount,
 } from '../db/device-codes.js'
-import { liveHubCount } from '../db/hubs.js'
 import { fail, json, SIGNED_OUT, toSignIn } from '../http/answer.js'
 import {
 	HTTP_BAD_REQUEST,
@@ -31,12 +31,7 @@ import {
 } from './device-view.js'
 import { readPosted } from './form.js'
 import { limitRefusal } from './limits.js'
-import {
-	normalizedUserCode,
-	randomHex,
-	randomToken,
-	sha256Hex,
-} from './secrets.js'
+import { normalizedUserCode, randomHex } from './secrets.js'
 
 import type { DeviceApprovalAnswer } from '@syneva/contracts/web'
 import type { DeviceCode } from '../db/device-codes.js'
@@ -47,8 +42,9 @@ import type { Session } from './session.js'
 
 // A web hub id is 16 hex characters (contracts' isWebHubId).
 const HUB_ID_BYTES = 8
-// Live hubs per account: past this, one is revoked before another pairs. Online at once, the
-// object allows `hubsPerUser`; this bounds the rows each tab's upgrade carries to the object.
+// Hubs per account, paired or approved and about to be: past this, one is revoked before another
+// pairs. Online at once, the object allows `hubsPerUser`; this bounds the rows each tab's upgrade
+// carries to the object.
 const MAX_LIVE_HUBS = 32
 
 const INVALID_ASK: Failure = {
@@ -163,22 +159,19 @@ async function approveCode(
 	{ env, now }: Call,
 	{ session, code, reply }: Answering,
 ): Promise<Response> {
-	const token = randomToken()
 	const isApproved = await approveDeviceCode(
 		env.DB,
 		{
 			userCode: code.userCode,
 			userId: session.userId,
 			hubId: randomHex(HUB_ID_BYTES),
-			token,
-			tokenDigest: await sha256Hex(token),
-			maxLiveHubs: MAX_LIVE_HUBS,
+			maxHubs: MAX_LIVE_HUBS,
 		},
 		now,
 	)
 	if (!isApproved) {
 		const failure =
-			(await liveHubCount(env.DB, session.userId)) >= MAX_LIVE_HUBS
+			(await hubCount(env.DB, session.userId, now)) >= MAX_LIVE_HUBS
 				? TOO_MANY_HUBS
 				: CLOSED_NOW
 		return reply.refused(failure, closedState(failure))

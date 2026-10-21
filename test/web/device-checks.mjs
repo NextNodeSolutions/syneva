@@ -1,5 +1,6 @@
 // Pairing on the web: `syneva login` approved on the device page, which names the hub and the
 // account it pairs to, and approves only with the proof its own Approve carries.
+import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import os from 'node:os'
 
@@ -101,7 +102,8 @@ async function checkUnconfirmed({ report, browser }, userCode) {
 	)
 }
 
-async function checkPaired({ report, browser, web, home }, approval) {
+async function checkPaired(context, approval) {
+	const { report, browser, web, home } = context
 	const record = readRecord(home)
 	const isPaired =
 		record.web === web.origin && HUB_ID.test(record.hubId ?? '')
@@ -117,7 +119,33 @@ async function checkPaired({ report, browser, web, home }, approval) {
 		`${spent.status}`,
 	)
 	if (!isPaired) return null
+	await checkTokenAtRest(context, { record, userCode: approval.userCode })
 	return record.hubId
+}
+
+// The token the CLI wrote is nowhere in the web's state, not even in a page a cleared row left:
+// the web drew it in the answer that handed it over and kept only its sha256.
+async function checkTokenAtRest({ report, web }, { record, userCode }) {
+	const code = userCode.replace('-', '')
+	const [spent] = await web.query(
+		`SELECT taken_at AS takenAt FROM device_codes WHERE user_code = '${code}'`,
+	)
+	const [hub] = await web.query(
+		`SELECT token_digest AS digest FROM hubs WHERE id = '${record.hubId}'`,
+	)
+	const digest = createHash('sha256').update(record.token).digest('hex')
+	report.check(
+		"the code is spent and the hub's row holds the token's sha256",
+		Boolean(spent?.takenAt) && hub?.digest === digest,
+		JSON.stringify({ spent, hub }),
+	)
+	// The account's address is in D1: the reader sees the rows it reads for.
+	const isRead = web.stateHolds(EMAIL)
+	report.check(
+		"the token's bytes are nowhere in the web's local state (D1, its WAL, the objects)",
+		isRead && !web.stateHolds(record.token),
+		isRead ? '' : 'the state read holds no address either',
+	)
 }
 
 // What bridge.json holds, or nothing when there is none.

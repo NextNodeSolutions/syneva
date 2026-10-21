@@ -95,19 +95,6 @@ export async function revokeHubByToken(
 		.first<{ id: string; userId: string }>()
 }
 
-export async function liveHubCount(
-	db: D1Database,
-	userId: string,
-): Promise<number> {
-	const row = await db
-		.prepare(
-			'SELECT COUNT(*) AS n FROM hubs WHERE user_id = ? AND revoked_at IS NULL',
-		)
-		.bind(userId)
-		.first<{ n: number }>()
-	return row?.n ?? 0
-}
-
 // control-center's "connected users" base (RFC 6.4): live hubs that connected in the last day.
 export async function hubsSeenLastDay(
 	db: D1Database,
