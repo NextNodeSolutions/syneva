@@ -105,6 +105,7 @@ export function App(): ReactElement {
 		'deskClosed',
 		'isRefreshRequired',
 		'hubStatus',
+		'relayNotice',
 		'treeDrawerOpen',
 		'notesOpen',
 		'guidePaneOpen',

@@ -1,4 +1,5 @@
 import type { HubStatus } from '@entities/hub/link'
+import type { RelayNotice } from '@entities/hub/relay'
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { CodeSpan } from '@entities/review/guide/model'
 import type { GuideReturnPoint } from '@entities/review/guide/return-point'
@@ -25,6 +26,7 @@ export interface ChromeStoreView {
 	isRefreshRequired: boolean
 	hubStatus: HubStatus
 	hubRetryAt: number | null
+	relayNotice: RelayNotice | null
 	diffStyle: DiffStyle
 	composerOpen: boolean
 	fileComposerOpen: boolean

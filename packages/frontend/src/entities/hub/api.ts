@@ -12,6 +12,7 @@ import {
 
 import { decodeHubDesk, decodeHubHealth } from './decode'
 import { decodeMarkdown, decodePlan, decodePlanDocument } from './plan-decode'
+import { RELAY_WORDS, relayKindOf } from './relay'
 
 import type { HubDesk, HubHealth, NewDeskInput } from './model'
 import type { Plan, PlanDocument, PlanStatusChange } from './plan-model'
@@ -137,6 +138,9 @@ export function hubRefusal(error: unknown): HubRefusal {
 		return { kind: 'aborted' }
 	if (error instanceof DecodeError) return { kind: 'unreadable' }
 	if (!(error instanceof ApiError)) return { kind: 'unreachable' }
+	// The web could not carry the request to the hub: its words, not the web's status line.
+	const relay = relayKindOf(error)
+	if (relay) return { kind: 'refused', reason: RELAY_WORDS[relay] }
 	if (
 		error.code === UNAUTHORIZED.code ||
 		error.status === UNAUTHORIZED.status

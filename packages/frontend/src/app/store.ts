@@ -31,6 +31,7 @@ export const S: Store = reactive<Store>({
 	deskClosed: false,
 	hubStatus: 'connecting',
 	hubRetryAt: null,
+	relayNotice: null,
 	selected: { side: 'additions', lineNumber: 1 },
 	composerOpen: false,
 	fileComposerOpen: false,

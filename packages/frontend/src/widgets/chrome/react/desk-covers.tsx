@@ -19,6 +19,10 @@ const HeldNotice = lazy(async () => {
 	const module = await import('./held-notice')
 	return { default: module.HeldNotice }
 })
+const RelayStrip = lazy(async () => {
+	const module = await import('./relay-strip')
+	return { default: module.RelayStrip }
+})
 const SignedOutCover = lazy(async () => {
 	const module = await import('./signed-out-cover')
 	return { default: module.SignedOutCover }
@@ -32,6 +36,7 @@ export function DeskCovers(): ReactElement {
 		'isRefreshRequired',
 		'hubStatus',
 		'hubRetryAt',
+		'relayNotice',
 	)
 	const notice = deskNotice(S)
 	const cover = deskCover(S)
@@ -41,6 +46,9 @@ export function DeskCovers(): ReactElement {
 			<Suspense fallback={null}>
 				{notice === 'held' && held && (
 					<HeldNotice status={held} retryAt={S.hubRetryAt} />
+				)}
+				{notice === 'relay' && S.relayNotice && (
+					<RelayStrip kind={S.relayNotice} />
 				)}
 				{cover === 'signed-out' && <SignedOutCover />}
 			</Suspense>

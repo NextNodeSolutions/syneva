@@ -41,6 +41,7 @@ export type HubStream = { stop: () => void }
 type Waiting = Extract<StreamLink, { retryAt: number }>['kind']
 
 const HTTP_UNAUTHORIZED = 401
+const HTTP_UNAVAILABLE = 503
 const NORMAL_CLOSURE = 1000
 
 // The close codes that name a wait before the next attempt (RFC 4.3), and what the tab says
@@ -185,11 +186,14 @@ class StreamClient {
 	}
 
 	// A socket that closed before it opened was refused or never reached the hub: a 401 is a
-	// sign-in that no longer opens it (stop, as `revoked`), anything else backs off.
+	// sign-in that no longer opens it (stop, as `revoked`), a 503 is the web's breaker refusing the
+	// upgrade before any object is touched (wait as `saturated` does), anything else backs off.
 	async #refused(): Promise<void> {
 		const status = await upgradeStatus()
 		if (this.#isStopped) return
 		if (status === HTTP_UNAUTHORIZED) this.#publish({ kind: 'signed-out' })
+		else if (status === HTTP_UNAVAILABLE)
+			this.#hold('saturated', BRIDGE_LIMITS.saturatedWaitMs)
 		else this.#backoff()
 	}
 

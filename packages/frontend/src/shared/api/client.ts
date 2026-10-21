@@ -37,6 +37,14 @@ export type RequestOptions = Omit<RequestInit, 'headers'> & {
 	headers?: Record<string, string>
 }
 
+// One listener for every refused request, so a page can react to a failure its callers each
+// handle for themselves (the desk turns a relay failure into a notice, whichever action met it).
+let onRefused: ((error: ApiError) => void) | null = null
+
+export function observeRefusals(listener: (error: ApiError) => void): void {
+	onRefused = listener
+}
+
 const request = async (
 	url: string,
 	endpoint: string,
@@ -48,12 +56,14 @@ const request = async (
 	})
 	if (!response.ok) {
 		const refusal = await refusalOf(response)
-		throw new ApiError(
+		const error = new ApiError(
 			refusal.message,
 			endpoint,
 			response.status,
 			refusal.code,
 		)
+		onRefused?.(error)
+		throw error
 	}
 	return response.json()
 }

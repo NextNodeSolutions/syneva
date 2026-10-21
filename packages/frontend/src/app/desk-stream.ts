@@ -26,6 +26,7 @@ import { saver, S, toast } from './store'
 
 import type { HubDesk } from '@entities/hub/model'
 import type { HubRetry } from '@entities/hub/stream'
+import type { StreamView } from '@entities/hub/stream-view'
 import type { DeskPulse, StreamPulse } from '@entities/review/model'
 
 const COMPOSER_FIELDS = ['composerOpen', 'fileComposerOpen']
@@ -42,6 +43,9 @@ let waiting: unknown
 let isReading = false
 // Whether the hub's last whole listing named this desk; null before the first.
 let wasListed: boolean | null = null
+// Whether this desk's hub was online when the web last said (null: it has not said, or this is
+// the local hub, which is the page's own).
+let wasHubOnline: boolean | null = null
 // A moved review is waiting for the reviewer's unsaved work (see holdBack).
 let isHeldBack = false
 // The whole pulse last read at GET …/pulse for a partial one, with the digest it was read for.
@@ -64,8 +68,24 @@ function notePresence(
 	S.deskClosed = !isListed
 }
 
+// The web tells the tab when a hub's socket opens or closes: a desk whose hub goes away is
+// covered at once, before a request fails, and the cover leaves when the hub is back. Only a
+// change counts, so a notice the reviewer dismissed stays dismissed.
+function noteHub(view: StreamView): void {
+	if (view.mode !== 'web') return
+	const hub = view.hubs.get(hubOfId(deskId))
+	if (!hub || hub.isOnline === wasHubOnline) return
+	// A tab that never got its review (the hub was offline when it loaded) has nothing to resume.
+	if (hub.isOnline && wasHubOnline === false && !S.state)
+		window.location.reload()
+	wasHubOnline = hub.isOnline
+	if (hub.isOnline) S.relayNotice = null
+	else S.relayNotice = 'offline'
+}
+
 function heardHub(): void {
 	const view = hubView()
+	noteHub(view)
 	const link = hubLink(view.stream, view.identity)
 	S.hubStatus = link.status
 	S.hubRetryAt = link.retryAt

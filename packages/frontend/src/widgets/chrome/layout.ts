@@ -12,16 +12,17 @@ export function isTreeless({ state }: { state: ReviewState | null }): boolean {
 
 type CoverFacts = Pick<
 	ChromeStoreView,
-	'isRefreshRequired' | 'deskClosed' | 'hubStatus'
+	'isRefreshRequired' | 'deskClosed' | 'hubStatus' | 'relayNotice'
 >
 
 // What stands in for the review: the desk left the hub, or this browser can no longer reach it
 // (signed out). A desk the hub restarted under the tab asks for a refresh instead, which wins.
 export type DeskCover = 'closed' | 'signed-out' | null
 
-// The row over the review: refresh this tab, or the hub's stream is held off (not answering, or
-// asking the tab to wait) and the review on screen may be behind.
-export type DeskNotice = 'refresh' | 'held' | null
+// The row over the review: refresh this tab, the hub's stream is held off (not answering, or
+// asking the tab to wait) and the review on screen may be behind, or the web cannot reach the
+// desk's hub.
+export type DeskNotice = 'refresh' | 'held' | 'relay' | null
 
 export function deskCover(facts: CoverFacts): DeskCover {
 	if (facts.isRefreshRequired) return null
@@ -32,6 +33,8 @@ export function deskCover(facts: CoverFacts): DeskCover {
 
 export function deskNotice(facts: CoverFacts): DeskNotice {
 	if (facts.isRefreshRequired) return 'refresh'
-	if (deskCover(facts) || !isHeldOff(facts.hubStatus)) return null
-	return 'held'
+	if (deskCover(facts)) return null
+	if (isHeldOff(facts.hubStatus)) return 'held'
+	if (facts.relayNotice) return 'relay'
+	return null
 }

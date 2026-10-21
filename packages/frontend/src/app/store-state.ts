@@ -1,4 +1,5 @@
 import type { HubStatus } from '@entities/hub/link'
+import type { RelayNotice } from '@entities/hub/relay'
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { CodeSpan } from '@entities/review/guide/model'
 import type { GuideReturnPoint } from '@entities/review/guide/return-point'
@@ -36,6 +37,9 @@ export interface Store {
 	// them from the hub's store): the covers say what a dropped stream means for the desk.
 	hubStatus: HubStatus
 	hubRetryAt: number | null
+	// The web could not reach this desk's hub (offline) or got no answer from it (timeout): a notice
+	// stands over the review until the hub is back or the reviewer dismisses it.
+	relayNotice: RelayNotice | null
 	selected: Selection
 	composerOpen: boolean
 	fileComposerOpen: boolean
