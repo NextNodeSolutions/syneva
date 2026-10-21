@@ -9,22 +9,27 @@ export type OpenAndGo = {
 	busyKey: string | null
 	// Why the last open failed, by key, in the hub's own words; a new try clears its key's.
 	failures: ReadonlyMap<string, string>
-	open: (key: string, input: NewDeskInput) => Promise<void>
+	open: (key: string, input: NewDeskInput, hubId: string) => Promise<void>
 }
 
 // Open a desk on the hub, then go to it: a closed desk reopened as it was, a plan reviewed again
 // on its desk. The hub rebuilds the desk and merges its saved review back; the page leaves for
-// it, so only a failure lands back here.
+// it, so only a failure lands back here. `hubId`: the hub the desk or plan belongs to, which the
+// open names on the web.
 export function useOpenAndGo(): OpenAndGo {
 	const [busyKey, setBusyKey] = useState<string | null>(null)
 	const [failures, setFailures] = useState<ReadonlyMap<string, string>>(
 		new Map(),
 	)
-	const open = async (key: string, input: NewDeskInput): Promise<void> => {
+	const open = async (
+		key: string,
+		input: NewDeskInput,
+		hubId: string,
+	): Promise<void> => {
 		setBusyKey(key)
 		setFailures(was => new Map([...was].filter(([held]) => held !== key)))
 		try {
-			const desk = await openHubDesk(input)
+			const desk = await openHubDesk(input, { hubId })
 			window.location.assign(desk.path)
 		} catch (error) {
 			setFailures(was => new Map([...was, [key, refusalMessage(error)]]))

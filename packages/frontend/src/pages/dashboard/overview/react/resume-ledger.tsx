@@ -105,7 +105,7 @@ function ResumeGroupSection({
 						rounds={context.rounds.get(desk.deskId) ?? 0}
 						now={context.now}
 						reopen={context.reopen}
-						look={{ isFresh: desk.seq > context.freshAfter }}
+						look={{ isFresh: desk.heard > context.freshAfter }}
 					/>
 				))}
 			</ul>

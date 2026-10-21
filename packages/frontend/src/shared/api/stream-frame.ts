@@ -2,6 +2,7 @@ import { BRIDGE_PATHS } from '@syneva/contracts/bridge'
 
 import {
 	assertObject,
+	optString,
 	requiredArray,
 	requiredBoolean,
 	requiredString,
@@ -35,6 +36,12 @@ export type StreamFrame =
 const SOCKET = BRIDGE_PATHS.tabSocket
 
 type Wire = Record<string, unknown>
+
+// Null is the web's word for a hub that never connected.
+function nullableString(o: Wire, key: string): string | null | undefined {
+	if (o[key] === null) return null
+	return optString(o, key, SOCKET)
+}
 
 const hubIdOf = (o: Wire): string => requiredString(o, 'hubId', SOCKET)
 const deskIdOf = (o: Wire): string => requiredString(o, 'deskId', SOCKET)
@@ -75,6 +82,8 @@ const READERS: ReadonlyMap<string, (o: Wire) => StreamFrame> = new Map<
 			hubId: hubIdOf(o),
 			name: requiredString(o, 'name', SOCKET),
 			online: requiredBoolean(o, 'online', SOCKET),
+			version: optString(o, 'version', SOCKET),
+			lastSeenAt: nullableString(o, 'lastSeenAt'),
 		}),
 	],
 ])

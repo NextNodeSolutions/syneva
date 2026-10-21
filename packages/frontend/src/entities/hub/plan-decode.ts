@@ -7,6 +7,7 @@ import {
 	requiredString,
 } from '@shared/api/decode'
 
+import { hubOfId, scopedId } from './hub-ids'
 import { PLAN_STATUSES } from './plan-model'
 
 import type { Plan, PlanDocument, PlanVersion } from './plan-model'
@@ -33,13 +34,21 @@ function decodeDeskPath(raw: unknown, endpoint: string): string | null {
 	)
 }
 
-export function decodePlan(raw: unknown, endpoint: string): Plan {
+// `hubId`: the hub whose `plan` frame carried it; an answer to an HTTP read names its hub by the
+// plan's own web id. The plan's project is scoped by it (hub-ids.ts).
+export function decodePlan(
+	raw: unknown,
+	endpoint: string,
+	hubId?: string,
+): Plan {
 	const o = assertObject(raw, endpoint, 'plan')
+	const id = requiredString(o, 'id', endpoint)
+	const owner = hubId ?? hubOfId(id)
 	return {
-		id: requiredString(o, 'id', endpoint),
+		id,
 		root: requiredString(o, 'root', endpoint),
 		project: requiredString(o, 'project', endpoint),
-		projectId: requiredString(o, 'projectId', endpoint),
+		projectId: scopedId(owner, requiredString(o, 'projectId', endpoint)),
 		path: requiredString(o, 'path', endpoint),
 		title: requiredString(o, 'title', endpoint),
 		summary: optString(o, 'summary', endpoint) ?? null,

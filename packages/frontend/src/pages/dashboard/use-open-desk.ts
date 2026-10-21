@@ -10,7 +10,7 @@ export type OpenRefusal = Exclude<HubRefusal, { kind: 'aborted' }>
 export type OpenDesk = {
 	isBusy: boolean
 	refusal: OpenRefusal | null
-	open: (input: NewDeskInput) => void
+	open: (input: NewDeskInput, hubId?: string) => void
 	abort: () => void
 }
 
@@ -19,13 +19,16 @@ export function useOpenDesk(): OpenDesk {
 	const [isBusy, setBusy] = useState(false)
 	const pending = useRef<AbortController | null>(null)
 
-	const run = async (input: NewDeskInput): Promise<void> => {
+	const run = async (input: NewDeskInput, hubId?: string): Promise<void> => {
 		const controller = new AbortController()
 		pending.current = controller
 		setBusy(true)
 		setRefusal(null)
 		try {
-			const desk = await openHubDesk(input, controller.signal)
+			const desk = await openHubDesk(input, {
+				hubId,
+				signal: controller.signal,
+			})
 			if (!controller.signal.aborted) window.location.assign(desk.path)
 		} catch (error) {
 			const refused = hubRefusal(error)
@@ -39,8 +42,8 @@ export function useOpenDesk(): OpenDesk {
 	return {
 		isBusy,
 		refusal,
-		open: input => {
-			if (!pending.current) void run(input)
+		open: (input, hubId) => {
+			if (!pending.current) void run(input, hubId)
 		},
 		abort: () => pending.current?.abort(),
 	}

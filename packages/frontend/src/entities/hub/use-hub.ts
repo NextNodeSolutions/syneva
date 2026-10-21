@@ -4,6 +4,7 @@ import { hubLink, hubStatus } from './link'
 import { forgetDesk, hubView, subscribeHub } from './stream'
 
 import type { HubLink, HubStatus } from './link'
+import type { HubMode } from './mode'
 import type { HubDesk, HubHealth } from './model'
 
 export type HubView = {
@@ -13,6 +14,8 @@ export type HubView = {
 	arrivedIds: ReadonlySet<string>
 	health: HubHealth | null
 	link: HubLink
+	// Local or web; null until the stream's first frame says (mode.ts).
+	mode: HubMode | null
 	// The hub answered this page's close: the desk leaves the listing now, its `closed` frame
 	// follows.
 	forget: (desk: HubDesk) => void
@@ -28,12 +31,14 @@ export function useHub(): HubView {
 		() => hubView().identity,
 	)
 	const health = useSyncExternalStore(subscribeHub, () => hubView().health)
+	const mode = useSyncExternalStore(subscribeHub, () => hubView().mode)
 	return {
 		desks: listing.desks,
 		status: hubStatus(stream),
 		arrivedIds: listing.arrivedIds,
 		health,
 		link: hubLink(stream, identity),
+		mode,
 		forget: forgetDesk,
 	}
 }

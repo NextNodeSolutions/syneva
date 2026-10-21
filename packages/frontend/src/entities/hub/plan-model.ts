@@ -80,15 +80,15 @@ export function planSignature(plan: Plan): string {
 	].join(' ')
 }
 
-// The library by repository (keyed and named as the desks are, projectName), in the order the
+// The library by repository (keyed by project id and named as the desks are, projectName), in the order the
 // hub listed them (the most recently moved plan first), so the project that moved last leads.
 export function plansByProject(plans: readonly Plan[]): PlanProject[] {
 	const projects = new Map<string, PlanProject>()
 	for (const plan of plans) {
-		const held = projects.get(plan.root)
+		const held = projects.get(plan.projectId)
 		if (held) held.plans.push(plan)
 		else
-			projects.set(plan.root, {
+			projects.set(plan.projectId, {
 				projectId: plan.projectId,
 				project: projectName(plan),
 				root: plan.root,

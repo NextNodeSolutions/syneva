@@ -32,14 +32,19 @@ function stringField(body: unknown, key: string): string | undefined {
 	return field
 }
 
+// Extra request headers ride as a plain record, merged over the JSON content type.
+export type RequestOptions = Omit<RequestInit, 'headers'> & {
+	headers?: Record<string, string>
+}
+
 const request = async (
 	url: string,
 	endpoint: string,
-	opts: RequestInit,
+	{ headers, ...opts }: RequestOptions,
 ): Promise<unknown> => {
 	const response = await fetch(url, {
-		headers: { 'content-type': 'application/json' },
 		...opts,
+		headers: { 'content-type': 'application/json', ...headers },
 	})
 	if (!response.ok) {
 		const refusal = await refusalOf(response)
@@ -55,10 +60,10 @@ const request = async (
 
 export const api = async (
 	path: string,
-	opts: RequestInit = {},
+	opts: RequestOptions = {},
 ): Promise<unknown> => request(deskUrl(path), path, opts)
 
 export const hubApi = async (
 	path: string,
-	opts: RequestInit = {},
+	opts: RequestOptions = {},
 ): Promise<unknown> => request(path, path, opts)

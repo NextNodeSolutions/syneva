@@ -63,11 +63,11 @@ export function JournalFeed({
 				const line = eventLine(event)
 				return (
 					<li
-						key={event.seq}
+						key={`${event.hubId}:${event.seq}`}
 						data-enter="rise"
 						{...stylex.props(
 							journalFeed.row,
-							event.seq > freshAfter && journalFeed.fresh,
+							event.heard > freshAfter && journalFeed.fresh,
 						)}
 					>
 						<time

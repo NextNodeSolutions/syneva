@@ -8,6 +8,7 @@ import {
 } from '@shared/api/decode'
 
 import { MODES } from './decode'
+import { scopedId } from './hub-ids'
 
 import type {
 	JournalEvent,
@@ -28,12 +29,15 @@ const KINDS = [
 
 type Wire = Record<string, unknown>
 
-function subjectOf(o: Wire, endpoint: string): JournalSubject {
+function subjectOf(o: Wire, endpoint: string, hubId: string): JournalSubject {
 	return {
+		hubId,
+		// Set when the journal follows the event (journal-follow.ts).
+		heard: 0,
 		seq: requiredNumber(o, 'seq', endpoint),
 		at: requiredString(o, 'at', endpoint),
 		deskId: requiredString(o, 'deskId', endpoint),
-		projectId: requiredString(o, 'projectId', endpoint),
+		projectId: scopedId(hubId, requiredString(o, 'projectId', endpoint)),
 		project: requiredString(o, 'project', endpoint),
 		root: requiredString(o, 'root', endpoint),
 		session: requiredString(o, 'session', endpoint),
@@ -63,9 +67,13 @@ function verdictsOf(o: Wire, endpoint: string): RoundVerdicts {
 
 // One event, by its kind: each kind's own fields are required, so an event the page cannot
 // read whole fails loudly at the boundary instead of rendering half a sentence.
-function decodeEvent(raw: unknown, endpoint: string): JournalEvent {
+function decodeEvent(
+	raw: unknown,
+	endpoint: string,
+	hubId: string,
+): JournalEvent {
 	const o = assertObject(raw, endpoint, 'journal event')
-	const subject = subjectOf(o, endpoint)
+	const subject = subjectOf(o, endpoint, hubId)
 	const kind = enumValue(o.kind, endpoint, KINDS, 'event.kind')
 	if (kind === 'desk-opened' || kind === 'desk-reloaded')
 		return { ...subject, ...scopeOf(o, endpoint), kind }
@@ -96,10 +104,11 @@ function decodeEvent(raw: unknown, endpoint: string): JournalEvent {
 	}
 }
 
-// A batch of events as a journal frame carries them, oldest first.
+// A batch of events as a journal frame carries them, oldest first, from the hub that recorded them.
 export function decodeJournalEvents(
 	raw: readonly unknown[],
 	endpoint: string,
+	hubId: string,
 ): JournalEvent[] {
-	return raw.map(entry => decodeEvent(entry, endpoint))
+	return raw.map(entry => decodeEvent(entry, endpoint, hubId))
 }

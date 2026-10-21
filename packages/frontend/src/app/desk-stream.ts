@@ -1,6 +1,7 @@
 // The desk tab's half of the hub's stream (RFC 0001, 4.6): its desk's pulses, and whether the hub
 // still lists the desk. Loaded once the first file is painted (main.tsx), where the tab used to
 // start polling /poll; the hub pushes, and nothing here re-asks on a timer.
+import { hubOfId } from '@entities/hub/hub-ids'
 import { hubLink } from '@entities/hub/link'
 import {
 	hubView,
@@ -49,11 +50,14 @@ let lastWhole: { digest: string; pulse: DeskPulse } | null = null
 // when the hub next answers (see readNewestAgain); set up by followDesk.
 let readRetry: HubRetry | null = null
 
-// The desk is gone when the hub says so - its `closed` frame, or a listing without it (a snapshot
-// after the tab was away) - never because the socket dropped. Only a change counts: the tab's own
-// Close marks the desk gone before its `closed` frame arrives.
-function notePresence(desks: readonly HubDesk[] | null): void {
-	if (!desks) return
+// The desk is gone when its hub says so - its `closed` frame, or a snapshot without it (after the
+// tab was away) - never because the socket dropped, nor because another hub spoke first. Only a
+// change counts: the tab's own Close marks the desk gone before its `closed` frame arrives.
+function notePresence(
+	desks: readonly HubDesk[] | null,
+	settledHubs: ReadonlySet<string>,
+): void {
+	if (!desks || !settledHubs.has(hubOfId(deskId))) return
 	const isListed = desks.some(desk => desk.id === deskId)
 	if (isListed === wasListed) return
 	wasListed = isListed
@@ -65,7 +69,7 @@ function heardHub(): void {
 	const link = hubLink(view.stream, view.identity)
 	S.hubStatus = link.status
 	S.hubRetryAt = link.retryAt
-	notePresence(view.listing.desks)
+	notePresence(view.listing.desks, view.settledHubs)
 	const raw = view.pulses.get(deskId)
 	if (!raw || raw === heard) return
 	heard = raw

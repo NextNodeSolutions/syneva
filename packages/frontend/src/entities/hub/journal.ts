@@ -6,7 +6,13 @@ import type { ReviewMode } from './model'
 // in sync with packages/contracts/src/hub.ts.
 
 export type JournalSubject = {
+	// The hub that recorded the event, and its own seq: the pair is the event's key (the seqs of
+	// two hubs overlap).
+	hubId: string
 	seq: number
+	// When the page heard of the event, as an ordinal of this page's own (journal-follow.ts), so
+	// "arrived since" means one thing across hubs: 0 until the journal follows the event.
+	heard: number
 	at: string
 	deskId: string
 	projectId: string
@@ -51,9 +57,9 @@ export type RoundSent = Extract<JournalEvent, { kind: 'round-sent' }>
 export type DeskClosed = Extract<JournalEvent, { kind: 'desk-closed' }>
 
 // The journal as the dashboard holds it: the events the stream brought, oldest first, and where
-// the events that just arrived begin: the newest seq held before the last batch that brought
+// the events that just arrived begin: the newest `heard` held before the last batch that brought
 // any, null while nothing has arrived since the first snapshot (a page load never reads as a wave
-// of arrivals).
+// of arrivals). Events are in the order they happened, across hubs.
 export type Journal = {
 	events: readonly JournalEvent[]
 	freshAfter: number | null

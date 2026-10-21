@@ -1,3 +1,5 @@
+import { hubOfId } from '@entities/hub/hub-ids'
+
 import { useOpenAndGo } from './use-open-and-go'
 
 import type { DeskClosed } from '@entities/hub/journal'
@@ -19,14 +21,18 @@ export function useReopen(): Reopen {
 		busyId: busyKey,
 		failures,
 		reopen: closed =>
-			open(closed.deskId, {
-				root: closed.root,
-				mode: closed.mode,
-				staged: closed.staged,
-				target: closed.target,
-				session: closed.session,
-				base: closed.base,
-				path: closed.pathFilter,
-			}),
+			open(
+				closed.deskId,
+				{
+					root: closed.root,
+					mode: closed.mode,
+					staged: closed.staged,
+					target: closed.target,
+					session: closed.session,
+					base: closed.base,
+					path: closed.pathFilter,
+				},
+				hubOfId(closed.deskId),
+			),
 	}
 }

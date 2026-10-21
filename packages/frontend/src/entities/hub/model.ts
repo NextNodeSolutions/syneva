@@ -2,6 +2,17 @@
 
 export type ReviewMode = 'repo' | 'file' | 'pr'
 
+// A hub the page knows by the stream: the local hub, or one of the person's paired hubs on the
+// web. `isOnline` is whether its socket is open now (the web's `hub` frames); `lastSeenAt` the
+// last time it connected, epoch ms, when the web says it.
+export type HubRef = {
+	id: string
+	name: string
+	isOnline: boolean
+	version: string | null
+	lastSeenAt: number | null
+}
+
 export type HubDesk = {
 	id: string
 	root: string
@@ -28,6 +39,10 @@ export type HubDesk = {
 	path: string
 	// The plan this desk reviews (`syneva open plan`): its id in the plan library.
 	plan: string | null
+	// The hub the desk lives on, as its `desk` frame names it (`local` on the local hub), and that
+	// hub as the stream last described it; null on the local hub, where the hub is the page's own.
+	hubId: string
+	hub: HubRef | null
 }
 
 // Who the hub on the other end of the stream is: its first frame says it, and `instanceId`
@@ -57,16 +72,17 @@ export type HubProject = {
 	lastActivityAt: string
 }
 
-// A repository as every listing groups by it: keyed by its root, named as the hub names it
-// (its folder) or, failing that, by its path. Desks and plans group the same way.
+// A repository as every listing groups by it: keyed by its project id (the digest of its root,
+// scoped by its hub on the web, so two hubs' checkouts at one path stay two projects), named as the
+// hub names it (its folder) or, failing that, by its path. Desks and plans group the same way.
 export function projectName(of: { project: string; root: string }): string {
 	return of.project || of.root
 }
 
 export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
-	const byRoot = new Map<string, HubProject>()
+	const byProject = new Map<string, HubProject>()
 	for (const desk of desks) {
-		const project = byRoot.get(desk.root) ?? {
+		const project = byProject.get(desk.projectId) ?? {
 			root: desk.root,
 			id: desk.projectId,
 			name: projectName(desk),
@@ -76,9 +92,9 @@ export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 		project.desks.push(desk)
 		if (desk.lastActivityAt > project.lastActivityAt)
 			project.lastActivityAt = desk.lastActivityAt
-		byRoot.set(desk.root, project)
+		byProject.set(desk.projectId, project)
 	}
-	const projects = [...byRoot.values()]
+	const projects = [...byProject.values()]
 	for (const project of projects)
 		project.desks = project.desks.toSorted((a, b) =>
 			b.lastActivityAt.localeCompare(a.lastActivityAt),

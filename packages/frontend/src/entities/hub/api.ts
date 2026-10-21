@@ -1,5 +1,6 @@
 import { ApiError, hubApi } from '@shared/api/client'
 import { assertObject, DecodeError, requiredBoolean } from '@shared/api/decode'
+import { isWebHubId, WEB_HUB_HEADER } from '@syneva/contracts/bridge'
 import {
 	HUB_PATHS,
 	hubDeskPath,
@@ -34,21 +35,38 @@ export const fetchHubHealth = async (
 		HUB_PATHS.health,
 	)
 
-// The dashboard's "New review": the same open the CLI performs, answered with the desk to navigate to (created, or the live one reloaded)
-// `signal` lets the form abandon an open it no longer waits for (the dialog closed while the hub was still opening).
+// On the web a hub-level request names no desk, so it names its hub in a header the web reads and
+// never forwards (the one place this is set): the hub the person picked, or the one a closed
+// desk or a plan belongs to. A local page has one hub and sends nothing.
+function hubHeader(hubId: string | undefined): Record<string, string> {
+	const headers: Record<string, string> = {}
+	if (hubId && isWebHubId(hubId)) headers[WEB_HUB_HEADER] = hubId
+	return headers
+}
+
+export type OpenOptions = {
+	// The hub to open the desk on.
+	hubId?: string | undefined
+	// Lets the form abandon an open it no longer waits for (the dialog closed while the hub was
+	// still opening).
+	signal?: AbortSignal | undefined
+}
+
+// The dashboard's "New review": the same open the CLI performs, answered with the desk to navigate to (created, or the live one reloaded).
 export const openHubDesk = async (
 	input: NewDeskInput,
-	signal?: AbortSignal,
+	{ hubId, signal }: OpenOptions = {},
 ): Promise<HubDesk> => {
 	const raw = await hubApi(HUB_PATHS.desks, {
 		method: 'POST',
 		body: JSON.stringify(input),
 		signal: signal ?? null,
+		headers: hubHeader(hubId),
 	})
 	const o = assertObject(raw, HUB_PATHS.desks)
 	if (!requiredBoolean(o, 'ok', HUB_PATHS.desks))
 		throw new DecodeError('acknowledgement ok is false', HUB_PATHS.desks)
-	return decodeHubDesk(o.desk, HUB_PATHS.desks)
+	return decodeHubDesk(o.desk, HUB_PATHS.desks, hubId)
 }
 
 export const closeHubDesk = async (id: string): Promise<boolean> => {

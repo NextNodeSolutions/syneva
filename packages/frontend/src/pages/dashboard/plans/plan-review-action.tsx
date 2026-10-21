@@ -1,3 +1,4 @@
+import { hubOfId } from '@entities/hub/hub-ids'
 import { Button } from '@shared/ui/button'
 import { ButtonLink } from '@shared/ui/button-link'
 import * as stylex from '@stylexjs/stylex'
@@ -51,7 +52,9 @@ export function PlanReviewAction({
 				size="small"
 				busy={busy}
 				disabled={busy}
-				onClick={() => void open(plan.id, reviewInput(plan))}
+				onClick={() =>
+					void open(plan.id, reviewInput(plan), hubOfId(plan.id))
+				}
 			>
 				Review
 			</Button>

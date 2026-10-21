@@ -9,7 +9,7 @@ import { createAnswerRetry } from '@shared/lib/answer-retry'
 import { BRIDGE_PATHS } from '@syneva/contracts/bridge'
 
 import { fetchHubHealth } from './api'
-import { decodeHubDesk, decodeHubIdentity } from './decode'
+import { decodeHubDesk, decodeHubIdentity, decodeHubPresence } from './decode'
 import { decodeJournalEvents } from './journal-decode'
 import { decodePairing } from './pairing'
 import { decodePlan } from './plan-decode'
@@ -40,8 +40,9 @@ const SOCKET = BRIDGE_PATHS.tabSocket
 const readers = new Set<() => void>()
 let view: StreamView = FIRST_VIEW
 let stream: HubStream | null = null
-// The snapshot being read, from its hello to its snapshot-end; null between two.
-let snapshot: Snapshot | null = null
+// The snapshots being read, each from its hub's hello to its snapshot-end: one hub on a local
+// page, several on the web, where they interleave.
+const snapshots = new Map<string, Snapshot>()
 // Desks the hub answered this page's close for whose `closed` frame has not come yet, each with
 // the life it closed (its `openedAt`): a `desk` frame of that life, shaped before the close and
 // still on its way, does not bring it back. A desk's id is its repo and session, so the same
@@ -64,6 +65,9 @@ function commit(next: StreamView): void {
 const healthRetry = createAnswerRetry(() => void readHealth())
 
 async function readHealth(): Promise<void> {
+	// On the web every hub says hello with an instance of its own while the health is the web's:
+	// it is read once.
+	if (view.health && view.mode === 'web') return
 	const instanceId = view.identity?.instanceId
 	if (!instanceId || view.health?.instanceId === instanceId) return
 	try {
@@ -76,23 +80,24 @@ async function readHealth(): Promise<void> {
 }
 
 function hello(identity: HubIdentity): void {
-	snapshot = emptySnapshot(identity.id)
+	snapshots.set(identity.id, emptySnapshot(identity.id))
 	commit(greeted(view, identity))
 	healthRetry.settled()
 	void readHealth()
 }
 
-function snapshotEnd(): void {
-	if (!snapshot) return
-	const whole = snapshot
-	snapshot = null
+function snapshotEnd(hubId: string): void {
+	const whole = snapshots.get(hubId)
+	if (!whole) return
+	snapshots.delete(hubId)
 	forgotten.clear()
 	commit(settled(view, whole))
 }
 
-function desk(summary: HubDesk): void {
-	if (snapshot) {
-		snapshot.desks.set(summary.id, summary)
+function desk(hubId: string, summary: HubDesk): void {
+	const reading = snapshots.get(hubId)
+	if (reading) {
+		reading.desks.set(summary.id, summary)
 		return
 	}
 	if (forgotten.get(summary.id) === summary.openedAt) return
@@ -100,28 +105,32 @@ function desk(summary: HubDesk): void {
 	commit(withDesk(view, summary))
 }
 
-function closed(deskId: string): void {
+function closed(hubId: string, deskId: string): void {
 	forgotten.delete(deskId)
-	if (!snapshot) {
+	const reading = snapshots.get(hubId)
+	if (!reading) {
 		commit(withoutDesk(view, deskId))
 		return
 	}
-	snapshot.desks.delete(deskId)
-	snapshot.pulses.delete(deskId)
+	reading.desks.delete(deskId)
+	reading.pulses.delete(deskId)
 }
 
-function pulse(deskId: string, payload: unknown): void {
-	if (snapshot) snapshot.pulses.set(deskId, payload)
+function pulse(hubId: string, deskId: string, payload: unknown): void {
+	const reading = snapshots.get(hubId)
+	if (reading) reading.pulses.set(deskId, payload)
 	else commit(withPulse(view, deskId, payload))
 }
 
 function journal(hubId: string, events: JournalEvent[]): void {
-	if (snapshot) snapshot.tail.push(...events)
+	const reading = snapshots.get(hubId)
+	if (reading) reading.tail.push(...events)
 	else commit(withEvents(view, hubId, events))
 }
 
-function plan(record: Plan): void {
-	if (snapshot) snapshot.plans.set(record.id, record)
+function plan(hubId: string, record: Plan): void {
+	const reading = snapshots.get(hubId)
+	if (reading) reading.plans.set(record.id, record)
 	else commit(withPlan(view, record))
 }
 
@@ -131,29 +140,32 @@ function apply(frame: StreamFrame): void {
 			hello(decodeHubIdentity(frame.hub, SOCKET))
 			return
 		case 'snapshot-end':
-			snapshotEnd()
+			snapshotEnd(frame.hubId)
 			return
 		case 'desk':
-			desk(decodeHubDesk(frame.desk, SOCKET))
+			desk(frame.hubId, decodeHubDesk(frame.desk, SOCKET, frame.hubId))
 			return
 		case 'closed':
-			closed(frame.deskId)
+			closed(frame.hubId, frame.deskId)
 			return
 		case 'pulse':
-			pulse(frame.deskId, frame.pulse)
+			pulse(frame.hubId, frame.deskId, frame.pulse)
 			return
 		case 'journal':
-			journal(frame.hubId, decodeJournalEvents(frame.events, SOCKET))
+			journal(
+				frame.hubId,
+				decodeJournalEvents(frame.events, SOCKET, frame.hubId),
+			)
 			return
 		case 'plan':
-			plan(decodePlan(frame.plan, SOCKET))
+			plan(frame.hubId, decodePlan(frame.plan, SOCKET, frame.hubId))
 			return
 		case 'pairing':
 			// Whole each time, and apart from the desks: taken at once, even mid-snapshot.
 			commit({ ...view, pairing: decodePairing(frame.pairing, SOCKET) })
 			return
 		case 'hub':
-			commit(withHub(view, frame))
+			commit(withHub(view, decodeHubPresence(frame), Date.now()))
 	}
 }
 
@@ -182,7 +194,7 @@ export function subscribeHub(reader: () => void): () => void {
 		if (readers.size) return
 		stream?.stop()
 		stream = null
-		snapshot = null
+		snapshots.clear()
 	}
 }
 
