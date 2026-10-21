@@ -22,6 +22,7 @@ type Carrying<
 > = Omit<Envelope<T>, K> & { [P in K]: Payload }
 
 export type StreamFrame =
+	| Envelope<'hubs-end'>
 	| Carrying<'hello', 'hub'>
 	| Carrying<'desk', 'desk'>
 	| Envelope<'closed'>
@@ -52,6 +53,7 @@ const READERS: ReadonlyMap<string, (o: Wire) => StreamFrame> = new Map<
 	string,
 	(o: Wire) => StreamFrame
 >([
+	['hubs-end', () => ({ t: 'hubs-end' })],
 	['hello', o => ({ t: 'hello', hub: o.hub })],
 	['desk', o => ({ t: 'desk', hubId: hubIdOf(o), desk: o.desk })],
 	['closed', o => ({ t: 'closed', hubId: hubIdOf(o), deskId: deskIdOf(o) })],

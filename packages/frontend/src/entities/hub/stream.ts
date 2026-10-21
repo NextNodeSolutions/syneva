@@ -19,6 +19,7 @@ import {
 	FIRST_VIEW,
 	greeted,
 	settled,
+	settledEmpty,
 	withDesk,
 	withEvents,
 	withHub,
@@ -138,6 +139,9 @@ function plan(hubId: string, record: Plan): void {
 
 function apply(frame: StreamFrame): void {
 	switch (frame.t) {
+		case 'hubs-end':
+			commit(settledEmpty({ ...view, mode: 'web' }))
+			return
 		case 'hello':
 			hello(decodeHubIdentity(frame.hub, SOCKET))
 			return

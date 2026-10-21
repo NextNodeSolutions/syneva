@@ -149,7 +149,7 @@ export function greeted(view: StreamView, identity: HubIdentity): StreamView {
 // A person whose hubs are all offline gets no hello and no snapshot, so the page would wait for a
 // listing for ever: with every hub it knows offline, the listing is whole, and empty. A hub that
 // comes online brings its own snapshot over it.
-function settledEmpty(view: StreamView): StreamView {
+export function settledEmpty(view: StreamView): StreamView {
 	if (view.listing.desks || view.mode !== 'web') return view
 	if ([...view.hubs.values()].some(hub => hub.isOnline)) return view
 	return {
