@@ -1,6 +1,6 @@
 // Sign-in by magic link (contracts/web.ts): the page, the request for a link, the link followed,
 // sign-out. A link is a random token emailed once (kept as its sha256), good for one use within
-// MAGIC_LINK_MINUTES; following it creates the user on a first sign-in and opens the session.
+// MAGIC_LINK_MINUTES; its page's button creates the user on a first sign-in and opens the session.
 import { MAGIC_LINK_MINUTES, WEB_PATHS } from '@syneva/contracts/web'
 
 import { insertLoginCode } from '../db/login-codes.js'
@@ -18,7 +18,7 @@ import {
 import { signInPage } from '../pages/sign-in.js'
 import { signOutPage } from '../pages/sign-out.js'
 
-import { followLink } from './follow-link.js'
+import { followLink, showLink } from './follow-link.js'
 import { readPosted } from './form.js'
 import { clientAddress, limitRefusal } from './limits.js'
 import { sendSignInEmail } from './mail.js'
@@ -44,13 +44,20 @@ export async function signInRoute(call: Call): Promise<Response | null> {
 	if (pathname === WEB_PATHS.login && isRead(request)) return loginPage(call)
 	if (pathname === WEB_PATHS.magicLink && request.method === 'POST')
 		return sameOriginRefusal(call) ?? requestLink(call)
-	if (pathname === WEB_PATHS.authCallback && isRead(request))
-		return followLink(call)
+	if (pathname === WEB_PATHS.authCallback) return callback(call)
 	if (pathname !== WEB_PATHS.logout) return null
 	if (request.method === 'POST')
 		return sameOriginRefusal(call) ?? signOut(call)
 	if (isRead(request)) return signOutConfirm(call)
 	return null
+}
+
+// The link: a GET shows it, only a same-origin POST takes it (follow-link.ts).
+async function callback(call: Call): Promise<Response | null> {
+	const { request } = call
+	if (isRead(request)) return showLink(call)
+	if (request.method !== 'POST') return null
+	return sameOriginRefusal(call) ?? followLink(call)
 }
 
 async function loginPage(call: Call): Promise<Response> {

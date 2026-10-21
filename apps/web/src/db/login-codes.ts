@@ -72,9 +72,25 @@ export async function insertLoginCode(
 	return (inserted?.meta.changes ?? 0) > 0
 }
 
+// The address a live link signs in as, the row untouched: the link's GET is what any mail scanner
+// fetches, so only the POST its page sends takes it (takeLoginCode) or counts a try.
+export async function peekLoginCode(
+	db: D1Database,
+	digest: string,
+	limits: { now: Date; maxAttempts: number },
+): Promise<string | null> {
+	const live = await db
+		.prepare(
+			'SELECT email FROM login_codes WHERE code_digest = ? AND used_at IS NULL AND expires_at > ? AND attempts < ?',
+		)
+		.bind(digest, iso(limits.now), limits.maxAttempts)
+		.first<{ email: string }>()
+	return live?.email ?? null
+}
+
 // The link's address and destination, once: the row is marked used in the same statement that
-// reads it, so two clicks never open two sessions. A link followed past its life, after its use
-// or more than `maxAttempts` times answers null (the attempt counted).
+// reads it, so two posts never open two sessions. A link posted past its life, after its use or
+// more than `maxAttempts` times answers null (the attempt counted).
 export async function takeLoginCode(
 	db: D1Database,
 	digest: string,

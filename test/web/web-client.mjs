@@ -1,6 +1,9 @@
 // The smoke's browser: requests to the web with the session cookie it was handed and its own
 // origin, as a tab's same-origin fetch sends them; redirects are read, never followed.
-import { WEB_SESSION_COOKIE } from '../../packages/contracts/dist/web.js'
+import {
+	WEB_PATHS,
+	WEB_SESSION_COOKIE,
+} from '../../packages/contracts/dist/web.js'
 
 export function createBrowser(origin) {
 	const jar = { cookie: '' }
@@ -44,6 +47,19 @@ export function createBrowser(origin) {
 		},
 	}
 	return browser
+}
+
+// What the sign-in link's page posts: its token, as the page's form sends it.
+export function followLink(browser, link, headers = {}) {
+	const token = new URL(link).searchParams.get('token') ?? ''
+	return browser.fetch(WEB_PATHS.authCallback, {
+		method: 'POST',
+		headers: {
+			'content-type': 'application/x-www-form-urlencoded',
+			...headers,
+		},
+		body: new URLSearchParams({ token }).toString(),
+	})
 }
 
 // The cookie header the jar holds, if any.

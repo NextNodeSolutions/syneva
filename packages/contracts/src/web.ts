@@ -18,9 +18,12 @@ export const WEB_PATHS = {
 	// account (nothing to enumerate), 429 past the limits of RFC 6.1 F1 (3 per address per hour,
 	// 10 per client address per hour, 2,000 per day), 400 on a malformed address.
 	magicLink: '/auth/magic-link',
-	// GET ?token=<token>: the link in the email. One use, 15 minutes from the request; it opens
-	// the session (the cookie) and redirects to the request's `next`, else `/`. A token that is
-	// unknown, used or expired lands on `login` with `?expired=1`.
+	// GET ?token=<token>: the link in the email. It changes nothing (a mail scanner's fetch spends
+	// nothing): a page names the account the link signs in as, with one button that POSTs the
+	// token here (same origin, the form field `token`). The POST takes it, one use within 15
+	// minutes of the request and five tries, opens the session (the cookie) and redirects (303) to
+	// the request's `next`, else `/`. A token that is unknown, used or expired lands on `login`
+	// with `?expired=1`, on either.
 	authCallback: '/auth/callback',
 	// GET ?code=<user code>: where `syneva login` sends the person (`DeviceCodeAnswer`'s
 	// `verificationUrl`), signed in; POST DeviceApprovalRequest approves or denies the code.

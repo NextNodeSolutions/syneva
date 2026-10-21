@@ -5,6 +5,7 @@ import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 import { WEB_PATHS } from '../../packages/contracts/dist/web.js'
 import { openReader, socketUrl } from '../stream/stream-client.mjs'
 
+import { pagePolicyGap } from './page-checks.mjs'
 import {
 	HTTP_ACCEPTED,
 	HTTP_FORBIDDEN,
@@ -13,6 +14,7 @@ import {
 	HTTP_SEE_OTHER,
 	HTTP_UNAUTHORIZED,
 } from './statuses.mjs'
+import { followLink } from './web-client.mjs'
 
 export const EMAIL = 'smoke@example.com'
 
@@ -84,10 +86,11 @@ export async function checkSignIn({ report, browser, web }) {
 		() => web.link(seen),
 	)
 	if (!link) throw new Error('no sign-in link: nothing else can run')
-	const followed = await fetch(link, { redirect: 'manual' })
+	await checkLinkPage({ report, browser }, link)
+	const followed = await followLink(browser, link)
 	const cookie = browser.keep(followed)
 	report.check(
-		'the link opens a session: 303 to `next`, an HttpOnly SameSite=Lax cookie',
+		'its button (a same-origin POST) opens a session: 303 to `next`, an HttpOnly SameSite=Lax cookie',
 		followed.status === HTTP_SEE_OTHER &&
 			followed.headers.get('location') === '/hub' &&
 			/HttpOnly/i.test(cookie) &&
@@ -95,14 +98,49 @@ export async function checkSignIn({ report, browser, web }) {
 			Boolean(browser.jar.cookie),
 		`${followed.status} ${followed.headers.get('location')} ${cookie}`,
 	)
-	const again = await fetch(link, { redirect: 'manual' })
+	const again = await followLink(browser, link)
+	const reopened = await fetch(link, { redirect: 'manual' })
 	report.check(
-		'the link a second time lands on /login?expired=1',
-		again.status === HTTP_SEE_OTHER &&
-			again.headers.get('location') === `${WEB_PATHS.login}?expired=1`,
-		`${again.status} ${again.headers.get('location')}`,
+		'posted a second time, or opened again, the link lands on /login?expired=1',
+		[again, reopened].every(
+			answer =>
+				answer.status === HTTP_SEE_OTHER &&
+				answer.headers.get('location') ===
+					`${WEB_PATHS.login}?expired=1`,
+		),
+		`${again.status} ${again.headers.get('location')}, ${reopened.status}`,
 	)
 	await checkSession({ report, browser })
+}
+
+// The link's GET is what a mail scanner fetches: it names the account and changes nothing, and
+// only a same-origin POST takes it.
+async function checkLinkPage({ report, browser }, link) {
+	const opened = await fetch(link, { redirect: 'manual' })
+	const text = await opened.text()
+	const gap = pagePolicyGap(opened, text)
+	const reopened = await fetch(link, { redirect: 'manual' })
+	await reopened.body?.cancel()
+	report.check(
+		"the link opens a page naming the account, under the pages' policy, and spends nothing: twice 200, no cookie",
+		opened.status === HTTP_OK &&
+			reopened.status === HTTP_OK &&
+			text.includes(EMAIL) &&
+			text.includes('name="token"') &&
+			!gap &&
+			!opened.headers.get('set-cookie') &&
+			!reopened.headers.get('set-cookie'),
+		`${opened.status} ${reopened.status} ${gap ?? ''}`,
+	)
+	const crossSite = await followLink(browser, link, {
+		origin: 'http://evil.example',
+	})
+	report.check(
+		"another site's POST of the token is 403 FORBIDDEN_ORIGIN, no cookie",
+		crossSite.status === HTTP_FORBIDDEN &&
+			!crossSite.headers.get('set-cookie'),
+		`${crossSite.status}`,
+	)
 }
 
 async function checkSession({ report, browser }) {
