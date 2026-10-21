@@ -125,6 +125,12 @@ export const BRIDGE_PATHS = {
 	opsStatus: '/bridge/v1/ops/status',
 } as const
 
+const PING_INTERVAL_MS = 30_000
+const PONG_TIMEOUT_MS = 10_000
+// The pings a socket may miss before it reads as gone: a background tab's timers may be throttled
+// to once a minute, so one ping can come a whole interval late.
+const MISSABLE_PINGS = 2
+
 // Every bound of the bridge; a hub keeps them locally too, so the same bug is found locally first.
 export const BRIDGE_LIMITS = {
 	frameBytes: 1_048_576,
@@ -138,8 +144,12 @@ export const BRIDGE_LIMITS = {
 	bytesPerSecond: 2_097_152,
 	hubsPerUser: 8,
 	tabsPerUser: 32,
-	pingIntervalMs: 30_000,
-	pongTimeoutMs: 10_000,
+	pingIntervalMs: PING_INTERVAL_MS,
+	pongTimeoutMs: PONG_TIMEOUT_MS,
+	// Inbound silence a socket may keep (70 s): past it the hub closes it with `silent`, so a
+	// laptop asleep, a link dropped half-open or a frozen tab holds neither its subscription nor a
+	// seat among `tabsPerUser`. A client pings every `pingIntervalMs`.
+	silenceMs: PING_INTERVAL_MS * MISSABLE_PINGS + PONG_TIMEOUT_MS,
 	coalesceMs: 250,
 	journalTail: 200,
 	journalPerFrame: 200,
@@ -148,12 +158,16 @@ export const BRIDGE_LIMITS = {
 } as const
 
 // The client policy per code is RFC 4.3's. `goingAway` is the standard code a hub closes its
-// sockets with when it stops.
+// sockets with when it stops. A client reconnects with the normal backoff after any code that
+// names no wait of its own, `silent` among them.
 export const CLOSE_CODES = {
 	goingAway: 1001,
 	malformed: 1003,
 	rate: 1008,
 	tooMany: 1013,
 	revoked: 4001,
+	// Nothing came from the socket within `silenceMs`, as HTTP's 408 says of a request: its peer
+	// is gone, or its tab was frozen and reconnects once it runs again.
+	silent: 4008,
 	saturated: 4029,
 } as const

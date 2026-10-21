@@ -30,6 +30,7 @@ export function openHubStream(socket: WebSocket, deps: StreamDeps): () => void {
 		pacer.wake()
 	})
 	listenForPings(socket)
+	const stopListening = closeWhenSilent(socket)
 	const drop = (error: unknown): void => {
 		deps.log(`stream: snapshot failed: ${String(error)}`)
 		socket.terminate()
@@ -38,6 +39,7 @@ export function openHubStream(socket: WebSocket, deps: StreamDeps): () => void {
 	return () => {
 		unsubscribe()
 		pacer.stop()
+		stopListening()
 	}
 }
 
@@ -82,7 +84,8 @@ function sender(socket: WebSocket, oversized: (head: string) => void): Send {
 
 // The coalescer's clock: one timer per stream, armed for the queue's next due time (the next
 // window once frames wait, or a desk's status going stale on its own) and never earlier than the
-// timer already armed. The one timer of the stream: the hub pushes, nothing here re-asks.
+// timer already armed. Beside the silence bound below, the one timer of the stream: the hub
+// pushes, nothing here re-asks.
 function createPacer(queue: StreamQueue, send: Send): Pacer {
 	let timer: NodeJS.Timeout | undefined
 	let armedFor = Infinity
@@ -133,6 +136,25 @@ function listenForPings(socket: WebSocket): void {
 	socket.on('ping', payload => {
 		spend(payload.length)
 	})
+}
+
+// A tab pings every `pingIntervalMs`; a socket silent past `silenceMs` has no tab behind it any
+// more (a laptop asleep, a link dropped half-open: nothing tells the hub) or a frozen one. It is
+// closed with `silent` so it leaves its subscription and its seat among `tabsPerUser`: a tab
+// still there reconnects to a fresh snapshot, and a dead peer, which never answers the close, is
+// dropped after ws's close timeout. Any inbound frame counts as heard; the stream's second timer.
+function closeWhenSilent(socket: WebSocket): () => void {
+	const silence = setTimeout(() => {
+		socket.close(CLOSE_CODES.silent)
+	}, BRIDGE_LIMITS.silenceMs)
+	const heard = (): void => {
+		silence.refresh()
+	}
+	socket.on('message', heard)
+	socket.on('ping', heard)
+	return () => {
+		clearTimeout(silence)
+	}
 }
 
 function byteSize(message: RawData): number {

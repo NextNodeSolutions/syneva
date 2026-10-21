@@ -14,9 +14,10 @@ node test/stream/conformance.mjs --hub http://127.0.0.1:47962 --key s3cret --shu
 ```
 
 Point it at a scratch hub, never the machine's own (port 4747): it opens and closes desks of its
-own (sessions `stream-check`, `stream-check-plan` and `stream-check-big`, in a temporary git repo), archives the plan
-it opens, opens `tabsPerUser` sockets at once, and with `--shutdown` stops the hub at the end. A
-tab already reading that hub counts against the socket cap, so keep none open. `--cli` names
+own (sessions `stream-check`, `stream-check-plan` and `stream-check-big`, in a temporary git
+repo), archives the plan it opens, opens `tabsPerUser` sockets at once, and with `--shutdown`
+stops the hub at the end. A tab already reading that hub counts against the socket cap, so keep
+none open. `--cli` names
 another CLI build (default `apps/syneva/dist/cli.js`); `--key` is the hub's access key, sent as a
 Bearer (and to the CLI as `SYNEVA_KEY`). `ws` is resolved from `packages/local`, which serves the
 stream with it.
@@ -50,6 +51,9 @@ It prints one line per check and exits 1 when any failed.
   open: the snapshot reaches `snapshot-end` with every frame under the bound, the desk's pulse is
   partial (`/pulse`'s head and `partial.digest`, nothing else), `/pulse` answers it whole, a new
   comment moves the digest and a status line alone does not.
+- **Silence**: of two readers opened when the run starts, the one that never pings is closed with
+  4008 once `silenceMs` (70 s) passed, and not before; the one that pings every `pingIntervalMs`
+  stays open. The wait overlaps the other checks, and the run takes about `silenceMs`.
 - **Limits**: a ping (`{"t":"p"}`) gets its pong (`{"t":"o"}`); any other text frame, and any binary
   frame, closes with 1003; 1000 frames sent at once close with 1008 within a second; past
   `tabsPerUser` open sockets, the next is accepted and closed with 1013 before any frame.
