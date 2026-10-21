@@ -3,6 +3,9 @@
 // before it dispatches. Anything not listed here is refused: `/poll` (the `pulse` frames replace
 // it), `/await-send` (an agent talks to its own hub, never to the web), the stream, the hub's
 // health, journal, listing, settings and shutdown, its bridge routes, sign-in, pages and assets.
+// A listed route still knows the web asked (core's `HubRequest.channel`): the routes that act for
+// the machine itself narrow what it does for the web (its settings, its editor, the folders an
+// open names), so this list is not the only line between the web account and the machine.
 import { API_PATHS, DESK_API_PREFIX, HUB_PATHS } from './routes.js'
 
 import type { RelayMethod } from './bridge.js'
