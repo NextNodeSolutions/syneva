@@ -43,6 +43,8 @@ export const HUB_PATHS = {
 	plans: '/api/hub/plans',
 	settings: '/api/hub/settings',
 	shutdown: '/api/hub/shutdown',
+	// The hub's stream: a WebSocket of bridge frames (bridge.ts), a snapshot then every event.
+	hubSocket: '/api/hub/ws',
 	login: '/login',
 	logout: '/logout',
 } as const
