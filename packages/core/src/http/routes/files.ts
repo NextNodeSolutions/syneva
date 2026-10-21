@@ -1,5 +1,3 @@
-import { promises as fs } from 'node:fs'
-
 import { resolveContained } from '../../application/containment.js'
 import { readFileContents } from '../../application/contents.js'
 import { errorMessage } from '../../application/errors.js'
@@ -9,6 +7,7 @@ import { BAD_PATH, cannotRead } from '../failure.js'
 import { HTTP_NOT_FOUND, HTTP_OK, json, fail } from '../http.js'
 
 import type { ContainedPath } from '../../application/containment.js'
+import type { WorkspacePort } from '../../application/ports.js'
 import type { RouteRequest } from '../router.js'
 
 // GET /file - read an arbitrary repo file, for previewing/commenting on unchanged files; same strict path boundary as /file-contents (repo-relative, no escapes).
@@ -26,16 +25,17 @@ export async function serveFile({ ctx, url }: RouteRequest): Promise<Response> {
 	const contents =
 		side === 'additions' || side === 'deletions'
 			? await readReviewedSide(ctx.state, rel, side, ctx.git)
-			: await readWorkingFile(resolved)
+			: await readWorkingFile(resolved, ctx.git.workspace)
 	if (contents === null) return fail(cannotRead(rel))
 	return json(HTTP_OK, { path: rel, contents })
 }
 
 async function readWorkingFile(
 	resolved: ContainedPath,
+	workspace: WorkspacePort,
 ): Promise<string | null> {
 	if (!('abs' in resolved)) return null
-	return await fs.readFile(resolved.abs, 'utf8').catch(() => null)
+	return workspace.readFile(resolved.abs)
 }
 
 // GET /file-contents - one reviewed file's old/new contents, fetched on demand so the full contents never ride /state; resolved from git/the working tree (the state embeds none).

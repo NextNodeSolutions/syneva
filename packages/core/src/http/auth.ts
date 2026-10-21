@@ -18,6 +18,7 @@ const SECONDS_PER_DAY = 86_400
 const COOKIE_DAYS = 365
 const COOKIE_MAX_AGE_SECONDS = COOKIE_DAYS * SECONDS_PER_DAY
 const BEARER_PREFIX = 'Bearer '
+const UTF8 = new TextEncoder()
 
 // With a key configured, every request must prove it: `Authorization: Bearer <key>` (CLI and pi listener) or the HttpOnly cookie a browser carries after signing in once at /login.
 // Without a key (a loopback-only hub) the gate is open and the same-origin guard alone protects the hub.
@@ -122,8 +123,8 @@ function matches(
 	isAlreadyHashed = false,
 ): boolean {
 	if (!candidate) return false
-	const left = Buffer.from(isAlreadyHashed ? candidate : hashOf(candidate))
-	const right = Buffer.from(digest)
+	const left = UTF8.encode(isAlreadyHashed ? candidate : hashOf(candidate))
+	const right = UTF8.encode(digest)
 	return left.length === right.length && crypto.timingSafeEqual(left, right)
 }
 

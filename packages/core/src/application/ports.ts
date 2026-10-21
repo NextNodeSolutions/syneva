@@ -12,6 +12,10 @@ export interface WorkspacePort {
 	readonly realpath: (path: string) => Promise<string | null>
 	readonly isDirectory: (path: string) => Promise<boolean>
 	readonly readFile: (path: string) => Promise<string | null>
+	// The raw bytes, for a file served as is (/blob's images); null when it cannot be read.
+	readonly readBytes: (
+		path: string,
+	) => Promise<Uint8Array<ArrayBuffer> | null>
 	// Staging's `git apply` needs a file argument (must share the tree's filesystem).
 	readonly writeTempFile: (contents: string) => Promise<string>
 	readonly removeTempDir: (dir: string) => Promise<void>

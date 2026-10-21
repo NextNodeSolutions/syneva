@@ -7,11 +7,12 @@ const HASH_LENGTH = 16
 // Every id the hub derives (desk, project, plan) is one of its hex digests; the range leaves
 // room for a longer digest without ever admitting a path segment.
 const HEX_ID = /^[a-f0-9]{8,64}$/
+const UTF8 = new TextEncoder()
 
 // sha1 over "blob <byteLen>\0" + bytes - the exact bytes git hashes, so this equals `git hash-object` and matches `git diff --raw`: committed sides need no re-hash.
 // SHA-1 only (git's default): on a rare sha256 repo working sides use this while committed sides carry real OIDs - internally consistent per file, so staleness stays correct. Pure, so the diff assembly can hash without the adapter.
 export function blobOid(content: string): string {
-	const bytes = Buffer.from(content, 'utf8')
+	const bytes = UTF8.encode(content)
 	return crypto
 		.createHash('sha1')
 		.update(`blob ${bytes.length}\0`)

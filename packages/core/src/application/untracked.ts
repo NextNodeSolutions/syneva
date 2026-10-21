@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import { blobOid } from '../domain/identity.js'
+import { utf8ByteLength } from '../domain/utf8.js'
 
 import { mapContentReads } from './content-reads.js'
 import { fileEntry } from './diff-files.js'
@@ -99,7 +100,7 @@ function mergeMove(deletion: ReviewFile, entry: UntrackedEntry): ReviewFile {
 		renamePure: true,
 		added: 0,
 		removed: 0,
-		size: Buffer.byteLength(entry.working, 'utf8'),
+		size: utf8ByteLength(entry.working),
 	}
 }
 

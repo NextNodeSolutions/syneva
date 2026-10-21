@@ -1,5 +1,4 @@
 // The open body as the hub reads it (POST /api/hub/desks and POST /api/hub/inventory): the repository's absolute path, the mode and source, and a guide validated by the domain rule before any desk is touched.
-import os from 'node:os'
 import path from 'node:path'
 
 import { validateGuide } from '../domain/guide.js'
@@ -26,15 +25,20 @@ function optionalText(
 }
 
 // A leading `~` names the home directory of the hub's user, as a shell would expand it (a person typing a path into the dashboard writes it so); Node's path functions never do.
+// The directory is the composition root's to give (core reads no machine); a hub with no user home leaves the `~`, and the path is refused as not absolute.
 const HOME_PREFIX = /^~(?=$|[\\/])/
 
-function expandHome(text: string): string {
-	return text.replace(HOME_PREFIX, () => os.homedir())
+function homeExpander(homeDir: string | undefined): (text: string) => string {
+	if (!homeDir) return text => text
+	return text => text.replace(HOME_PREFIX, () => homeDir)
 }
 
 // `root` is required and absolute (after `~`): the hub's cwd is no one's - an auto-started hub inherits whichever agent started it, so a relative root would open whatever repository that is.
 // A present `guide` is validated by the domain rule before any desk is touched.
-export function parseOpenRequest(body: unknown): ParsedOpen {
+export function parseOpenRequest(
+	body: unknown,
+	homeDir: string | undefined,
+): ParsedOpen {
 	if (typeof body !== 'object' || body === null)
 		return { error: 'The open body must be a JSON object.' }
 	const record: Record<string, unknown> = Object.fromEntries(
@@ -42,6 +46,7 @@ export function parseOpenRequest(body: unknown): ParsedOpen {
 	)
 	const given = optionalText(record, 'root')
 	if (!given) return { error: 'open requires a non-empty `root` path.' }
+	const expandHome = homeExpander(homeDir)
 	const root = expandHome(given)
 	if (!path.isAbsolute(root))
 		return {

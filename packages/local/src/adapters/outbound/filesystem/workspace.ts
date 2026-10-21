@@ -33,6 +33,16 @@ export async function readFile(target: string): Promise<string | null> {
 	}
 }
 
+export async function readBytes(
+	target: string,
+): Promise<Uint8Array<ArrayBuffer> | null> {
+	try {
+		return await fs.readFile(target)
+	} catch {
+		return null
+	}
+}
+
 // mkdtemp, not $TMPDIR-or-/tmp: Windows sets TEMP/TMP instead, so the old fallback resolved to a nonexistent C:\tmp and mkdtemp ENOENT'd there (hunk staging failed on Windows); the file only has to live long enough for one `git apply`.
 export async function writeTempFile(contents: string): Promise<string> {
 	const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'syneva-'))
@@ -56,6 +66,7 @@ export const nodeWorkspace: WorkspacePort = Object.freeze({
 	realpath,
 	isDirectory,
 	readFile,
+	readBytes,
 	writeTempFile,
 	removeTempDir,
 })

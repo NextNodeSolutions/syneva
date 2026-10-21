@@ -1,5 +1,3 @@
-import { promises as fs } from 'node:fs'
-
 import { resolveContained } from '../../application/containment.js'
 import { BAD_PATH, cannotRead } from '../failure.js'
 import { HTTP_OK, fail } from '../http.js'
@@ -36,7 +34,7 @@ export async function serveBlob({ ctx, url }: RouteRequest): Promise<Response> {
 	if ('error' in resolved && resolved.error === 'escape')
 		return fail(BAD_PATH)
 	if (!('abs' in resolved)) return fail(cannotRead(rel))
-	const bytes = await fs.readFile(resolved.abs).catch(() => null)
+	const bytes = await ctx.git.workspace.readBytes(resolved.abs)
 	if (!bytes) return fail(cannotRead(rel))
 	return new Response(bytes, {
 		status: HTTP_OK,

@@ -69,6 +69,7 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		version: options.version,
 		keyRequired: guard.keyRequired,
 		onShutdown: () => options.onShutdown?.(),
+		homeDir: os.homedir(),
 	})
 	await listenOn(server, options.port ?? DEFAULT_HUB_PORT, host)
 	await hub.restore()

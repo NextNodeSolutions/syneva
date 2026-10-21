@@ -31,6 +31,8 @@ export type HubRouteDeps = {
 	version: string
 	keyRequired: boolean
 	onShutdown: () => void
+	// The hub user's home directory, which a leading `~` in an open's paths names (open-request.ts); undefined on a hub with no user home.
+	homeDir: string | undefined
 }
 
 // What an agent does next, by refusal; a code without its own line gets the generic repo-state fix.
@@ -75,7 +77,7 @@ export async function openDeskRoute(
 	deps: HubRouteDeps,
 	request: Request,
 ): Promise<Response> {
-	const parsed = parseOpenRequest(await readJsonBody(request))
+	const parsed = parseOpenRequest(await readJsonBody(request), deps.homeDir)
 	if ('error' in parsed)
 		return fail({
 			status: HTTP_UNPROCESSABLE,
@@ -106,7 +108,7 @@ export async function inventoryRoute(
 	deps: HubRouteDeps,
 	request: Request,
 ): Promise<Response> {
-	const parsed = parseOpenRequest(await readJsonBody(request))
+	const parsed = parseOpenRequest(await readJsonBody(request), deps.homeDir)
 	if ('error' in parsed)
 		return fail({
 			status: HTTP_UNPROCESSABLE,

@@ -6,6 +6,7 @@ import {
 } from '../domain/diff/change.js'
 import { blobOid } from '../domain/identity.js'
 import { hash } from '../domain/identity.js'
+import { utf8ByteLength } from '../domain/utf8.js'
 
 import { mapContentReads } from './content-reads.js'
 
@@ -75,7 +76,7 @@ function diffTextBytes(hunks: readonly DiffHunk[]): number {
 	for (const hunk of hunks) {
 		bytes += hunk.header.length + 1
 		for (const line of hunk.lines)
-			bytes += Buffer.byteLength(line.text, 'utf8') + LINE_PREFIX_BYTES
+			bytes += utf8ByteLength(line.text) + LINE_PREFIX_BYTES
 	}
 	return bytes
 }
@@ -127,7 +128,7 @@ async function contentStamp(
 		contentHash: blobOid(newContents),
 		size:
 			opts.isWorkingSide && file.newPath
-				? Buffer.byteLength(newContents, 'utf8')
+				? utf8ByteLength(newContents)
 				: undefined,
 	}
 }
@@ -225,10 +226,6 @@ export function fileEntry(
 		removed,
 		renamePure: false,
 		// Hunk-less adds (the 107 MB class) have no diff bytes to sum: changed lines + byte size flag them.
-		...fileFlags(
-			0,
-			added + removed,
-			Buffer.byteLength(newContents, 'utf8'),
-		),
+		...fileFlags(0, added + removed, utf8ByteLength(newContents)),
 	}
 }
