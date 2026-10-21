@@ -22,12 +22,19 @@ export type BrowserReviewFile = {
 	hasHunks: boolean
 }
 
+// What a desk can do beyond recording verdicts, fixed for its life by its mode and its hub.
+// `staging`: whether accepting may write the git index (/stage, /stage-change, /unstage). False on
+// a pr desk (its commits stage nothing) and on a hub without a working tree, where /stage and
+// /stage-change answer STAGING_DISABLED (and /unstage too on such a hub).
+export type DeskCapabilities = { staging: boolean }
+
 export type BrowserReviewState = {
 	root: string
 	session: string
 	mode: ReviewMode
 	target?: string | undefined
 	staged: boolean
+	capabilities: DeskCapabilities
 	baseDiffHash: string
 	changes: readonly ChangeState[]
 	comments: readonly ReviewComment[]

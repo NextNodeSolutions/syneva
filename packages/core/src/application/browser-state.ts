@@ -1,6 +1,7 @@
 import type {
 	BrowserReviewFile,
 	BrowserReviewState,
+	DeskCapabilities,
 } from '@syneva/contracts/browser'
 import type { Guide } from '@syneva/contracts/guide'
 import type {
@@ -127,13 +128,17 @@ function browserGuide(guide: DomainGuide): Guide {
 }
 
 // Allowlist every level: spreading the backend state/files would silently expose future fields. Do not mutate or clone diff bodies - staging and reconciliation still own the originals.
-export function browserState(state: ReviewState): BrowserReviewState {
+export function browserState(
+	state: ReviewState,
+	capabilities: DeskCapabilities,
+): BrowserReviewState {
 	return withoutUndefined({
 		root: state.root,
 		session: state.session,
 		mode: state.mode,
 		target: state.target,
 		staged: state.staged,
+		capabilities,
 		baseDiffHash: state.baseDiffHash,
 		files: state.files.map(browserFile),
 		changes: state.changes.map(browserChange),

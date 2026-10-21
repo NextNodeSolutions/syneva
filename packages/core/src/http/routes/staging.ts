@@ -27,7 +27,7 @@ const NO_STAGING: ApiFailure = {
 	status: HTTP_CONFLICT,
 	code: 'STAGING_DISABLED',
 	error: 'Staging is unavailable on this hub: its desks read a branch, not a working tree.',
-	fix: 'Accept and reject still record the verdict; there is no index to stage it in.',
+	fix: 'Accept and reject still record the verdict; the desk state says capabilities.staging is false, so stage nothing.',
 }
 
 export async function stageFiles({

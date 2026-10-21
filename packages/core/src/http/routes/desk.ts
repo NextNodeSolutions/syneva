@@ -2,7 +2,10 @@ import {
 	browserDomainComment,
 	browserState,
 } from '../../application/browser-state.js'
-import { projectFiles } from '../../application/capabilities.js'
+import {
+	deskCapabilities,
+	projectFiles,
+} from '../../application/capabilities.js'
 import { guideAuthoring } from '../../application/guide-authoring.js'
 import { buildInventory } from '../../domain/inventory.js'
 import { readJsonBody, json, jsonBody, HTTP_OK } from '../http.js'
@@ -45,7 +48,10 @@ export async function serveState({ ctx }: RouteRequest): Promise<Response> {
 		JSON.stringify({ ...status, serverInstanceId: ctx.instanceId }),
 		() =>
 			JSON.stringify({
-				...browserState(ctx.state),
+				...browserState(
+					ctx.state,
+					deskCapabilities(ctx.state, ctx.git),
+				),
 				...status,
 				serverInstanceId: ctx.instanceId,
 			}),

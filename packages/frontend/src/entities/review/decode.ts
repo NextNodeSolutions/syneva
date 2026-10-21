@@ -21,6 +21,7 @@ import type {
 	ChangeState,
 	Decision,
 	DeskPollSnapshot,
+	DeskCapabilities,
 	DeskRefreshEvent,
 	DeskStateSnapshot,
 	DeskStatus,
@@ -151,6 +152,7 @@ export function decodeReviewState(raw: unknown, endpoint: string): ReviewState {
 		mode: enumValue(o.mode, endpoint, MODES, 'review state.mode'),
 		target: optString(o, 'target', endpoint),
 		staged: requiredBoolean(o, 'staged', endpoint),
+		capabilities: decodeCapabilities(o.capabilities, endpoint),
 		baseDiffHash: requiredString(o, 'baseDiffHash', endpoint),
 		changes: requiredArray(o, 'changes', endpoint, 'changes').map(c =>
 			decodeChange(c, ctx),
@@ -184,6 +186,11 @@ export function decodeReviewState(raw: unknown, endpoint: string): ReviewState {
 			decodeReviewFile(f, ctx),
 		),
 	}
+}
+
+function decodeCapabilities(raw: unknown, endpoint: string): DeskCapabilities {
+	const o = assertObject(raw, endpoint, 'capabilities')
+	return { staging: requiredBoolean(o, 'staging', endpoint) }
 }
 
 function decodeStringRecord(

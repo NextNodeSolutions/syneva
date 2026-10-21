@@ -101,12 +101,17 @@ export type PreviewFile = ReviewFile & {
 	previewSide?: 'additions' | 'deletions' | undefined
 }
 
+// What the desk can do beyond recording verdicts (fixed for its life): `staging` - accepting may
+// write the git index.
+export type DeskCapabilities = { staging: boolean }
+
 export type ReviewState = {
 	root: string
 	session: string
 	mode: ReviewMode
 	target?: string | undefined
 	staged: boolean
+	capabilities: DeskCapabilities
 	baseDiffHash: string
 	changes: ChangeState[]
 	comments: ReviewComment[]

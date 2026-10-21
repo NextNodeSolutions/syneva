@@ -1,6 +1,7 @@
 import { appendLiveComment } from '../../application/add-comment.js'
 import { appendLiveDomainComment } from '../../application/add-domain-comment.js'
 import { browserState } from '../../application/browser-state.js'
+import { deskCapabilities } from '../../application/capabilities.js'
 import { roundSent } from '../../application/journal.js'
 import {
 	resetReviewPatch,
@@ -191,7 +192,10 @@ export async function resetDesk({
 		ctx.commit(saved.state)
 		const response: BrowserResetResponse = {
 			ok: true,
-			state: browserState(saved.state),
+			state: browserState(
+				saved.state,
+				deskCapabilities(saved.state, ctx.git),
+			),
 			serverInstanceId: ctx.instanceId,
 		}
 		return json(HTTP_OK, response)
