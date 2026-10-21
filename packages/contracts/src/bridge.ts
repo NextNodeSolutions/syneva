@@ -87,37 +87,43 @@ export type RelayFailure =
 	| 'CANCELLED'
 	| 'TOO_MANY'
 
+// The frames a snapshot is made of carry the `tag` of the `snapshot?` that asked for it, when it
+// had one: the web's object hands a tagged frame to the one tab it names and every other frame
+// to all its tabs, so a tab that connects gets its snapshot and the others are not sent it again
+// (RFC 6.1 B10). A reader ignores it; a frame of the live stream never has one.
+export type SnapshotTag = { tag?: string | undefined }
+
 export type BridgeFrame =
 	| { t: 'hubs-end' }
 	// First frame after connect.
-	| { t: 'hello'; hub: HubIdentity }
+	| ({ t: 'hello'; hub: HubIdentity } & SnapshotTag)
 	// A desk opened, reloaded or restored, or its summary changed.
-	| { t: 'desk'; hubId: string; desk: DeskSummary }
+	| ({ t: 'desk'; hubId: string; desk: DeskSummary } & SnapshotTag)
 	| { t: 'closed'; hubId: string; deskId: string }
 	// A desk's pulse changed: coalesced per desk, latest wins; partial when the whole would not fit
 	// a frame.
-	| {
+	| ({
 			t: 'pulse'
 			hubId: string
 			deskId: string
 			pulse: DeskPulse | PartialDeskPulse
-	  }
+	  } & SnapshotTag)
 	// Journal events once on disk, oldest first, each with its hub's own seq: a reader keys them
 	// on (hubId, seq), so a tail replayed after a reconnect deduplicates.
-	| { t: 'journal'; hubId: string; events: HubEvent[] }
+	| ({ t: 'journal'; hubId: string; events: HubEvent[] } & SnapshotTag)
 	// A plan record created or changed (a new version, an approval, a status change), with the
 	// live desk reviewing it when the frame was shaped. The `desk` frames keep that link as desks
 	// come and go: a desk whose `plan` names the record reviews it, until its `closed` frame. An
 	// addition to RFC 4.4: the dashboard read the plan library on a timer, and the stream
 	// replaces that read too.
-	| { t: 'plan'; hubId: string; plan: PlanSummary }
+	| ({ t: 'plan'; hubId: string; plan: PlanSummary } & SnapshotTag)
 	// Closes a snapshot: `hello`, one `desk` and one `pulse` per desk, the journal tail, every
 	// plan (on the local stream, the hub's pairing), then this.
-	| { t: 'snapshot-end'; hubId: string }
+	| ({ t: 'snapshot-end'; hubId: string } & SnapshotTag)
 	// Where the hub's pairing with the web stands (pairing.ts), each time it moves. An addition to
 	// RFC 4.4: the local hub tells its own tabs, so the Hub page follows its probe without asking;
 	// a probe never sends it to the web.
-	| { t: 'pairing'; hubId: string; pairing: PairingState }
+	| ({ t: 'pairing'; hubId: string; pairing: PairingState } & SnapshotTag)
 	// The web's object tells its tabs where each of the person's paired hubs stands: one per hub
 	// when a tab connects (the Worker hands the object the person's hubs with the upgrade, since
 	// the object stores nothing), then one each time a hub socket opens or closes. `version` and
@@ -131,8 +137,11 @@ export type BridgeFrame =
 			version?: string | undefined
 			lastSeenAt?: string | null | undefined
 	  }
-	// The object asks a hub for a snapshot.
-	| { t: 'snapshot?' }
+	// The object asks a hub for a snapshot, for the tab that just connected: `tag` (at most
+	// `snapshotTagChars`) names it, and the hub sends that snapshot with the tag on each of its
+	// frames, beside its live stream, which goes on untagged. Without a tag (a web before tags),
+	// the snapshot is for every tab and starts the hub's stream over.
+	| { t: 'snapshot?'; tag?: string | undefined }
 	// The HTTP relay (RFC 4.5): one request, its answer, its failure, its cancellation. The
 	// request's path carries web desk ids, which the hub strips (RFC 4.8); `query` is the search
 	// part with its `?`, or empty. `req.body` is the request's body as text, as the web read it.
@@ -231,6 +240,9 @@ export const BRIDGE_LIMITS = {
 	bufferedBytes: 8_388_608,
 	journalTail: 200,
 	journalPerFrame: 200,
+	// A `snapshot?`'s tag, and so a snapshot frame's: a hub never echoes a longer one, the object
+	// closes a hub socket that sends one.
+	snapshotTagChars: 64,
 	backoffMinMs: 1_000,
 	backoffMaxMs: 60_000,
 	// What a client waits before its next attempt after a close code that names a wait (RFC 4.3):

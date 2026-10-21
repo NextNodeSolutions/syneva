@@ -33,6 +33,7 @@ import {
 	checkEvents,
 	checkHello,
 	checkResnapshot,
+	checkTaggedSnapshot,
 } from './stream-checks.mjs'
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -78,6 +79,7 @@ const tab = await checkHello(context)
 const opened = await checkEvents(context, tab)
 if (opened) {
 	await checkResnapshot(context, tab)
+	await checkTaggedSnapshot(context, tab, opened.desk)
 	await checkRelay(context, opened.desk)
 	await checkRefusals(context, opened.desk)
 	await checkMachine(context, opened.desk)

@@ -76,7 +76,7 @@ export function createStreamQueue(source: StreamSource): StreamQueue {
 	// The newest journal seq the reader holds (the snapshot's tail): never sent again.
 	let coveredSeq = 0
 	return {
-		hello: () => helloText(source.identity),
+		hello: () => helloText(source),
 		async snapshot(): Promise<string[]> {
 			const snapshot = await snapshotOf(source, ledger)
 			coveredSeq = snapshot.coveredSeq
@@ -278,7 +278,7 @@ async function snapshotOf(
 	]
 	ledger.moved.delete('pairing')
 	sendPairing(texts, source, ledger)
-	texts.push(snapshotEndText(source.identity.id))
+	texts.push(snapshotEndText(source))
 	return { texts, coveredSeq: tail.latest }
 }
 

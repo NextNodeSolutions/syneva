@@ -142,10 +142,10 @@ type WebFrame = BridgeFrame | { t: 'malformed-req'; id: string }
 
 function received(
 	frame: WebFrame | null,
-	resnapshot: () => void,
+	resnapshot: (tag?: string) => void,
 	relay: RelayChannel | undefined,
 ): void {
-	if (frame?.t === 'snapshot?') resnapshot()
+	if (frame?.t === 'snapshot?') resnapshot(frame.tag)
 	else if (frame?.t === 'req') relay?.request(frame)
 	else if (frame?.t === 'malformed-req') relay?.malformed(frame.id)
 	else if (frame?.t === 'cancel') relay?.cancel(frame.id)
@@ -195,11 +195,23 @@ function parsed(text: string): WebFrame | null {
 
 function webFrame(raw: unknown): WebFrame | null {
 	if (typeof raw !== 'object' || raw === null || !('t' in raw)) return null
-	if (raw.t === 'snapshot?') return { t: 'snapshot?' }
+	if (raw.t === 'snapshot?') return snapshotAsk(raw)
 	if (!('id' in raw) || typeof raw.id !== 'string') return null
 	if (raw.t === 'cancel') return { t: 'cancel', id: raw.id }
 	if (raw.t !== 'req') return null
 	return requestFrame(raw.id, raw)
+}
+
+// A tag that does not read (not text, empty, past `snapshotTagChars`) is never echoed (the web
+// would close the socket on the frames carrying it): the snapshot then goes to every tab.
+function snapshotAsk(raw: object): WebFrame {
+	const tag = 'tag' in raw ? raw.tag : undefined
+	const isTag =
+		typeof tag === 'string' &&
+		tag.length > 0 &&
+		tag.length <= BRIDGE_LIMITS.snapshotTagChars
+	if (!isTag) return { t: 'snapshot?' }
+	return { t: 'snapshot?', tag }
 }
 
 function requestFrame(id: string, raw: object): WebFrame {

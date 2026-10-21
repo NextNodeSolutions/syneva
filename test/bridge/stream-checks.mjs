@@ -4,12 +4,14 @@
 // desks and plans by their web ids, while the hub's own stream keeps the local ids.
 import { isDeepStrictEqual } from 'node:util'
 
+import { BRIDGE_LIMITS } from '../../packages/contracts/dist/bridge.js'
 import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 import { waitFor } from '../stream/stream-client.mjs'
 
 import { readLocal } from './pairing-checks.mjs'
 import { roundActions } from './round-actions.mjs'
 import {
+	isPulse,
 	isSnapshotOrder,
 	nextSnapshot,
 	openTab,
@@ -18,6 +20,9 @@ import {
 	webPlan,
 	webSummary,
 } from './web-ids.mjs'
+
+// As the web's object tags a tab's snapshot: a socket id.
+const SNAPSHOT_TAG = 'tab-0f6c2a1e'
 
 export async function checkHello({ report, fake, record, hub }) {
 	report.section('stream: hello and snapshot')
@@ -91,6 +96,68 @@ export async function checkResnapshot({ report, fake, record, driver }, tab) {
 				sent.map(frame => frame.plan),
 				plans.plans.map(each => webPlan(record.hubId, each)),
 			),
+	)
+}
+
+// A tagged `snapshot?` (the web's object asks one for the tab that just connected): every frame
+// of that snapshot carries the tag, the live stream goes on untagged after it, and a tag the hub
+// cannot echo (past `snapshotTagChars`) is answered with an untagged snapshot.
+export async function checkTaggedSnapshot(context, tab, desk) {
+	const { report, fake, record } = context
+	report.section('stream: a tagged snapshot?')
+	const from = tab.frames.length
+	fake.sockets.send(record.hubId, { t: 'snapshot?', tag: SNAPSHOT_TAG })
+	const snapshot = await report.step(
+		'a tagged snapshot? answers hello and a snapshot',
+		() => nextSnapshot(tab, from),
+	)
+	if (!snapshot) return
+	report.check(
+		'each of its frames carries the tag, hello to snapshot-end',
+		isSnapshotOrder(snapshot.frames) &&
+			[snapshot.hello, ...snapshot.frames].every(
+				frame => frame.tag === SNAPSHOT_TAG,
+			),
+	)
+	await checkLiveUntagged(context, tab, desk)
+	const longFrom = tab.frames.length
+	const tooLong = 'x'.repeat(BRIDGE_LIMITS.snapshotTagChars + 1)
+	fake.sockets.send(record.hubId, { t: 'snapshot?', tag: tooLong })
+	const untagged = await report.step(
+		'a tag past snapshotTagChars is answered with an untagged snapshot',
+		() => nextSnapshot(tab, longFrom),
+	)
+	report.check(
+		'none of its frames echoes that tag',
+		Boolean(untagged) &&
+			[untagged.hello, ...untagged.frames].every(
+				frame => !('tag' in frame),
+			),
+	)
+}
+
+// A change to the desk after the tagged snapshot reaches the tab on the live stream, untagged.
+async function checkLiveUntagged({ report, driver, repo, record }, tab, desk) {
+	const from = tab.frames.length
+	repo.edit('line one\nline 2 after a tagged snapshot\nline three\n')
+	const reloaded = await driver.cli(
+		['reload', '--session', SESSION],
+		repo.root,
+	)
+	const pulse = await waitFor(tab, isPulse(desk.webId), {
+		from,
+		what: "the reloaded desk's pulse",
+	}).catch(() => null)
+	const after = tab.frames
+		.slice(from)
+		.map(each => each.frame)
+		.filter(frame => frame?.t !== 'hub' && frame?.hubId === record.hubId)
+	report.check(
+		'the live stream goes on untagged',
+		reloaded.code === 0 &&
+			Boolean(pulse) &&
+			after.every(frame => !('tag' in frame)),
+		after.map(frame => frame.t).join(' '),
 	)
 }
 

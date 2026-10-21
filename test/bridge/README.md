@@ -26,16 +26,16 @@ The fake alone, to pair a hub by hand: `node test/bridge/fake-bridge.mjs --port 
 ## The fake bridge
 
 One user, everything in memory. As the web: `POST /bridge/v1/device/code` and
-`/bridge/v1/device/token` (interval 1 s, the web's is 5), `DELETE /bridge/v1/hub` (the Bearer
-token revoked, its socket closed with 4001), the hub socket `GET /bridge/v1/ws` (the Bearer
-checked, 401 when unknown or revoked; past `hubsPerUser`, 1013), the tab socket `GET /api/hub/ws`
-(a `hub` frame per connected hub, `snapshot?` to each), and the relay: any other request under
-`/api/` goes to the hub its web id names (or the `x-syneva-hub` header) as one `req`, its `res` and
-`chunk` frames streamed back as they come; no hub socket answers 503, past `inFlightPerUser` 429,
-the deadline 504 with a `cancel`, a client gone first a `cancel`. A hub's stream frames must carry
-its hub id and are forwarded verbatim to the tabs; a token bucket per hub socket (the object's)
-closes it with 1008 past `framesPerSecond` or `bytesPerSecond`; pings get their pong outside it.
-Every frame is recorded with its size and arrival time.
+`/bridge/v1/device/token` (interval 1 s, the web's is 5), `DELETE /bridge/v1/hub` (the Bearer token
+revoked, its socket closed with 4001), the hub socket `GET /bridge/v1/ws` (the Bearer checked, 401
+when unknown or revoked; past `hubsPerUser`, 1013), the tab socket `GET /api/hub/ws` (a `hub` frame
+per connected hub, an untagged `snapshot?` to each, as a web before tags asks), and the relay: any
+other request under `/api/` goes to the hub its web id names (or the `x-syneva-hub` header) as one
+`req`, its `res` and `chunk` frames streamed back as they come; no hub socket answers 503, past
+`inFlightPerUser` 429, the deadline 504 with a `cancel`, a client gone first a `cancel`. A hub's
+stream frames must carry its hub id and are forwarded verbatim to the tabs; a token bucket per hub
+socket (the object's) closes it with 1008 past `framesPerSecond` or `bytesPerSecond`; pings get
+their pong outside it. Every frame is recorded with its size and arrival time.
 
 Test-only controls: `POST /__approve { userCode, deny? }`,
 `POST /__token-asks { failures }` (the next token asks meet these instead of an answer, in order:
@@ -60,7 +60,10 @@ is recorded), `POST /__close { hubId, code, reason? }`,
   status, comment, ask, await, send, reload, close; the reviewer's through the relay) raise their
   `desk`, `pulse`, `journal`, `plan` and `closed` frames with web ids (`<hubId><localId>`, desk
   pages `/d/<web id>/`). `snapshot?` answers `hello` and a snapshot whose desks and plans are
-  the local routes' with web ids. A second tab's tail deduplicates by `(hubId, seq)`. The hub's
+  the local routes' with web ids; a tagged `snapshot?` (as the web's object asks for the tab that
+  connected) answers one whose every frame, `hello` to `snapshot-end`, carries the tag, while the
+  live stream after it goes on untagged, and a tag past `snapshotTagChars` is never echoed (an
+  untagged snapshot answers it). A second tab's tail deduplicates by `(hubId, seq)`. The hub's
   own stream keeps local ids, and no `pairing` frame ever goes to the web.
 - **Relay**: `/state` through the bridge is the local `/state`; a POSTed comment lands; `/blob`
   bytes and type are the local ones; a 3 MiB answer is `res { more }` then chunks of at most

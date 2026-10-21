@@ -25,14 +25,32 @@ import type { HubDesk } from './hosted-desk.js'
 import type { Hub } from './hub.js'
 
 // What a stream reads: the hub it speaks for (as `identity`), its journal and its plan library;
-// on the local stream, the hub's pairing with the web too (its tabs alone are told of it).
+// on the local stream, the hub's pairing with the web too (its tabs alone are told of it). `tag`
+// shapes a stream for one reader: a snapshot the web asked for one tab (a tagged `snapshot?`),
+// every frame of which carries it.
 export type StreamSource = {
 	identity: HubIdentity
 	hub: Pick<Hub, 'listDesks' | 'restored' | 'subscribe' | 'summary'>
 	journal: Pick<HubJournal, 'read'>
 	plans: Pick<PlanLibrary, 'list'>
 	pairing?: (() => PairingState) | undefined
+	tag?: string | undefined
 }
+
+// The frames a snapshot is made of: the ones a tag rides on (contracts' SnapshotTag).
+type SnapshotFrame = Extract<
+	BridgeFrame,
+	{
+		t:
+			| 'hello'
+			| 'desk'
+			| 'pulse'
+			| 'journal'
+			| 'plan'
+			| 'snapshot-end'
+			| 'pairing'
+	}
+>
 
 // The id a stream gives a desk or a plan: its local id on the local stream; on a probe its web id
 // (RFC 4.8), the hub's web id followed by the local one, so the web resolves the hub from any id a
@@ -74,12 +92,18 @@ export function frameText(frame: BridgeFrame): string {
 	return JSON.stringify(frame)
 }
 
-export function helloText(identity: HubIdentity): string {
-	return frameText({ t: 'hello', hub: identity })
+// A frame a snapshot may carry, with the source's tag when it has one.
+function shapedText(source: StreamSource, frame: SnapshotFrame): string {
+	if (!source.tag) return frameText(frame)
+	return frameText({ ...frame, tag: source.tag })
 }
 
-export function snapshotEndText(hubId: string): string {
-	return frameText({ t: 'snapshot-end', hubId })
+export function helloText(source: StreamSource): string {
+	return shapedText(source, { t: 'hello', hub: source.identity })
+}
+
+export function snapshotEndText(source: StreamSource): string {
+	return shapedText(source, { t: 'snapshot-end', hubId: source.identity.id })
 }
 
 export function closedText(source: StreamSource, deskId: string): string {
@@ -93,7 +117,7 @@ export function closedText(source: StreamSource, deskId: string): string {
 export function deskText(source: StreamSource, desk: HubDesk): string {
 	const hubId = source.identity.id
 	const summary = streamSummary(source, source.hub.summary(desk))
-	return frameText({ t: 'desk', hubId, desk: summary })
+	return shapedText(source, { t: 'desk', hubId, desk: summary })
 }
 
 // A desk's pulse, whole when its frame fits `frameBytes`, else partial (desk-pulse.ts): every frame
@@ -107,16 +131,20 @@ export function pulseText(source: StreamSource, desk: HubDesk): string {
 		deskId: streamId(source, desk.id),
 	} as const
 	const pulse = deskPulse(desk.ctx)
-	const whole = frameText({ ...envelope, pulse })
+	const whole = shapedText(source, { ...envelope, pulse })
 	if (utf8ByteLength(whole) <= BRIDGE_LIMITS.frameBytes) return whole
-	return frameText({ ...envelope, pulse: partialPulse(pulse) })
+	return shapedText(source, { ...envelope, pulse: partialPulse(pulse) })
 }
 
 // The hub's pairing as it stands now; null on a stream that does not carry it (the probe's).
 export function pairingText(source: StreamSource): string | null {
 	if (!source.pairing) return null
 	const hubId = source.identity.id
-	return frameText({ t: 'pairing', hubId, pairing: source.pairing() })
+	return shapedText(source, {
+		t: 'pairing',
+		hubId,
+		pairing: source.pairing(),
+	})
 }
 
 // Each plan with the live desk reviewing it as the hub stands now (one read of the desks).
@@ -127,7 +155,7 @@ export function planTexts(
 	const hubId = source.identity.id
 	const desks = liveDesksByPlan(source.hub)
 	return [...records].map(record =>
-		frameText({
+		shapedText(source, {
 			t: 'plan',
 			hubId,
 			plan: streamPlan(source, planOnHub(record, desks)),
@@ -137,14 +165,15 @@ export function planTexts(
 
 // Journal events, oldest first, as frames of at most `journalPerFrame` events, each under
 // `frameBytes`: a batch closes before the event that would carry it past either bound. Measured,
-// not guessed: a frame's size is its envelope plus each event's text plus the commas between.
+// not guessed: a frame's size is its envelope (its tag included) plus each event's text plus the
+// commas between.
 export function journalTexts(
 	source: StreamSource,
 	events: readonly HubEvent[],
 ): string[] {
 	const hubId = source.identity.id
 	const envelope = utf8ByteLength(
-		frameText({ t: 'journal', hubId, events: [] }),
+		shapedText(source, { t: 'journal', hubId, events: [] }),
 	)
 	const batches: HubEvent[][] = []
 	let batch: HubEvent[] = []
@@ -160,7 +189,9 @@ export function journalTexts(
 		batch.push(event)
 	}
 	if (batch.length) batches.push(batch)
-	return batches.map(each => frameText({ t: 'journal', hubId, events: each }))
+	return batches.map(each =>
+		shapedText(source, { t: 'journal', hubId, events: each }),
+	)
 }
 
 function isFull(count: number, bytesWithNext: number): boolean {
