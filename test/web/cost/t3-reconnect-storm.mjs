@@ -38,14 +38,14 @@ async function run(ctx) {
 	})
 	const counts = histogram(stormed.outcomes)
 	ctx.note(`outcomes: ${describe(counts)}`)
-	const edge = stormed.outcomes.filter(
-		each => each.status === HTTP_TOO_MANY || each.status === 403,
-	)
+	// The zone's rate limiting rule answers 429 (RFC 6.7, R10). A 403 is another edge rule (Bot
+	// Fight Mode, T10's block rule left up): not the bound under test, so it does not count.
+	const edge = stormed.outcomes.filter(each => each.status === HTTP_TOO_MANY)
 	const first = edge.length
 		? Math.min(...edge.map(each => each.at)) / 1000
 		: null
 	report.check(
-		`the edge answers 429 (or 403) within ${EDGE_WITHIN_S} s`,
+		`the edge's rate rule answers 429 within ${EDGE_WITHIN_S} s`,
 		first !== null && first <= EDGE_WITHIN_S,
 		first === null ? 'never' : `first at ${first.toFixed(1)} s`,
 	)
