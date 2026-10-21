@@ -1,7 +1,7 @@
 // A snapshot read against what the hub's HTTP routes answer at the same moment: `hello`, one
-// `desk` and one `pulse` per live desk (newest first), the journal tail, every plan,
-// `snapshot-end`, in that order, every frame naming the hub and under `frameBytes`; each pulse is
-// its desk's GET …/pulse, whole or partial (pulse-oracle.mjs).
+// `desk` and one `pulse` per live desk (newest first), the journal tail, every plan, the hub's
+// pairing, `snapshot-end`, in that order, every frame naming the hub and under `frameBytes`; each
+// pulse is its desk's GET …/pulse, whole or partial (pulse-oracle.mjs).
 import { isDeepStrictEqual } from 'node:util'
 
 import {
@@ -13,7 +13,7 @@ import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 import { agreesWithRoute, isPartial, readPulse } from './pulse-oracle.mjs'
 import { readSnapshot } from './stream-client.mjs'
 
-const SNAPSHOT_ORDER = /^(desk pulse )*(journal )*(plan )*snapshot-end$/
+const SNAPSHOT_ORDER = /^(desk pulse )*(journal )*(plan )*pairing snapshot-end$/
 const HELLO_FIELDS = ['id', 'name', 'version', 'instanceId', 'startedAt']
 
 export async function checkSnapshot({ report, url, headers, driver }, label) {
@@ -42,7 +42,7 @@ export async function checkSnapshot({ report, url, headers, driver }, label) {
 	)
 	const order = rest.map(frame => frame.t).join(' ')
 	report.check(
-		'desk+pulse pairs, journal, plans, snapshot-end',
+		'desk+pulse pairs, journal, plans, the pairing, snapshot-end',
 		SNAPSHOT_ORDER.test(order),
 		order,
 	)

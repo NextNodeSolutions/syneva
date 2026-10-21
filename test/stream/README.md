@@ -33,10 +33,10 @@ It prints one line per check and exits 1 when any failed.
   refusal) leave the hub answering `/api/hub/health`.
 - **Snapshot**, on connect and again after the events: `hello` first (the hub's id, `local`, and
   the identity `/api/hub/health` reports), one `desk` then one `pulse` per live desk, the journal
-  tail, every plan, `snapshot-end`, every frame naming the hub and under `frameBytes`. Each part
-  equals its HTTP route read at the same moment: `/api/hub/desks`, each desk's `/pulse` (whole, or
-  a partial pulse's head; `/pulse` itself is `/poll` and the instance id), `/api/hub/journal`,
-  `/api/hub/plans`.
+  tail, every plan, the hub's pairing, `snapshot-end`, every frame naming the hub and under
+  `frameBytes`. Each part equals its HTTP route read at the same moment: `/api/hub/desks`, each
+  desk's `/pulse` (whole, or a partial pulse's head; `/pulse` itself is `/poll` and the instance
+  id), `/api/hub/journal`, `/api/hub/plans`.
 - **Events**, on the first reader as the CLI and the desk's API drive a round: `open` (a `desk`, its
   `pulse`, a `desk-opened` entry), `open plan` (the desk naming its plan, the plan's `plan` frame, a
   status change's), `comment` (`agent-replied`, a pulse with the comment), the reviewer's ask

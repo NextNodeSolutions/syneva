@@ -23,6 +23,7 @@ export function isWebHubId(id: string): boolean {
 }
 
 // The id a paired hub's desk goes by on the web: `/d/<webDeskId>/` keeps the local page's shape.
+// A plan's record goes by its web id the same way, so every route that names an id names its hub.
 export function webDeskId(hubId: string, deskId: string): string {
 	return `${hubId}${deskId}`
 }

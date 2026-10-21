@@ -9,6 +9,7 @@ import {
 	deskText,
 	helloText,
 	journalTexts,
+	pairingText,
 	planTexts,
 	pulseText,
 	snapshotEndText,
@@ -20,17 +21,22 @@ import type { HubDesk } from './hosted-desk.js'
 import type { HubSignal } from './hub-signals.js'
 import type { StreamSource } from './stream-frames.js'
 
+// What a stream hears: the hub's signals, and on the local stream its pairing moving (the
+// pairing is read when it is sent, as a desk is).
+export type StreamSignal = HubSignal | { kind: 'pairing' }
+
 export type StreamQueue = {
 	// `hello`: the first frame, before the snapshot is read.
 	hello(): string
 	// The frames a new reader starts from (after `hello`): one `desk` and one `pulse` per live
-	// desk, the journal tail, every plan, `snapshot-end`. Signals noted meanwhile follow it.
+	// desk, the journal tail, every plan, the pairing (a local stream's), `snapshot-end`. Signals
+	// noted meanwhile follow it.
 	snapshot(): Promise<string[]>
-	note(signal: HubSignal): void
+	note(signal: StreamSignal): void
 	// When `take` has frames to give (epoch ms; past means now), null when nothing waits.
 	dueAt(): number | null
 	// The frames due at `now`, in order: closures, then each moved desk's latest line and pulse
-	// (an unchanged one is not sent again), journal batches, plans. At most one take per
+	// (an unchanged one is not sent again), journal batches, plans, the pairing. At most one take per
 	// `coalesceMs`, so a desk's pulse and line travel at most once per window, latest wins.
 	take(now: number): string[]
 }
@@ -53,6 +59,8 @@ type Ledger = {
 	sent: Map<string, string>
 	// When a desk's status changes on its own (its activity line going stale, activity.ts).
 	staleAt: Map<string, { desk: HubDesk; at: number }>
+	// What moved beside the desks, the journal and the plans: the hub's pairing.
+	moved: Set<'pairing'>
 }
 
 export function createStreamQueue(source: StreamSource): StreamQueue {
@@ -62,6 +70,7 @@ export function createStreamQueue(source: StreamSource): StreamQueue {
 		plans: new Map(),
 		sent: new Map(),
 		staleAt: new Map(),
+		moved: new Set(),
 	}
 	let takenAt = 0
 	// The newest journal seq the reader holds (the snapshot's tail): never sent again.
@@ -125,10 +134,13 @@ function noteClosed(ledger: Ledger, deskId: string): void {
 // The live desk count (`health`) is the stream's `desk` and `closed` frames already.
 function noteSignal(
 	ledger: Ledger,
-	signal: HubSignal,
+	signal: StreamSignal,
 	coveredSeq: number,
 ): void {
 	switch (signal.kind) {
+		case 'pairing':
+			ledger.moved.add('pairing')
+			return
 		case 'desk':
 			noteDesk(ledger, signal.desk, 'line')
 			return
@@ -163,7 +175,8 @@ function isPending(ledger: Ledger): boolean {
 	return (
 		ledger.marks.size > 0 ||
 		ledger.journal.length > 0 ||
-		ledger.plans.size > 0
+		ledger.plans.size > 0 ||
+		ledger.moved.size > 0
 	)
 }
 
@@ -177,18 +190,28 @@ function dueAt(ledger: Ledger, takenAt: number): number | null {
 function drain(source: StreamSource, ledger: Ledger): string[] {
 	const texts = [
 		...deskTexts(source, ledger),
-		...journalTexts(source.identity.id, ledger.journal.splice(0)),
+		...journalTexts(source, ledger.journal.splice(0)),
 		...planTexts(source, ledger.plans.values()),
 	]
 	ledger.plans.clear()
+	if (ledger.moved.delete('pairing')) sendPairing(texts, source, ledger)
 	return texts
+}
+
+function sendPairing(
+	texts: string[],
+	source: StreamSource,
+	ledger: Ledger,
+): void {
+	const text = pairingText(source)
+	if (text) send(texts, ledger, 'pairing', text)
 }
 
 function deskTexts(source: StreamSource, ledger: Ledger): string[] {
 	const texts: string[] = []
 	for (const [deskId, marks] of ledger.marks) {
 		if (marks.isClosed) {
-			texts.push(closedText(source.identity.id, deskId))
+			texts.push(closedText(source, deskId))
 			ledger.sent.delete(`line:${deskId}`)
 			ledger.sent.delete(`pulse:${deskId}`)
 		}
@@ -250,10 +273,12 @@ async function snapshotOf(
 	ledger.journal.splice(0, ledger.journal.length, ...later)
 	const texts = [
 		...deskFrames,
-		...journalTexts(source.identity.id, tail.events),
+		...journalTexts(source, tail.events),
 		...planTexts(source, await plansOf(source)),
-		snapshotEndText(source.identity.id),
 	]
+	ledger.moved.delete('pairing')
+	sendPairing(texts, source, ledger)
+	texts.push(snapshotEndText(source.identity.id))
 	return { texts, coveredSeq: tail.latest }
 }
 

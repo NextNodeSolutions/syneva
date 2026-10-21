@@ -9,24 +9,33 @@ import {
 import { createStreamQueue } from '@syneva/core/hub/stream-queue'
 import { fullBucket, spendFrame } from '@syneva/core/hub/stream-rate'
 
+import { createPacer } from '../../../stream-pacer.js'
+
 import type { StreamSource } from '@syneva/core/hub/stream-frames'
 import type { StreamQueue } from '@syneva/core/hub/stream-queue'
 import type { RawData, WebSocket } from 'ws'
+import type { Pacer, Send } from '../../../stream-pacer.js'
 
 export type StreamDeps = {
 	source: StreamSource
 	log: (line: string) => void
 	// A frame over `frameBytes` was refused, named by its head (its kind and desk).
 	oversized: (head: string) => void
+	// The hub's pairing moving (the source reads it): every stream says so to its tab.
+	onPairing?: ((listener: () => void) => () => void) | undefined
 }
 
 // Starts the stream on an accepted socket; hands back its end, which the socket's close calls.
 export function openHubStream(socket: WebSocket, deps: StreamDeps): () => void {
 	const queue = createStreamQueue(deps.source)
 	const write = writer(socket, deps.oversized)
-	const pacer = createPacer(queue, keptUp(socket, write))
+	const pacer = createPacer(() => queue, keptUp(socket, write))
 	const unsubscribe = deps.source.hub.subscribe(signal => {
 		queue.note(signal)
+		pacer.wake()
+	})
+	const unpair = deps.onPairing?.(() => {
+		queue.note({ kind: 'pairing' })
 		pacer.wake()
 	})
 	listenForPings(socket)
@@ -38,16 +47,15 @@ export function openHubStream(socket: WebSocket, deps: StreamDeps): () => void {
 	void begin({ queue, write, pacer, drop })
 	return () => {
 		unsubscribe()
+		unpair?.()
 		pacer.stop()
 		stopListening()
 	}
 }
 
-// Sends one frame, false once the socket can take no more; `written` runs once the frame is
-// written out to the socket (never when it closed first).
-type Send = (text: string, written?: () => void) => boolean
-
-type Pacer = { start(): void; wake(): void; stop(): void }
+// Sends one frame like the pacer's Send; `written` runs once the frame is written out to the
+// socket (never when it closed first).
+type Write = (text: string, written?: () => void) => boolean
 
 // `hello` at once, the snapshot once read, then the events once the snapshot is written out:
 // meanwhile the queue coalesces what moves (latest wins), so a slow link reads the latest state
@@ -57,7 +65,7 @@ type Pacer = { start(): void; wake(): void; stop(): void }
 // to act on.
 async function begin(stream: {
 	queue: StreamQueue
-	write: Send
+	write: Write
 	pacer: Pacer
 	drop: (error: unknown) => void
 }): Promise<void> {
@@ -82,7 +90,7 @@ async function begin(stream: {
 // its batches), so a frame past it is a hub bug: said once per head and never sent, while the
 // stream goes on. Closing the socket would not help: every reconnect's snapshot would meet the
 // same frame again, and the tab would never stay connected.
-function writer(socket: WebSocket, oversized: (head: string) => void): Send {
+function writer(socket: WebSocket, oversized: (head: string) => void): Write {
 	return (text, written) => {
 		if (socket.readyState !== socket.OPEN) return false
 		if (Buffer.byteLength(text) > BRIDGE_LIMITS.frameBytes) {
@@ -101,48 +109,12 @@ function writer(socket: WebSocket, oversized: (head: string) => void): Send {
 // sent its way. Past it the reader is closed with `slow` and reconnects to a fresh snapshot; the
 // close waits behind what is buffered, and a reader that never gets to it is dropped after ws's
 // close timeout, its buffer with it.
-function keptUp(socket: WebSocket, write: Send): Send {
+function keptUp(socket: WebSocket, write: Write): Send {
 	return text => {
 		if (socket.bufferedAmount <= BRIDGE_LIMITS.bufferedBytes)
 			return write(text)
 		socket.close(CLOSE_CODES.slow)
 		return false
-	}
-}
-
-// The coalescer's clock: one timer per stream, armed for the queue's next due time (the next
-// window once frames wait, or a desk's status going stale on its own) and never earlier than the
-// timer already armed. Beside the silence bound below, the one timer of the stream: the hub
-// pushes, nothing here re-asks. It waits for `start` (the snapshot written out), and a stopped
-// pacer never starts again.
-function createPacer(queue: StreamQueue, send: Send): Pacer {
-	let timer: NodeJS.Timeout | undefined
-	let armedFor = Infinity
-	let phase: 'waiting' | 'live' | 'stopped' = 'waiting'
-	const fire = (): void => {
-		timer = undefined
-		armedFor = Infinity
-		if (!queue.take(Date.now()).every(text => send(text))) return
-		wake()
-	}
-	const wake = (): void => {
-		const due = phase === 'live' ? queue.dueAt() : null
-		if (due === null || due >= armedFor) return
-		clearTimeout(timer)
-		armedFor = due
-		timer = setTimeout(fire, Math.max(0, due - Date.now()))
-	}
-	return {
-		start(): void {
-			if (phase !== 'waiting') return
-			phase = 'live'
-			wake()
-		},
-		wake,
-		stop(): void {
-			phase = 'stopped'
-			clearTimeout(timer)
-		},
 	}
 }
 
