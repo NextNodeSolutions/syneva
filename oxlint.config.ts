@@ -798,6 +798,18 @@ export default defineConfig({
 			rules: { 'eslint/no-await-in-loop': 'off' },
 		},
 		{
+			// The cost tests (RFC 0001, 6.7) encode a workload by design, like the benchmarks: frame rates, sizes in MiB, close codes, HTTP statuses and deadlines are the numbers under test, each printed in the check that uses it, and the scenarios are long sequences whose awaits wait on the answer to the one before. The fake sockets read `ws`'s own receiver (underscore) for the close frame, which `ws` reports a TCP close late.
+			files: ['test/web/cost/**/*.mjs'],
+			rules: {
+				'eslint/no-magic-numbers': 'off',
+				'eslint/no-await-in-loop': 'off',
+				'eslint/max-lines': 'off',
+				'eslint/max-lines-per-function': 'off',
+				'eslint/max-depth': 'off',
+				'eslint/no-underscore-dangle': 'off',
+			},
+		},
+		{
 			// apps/web outside the object: the Worker and its routes (RFC 0001, 6.3).
 			files: ['apps/web/src/**/*.ts'],
 			rules: {

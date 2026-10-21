@@ -62,24 +62,37 @@ export async function startWeb({ scratch, port, vars }) {
 		{ cwd: WEB_DIR, env },
 	)
 	const origin = `http://127.0.0.1:${port}`
-	const dev = spawnDev({
-		bin,
-		env,
-		port,
-		persist,
-		vars: { ...vars, SITE_URL: origin },
-	})
-	await waitUntil(
-		async () => {
-			const response = await fetch(`${origin}/api/hub/health`).catch(
-				() => null,
-			)
-			return response?.ok === true
+	const dev = { bin, env, port, persist, vars: { ...vars, SITE_URL: origin } }
+	let running = spawnDev(dev)
+	const ready = () =>
+		waitUntil(
+			async () => {
+				const response = await fetch(`${origin}/api/hub/health`).catch(
+					() => null,
+				)
+				return response?.ok === true
+			},
+			STARTUP_MS,
+			'wrangler dev to answer',
+		)
+	await ready()
+	return {
+		origin,
+		get output() {
+			return running.output
 		},
-		STARTUP_MS,
-		'wrangler dev to answer',
-	)
-	return { origin, ...dev, ...localState({ bin, env, persist }) }
+		links: () => running.links(),
+		link: seen => running.link(seen),
+		stop: () => running.stop(),
+		// The same Worker over the same state and secrets, as after a deploy: every socket drops
+		// (the cost tests' deploy drill, T7).
+		async restart() {
+			await running.stop()
+			running = spawnDev(dev)
+			await ready()
+		},
+		...localState({ bin, env, persist }),
+	}
 }
 
 // What the Worker left in its local state, read from outside it.
