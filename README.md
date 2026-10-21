@@ -64,6 +64,20 @@ Browsers sign in once at `/login` (the key is kept as an HttpOnly cookie, never 
 > [!WARNING]
 > **Whoever holds the key holds the hub.** It can run your configured editor command, stage and reset changes, mutate the git index and read any file in the registered repos. Treat the key like an SSH key, and never expose an `--insecure` hub on a shared office/coffee-shop LAN.
 
+### Pairing with syneva.dev
+
+To reach this machine's desks from syneva.dev, from any browser and with no port opened on the machine, pair its hub with your account:
+
+```bash
+syneva login                 # prints a code and opens the page to confirm it; the hub connects once you do
+syneva logout                # revokes the pairing on the web; the hub keeps running, unpaired
+```
+
+`syneva login` keeps the pairing in `~/.syneva/hub/bridge.json` (readable by you only), and the running hub, or the next `syneva start`, opens one outbound WebSocket to the web. Through it the hub pushes what its own dashboard gets (the desks, their pulse, the journal, the plans) and answers the requests the web relays from your tabs, inside the hub itself. It reconnects on its own when the link drops, waits as long as the web asks when the web is busy, and stops when the web revokes its token (`syneva login` pairs it again); the dashboard's Hub page shows where the pairing stands. The agent's own routes, the hub's shutdown and its sign-in are never relayed: agents keep talking to the hub on the machine. `--web <origin>` (or `SYNEVA_WEB_URL`) pairs with another web than syneva.dev; a hub that is not paired opens no socket at all.
+
+> [!WARNING]
+> **Whoever holds your syneva.dev account holds the hub.** A relayed request runs exactly as a request from a local tab: it can run your configured editor command, stage and reset changes, mutate the git index and read any file in the registered repos. The pairing stands beside the access key, not behind it: a relayed request needs no key. Run `syneva logout` on a machine you no longer want reachable that way.
+
 ## Features
 
 - **A beautiful and functional diff view** built on `@pierre/diffs`.
