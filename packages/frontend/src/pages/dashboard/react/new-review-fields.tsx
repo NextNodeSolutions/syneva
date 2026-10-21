@@ -5,6 +5,7 @@ import * as stylex from '@stylexjs/stylex'
 import { needsTarget } from '../use-new-review'
 
 import { newReviewDialog } from './new-review-dialog.styles'
+import { NewReviewHub } from './new-review-hub'
 import { NewReviewTarget } from './new-review-target'
 import { RepositoryField } from './repository-field'
 
@@ -53,6 +54,7 @@ export function NewReviewFields({
 	const { fields } = form
 	return (
 		<div {...stylex.props(newReviewDialog.fields)}>
+			<NewReviewHub form={form} />
 			<RepositoryField
 				form={form}
 				roots={roots}

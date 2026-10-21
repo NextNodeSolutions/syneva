@@ -1,5 +1,6 @@
 import { useId } from 'react'
 
+import { useHubList } from '@entities/hub/use-hubs'
 import { Code } from '@shared/ui/code'
 import { Dialog } from '@shared/ui/dialog'
 import { DialogBody } from '@shared/ui/dialog-body'
@@ -23,7 +24,7 @@ export function NewReviewDialog({
 	seed: string | null
 	onClose: () => void
 }): ReactElement {
-	const form = useNewReview(seed)
+	const form = useNewReview(seed, useHubList())
 	const titleId = useId()
 	const introId = useId()
 	const close = (): void => {

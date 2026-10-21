@@ -11,6 +11,8 @@ export type Choice<T extends string> = {
 	detail: string
 	// This choice's radio takes a dialog's first focus (data-autofocus).
 	isAutofocused?: boolean | undefined
+	// Listed but not choosable (a hub that is offline): the radio is disabled and the tile dimmed.
+	isDisabled?: boolean | undefined
 }
 
 type ChoiceTileProps<T extends string> = {
@@ -28,7 +30,11 @@ export function ChoiceTile<T extends string>({
 }: ChoiceTileProps<T>): ReactElement {
 	return (
 		<label
-			{...stylex.props(choiceField.tile, isChosen && choiceField.tileOn)}
+			{...stylex.props(
+				choiceField.tile,
+				isChosen && choiceField.tileOn,
+				choice.isDisabled === true && choiceField.tileOff,
+			)}
 		>
 			<input
 				{...stylex.props(focus.ring, choiceField.radio)}
@@ -36,6 +42,7 @@ export function ChoiceTile<T extends string>({
 				name={name}
 				value={choice.value}
 				checked={isChosen}
+				disabled={choice.isDisabled === true}
 				data-autofocus={choice.isAutofocused || undefined}
 				onChange={() => onChoose(choice.value)}
 			/>

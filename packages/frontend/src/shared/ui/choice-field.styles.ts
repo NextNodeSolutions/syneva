@@ -40,6 +40,7 @@ export const choiceField = stylex.create({
 		backgroundColor: color['--white'],
 		transition: `border-color ${transition.fast}, background-color ${transition.fast}`,
 	},
+	tileOff: { opacity: 0.55, cursor: 'not-allowed' },
 	tileOn: {
 		borderColor: {
 			default: color['--accent'],

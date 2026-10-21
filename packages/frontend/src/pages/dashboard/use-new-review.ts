@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { useOpenDesk } from './use-open-desk'
 
-import type { NewDeskInput } from '@entities/hub/model'
+import type { HubRef, NewDeskInput } from '@entities/hub/model'
 import type { FormEvent } from 'react'
 import type { OpenRefusal } from './use-open-desk'
 
@@ -11,6 +11,8 @@ export type Source = 'working' | 'staged' | 'pr' | 'file'
 type TargetSource = Extract<Source, 'pr' | 'file'>
 
 export type Fields = {
+	// The hub the reviewer picked, null until they do (hubToOpenOn says where it then lands).
+	hubId: string | null
 	root: string
 	source: Source
 	targets: Record<TargetSource, string>
@@ -18,12 +20,18 @@ export type Fields = {
 }
 
 export type FieldErrors = {
+	hub?: string | undefined
 	root?: string | undefined
 	target?: string | undefined
 }
 
 export type NewReview = {
 	fields: Fields
+	// The hubs the open can go to (more than one only on the web) and the one it will: the pick
+	// when it is online, else the first online hub, null when none is.
+	hubs: readonly HubRef[]
+	hubId: string | null
+	setHub: (hubId: string) => void
 	setRoot: (root: string) => void
 	setSource: (source: Source) => void
 	setTarget: (source: TargetSource, target: string) => void
@@ -36,6 +44,7 @@ export type NewReview = {
 }
 
 const BLANK: Fields = {
+	hubId: null,
 	root: '',
 	source: 'working',
 	targets: { pr: '', file: '' },
@@ -43,6 +52,7 @@ const BLANK: Fields = {
 }
 
 const FIELD_ORDER = [
+	'hub',
 	'root',
 	'target',
 ] as const satisfies readonly (keyof FieldErrors)[]
@@ -58,8 +68,25 @@ export function needsTarget(source: Source): source is TargetSource {
 	return source === 'pr' || source === 'file'
 }
 
-function validate(fields: Fields): FieldErrors {
+// Offline hubs are listed but cannot be opened on: the open would be relayed to nobody.
+export function hubToOpenOn(
+	picked: string | null,
+	hubs: readonly HubRef[],
+): string | null {
+	const online = hubs.filter(hub => hub.isOnline)
+	return online.find(hub => hub.id === picked)?.id ?? online[0]?.id ?? null
+}
+
+function validate(
+	fields: Fields,
+	hubId: string | null,
+	hasHubs: boolean,
+): FieldErrors {
 	return {
+		...(hasHubs &&
+			!hubId && {
+				hub: 'None of your hubs is online. Start one on its machine, then open the desk.',
+			}),
 		...(!fields.root.trim() && {
 			root: "Name the repository's path on the hub's machine.",
 		}),
@@ -85,7 +112,7 @@ function toInput(fields: Fields): NewDeskInput {
 
 type FieldSetters = Pick<
 	NewReview,
-	'setRoot' | 'setSource' | 'setTarget' | 'setSession'
+	'setHub' | 'setRoot' | 'setSource' | 'setTarget' | 'setSession'
 >
 
 function fieldSetters(
@@ -93,6 +120,10 @@ function fieldSetters(
 	clearError: (key: keyof FieldErrors) => void,
 ): FieldSetters {
 	return {
+		setHub: hubId => {
+			edit(current => ({ ...current, hubId }))
+			clearError('hub')
+		},
 		setRoot: root => {
 			edit(current => ({ ...current, root }))
 			clearError('root')
@@ -114,10 +145,14 @@ function fieldSetters(
 
 // The New review form: its fields, the validation a submit runs, the one action - the open (use-open-desk.ts). While it runs, the fields hold still.
 // Each error stands until its field is edited or the next submit; a field the submit did not flag is never shown wanting. A `seed` fills the repository in.
-export function useNewReview(seed: string | null): NewReview {
+export function useNewReview(
+	seed: string | null,
+	hubs: readonly HubRef[],
+): NewReview {
 	const [fields, setFields] = useState(() => ({ ...BLANK, root: seed ?? '' }))
 	const [errors, setErrors] = useState(NO_ERRORS)
 	const desk = useOpenDesk()
+	const hubId = hubToOpenOn(fields.hubId, hubs)
 	const setters = fieldSetters(
 		next => {
 			if (!desk.isBusy) setFields(next)
@@ -126,6 +161,8 @@ export function useNewReview(seed: string | null): NewReview {
 	)
 	return {
 		fields,
+		hubs,
+		hubId,
 		...setters,
 		errors,
 		refusal: desk.refusal,
@@ -133,14 +170,14 @@ export function useNewReview(seed: string | null): NewReview {
 		submit: event => {
 			event.preventDefault()
 			if (desk.isBusy) return
-			const found = validate(fields)
+			const found = validate(fields, hubId, hubs.length > 0)
 			setErrors(found)
 			const firstInvalid = FIELD_ORDER.find(key => found[key])
 			if (firstInvalid) {
 				focusField(event.currentTarget, firstInvalid)
 				return
 			}
-			desk.open(toInput(fields))
+			desk.open(toInput(fields), hubId ?? undefined)
 		},
 		abort: desk.abort,
 	}
