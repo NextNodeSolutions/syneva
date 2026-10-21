@@ -2,8 +2,13 @@
 // path the web never relays answers 404 NOT_RELAYED at once (the hub's shutdown not run, the
 // agent's parked await not parked), a desk of another hub likewise, a `req` that does not read
 // 400; a cancel stops the answer's frames and leaves the hub healthy; past inFlightPerUser
-// relays at once, the next is `err TOO_MANY`. Sent raw through the fake, as the web never would.
+// relays at once, the next is `err TOO_MANY`, and a cancelled relay counts until its route
+// settles, then sends nothing. Sent raw through the fake, as the web never would.
+import { execFile } from 'node:child_process'
+import { constants, promises as fs } from 'node:fs'
+import path from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
+import { promisify } from 'node:util'
 
 import { BRIDGE_LIMITS } from '../../packages/contracts/dist/bridge.js'
 import { deskApiBase, HUB_PATHS } from '../../packages/contracts/dist/routes.js'
@@ -26,6 +31,7 @@ export async function checkRefusals(context, desk) {
 	await checkNotRelayed(context, desk)
 	await checkCancel(context, desk)
 	await checkCap(context, desk)
+	await checkCancelHolds(context, desk)
 }
 
 async function checkNotRelayed(context, desk) {
@@ -153,6 +159,73 @@ async function checkCap({ report, fake, record, repo }, desk) {
 		'the cancelled relays leave the cap: the next relay is answered',
 		state.status === HTTP_OK,
 	)
+}
+
+// How long a relay is given to reach its route before it is cancelled.
+const DISPATCH_MS = 500
+
+// A relay whose route is still running when the web cancels it keeps its slot: with it held,
+// inFlightPerUser more relays meet one `err TOO_MANY`. Its route is a /blob read of a FIFO, which
+// settles only once the check writes to it: the route then answers, the relay sends nothing, and
+// its slot is free again (inFlightPerUser relays at once all go through).
+async function checkCancelHolds({ report, fake, record, repo }, desk) {
+	const fifo = path.join(repo.root, 'held.fifo')
+	await promisify(execFile)('mkfifo', [fifo])
+	const read = route => ({
+		method: 'GET',
+		path: `${deskApiBase(desk.webId)}/blob`,
+		query: `?path=${route}`,
+	})
+	const held = fake.relay.raw(record.hubId, read('held.fifo'))
+	await delay(DISPATCH_MS)
+	held.cancel()
+	const full = await burst(fake, record, read('one.bin'))
+	report.check(
+		'a cancelled relay whose route still runs keeps its slot: one of the next inFlightPerUser is TOO_MANY',
+		full.refused === 1,
+		`${full.refused} refused`,
+	)
+	full.cancel()
+	await settleFifo(fifo)
+	await delay(AFTER_CANCEL_MS)
+	report.check(
+		'once its route settles, the cancelled relay sends nothing',
+		!fake.sockets.frames.some(each => each.frame?.id === held.id),
+	)
+	const free = await burst(fake, record, read('one.bin'))
+	free.cancel()
+	report.check(
+		'and its slot is free: inFlightPerUser relays at once all go through',
+		free.refused === 0,
+		`${free.refused} refused`,
+	)
+	await fs.rm(fifo)
+}
+
+// inFlightPerUser relays of `request` at once, each until its first frame: how many were
+// refused, and how to cancel the rest.
+async function burst(fake, record, request) {
+	const raws = Array.from({ length: BRIDGE_LIMITS.inFlightPerUser }, () =>
+		fake.relay.raw(record.hubId, request),
+	)
+	await Promise.all(raws.map(raw => waitForFrames(raw, 1)))
+	return {
+		refused: raws.filter(raw => raw.frames[0]?.t === 'err').length,
+		cancel: () => {
+			for (const raw of raws) raw.cancel()
+		},
+	}
+}
+
+// Ends the FIFO read the hub's route is blocked on: a write it reads to its end. Non-blocking, so
+// a route that never opened it fails the check instead of hanging it.
+async function settleFifo(fifo) {
+	const handle = await fs
+		.open(fifo, constants.O_WRONLY | constants.O_NONBLOCK)
+		.catch(() => null)
+	if (!handle) return
+	await handle.write('settled\n')
+	await handle.close()
 }
 
 async function waitForFrames(raw, count) {

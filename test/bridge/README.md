@@ -65,7 +65,10 @@ Test-only controls: `POST /__approve { userCode, deny? }`, `POST /__close { hubI
   the pairing route, the desk list, a page, another hub's desk and a dot-segment path answer
   `404 NOT_RELAYED` at once, never dispatched (the hub still runs); a `req` that does not read
   answers 400; a cancel stops the answer's frames and the hub answers the next relay; with
-  `inFlightPerUser` relays streaming, the next is `err TOO_MANY`.
+  `inFlightPerUser` relays streaming, the next is `err TOO_MANY`. A relay cancelled while its
+  route still runs (a `/blob` read of a FIFO the check writes to later) keeps its slot, so one of
+  the next `inFlightPerUser` is `err TOO_MANY`; once its route settles it sends nothing, and its
+  slot is free again.
 - **The machine's own** (RFC 0001, section 7: the web may review the code of the repositories
   the hub serves, nothing more): a relayed `GET /settings` leaves the editor command out; a
   relayed `POST /settings` changes the display preferences and keeps the machine's editor

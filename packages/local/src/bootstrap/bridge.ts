@@ -38,8 +38,7 @@ export function wireBridge(
 				journal,
 				plans,
 			}),
-			relay: record => outbox =>
-				createRelay({ hubId: record.hubId, router, log }, outbox),
+			relay: record => createRelay({ hubId: record.hubId, router, log }),
 		},
 		log,
 	})

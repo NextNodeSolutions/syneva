@@ -1,11 +1,11 @@
 // The web's relayed requests as the probe answers them, in process (RFC 0001, 4.5 step 3): a
 // `req` whose path relay-target.ts lets through becomes a Request for the hub's own router on the
 // `relayed-over-pairing` channel - its Host/Origin and access guards skipped for it alone, every
-// route's own validation run - and its answer goes back by relay-answer.ts, the route's afterSent
-// work once the last frame is written: a relayed action opens the editor, stages and resets
-// exactly as a local tab's does. At most `inFlightPerUser` at a time (beyond: `err TOO_MANY`); an
-// answer past `responseBytes` is `err TOO_LARGE`; a `cancel` aborts the request's signal, drops
-// what was not sent, and sends nothing (the web already answered its tab).
+// route's own validation run, and the routes that act for the machine itself narrowed for the web
+// (core's exchange.ts) - and its answer goes back by relay-answer.ts, the route's afterSent work
+// once the last frame is written. At most `inFlightPerUser` at a time (beyond: `err TOO_MANY`);
+// an answer past `responseBytes` is `err TOO_LARGE`; a `cancel` aborts the request's signal,
+// drops what was not sent, and sends nothing then or later (the web already answered its tab).
 import { BRIDGE_LIMITS } from '@syneva/contracts/bridge'
 import { errorMessage } from '@syneva/core/application/errors'
 import {
@@ -36,25 +36,90 @@ const HTTP_UNAVAILABLE = 503
 
 type Relaying = { deps: RelayDeps; outbox: Outbox; signal: AbortSignal }
 
-export function createRelay(deps: RelayDeps, outbox: Outbox): RelayChannel {
-	const inFlight = new Map<string, AbortController>()
-	const settle = async (frame: RelayRequest): Promise<void> => {
-		const controller = new AbortController()
-		inFlight.set(frame.id, controller)
-		const { signal } = controller
-		const finished = (): void => {
-			if (inFlight.get(frame.id) === controller) inFlight.delete(frame.id)
-		}
-		await relay({ deps, outbox, signal }, frame, finished)
+// What `inFlightPerUser` counts: the routes the hub runs for the web, until each settles. A
+// cancel or a closed socket stops an answer, never its route - routes do not stop on an abort (a
+// stage or a comment applies whatever the web does after asking) - so a stopped relay keeps its
+// slot until its route has answered. Shared by every socket of one pairing: a reconnect does not
+// forget the routes still running for the socket before it.
+class Slots {
+	#held = 0
+
+	take(): boolean {
+		if (this.#held >= BRIDGE_LIMITS.inFlightPerUser) return false
+		this.#held += 1
+		return true
+	}
+
+	give(): void {
+		this.#held -= 1
+	}
+}
+
+// One relay's slot: given back once the relay finished, or once it is both stopped and answered,
+// whichever comes first, and only once.
+class HeldRelay {
+	readonly controller = new AbortController()
+	readonly #slots: Slots
+	readonly #onFree: () => void
+	#isAnswered = false
+	#isFree = false
+
+	constructor(slots: Slots, onFree: () => void) {
+		this.#slots = slots
+		this.#onFree = onFree
+	}
+
+	answered(): void {
+		this.#isAnswered = true
+	}
+
+	// Its answer never goes; the slot goes now if the route answered already, else once it does.
+	stop(): void {
+		this.controller.abort()
+		if (this.#isAnswered) this.free()
+	}
+
+	free(): void {
+		if (this.#isFree) return
+		this.#isFree = true
+		this.#slots.give()
+		this.#onFree()
+	}
+}
+
+// The relay for one pairing: a channel per socket (link.ts opens one with each session), all of
+// them under the same slots.
+export function createRelay(deps: RelayDeps): (outbox: Outbox) => RelayChannel {
+	const slots = new Slots()
+	return outbox => openChannel(deps, outbox, slots)
+}
+
+function openChannel(
+	deps: RelayDeps,
+	outbox: Outbox,
+	slots: Slots,
+): RelayChannel {
+	const running = new Map<string, HeldRelay>()
+	const stop = (id: string, held: HeldRelay): void => {
+		held.stop()
+		outbox.drop(id)
 	}
 	return {
 		request(frame): void {
-			if (inFlight.has(frame.id)) return
-			if (inFlight.size >= BRIDGE_LIMITS.inFlightPerUser) {
+			if (running.has(frame.id)) return
+			if (!slots.take()) {
 				send(outbox, { t: 'err', id: frame.id, code: 'TOO_MANY' })
 				return
 			}
-			void settle(frame)
+			const held = new HeldRelay(slots, () => {
+				if (running.get(frame.id) === held) running.delete(frame.id)
+			})
+			running.set(frame.id, held)
+			const { signal } = held.controller
+			void relay({ deps, outbox, signal }, frame, {
+				answered: () => held.answered(),
+				finished: () => held.free(),
+			})
 		},
 		malformed(id): void {
 			const refusal = refused(
@@ -65,38 +130,42 @@ export function createRelay(deps: RelayDeps, outbox: Outbox): RelayChannel {
 			void sendRefusal(outbox, id, refusal)
 		},
 		cancel(id): void {
-			inFlight.get(id)?.abort()
-			inFlight.delete(id)
-			outbox.drop(id)
+			const held = running.get(id)
+			if (held) stop(id, held)
 		},
 		close(): void {
-			for (const controller of inFlight.values()) controller.abort()
-			inFlight.clear()
+			for (const [id, held] of running) stop(id, held)
 		},
 	}
 }
 
+// When a relay's route has answered, and when the relay is over: its last frame written, its
+// answer dropped, or nothing to send.
+type RelayEnds = { answered: () => void; finished: () => void }
+
 // One relay to its end: answered (`finished` once its last frame is written), refused, failed,
-// or cancelled (nothing sent once the signal aborted).
+// or stopped (nothing sent once the signal aborted: every await is followed by that check before
+// anything is handed to the outbox).
 async function relay(
 	relaying: Relaying,
 	frame: RelayRequest,
-	finished: () => void,
+	ends: RelayEnds,
 ): Promise<void> {
 	const { deps, outbox, signal } = relaying
 	try {
 		const answer = await answerOf(relaying, frame)
-		if (signal.aborted) return finished()
+		ends.answered()
+		if (signal.aborted) return ends.finished()
 		if (!answer) {
 			send(outbox, { t: 'err', id: frame.id, code: 'TOO_LARGE' })
-			return finished()
+			return ends.finished()
 		}
 		return sendAnswer(outbox, frame.id, answer, () => {
 			answer.afterSent()
-			finished()
+			ends.finished()
 		})
 	} catch (error) {
-		if (signal.aborted) return finished()
+		ends.answered()
 		deps.log(
 			`bridge: relayed ${frame.method} ${frame.path} failed: ${errorMessage(error)}`,
 		)
@@ -105,11 +174,15 @@ async function relay(
 			'INTERNAL',
 			'The hub failed to answer this request.',
 		)
+		// The one check after the one await: a cancel that came while the route ran, or while
+		// this was read, sends nothing.
+		const bytes = await bytesOf(failure)
+		if (signal.aborted) return ends.finished()
 		return sendAnswer(
 			outbox,
 			frame.id,
-			{ response: failure, bytes: await bytesOf(failure) },
-			finished,
+			{ response: failure, bytes },
+			ends.finished,
 		)
 	}
 }
