@@ -165,6 +165,10 @@ export class UserHub extends DurableObject<Env> {
 			// read it as a refresh, as after a reconnect).
 			if (hub) sendQuietly(hub, snapshotAsk)
 		}
+		sendQuietly(
+			server,
+			JSON.stringify({ t: 'hubs-end' } satisfies BridgeFrame),
+		)
 		return upgraded(client)
 	}
 

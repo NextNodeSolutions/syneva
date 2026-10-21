@@ -88,6 +88,7 @@ export type RelayFailure =
 	| 'TOO_MANY'
 
 export type BridgeFrame =
+	| { t: 'hubs-end' }
 	// First frame after connect.
 	| { t: 'hello'; hub: HubIdentity }
 	// A desk opened, reloaded or restored, or its summary changed.
