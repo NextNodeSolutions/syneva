@@ -22,9 +22,10 @@ import {
 	adoptReload,
 } from './desk-adopt'
 import { adoptLiveness, isCurrentDesk } from './desk-instance'
+import { hearHub } from './relay-notice'
 import { saver, S, toast } from './store'
 
-import type { HubDesk } from '@entities/hub/model'
+import type { HubDesk, HubRef } from '@entities/hub/model'
 import type { HubRetry } from '@entities/hub/stream'
 import type { StreamView } from '@entities/hub/stream-view'
 import type { DeskPulse, StreamPulse } from '@entities/review/model'
@@ -43,9 +44,9 @@ let waiting: unknown
 let isReading = false
 // Whether the hub's last whole listing named this desk; null before the first.
 let wasListed: boolean | null = null
-// Whether this desk's hub was online when the web last said (null: it has not said, or this is
+// The web's last word on this desk's hub, as the stream holds it (null: it has not said, or this is
 // the local hub, which is the page's own).
-let wasHubOnline: boolean | null = null
+let hubWord: HubRef | null = null
 // A moved review is waiting for the reviewer's unsaved work (see holdBack).
 let isHeldBack = false
 // The whole pulse last read at GET …/pulse for a partial one, with the digest it was read for.
@@ -68,19 +69,20 @@ function notePresence(
 	S.deskClosed = !isListed
 }
 
-// The web tells the tab when a hub's socket opens or closes: a desk whose hub goes away is
-// covered at once, before a request fails, and the cover leaves when the hub is back. Only a
-// change counts, so a notice the reviewer dismissed stays dismissed.
+// The web tells the tab where a hub stands when its socket opens or closes, and again with each
+// connect's listing and each hello of the hub: every such word is a new one, even when it says the
+// same, and the strip weighs it against the desk's own requests (relay-notice.ts). A desk whose
+// hub goes away is covered at once, before a request fails, and the cover leaves when the hub is
+// back.
 function noteHub(view: StreamView): void {
 	if (view.mode !== 'web') return
 	const hub = view.hubs.get(hubOfId(deskId))
-	if (!hub || hub.isOnline === wasHubOnline) return
+	if (!hub || hub === hubWord) return
+	const wasOffline = hubWord?.isOnline === false
+	hubWord = hub
 	// A tab that never got its review (the hub was offline when it loaded) has nothing to resume.
-	if (hub.isOnline && wasHubOnline === false && !S.state)
-		window.location.reload()
-	wasHubOnline = hub.isOnline
-	if (hub.isOnline) S.relayNotice = null
-	else S.relayNotice = 'offline'
+	if (hub.isOnline && wasOffline && !S.state) window.location.reload()
+	hearHub(hub.isOnline)
 }
 
 function heardHub(): void {

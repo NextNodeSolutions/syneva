@@ -37,9 +37,11 @@ export interface Store {
 	// them from the hub's store): the covers say what a dropped stream means for the desk.
 	hubStatus: HubStatus
 	hubRetryAt: number | null
-	// The web could not reach this desk's hub (offline) or got no answer from it (timeout): a notice
-	// stands over the review until the hub is back or the reviewer dismisses it.
+	// The web cannot reach this desk's hub (offline) or got no answer from it (timeout), as the
+	// newest word on the hub says (app/relay-notice.ts, its one writer): a notice stands over the
+	// review until the hub is heard of again or the reviewer dismisses a timeout.
 	relayNotice: RelayNotice | null
+	dismissRelayNotice?: () => void
 	selected: Selection
 	composerOpen: boolean
 	fileComposerOpen: boolean

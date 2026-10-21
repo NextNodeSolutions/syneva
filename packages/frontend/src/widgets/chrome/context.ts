@@ -114,6 +114,7 @@ export interface ChromeStoreView {
 	setResetMenu?(open: boolean): void
 	send?(overallNote?: string): Promise<void>
 	closeDesk?(): Promise<void>
+	dismissRelayNotice?(): void
 	toggleFileComposer?(): void
 	openFileCommentCount?(): number
 	fileCommentAvailable?(): boolean

@@ -20,9 +20,9 @@ const REST: Record<RelayNotice, string> = {
 		'It did not answer in time. What you just did may or may not have gone through: check the review, then try again.',
 }
 
-// The strip over a review whose hub the web could not reach (RFC 0001, 4.9). An offline hub
-// clears itself when the hub comes back; one that was slow stays until the reviewer has read it.
-// Nothing here tries again: a relayed action is the reviewer's to repeat.
+// The strip over a review whose hub the web could not reach (RFC 0001, 4.9). It leaves when the
+// hub is heard of again (app/relay-notice.ts); one that was slow can also be dismissed once the
+// reviewer has read it. Nothing here tries again: a relayed action is the reviewer's to repeat.
 export function RelayStrip({ kind }: { kind: RelayNotice }): ReactElement {
 	const { S } = chromeCtx()
 	return (
@@ -30,12 +30,7 @@ export function RelayStrip({ kind }: { kind: RelayNotice }): ReactElement {
 			<strong {...stylex.props(covers.noticeLead)}>{LEAD[kind]}</strong>{' '}
 			{REST[kind]}{' '}
 			{kind === 'timeout' && (
-				<TextButton
-					small
-					onClick={() => {
-						S.relayNotice = null
-					}}
-				>
+				<TextButton small onClick={() => S.dismissRelayNotice?.()}>
 					Dismiss
 				</TextButton>
 			)}

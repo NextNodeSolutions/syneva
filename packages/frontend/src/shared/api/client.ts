@@ -37,19 +37,30 @@ export type RequestOptions = Omit<RequestInit, 'headers'> & {
 	headers?: Record<string, string>
 }
 
-// One listener for every refused request, so a page can react to a failure its callers each
-// handle for themselves (the desk turns a relay failure into a notice, whichever action met it).
-let onRefused: ((error: ApiError) => void) | null = null
+// What became of a desk request the hub answered, or the web for it: refused (its ApiError) or not
+// (null), and when it was sent (performance.now()), which is when what it says held, however late
+// the answer comes back.
+export type DeskAnswer = { sentAt: number; refusal: ApiError | null }
 
-export function observeRefusals(listener: (error: ApiError) => void): void {
-	onRefused = listener
+type AnswerListener = (answer: DeskAnswer) => void
+
+// One listener for every answered desk request (its routes reach the desk's own hub, relayed on
+// the web), so a page can follow what its callers each handle for themselves: the desk keeps one
+// notice of whether its hub can be reached, whichever action met what. A hub-level route may be
+// the web's own (its health, its settings) and says nothing of the desk's hub: not followed.
+let onDeskAnswer: AnswerListener | null = null
+
+export function observeDeskAnswers(listener: AnswerListener): void {
+	onDeskAnswer = listener
 }
 
 const request = async (
 	url: string,
 	endpoint: string,
 	{ headers, ...opts }: RequestOptions,
+	answered: AnswerListener | null,
 ): Promise<unknown> => {
+	const sentAt = performance.now()
 	const response = await fetch(url, {
 		...opts,
 		headers: { 'content-type': 'application/json', ...headers },
@@ -62,18 +73,19 @@ const request = async (
 			response.status,
 			refusal.code,
 		)
-		onRefused?.(error)
+		answered?.({ sentAt, refusal: error })
 		throw error
 	}
+	answered?.({ sentAt, refusal: null })
 	return response.json()
 }
 
 export const api = async (
 	path: string,
 	opts: RequestOptions = {},
-): Promise<unknown> => request(deskUrl(path), path, opts)
+): Promise<unknown> => request(deskUrl(path), path, opts, onDeskAnswer)
 
 export const hubApi = async (
 	path: string,
 	opts: RequestOptions = {},
-): Promise<unknown> => request(path, path, opts)
+): Promise<unknown> => request(path, path, opts, null)

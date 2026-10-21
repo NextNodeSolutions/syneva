@@ -23,7 +23,7 @@ import { guideInputs, hasGuide } from '@entities/review/guide/guide'
 import { fetchPrefs } from '@entities/settings/api'
 import { applyAppearance, DEFAULT_SETTINGS } from '@entities/settings/settings'
 import { deferRender, render } from '@pages/desk/render'
-import { observeRefusals } from '@shared/api/client'
+import { observeDeskAnswers } from '@shared/api/client'
 import { $ } from '@shared/lib/dom'
 import { setMarkdownTheme } from '@shared/markdown'
 import { configureMarkdownRuntime } from '@shared/markdown/runtime-config'
@@ -35,6 +35,7 @@ import { D } from '@widgets/diff-view/runtime'
 
 import { bindFeaturePorts } from './feature-ctx'
 import { App } from './react/app'
+import { hearRequest, installRelayNoticeBindings } from './relay-notice'
 import { persist, requireState, toast } from './store'
 import { S } from './store'
 
@@ -57,19 +58,21 @@ installDomainFeedbackBindings()
 installFileActionBindings()
 installCommentBindings()
 installDialogBindings()
+installRelayNoticeBindings()
 
-// A request the web could not carry to the hub is reported once for the whole tab, whichever action
-// sent it (app/desk-relay.ts, off the first paint's path).
-async function reportRefusal(error: ApiError): Promise<void> {
+// What the desk's requests met is heard once for the whole tab, whichever action sent them: an
+// answer at once (relay-notice.ts), a refusal through app/desk-relay.ts, off the first paint's path.
+async function reportRefusal(error: ApiError, sentAt: number): Promise<void> {
 	try {
 		const relay = await import('@app/desk-relay')
-		relay.noteRelayFailure(error)
+		relay.noteRefusal(error, sentAt)
 	} catch {
 		/* a chunk that cannot load leaves the failure to the action that met it */
 	}
 }
-observeRefusals(error => {
-	void reportRefusal(error)
+observeDeskAnswers(({ sentAt, refusal }) => {
+	if (refusal) void reportRefusal(refusal, sentAt)
+	else hearRequest(null, sentAt)
 })
 
 createRoot($('root')).render(<App />)
