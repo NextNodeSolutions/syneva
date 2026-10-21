@@ -115,14 +115,18 @@ function SettingNumber({ spec }: { spec: NumberSpec }): ReactElement {
 	)
 }
 
+// A setting this tab may not change stands disabled, its reason in its place (the hub sends no
+// value for it then).
 function SettingText({ spec }: { spec: TextSpec }): ReactElement {
+	const lockedBy = spec.lockedBy?.()
 	return (
 		<label {...stylex.props(settings.row)}>
 			{spec.label}
 			<input
 				{...stylex.props(field.base, settings.control, settings.text)}
 				type="text"
-				placeholder={spec.placeholder}
+				placeholder={lockedBy ?? spec.placeholder}
+				disabled={Boolean(lockedBy)}
 				spellCheck={false}
 				value={spec.get()}
 				onChange={event => spec.set(event.target.value)}
@@ -142,8 +146,9 @@ function SettingSection({
 	number?: NumberSpec
 	text?: TextSpec
 }): ReactElement {
-	// The desk's state too: a setting this desk cannot apply says so once the state names its capabilities.
-	useStoreFields('settings', 'diffStyle', 'state')
+	// The desk's state too: a setting this desk cannot apply says so once the state names its
+	// capabilities; and whether the web serves the tab, which locks the machine's own settings.
+	useStoreFields('settings', 'diffStyle', 'state', 'isRelayed')
 	return (
 		<section>
 			<div

@@ -27,6 +27,7 @@ export interface ChromeStoreView {
 	hubStatus: HubStatus
 	hubRetryAt: number | null
 	relayNotice: RelayNotice | null
+	isRelayed?: boolean
 	diffStyle: DiffStyle
 	composerOpen: boolean
 	fileComposerOpen: boolean

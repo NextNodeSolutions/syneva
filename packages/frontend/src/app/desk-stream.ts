@@ -77,6 +77,8 @@ function notePresence(
 // back.
 function noteHub(view: StreamView): void {
 	if (view.mode !== 'web') return
+	// The web serves this tab: what only the hub's machine sets is not offered (the settings).
+	S.isRelayed = true
 	const hub = view.hubs.get(hubOfId(deskId))
 	if (!hub || hub === hubWord) return
 	const wasOffline = hubWord?.isOnline === false

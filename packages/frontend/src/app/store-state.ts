@@ -42,6 +42,9 @@ export interface Store {
 	// review until the hub is heard of again or the reviewer dismisses a timeout.
 	relayNotice: RelayNotice | null
 	dismissRelayNotice?: () => void
+	// The web serves this tab (app/desk-stream.ts mirrors the stream's mode): what only the hub's
+	// machine may set, its editor command, is not offered here.
+	isRelayed?: boolean
 	selected: Selection
 	composerOpen: boolean
 	fileComposerOpen: boolean

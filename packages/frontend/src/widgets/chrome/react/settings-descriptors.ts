@@ -40,6 +40,8 @@ export type TextSpec = {
 	placeholder: string
 	get: () => string
 	set: (value: string) => void
+	// Why the setting cannot be changed from this tab, undefined when it can.
+	lockedBy?: () => string | undefined
 }
 
 export const DIFF_SELECTS: SelectSpec[] = [
@@ -233,6 +235,8 @@ export const BEHAVIOR_SELECTS: SelectSpec[] = [
 	},
 ]
 
+// The hub runs it on its own machine, so only that machine sets it: from the web the hub neither
+// sends it nor takes it (RFC 0001, 7), and the field says where it is set instead.
 export const EDITOR_COMMAND: TextSpec = {
 	label: 'Editor command',
 	placeholder: 'code -g {file}:{line}',
@@ -240,6 +244,8 @@ export const EDITOR_COMMAND: TextSpec = {
 	set: next => {
 		applySetting('editorCommand', next)
 	},
+	lockedBy: () =>
+		chromeCtx().S.isRelayed ? "Set on the hub's machine" : undefined,
 }
 
 export const CODE_SIZE: NumberSpec = {
