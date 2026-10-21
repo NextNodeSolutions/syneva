@@ -9,12 +9,13 @@ import {
 	hubPlanVersionPath,
 	STATIC_PATHS,
 } from '@syneva/contracts/routes'
+import { WEB_HUBS_PREFIX, WEB_PATHS } from '@syneva/contracts/web'
 
-import { decodeHubDesk, decodeHubHealth } from './decode'
+import { decodeHubDesk, decodeHubHealth, decodeWebMe } from './decode'
 import { decodeMarkdown, decodePlan, decodePlanDocument } from './plan-decode'
 import { RELAY_WORDS, relayKindOf } from './relay'
 
-import type { HubDesk, HubHealth, NewDeskInput } from './model'
+import type { HubDesk, HubHealth, NewDeskInput, WebMe } from './model'
 import type { Plan, PlanDocument, PlanStatusChange } from './plan-model'
 
 // The only place the hub routes are named: paths come from @contracts/routes so the wire stays in sync with the hub by construction, and every response is decoded onto a frontend-owned model - wire shapes never escape.
@@ -25,6 +26,23 @@ export const HUB_PAGES = {
 	signOut: HUB_PATHS.logout,
 	signIn: `${HUB_PATHS.login}?next=${encodeURIComponent(STATIC_PATHS.index)}`,
 } as const
+
+// The web's own pages and routes (apps/web): the form that ends the session posts to the
+// first; the other two are the person and a hub's revocation, read and made here.
+export const WEB_PAGES = { signOut: WEB_PATHS.logout } as const
+
+// Who is signed in: read once when the Hub page shows it. A 401 is a session that ended.
+export const fetchWebMe = async (signal?: AbortSignal): Promise<WebMe> =>
+	decodeWebMe(
+		await hubApi(WEB_PATHS.me, { signal: signal ?? null }),
+		WEB_PATHS.me,
+	)
+
+// Revokes one of the person's paired hubs: its socket closes with `revoked`, its row stays, and
+// its `hub` frame then says it is offline.
+export const revokeWebHub = async (hubId: string): Promise<void> => {
+	await hubApi(`${WEB_HUBS_PREFIX}${hubId}`, { method: 'DELETE' })
+}
 
 // Read once per hub start (stream.ts, on a hello with a new instance): its access mode, which the
 // stream's hello does not carry.

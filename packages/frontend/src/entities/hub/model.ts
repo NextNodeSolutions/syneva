@@ -56,6 +56,9 @@ export type HubIdentity = {
 	startedAt: string
 }
 
+// Who is signed in on the web.
+export type WebMe = { userId: string; email: string }
+
 export type HubHealth = {
 	version: string
 	instanceId: string

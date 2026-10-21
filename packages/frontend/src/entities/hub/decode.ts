@@ -11,7 +11,7 @@ import { LOCAL_HUB_ID } from '@syneva/contracts/bridge'
 import { scopedId } from './hub-ids'
 
 import type { StreamFrame } from '@shared/api/stream-frame'
-import type { HubDesk, HubHealth, HubIdentity, HubRef } from './model'
+import type { HubDesk, HubHealth, HubIdentity, HubRef, WebMe } from './model'
 
 // The review modes a desk can be in, as the wire names them (the journal's events carry them
 // too).
@@ -107,5 +107,13 @@ export function decodeHubPresence(
 		isOnline: frame.online,
 		version: frame.version ?? null,
 		lastSeenAt: lastSeen(frame.lastSeenAt),
+	}
+}
+
+export function decodeWebMe(raw: unknown, endpoint: string): WebMe {
+	const o = assertObject(raw, endpoint, 'web session')
+	return {
+		userId: requiredString(o, 'userId', endpoint),
+		email: requiredString(o, 'email', endpoint),
 	}
 }

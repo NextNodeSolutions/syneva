@@ -5,6 +5,8 @@ import { HUB_STATE } from '@widgets/hub-shell/hub-state'
 import { MS_PER_SECOND, relativeTime } from '../format'
 
 import type { HubLink } from '@entities/hub/link'
+import type { HubMode } from '@entities/hub/mode'
+import type { HubRef } from '@entities/hub/model'
 import type { StreamClose } from '@shared/api/stream'
 import type { Fact } from './fact-list'
 
@@ -44,10 +46,31 @@ function nextAttempt(link: HubLink, now: number): string {
 	return `${TIME.format(link.retryAt)} (in ${untilWords(link.retryAt, now)})`
 }
 
+// The hub that said hello on a local page; on the web, how many of the person's hubs are online.
+function hubFact(
+	{ identity }: HubLink,
+	{ mode, list }: { mode: HubMode | null; list: readonly HubRef[] },
+): Fact {
+	if (mode === 'web')
+		return {
+			key: 'Hubs',
+			value: `${list.filter(hub => hub.isOnline).length} online of ${list.length}`,
+		}
+	return {
+		key: 'Hub',
+		value: identity
+			? `${identity.name} (${identity.id}), v${identity.version}`
+			: 'No hello yet',
+	}
+}
+
 // The page's stream as facts: how it stands and since when, the hub that said hello on it, why
 // the last socket ended, and when the next attempt goes.
-export function streamFacts(link: HubLink, now: number): Fact[] {
-	const { identity } = link
+export function streamFacts(
+	link: HubLink,
+	now: number,
+	hubs: { mode: HubMode | null; list: readonly HubRef[] },
+): Fact[] {
 	return [
 		{ key: 'State', value: HUB_STATE[link.status].word },
 		{
@@ -56,12 +79,7 @@ export function streamFacts(link: HubLink, now: number): Fact[] {
 				? `${TIME.format(link.liveSince)} (${relativeTime(link.liveSince, now)})`
 				: 'Not connected',
 		},
-		{
-			key: 'Hub',
-			value: identity
-				? `${identity.name} (${identity.id}), v${identity.version}`
-				: 'No hello yet',
-		},
+		hubFact(link, hubs),
 		{ key: 'Last close', value: closeWords(link.lastClose, now) },
 		{ key: 'Next attempt', value: nextAttempt(link, now) },
 	]
