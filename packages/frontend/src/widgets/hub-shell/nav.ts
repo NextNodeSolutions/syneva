@@ -1,6 +1,10 @@
 import { groupByProject } from '@entities/hub/model'
 import { turnCounts } from '@entities/hub/turn'
-import { DASHBOARD_PATHS, PROJECT_PAGE_PREFIX } from '@syneva/contracts/routes'
+import {
+	DASHBOARD_PATHS,
+	PLAN_PAGE_PREFIX,
+	PROJECT_PAGE_PREFIX,
+} from '@syneva/contracts/routes'
 
 import type { HubDesk } from '@entities/hub/model'
 import type { ShellIconName } from './shell-icons'
@@ -67,10 +71,11 @@ export const HUB_NAV: readonly NavEntry[] = [
 	{ id: 'hub', label: 'Hub', href: DASHBOARD_PATHS.hub, icon: 'hub' },
 ]
 
-// The entry the page at `pathname` belongs to; a project's own page belongs to Projects, and a
-// desk's page (the rail) to none.
+// The entry the page at `pathname` belongs to; a project's own page belongs to Projects, a
+// plan's to Plans, and a desk's page (the rail) to none.
 export function currentNav(pathname: string): NavId | null {
 	if (pathname.startsWith(PROJECT_PAGE_PREFIX)) return 'projects'
+	if (pathname.startsWith(PLAN_PAGE_PREFIX)) return 'plans'
 	const entry = [...WORK_NAV, ...HUB_NAV].find(nav => nav.href === pathname)
 	return entry?.id ?? null
 }

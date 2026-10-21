@@ -50,6 +50,18 @@ export function latestVersion(plan: Plan): PlanVersion | undefined {
 	return plan.versions.at(-1)
 }
 
+// What makes two reads of a plan the same for a page: where it stands, on which desk, and
+// whether its latest version is approved. A new version moves updatedAt.
+export function planSignature(plan: Plan): string {
+	return [
+		plan.id,
+		plan.updatedAt,
+		plan.status,
+		plan.deskPath ?? '',
+		latestVersion(plan)?.approvedAt ?? '',
+	].join(' ')
+}
+
 // The library by repository, in the order the hub listed them (the most recently moved plan
 // first), so the project that moved last leads.
 export function plansByProject(plans: readonly Plan[]): PlanProject[] {

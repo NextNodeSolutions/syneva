@@ -178,3 +178,121 @@
 [data-prose='thread'] blockquote {
 	margin: 6px 0;
 }
+
+/* A plan read like an RFC: a reading measure, sections opened by a rule and a headline, quiet
+   list markers, a blockquote as the key point on the wash. */
+[data-prose='plan'] {
+	max-width: 74ch;
+	font-size: 15.5px;
+	line-height: 1.65;
+}
+
+[data-prose='plan'] h1,
+[data-prose='plan'] h2,
+[data-prose='plan'] h3,
+[data-prose='plan'] h4 {
+	font-weight: 500;
+	text-wrap: balance;
+}
+
+[data-prose='plan'] h1 {
+	margin: 40px 0 0;
+	font-size: 28px;
+	letter-spacing: -0.035em;
+}
+
+[data-prose='plan'] h2 {
+	margin: 48px 0 0;
+	padding-top: 30px;
+	border-top: 1px solid var(--line);
+	font-size: 25px;
+	letter-spacing: -0.035em;
+	line-height: 1.15;
+	scroll-margin-top: 24px;
+}
+
+[data-prose='plan'] > h2:first-child {
+	padding-top: 0;
+	border-top: 0;
+}
+
+[data-prose='plan'] h3 {
+	margin: 32px 0 0;
+	font-size: 17px;
+	letter-spacing: -0.01em;
+}
+
+[data-prose='plan'] h4 {
+	margin: 24px 0 0;
+	font-size: 15px;
+}
+
+[data-prose='plan'] p,
+[data-prose='plan'] ul,
+[data-prose='plan'] ol,
+[data-prose='plan'] blockquote,
+[data-prose='plan'] pre,
+[data-prose='plan'] table {
+	margin: 14px 0 0;
+	text-wrap: pretty;
+}
+
+[data-prose='plan'] ul,
+[data-prose='plan'] ol {
+	padding-left: 20px;
+	list-style-position: outside;
+}
+
+[data-prose='plan'] ul {
+	list-style-type: disc;
+}
+
+[data-prose='plan'] ol {
+	list-style-type: decimal;
+}
+
+[data-prose='plan'] li {
+	margin: 7px 0;
+}
+
+[data-prose='plan'] li::marker {
+	color: var(--muted);
+}
+
+[data-prose='plan'] blockquote {
+	padding: 14px 18px;
+	border-left: 2px solid var(--accent);
+	background: var(--wash-tint);
+	color: var(--ink);
+}
+
+[data-prose='plan'] pre {
+	padding: 14px 18px;
+	background: var(--white);
+	font-size: 12.5px;
+	line-height: 1.55;
+}
+
+[data-prose='plan'] table {
+	width: 100%;
+	font-size: 13.5px;
+	line-height: 1.45;
+}
+
+[data-prose='plan'] th {
+	font-family: var(--mono);
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+	text-align: left;
+}
+
+[data-prose='plan'] th,
+[data-prose='plan'] td {
+	padding: 9px 12px 9px 0;
+	border: 0;
+	border-bottom: 1px solid var(--line);
+	vertical-align: top;
+}

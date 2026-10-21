@@ -44,6 +44,10 @@ export const planLibrary = stylex.create({
 		letterSpacing: '-.01em',
 		color: color['--ink'],
 	},
+	titleLink: {
+		textDecoration: 'none',
+		color: { default: color['--ink'], ':hover': color['--accent'] },
+	},
 	summary: {
 		display: 'block',
 		marginTop: '3px',
