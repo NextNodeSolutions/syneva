@@ -151,7 +151,10 @@ export type DeskStatus = {
 export type DeskStateSnapshot = ReviewState &
 	DeskStatus & { serverInstanceId?: string | undefined }
 
-export type DeskPollSnapshot = Pick<
+// What the hub's stream says of a desk between two reads of its state (its `pulse` frame): the
+// guide and the conversation, never the changes (a moved baseDiffHash fetches them), the desk's
+// liveness, and the desk instance it speaks for.
+export type DeskPulse = Pick<
 	ReviewState,
 	| 'baseDiffHash'
 	| 'guide'
@@ -159,6 +162,5 @@ export type DeskPollSnapshot = Pick<
 	| 'guideExpected'
 	| 'comments'
 	| 'domainComments'
->
-
-export type DeskRefreshEvent = { kind: 'refresh' }
+> &
+	DeskStatus & { serverInstanceId: string }

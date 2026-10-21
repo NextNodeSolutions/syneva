@@ -8,22 +8,11 @@ import {
 } from '@shared/api/decode'
 import { API_PATHS } from '@syneva/contracts/routes'
 
-import {
-	decodeDeskStateSnapshot,
-	decodePollPayload,
-	decodeReviewState,
-} from './decode'
+import { decodeDeskStateSnapshot, decodeReviewState } from './decode'
 import { ensureGuideDecoders } from './guide/decode-lazy'
 
 import type { ResetScope } from '@syneva/contracts/review'
-import type {
-	DeskPollSnapshot,
-	DeskRefreshEvent,
-	DeskStateSnapshot,
-	DeskStatus,
-	ReviewState,
-	ReviewerSave,
-} from './model'
+import type { DeskStateSnapshot, ReviewState, ReviewerSave } from './model'
 
 // The only place review-domain endpoints are named; paths from @contracts/routes, every response decoded onto a frontend-owned model - wire shapes never escape.
 
@@ -138,15 +127,6 @@ export const shutdownDesk = async (): Promise<void> => {
 		await api(API_PATHS.shutdown, { method: 'POST' }),
 		API_PATHS.shutdown,
 	)
-}
-
-export const fetchPoll = async (
-	query: string,
-): Promise<(DeskPollSnapshot & DeskStatus) | DeskRefreshEvent> => {
-	const endpoint = `${API_PATHS.poll}${query}`
-	const raw = await api(endpoint)
-	await ensureGuideDecoders(raw)
-	return decodePollPayload(raw, endpoint)
 }
 
 export const fetchState = async (): Promise<DeskStateSnapshot> => {

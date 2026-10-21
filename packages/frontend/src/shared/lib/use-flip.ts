@@ -208,7 +208,7 @@ export function useFlip(
 	useLayoutEffect(() => {
 		const root = container.current
 		if (!root) return
-		// Reduced motion plays no travel, so it measures nothing either: a poll's render
+		// Reduced motion plays no travel, so it measures nothing either: a frame's render
 		// forces no layout.
 		if (isMotionReduced()) {
 			last.current = NO_SNAPSHOT

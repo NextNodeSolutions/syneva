@@ -45,7 +45,7 @@ function BlockRefs({
 	)
 }
 
-// Longer reasoning, assumptions and failure cases stay folded until the reviewer opens them; the open state lives in the store so a poll or a reload never folds them back.
+// Longer reasoning, assumptions and failure cases stay folded until the reviewer opens them; the open state lives in the store so a pulse or a reload never folds them back.
 function BlockDetail({
 	domain,
 	block,

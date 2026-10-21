@@ -6,7 +6,7 @@ import type { PreviewFile, ReviewFile } from '../model'
 
 type ReviewFileT = ReviewFile
 
-// Per-file old/new contents fetched on demand (the render path reads no embedded copies off the polled ReviewState); the client-side LRU matches the render instance cache so re-opening a visited file re-renders without a round-trip.
+// Per-file old/new contents fetched on demand (the render path reads no embedded copies off the fetched ReviewState); the client-side LRU matches the render instance cache so re-opening a visited file re-renders without a round-trip.
 // Preview files carry contents inline, not here.
 
 type Contents = { oldContents: string; newContents: string }

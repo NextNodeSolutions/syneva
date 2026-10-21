@@ -1,5 +1,5 @@
+import { isCurrentDesk } from '@app/desk-instance'
 import { helpGroups } from '@app/keys'
-import { isCurrentDesk } from '@app/poll'
 import { prefsSaver, saver, S } from '@app/store'
 import { resetReview, shutdownDesk } from '@entities/review/api'
 import { flowIndex } from '@entities/review/changes'

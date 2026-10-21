@@ -13,8 +13,8 @@ export type Saver = {
 	// Request a save. Sends immediately if idle; otherwise schedules exactly one trailing save.
 	trigger: () => void
 	// In-flight OR a trailing save pending - a save is "busy" until the wire is quiet again.
-	// The poll's reload branch checks this so it never adopts server state over local
-	// mutations that haven't been persisted yet (app/poll.ts).
+	// The desk's stream checks this so it never adopts server state over local mutations that
+	// haven't been persisted yet (app/desk-stream.ts).
 	isBusy: () => boolean
 	// A trailing save is queued behind the one in flight: a page that unloads never sends it.
 	isPending: () => boolean
@@ -25,16 +25,19 @@ export type Saver = {
 	// endpoint must not block a caller that is leaving anyway (the browser Close). Requests
 	// no save itself, so a caller leaving with nothing changed rewrites nothing.
 	settle: (limitMs?: number) => Promise<void>
+	// Resolves once the wire is quiet, however long that takes: a reload the desk's stream holds
+	// back behind unsaved work waits on it, and it is not leaving.
+	quiet: () => Promise<void>
 }
 
 // How long settle() waits overall when the caller passes no limit.
 const DRAIN_DEFAULT_LIMIT_MS = 2000
 
-// Resolves once `isQuiet` holds or the limit expires, whichever comes first. The save that leaves
-// the wire quiet wakes the waiters it finds in `waiters` (nothing re-checks on a tick); the limit
-// keeps a wedged transport from holding a departing caller forever.
+// Resolves once `isQuiet` holds or the limit (if any) expires, whichever comes first. The save that
+// leaves the wire quiet wakes the waiters it finds in `waiters` (nothing re-checks on a tick); a
+// limit keeps a wedged transport from holding a departing caller forever.
 function settledWithin(
-	limitMs: number,
+	limitMs: number | null,
 	isQuiet: () => boolean,
 	waiters: Set<() => void>,
 ): Promise<void> {
@@ -48,7 +51,8 @@ function settledWithin(
 			waiters.delete(done)
 			resolve()
 		}
-		const limit = setTimeout(done, limitMs)
+		const limit =
+			typeof limitMs === 'number' ? setTimeout(done, limitMs) : undefined
 		waiters.add(done)
 	})
 }
@@ -106,5 +110,6 @@ export function createSaver<T>(
 			return settle(limitMs)
 		},
 		settle,
+		quiet: () => settledWithin(null, () => !isBusy(), waiters),
 	}
 }

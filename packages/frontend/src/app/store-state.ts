@@ -68,7 +68,7 @@ export interface Store {
 	guideReturn: GuideReturnPoint[]
 	// Bumped when the Markdown engine (lazy) lands or repaints, so React prose re-renders with it.
 	markdownTick: number
-	// The guide thread being written: on a domain, or on one of its blocks; the text lives here so a poll or a repaint never loses it.
+	// The guide thread being written: on a domain, or on one of its blocks; the text lives here so a pulse or a repaint never loses it.
 	domainComposer: { domainId: string; blockId?: string | undefined } | null
 	domainComposerBody: string
 

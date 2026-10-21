@@ -27,7 +27,7 @@ export const S: Store = reactive<Store>({
 	queuedReviews: 0,
 	lastBaseDiffHash: null,
 	isRefreshRequired: false,
-	// Polling continues, so a same-origin restart can still propose refresh via isRefreshRequired.
+	// The stream keeps following the hub, so a same-origin restart can still propose refresh via isRefreshRequired.
 	deskClosed: false,
 	selected: { side: 'additions', lineNumber: 1 },
 	composerOpen: false,

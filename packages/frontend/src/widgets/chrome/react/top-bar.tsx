@@ -45,7 +45,7 @@ function Lens({
 
 function TopLenses(): ReactElement {
 	const { S } = chromeCtx()
-	// Its own subscription: a lens flips without anything else on the bar changing (and the thread count below the same - own subscription so a poll doesn't drag every desk button).
+	// Its own subscription: a lens flips without anything else on the bar changing (and the thread count below the same - own subscription so a pulse doesn't drag every desk button).
 	useStoreFields('state', 'fileIndex', 'fileView', 'settings')
 	return (
 		<div {...stylex.props(topBar.lenses)}>

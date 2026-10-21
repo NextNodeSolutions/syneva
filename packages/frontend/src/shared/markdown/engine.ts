@@ -26,7 +26,7 @@ let mdComment: MarkdownIt | null = null
 // A plan's renderer: guide prose, whose figures stay its placeholders (figureFence).
 let mdPlan: MarkdownIt | null = null
 let requestedTheme = ''
-// Comment bodies re-render on every poll tick and each edit mints a fresh id:updatedAt key, so the cache would grow without bound (an orphaned entry per edit); an LRU keeps it bounded like the other UI caches (both cap at 30).
+// Comment bodies re-render on every pulse and each edit mints a fresh id:updatedAt key, so the cache would grow without bound (an orphaned entry per edit); an LRU keeps it bounded like the other UI caches (both cap at 30).
 const COMMENT_CACHE_CAP = 30
 const cache = new Map<string, string>()
 

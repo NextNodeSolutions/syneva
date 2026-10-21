@@ -3,6 +3,7 @@ import './desk.css'
 import '@shared/markdown/prose.css'
 import { createRoot } from 'react-dom/client'
 
+import { adoptDeskStatus } from '@app/desk-instance'
 import { installCommentBindings } from '@app/facade/comment-thread'
 import { installDialogBindings } from '@app/facade/dialogs'
 import { installDomainFeedbackBindings } from '@app/facade/domain-feedback'
@@ -13,7 +14,6 @@ import { installNotesBindings } from '@app/facade/notes'
 import { installProjectTreeBindings } from '@app/facade/project-tree'
 import { installFileActionBindings } from '@app/facade/review-header'
 import { installKeys } from '@app/keys'
-import { adoptDeskStatus, POLL_INTERVAL_MS, pollState } from '@app/poll'
 import { fetchState } from '@entities/review/api'
 import { deskName } from '@entities/review/desk-name'
 import { fetchTree } from '@entities/review/file/api'
@@ -83,6 +83,20 @@ async function bootDiffWorkers(firstPaths: string[]): Promise<void> {
 	}
 }
 
+// The hub's stream starts once the first file is on its way to the screen, where the tab used to
+// start polling: its module (the socket, the hub's store, the pulse decoder) loads then, off the
+// first paint's path. A chunk that cannot load leaves the tab as it was painted, and says so.
+async function followHub(): Promise<void> {
+	try {
+		const { followDesk } = await import('@app/desk-stream')
+		followDesk()
+	} catch {
+		toast(
+			'Live updates could not load. Reload this tab to follow the agent.',
+		)
+	}
+}
+
 async function renderFirstFile(): Promise<void> {
 	await render()
 	warmNextFile()
@@ -129,7 +143,7 @@ async function boot(): Promise<void> {
 	$('diff').addEventListener('scroll', () => {
 		S.diffScrolled = $('diff').scrollTop > FAB_REVEAL_SCROLL_PX
 	})
-	setInterval(() => void pollState(), POLL_INTERVAL_MS)
+	void followHub()
 }
 
 void boot()

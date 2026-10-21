@@ -20,9 +20,7 @@ import type { Guide, GuideResolution } from './guide/model'
 import type {
 	ChangeState,
 	Decision,
-	DeskPollSnapshot,
 	DeskCapabilities,
-	DeskRefreshEvent,
 	DeskStateSnapshot,
 	DeskStatus,
 	ReviewComment,
@@ -128,7 +126,7 @@ export function decodeReviewFile(raw: unknown, ctx: Ctx): ReviewFile {
 }
 
 // The guide and its resolution, through the lazily loaded decoders (the API boundary loaded them when the payload carries a guide); a resolution without its guide is dropped.
-function decodeGuideFields(
+export function decodeGuideFields(
 	o: Record<string, unknown>,
 	ctx: Ctx,
 ): { guide: Guide | undefined; guideResolution: GuideResolution | undefined } {
@@ -230,7 +228,7 @@ export function decodeDeskStatus(
 	}
 }
 
-// Liveness is kept OUT of the adopted review (the caller strips it - see poll.ts adoptDeskStatus); here it is validated only.
+// Liveness is kept OUT of the adopted review (the caller strips it - see app/desk-instance.ts adoptDeskStatus); here it is validated only.
 export function decodeDeskStateSnapshot(
 	raw: unknown,
 	endpoint: string,
@@ -242,24 +240,5 @@ export function decodeDeskStateSnapshot(
 		...state,
 		...status,
 		serverInstanceId: optString(o, 'serverInstanceId', endpoint),
-	}
-}
-
-export function decodePollPayload(
-	raw: unknown,
-	endpoint: string,
-): (DeskPollSnapshot & DeskStatus) | DeskRefreshEvent {
-	const o = assertObject(raw, endpoint, 'poll payload')
-	if (o.kind === 'refresh') return { kind: 'refresh' }
-	const ctx = { endpoint }
-	return {
-		baseDiffHash: requiredString(o, 'baseDiffHash', endpoint),
-		...decodeGuideFields(o, ctx),
-		guideExpected: optBoolean(o, 'guideExpected', endpoint),
-		comments: requiredArray(o, 'comments', endpoint, 'comments').map(c =>
-			decodeComment(c, ctx),
-		),
-		domainComments: decodeDomainComments(o, ctx),
-		...decodeDeskStatus(o, endpoint),
 	}
 }

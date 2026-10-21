@@ -1,4 +1,4 @@
-// The two-level version counter; every nested write is attributed to the ROOT store field it belongs to, so a poll writing S.agentActivity re-renders only the components subscribed to that field.
+// The two-level version counter; every nested write is attributed to the ROOT store field it belongs to, so a pulse writing S.agentActivity re-renders only the components subscribed to that field.
 // Wrappers are cached per target (WeakMap), so the same nested object always yields the same proxy - React memo and @pierre's element-identity checks stay stable across reads.
 // The Proxy handlers wrap unknowns by design (that is the seam), so the type assertions here are the wrap/unwrap boundary, lint-exempted in oxlint.config.ts.
 
