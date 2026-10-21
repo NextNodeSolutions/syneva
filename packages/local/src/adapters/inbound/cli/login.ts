@@ -33,6 +33,7 @@ import type { HubTold } from './pairing-wire.js'
 const DEFAULT_WEB = 'https://app.syneva.dev'
 // A device code lives at most 10 minutes (RFC 4.2), whatever the web says.
 const APPROVAL_WINDOW_MS = 600_000
+const MIN_APPROVAL_WAIT_MS = 1_000
 const MS_PER_SECOND = 1000
 
 export async function runLogin(args: CliArgs): Promise<void> {
@@ -125,7 +126,7 @@ async function approval(
 	code: DeviceCodeAnswer,
 	deadline: number,
 ): Promise<TokenStep> {
-	const wait = code.interval * MS_PER_SECOND
+	const wait = Math.max(MIN_APPROVAL_WAIT_MS, code.interval * MS_PER_SECOND)
 	if (Date.now() + wait > deadline) return { pending: true }
 	await delay(wait)
 	const step = await requestDeviceToken(web, code.deviceCode)
