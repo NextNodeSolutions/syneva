@@ -39,7 +39,7 @@ export async function runLogin(args: CliArgs): Promise<void> {
 	const web = webOf(args)
 	if (!web) {
 		fail(
-			`--web (or SYNEVA_WEB_URL) names the web by its origin, like ${DEFAULT_WEB}.`,
+			`--web (or SYNEVA_WEB_URL) must name an HTTPS origin, like ${DEFAULT_WEB}. HTTP is allowed only on loopback.`,
 		)
 		return
 	}
@@ -82,7 +82,11 @@ function webOf(args: CliArgs): string | null {
 		flagText(args, 'web') ?? process.env.SYNEVA_WEB_URL ?? DEFAULT_WEB
 	if (!URL.canParse(named)) return null
 	const url = new URL(named)
-	if (url.protocol !== 'https:' && url.protocol !== 'http:') return null
+	const isLoopback = ['localhost', '127.0.0.1', '[::1]'].includes(
+		url.hostname,
+	)
+	if (url.protocol !== 'https:' && !(url.protocol === 'http:' && isLoopback))
+		return null
 	return url.origin
 }
 
