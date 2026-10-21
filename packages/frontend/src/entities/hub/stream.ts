@@ -10,6 +10,7 @@ import { BRIDGE_PATHS } from '@syneva/contracts/bridge'
 
 import { fetchHubHealth } from './api'
 import { decodeHubDesk, decodeHubIdentity, decodeHubPresence } from './decode'
+import { hubOfId } from './hub-ids'
 import { decodeJournalEvents } from './journal-decode'
 import { decodePairing } from './pairing'
 import { decodePlan } from './plan-decode'
@@ -90,7 +91,8 @@ function snapshotEnd(hubId: string): void {
 	const whole = snapshots.get(hubId)
 	if (!whole) return
 	snapshots.delete(hubId)
-	forgotten.clear()
+	for (const deskId of forgotten.keys())
+		if (hubOfId(deskId) === hubId) forgotten.delete(deskId)
 	commit(settled(view, whole))
 }
 
