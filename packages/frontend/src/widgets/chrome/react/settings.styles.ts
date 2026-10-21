@@ -31,6 +31,13 @@ export const settings = stylex.create({
 		color: color['--ink'],
 		whiteSpace: 'nowrap',
 	},
+	// Under a setting's name, why this desk cannot apply it: a hint, small and muted.
+	reason: {
+		display: 'block',
+		fontSize: deskText.small,
+		color: color['--muted'],
+		whiteSpace: 'normal',
+	},
 	control: {
 		width: '210px',
 		minHeight: '30px',
@@ -43,6 +50,8 @@ export const settings = stylex.create({
 	number: { width: '90px', fontFamily: font['--mono'] },
 	text: { fontFamily: font['--mono'] },
 	box: { flexShrink: 0 },
+	// A control's disabled look (the design system's control recipe), on the box so its chevron fades too.
+	unavailable: { opacity: 0.55 },
 	keys: {
 		display: 'grid',
 		gridTemplateColumns: '1fr 1fr',

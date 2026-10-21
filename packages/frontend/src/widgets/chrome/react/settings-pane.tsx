@@ -54,10 +54,25 @@ function OptionList({
 }
 
 function SettingSelect({ spec }: { spec: SelectSpec }): ReactElement {
+	const reason = spec.unavailable?.()
+	const isUnavailable = !!reason
+	// The reason sits inside the label, so it is part of the control's accessible name too. The
+	// span around the name is a flex item, hence a block: the reason, a block, goes under it.
 	return (
 		<label {...stylex.props(settings.row)}>
-			{spec.label}
-			<span {...stylex.props(field.selectBox, settings.box)}>
+			<span>
+				{spec.label}
+				{isUnavailable && (
+					<span {...stylex.props(settings.reason)}>{reason}</span>
+				)}
+			</span>
+			<span
+				{...stylex.props(
+					field.selectBox,
+					settings.box,
+					isUnavailable && settings.unavailable,
+				)}
+			>
 				<select
 					{...stylex.props(
 						field.base,
@@ -66,6 +81,7 @@ function SettingSelect({ spec }: { spec: SelectSpec }): ReactElement {
 						settings.select,
 					)}
 					value={String(spec.get())}
+					disabled={isUnavailable}
 					onChange={event => spec.set(event.target.value)}
 				>
 					<OptionList options={spec.options} />
@@ -126,7 +142,8 @@ function SettingSection({
 	number?: NumberSpec
 	text?: TextSpec
 }): ReactElement {
-	useStoreFields('settings', 'diffStyle')
+	// The desk's state too: a setting this desk cannot apply says so once the state names its capabilities.
+	useStoreFields('settings', 'diffStyle', 'state')
 	return (
 		<section>
 			<div

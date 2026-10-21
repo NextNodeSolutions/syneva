@@ -22,6 +22,8 @@ export type SelectSpec = {
 	options: Option[] | OptionGroup[]
 	get: () => string | number | boolean
 	set: (value: string) => void
+	// Why the setting cannot apply on this desk, shown beside it disabled; null where it applies.
+	unavailable?: () => string | null
 }
 
 export type NumberSpec = {
@@ -184,6 +186,16 @@ export const TREE_SELECTS: SelectSpec[] = [
 	},
 ]
 
+// Before the desk's state loads, nothing says it cannot stage: the setting reads as it is stored.
+function deskCanStage(): boolean {
+	return chromeCtx().S.state?.capabilities.staging ?? true
+}
+
+function stagingUnavailable(): string | null {
+	if (deskCanStage()) return null
+	return 'This desk cannot stage files.'
+}
+
 export const BEHAVIOR_SELECTS: SelectSpec[] = [
 	{
 		label: 'Track progress by',
@@ -208,10 +220,16 @@ export const BEHAVIOR_SELECTS: SelectSpec[] = [
 	{
 		label: 'Approve',
 		options: opts(['stage', 'Stages file'], ['verdict', 'Verdict only']),
-		get: () => (chromeCtx().S.settings.stageOnAccept ? 'stage' : 'verdict'),
+		// What approving does on this desk. The setting follows the reviewer to every desk, so a desk
+		// that cannot stage shows its verdict-only approval and leaves the stored choice alone.
+		get: () =>
+			chromeCtx().S.settings.stageOnAccept && deskCanStage()
+				? 'stage'
+				: 'verdict',
 		set: next => {
 			applySetting('stageOnAccept', next === 'stage')
 		},
+		unavailable: stagingUnavailable,
 	},
 ]
 
