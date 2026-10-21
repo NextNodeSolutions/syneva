@@ -10,6 +10,8 @@ interface Env {
 	readonly USER_HUB: DurableObjectNamespace
 	readonly ASSETS: Fetcher
 	readonly RL_AUTH: RateLimit
+	// A tab's upgrade, per person (auth/limits.ts).
+	readonly RL_TABS: RateLimit
 	// The web's own origin, as a browser reaches it: links in emails, the device page's URL, the
 	// one authority the same-origin guard trusts.
 	readonly SITE_URL: string

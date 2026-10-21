@@ -22,6 +22,7 @@ import { parseArgs } from 'node:util'
 import { startHub } from '../bridge/hub-process.mjs'
 import { createReport } from '../stream/report.mjs'
 
+import { checkSecondAccount } from './account-checks.mjs'
 import { checkPairing } from './device-checks.mjs'
 import { checkLogout, checkRevoke, checkTab } from './hub-checks.mjs'
 import { checkClientLimits } from './limit-checks.mjs'
@@ -117,6 +118,7 @@ async function run() {
 	}
 	if (hubId) await checkRevoke(context, { hubId, tab })
 	await checkLogout(context)
+	context.second = await checkSecondAccount(context)
 	await checkOps(context, tab)
 	await checkSignOut(context)
 }

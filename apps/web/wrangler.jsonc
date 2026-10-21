@@ -50,13 +50,21 @@
 			"migrations_dir": "migrations",
 		},
 	],
-	// Sign-in, pairing and hub upgrades per client address or hub (RFC 6.1 F1, F2, section 7). A
-	// binding's period is 10 or 60 s: the per-hour email limits live in D1 instead.
+	// Sign-in, pairing and hub upgrades per client or hub (RFC 6.1 F1, F2, section 7); a tab's
+	// upgrade per person, on its own budget: after a deploy every tab of a person reconnects at
+	// once (B4, up to the object's 32), which ten a minute would refuse, while sixty still bound a
+	// reconnect loop to one a second. A binding's period is 10 or 60 s: the per-hour email limits
+	// live in D1 instead.
 	"ratelimits": [
 		{
 			"name": "RL_AUTH",
 			"namespace_id": "1002",
 			"simple": { "limit": 10, "period": 60 },
+		},
+		{
+			"name": "RL_TABS",
+			"namespace_id": "1003",
+			"simple": { "limit": 60, "period": 60 },
 		},
 	],
 	// R9: a flood that reaches the Worker costs at most this much CPU per request.

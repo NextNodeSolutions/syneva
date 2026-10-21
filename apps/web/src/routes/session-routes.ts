@@ -7,6 +7,7 @@
 import { BRIDGE_PATHS, isWebHubId } from '@syneva/contracts/bridge'
 import { WEB_HUBS_PREFIX, WEB_PATHS } from '@syneva/contracts/web'
 
+import { limitRefusal } from '../auth/limits.js'
 import { sessionByDigest, sessionDigest } from '../auth/session.js'
 import { hubsOfUser, revokeHubOfUser } from '../db/hubs.js'
 import { tabRead } from '../db/session-reads.js'
@@ -102,14 +103,18 @@ async function webHubs(env: Env, session: Session): Promise<WebHubsAnswer> {
 }
 
 // GET /api/hub/ws: the tab's socket, as a local hub serves it, with the person's live hubs, read
-// with the session and the breaker.
+// with the session and the breaker. Every refusal comes before the upgrade is required: a tab
+// learns why its upgrade failed from a plain GET of the same path (the frontend's stream.ts), so
+// that GET passes the same guards, the limit included, and only then hears 426.
 async function tabSocket(call: Call, digest: string): Promise<Response> {
 	const { request, env, now } = call
 	if (request.method !== 'GET') return relayRoute(call, digest)
 	const read = await tabRead(env.DB, digest, now)
 	if (!read) return fail(SIGNED_OUT)
-	if (!isUpgrade(request)) return upgradeRequired()
+	const limited = await limitRefusal(env, 'tab-socket', read.userId)
+	if (limited) return limited
 	const saturated = sheddingRefusal(read, 'upgrade')
 	if (saturated) return saturated
+	if (!isUpgrade(request)) return upgradeRequired()
 	return openTabSocket(env, read.userId, read.hubs)
 }

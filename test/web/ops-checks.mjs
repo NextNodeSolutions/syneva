@@ -13,16 +13,19 @@ import { FRAME_WAIT_MS } from './hub-checks.mjs'
 import { HTTP_OK, HTTP_UNAVAILABLE } from './statuses.mjs'
 import { pairSocketless } from './web-client.mjs'
 
+// The smoke's accounts: the first (session-checks.mjs) and the second (account-checks.mjs).
+const ACCOUNTS = 2
+
 export async function checkOps(context, tab) {
 	const { report, browser, secrets } = context
 	report.section('the breaker')
 	const ops = { authorization: `Bearer ${secrets.OPS_TOKEN}` }
 	const status = await browser.json(BRIDGE_PATHS.opsStatus, { headers: ops })
 	report.check(
-		'GET /bridge/v1/ops/status with the token: not tripped, one user, no live hub (revoked)',
+		'GET /bridge/v1/ops/status with the token: not tripped, two users, no live hub (revoked)',
 		status.status === HTTP_OK &&
 			status.body.tripped === false &&
-			status.body.users === 1 &&
+			status.body.users === ACCOUNTS &&
 			status.body.hubsSeenLastDay === 0,
 		JSON.stringify(status.body),
 	)
@@ -35,7 +38,7 @@ export async function checkOps(context, tab) {
 		'tripping it drains the objects',
 		trip.status === HTTP_OK &&
 			trip.body.tripped === true &&
-			trip.body.drained === 1,
+			trip.body.drained === ACCOUNTS,
 		JSON.stringify(trip.body),
 	)
 	if (tab) await checkDrained(report, tab)
