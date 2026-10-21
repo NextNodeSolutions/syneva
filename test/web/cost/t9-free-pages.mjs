@@ -81,8 +81,9 @@ async function invocationsOnlyByShells(
 			round.endedAt,
 		)
 		if (seen === null)
-			return ctx.note(
-				'no local Explorer: the invocation count was not read here (staging: the Analytics read below)',
+			return ctx.notMeasured(
+				'T9: the Worker invocations per path',
+				'no local Explorer answered',
 			)
 		const recorded = shells.map(route => seen.get(`GET ${route}`) ?? 0)
 		if (recorded.every(count => count >= LOADS))
@@ -93,10 +94,9 @@ async function invocationsOnlyByShells(
 		if (at < ROUNDS)
 			round = await loadRound(ctx, account, [...assets, ...shells])
 	}
-	return ctx.report.check(
-		`the Explorer recorded every shell load in one of ${ROUNDS} rounds (the invocation count is evidence only then)`,
-		false,
-		'incomplete evidence: repeat on a quieter machine, or read it on staging',
+	return ctx.notMeasured(
+		'T9: the Worker invocations per path',
+		`the Explorer missed shell loads in each of ${ROUNDS} rounds, so its count is no evidence`,
 	)
 }
 

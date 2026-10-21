@@ -3,7 +3,8 @@
 // invocation, and a request an asset served never makes one, so the counts below are the local
 // counterpart of the Analytics API's invocation count. Every count is of the invocations that
 // started inside a window: an upgrade's invocation is recorded when its socket ends, which can be
-// long after, inside a later test's window. Null answers when the dev server has no Explorer.
+// long after, inside a later test's window. A null is a reading not taken (no Explorer answered):
+// the test names it as not measured, never as an `ok`.
 const QUERY = '/cdn-cgi/local/explorer/api/local/observability/query'
 // The runtime's own entries: one per request (`"GET http://..."`) and one per event it runs, named
 // by a bare word (`"jsrpc"`, `"hibernatableWebSocket"`). The Worker's code logs JSON.

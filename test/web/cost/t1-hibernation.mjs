@@ -62,14 +62,25 @@ async function run(ctx) {
 			(want.minutes * MS_PER_MINUTE < PING_FLOOR_MS || hold.pings > 0),
 		`${hold.unanswered} sockets short of a pong`,
 	)
-	if (hold.invocations !== null)
-		report.check(
-			"the Worker was not invoked once during the hold (pings are the runtime's auto-response)",
-			hold.invocations === 0,
-			`${hold.invocations} invocations: ${describeRequests(hold.requests)}`,
-		)
-	if (ctx.explorer.isLocal) await objectWokenOnlyByFrames(ctx, hold)
+	if (!ctx.staging) {
+		notInvoked(ctx, hold)
+		await objectWokenOnlyByFrames(ctx, hold)
+	}
 	ctx.printReads('T1', { from: iso(hold.startedAt), to: iso(hold.endedAt) })
+}
+
+// Locally the Explorer counts the Worker's invocations; on staging it is the Analytics read.
+function notInvoked(ctx, hold) {
+	if (hold.invocations === null)
+		return ctx.notMeasured(
+			'T1: the Worker invocations during the hold',
+			'no local Explorer answered',
+		)
+	return ctx.report.check(
+		"the Worker was not invoked once during the hold (pings are the runtime's auto-response)",
+		hold.invocations === 0,
+		`${hold.invocations} invocations: ${describeRequests(hold.requests)}`,
+	)
 }
 
 // `wrangler dev` logs `hibernatableWebSocket` for each event that runs the object's code. None in
@@ -78,7 +89,10 @@ async function run(ctx) {
 async function objectWokenOnlyByFrames(ctx, hold) {
 	const events = await ctx.explorer.objectEvents(hold.startedAt, hold.endedAt)
 	if (events === null)
-		return ctx.note('no local Explorer: the object events were not read')
+		return ctx.notMeasured(
+			'T1: the object events during the hold',
+			'no local Explorer answered',
+		)
 	ctx.report.check(
 		"the object ran no code during the hold (no hibernatableWebSocket event in wrangler dev's log)",
 		!events.length,

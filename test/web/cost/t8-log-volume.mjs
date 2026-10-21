@@ -37,7 +37,10 @@ async function run(ctx) {
 		)
 		const logged = await ctx.explorer.codeLogs(hold.startedAt, hold.endedAt)
 		if (logged === null)
-			ctx.note('no local Explorer: the log table was not read')
+			ctx.notMeasured(
+				"T8: `wrangler dev`'s log table during the hold",
+				'no local Explorer answered',
+			)
 		else
 			report.check(
 				"... nor in `wrangler dev`'s log table (the runtime's request lines aside)",

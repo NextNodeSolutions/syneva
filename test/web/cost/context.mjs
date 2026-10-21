@@ -31,8 +31,26 @@ export function createContext({
 		scratch,
 		// Holds finished in this run, for the tests that read the same window (T1, T8).
 		holds: [],
+		// The readings this run could not take, and the tests whose staging reads are a person's:
+		// the summary names both, since neither is an `ok`.
+		unmeasured: [],
+		readsLeft: [],
 		note(text) {
 			process.stdout.write(`note ${text}\n`)
+		},
+		// A reading a check needs that came back empty (no local Explorer, or one that lost what it
+		// was to count): a FAIL, since a check that measured nothing proves nothing, unless
+		// --allow-unmeasured says this run is a dry run that may go without it.
+		notMeasured(what, why) {
+			ctx.unmeasured.push(what)
+			if (options['allow-unmeasured'])
+				process.stdout.write(`unmeasured ${what}: ${why}\n`)
+			else
+				report.check(
+					`measured: ${what}`,
+					false,
+					`${why} (--allow-unmeasured runs without it, and says so)`,
+				)
 		},
 		track(peer) {
 			tracked.add(peer)
@@ -51,6 +69,7 @@ export function createContext({
 			lines.close()
 		},
 		printReads: (id, window) => {
+			if (staging) ctx.readsLeft.push(id)
 			printReads(ctx, id, window)
 		},
 	}

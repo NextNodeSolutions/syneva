@@ -132,7 +132,12 @@ async function noObjectTouched(ctx, seen) {
 		`${tab.frames.length - framesBefore} new frames`,
 	)
 	const objectsAfter = await ctx.explorer.objectCount()
-	if (objectsBefore !== null && objectsAfter !== null)
+	if (objectsBefore === null || objectsAfter === null)
+		ctx.notMeasured(
+			'T3: the Durable Objects that exist',
+			'no local Explorer answered',
+		)
+	else
 		report.check(
 			'... and the Durable Objects that exist are the same (the storm created none)',
 			objectsAfter === objectsBefore,
@@ -144,7 +149,12 @@ async function noObjectTouched(ctx, seen) {
 			`the Worker ran ${invocationTotal(requests)} times for ${storms.reduce((sum, each) => sum + each.attempts, 0)} attempts (each refused after at most one D1 read, before any object)`,
 		)
 	const logged = await ctx.explorer.codeLogs(since, until)
-	if (logged)
+	if (logged === null)
+		ctx.notMeasured(
+			'T3: the log lines of the storm',
+			'no local Explorer answered',
+		)
+	else
 		report.check(
 			'... and the Worker wrote no log line for it (T8: the storm minute produces none)',
 			!logged.length,

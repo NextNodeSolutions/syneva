@@ -2,7 +2,7 @@
 // The cost acceptance tests of RFC 0001, 6.7 (T1 to T10) for apps/web:
 //   node test/web/cost/run.mjs [--only T2,T4] [--web-port 47994] [--inspector-port <port>]
 //        [--port 47993] [--cli <path>]
-//        [--staging <origin> --cookie <session> ... --ops-token <token>]
+//        [--staging <origin> --cookie <session> ... --ops-token <token>] [--allow-unmeasured]
 // It starts one `wrangler dev` (nothing touches a Cloudflare account), runs the selected tests
 // against it and prints one line per check. A test that only a deployed Worker can settle runs its
 // local dry run, or reports `skip (staging)`; against `--staging` it drives what HTTP and
@@ -54,6 +54,7 @@ const { values: options } = parseArgs({
 		seconds: { type: 'string' },
 		'offline-ms': { type: 'string' },
 		full: { type: 'boolean', default: false },
+		'allow-unmeasured': { type: 'boolean', default: false },
 		procedures: { type: 'boolean', default: false },
 		restart: { type: 'boolean', default: false },
 	},
@@ -108,10 +109,19 @@ const note = skipped.length
 	: ''
 const kept = failures ? `; scratch kept at ${scratch}` : ''
 process.stdout.write(
-	`\n${report.total() - failures}/${report.total()} checks passed${note}${kept}\n`,
+	`\n${report.total() - failures}/${report.total()} checks passed${note}${kept}\n${unchecked(ctx)}`,
 )
 if (failures) process.exit(1)
 rmSync(scratch, { recursive: true, force: true })
+
+// What this run did not settle by itself, so a pass is never read as more than it is.
+function unchecked({ unmeasured, readsLeft }) {
+	const lines = []
+	if (unmeasured.length) lines.push(`not measured: ${unmeasured.join('; ')}`)
+	if (readsLeft.length)
+		lines.push(`left to a person's reads: ${readsLeft.join(', ')}`)
+	return lines.map(line => `${line}\n`).join('')
+}
 
 // What the Worker itself logged that looks like a fault, for the failures above to be read against.
 function printWorkerErrors() {
