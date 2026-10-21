@@ -56,11 +56,14 @@ async function answer(
 	req: IncomingMessage,
 	res: ServerResponse,
 ): Promise<void> {
-	const request = toRequest(req, options.scheme, clientGone(res))
+	const ended = responseEnded(res)
+	const request = toRequest(req, options.scheme, clientGone(ended))
 	if (!request) return refuseMalformed(res)
 	try {
 		const served = await serve(request)
-		res.once('finish', served.afterSent)
+		// The route committed by returning: its deferred work runs once node:http is done with
+		// the response, handed over or abandoned by a client gone first (Served.afterSent).
+		void afterEnd(ended, served.afterSent)
 		const isAnswered =
 			served.isUnclaimedRead &&
 			(await options.uiMiddleware?.(req, res)) === true
@@ -71,12 +74,29 @@ async function answer(
 	}
 }
 
+// Settles once, when node:http is done with the response: true once it was handed over whole,
+// false when the connection closed first. 'close' follows both, and only once.
+function responseEnded(res: ServerResponse): Promise<boolean> {
+	return new Promise(resolve => {
+		res.once('close', () => resolve(res.writableFinished))
+	})
+}
+
+// Work for the response's end, however it ends; registered after the end (a route still
+// running when its client left), it runs at once.
+async function afterEnd(
+	ended: Promise<boolean>,
+	work: (isHandedOver: boolean) => void,
+): Promise<void> {
+	work(await ended)
+}
+
 // Aborts once the client goes away before the response is handed over: a parked request
-// unparks on it, and a desk's activity is stamped on it (router.ts).
-function clientGone(res: ServerResponse): AbortSignal {
+// unparks on it (routes/await-send.ts).
+function clientGone(ended: Promise<boolean>): AbortSignal {
 	const controller = new AbortController()
-	res.once('close', () => {
-		if (!res.writableFinished) controller.abort()
+	void afterEnd(ended, isHandedOver => {
+		if (!isHandedOver) controller.abort()
 	})
 	return controller.signal
 }

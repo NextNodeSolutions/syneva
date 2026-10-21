@@ -235,13 +235,10 @@ async function deskApi(
 }
 
 // A desk's last activity is stamped when one of its requests starts and again when it ends:
-// answered (once handed over) or abandoned (the client gone first, which only a request the
-// server parks lives long enough to see).
+// answered or abandoned by a client gone first, both of which end in afterSent.
 function stampActivity(liveness: DeskLiveness, hub: HubRequest): void {
 	liveness.requestStarted()
-	const finished = (): void => {
+	hub.afterSent(() => {
 		liveness.requestFinished()
-	}
-	hub.afterSent(finished)
-	hub.request.signal.addEventListener('abort', finished, { once: true })
+	})
 }

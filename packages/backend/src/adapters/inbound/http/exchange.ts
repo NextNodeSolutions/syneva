@@ -6,12 +6,14 @@
 //
 // `afterSent` is work that must follow the answer announcing it: the hub's shutdown once its
 // "stopping" reply is out, a desk's close once its stop is acknowledged, a Send's wake-up of the
-// agent once the reviewer's ack is out. It runs once the response is handed over whole to the
-// transport: under node:http on the response's 'finish' (never when the client went away
-// first, as before); in a Durable Object right after the handler returns the response, the
-// only point an object has (no waitUntil). Each hook therefore orders a side effect after the
-// answer, and none depends on the bytes having reached the client: 'finish' itself only means
-// handed to the operating system.
+// agent once the reviewer's ack is out. It runs exactly once, when the transport is done with
+// the response: under node:http once the response is handed over whole or the client went away
+// first; in a Durable Object right after the handler returns the response, the only point an
+// object has (no waitUntil). A route that returned has committed what its answer announces (a
+// Send is recorded and journaled, a shutdown or a close accepted), so a client gone before
+// the answer cancels none of it: each hook orders a side effect after the answer, and none
+// depends on the bytes having reached the client - a handed-over response itself only reached
+// the operating system.
 //
 // `isUnclaimedRead` marks a GET or HEAD that every guard let through and that no route and no
 // UI file claimed: `response` is the hub's not-found, and a transport with a UI server of its
