@@ -67,11 +67,7 @@ function commit(next: StreamView): void {
 const healthRetry = createAnswerRetry(() => void readHealth())
 
 async function readHealth(): Promise<void> {
-	// On the web every hub says hello with an instance of its own while the health is the web's:
-	// it is read once.
-	if (view.health && view.mode === 'web') return
-	const instanceId = view.identity?.instanceId
-	if (!instanceId || view.health?.instanceId === instanceId) return
+	if (!isHealthDue()) return
 	try {
 		const health = await fetchHubHealth()
 		commit({ ...view, health })
@@ -79,6 +75,16 @@ async function readHealth(): Promise<void> {
 	} catch {
 		healthRetry.failed()
 	}
+}
+
+// Locally, once per hub start (its instance). On the web, once per page: every hub says hello with
+// an instance of its own while the health is the web's, read at the first hello or at `hubs-end`
+// for a person whose hubs are all offline.
+function isHealthDue(): boolean {
+	if (view.mode === 'web') return !view.health
+	const instanceId = view.identity?.instanceId
+	if (!instanceId) return false
+	return view.health?.instanceId !== instanceId
 }
 
 function hello(identity: HubIdentity): void {
@@ -141,6 +147,7 @@ function apply(frame: StreamFrame): void {
 	switch (frame.t) {
 		case 'hubs-end':
 			commit(settledEmpty({ ...view, mode: 'web' }))
+			void readHealth()
 			return
 		case 'hello':
 			hello(decodeHubIdentity(frame.hub, SOCKET))
