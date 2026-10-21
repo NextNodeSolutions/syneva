@@ -8,6 +8,8 @@ import { transition } from '@syneva/design-system/transitions.stylex'
 const NARROW = '@container projects (max-width: 760px)'
 
 export const projectsList = stylex.create({
+	// The repository's hub is offline: the row stays, greyed, as a desk row of that hub does.
+	offline: { opacity: 0.62 },
 	root: {
 		containerType: 'inline-size',
 		containerName: 'projects',

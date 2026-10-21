@@ -10,6 +10,7 @@ import { projectPagePath } from '@syneva/contracts/routes'
 import { focus } from '@syneva/design-system/controls.styles'
 
 import { displayRoot, plural, relativeTime } from '../format'
+import { offlineWords } from '../hub-copy'
 import { indexRow } from '../react/index-row.styles'
 import { listPage } from '../react/list-page.styles'
 import { PageHead } from '../react/page-head'
@@ -75,14 +76,20 @@ function ProjectRow({
 		: 'no activity yet'
 	const hubs = useHubList()
 	const hasManyHubs = useHasManyHubs()
-	const hub = hasManyHubs
-		? hubs.find(each => each.id === entry.hubId)
-		: undefined
+	const hub = hubs.find(each => each.id === entry.hubId)
+	// The row names its hub only among several; its offline tone shows whatever the count, as the
+	// desk cards' does: nothing on this repository can be reached until the hub is back.
+	const isOffline = Boolean(hub) && !hub?.isOnline
 	return (
 		<li data-enter="rise">
 			<AppLink
 				href={projectPagePath(entry.id)}
-				css={[focus.inset, indexRow.row, projectsList.row]}
+				css={[
+					focus.inset,
+					indexRow.row,
+					projectsList.row,
+					isOffline && projectsList.offline,
+				]}
 				aria-label={`${entry.name}: ${plural(entry.desks.length, 'live desk')}, ${entry.yours} waiting on you`}
 			>
 				<span>
@@ -91,7 +98,8 @@ function ProjectRow({
 						{...stylex.props(projectsList.path)}
 						title={entry.root}
 					>
-						{hub && `${hub.name} · `}
+						{hub && hasManyHubs && `${hub.name} · `}
+						{hub && isOffline && `${offlineWords(hub, now)} · `}
 						{displayRoot(entry.root)}
 					</span>
 				</span>
