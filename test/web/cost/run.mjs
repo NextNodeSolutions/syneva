@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The cost acceptance tests of RFC 0001, 6.7 (T1 to T10) for apps/web:
 //   node test/web/cost/run.mjs [--only T2,T4] [--web-port 47994] [--inspector-port <port>]
-//        [--port 47993] [--cli <path>]
+//        [--port 47993] [--cli <path>]   (the real hub T4 runs: the CLI build, its port)
 //        [--staging <origin> --cookie <session> ... --ops-token <token>] [--allow-unmeasured]
 // It starts one `wrangler dev` (nothing touches a Cloudflare account), runs the selected tests
 // against it and prints one line per check. A test that only a deployed Worker can settle runs its
@@ -183,17 +183,21 @@ function stagingWeb(origin) {
 	}
 }
 
+// The builds are there, the ports this run binds are free: it never binds a port in use. A test
+// that runs the real hub (`needsHub`) needs the CLI build and --port, against staging too.
 async function preflight() {
-	const built = path.join(ROOT, 'apps/web/dist/server/entry.mjs')
-	if (!existsSync(built))
-		stop(`${built} is missing; run \`pnpm build\` first`)
-	if (options.staging) {
-		if (!options.cookie.length)
-			stop('--staging needs at least one --cookie')
-		return
-	}
+	const needsHub = selected.some(test => test.needsHub)
+	const builds = [path.join(ROOT, 'apps/web/dist/server/entry.mjs')]
+	if (needsHub) builds.push(options.cli)
+	const missing = builds.find(file => !existsSync(file))
+	if (missing) stop(`${missing} is missing; run \`pnpm build\` first`)
+	if (options.staging && !options.cookie.length)
+		stop('--staging needs at least one --cookie')
+	const ports = options.staging
+		? []
+		: [options['web-port'], options['inspector-port']]
+	if (needsHub) ports.push(options.port)
 	const busy = []
-	const ports = [options['web-port'], options['inspector-port']]
 	for (const port of ports.filter(Boolean))
 		if (!(await isFree(Number(port)))) busy.push(port)
 	if (busy.length) stop(`port ${busy.join(', ')} is in use; pass another`)

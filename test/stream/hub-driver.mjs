@@ -65,11 +65,10 @@ export function createDriver({ hub, key, cli }) {
 	return driver
 }
 
-// A git repo with one committed file and one change to it: enough for a repo desk to review.
-export async function scratchRepo() {
-	const root = realpathSync(
-		mkdtempSync(path.join(os.tmpdir(), 'syneva-stream-')),
-	)
+// A git repo with one committed file and one change to it: enough for a repo desk to review. It
+// lives under `parent` (a run's own scratch, so it goes with it), the system's temp by default.
+export async function scratchRepo(parent = os.tmpdir()) {
+	const root = realpathSync(mkdtempSync(path.join(parent, 'syneva-stream-')))
 	const git = args => run('git', args, { cwd: root })
 	await git(['init', '-q', '-b', 'main'])
 	await git(['config', 'user.email', 'stream@check.invalid'])

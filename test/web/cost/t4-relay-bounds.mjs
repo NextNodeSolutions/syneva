@@ -1,15 +1,25 @@
-// T4 relay bounds (RFC 0001, 6.7; guards R5, 6.1 A6, E1): an answer past responseBytes is cut,
-// a hub that never answers is a 504 at the deadline with a `cancel` sent to it, the 33rd relay in
-// flight is a 429, a hub closing mid-relay is a 502 (or a cut body), no hub socket a 503 at once.
-// The hubs here are fakes that say exactly what each case needs; the real probe's own
-// `err TOO_LARGE` is test/bridge's.
+// T4 relay bounds (RFC 0001, 6.7; guards R5, 6.1 A6, E1): a 40 MiB answer of the real hub is its
+// `err TOO_LARGE` and a 413 for the tab, a hub that never answers is a 504 at the deadline with a
+// `cancel` sent to it, the 33rd relay in flight is a 429, a hub closing before its answer a 502, no
+// hub socket a 503 at once. The other hubs are fakes that say exactly what each case needs, among
+// them one that streams past responseBytes anyway (the object's own bound: a cut body, since its
+// 200 head is already out) and one that drops mid-answer (the same).
+import { randomBytes } from 'node:crypto'
+import { writeFile } from 'node:fs/promises'
+import path from 'node:path'
+
 import {
 	BRIDGE_LIMITS,
 	RELAY_FAILURE_STATUS,
 } from '../../../packages/contracts/dist/bridge.js'
+import {
+	API_PATHS,
+	deskApiBase,
+} from '../../../packages/contracts/dist/routes.js'
 import { waitFor } from '../../stream/stream-client.mjs'
 
 import { delay, median } from './fakes/timing.mjs'
+import { startRealHub } from './real-hub.mjs'
 import { failureOf, readBody, relayGet } from './relay-client.mjs'
 import { openHub } from './sockets.mjs'
 
@@ -26,9 +36,9 @@ const STRANGER_HUB = '0123456789abcdef'
 
 async function run(ctx) {
 	const account = await ctx.account(0)
+	await probeTooLarge(ctx, account)
 	await Promise.all([oversize(ctx, account), silent(ctx, account)])
 	await tooMany(ctx, account)
-	await hubErr(ctx, account)
 	await dropping(ctx, account)
 	await offline(ctx, account)
 	ctx.printReads('T4', { from: null, to: null })
@@ -47,7 +57,33 @@ function cutWord(ctx) {
 		: ' (an error only on a deployed Worker)'
 }
 
-// 40 MiB: the object cuts at responseBytes, tells the hub to stop, and the tab's body is cut.
+// The RFC's case end to end: the real probe caps an answer at responseBytes before its first frame,
+// so a 40 MiB blob is one `err TOO_LARGE`, which the object answers 413.
+async function probeTooLarge(ctx, account) {
+	const real = await startRealHub(ctx, account)
+	try {
+		const desk = await real.openDesk()
+		await writeFile(
+			path.join(desk.root, 'huge.bin'),
+			randomBytes(OVERSIZE_BYTES),
+		)
+		const response = await account.browser.fetch(
+			`${deskApiBase(desk.webId)}${API_PATHS.blob}?path=huge.bin`,
+		)
+		const body = await failureOf(response)
+		ctx.report.check(
+			`a ${OVERSIZE_BYTES / MIB} MiB answer of the real hub (\`--cli\`, paired as a person pairs it): \`err TOO_LARGE\`, the tab gets ${RELAY_FAILURE_STATUS.TOO_LARGE}`,
+			response.status === RELAY_FAILURE_STATUS.TOO_LARGE &&
+				body?.code === 'TOO_LARGE',
+			`${response.status} ${JSON.stringify(body)}`,
+		)
+	} finally {
+		await real.stop()
+	}
+}
+
+// A hub that streams 40 MiB anyway, past its own cap: the object cuts it at responseBytes, tells the
+// hub to stop, and the tab's body is cut (its 200 head went out with the first frame).
 async function oversize(ctx, account) {
 	const { report } = ctx
 	const hub = await openHub(ctx, account, 0)
@@ -60,7 +96,7 @@ async function oversize(ctx, account) {
 	const read = await readBody(response)
 	const [sent] = await Promise.all(streams)
 	report.check(
-		`an answer of ${OVERSIZE_BYTES / MIB} MiB is cut: the tab's body stops short of it${cutWord(ctx)}`,
+		`a hub streaming ${OVERSIZE_BYTES / MIB} MiB past its cap is cut: the tab's body stops short of it${cutWord(ctx)}`,
 		response.status === 200 && isCut(ctx, read, OVERSIZE_BYTES),
 		`status ${response.status}, ${read.bytes} bytes read, ${read.error}`,
 	)
@@ -148,21 +184,6 @@ async function tooMany(ctx, account) {
 	)
 }
 
-// The hub's own refusal of an answer too big for it: `err TOO_LARGE` is a 413 for the tab.
-async function hubErr(ctx, account) {
-	const hub = await openHub(ctx, account, 3)
-	hub.handler = req =>
-		hub.sendJson({ t: 'err', id: req.id, code: 'TOO_LARGE' })
-	const response = await relayGet(account, hub)
-	const body = await failureOf(response)
-	ctx.report.check(
-		`a hub's \`err TOO_LARGE\` is ${RELAY_FAILURE_STATUS.TOO_LARGE} TOO_LARGE for the tab`,
-		response.status === RELAY_FAILURE_STATUS.TOO_LARGE &&
-			body?.code === 'TOO_LARGE',
-		`${response.status} ${JSON.stringify(body)}`,
-	)
-}
-
 // A hub whose socket ends mid-relay: 502 before its answer started, a cut body after.
 async function dropping(ctx, account) {
 	const { report } = ctx
@@ -241,4 +262,11 @@ async function timed(request) {
 	}
 }
 
-export const t4 = { id: 'T4', title: 'relay bounds', where: 'local', run }
+export const t4 = {
+	id: 'T4',
+	title: 'relay bounds',
+	where: 'local',
+	// The real hub's case: the CLI build, a hub on --port.
+	needsHub: true,
+	run,
+}
