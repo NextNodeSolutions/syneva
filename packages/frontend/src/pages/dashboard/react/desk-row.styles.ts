@@ -65,6 +65,8 @@ export const deskRow = stylex.create({
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
 	},
+	// The desk's hub is offline: the row stays, greyed, and its relayed actions are out of reach.
+	offline: { opacity: 0.62 },
 	armed: {
 		gridTemplateAreas: {
 			default: AREAS.wideArmed,

@@ -1,9 +1,11 @@
+import { useHasManyHubs } from '@entities/hub/use-hubs'
 import { run } from '@shared/ui/run.styles'
 import * as stylex from '@stylexjs/stylex'
 import { a11y } from '@syneva/design-system/a11y.styles'
 
 import { deskLinkId } from '../focus-targets'
 import { modeParts, relativeTime, unbroken } from '../format'
+import { hubName, offlineWords } from '../hub-copy'
 
 import { deskCell } from './desk-cell.styles'
 import { deskLinkMarker } from './desk-row.stylex'
@@ -24,6 +26,8 @@ export function DeskCell({
 	describedBy,
 }: DeskCellProps): ReactElement {
 	const [kind = '', detail] = modeParts(desk)
+	const hasManyHubs = useHasManyHubs()
+	const hub = hubName(desk, hasManyHubs)
 	const part = stylex.props(run.part)
 	const modePart = stylex.props(run.part, deskCell.metaMode)
 	return (
@@ -47,8 +51,14 @@ export function DeskCell({
 			<p {...stylex.props(deskCell.meta, run.clip, deskSlide.part)}>
 				<span {...stylex.props(run.parts)}>
 					<span {...part}>{unbroken(desk.project)}</span>
+					{hub && <span {...part}>{unbroken(hub)}</span>}
 					<span {...modePart}>{unbroken(kind)}</span>
 					{detail && <span {...modePart}>{unbroken(detail)}</span>}
+					{desk.hub && !desk.hub.isOnline && (
+						<span {...stylex.props(run.part, deskCell.metaOffline)}>
+							{unbroken(offlineWords(desk.hub, now))}
+						</span>
+					)}
 				</span>
 				<span {...stylex.props(a11y.srOnly)}>
 					{` · opened ${relativeTime(desk.openedAt, now)}`}

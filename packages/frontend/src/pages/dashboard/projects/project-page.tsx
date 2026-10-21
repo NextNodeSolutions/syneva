@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 
+import { useHasManyHubs } from '@entities/hub/use-hubs'
 import { useEntrance } from '@shared/lib/use-entrance'
 import * as stylex from '@stylexjs/stylex'
 
@@ -51,18 +52,22 @@ export function ProjectPage({
 	const root = useRef<HTMLDivElement>(null)
 	useEntrance(root, id)
 	const { listed } = dashboard
+	const hasManyHubs = useHasManyHubs()
 	if (!listed) return <PhasePage phase={dashboard.phase} />
 	const desks = listed.desks.filter(desk => desk.projectId === id)
 	const named =
 		desks[0] ??
 		dashboard.journal.events.findLast(event => event.projectId === id)
+	const hub = hasManyHubs ? desks[0]?.hub?.name : undefined
 	return (
 		<div ref={root} {...stylex.props(dashboardPage.root)}>
 			<PageHead
 				title={named?.project ?? 'Unknown project'}
 				lede={
 					named
-						? displayRoot(named.root)
+						? [hub, displayRoot(named.root)]
+								.filter(Boolean)
+								.join(' · ')
 						: 'The hub has no desk and no record for this repository.'
 				}
 			/>

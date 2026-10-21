@@ -3,6 +3,7 @@ import { ArrowRight } from '@shared/ui/arrow-right'
 import { LineIcon } from '@shared/ui/line-icon'
 import * as stylex from '@stylexjs/stylex'
 
+import { isHubOffline } from '../hub-copy'
 import { modeKeyOf } from '../overview/display'
 import { rowDescription } from '../row-description'
 import { stageCopy } from '../stage-copy'
@@ -87,6 +88,7 @@ export function DeskRow({
 				deskRow.row,
 				rowLight.lit,
 				isArmed && deskRow.armed,
+				isHubOffline(desk) && deskRow.offline,
 				look.hasArrived && deskArrival.row,
 				deskRowMarker,
 			)}

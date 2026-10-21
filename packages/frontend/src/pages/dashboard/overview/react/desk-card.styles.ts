@@ -33,6 +33,9 @@ export const deskCard = stylex.create({
 		},
 		transition: `border-color ${transition.fast}`,
 	},
+	// The desk's hub is offline: the card stays, greyed.
+	offline: { opacity: 0.62 },
+	metaOffline: { color: color['--amber'] },
 	title: {
 		fontSize: '14.5px',
 		fontWeight: 500,

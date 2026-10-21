@@ -9,6 +9,8 @@ import type { HubDesk, HubProject } from '@entities/hub/model'
 // the journal remembers with no desk open now (their history still reads).
 export type ProjectEntry = {
 	id: string
+	// The hub the repository is on, for the pages that name it when there are several.
+	hubId: string
 	name: string
 	root: string
 	desks: readonly HubDesk[]
@@ -21,6 +23,7 @@ export type ProjectEntry = {
 // What the journal says about one repository: its name and root as its newest event names
 // them, when that event happened, and the rounds sent there this week.
 type Remembered = {
+	hubId: string
 	name: string
 	root: string
 	lastAt: string
@@ -35,6 +38,7 @@ function remembered(
 	const projects = new Map<string, Remembered>()
 	for (const event of events) {
 		const project = projects.get(event.projectId) ?? {
+			hubId: event.hubId,
 			name: event.project,
 			root: event.root,
 			lastAt: event.at,
@@ -56,6 +60,7 @@ function liveEntry(
 ): ProjectEntry {
 	return {
 		id: project.id,
+		hubId: project.hubId,
 		name: project.name,
 		root: project.root,
 		desks: project.desks,
@@ -69,6 +74,7 @@ function liveEntry(
 function goneEntry(id: string, project: Remembered): ProjectEntry {
 	return {
 		id,
+		hubId: project.hubId,
 		name: project.name,
 		root: project.root,
 		desks: [],

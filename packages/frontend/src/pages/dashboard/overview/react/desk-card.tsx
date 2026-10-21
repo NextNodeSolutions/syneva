@@ -1,10 +1,12 @@
 import { deskStage } from '@entities/hub/stage'
+import { useHasManyHubs } from '@entities/hub/use-hubs'
 import { ArrowRight } from '@shared/ui/arrow-right'
 import { Meter } from '@shared/ui/meter'
 import * as stylex from '@stylexjs/stylex'
 import { tag } from '@syneva/design-system/controls.styles'
 
 import { modeParts, plural } from '../../format'
+import { hubName, isHubOffline, offlineWords } from '../../hub-copy'
 import { CloseControl } from '../../react/close-control'
 import { CloseWarning } from '../../react/close-warning'
 import { Fraction } from '../../react/fraction'
@@ -124,6 +126,25 @@ function CardTitle({
 	)
 }
 
+// What the card reviews and, when the page follows several hubs, which one it is on; a desk whose
+// hub is offline says so in its own line.
+function CardMeta({ desk, now }: { desk: HubDesk; now: number }): ReactElement {
+	const hasManyHubs = useHasManyHubs()
+	const what = [desk.project, hubName(desk, hasManyHubs), ...modeParts(desk)]
+		.filter(Boolean)
+		.join(' · ')
+	return (
+		<>
+			<p {...stylex.props(deskCard.meta)}>{what}</p>
+			{desk.hub && !desk.hub.isOnline && (
+				<p {...stylex.props(deskCard.meta, deskCard.metaOffline)}>
+					{offlineWords(desk.hub, now)}
+				</p>
+			)}
+		</>
+	)
+}
+
 // One desk on the board, holding what a row of the ledger holds: the whole card is its link (a
 // modified click opens a new tab), read to a screen reader as the row's sentence. Its title,
 // its repository and what it reviews, the agent's own words when it has posted some, the
@@ -141,18 +162,21 @@ export function DeskCard({
 }): ReactElement {
 	const copy = stageCopy(deskStage(desk))
 	const ids = cardIds(desk.id)
-	const what = [desk.project, ...modeParts(desk)].filter(Boolean).join(' · ')
 	return (
 		<article
 			data-flip={desk.id}
 			data-enter="rise"
-			{...stylex.props(deskCard.card, deskCardMarker)}
+			{...stylex.props(
+				deskCard.card,
+				deskCardMarker,
+				isHubOffline(desk) && deskCard.offline,
+			)}
 		>
 			<CardTitle desk={desk} descriptionId={ids.description} />
 			<span id={ids.description} hidden>
 				{rowDescription(desk, copy, now)}
 			</span>
-			<p {...stylex.props(deskCard.meta)}>{what}</p>
+			<CardMeta desk={desk} now={now} />
 			{copy.detail.kind === 'words' && (
 				<p {...stylex.props(deskCard.words)}>
 					<q>{copy.detail.body}</q>

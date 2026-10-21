@@ -65,6 +65,8 @@ export type HubHealth = {
 }
 
 export type HubProject = {
+	// The hub the repository's desks live on.
+	hubId: string
 	root: string
 	id: string
 	name: string
@@ -83,6 +85,7 @@ export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 	const byProject = new Map<string, HubProject>()
 	for (const desk of desks) {
 		const project = byProject.get(desk.projectId) ?? {
+			hubId: desk.hubId,
 			root: desk.root,
 			id: desk.projectId,
 			name: projectName(desk),

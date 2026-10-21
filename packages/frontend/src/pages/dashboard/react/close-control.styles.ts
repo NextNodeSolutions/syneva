@@ -12,6 +12,7 @@ export const closeControl = stylex.create({
 			':hover': color['--red-line'],
 		},
 	},
+	unavailable: { cursor: 'not-allowed', opacity: 0.6 },
 	cell: {
 		gridArea: 'actions',
 		position: 'relative',

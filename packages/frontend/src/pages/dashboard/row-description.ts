@@ -37,6 +37,11 @@ function progress(desk: HubDesk): string | null {
 	return clauses.join(', ')
 }
 
+function hubLine(desk: HubDesk): string | null {
+	if (!desk.hub || desk.hub.isOnline) return null
+	return `Its hub ${desk.hub.name} is offline`
+}
+
 export function rowDescription(
 	desk: HubDesk,
 	copy: StageCopy,
@@ -49,6 +54,7 @@ export function rowDescription(
 	].join(' · ')
 	return [
 		meta,
+		hubLine(desk),
 		stageLine(copy, now),
 		stageDetail(copy),
 		approvals(desk),

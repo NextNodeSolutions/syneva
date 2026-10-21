@@ -40,4 +40,6 @@ export const deskCell = stylex.create({
 		color: color['--muted'],
 	},
 	metaMode: { color: color['--ink'] },
+	// The hub is out of reach: the one word on the line that is not about the review.
+	metaOffline: { color: color['--amber'] },
 })

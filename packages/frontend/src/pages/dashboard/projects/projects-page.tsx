@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 
+import { useHasManyHubs, useHubList } from '@entities/hub/use-hubs'
 import { useEntrance } from '@shared/lib/use-entrance'
 import { AppLink } from '@shared/ui/app-link'
 import { ArrowRight } from '@shared/ui/arrow-right'
@@ -72,6 +73,11 @@ function ProjectRow({
 	const last = entry.lastAt
 		? relativeTime(entry.lastAt, now)
 		: 'no activity yet'
+	const hubs = useHubList()
+	const hasManyHubs = useHasManyHubs()
+	const hub = hasManyHubs
+		? hubs.find(each => each.id === entry.hubId)
+		: undefined
 	return (
 		<li data-enter="rise">
 			<AppLink
@@ -85,6 +91,7 @@ function ProjectRow({
 						{...stylex.props(projectsList.path)}
 						title={entry.root}
 					>
+						{hub && `${hub.name} · `}
 						{displayRoot(entry.root)}
 					</span>
 				</span>
