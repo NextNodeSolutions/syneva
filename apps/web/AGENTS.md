@@ -1,0 +1,93 @@
+# apps/web
+
+Guidance for coding agents working on `@syneva/web`, the web side of RFC 0001 (`docs/rfc/0001-core-web-local.md`), phase 2. Read the root `AGENTS.md` first (its "Serverless cost discipline" section is the contract this package is held to), then the RFC's sections 4 (the bridge), 6 (the serverless horror catalogue) and 8 (contract, schema, config).
+
+## What this is
+
+A Cloudflare Worker and one Durable Object per account, `UserHub`. The RFC gives the object two roles: core's hub over web adapters for web desks (3.4, mode 2, phase 3) and a switchboard of hibernating WebSockets for paired local hubs (4, mode 3). **Only the switchboard exists in this phase.** The object holds a person's hub sockets and tab sockets, forwards each hub's stream frames to every tab, and carries the HTTP relay between a tab's request and a hub's answer; it stores nothing. The Worker in front of it signs people in (magic link), pairs hubs (device code), serves the frontend's page shells and bundle (static assets), answers the identity routes from D1, and is the only caller of the object. No model runs here either.
+
+## Layout
+
+- `src/worker.ts` — the entry: the route order below, the one catch-all log line, and the `UserHub` export wrangler binds.
+- `src/bridge/**` — the object, and nothing else: `user-hub.ts` (the class: its internal routes, the socket handlers), `switchboard.ts` (what a hub frame does, what a closed socket leaves), `sockets.ts` (attachments, tags, the sockets open now, quiet sends and closes), `relay.ts` (one relay: the only module with a stream), `relays.ts` (the relays in flight), `frames.ts` (a hub frame read once), `buckets.ts` (a hub socket's inbound budget), `internal.ts` (the Worker → object protocol: paths, headers, shapes; the one module both sides import).
+- `src/user-hub-stub.ts` — the Worker's half of `internal.ts`: every object call, each a request the Worker builds itself.
+- `src/auth/**` — sessions (`session.ts`), the magic link (`magic-link.ts`, `follow-link.ts`, `mail.ts`), pairing (`pairing.ts`, `device-token.ts` for the CLI; `device.ts` for the person), the rate limiter (`limits.ts`), secrets and codes (`secrets.ts`).
+- `src/routes/**` — ops and the breaker (`ops.ts`, `saturated.ts`), the hub's socket (`hub-socket.ts`), what a session opens (`session-routes.ts`, `settings.ts`, `relay.ts`), the health probe, the page shells.
+- `src/pages/**` — the server-rendered pages (sign-in, device, sign-out, not found), on core's page shell styles.
+- `src/db/**` — one module per D1 table; `migrations/0001_identity.sql` the schema.
+- `src/http/**` — the request (`call.ts`), answers and the error shape (`answer.ts`), bodies under a cap (`body.ts`), a Bearer token (`bearer.ts`), the same-origin guard (`guard.ts`), the statuses (`status.ts`), the one log boundary (`log.ts`).
+- `scripts/build.mjs` (tsdown bundles `src/worker.ts` into `dist/server/entry.mjs`, contracts inlined, `cloudflare:workers` external; the frontend's `dist` copied to `dist/client`, its two HTML files moved under `_shell/`), `scripts/bundle-check.mjs` (run by `build`).
+- `ops/thresholds.json` — RFC 6.4's thresholds, handed to control-center.
+
+## Request order (R9)
+
+`src/worker.ts` runs its routes in the security order: each refuses before it reads more than it must, and nothing reaches an object before the caller is known.
+
+1. **Ops** (`POST /bridge/v1/ops/breaker`, `GET /bridge/v1/ops/status`): `OPS_TOKEN` as a Bearer, compared in constant time (`crypto.subtle.timingSafeEqual` on digests), else 403 with nothing read. Tripping writes the breaker row and drains every person's object (`/drain`, six at a time, one request per user); clearing stamps `cleared_at`.
+2. **Sign-in and the device page**: `GET /login`, `POST /auth/magic-link` (RL_AUTH per client address, then 3 links per address and 10 per client address an hour and 2,000 a day in D1; the user row is created when the link is followed), `GET /auth/callback`, `GET`/`POST /logout`, `GET`/`POST /device` (a session, same-origin, RL_AUTH per person).
+3. **Pairing and the hub's socket**: `POST /bridge/v1/device/code` (RL_AUTH per address), `POST /bridge/v1/device/token` (the interval and an attempt count bound it, never RL_AUTH), `DELETE /bridge/v1/hub` (the hub's token), `GET /bridge/v1/ws` (the hub's token by digest, RL_AUTH per hub, the breaker, one `last_seen_at` write, then `/hub`).
+4. **`GET /api/hub/health`**: the shape a local hub answers.
+5. **Everything else under `/api/`**: the same-origin guard (Host, then Origin on a mutation or an upgrade), one D1 read for the session (401 otherwise), then `/api/web/me`, `/api/web/hubs` (and `DELETE /api/web/hubs/<id>`), `/api/hub/settings`, the tab's socket `/api/hub/ws` (the person's hubs from D1, the breaker, then `/tab`), and last the relay: `isRelayable`, the hub named by the web id's prefix or `x-syneva-hub` and owned by the person, the body under 1 MiB, the breaker, then `/relay` under a 30 s deadline (past it, `/cancel/<id>` and 504).
+6. **Page shells**: a dashboard path or `/d/<webId>/` with a session cookie present gets its shell from the assets (`/_shell/dashboard`, `/_shell/desk`); without one, a redirect to `/login?next=`. Anything else: 404, a page for a navigation, JSON otherwise.
+
+## The object's rules, and what holds each
+
+| Rule (RFC 6.3) | Held by |
+|---|---|
+| R1 `ctx.acceptWebSocket` only, never `ws.accept()` | `eslint/no-restricted-properties` (`accept`) in `src/bridge/**` |
+| R2 no timer, alarm, `waitUntil` or `blockConcurrencyWhile` | `eslint/no-restricted-globals` (the timers, `queueMicrotask`) and `no-restricted-properties` (`setAlarm`, `waitUntil`, `blockConcurrencyWhile`) in `src/bridge/**`; the timers banned in all of `src/**`; `scripts/bundle-check.mjs` greps the bundle for `setTimeout(`, `setInterval(`, `.setAlarm(` |
+| R3 no outbound I/O | `no-restricted-globals` (`fetch`) and `no-restricted-imports` (only `@syneva/contracts`, `cloudflare:workers` and `./*`) in `src/bridge/**` |
+| R4 no `ctx.storage`; the attachment set once, at accept | `no-restricted-properties` (`storage`); `bundle-check.mjs` greps `ctx.storage`; `serializeAttachment` appears in the two accepts only |
+| R5 the only stream is `relay.ts` | `no-restricted-globals` (`ReadableStream`, `WritableStream`, `TransformStream`) in `src/bridge/**` except `relay.ts` |
+| R6 rates per socket, caps per person, tabs send pings only | `BRIDGE_LIMITS` (`buckets.ts`: 100 frames/s, 2 MiB/s, close 1008; 8 hubs and 32 tabs, close 1013; a tab's non-ping frame, close 1003) |
+| R7 the auto-response pair is the constructor's only work | `user-hub.ts`'s constructor; code review |
+| R8 no per-frame log; `console.error` only on a socket's error | `eslint/no-console` (`allow: ['error']`) in `src/bridge/**`; `http/log.ts` is the Worker's one line; `observability` in `wrangler.jsonc` |
+| R9 the Worker authenticates before any object call, bounds bodies, keeps `cpu_ms = 50` | the route order above; `http/body.ts`; `wrangler.jsonc` |
+| R12 the bundle is contracts and the web's own code | `scripts/bundle-check.mjs` fails on any import but `cloudflare:workers`; `no-restricted-imports` bans `@syneva/local` and `@syneva/frontend` in `src/**` |
+
+Two more invariants the code keeps: the Worker builds every object request from scratch (`user-hub-stub.ts`), so no client header named like an internal one (`x-syneva-object-*`) ever reaches the object; and a hub's stream frame reaches the tabs as the hub's own text, never re-encoded, once its hub id is the socket's (another hub's id closes it with 1008).
+
+## D1
+
+`migrations/0001_identity.sql`: users, sessions (the cookie's HMAC under `SESSION_SECRET`), login codes (a token's sha256, its address, `next`, the client address's sha256), device codes (the device code's sha256, the user code, the token parked until the CLI takes it, once), hubs (the token's sha256, `last_seen_at` written when its socket opens, never per frame; a revoked hub keeps its row), user settings, the breaker row, the daily email counter. Timestamps are ISO strings. Expired rows are purged on the next write to the same table, never on a timer (no cron).
+
+## Local loop
+
+```sh
+pnpm build                                     # contracts, frontend, then this package
+cd apps/web
+printf 'SESSION_SECRET=%s\nOPS_TOKEN=%s\n' "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" > .dev.vars
+pnpm db:local                                  # applies migrations/ to the local D1 under .wrangler/
+pnpm dev                                       # wrangler dev (Miniflare) on http://127.0.0.1:8787
+```
+
+`.dev.vars` and `.wrangler/` are gitignored. With `MAIL_TRANSPORT=log` (the default in `wrangler.jsonc`'s vars) the magic link is printed on wrangler's stdout as `{"event":"magic-link","link":"..."}`; set `MAIL_TRANSPORT=resend` and a real `RESEND_API_KEY` in `.dev.vars` and it is sent from `hello@syneva.dev`. Pair a local hub with `syneva login --web http://127.0.0.1:8787` (the hub runs on the same machine: give it a scratch `HOME` and port, never the machine's hub). `wrangler dev` is the only runtime here: never `wrangler deploy`, `wrangler login` or `--remote`.
+
+## Smoke
+
+`node test/web/smoke.mjs` (after `pnpm build`) runs the whole loop against `wrangler dev` with a scratch D1, a scratch local hub and the CLI: sign-in, pairing, the tab's socket, the relay, revocation, logout, the breaker, sign-out. `test/web/README.md` says what each check means; `node test/bridge/conformance.mjs` stays the probe's own check. The cost acceptance tests (RFC 6.7, T1 to T10) need the staging Worker and the Analytics API, and are not in this repo yet.
+
+## Deviations from the RFC
+
+- **Breaker refusals** (6.5): an upgrade is refused with HTTP 503 `SATURATED`, not close code 4029, since a close code needs an accepted socket, which is an object call; clients read a 503 on an upgrade as "wait five minutes" (4.3), like 4029. A relay answers 503 `HUB_OFFLINE`, as 6.5 says. The drain reaches every user's object, not only those of the hubs seen in the last day (a tab may be open with no hub online).
+- **Lint** (6.3): oxlint has no `no-restricted-syntax`; R1, R2 and R4 are held by `no-restricted-properties` on the property names instead.
+- **Log lines** (R8): `console.error` on a socket's error only, not on every close (a close is normal operation).
+- **R12**: the bundle is contracts only; core and the web adapters join it with the hub role (phase 3).
+- **Relayed answers** keep a header allowlist (`content-type`, `cache-control`, `etag`, `last-modified`, `content-disposition`, `vary`), never a cookie, and gain `content-security-policy: default-src 'none'; sandbox` and `x-content-type-options: nosniff`: a hub's bytes (a `/blob` SVG) are served on the web's origin.
+- **Relay bounds inside the object**: a reader slower than two chunks cuts the relay (no buffering past ~1.1 MiB a relay); a relay the Worker never cancelled is dropped at twice the deadline, compared on the object's next event.
+- **The relay's deadline** bounds the whole exchange from the Worker's side; `/cancel/<id>` goes only when no answer started (a body cut mid-stream reaches the object as its reader leaving, which cancels the hub's side).
+- **Additions**: a cap of 32 live hubs per account at approval (409 `TOO_MANY_HUBS`), a hub's name cut to 64 characters (it rides each tab's upgrade to the object), RL_AUTH on the hub's upgrade per hub, a per-client-address hourly cap on sign-in links, a 64 KiB cap on settings, `GET /logout` as a confirmation page (the sign-out itself is a same-origin POST), a page shell handed over on a cookie that merely looks present (no D1 read per navigation; its first API call says 401).
+- **The `hub` frame's `lastSeenAt`** is when the hub last connected (the row's `last_seen_at`), for an offline hub too: the object writes nothing on close (6.3 R3).
+
+## Deploy: what the pipeline must learn
+
+Nothing here deploys yet, and nothing should from a machine. `NextNodeSolutions/core`'s `deploy.yml` builds a Worker's config from `nextnode.toml`, and the root `nextnode.toml` describes the landing only: do not add this service there until the pipeline can emit the fields below. What it must learn to deploy `apps/web` (staging first, RFC 6.6: same account, its own D1 and objects):
+
+- **A Durable Object binding and its migration**, as `wrangler.jsonc` has them: `durable_objects.bindings = [{ name = "USER_HUB", class_name = "UserHub" }]` and `migrations = [{ tag = "v1", new_sqlite_classes = ["UserHub"] }]` (TOML: `[[durable_objects.bindings]]` and `[[migrations]]`). The class is exported by the entry (`dist/server/entry.mjs`).
+- **Observability**: `observability.enabled = true`, `observability.head_sampling_rate = 0.01`, `observability.logs.enabled = true`, `observability.logs.head_sampling_rate = 0.01`, `observability.logs.invocation_logs = false`, `observability.traces.enabled = false` (R8; RFC 6.1 D1, D5).
+- **A D1 database and a migrations folder per service**: this one's `DB` binding on its own database (never the landing's), `migrations_dir = "apps/web/migrations"`, applied before each deploy as the landing's are.
+- **`limits.cpu_ms = 50`**, `workers_dev = false`, the rate limiter `RL_AUTH` (`simple = { limit = 10, period = 60 }`), and the assets block: `directory = "apps/web/dist/client"`, `binding = "ASSETS"`, `not_found_handling = "none"`, optionally `run_worker_first` with the Worker's routes (`/api/*`, `/bridge/*`, `/auth/*`, `/d/*`, `/login`, `/logout`, `/device`) so a route never matches an asset first; the Worker is correct without it (the shells sit under `/_shell/`).
+- **Vars and secrets**: `SITE_URL` (the app's origin), no `MAIL_TRANSPORT`; `SESSION_SECRET`, `OPS_TOKEN` and `RESEND_API_KEY` from the `syneva` Infisical project, synced like the landing's.
+- **The zone** (R10, 6.6): one WAF rate limiting rule on the app hostname and Bot Fight Mode on, checked by the deploy smoke; control-center gets `OPS_TOKEN` and `ops/thresholds.json`.
+
+Deploy at low traffic, never more than once a day: a deploy drops every socket (RFC 6.1 G1).

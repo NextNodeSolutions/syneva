@@ -1,0 +1,38 @@
+{
+	"comment": "RFC 0001, 6.4: the thresholds control-center's budget agent compares the Analytics API against, once an hour, per connected user and hour (connected users: GET /bridge/v1/ops/status's hubsSeenLastDay). Handed over to control-center, never read by the Worker. 'app' trips the breaker through POST /bridge/v1/ops/breaker; 'edge' creates the WAF block rule through the Cloudflare API (6.5).",
+	"perConnectedUserHour": {
+		"objectActiveSeconds": {
+			"budget": 2,
+			"alertAbove": 20,
+			"breaker": {
+				"stage": "app",
+				"averageAboveForTwoHours": 60,
+				"singleHourGbSecondsAbove": 10000
+			}
+		},
+		"objectRequests": {
+			"budget": 25,
+			"alertAbove": 250,
+			"breaker": { "stage": "app", "above": 2500 }
+		},
+		"storageWriteUnits": {
+			"budget": 0,
+			"alertAbove": 0,
+			"breaker": { "stage": "app", "above": 1000 }
+		},
+		"workerRequests": {
+			"budget": 10,
+			"alertAbove": 100,
+			"breaker": {
+				"stage": "edge",
+				"above": 1000,
+				"singleHourTotalAbove": 5000000
+			}
+		},
+		"exceededMemoryErrors": {
+			"budget": 0,
+			"alertAbove": 0,
+			"breaker": { "stage": "app", "above": 10 }
+		}
+	}
+}
