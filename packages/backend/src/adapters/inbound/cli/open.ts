@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { HUB_PATHS } from '@syneva/contracts/routes'
+import { HUB_PATHS, planPagePath } from '@syneva/contracts/routes'
 
 import { printJson, warn } from '../../outbound/console.js'
 import { openBrowser } from '../http/listen.js'
@@ -17,15 +17,19 @@ import type { HubConnection } from './hub-client.js'
 
 const HTTP_OK = 200
 
+// What an open asks beyond its mode: `syneva open plan` is a file open the hub also keeps in its plan library.
+type OpenKind = { plan: boolean }
+
 // Open a desk on the hub (starting the hub detached when none runs); idempotent: a live desk for this repo+session is reused with its diff reloaded into the open tab.
 // Paths resolve here, against the agent's cwd, because the hub's cwd is never the agent's.
 export async function runOpen(
 	mode: ReviewMode,
 	target: string | undefined,
 	args: CliArgs,
+	kind: OpenKind = { plan: false },
 ): Promise<void> {
 	if (mode === 'file' && !target) {
-		warn('Usage: syneva open file <path>')
+		warn(`Usage: syneva open ${kind.plan ? 'plan' : 'file'} <path>`)
 		process.exitCode = 1
 		return
 	}
@@ -45,6 +49,7 @@ export async function runOpen(
 	const request: OpenDeskRequest = {
 		...deskRequest(mode, target, args),
 		...guideField(guide),
+		plan: kind.plan || undefined,
 	}
 	const response = await hubSend(
 		hub,
@@ -133,9 +138,24 @@ async function report(
 		mode: desk.mode,
 		outcome,
 		empty: desk.empty,
+		...planField(hub, desk),
 		...authoring,
 	})
 	if (outcome === 'created' && args.open !== false) await openBrowser(url)
+}
+
+// A plan desk names its plan: its id in the library and its page on the dashboard.
+function planField(
+	hub: HubConnection,
+	desk: DeskSummary,
+): { plan: { id: string; url: string } } | undefined {
+	if (!desk.plan) return undefined
+	return {
+		plan: {
+			id: desk.plan,
+			url: hubEndpoint(hub.url, planPagePath(desk.plan)),
+		},
+	}
 }
 
 function deskLabel(desk: DeskSummary): string {

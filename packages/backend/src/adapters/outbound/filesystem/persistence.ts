@@ -57,6 +57,28 @@ export async function writeFileAtomic(
 	}
 }
 
+// Pretty JSON, one value per file, ending on a newline: the hub's own records, readable by hand.
+export async function writeJsonAtomic(
+	file: string,
+	record: unknown,
+): Promise<void> {
+	await writeFileAtomic(
+		file,
+		`${JSON.stringify(record, null, JSON_INDENT)}\n`,
+	)
+}
+
+// A read that found no file: for the callers that take an absent file as "nothing yet" and
+// every other failure as one.
+export function isMissingFile(error: unknown): boolean {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'code' in error &&
+		error.code === 'ENOENT'
+	)
+}
+
 // Hand back the stamp the caller adopts onto its live state; the argument must not be mutated (its identity IS the live state).
 export async function persistReview(
 	state: ReviewState,
@@ -67,10 +89,7 @@ export async function persistReview(
 		updatedAt: nowIso(),
 		persistFile: path.basename(file),
 	}
-	await writeFileAtomic(
-		file,
-		`${JSON.stringify(serializeReviewState(state, stamp), null, JSON_INDENT)}\n`,
-	)
+	await writeJsonAtomic(file, serializeReviewState(state, stamp))
 	return { file, stamp }
 }
 

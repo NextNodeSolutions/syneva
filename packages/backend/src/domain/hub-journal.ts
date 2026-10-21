@@ -8,7 +8,12 @@
 // not import contracts. The application journal assigns one to the other in both directions
 // (application/journal.ts), so the compiler keeps the two in sync.
 
-import { isMode, nonEmptyString, optionalString } from './hub-registry.js'
+import {
+	fieldsOf,
+	isMode,
+	nonEmptyString,
+	optionalString,
+} from './hub-registry.js'
 
 import type { ReviewMode } from './review.js'
 
@@ -84,10 +89,8 @@ const DESK_CLOSED_COUNTS = [
 
 // One journal line's parsed JSON, or null when it is not an event the hub wrote.
 export function decodeJournalEvent(raw: unknown): JournalEvent | null {
-	if (typeof raw !== 'object' || raw === null) return null
-	const record: Record<string, unknown> = Object.fromEntries(
-		Object.entries(raw),
-	)
+	const record = fieldsOf(raw)
+	if (!record) return null
 	const subject = decodeSubject(record)
 	if (!subject) return null
 	return decodeVariant(subject, record)

@@ -24,12 +24,15 @@ import {
 	nodeHubRegistry,
 } from '../adapters/outbound/filesystem/hub.js'
 import { nodeReviewStore } from '../adapters/outbound/filesystem/persistence.js'
+import { nodePlanStore } from '../adapters/outbound/filesystem/plans.js'
 import { nodeGit } from '../adapters/outbound/git/repo.js'
 import { createHubJournal } from '../application/journal.js'
+import { createPlanLibrary } from '../application/plan-library.js'
 
 import type { Hub } from '../adapters/inbound/http/hub.js'
 import type { HubHandle, HubOptions } from '../adapters/inbound/http/options.js'
 import type { HubJournal } from '../application/journal.js'
+import type { PlanLibrary } from '../application/plan-library.js'
 
 const DEFAULT_STATUS_TTL_MS = 90_000
 
@@ -49,15 +52,18 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		publicUrl?.protocol === 'https:',
 	)
 	const log = options.log ?? hubLog
-	// One journal for the hub's desks to record into and the dashboard to read.
+	// One journal for the hub's desks to record into and the dashboard to read; one plan library
+	// for its plan desks to post into.
 	const journal = createHubJournal(nodeHubJournal, log)
-	const hub = wireHub(options, journal, log)
+	const plans = createPlanLibrary(nodePlanStore, nodeGit.workspace, log)
+	const hub = wireHub(options, { journal, plans }, log)
 	const server = http.createServer()
 	server.on(
 		'request',
 		createHubRequestHandler({
 			hub,
 			journal,
+			plans,
 			settings: nodeSettings,
 			guard,
 			// The origin guard re-reads the port per request: server.address() is populated only once the socket is bound.
@@ -82,9 +88,10 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 	}
 }
 
+// The records are what the hub keeps as it runs, beside its desks.
 function wireHub(
 	options: HubOptions,
-	journal: HubJournal,
+	{ journal, plans }: { journal: HubJournal; plans: PlanLibrary },
 	log: (line: string) => void,
 ): Hub {
 	return createHub(
@@ -95,6 +102,7 @@ function wireHub(
 			editor: editorPort(options.runEditorCommand),
 			registry: nodeHubRegistry,
 			journal,
+			plans,
 			statusTtlMs: options.statusTtlMs ?? DEFAULT_STATUS_TTL_MS,
 			log,
 		},

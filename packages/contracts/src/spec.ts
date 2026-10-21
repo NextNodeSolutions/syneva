@@ -26,6 +26,9 @@ live, and re-diff your edits into the same tab. No model runs in the hub; the re
   review - close the desk (\`syneva close\`).
 - \`syneva desks [--all]\` lists this repo's live desks (--all: the whole hub) as JSON with their
   URLs - how you find a session the human opened from the dashboard before you had changes.
+- \`syneva plans [--all]\` lists this repo's plans from the hub's plan library (--all: every repo)
+  as JSON: each with its id, path, title, status (draft|approved|implemented|archived), versions,
+  its live desk if any, and the url of its reading page.
 - Hosted hubs: SYNEVA_HUB=<url> names the hub, SYNEVA_KEY=<secret> its access key (every call
   carries it). A hub started with --key answers nothing without it; browsers sign in at /login.
 
@@ -41,6 +44,10 @@ repo has several desks. Each repo+session is ONE desk with ONE stable URL (/d/<i
   Unchanged → full file; changed → diff (stageable); untracked → full file, verdict-only. Markdown
   gets a Rendered/Source toggle - comment any rendered block. Use it to review an artifact (e.g. a
   generated plan).
+- plan - \`syneva open plan <path>\` (shorthand: \`syneva plan <path>\`): a file desk the hub also
+  keeps in its plan library, under ~/.syneva/hub/plans. Every open or reload whose content changed
+  posts a new version; a round that approves the file approves that version. The open JSON adds
+  plan {id, url}. Front matter (title, summary) names the plan; else its first heading does.
 - pr - \`syneva open pr <ref>\` (shorthand: \`syneva pr <ref>\`): a branch's commits vs merge-base.
   <ref> = branch | PR number | GitHub URL (number/URL resolved via \`gh\`, which must be
   installed+authed). The branch is checked out once the open is admitted - its diff is read by ref
@@ -176,6 +183,10 @@ ${GUIDE_SPEC}
   reloaded and closed, rounds sent and picked, asks, your replies), oldest first, at most
   limit (default 500, at most 2000; the newest when more follow) - you never write it: the hub
   records each event as it happens.
+  GET /api/hub/plans lists the plan library; GET /api/hub/plans/<id> answers {plan, markdown}
+  (the latest version); GET /api/hub/plans/<id>/versions/<n> answers {number, markdown};
+  POST /api/hub/plans/<id>/status {status: draft|implemented|archived} is the human's move -
+  approval only ever comes from a review round.
 - GET …/state returns BrowserReviewState plus transient desk status and serverInstanceId, not
   the persisted ReviewState. POST …/reset returns the same browser projection in its state field
   plus serverInstanceId outside it, and takes { scope: "review" | "approved" | "all" }: 'review'
@@ -199,4 +210,5 @@ ${GUIDE_SPEC}
   tree changed since the desk loaded; reload state and retry. DESK_NOT_FOUND (404) = the desk was
   closed; list desks or open one. UNAUTHORIZED (401) = the hub wants its key (SYNEVA_KEY).
   INVALID_GUIDE (422) = the guide names what does not hold (the fields are listed); fix them,
-  never pad.`
+  never pad. PLAN_NOT_FOUND / VERSION_NOT_FOUND (404) = no such plan or version in the library;
+  INVALID_PLAN_STATUS (422) = a status the human cannot set.`

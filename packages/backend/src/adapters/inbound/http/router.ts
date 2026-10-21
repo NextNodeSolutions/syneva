@@ -7,8 +7,10 @@ import {
 } from '@syneva/contracts/routes'
 
 import { errorMessage } from '../../../application/errors.js'
+import { isHexId } from '../../../domain/identity.js'
 
 import { originAllowed } from './binding.js'
+import { handleDashboardApi } from './dashboard-api.js'
 import { DOCS } from './failure.js'
 import {
 	HTTP_BAD_REQUEST,
@@ -27,12 +29,10 @@ import {
 	listDesks,
 	openDeskRoute,
 	readDesk,
-	readJournal,
-	saveHubSettings,
-	serveHubSettings,
 	shutdownHub,
 } from './hub-routes.js'
 import { DESK_NOT_OPEN, NOTHING_HERE, notFoundPage } from './pages.js'
+import { handlePlanApi } from './plan-routes.js'
 import { FONT_FILE } from './routes/static.js'
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
@@ -61,9 +61,6 @@ export type HubRouterDeps = HubRouteDeps & {
 	ui: UiServer
 }
 
-// A desk id is the hex digest domain/identity derives; anything else never names a desk.
-const DESK_ID = /^[a-f0-9]{8,64}$/
-
 const NOT_FOUND_JSON = {
 	status: HTTP_NOT_FOUND,
 	code: 'NOT_FOUND',
@@ -90,6 +87,7 @@ export function createHubRequestHandler(
 			if (await handleDeskPage(deps, request)) return
 			if (await handleHubApi(deps, request)) return
 			if (await handleDashboardApi(deps, request)) return
+			if (await handlePlanApi(deps, request)) return
 			if (await handleDeskApi(deps, request)) return
 			if (await handleUiAsset(deps, request)) return
 			notFound(request)
@@ -174,7 +172,7 @@ async function handleDeskPage(
 	const [id = '', ...rest] = url.pathname
 		.slice(DESK_PAGE_PREFIX.length)
 		.split('/')
-	if (!DESK_ID.test(id)) return false
+	if (!isHexId(id)) return false
 	if (!rest.length) {
 		res.writeHead(HTTP_MOVED_PERMANENTLY, {
 			location: `${url.pathname}/${url.search}`,
@@ -218,24 +216,9 @@ async function handleHubApi(
 	}
 	if (!url.pathname.startsWith(`${HUB_PATHS.desks}/`)) return false
 	const id = url.pathname.slice(HUB_PATHS.desks.length + 1)
-	if (!DESK_ID.test(id)) return false
+	if (!isHexId(id)) return false
 	if (method === 'GET') readDesk(deps, res, id)
 	else if (method === 'DELETE') closeDeskRoute(deps, res, id)
-	else return false
-	return true
-}
-
-async function handleDashboardApi(
-	deps: HubRouterDeps,
-	{ req, res, url }: StaticRequest,
-): Promise<boolean> {
-	if (url.pathname === HUB_PATHS.journal && req.method === 'GET') {
-		await readJournal(deps, res, url)
-		return true
-	}
-	if (url.pathname !== HUB_PATHS.settings) return false
-	if (req.method === 'GET') await serveHubSettings(deps, res)
-	else if (req.method === 'POST') await saveHubSettings(deps, req, res)
 	else return false
 	return true
 }
@@ -250,7 +233,7 @@ async function handleDeskApi(
 	const [id = '', ...tail] = url.pathname
 		.slice(DESK_API_PREFIX.length)
 		.split('/')
-	if (!DESK_ID.test(id)) return false
+	if (!isHexId(id)) return false
 	const route = deps.deskRoutes[`${req.method ?? ''} /${tail.join('/')}`]
 	if (!route) return false
 	const desk = deps.hub.getDesk(id)

@@ -31,6 +31,8 @@ export type DeskSummary = {
 	lastActivityAt: string
 	// Desk page path (/d/<id>/), relative so valid behind any origin.
 	path: string
+	// A plan desk's plan (`syneva open plan`): its record in the plan library.
+	plan?: string | undefined
 }
 
 export type HubHealth = {
@@ -56,6 +58,8 @@ export type OpenDeskRequest = {
 	guide?: unknown
 	// A repo or pr desk reviewed without a guide on purpose; otherwise such a desk expects one and says so until it is attached.
 	noGuide?: boolean | undefined
+	// A file desk over a plan: the hub keeps its versions in the plan library (file mode only).
+	plan?: boolean | undefined
 }
 
 // created: a new desk; reloaded: the live desk for that repo+session reused and re-diffed (its open tab updates by itself).

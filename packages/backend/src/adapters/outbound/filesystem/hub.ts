@@ -8,7 +8,11 @@ import {
 } from '../../../domain/hub-registry.js'
 
 import { homeDir, SYNEVA_DIR } from './desk.js'
-import { writeFileAtomic } from './persistence.js'
+import {
+	isMissingFile,
+	writeFileAtomic,
+	writeJsonAtomic,
+} from './persistence.js'
 
 import type { FileHandle } from 'node:fs/promises'
 import type {
@@ -25,7 +29,6 @@ const LOCK_FILE = 'hub.json'
 const REGISTRY_FILE = 'desks.json'
 const JOURNAL_FILE = 'journal.jsonl'
 const LOG_FILE = 'hub.log'
-const JSON_INDENT = 2
 // The byte every journal line ends with.
 const LINE_FEED = 0x0a
 
@@ -67,10 +70,7 @@ export async function readHubLock(): Promise<HubLock | null> {
 
 export async function writeHubLock(lock: HubLock): Promise<void> {
 	await ensureHubDir()
-	await writeFileAtomic(
-		hubLockPath(),
-		`${JSON.stringify(lock, null, JSON_INDENT)}\n`,
-	)
+	await writeJsonAtomic(hubLockPath(), lock)
 }
 
 // Remove the lock only while it is OURS: a hub that exits late (a stop racing a restart) must never erase the lock the newer hub just wrote.
@@ -102,10 +102,7 @@ async function loadRegistry(): Promise<HubDeskRecord[]> {
 
 async function saveRegistry(records: readonly HubDeskRecord[]): Promise<void> {
 	const dir = await ensureHubDir()
-	await writeFileAtomic(
-		path.join(dir, REGISTRY_FILE),
-		`${JSON.stringify({ desks: records }, null, JSON_INDENT)}\n`,
-	)
+	await writeJsonAtomic(path.join(dir, REGISTRY_FILE), { desks: records })
 }
 
 // The node/filesystem implementation of the application's hub-registry capability. Frozen: the hub sees a readonly port, never this module's internals.
@@ -132,15 +129,6 @@ async function readJournalText(): Promise<string> {
 		if (isMissingFile(error)) return '' // no journal yet: nothing has happened
 		throw error
 	}
-}
-
-function isMissingFile(error: unknown): boolean {
-	return (
-		typeof error === 'object' &&
-		error !== null &&
-		'code' in error &&
-		error.code === 'ENOENT'
-	)
 }
 
 function decodeJournalLine(line: string): JournalEvent | null {
