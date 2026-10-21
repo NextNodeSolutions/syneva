@@ -21,14 +21,9 @@ function settle(): void {
 	S.relayNotice = newest?.notice ?? null
 }
 
-function presenceNotice(isOnline: boolean): RelayNotice | null {
-	if (isOnline) return null
-	return 'offline'
-}
-
-// The web said, now, whether the hub's socket is open.
-export function hearHub(isOnline: boolean): void {
-	hub = { notice: presenceNotice(isOnline), at: performance.now() }
+// The web said, now, where the hub stands: offline (its socket is closed) or reachable (null).
+export function hearHub(notice: RelayNotice | null): void {
+	hub = { notice, at: performance.now() }
 	settle()
 }
 

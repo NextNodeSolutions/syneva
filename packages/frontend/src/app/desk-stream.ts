@@ -26,6 +26,7 @@ import { hearHub } from './relay-notice'
 import { saver, S, toast } from './store'
 
 import type { HubDesk, HubRef } from '@entities/hub/model'
+import type { RelayNotice } from '@entities/hub/relay'
 import type { HubRetry } from '@entities/hub/stream'
 import type { StreamView } from '@entities/hub/stream-view'
 import type { DeskPulse, StreamPulse } from '@entities/review/model'
@@ -82,7 +83,14 @@ function noteHub(view: StreamView): void {
 	hubWord = hub
 	// A tab that never got its review (the hub was offline when it loaded) has nothing to resume.
 	if (hub.isOnline && wasOffline && !S.state) window.location.reload()
-	hearHub(hub.isOnline)
+	hearHub(presenceNotice(hub))
+}
+
+// The strip's word for where the web says the hub stands (relay-notice.ts), read here, off the
+// first paint's path.
+function presenceNotice(hub: HubRef): RelayNotice | null {
+	if (hub.isOnline) return null
+	return 'offline'
 }
 
 function heardHub(): void {
