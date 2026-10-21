@@ -13,6 +13,7 @@ import {
 } from '../adapters/inbound/cli/commands.js'
 import { runDesks } from '../adapters/inbound/cli/desks.js'
 import { runInventory } from '../adapters/inbound/cli/inventory.js'
+import { runLogin, runLogout } from '../adapters/inbound/cli/login.js'
 import { runOpen } from '../adapters/inbound/cli/open.js'
 import { runPlans } from '../adapters/inbound/cli/plans.js'
 import { runReload } from '../adapters/inbound/cli/reload.js'
@@ -35,6 +36,11 @@ Hub:
   syneva start [--detach]           Run the hub (dashboard at http://127.0.0.1:4747/); --detach backgrounds it
   syneva hub                        Print the running hub's health as JSON
   syneva hub stop                   Stop the hub (desks stay saved; the next start restores them)
+
+Pairing (review this hub's desks from syneva.dev):
+  syneva login [--web <origin>]     Pair this machine's hub with the web through a device code; the hub
+                                    then keeps one outbound socket to it (no port opened here)
+  syneva logout                     Revoke the pairing on the web and drop the hub's socket
 
 Desks:
   syneva open [--diff working|staged] [--path <p>]   Open (or reload) a desk over the working-tree/staged diff
@@ -76,6 +82,7 @@ Hub flags (syneva start):
 
 Env:
   SYNEVA_HUB / SYNEVA_KEY / SYNEVA_PORT / SYNEVA_HOST / SYNEVA_PUBLIC_URL   Defaults for the flags above
+  SYNEVA_WEB_URL=<origin>    The web \`syneva login\` pairs with (default https://app.syneva.dev)
   SYNEVA_ALLOWED_HOSTS=a,b   Extra Host authorities to accept when bound beyond loopback
   SYNEVA_NO_AUTOSTART=1      Never start a hub from a desk command
   SYNEVA_NO_UPDATE_CHECK=1   Skip the new-version check at hub start
@@ -148,6 +155,10 @@ async function dispatchAgentCommand(sub: string, args: CliArgs): Promise<void> {
 		case 'close':
 		case 'stop':
 			return runClose(args)
+		case 'login':
+			return runLogin(args)
+		case 'logout':
+			return runLogout(args)
 		default:
 			return unknownCommand(sub)
 	}
@@ -190,7 +201,7 @@ function dispatchInventory(
 
 function unknownCommand(sub: string): void {
 	warn(
-		`Unknown command "${sub}". Use: start | hub [stop] | open [file <path> | plan <path> | pr <ref>] | inventory [file <path> | pr <ref>] | desks | plans | await | comment | status | reload | close | spec.`,
+		`Unknown command "${sub}". Use: start | hub [stop] | open [file <path> | plan <path> | pr <ref>] | inventory [file <path> | pr <ref>] | desks | plans | await | comment | status | reload | close | login | logout | spec.`,
 	)
 	process.exitCode = 1
 }

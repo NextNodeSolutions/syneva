@@ -31,6 +31,11 @@ live, and re-diff your edits into the same tab. No model runs in the hub; the re
   its live desk if any, and the url of its reading page.
 - Hosted hubs: SYNEVA_HUB=<url> names the hub, SYNEVA_KEY=<secret> its access key (every call
   carries it). A hub started with --key answers nothing without it; browsers sign in at /login.
+- \`syneva login [--web <origin>]\` pairs this machine's hub with the web (https://app.syneva.dev;
+  --web or SYNEVA_WEB_URL names another) through a device code the human confirms in a browser;
+  the hub then keeps one outbound socket to the web, which shows its desks. \`syneva logout\`
+  revokes the pairing. Both are the human's commands, not part of your loop; a paired hub serves
+  you exactly as before.
 
 ## Review modes
 Pick one when opening. await/comment/status/reload/close auto-target the lone live desk of the
