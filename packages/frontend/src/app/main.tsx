@@ -85,10 +85,16 @@ async function bootDiffWorkers(firstPaths: string[]): Promise<void> {
 
 // The hub's stream starts once the first file is on its way to the screen, where the tab used to
 // start polling: its module (the socket, the hub's store, the pulse decoder) loads then, off the
-// first paint's path. A chunk that cannot load leaves the tab as it was painted, and says so.
+// first paint's path, with the notices it can raise (widgets/chrome/react/desk-covers.tsx): once
+// the hub is down, no chunk loads. A chunk that cannot load leaves the tab as it was painted, and
+// says so.
 async function followHub(): Promise<void> {
 	try {
-		const { followDesk } = await import('@app/desk-stream')
+		const [{ followDesk }] = await Promise.all([
+			import('@app/desk-stream'),
+			import('@widgets/chrome/react/held-notice'),
+			import('@widgets/chrome/react/signed-out-cover'),
+		])
 		followDesk()
 	} catch {
 		toast(

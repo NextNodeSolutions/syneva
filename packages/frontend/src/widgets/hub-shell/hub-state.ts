@@ -10,5 +10,7 @@ export const HUB_STATE: Record<
 	connecting: { tone: 'neutral', isLive: false, word: 'Connecting…' },
 	live: { tone: 'signal', isLive: true, word: 'Live' },
 	unreachable: { tone: 'red', isLive: false, word: 'Not answering' },
+	'too-many': { tone: 'amber', isLive: false, word: 'Too many tabs' },
+	saturated: { tone: 'amber', isLive: false, word: 'Saturated' },
 	'signed-out': { tone: 'neutral', isLive: false, word: 'Signed out' },
 }

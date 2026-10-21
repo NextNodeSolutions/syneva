@@ -4,7 +4,7 @@ import { deskIdFromLocation } from '@shared/api/base'
 import { useMediaQuery } from '@shared/lib/use-media-query'
 import * as stylex from '@stylexjs/stylex'
 import { queries } from '@syneva/design-system/media.stylex'
-import { isTreeless } from '@widgets/chrome/layout'
+import { deskCover, deskNotice, isTreeless } from '@widgets/chrome/layout'
 import { DeskCovers } from '@widgets/chrome/react/desk-covers'
 import { ConfirmModal, SendModal } from '@widgets/chrome/react/dialog-modals'
 import { DiffArea } from '@widgets/chrome/react/diff-area'
@@ -104,12 +104,13 @@ export function App(): ReactElement {
 		'state',
 		'deskClosed',
 		'isRefreshRequired',
+		'hubStatus',
 		'treeDrawerOpen',
 		'notesOpen',
 		'guidePaneOpen',
 		'overviewOpen',
 	)
-	const isClosed = S.deskClosed && !S.isRefreshRequired
+	const isCovered = deskCover(S) !== null
 	return (
 		<div {...stylex.props(app.frame)}>
 			<Suspense fallback={<div {...stylex.props(app.railSpace)} />}>
@@ -119,14 +120,11 @@ export function App(): ReactElement {
 			</Suspense>
 			<div
 				data-desk=""
-				{...stylex.props(
-					app.root,
-					S.isRefreshRequired && app.refreshRequired,
-				)}
+				{...stylex.props(app.root, deskNotice(S) && app.withNotice)}
 			>
 				<TopBar />
 				<DeskCovers />
-				{!isClosed && <Workspace />}
+				{!isCovered && <Workspace />}
 				<SettingsModal />
 				<ConfirmModal />
 				<SendModal />

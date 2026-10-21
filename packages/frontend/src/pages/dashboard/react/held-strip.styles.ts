@@ -1,7 +1,8 @@
 import * as stylex from '@stylexjs/stylex'
 import { color, layout } from '@syneva/design-system/tokens.stylex'
 
-export const unreachableStrip = stylex.create({
+// Red: the hub does not answer. Amber: it answered, and asked this page to wait.
+export const heldStrip = stylex.create({
 	root: {
 		display: 'grid',
 		gridTemplateColumns: '8px minmax(0, 1fr)',
@@ -22,6 +23,11 @@ export const unreachableStrip = stylex.create({
 		marginTop: '7px',
 		backgroundColor: color['--red'],
 	},
+	wait: {
+		backgroundColor: color['--amber-tint'],
+		borderBottomColor: color['--amber-line'],
+	},
+	waitSquare: { backgroundColor: color['--amber'] },
 	lead: { fontWeight: 500, color: color['--ink'] },
 	rest: { color: color['--muted'] },
 })

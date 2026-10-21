@@ -8,9 +8,9 @@ import { useDashboard } from '../use-dashboard'
 
 import { CloseNotice } from './close-notice'
 import { DashboardPage } from './dashboard-page'
+import { HeldStrip } from './held-strip'
 import { NewReviewDialog } from './new-review-dialog'
 import { SkipLink } from './skip-link'
-import { UnreachableStrip } from './unreachable-strip'
 
 import type { ReactElement } from 'react'
 
@@ -30,8 +30,10 @@ export function Dashboard(): ReactElement {
 				}}
 				newReview={offer && { id: NEW_REVIEW_ID, open: offer }}
 			>
-				<UnreachableStrip
+				<HeldStrip
 					isShown={dashboard.listed?.isStale === true}
+					status={dashboard.hub.status}
+					retryAt={dashboard.hub.link.retryAt}
 				/>
 				<DashboardPage
 					page={pageOf(place.pathname)}

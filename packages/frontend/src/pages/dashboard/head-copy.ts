@@ -1,4 +1,5 @@
 import { turnCounts } from '@entities/hub/turn'
+import { BRIDGE_LIMITS } from '@syneva/contracts/bridge'
 
 import { numberWord } from './format'
 
@@ -44,9 +45,22 @@ const UNREACHABLE: Record<HubPlace, HeadCopy> = {
 	},
 }
 
+// The hub answered, and asked this page to wait: the waits RFC 0001 (4.3) names.
+const ASKED_TO_WAIT: Record<'too-many' | 'saturated', HeadCopy> = {
+	'too-many': {
+		title: 'Too many tabs open.',
+		lede: `This browser has more tabs on the hub than it serves at once (${BRIDGE_LIMITS.tabsPerUser}). Close some; this page tries again by itself.`,
+	},
+	saturated: {
+		title: 'Syneva is saturated.',
+		lede: 'Live updates are paused for a few minutes to keep the service within its limits. This page tries again by itself.',
+	},
+}
+
 export function headCopy(phase: HubPhase, place: HubPlace): HeadCopy {
 	if (phase.kind === 'loading') return LOADING
 	if (phase.kind === 'signed-out') return SIGNED_OUT
 	if (phase.kind === 'unreachable') return UNREACHABLE[place]
+	if (phase.kind !== 'listed') return ASKED_TO_WAIT[phase.kind]
 	return { title: listedTitle(phase.desks) }
 }

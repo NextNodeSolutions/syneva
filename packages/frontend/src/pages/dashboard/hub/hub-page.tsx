@@ -14,8 +14,11 @@ import { dashboardPage } from '../react/page.styles'
 import { pageSection } from '../react/section.styles'
 
 import { AgentsOnHub } from './agents-on-hub'
+import { FactList } from './fact-list'
 import { hubFacts } from './hub-facts'
+import { streamFacts } from './stream-facts'
 
+import type { HubLink } from '@entities/hub/link'
 import type { HubHealth } from '@entities/hub/model'
 import type { ReactElement } from 'react'
 import type { DashboardState } from '../use-dashboard'
@@ -23,35 +26,43 @@ import type { DashboardState } from '../use-dashboard'
 // The full journal the Hub page shows; the hub keeps more than a page needs.
 const JOURNAL_ROWS = 200
 
-function HealthFacts({
+// What this hub runs and who it lets in.
+function HealthSection({
 	health,
 	now,
 }: {
 	health: HubHealth | null
 	now: number
 }): ReactElement {
-	if (!health)
-		return <p {...stylex.props(pageSection.note)}>Reading the hub…</p>
 	return (
-		<dl {...stylex.props(pageSection.facts)}>
-			{hubFacts(health, now).map(fact => (
-				<div key={fact.key} {...stylex.props(pageSection.factRow)}>
-					<dt
-						{...stylex.props(pageSection.fact, pageSection.factKey)}
-					>
-						{fact.key}
-					</dt>
-					<dd
-						{...stylex.props(
-							pageSection.fact,
-							pageSection.factValue,
-						)}
-					>
-						{fact.value}
-					</dd>
-				</div>
-			))}
-		</dl>
+		<PageSection
+			title="Health"
+			note="What this hub runs and who it lets in. A restart keeps every desk on the same address."
+		>
+			{health ? (
+				<FactList facts={hubFacts(health, now)} />
+			) : (
+				<p {...stylex.props(pageSection.note)}>Reading the hub…</p>
+			)}
+		</PageSection>
+	)
+}
+
+// How this page follows the hub, as the stream stands now.
+function StreamSection({
+	link,
+	now,
+}: {
+	link: HubLink
+	now: number
+}): ReactElement {
+	return (
+		<PageSection
+			title="Stream"
+			note="How this page follows the hub: one socket, down which the hub pushes every change. It tries again by itself when it drops."
+		>
+			<FactList facts={streamFacts(link, now)} />
+		</PageSection>
 	)
 }
 
@@ -77,8 +88,8 @@ function HubHead({
 	)
 }
 
-// The hub itself: its health, the agents attached to it now, how an agent opens a desk on it,
-// and the whole journal.
+// The hub itself: its health, this page's stream from it, the agents attached to it now, how an
+// agent opens a desk on it, and the whole journal.
 export function HubPage({
 	dashboard,
 }: {
@@ -94,12 +105,8 @@ export function HubPage({
 				desks={desks.length}
 				isKeyed={health?.keyRequired === true}
 			/>
-			<PageSection
-				title="Health"
-				note="What this hub runs and who it lets in. A restart keeps every desk on the same address."
-			>
-				<HealthFacts health={health} now={now} />
-			</PageSection>
+			<HealthSection health={health} now={now} />
+			<StreamSection link={dashboard.hub.link} now={now} />
 			<PageSection
 				title="Agents"
 				note="The agents attached now: parked on a desk waiting for you, or at work on what you sent."

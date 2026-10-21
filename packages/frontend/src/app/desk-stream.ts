@@ -1,6 +1,7 @@
 // The desk tab's half of the hub's stream (RFC 0001, 4.6): its desk's pulses, and whether the hub
 // still lists the desk. Loaded once the first file is painted (main.tsx), where the tab used to
 // start polling /poll; the hub pushes, nothing here re-asks.
+import { hubLink } from '@entities/hub/link'
 import { hubView, subscribeHub } from '@entities/hub/stream'
 import { readDeskPulse } from '@entities/review/pulse'
 import { deferRender } from '@pages/desk/render'
@@ -50,6 +51,9 @@ function notePresence(desks: readonly HubDesk[] | null): void {
 
 function heardHub(): void {
 	const view = hubView()
+	const link = hubLink(view.stream, view.identity)
+	S.hubStatus = link.status
+	S.hubRetryAt = link.retryAt
 	notePresence(view.listing.desks)
 	const raw = view.pulses.get(deskId)
 	if (!raw || raw === heard) return

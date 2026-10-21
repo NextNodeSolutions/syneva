@@ -50,7 +50,9 @@ export const app = stylex.create({
 		lineHeight: 1.5,
 		WebkitFontSmoothing: 'antialiased',
 	},
-	refreshRequired: {
+	// A notice (refresh this tab, or the hub's stream held off) takes a row between the bar and the
+	// review.
+	withNotice: {
 		gridTemplateRows: `minmax(${deskSize.topbar}, max-content) auto minmax(0, 1fr)`,
 	},
 	main: {

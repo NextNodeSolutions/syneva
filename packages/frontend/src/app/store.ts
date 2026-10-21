@@ -29,6 +29,8 @@ export const S: Store = reactive<Store>({
 	isRefreshRequired: false,
 	// The stream keeps following the hub, so a same-origin restart can still propose refresh via isRefreshRequired.
 	deskClosed: false,
+	hubStatus: 'connecting',
+	hubRetryAt: null,
 	selected: { side: 'additions', lineNumber: 1 },
 	composerOpen: false,
 	fileComposerOpen: false,

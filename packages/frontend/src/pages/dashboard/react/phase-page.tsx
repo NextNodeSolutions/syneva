@@ -2,6 +2,7 @@ import { HUB_PAGES } from '@entities/hub/api'
 import { hubPlace } from '@entities/hub/hub-place'
 import { ButtonLink } from '@shared/ui/button-link'
 import { CommandChip } from '@shared/ui/command-chip'
+import { RetryCountdown } from '@shared/ui/retry-countdown'
 
 import { headCopy } from '../head-copy'
 
@@ -23,15 +24,19 @@ const HEAD_ACTIONS: Record<NonNullable<HeadCopy['action']>, ReactElement> = {
 }
 
 // A page with nothing to list yet: the hub is still answering its first read, this browser is
-// signed out, or the hub never answered.
+// signed out, or the stream waits to try again (and says when).
 export function PhasePage({ phase }: { phase: HubPhase }): ReactElement {
 	const copy = headCopy(phase, hubPlace())
+	const lede =
+		'retryAt' in phase ? (
+			<>
+				{copy.lede} <RetryCountdown retryAt={phase.retryAt} />
+			</>
+		) : (
+			copy.lede
+		)
 	return (
-		<PageHead
-			title={copy.title}
-			lede={copy.lede}
-			isPending={copy.isPending}
-		>
+		<PageHead title={copy.title} lede={lede} isPending={copy.isPending}>
 			{copy.action && HEAD_ACTIONS[copy.action]}
 		</PageHead>
 	)

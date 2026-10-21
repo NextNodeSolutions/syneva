@@ -1,12 +1,15 @@
 import { useEffect } from 'react'
 
+import { HUB_STATE } from '@widgets/hub-shell/hub-state'
+
 import type { HubStatus } from '@entities/hub/link'
 
 const PAGE_TITLE = 'Syneva hub'
 
+// A hub that does not stream to this page says why in the tab's title, in the shell's words.
 function documentTitle(status: HubStatus, yours: number): string {
-	if (status === 'signed-out') return `Signed out · ${PAGE_TITLE}`
-	if (status === 'unreachable') return `Not answering · ${PAGE_TITLE}`
+	if (status !== 'live' && status !== 'connecting')
+		return `${HUB_STATE[status].word} · ${PAGE_TITLE}`
 	if (yours > 0) return `(${yours}) ${PAGE_TITLE}`
 	return PAGE_TITLE
 }

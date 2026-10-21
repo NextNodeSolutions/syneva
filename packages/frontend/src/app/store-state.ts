@@ -1,3 +1,4 @@
+import type { HubStatus } from '@entities/hub/link'
 import type { TreeRow } from '@entities/review/file/tree-rows'
 import type { CodeSpan } from '@entities/review/guide/model'
 import type { GuideReturnPoint } from '@entities/review/guide/return-point'
@@ -31,6 +32,10 @@ export interface Store {
 	lastBaseDiffHash: string | null
 	isRefreshRequired: boolean
 	deskClosed: boolean
+	// How the hub's stream answers this tab, and when it tries again (app/desk-stream.ts mirrors
+	// them from the hub's store): the covers say what a dropped stream means for the desk.
+	hubStatus: HubStatus
+	hubRetryAt: number | null
 	selected: Selection
 	composerOpen: boolean
 	fileComposerOpen: boolean
