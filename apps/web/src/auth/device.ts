@@ -172,8 +172,6 @@ async function approveCode(
 		reply,
 	}: { session: Session; code: DeviceCode; reply: Reply },
 ): Promise<Response> {
-	if ((await liveHubCount(env.DB, session.userId)) >= MAX_LIVE_HUBS)
-		return reply.refused(TOO_MANY_HUBS, closedState(TOO_MANY_HUBS))
 	const token = randomToken()
 	const isApproved = await approveDeviceCode(
 		env.DB,
@@ -183,10 +181,17 @@ async function approveCode(
 			hubId: randomHex(HUB_ID_BYTES),
 			token,
 			tokenDigest: await sha256Hex(token),
+			maxLiveHubs: MAX_LIVE_HUBS,
 		},
 		now,
 	)
-	if (!isApproved) return reply.refused(CLOSED_NOW, closedState(CLOSED_NOW))
+	if (!isApproved) {
+		const failure =
+			(await liveHubCount(env.DB, session.userId)) >= MAX_LIVE_HUBS
+				? TOO_MANY_HUBS
+				: CLOSED_NOW
+		return reply.refused(failure, closedState(failure))
+	}
 	return reply.answered(
 		{ approved: true, hubName: code.hubName },
 		{ kind: 'approved', hubName: code.hubName },

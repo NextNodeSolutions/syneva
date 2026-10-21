@@ -128,6 +128,7 @@ export type Approval = {
 	hubId: string
 	token: string
 	tokenDigest: string
+	maxLiveHubs: number
 }
 
 // The hub's row and the code's approval in one transaction, under the same condition (the code
@@ -143,7 +144,7 @@ export async function approveDeviceCode(
 	const [, approved] = await db.batch([
 		db
 			.prepare(
-				`INSERT INTO hubs (id, user_id, name, token_digest, version, created_at) SELECT ?, ?, hub_name, ?, hub_version, ? FROM device_codes WHERE ${open}`,
+				`INSERT INTO hubs (id, user_id, name, token_digest, version, created_at) SELECT ?, ?, hub_name, ?, hub_version, ? FROM device_codes WHERE ${open} AND (SELECT COUNT(*) FROM hubs WHERE user_id = ? AND revoked_at IS NULL) < ?`,
 			)
 			.bind(
 				approval.hubId,
@@ -152,10 +153,12 @@ export async function approveDeviceCode(
 				iso(now),
 				approval.userCode,
 				iso(now),
+				approval.userId,
+				approval.maxLiveHubs,
 			),
 		db
 			.prepare(
-				`UPDATE device_codes SET user_id = ?, hub_id = ?, token = ?, approved_at = ? WHERE ${open}`,
+				`UPDATE device_codes SET user_id = ?, hub_id = ?, token = ?, approved_at = ? WHERE ${open} AND EXISTS (SELECT 1 FROM hubs WHERE id = ?)`,
 			)
 			.bind(
 				approval.userId,
@@ -164,6 +167,7 @@ export async function approveDeviceCode(
 				iso(now),
 				approval.userCode,
 				iso(now),
+				approval.hubId,
 			),
 	])
 	return (approved?.meta.changes ?? 0) > 0
