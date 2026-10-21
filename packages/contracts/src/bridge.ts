@@ -117,8 +117,19 @@ export type BridgeFrame =
 	// RFC 4.4: the local hub tells its own tabs, so the Hub page follows its probe without asking;
 	// a probe never sends it to the web.
 	| { t: 'pairing'; hubId: string; pairing: PairingState }
-	// The web's object tells its tabs a hub socket opened or closed.
-	| { t: 'hub'; hubId: string; name: string; online: boolean }
+	// The web's object tells its tabs where each of the person's paired hubs stands: one per hub
+	// when a tab connects (the Worker hands the object the person's hubs with the upgrade, since
+	// the object stores nothing), then one each time a hub socket opens or closes. `version` and
+	// `lastSeenAt` are what the web's rows say (the CLI version the hub paired or last connected
+	// with, the last time it connected): the fake bridge of test/bridge leaves them out.
+	| {
+			t: 'hub'
+			hubId: string
+			name: string
+			online: boolean
+			version?: string | undefined
+			lastSeenAt?: string | null | undefined
+	  }
 	// The object asks a hub for a snapshot.
 	| { t: 'snapshot?' }
 	// The HTTP relay (RFC 4.5): one request, its answer, its failure, its cancellation. The
@@ -156,6 +167,23 @@ export type BridgeFrame =
 // object's auto-response, which matches the text, so every hub accepts exactly this spelling.
 export const PING_TEXT = '{"t":"p"}'
 export const PONG_TEXT = '{"t":"o"}'
+
+// The hub a relayed request goes to when its path names no web id (`POST /api/hub/desks`,
+// `POST /api/hub/inventory`, `GET /api/hub/plans`): the tab's pick, as a request header the web
+// reads and never forwards. A path that names a web id names its hub by the id's prefix instead.
+export const WEB_HUB_HEADER = 'x-syneva-hub'
+
+// What a tab gets when a relay fails before its answer started (RFC 4.5, 4.9), with the failure
+// as the error's `code`: no hub socket is 503, the deadline 504, a hub's own refusals 413 and 429.
+// A hub socket that closes mid-answer cuts the answer if it started, else answers 502 with
+// `HUB_OFFLINE`; a cancelled relay answers nothing, the tab left first.
+export const RELAY_FAILURE_STATUS: Readonly<Record<RelayFailure, number>> = {
+	HUB_OFFLINE: 503,
+	HUB_TIMEOUT: 504,
+	TOO_LARGE: 413,
+	TOO_MANY: 429,
+	CANCELLED: 502,
+}
 
 export const BRIDGE_PATHS = {
 	deviceCode: '/bridge/v1/device/code',
