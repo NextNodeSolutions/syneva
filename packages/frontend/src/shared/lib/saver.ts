@@ -27,22 +27,35 @@ export type Saver = {
 	settle: (limitMs?: number) => Promise<void>
 }
 
-// How often settle() re-checks busy, and how long it waits overall when the caller passes no limit.
-const DRAIN_TICK_MS = 25
+// How long settle() waits overall when the caller passes no limit.
 const DRAIN_DEFAULT_LIMIT_MS = 2000
 
-// Poll `check` from a macrotask until it holds (or the limit expires), then resolve. The
-// promise-chain shape keeps the busy-ness reads out of an awaiting loop. A limit keeps a
-// wedged transport from holding a departing caller forever.
-function settledWithin(limitMs: number, check: () => boolean): Promise<void> {
+// Resolves once `isQuiet` holds or the limit expires, whichever comes first. The save that leaves
+// the wire quiet wakes the waiters it finds in `waiters` (nothing re-checks on a tick); the limit
+// keeps a wedged transport from holding a departing caller forever.
+function settledWithin(
+	limitMs: number,
+	isQuiet: () => boolean,
+	waiters: Set<() => void>,
+): Promise<void> {
 	return new Promise(resolve => {
-		const deadline = Date.now() + limitMs
-		const poll = (): void => {
-			if (check() || Date.now() >= deadline) return resolve()
-			setTimeout(poll, DRAIN_TICK_MS)
+		if (isQuiet()) {
+			resolve()
+			return
 		}
-		poll()
+		const done = (): void => {
+			clearTimeout(limit)
+			waiters.delete(done)
+			resolve()
+		}
+		const limit = setTimeout(done, limitMs)
+		waiters.add(done)
 	})
+}
+
+// Each waiter removes itself as it runs, which a Set's iteration allows.
+function wake(waiters: ReadonlySet<() => void>): void {
+	for (const done of waiters) done()
 }
 
 export function createSaver<T>(
@@ -51,6 +64,8 @@ export function createSaver<T>(
 ): Saver {
 	let isInFlight = false
 	let isPending = false
+	// Callers of settle() waiting for the wire to go quiet.
+	const waiters = new Set<() => void>()
 
 	const run = (): void => {
 		isInFlight = true
@@ -67,7 +82,7 @@ export function createSaver<T>(
 				if (isPending) {
 					isPending = false
 					run()
-				}
+				} else wake(waiters)
 			}
 		})()
 	}
@@ -80,7 +95,7 @@ export function createSaver<T>(
 	const isBusy = (): boolean => isInFlight || isPending
 
 	const settle = (limitMs = DRAIN_DEFAULT_LIMIT_MS): Promise<void> =>
-		settledWithin(limitMs, () => !isBusy())
+		settledWithin(limitMs, () => !isBusy(), waiters)
 
 	return {
 		trigger,
