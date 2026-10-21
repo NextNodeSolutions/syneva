@@ -146,9 +146,11 @@ function Lane({
 export function SequenceDiagram({
 	refs,
 	block,
+	fit,
 }: {
 	refs: DiagramRefs
 	block: SequenceBlock
+	fit?: boolean | undefined
 }): ReactElement {
 	const layout = layoutSequence(block)
 	const keys = edgeKeys(block.steps)
@@ -159,7 +161,7 @@ export function SequenceDiagram({
 			height={layout.height}
 			role="img"
 			aria-label={`Sequence: ${block.title ?? ''}`}
-			{...stylex.props(diagram.svg)}
+			{...stylex.props(diagram.svg, fit === true && diagram.fit)}
 		>
 			<ArrowMarker />
 			{block.participants.map(participant => (

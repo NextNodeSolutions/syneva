@@ -21,6 +21,23 @@ const AREAS = {
 		'"icon desk open" ". stage stage" ". review review" ". actions actions"',
 } as const
 
+// A row lit while the reviewer is on it: on hover with a fine pointer, or while its link has
+// the keyboard's focus. The desk rows and the plan library's rows light alike.
+export const rowLight = stylex.create({
+	lit: {
+		backgroundColor: {
+			default: null,
+			[FOCUSED]: WHITE_60,
+			[media.finePointer]: {
+				default: null,
+				':hover': WHITE_60,
+				[FOCUSED]: WHITE_60,
+			},
+		},
+		transition: `background-color ${duration['--duration-medium']} ${out}`,
+	},
+})
+
 export const deskRow = stylex.create({
 	row: {
 		position: 'relative',
@@ -44,19 +61,9 @@ export const deskRow = stylex.create({
 		},
 		paddingBlock: { default: '13px', [media.phone]: '14px' },
 		paddingRight: deskGrid.endInset,
-		backgroundColor: {
-			default: null,
-			[FOCUSED]: WHITE_60,
-			[media.finePointer]: {
-				default: null,
-				':hover': WHITE_60,
-				[FOCUSED]: WHITE_60,
-			},
-		},
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line'],
-		transition: `background-color ${duration['--duration-medium']} ${out}`,
 	},
 	armed: {
 		gridTemplateAreas: {

@@ -83,16 +83,7 @@ export const planFigure = stylex.create({
 		paddingLeft: '18px',
 		listStyleType: 'disc',
 	},
-	invalid: {
-		marginTop: '26px',
-		paddingBlock: '12px',
-		paddingInline: '16px',
-		borderLeftWidth: '2px',
-		borderLeftStyle: 'solid',
-		borderLeftColor: color['--amber'],
-		backgroundColor: color['--amber-tint'],
-		fontSize: '13.5px',
-	},
+	invalid: { marginTop: '26px' },
 	source: {
 		marginTop: '10px',
 		overflowX: 'auto',

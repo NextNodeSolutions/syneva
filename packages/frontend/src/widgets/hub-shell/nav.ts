@@ -1,4 +1,5 @@
 import { groupByProject } from '@entities/hub/model'
+import { planDesks } from '@entities/hub/plan-model'
 import { turnCounts } from '@entities/hub/turn'
 import {
 	DASHBOARD_PATHS,
@@ -12,7 +13,8 @@ import type { ShellIconName } from './shell-icons'
 export type NavId = keyof typeof DASHBOARD_PATHS
 
 // What the navigation counts beside its entries: the desks waiting on the reviewer (the one
-// count in petrol: it is the reason to come), every live desk, the repositories, the plans.
+// count in petrol: it is the reason to come), every live desk, the repositories, the plans under
+// review on a desk (a file desk that is not a plan is a review, counted with the reviews).
 export type NavCounts = {
 	yours: number
 	reviews: number
@@ -89,6 +91,6 @@ export function navCountsOf(
 		yours: turnCounts(desks).yours,
 		reviews: desks.length,
 		projects: groupByProject(desks).length,
-		plans: desks.filter(desk => desk.mode === 'file').length,
+		plans: planDesks(desks).length,
 	}
 }

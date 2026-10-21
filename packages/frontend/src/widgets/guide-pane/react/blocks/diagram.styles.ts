@@ -24,6 +24,9 @@ export const diagram = stylex.create({
 		maxWidth: 'none',
 		fontFamily: font['--sans'],
 	},
+	// A drawing sized to its layout can be wider than where it sits; fitted, it scales down to
+	// its container instead of scrolling (a plan's figure field, pages/dashboard/plans).
+	fit: { maxWidth: '100%', height: 'auto' },
 	nodeShape: {
 		fill: color['--white'],
 		stroke: color['--line-strong'],

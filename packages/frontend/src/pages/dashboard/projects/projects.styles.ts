@@ -23,23 +23,16 @@ export const projectsList = stylex.create({
 		borderBottomStyle: 'solid',
 		borderBottomColor: color['--line-strong'],
 	},
+	// Laid over the shared index row (react/index-row.styles.ts).
 	row: {
-		display: 'grid',
 		gridTemplateColumns: {
 			default:
 				'minmax(0, 2fr) repeat(3, minmax(0, 1fr)) minmax(0, 1fr) 20px',
 			[NARROW]: 'minmax(0, 1fr) auto',
 		},
-		alignItems: 'center',
-		columnGap: '20px',
-		rowGap: '6px',
-		paddingBlock: '16px',
 		paddingInline: '4px',
 		color: color['--ink'],
 		textDecoration: 'none',
-		borderBottomWidth: '1px',
-		borderBottomStyle: 'solid',
-		borderBottomColor: color['--line'],
 		backgroundColor: {
 			default: 'transparent',
 			[media.finePointer]: {
@@ -48,12 +41,6 @@ export const projectsList = stylex.create({
 			},
 		},
 		transition: `background-color ${transition.fast}`,
-	},
-	name: {
-		display: 'block',
-		fontSize: '15px',
-		fontWeight: 500,
-		letterSpacing: '-.01em',
 	},
 	path: {
 		display: 'block',

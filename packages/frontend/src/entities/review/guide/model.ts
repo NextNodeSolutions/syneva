@@ -111,6 +111,14 @@ export type ExplanationBlock =
 // The blocks drawn as a diagram: nodes and the edges between them.
 export type DiagramBlock = StateBlock | SequenceBlock | FlowBlock
 
+export function isDiagramBlock(block: ExplanationBlock): block is DiagramBlock {
+	return (
+		block.kind === 'state' ||
+		block.kind === 'sequence' ||
+		block.kind === 'flow'
+	)
+}
+
 export type GuideDomain = {
 	id: string
 	title: string

@@ -1,6 +1,10 @@
 // The hub's plan library as the dashboard holds it: decoded from the wire at api.ts, so the
 // pages never read a contract shape.
 
+import { projectName } from './model'
+
+import type { HubDesk } from './model'
+
 export const PLAN_STATUSES = [
 	'draft',
 	'approved',
@@ -12,6 +16,20 @@ export type PlanStatus = (typeof PLAN_STATUSES)[number]
 
 // What the reviewer may set by hand: approval only ever comes from a Send on the plan's desk.
 export type PlanStatusChange = Exclude<PlanStatus, 'approved'>
+
+// Where the reviewer's own word can take a plan from where it stands: built, set aside, or back
+// on the table. Approval is not among them: it only comes from a Send on the plan's desk.
+const OPEN_MOVES: readonly PlanStatusChange[] = ['implemented', 'archived']
+const NEXT_STATUSES: Record<PlanStatus, readonly PlanStatusChange[]> = {
+	draft: OPEN_MOVES,
+	approved: OPEN_MOVES,
+	implemented: ['draft', 'archived'],
+	archived: ['draft'],
+}
+
+export function nextStatuses(status: PlanStatus): readonly PlanStatusChange[] {
+	return NEXT_STATUSES[status]
+}
 
 export type PlanVersion = {
 	number: number
@@ -62,20 +80,39 @@ export function planSignature(plan: Plan): string {
 	].join(' ')
 }
 
-// The library by repository, in the order the hub listed them (the most recently moved plan
-// first), so the project that moved last leads.
+// The library by repository (keyed and named as the desks are, projectName), in the order the
+// hub listed them (the most recently moved plan first), so the project that moved last leads.
 export function plansByProject(plans: readonly Plan[]): PlanProject[] {
 	const projects = new Map<string, PlanProject>()
 	for (const plan of plans) {
-		const held = projects.get(plan.projectId)
+		const held = projects.get(plan.root)
 		if (held) held.plans.push(plan)
 		else
-			projects.set(plan.projectId, {
+			projects.set(plan.root, {
 				projectId: plan.projectId,
-				project: plan.project,
+				project: projectName(plan),
 				root: plan.root,
 				plans: [plan],
 			})
 	}
 	return [...projects.values()]
+}
+
+// The desks reviewing a plan: a file desk that is not a plan is a review like any other.
+export function planDesks(desks: readonly HubDesk[]): HubDesk[] {
+	return desks.filter(desk => desk.plan !== null)
+}
+
+// A plan joined to its live desk: the one the hub's listing shows reviewing it, and the page
+// path that reaches it. The listing's poll is ahead of the library's, which can lag it, so the
+// listing's desk comes first and the library's own word (`deskPath`) stands in when the
+// listing shows none: a desk still open is linked, never reopened (a reload) to be reached.
+export type PlanDeskJoin = { desk: HubDesk | undefined; path: string | null }
+
+export function deskOfPlan(
+	plan: Plan,
+	desks: readonly HubDesk[],
+): PlanDeskJoin {
+	const desk = desks.find(live => live.plan === plan.id)
+	return { desk, path: desk?.path ?? plan.deskPath }
 }

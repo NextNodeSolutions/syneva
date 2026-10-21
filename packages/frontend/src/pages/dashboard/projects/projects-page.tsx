@@ -9,6 +9,7 @@ import { projectPagePath } from '@syneva/contracts/routes'
 import { focus } from '@syneva/design-system/controls.styles'
 
 import { displayRoot, plural, relativeTime } from '../format'
+import { indexRow } from '../react/index-row.styles'
 import { listPage } from '../react/list-page.styles'
 import { PageHead } from '../react/page-head'
 import { dashboardPage } from '../react/page.styles'
@@ -75,13 +76,11 @@ function ProjectRow({
 		<li data-enter="rise">
 			<AppLink
 				href={projectPagePath(entry.id)}
-				css={[focus.inset, projectsList.row]}
+				css={[focus.inset, indexRow.row, projectsList.row]}
 				aria-label={`${entry.name}: ${plural(entry.desks.length, 'live desk')}, ${entry.yours} waiting on you`}
 			>
 				<span>
-					<span {...stylex.props(projectsList.name)}>
-						{entry.name}
-					</span>
+					<span {...stylex.props(indexRow.name)}>{entry.name}</span>
 					<span
 						{...stylex.props(projectsList.path)}
 						title={entry.root}

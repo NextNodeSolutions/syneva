@@ -26,6 +26,8 @@ export type HubDesk = {
 	openedAt: string
 	lastActivityAt: string
 	path: string
+	// The plan this desk reviews (`syneva open plan`): its id in the plan library.
+	plan: string | null
 }
 
 export type HubHealth = {
@@ -44,13 +46,19 @@ export type HubProject = {
 	lastActivityAt: string
 }
 
+// A repository as every listing groups by it: keyed by its root, named as the hub names it
+// (its folder) or, failing that, by its path. Desks and plans group the same way.
+export function projectName(of: { project: string; root: string }): string {
+	return of.project || of.root
+}
+
 export function groupByProject(desks: readonly HubDesk[]): HubProject[] {
 	const byRoot = new Map<string, HubProject>()
 	for (const desk of desks) {
 		const project = byRoot.get(desk.root) ?? {
 			root: desk.root,
 			id: desk.projectId,
-			name: desk.project || desk.root,
+			name: projectName(desk),
 			desks: [],
 			lastActivityAt: desk.lastActivityAt,
 		}
@@ -77,4 +85,6 @@ export type NewDeskInput = {
 	session?: string | undefined
 	base?: string | undefined
 	path?: string | undefined
+	// A file desk over a plan: the hub keeps its versions in the plan library.
+	plan?: boolean | undefined
 }

@@ -107,9 +107,11 @@ function Transition({
 export function StateDiagram({
 	refs,
 	block,
+	fit,
 }: {
 	refs: DiagramRefs
 	block: StateBlock
+	fit?: boolean | undefined
 }): ReactElement {
 	const layout = layoutStates(block)
 	const keys = edgeKeys(block.transitions)
@@ -120,7 +122,7 @@ export function StateDiagram({
 			height={layout.height}
 			role="img"
 			aria-label={`State diagram: ${block.title ?? ''}`}
-			{...stylex.props(diagram.svg)}
+			{...stylex.props(diagram.svg, fit === true && diagram.fit)}
 		>
 			<ArrowMarker />
 			{block.transitions.map((transition, index) => (

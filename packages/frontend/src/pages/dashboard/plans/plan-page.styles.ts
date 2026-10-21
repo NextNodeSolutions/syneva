@@ -3,26 +3,16 @@ import { color, font } from '@syneva/design-system/tokens.stylex'
 
 import { pageInset } from '../react/page.stylex'
 
-import { planFrame } from './plan-frame.stylex'
-
 // A plan read like the RFCs it is modelled on: a mono eyebrow, the title as a headline, its
 // summary as the lede and its sections as a table of contents, its versions beside them; then
-// the body in bands (plan-body.styles.ts). On a narrow page the versions follow the head.
+// the body in bands (plan-body.styles.ts). The head is a band too (plan-band.styles.ts), with
+// its own spacing and its frame in two columns. On a narrow page the versions follow the head.
 const NARROW = '@container page (max-width: 980px)'
 
 export const planPage = stylex.create({
-	hero: {
-		paddingTop: '56px',
-		paddingBottom: '40px',
-		paddingInline: pageInset.gutter,
-		borderBottomWidth: '1px',
-		borderBottomStyle: 'solid',
-		borderBottomColor: color['--line'],
-	},
+	hero: { paddingTop: '56px', paddingBottom: '40px' },
 	heroFrame: {
 		display: 'grid',
-		maxWidth: planFrame.width,
-		marginInline: 'auto',
 		gridTemplateColumns: {
 			default: 'minmax(0, 1fr) 240px',
 			[NARROW]: 'minmax(0, 1fr)',
@@ -96,20 +86,7 @@ export const planPage = stylex.create({
 		marginTop: '26px',
 	},
 	failure: { fontSize: '13px', color: color['--red'] },
-	notice: {
-		display: 'flex',
-		flexWrap: 'wrap',
-		alignItems: 'baseline',
-		gap: '6px 14px',
-		marginBottom: '28px',
-		paddingBlock: '12px',
-		paddingInline: '16px',
-		borderLeftWidth: '2px',
-		borderLeftStyle: 'solid',
-		borderLeftColor: color['--amber'],
-		backgroundColor: color['--amber-tint'],
-		fontSize: '13.5px',
-	},
+	notice: { marginBottom: '28px' },
 	empty: {
 		paddingTop: '44px',
 		paddingInline: pageInset.gutter,

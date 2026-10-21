@@ -21,10 +21,16 @@ export const notice = stylex.create({
 	},
 	inkRule: { borderColor: color['--ink'] },
 	redRule: { borderColor: color['--red-line'] },
+	// Something read as it is not by default (an older version, a figure shown as its source).
+	amberRule: {
+		borderColor: color['--amber-line'],
+		backgroundColor: color['--amber-tint'],
+	},
 	square: { width: '8px', height: '8px', marginTop: '6px' },
 	petrol: { backgroundColor: color['--accent'] },
 	green: { backgroundColor: color['--green'] },
 	red: { backgroundColor: color['--red'] },
+	amber: { backgroundColor: color['--amber'] },
 	neutral: { backgroundColor: color['--line-strong'] },
 	lead: {
 		marginBlock: 0,

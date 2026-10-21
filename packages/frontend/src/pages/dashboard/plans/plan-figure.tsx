@@ -1,22 +1,37 @@
-import { lazy, Suspense } from 'react'
+import { lazy, memo, Suspense, useMemo } from 'react'
 
+import { FallbackBoundary } from '@shared/ui/fallback-boundary'
+import { Notice } from '@shared/ui/notice'
 import * as stylex from '@stylexjs/stylex'
 import { lineKeys } from '@widgets/guide-pane/layout/keys'
-import { BlockBoundary } from '@widgets/guide-pane/react/blocks/block-boundary'
 import { lines } from '@widgets/guide-pane/react/blocks/diagram-lines'
 import { NO_REFS } from '@widgets/guide-pane/react/blocks/diagram-refs'
 
 import { planFigure } from './plan-figure.styles'
+import { parseFigure } from './plan-figures'
 
 import type { DiagramBlock } from '@entities/review/guide/model'
+import type * as Diagrams from '@widgets/guide-pane/react/blocks/diagrams'
 import type { ReactElement } from 'react'
-import type { PlanFigure } from './plan-figures'
 
-// The guide's renderers, in their own chunk: a plan without a figure never loads them.
-const Diagram = lazy(async () => {
-	const module = await import('@widgets/guide-pane/react/blocks/diagrams')
-	return { default: module.Diagram }
-})
+// The guide's renderers, in their own chunk: a plan without a figure never loads them, and one
+// with figures starts loading them with its body (preloadDiagram), not once it is drawn.
+let diagrams: Promise<typeof Diagrams> | undefined
+
+function loadDiagrams(): Promise<typeof Diagrams> {
+	diagrams ??= import('@widgets/guide-pane/react/blocks/diagrams')
+	return diagrams
+}
+
+export async function preloadDiagram(): Promise<void> {
+	try {
+		await loadDiagrams()
+	} catch {
+		// A failed load surfaces where a figure is drawn (its boundary shows the source).
+	}
+}
+
+const Diagram = lazy(async () => ({ default: (await loadDiagrams()).Diagram }))
 
 const CORNERS = [
 	{ name: 'top-left', style: planFigure.topLeft },
@@ -35,8 +50,13 @@ function InvalidFigure({
 	source: string
 }): ReactElement {
 	return (
-		<div {...stylex.props(planFigure.invalid)} role="note">
-			{`This figure does not read: ${reason}.`}
+		<div {...stylex.props(planFigure.invalid)}>
+			<Notice
+				tone="amber"
+				rule="amber"
+				role="note"
+				lead={`This figure does not read: ${reason}.`}
+			/>
 			<pre {...stylex.props(planFigure.source)}>{source}</pre>
 		</div>
 	)
@@ -61,19 +81,21 @@ function Sentences({ block }: { block: DiagramBlock }): ReactElement {
 }
 
 // A figure is numbered in the plan's order, as an RFC numbers its figures, so the prose can
-// point at one ("figure 2").
-export function PlanFigureView({
-	figure,
+// point at one ("figure 2"). Parsed from its source where it is drawn and memoized on it: a
+// repaint of the prose around it (a grammar loaded) leaves the drawing as it is.
+export const PlanFigureView = memo(function PlanFigureView({
+	source,
 	number,
 }: {
-	figure: PlanFigure
+	source: string
 	number: number
 }): ReactElement {
+	const figure = useMemo(() => parseFigure(source, number), [source, number])
 	if (!figure.ok)
-		return <InvalidFigure reason={figure.reason} source={figure.source} />
+		return <InvalidFigure reason={figure.reason} source={source} />
 	const { block } = figure
 	const unDrawn = (
-		<InvalidFigure reason="it could not be drawn" source={figure.source} />
+		<InvalidFigure reason="it could not be drawn" source={source} />
 	)
 	return (
 		<figure {...stylex.props(planFigure.root)}>
@@ -85,12 +107,15 @@ export function PlanFigureView({
 						{...stylex.props(planFigure.mark, corner.style)}
 					/>
 				))}
-				<div {...stylex.props(planFigure.drawing)} data-plan-drawing>
-					<BlockBoundary fallback={unDrawn}>
+				<div {...stylex.props(planFigure.drawing)}>
+					<FallbackBoundary fallback={unDrawn}>
 						<Suspense fallback={null}>
-							<Diagram refs={NO_REFS} block={block} />
+							{/* The guide's renderers size an SVG to its layout, which a sequence of
+							five participants makes wider than the page: fitted, it scales down
+							to the field instead of scrolling out of sight. */}
+							<Diagram refs={NO_REFS} block={block} fit />
 						</Suspense>
-					</BlockBoundary>
+					</FallbackBoundary>
 				</div>
 			</div>
 			<figcaption {...stylex.props(planFigure.caption)}>
@@ -108,4 +133,4 @@ export function PlanFigureView({
 			<Sentences block={block} />
 		</figure>
 	)
-}
+})
