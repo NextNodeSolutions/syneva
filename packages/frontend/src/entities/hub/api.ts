@@ -3,15 +3,25 @@ import { assertObject, DecodeError, requiredBoolean } from '@shared/api/decode'
 import {
 	HUB_PATHS,
 	hubDeskPath,
+	hubPlanPath,
+	hubPlanStatusPath,
+	hubPlanVersionPath,
 	JOURNAL_READ_MAX,
 	STATIC_PATHS,
 } from '@syneva/contracts/routes'
 
 import { decodeHubDesk, decodeHubDesks, decodeHubHealth } from './decode'
 import { decodeJournal } from './journal-decode'
+import {
+	decodeMarkdown,
+	decodePlan,
+	decodePlanDocument,
+	decodePlans,
+} from './plan-decode'
 
 import type { JournalRead } from './journal'
 import type { HubDesk, HubHealth, NewDeskInput } from './model'
+import type { Plan, PlanDocument, PlanStatusChange } from './plan-model'
 
 // The only place the hub routes are named: paths come from @contracts/routes so the wire stays in sync with the hub by construction, and every response is decoded onto a frontend-owned model - wire shapes never escape.
 
@@ -74,6 +84,49 @@ export const closeHubDesk = async (id: string): Promise<boolean> => {
 	const raw = await hubApi(endpoint, { method: 'DELETE' })
 	const o = assertObject(raw, endpoint)
 	return requiredBoolean(o, 'closed', endpoint)
+}
+
+// The plan library: the plans the hub keeps, one plan with its latest version, an earlier
+// version, and the status the reviewer sets by hand.
+export const fetchPlans = async (signal?: AbortSignal): Promise<Plan[]> =>
+	decodePlans(
+		await hubApi(HUB_PATHS.plans, { signal: signal ?? null }),
+		HUB_PATHS.plans,
+	)
+
+export const fetchPlan = async (
+	id: string,
+	signal?: AbortSignal,
+): Promise<PlanDocument> => {
+	const endpoint = hubPlanPath(id)
+	return decodePlanDocument(
+		await hubApi(endpoint, { signal: signal ?? null }),
+		endpoint,
+	)
+}
+
+export const fetchPlanVersion = async (
+	id: string,
+	version: number,
+	signal?: AbortSignal,
+): Promise<string> => {
+	const endpoint = hubPlanVersionPath(id, version)
+	return decodeMarkdown(
+		await hubApi(endpoint, { signal: signal ?? null }),
+		endpoint,
+	)
+}
+
+export const changePlanStatus = async (
+	id: string,
+	status: PlanStatusChange,
+): Promise<Plan> => {
+	const endpoint = hubPlanStatusPath(id)
+	const raw = await hubApi(endpoint, {
+		method: 'POST',
+		body: JSON.stringify({ status }),
+	})
+	return decodePlan(assertObject(raw, endpoint, 'plan status').plan, endpoint)
 }
 
 // The status alone stands in for a body that is not the hub's (a proxy's page).

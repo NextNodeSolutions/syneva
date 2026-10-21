@@ -1,0 +1,69 @@
+// The hub's plan library as the dashboard holds it: decoded from the wire at api.ts, so the
+// pages never read a contract shape.
+
+export const PLAN_STATUSES = [
+	'draft',
+	'approved',
+	'implemented',
+	'archived',
+] as const
+
+export type PlanStatus = (typeof PLAN_STATUSES)[number]
+
+// What the reviewer may set by hand: approval only ever comes from a Send on the plan's desk.
+export type PlanStatusChange = Exclude<PlanStatus, 'approved'>
+
+export type PlanVersion = {
+	number: number
+	postedAt: string
+	title: string
+	approvedAt: string | null
+}
+
+export type Plan = {
+	id: string
+	root: string
+	project: string
+	projectId: string
+	path: string
+	title: string
+	summary: string | null
+	status: PlanStatus
+	versions: PlanVersion[]
+	createdAt: string
+	updatedAt: string
+	// The live desk reviewing the plan now: its page path, relative to the hub.
+	deskPath: string | null
+}
+
+export type PlanDocument = { plan: Plan; markdown: string }
+
+export type PlanProject = {
+	projectId: string
+	project: string
+	root: string
+	plans: Plan[]
+}
+
+// The latest version is the one the plan is read at; a record always has one.
+export function latestVersion(plan: Plan): PlanVersion | undefined {
+	return plan.versions.at(-1)
+}
+
+// The library by repository, in the order the hub listed them (the most recently moved plan
+// first), so the project that moved last leads.
+export function plansByProject(plans: readonly Plan[]): PlanProject[] {
+	const projects = new Map<string, PlanProject>()
+	for (const plan of plans) {
+		const held = projects.get(plan.projectId)
+		if (held) held.plans.push(plan)
+		else
+			projects.set(plan.projectId, {
+				projectId: plan.projectId,
+				project: plan.project,
+				root: plan.root,
+				plans: [plan],
+			})
+	}
+	return [...projects.values()]
+}
