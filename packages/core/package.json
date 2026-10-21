@@ -14,7 +14,7 @@
 	},
 	"scripts": {
 		"build": "rm -rf dist && tsc",
-		"check": "tsc --noEmit"
+		"check": "tsc --noEmit && tsc -p tsconfig.workers.json"
 	},
 	"dependencies": {
 		"@syneva/contracts": "workspace:*"

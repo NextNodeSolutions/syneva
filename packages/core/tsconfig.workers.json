@@ -1,0 +1,12 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		// The Workers gate (RFC 0001, 3.1 and phase 0): core type-checked as the user's Durable Object runs it - ES2024 and the Web APIs, no @types/node, and of Node only what types/node-compat.d.ts declares. A process, a Buffer or a node:fs import fails here even if lint missed it.
+		"noEmit": true,
+		"declaration": false,
+		"types": [],
+		"lib": ["ES2024", "WebWorker", "WebWorker.AsyncIterable"],
+		"rootDir": "."
+	},
+	"include": ["src/**/*.ts", "types/**/*.d.ts"]
+}
