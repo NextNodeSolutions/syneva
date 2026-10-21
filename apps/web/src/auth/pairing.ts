@@ -13,9 +13,10 @@ import { logFailure } from '../http/log.js'
 import { HTTP_OK, HTTP_UNAUTHORIZED } from '../http/status.js'
 import { tellRevoked } from '../user-hub-stub.js'
 
+import { clientKeys } from './client-keys.js'
 import { deviceToken } from './device-token.js'
 import { readPosted } from './form.js'
-import { clientAddress, limitRefusal } from './limits.js'
+import { limitRefusal } from './limits.js'
 import {
 	normalizedUserCode,
 	randomToken,
@@ -47,7 +48,7 @@ export async function pairingRoute(call: Call): Promise<Response | null> {
 
 async function newDeviceCode(call: Call): Promise<Response> {
 	const { env, now, request } = call
-	const limited = await limitRefusal(env, 'pairing', clientAddress(request))
+	const limited = await limitRefusal(env, 'pairing', clientKeys(request).host)
 	if (limited) return limited
 	const posted = await readPosted(request)
 	if ('refusal' in posted) return posted.refusal

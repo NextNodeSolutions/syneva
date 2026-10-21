@@ -16,7 +16,9 @@ export const WEB_PATHS = {
 	logout: HUB_PATHS.logout,
 	// POST MagicLinkRequest: emails a sign-in link. Answers 202 whether or not the address has an
 	// account (nothing to enumerate), 429 past the limits of RFC 6.1 F1 (3 per address per hour,
-	// 10 per client address per hour, 2,000 per day), 400 on a malformed address.
+	// 10 per client per hour, 2,000 per day) and the web's share per network (50 per day), 400 on
+	// a malformed address. A client is an IPv4 address or an IPv6 /64, a network an IPv4 address
+	// or an IPv6 /48: rotating the addresses of a prefix buys nothing.
 	magicLink: '/auth/magic-link',
 	// GET ?token=<token>: the link in the email. It changes nothing (a mail scanner's fetch spends
 	// nothing): a page names the account the link signs in as, with one button that POSTs the

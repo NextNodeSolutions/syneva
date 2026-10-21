@@ -24,6 +24,7 @@ import { createReport } from '../stream/report.mjs'
 
 import { checkPairing } from './device-checks.mjs'
 import { checkLogout, checkRevoke, checkTab } from './hub-checks.mjs'
+import { checkClientLimits } from './limit-checks.mjs'
 import { checkOps } from './ops-checks.mjs'
 import { checkSignedInPages, checkSignedOutPages } from './page-checks.mjs'
 import { checkRelay } from './relay-checks.mjs'
@@ -107,6 +108,7 @@ async function run() {
 	await checkSignedOutPages(context)
 	await checkSignIn(context)
 	await checkSignedInPages(context)
+	await checkClientLimits(context)
 	const hubId = await checkPairing(context)
 	const tab = hubId ? await checkTab(context, hubId) : null
 	if (tab) {

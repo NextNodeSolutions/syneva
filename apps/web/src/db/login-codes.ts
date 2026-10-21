@@ -1,20 +1,27 @@
-// login_codes and counters: the magic links emailed, by the sha256 of their token, and the daily
-// count of emails. A row is the limits' memory as much as the link (RFC 6.1 F1: 3 per address and
-// 10 per client address an hour, 2,000 a day), so it stays an hour after its creation, then goes
-// on the next link asked for; a day's count stays a week.
+// login_codes, counters and link_networks: the magic links emailed, by the sha256 of their token,
+// the day's count of emails and the day's count per client network. A row is the limits' memory
+// as much as the link (RFC 6.1 F1: 3 per address and 10 per client an hour, 2,000 a day; and here
+// a share of the day per network, so no one network drains the day), so it stays an hour after
+// its creation, then goes on the next link asked for; a day's count stays a week, a network's
+// count its day.
 import { iso, secondsAfter } from '../http/call.js'
 
 export type LinkLimits = {
 	perAddress: number
 	perClient: number
+	perNetwork: number
 	perDay: number
 }
 
+// `clientDigest` and `networkDigest` are the sha256 of the asking client's keys
+// (auth/client-keys.ts: its host, an IPv6 /64 or an IPv4 address, and its network, a /48 or the
+// same IPv4 address), never the address itself.
 export type LoginCode = {
 	digest: string
 	email: string
 	next: string
 	clientDigest: string
+	networkDigest: string
 	expiresAt: Date
 }
 
@@ -27,7 +34,8 @@ export function dayOf(date: Date): string {
 	return iso(date).slice(0, DAY_LENGTH)
 }
 
-// The link's row and the day's count, in one transaction, after the dead rows.
+// The link's row and the day's counts, in one transaction, after the dead rows. The counts go up
+// only when the row went in, which they read by its digest (random, so no other row has it).
 export async function insertLoginCode(
 	db: D1Database,
 	code: LoginCode,
@@ -37,12 +45,10 @@ export async function insertLoginCode(
 	const day = dayOf(now)
 	const since = iso(secondsAfter(now, -HOUR_S))
 	const [, inserted] = await db.batch([
-		db
-			.prepare('DELETE FROM login_codes WHERE created_at <= ?')
-			.bind(iso(secondsAfter(now, -HOUR_S))),
+		db.prepare('DELETE FROM login_codes WHERE created_at <= ?').bind(since),
 		db
 			.prepare(
-				'INSERT INTO login_codes (code_digest, email, next, client_digest, expires_at, created_at) SELECT ?, ?, ?, ?, ?, ? WHERE (SELECT COUNT(*) FROM login_codes WHERE email = ? AND created_at > ?) < ? AND (SELECT COUNT(*) FROM login_codes WHERE client_digest = ? AND created_at > ?) < ? AND COALESCE((SELECT emails_sent FROM counters WHERE day = ?), 0) < ?',
+				'INSERT INTO login_codes (code_digest, email, next, client_digest, expires_at, created_at) SELECT ?, ?, ?, ?, ?, ? WHERE (SELECT COUNT(*) FROM login_codes WHERE email = ? AND created_at > ?) < ? AND (SELECT COUNT(*) FROM login_codes WHERE client_digest = ? AND created_at > ?) < ? AND COALESCE((SELECT links FROM link_networks WHERE day = ? AND network_digest = ?), 0) < ? AND COALESCE((SELECT emails_sent FROM counters WHERE day = ?), 0) < ?',
 			)
 			.bind(
 				code.digest,
@@ -58,16 +64,25 @@ export async function insertLoginCode(
 				since,
 				limits.perClient,
 				day,
+				code.networkDigest,
+				limits.perNetwork,
+				day,
 				limits.perDay,
 			),
 		db
 			.prepare(
-				'INSERT INTO counters (day, emails_sent) SELECT ?, 1 WHERE changes() > 0 ON CONFLICT (day) DO UPDATE SET emails_sent = emails_sent + 1',
+				'INSERT INTO counters (day, emails_sent) SELECT ?, 1 WHERE EXISTS (SELECT 1 FROM login_codes WHERE code_digest = ?) ON CONFLICT (day) DO UPDATE SET emails_sent = emails_sent + 1',
 			)
-			.bind(day),
+			.bind(day, code.digest),
+		db
+			.prepare(
+				'INSERT INTO link_networks (day, network_digest, links) SELECT ?, ?, 1 WHERE EXISTS (SELECT 1 FROM login_codes WHERE code_digest = ?) ON CONFLICT (day, network_digest) DO UPDATE SET links = links + 1',
+			)
+			.bind(day, code.networkDigest, code.digest),
 		db
 			.prepare('DELETE FROM counters WHERE day < ?')
 			.bind(dayOf(secondsAfter(now, -WEEK_S))),
+		db.prepare('DELETE FROM link_networks WHERE day < ?').bind(day),
 	])
 	return (inserted?.meta.changes ?? 0) > 0
 }

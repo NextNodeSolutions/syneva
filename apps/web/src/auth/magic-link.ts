@@ -18,9 +18,10 @@ import {
 import { signInPage } from '../pages/sign-in.js'
 import { signOutPage } from '../pages/sign-out.js'
 
+import { clientKeys } from './client-keys.js'
 import { followLink, showLink } from './follow-link.js'
 import { readPosted } from './form.js'
-import { clientAddress, limitRefusal } from './limits.js'
+import { limitRefusal } from './limits.js'
 import { sendSignInEmail } from './mail.js'
 import { safeNext } from './next-path.js'
 import { randomToken, sha256Hex } from './secrets.js'
@@ -28,11 +29,16 @@ import { closeSession, sessionOf } from './session.js'
 
 import type { Failure } from '../http/answer.js'
 import type { Call } from '../http/call.js'
+import type { ClientKeys } from './client-keys.js'
 
 const SECONDS_PER_MINUTE = 60
-// RFC 6.1 F1: per address and per client address an hour, all addresses a day.
+// RFC 6.1 F1: per address and per client an hour, all addresses a day; and a network's share of
+// the day (client-keys.ts), so draining the day takes forty networks, not one client rotating
+// the addresses of a prefix it holds. A share, not a reserve kept for known accounts: the answer
+// would then differ between an address with an account and one without, which the 202 never does.
 const LINKS_PER_ADDRESS_HOUR = 3
 const LINKS_PER_CLIENT_HOUR = 10
+const LINKS_PER_NETWORK_DAY = 50
 const LINKS_PER_DAY = 2000
 const MAX_EMAIL_LENGTH = 254
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -93,16 +99,16 @@ async function requestLink(call: Call): Promise<Response> {
 			code: 'INVALID_EMAIL',
 			error: 'That does not read as an email address.',
 		})
-	const address = clientAddress(call.request)
-	const limited = await limitRefusal(call.env, 'magic-link', address)
+	const client = clientKeys(call.request)
+	const limited = await limitRefusal(call.env, 'magic-link', client.host)
 	if (limited) return refused(ask, TOO_MANY_LINKS)
-	return sendLink(call, ask, await sha256Hex(address))
+	return sendLink(call, ask, client)
 }
 
 async function sendLink(
 	call: Call,
 	ask: LinkAsk,
-	clientDigest: string,
+	client: ClientKeys,
 ): Promise<Response> {
 	const { env, now } = call
 	const token = randomToken()
@@ -112,7 +118,8 @@ async function sendLink(
 			digest: await sha256Hex(token),
 			email: ask.email,
 			next: ask.next,
-			clientDigest,
+			clientDigest: await sha256Hex(client.host),
+			networkDigest: await sha256Hex(client.network),
 			expiresAt: secondsAfter(
 				now,
 				MAGIC_LINK_MINUTES * SECONDS_PER_MINUTE,
@@ -121,6 +128,7 @@ async function sendLink(
 		{
 			perAddress: LINKS_PER_ADDRESS_HOUR,
 			perClient: LINKS_PER_CLIENT_HOUR,
+			perNetwork: LINKS_PER_NETWORK_DAY,
 			perDay: LINKS_PER_DAY,
 		},
 		now,

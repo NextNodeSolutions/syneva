@@ -8,4 +8,5 @@ export const HTTP_FORBIDDEN = 403
 export const HTTP_NOT_FOUND = 404
 export const HTTP_GONE = 410
 export const HTTP_TOO_LARGE = 413
+export const HTTP_TOO_MANY = 429
 export const HTTP_UNAVAILABLE = 503
