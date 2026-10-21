@@ -32,7 +32,7 @@ export async function git(args: string[], cwd: string): Promise<string> {
 	}
 }
 
-// Thin gh wrapper, used only to resolve a PR number/URL to its branch, kept optional: callers catch failures (gh missing or unauthenticated) and report.
+// Thin gh wrapper, used only by the pull requests (pull-requests.ts) to resolve and check out a PR number/URL: callers catch failures (gh missing or unauthenticated) and report.
 export async function gh(args: string[], cwd: string): Promise<string> {
 	const { stdout } = await execFileAsync('gh', args, {
 		cwd,

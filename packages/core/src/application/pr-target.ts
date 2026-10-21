@@ -1,9 +1,9 @@
 import { errorMessage } from './errors.js'
 
 import type { ReviewMode } from '../domain/review.js'
-import type { GitPort } from './ports.js'
+import type { GitPort, PullRequestPort } from './ports.js'
 
-// How the head is reached once the open is admitted: a PR number or URL through gh (it tracks a fork's head), a branch through git.
+// How the head is reached once the open is admitted: a PR number or URL through the hub's pull requests (they track a fork's head), a branch through git.
 export type PrCheckout =
 	| { kind: 'pr'; ref: string }
 	| { kind: 'branch'; name: string }
@@ -22,25 +22,28 @@ export type PrTargetOutcome =
 
 export type CheckoutOutcome = { ok: true } | { ok: false; reason: string }
 
-// `url` is the PR as gh resolved it: its repository is the one the head is fetched from.
-type PrInfo = {
-	headRefName: string
-	baseRefName: string
-	url: string | undefined
+// What resolving and checking out a pr target reads: the repository, and the hub's pull requests where it has them (without, a PR ref is refused and a branch still opens).
+export type PrTargetIo = {
+	git: GitPort
+	pulls?: PullRequestPort | undefined
 }
 
 const PR_NUMBER = /^\d+$/
 const PR_URL =
 	/^https?:\/\/github\.com\/(?<repo>[^/]+\/[^/]+)\/pull\/(?<number>\d+)/
-// A GitHub remote's `owner/name`, in its https or ssh form.
-const GITHUB_REMOTE = /github\.com[:/](?<repo>[^/]+\/[^/]+?)(?:\.git)?\/?$/
 
 export function isPrRef(ref: string): boolean {
 	return PR_NUMBER.test(ref) || PR_URL.test(ref)
 }
 
-function prNumber(ref: string): string {
+// A PR ref's number: the URL's, or the ref itself when it is one.
+export function prNumber(ref: string): string {
 	return PR_URL.exec(ref)?.groups?.number ?? ref
+}
+
+// The `owner/name` a PR URL names; undefined for a bare number (the clone's own repository).
+export function prRepository(ref: string): string | undefined {
+	return PR_URL.exec(ref)?.groups?.repo
 }
 
 export type PrTargetQuery = {
@@ -50,15 +53,15 @@ export type PrTargetQuery = {
 	root: string
 }
 
-// Resolves the head and the base without moving HEAD: the dirty-tree check, gh for a PR number, a fetch of the PR's head, a branch looked up locally then on origin.
+// Resolves the head and the base without moving HEAD: the dirty-tree check, the hub's pull requests for a PR number, a branch looked up locally then on origin.
 // A failure is a reason, never a thrown error: the hub answers it as a 422 and the CLI prints it - the desk is simply not opened.
 export async function resolvePrTarget(
 	query: PrTargetQuery,
-	git: GitPort,
+	io: PrTargetIo,
 ): Promise<PrTargetOutcome> {
 	const { mode, target, base, root } = query
 	if (mode !== 'pr' || !target) return { ok: true, target: { target, base } }
-	const dirty = await git
+	const dirty = await io.git
 		.run(['status', '--porcelain', '--untracked-files=no'], root)
 		.catch(() => '')
 	if (dirty.trim())
@@ -66,88 +69,36 @@ export async function resolvePrTarget(
 			ok: false,
 			reason: `Working tree has uncommitted changes to tracked files. Commit or stash them before reviewing a PR (no checkout performed):\n${dirty}`,
 		}
-	if (isPrRef(target)) return resolvePrNumber(target, root, base, git)
-	return resolveBranch(target, root, base, git)
+	if (isPrRef(target)) return resolvePrNumber(target, root, base, io)
+	return resolveBranch(target, root, base, io.git)
 }
 
 async function resolvePrNumber(
 	ref: string,
 	root: string,
 	base: string | undefined,
-	git: GitPort,
+	{ git, pulls }: PrTargetIo,
 ): Promise<PrTargetOutcome> {
+	if (!pulls)
+		return {
+			ok: false,
+			reason: `Could not resolve PR "${ref}": this hub resolves no pull requests. Pass a branch name instead.`,
+		}
 	try {
-		const prInfo = await fetchPrInfo(ref, root, git)
-		const head = await fetchPrHead(prInfo.url ?? ref, root, git)
+		const pr = await pulls.resolve(root, ref)
 		return {
 			ok: true,
 			target: {
-				target: prInfo.headRefName,
+				target: pr.headBranch,
 				base:
-					base ??
-					(await resolveRemoteBase(prInfo.baseRefName, root, git)),
-				head,
+					base ?? (await resolveRemoteBase(pr.baseBranch, root, git)),
+				head: pr.head,
 				checkout: { kind: 'pr', ref },
 			},
 		}
 	} catch (error) {
 		return { ok: false, reason: errorMessage(error) }
 	}
-}
-
-// The PR's head commits, fetched but not checked out: GitHub serves every PR's head at refs/pull/<n>/head, and the fetched commit is pinned by its sha so no later fetch can move the diff under the validation.
-async function fetchPrHead(
-	ref: string,
-	root: string,
-	git: GitPort,
-): Promise<string> {
-	const repo = PR_URL.exec(ref)?.groups?.repo
-	const remote = repo
-		? ((await remoteOf(repo, root, git)) ??
-			`https://github.com/${repo}.git`)
-		: 'origin'
-	await git.run(['fetch', remote, `refs/pull/${prNumber(ref)}/head`], root)
-	return await git.run(['rev-parse', 'FETCH_HEAD'], root)
-}
-
-// The PR's repository (gh's answer, the URL's own) and not blindly origin: in a fork's clone origin is the fork, whose PR of the same number is another PR. Its remote when the clone has one, so that remote's credentials are used.
-async function remoteOf(
-	repo: string,
-	root: string,
-	git: GitPort,
-): Promise<string | undefined> {
-	const remotes = await git.run(['remote', '-v'], root).catch(() => '')
-	const wanted = repo.toLowerCase()
-	for (const line of remotes.split('\n')) {
-		const [name, url] = line.split(/\s+/)
-		if (!name || !url) continue
-		const named = GITHUB_REMOTE.exec(url)?.groups?.repo
-		if (named?.toLowerCase() === wanted) return name
-	}
-	return undefined
-}
-
-async function fetchPrInfo(
-	ref: string,
-	root: string,
-	git: GitPort,
-): Promise<PrInfo> {
-	let raw: string
-	try {
-		raw = await git.gh(
-			['pr', 'view', ref, '--json', 'headRefName,baseRefName,url'],
-			root,
-		)
-	} catch (error) {
-		throw new Error(
-			`Could not resolve PR "${ref}" via the GitHub CLI. Install gh and run \`gh auth login\`, or pass a branch name instead.\n${errorMessage(error)}`,
-			{ cause: error },
-		)
-	}
-	const prInfo = readPrInfo(JSON.parse(raw))
-	if (!prInfo)
-		throw new Error(`PR "${ref}" did not resolve to a head/base branch.`)
-	return prInfo
 }
 
 // `gh pr checkout` updates HEAD but never refreshes the base branch, so a merge-base against a
@@ -166,22 +117,6 @@ async function resolveRemoteBase(
 		return remoteBase
 	} catch {
 		return baseRefName
-	}
-}
-
-function readPrInfo(parsed: unknown): PrInfo | null {
-	if (typeof parsed !== 'object' || parsed === null) return null
-	if (!('headRefName' in parsed) || typeof parsed.headRefName !== 'string')
-		return null
-	if (!('baseRefName' in parsed) || typeof parsed.baseRefName !== 'string')
-		return null
-	return {
-		headRefName: parsed.headRefName,
-		baseRefName: parsed.baseRefName,
-		url:
-			'url' in parsed && typeof parsed.url === 'string'
-				? parsed.url
-				: undefined,
 	}
 }
 
@@ -221,20 +156,26 @@ async function revision(
 		.catch(() => null)
 }
 
-// The one PR operation with a side effect, run only once the open is admitted: HEAD moves to the reviewed head (gh tracks a fork's branch; a branch checks out by name).
+// The one PR operation with a side effect, run only once the open is admitted: HEAD moves to the reviewed head (a pull request through the hub's pull requests, which track a fork's branch; a branch checks out by name).
 export async function checkoutPrTarget(
 	checkout: PrCheckout | undefined,
 	root: string,
-	git: GitPort,
+	{ git, pulls }: PrTargetIo,
 ): Promise<CheckoutOutcome> {
 	if (!checkout) return { ok: true }
+	const name = checkout.kind === 'pr' ? checkout.ref : checkout.name
 	try {
-		if (checkout.kind === 'pr')
-			await git.gh(['pr', 'checkout', checkout.ref], root)
-		else await git.run(['checkout', checkout.name], root)
+		if (checkout.kind === 'branch')
+			await git.run(['checkout', checkout.name], root)
+		else if (pulls) await pulls.checkout(root, checkout.ref)
+		// A pr checkout comes only out of a resolution through the pull requests, so a hub without them never holds one.
+		else
+			return {
+				ok: false,
+				reason: `Could not check out "${name}": this hub resolves no pull requests.`,
+			}
 		return { ok: true }
 	} catch (error) {
-		const name = checkout.kind === 'pr' ? checkout.ref : checkout.name
 		return {
 			ok: false,
 			reason: `Could not check out "${name}": ${errorMessage(error)}`,

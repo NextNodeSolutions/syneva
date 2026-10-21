@@ -14,7 +14,7 @@ import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { ReviewMode, ReviewState } from '../domain/review.js'
 import type { BuildQuery } from './build.js'
 import type { GitPort, ReviewStorePort } from './ports.js'
-import type { PrCheckout } from './pr-target.js'
+import type { PrCheckout, PrTargetIo } from './pr-target.js'
 
 // The CLI resolves its paths against its own cwd before posting, because the hub's cwd is never the agent's; a relative file target reads from the root, as the CLI would from there.
 export type DeskQuery = {
@@ -78,13 +78,13 @@ export function fileTarget(query: DeskQuery): string | undefined {
 // Resolve BEFORE anything is built: a PR head is fetched and named here, never checked out (that follows an admitted open); the hub looks the id up first, so a second open of a live desk reloads it instead of building a twin.
 export async function resolveDeskIdentity(
 	query: DeskQuery,
-	git: GitPort,
+	io: PrTargetIo,
 ): Promise<DeskIdentityOutcome> {
-	const root = await git.getGitRoot(query.root).catch(() => query.root)
-	const branch = (await git.getBranch(root)) || ''
+	const root = await io.git.getGitRoot(query.root).catch(() => query.root)
+	const branch = (await io.git.getBranch(root)) || ''
 	const pr = await resolvePrTarget(
 		{ mode: query.mode, target: fileTarget(query), base: query.base, root },
-		git,
+		io,
 	)
 	if (!pr.ok) return pr
 	const session = deskSession(

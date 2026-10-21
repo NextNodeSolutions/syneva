@@ -26,7 +26,7 @@ import { queryOf, recordOf, sameSource } from './hub-records.js'
 
 import type { DeskSummary, OpenDeskOutcome } from '@syneva/contracts/hub'
 import type { DeskIdentity, DeskQuery } from '../application/open-desk.js'
-import type { HubRegistryPort } from '../application/ports.js'
+import type { HubRegistryPort, PullRequestPort } from '../application/ports.js'
 import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { ReviewInventory } from '../domain/inventory.js'
@@ -43,8 +43,10 @@ export type InventoryOutcome =
 	| { ok: true; inventory: ReviewInventory }
 	| HubFailure
 
+// `pulls` resolves and checks out a pr desk's PR number or URL; a hub without it opens pr desks on branches only.
 export type HubIo = HostedDeskIo & {
 	registry: HubRegistryPort
+	pulls?: PullRequestPort | undefined
 	log: (line: string) => void
 }
 
@@ -158,7 +160,7 @@ async function openOrReuse(
 ): Promise<OpenOutcome> {
 	const problem = await rootProblem(query, state.io.git)
 	if (problem) return { ok: false, code: 'NO_REPOSITORY', reason: problem }
-	const resolved = await resolveDeskIdentity(query, state.io.git)
+	const resolved = await resolveDeskIdentity(query, state.io)
 	if (!resolved.ok)
 		return { ok: false, code: 'PR_TARGET', reason: resolved.reason }
 	const { identity } = resolved
@@ -190,7 +192,7 @@ async function reuseDesk(
 		const checkout = await checkoutPrTarget(
 			identity.checkout,
 			identity.root,
-			state.io.git,
+			state.io,
 		)
 		if (!checkout.ok)
 			return { ok: false, code: 'PR_TARGET', reason: checkout.reason }
@@ -227,7 +229,7 @@ async function createDesk(
 	const checkout = await checkoutPrTarget(
 		identity.checkout,
 		identity.root,
-		state.io.git,
+		state.io,
 	)
 	if (!checkout.ok)
 		return { ok: false, code: 'PR_TARGET', reason: checkout.reason }

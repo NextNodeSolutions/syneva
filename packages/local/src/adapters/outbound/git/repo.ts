@@ -6,7 +6,7 @@ import { gitStats } from '@syneva/core/domain/diff/git-stats'
 import { nodeWorkspace } from '../filesystem/workspace.js'
 import { nodeParser } from '../source/parser.js'
 
-import { gh, git, runGitRaw } from './exec.js'
+import { git, runGitRaw } from './exec.js'
 import { readObjects } from './objects.js'
 
 import type { GitPort } from '@syneva/core/application/ports'
@@ -23,7 +23,6 @@ export const nodeGit: GitPort = Object.freeze({
 	getHead,
 	getBranch,
 	projectTree: listProjectTree,
-	gh,
 	workspace: nodeWorkspace,
 	parser: nodeParser,
 })

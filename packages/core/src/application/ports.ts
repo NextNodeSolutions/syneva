@@ -56,11 +56,32 @@ export interface GitPort {
 	// The branch at cwd ("" when HEAD is unresolvable): the CLI's default session name.
 	readonly getBranch: (cwd: string) => Promise<string>
 	readonly projectTree: (root: string) => Promise<string[]>
-	// One `gh` invocation, only to resolve a PR number/URL; rejects when gh is missing or unauthenticated (callers report, never crash).
-	readonly gh: (args: string[], cwd: string) => Promise<string>
 	readonly workspace: WorkspacePort
 	// The parser rides along like the workspace: the diff builders already hold this capability, and naming the code they diff needs no other port threaded through every build.
 	readonly parser: ParserPort
+}
+
+// A pull request as a hub resolves it: its head and base branches by name, and the head commit its
+// diff is read at - readable through GitPort once resolved.
+export type PullRequest = {
+	headBranch: string
+	baseBranch: string
+	head: string
+}
+
+// Pull requests by number or URL, where the hub can reach the forge: what `gh` does locally, the
+// pulls API on the web (`GET /repos/{owner}/{repo}/pulls/{number}`: head.ref, base.ref, head.sha).
+// Optional in the hub's io: without it a PR ref is refused as a reason and a branch still opens.
+// Both reject with the sentence an open reports (gh missing or unauthenticated, no such PR).
+export interface PullRequestPort {
+	// Locally `gh pr view <ref> --json headRefName,baseRefName,url`, then the head fetched into the
+	// clone and pinned by its sha, so no later fetch moves the diff: `git fetch <remote>
+	// refs/pull/<n>/head` from the remote of the PR's own repository (in a fork's clone origin is
+	// the fork), then `git rev-parse FETCH_HEAD`.
+	readonly resolve: (root: string, ref: string) => Promise<PullRequest>
+	// Move HEAD to the PR's head branch, tracking a fork's (`gh pr checkout <ref>`), once an open
+	// is admitted.
+	readonly checkout: (root: string, ref: string) => Promise<void>
 }
 
 // Load the newest saved review for a session, persist the live state, and write auxiliary artifacts (the Send result) atomically.

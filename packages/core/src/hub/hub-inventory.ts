@@ -15,7 +15,7 @@ async function inventoryOf(
 ): Promise<InventoryOutcome> {
 	const problem = await rootProblem(query, state.io.git)
 	if (problem) return { ok: false, code: 'NO_REPOSITORY', reason: problem }
-	const resolved = await resolveDeskIdentity(query, state.io.git)
+	const resolved = await resolveDeskIdentity(query, state.io)
 	if (!resolved.ok)
 		return { ok: false, code: 'PR_TARGET', reason: resolved.reason }
 	const built = await buildSourceState(resolved.identity, query, state.io.git)

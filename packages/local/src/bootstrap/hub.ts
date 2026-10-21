@@ -26,6 +26,7 @@ import {
 } from '../adapters/outbound/filesystem/hub.js'
 import { nodeReviewStore } from '../adapters/outbound/filesystem/persistence.js'
 import { nodePlanStore } from '../adapters/outbound/filesystem/plans.js'
+import { ghPullRequests } from '../adapters/outbound/git/pull-requests.js'
 import { nodeGit } from '../adapters/outbound/git/repo.js'
 
 import type { Server } from 'node:http'
@@ -97,6 +98,7 @@ function wireHub(
 			settings: nodeSettings,
 			editor: editorPort(options.runEditorCommand),
 			registry: nodeHubRegistry,
+			pulls: ghPullRequests,
 			journal,
 			plans,
 			statusTtlMs: options.statusTtlMs ?? DEFAULT_STATUS_TTL_MS,
