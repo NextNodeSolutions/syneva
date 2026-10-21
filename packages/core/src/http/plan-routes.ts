@@ -1,9 +1,8 @@
-import { HUB_PATHS, deskPagePath } from '@syneva/contracts/routes'
+import { HUB_PATHS } from '@syneva/contracts/routes'
 
-import { planSummary } from '../application/plan-library.js'
 import { isHexId } from '../domain/identity.js'
 import { isPlanStatusChange } from '../domain/plan.js'
-import { deskPlanId } from '../hub/hosted-desk.js'
+import { liveDesksByPlan, planOnHub } from '../hub/hub-plans.js'
 
 import {
 	HTTP_NOT_FOUND,
@@ -15,13 +14,11 @@ import {
 } from './http.js'
 
 import type {
-	PlanDesk,
 	PlanResponse,
 	PlansResponse,
 	PlanVersionResponse,
 } from '@syneva/contracts/plans'
 import type { PlanLibrary } from '../application/plan-library.js'
-import type { PlanRecord } from '../domain/plan.js'
 import type { Hub } from '../hub/hub.js'
 import type { HubRequest } from './exchange.js'
 import type { ApiFailure } from './failure.js'
@@ -83,29 +80,11 @@ async function dispatchPlan(
 	return readPlanVersion(deps, id, Number(version))
 }
 
-// The live plan desks by plan: the desk a plan's page sends the reviewer to. Read off each
-// desk's record, not its full summary (a listing would otherwise project every desk's review).
-function liveDesksByPlan(hub: Hub): Map<string, PlanDesk> {
-	const desks = new Map<string, PlanDesk>()
-	for (const desk of hub.listDesks()) {
-		const plan = deskPlanId(desk)
-		if (plan) desks.set(plan, { id: desk.id, path: deskPagePath(desk.id) })
-	}
-	return desks
-}
-
-function summaryOf(
-	record: PlanRecord,
-	desks: Map<string, PlanDesk>,
-): PlanResponse['plan'] {
-	return planSummary(record, desks.get(record.id) ?? null)
-}
-
 async function listPlans(deps: PlanRouteDeps): Promise<Response> {
 	const desks = liveDesksByPlan(deps.hub)
 	const response: PlansResponse = {
 		plans: (await deps.plans.list()).map(record =>
-			summaryOf(record, desks),
+			planOnHub(record, desks),
 		),
 	}
 	return json(HTTP_OK, response)
@@ -118,7 +97,7 @@ async function readPlan(deps: PlanRouteDeps, id: string): Promise<Response> {
 	const markdown = await deps.plans.readVersion(id, latest.number)
 	if (markdown === null) return fail(VERSION_NOT_FOUND)
 	const response: PlanResponse = {
-		plan: summaryOf(record, liveDesksByPlan(deps.hub)),
+		plan: planOnHub(record, liveDesksByPlan(deps.hub)),
 		markdown,
 	}
 	return json(HTTP_OK, response)
@@ -156,6 +135,6 @@ async function changePlanStatus(
 	const record = await deps.plans.changeStatus(id, status)
 	if (!record) return fail(PLAN_NOT_FOUND)
 	return json(HTTP_OK, {
-		plan: summaryOf(record, liveDesksByPlan(deps.hub)),
+		plan: planOnHub(record, liveDesksByPlan(deps.hub)),
 	})
 }

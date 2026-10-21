@@ -7,6 +7,7 @@ import {
 	postPlanVersion,
 } from '../domain/plan.js'
 
+import { createEmitter } from './emitter.js'
 import { errorMessage } from './errors.js'
 import { createSerializer } from './mutex.js'
 import { nowIso } from './time.js'
@@ -14,6 +15,7 @@ import { nowIso } from './time.js'
 import type { ReviewResult } from '@syneva/contracts/agent'
 import type { PlanDesk, PlanSummary } from '@syneva/contracts/plans'
 import type { PlanRecord, PlanStatusChange } from '../domain/plan.js'
+import type { Emitter } from './emitter.js'
 import type { DeskEventDraft } from './journal.js'
 import type { PlanStorePort, WorkspacePort } from './ports.js'
 
@@ -48,6 +50,9 @@ export type PlanLibrary = {
 		id: string,
 		change: PlanStatusChange,
 	): Promise<PlanRecord | null>
+	// Hears every record once it is kept on disk: a new plan, a new version, an approval, a status
+	// change (the hub's push path: hub.subscribe).
+	subscribe(listener: (record: PlanRecord) => void): () => void
 }
 
 type PlanFile = { id: string; path: string }
@@ -69,6 +74,7 @@ type Shelf = {
 	records: Map<string, PlanRecord>
 	load: () => Promise<Map<string, PlanRecord>>
 	texts: Map<string, string>
+	kept: Emitter<PlanRecord>
 }
 
 const textKey = (id: string, version: number): string =>
@@ -87,6 +93,7 @@ export function createPlanLibrary(
 		records,
 		load: onceLoaded(store, records, log),
 		texts: new Map(),
+		kept: createEmitter<PlanRecord>('plans', log),
 	}
 	const serialize = createSerializer()
 	const run = (task: () => Promise<void>, what: string): void => {
@@ -115,6 +122,7 @@ export function createPlanLibrary(
 			serialize(() => readVersion(shelf, id, version)),
 		changeStatus: (id, change) =>
 			serialize(() => changeStatus(shelf, id, change)),
+		subscribe: shelf.kept.subscribe,
 	}
 }
 
@@ -231,6 +239,7 @@ async function changeStatus(
 async function keep(shelf: Shelf, record: PlanRecord): Promise<void> {
 	await shelf.store.save(record)
 	shelf.records.set(record.id, record)
+	shelf.kept.emit(record)
 }
 
 // The listing's projection of one record: the project named as the desks name it, and the live

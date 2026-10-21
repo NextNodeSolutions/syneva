@@ -1,4 +1,5 @@
 import { reviewScope } from './desk-summary.js'
+import { createEmitter } from './emitter.js'
 import { errorMessage } from './errors.js'
 import { createSerializer } from './mutex.js'
 import { nowIso } from './time.js'
@@ -51,6 +52,9 @@ export type HubJournal = {
 	// names the round it delivered.
 	record(draft: HubEventDraft, verdicts?: ReviewResult): void
 	read(query: JournalQuery): Promise<HubJournalResponse>
+	// Hears every event once it is on disk, with its seq, in seq order (the hub's push path:
+	// hub.subscribe). A failed append is never heard: its seq is never handed out.
+	subscribe(listener: (event: HubEvent) => void): () => void
 }
 
 export function createHubJournal(
@@ -59,6 +63,7 @@ export function createHubJournal(
 ): HubJournal {
 	const kept: JournalEvent[] = []
 	const sentRounds = createSentRounds()
+	const appended = createEmitter<HubEvent>('journal', log)
 	let latest = 0
 	let isLoaded = false
 	const serialize = createSerializer()
@@ -92,6 +97,7 @@ export function createHubJournal(
 		kept.push(event)
 		if (kept.length > KEPT_EVENTS) kept.shift()
 		sentRounds.note(verdicts, event)
+		appended.emit(event)
 	}
 	return {
 		record(draft: HubEventDraft, verdicts?: ReviewResult): void {
@@ -104,6 +110,7 @@ export function createHubJournal(
 				await loaded()
 				return tailAfter(kept, latest, query)
 			}),
+		subscribe: appended.subscribe,
 	}
 }
 

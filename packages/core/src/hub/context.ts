@@ -18,6 +18,7 @@ import type {
 	SettingsPort,
 } from '../application/ports.js'
 import type { StateBodyCache } from '../application/state-cache.js'
+import type { StateOwner } from '../application/state-owner.js'
 import type { ReviewState } from '../domain/review.js'
 import type { DeskLiveness } from './liveness.js'
 
@@ -49,6 +50,7 @@ export type DeskContext = {
 	// It no longer guards reads (copy-on-write snapshots are atomic enough alone); the /await-send long-poll MUST stay out - it parks a whole round, so serializing it would wedge every mutation behind a waiter only a mutation releases.
 	serialize: Serializer
 	// The ONLY way live state changes: a differing root goes live and advances the revision; the same root is a no-op, so an unchanged desk keeps its cached /state body.
+	// A root that goes live is told to the hub (`committed`, the desk's pulse moved) at once.
 	commit(next: ReviewState): void
 	// Persist `next` and hand back the stamped root to commit (the written file's updatedAt/persistFile stamp is adopted as a state change) plus the file path (Send writes its result artifact there).
 	persist(next: ReviewState): Promise<PersistedState>
@@ -68,27 +70,34 @@ export type DeskContext = {
 	recordEvent(draft: DeskEventDraft, verdicts?: ReviewResult): void
 }
 
+// What the hub hands one desk's context (hosted-desk.ts wires them).
+export type DeskCollaborators = {
+	events: EventStream
+	activity: DeskActivity
+	liveness: DeskLiveness
+	git: GitPort
+	store: ReviewStorePort
+	settings: SettingsPort
+	editor: EditorPort
+	close: () => void
+	recordEvent: (draft: DeskEventDraft, verdicts?: ReviewResult) => void
+	// A different root went live: the revision advanced, the /state body cache no longer holds.
+	committed: () => void
+}
+
 export function createDeskContext(
 	state: ReviewState,
 	pathFilter: string | undefined,
-	collaborators: {
-		events: EventStream
-		activity: DeskActivity
-		liveness: DeskLiveness
-		git: GitPort
-		store: ReviewStorePort
-		settings: SettingsPort
-		editor: EditorPort
-		close: () => void
-		recordEvent: (draft: DeskEventDraft, verdicts?: ReviewResult) => void
-	},
+	collaborators: DeskCollaborators,
 ): DeskContext {
-	const { events, activity, git, store, close } = collaborators
+	const { committed, ...shared } = collaborators
+	const { events, activity, git, store, close } = shared
 	const runMutation = createSerializer()
 	const stateBodyCache = createStateBodyCache()
 	const owner = createStateOwner(state)
+	const commit = toldCommit(owner, committed)
 	return {
-		...collaborators,
+		...shared,
 		instanceId: randomUUID(),
 		pathFilter,
 		stateBodyCache,
@@ -98,7 +107,7 @@ export function createDeskContext(
 		get revision(): number {
 			return owner.revision
 		},
-		commit: owner.commit,
+		commit,
 		serialize: runMutation,
 		status(): DeskStatus {
 			return deskStatus(events, activity)
@@ -108,13 +117,25 @@ export function createDeskContext(
 				() => owner.state,
 				git,
 				runMutation,
-				owner.commit,
+				commit,
 			)
 		},
 		persist(next: ReviewState): Promise<PersistedState> {
 			return persistState(store, next)
 		},
 		close,
+	}
+}
+
+// A commit that put a different root live is told at once; the same root changes nothing.
+function toldCommit(
+	owner: StateOwner,
+	committed: () => void,
+): (next: ReviewState) => void {
+	return next => {
+		const before = owner.revision
+		owner.commit(next)
+		if (owner.revision !== before) committed()
 	}
 }
 

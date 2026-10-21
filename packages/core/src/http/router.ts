@@ -8,7 +8,7 @@ import {
 
 import { isHexId } from '../domain/identity.js'
 
-import { originRefusal } from './binding.js'
+import { crossSiteRefusal, originRefusal } from './binding.js'
 import { dashboardApi } from './dashboard-api.js'
 import { openExchange } from './exchange.js'
 import { DOCS } from './failure.js'
@@ -82,6 +82,22 @@ export function createHubRouter(deps: HubRouterDeps): HubRouter {
 			return exchange.served(failureOf(error))
 		}
 	}
+}
+
+// The guards of a request a transport answers outside the router, the hub's stream (a WebSocket
+// upgrade, GET /api/hub/ws): the Host guard, the Origin guard as for a mutation (crossSiteRefusal
+// says why), then the access guard's key or cookie. Null when the upgrade may proceed; else the
+// answer the transport writes on the socket before closing it.
+export function upgradeRefusal(
+	deps: Pick<HubRouterDeps, 'authorities' | 'guard'>,
+	request: Request,
+): Response | null {
+	const authorities = deps.authorities()
+	return (
+		originRefusal(request, authorities) ??
+		crossSiteRefusal(request, authorities) ??
+		deps.guard.refusal(request, new URL(request.url))
+	)
 }
 
 // Null when no route claimed the request.

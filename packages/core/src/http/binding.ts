@@ -91,6 +91,16 @@ export function originRefusal(
 			fix: 'Reach the hub at the origin it printed at start (or its --public-url).',
 		})
 	if (!MUTATING_METHODS.has(request.method)) return null
+	return crossSiteRefusal(request, authorities)
+}
+
+// The Origin check alone, whatever the method: a mutation's, and a WebSocket upgrade's - a GET
+// a browser opens from any page with no same-origin policy over what it then reads, so a
+// cross-site upgrade would stream the hub to another site (router.ts, upgradeRefusal).
+export function crossSiteRefusal(
+	request: Request,
+	authorities: readonly string[],
+): Response | null {
 	const origin = request.headers.get('origin')
 	if (!origin || authorities.some(a => isOriginOf(origin, a))) return null
 	return fail({

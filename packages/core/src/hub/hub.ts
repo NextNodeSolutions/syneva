@@ -1,6 +1,5 @@
 import { reviewScope } from '../application/desk-summary.js'
 import { errorMessage } from '../application/errors.js'
-import { deskClosed } from '../application/journal.js'
 import { createSerializer } from '../application/mutex.js'
 import {
 	buildDeskState,
@@ -13,7 +12,7 @@ import { checkoutPrTarget } from '../application/pr-target.js'
 import { reloadDesk } from '../application/reload-desk.js'
 import { nowIso, nowMs } from '../application/time.js'
 
-import { hostDesk, summarize } from './hosted-desk.js'
+import { summarize } from './hosted-desk.js'
 import {
 	keepOpenPreferences,
 	liveDesk,
@@ -22,7 +21,9 @@ import {
 	pruneClosed,
 } from './hub-desks.js'
 import { inventoryOf } from './hub-inventory.js'
+import { closeDesk, markClosed, registerDesk } from './hub-membership.js'
 import { queryOf, recordOf, sameSource } from './hub-records.js'
+import { createHubSignals } from './hub-signals.js'
 
 import type { DeskSummary, OpenDeskOutcome } from '@syneva/contracts/hub'
 import type { DeskIdentity, DeskQuery } from '../application/open-desk.js'
@@ -30,8 +31,8 @@ import type { HubRegistryPort, PullRequestPort } from '../application/ports.js'
 import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { ReviewInventory } from '../domain/inventory.js'
-import type { ReviewState } from '../domain/review.js'
 import type { HostedDeskIo, HubDesk } from './hosted-desk.js'
+import type { HubSignal, HubSignals } from './hub-signals.js'
 
 export type HubFailure = { ok: false; code: string; reason: string }
 
@@ -69,12 +70,17 @@ export type Hub = {
 	restored(): Promise<void>
 	summary(desk: HubDesk): DeskSummary
 	persist(): Promise<void>
+	// Hear what moves on the hub as it moves (hub-signals.ts): desks joining, moving and leaving,
+	// journal events and plan records once on disk, the live desk count. Hands back the
+	// unsubscribe. A listener that throws never fails the mutation it heard.
+	subscribe(listener: (signal: HubSignal) => void): () => void
 }
 
 export type HubState = {
 	desks: Map<string, HubDesk>
 	io: HubIo
 	persist: () => Promise<void>
+	signals: HubSignals
 }
 
 export function createHub(io: HubIo, instanceId: string): Hub {
@@ -88,6 +94,7 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 			serializeWrite(() =>
 				io.registry.save(liveRecords(pruneClosed(desks, nowMs()))),
 			),
+		signals: createHubSignals(io),
 	}
 	let restoring: Promise<void> = Promise.resolve()
 	return {
@@ -108,6 +115,7 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 		},
 		summary: summarize,
 		persist: state.persist,
+		subscribe: state.signals.subscribe,
 	}
 }
 
@@ -116,37 +124,6 @@ async function restoreAll(state: HubState): Promise<void> {
 	// Independent repos rebuild concurrently; a failed one only drops itself.
 	await Promise.all(records.map(record => restoreOne(state, record)))
 	await state.persist()
-}
-
-// The registry is written at once, without the desk: a hub stopped right after a close must not restore it.
-function closeDesk(state: HubState, id: string): boolean {
-	if (!markClosed(state, id)) return false
-	void state.persist()
-	return true
-}
-
-function markClosed(state: HubState, id: string): boolean {
-	const desk = liveDesk(state.desks, id)
-	if (!desk) return false
-	desk.ctx.recordEvent(deskClosed(summarize(desk), desk.record))
-	desk.closedAt = nowMs()
-	desk.ctx.events.emit({ kind: 'closed', session: desk.record.session })
-	state.io.log(
-		`desk closed ${id} (${desk.record.root} · ${desk.record.session})`,
-	)
-	return true
-}
-
-function registerDesk(
-	state: HubState,
-	review: ReviewState,
-	record: HubDeskRecord,
-): HubDesk {
-	const desk = hostDesk(state.io, review, record, () => {
-		closeDesk(state, record.id)
-	})
-	state.desks.set(record.id, desk)
-	return desk
 }
 
 // Refuse a root the hub cannot open (a sentence, not git's error), resolve who the query names,
@@ -211,6 +188,8 @@ async function reuseDesk(
 	// The record first (in memory), the registry write after the event: a failed write never
 	// leaves a reloaded desk unrecorded.
 	const isRecordChanged = keepOpenPreferences(state.desks, live.id, query)
+	// The record names the desk's plan, which its summary carries.
+	if (isRecordChanged) state.signals.moved(live, 'summary')
 	live.ctx.recordEvent({
 		kind: 'desk-reloaded',
 		...reviewScope(outcome.state),

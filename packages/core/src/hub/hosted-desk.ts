@@ -5,6 +5,11 @@ import { journalSubject } from '../application/journal.js'
 import { planFileOf } from '../application/plan-library.js'
 
 import { createDeskContext } from './context.js'
+import {
+	observedActivity,
+	observedEvents,
+	observedLiveness,
+} from './desk-moves.js'
 import { createDeskLiveness } from './liveness.js'
 
 import type { DeskSummary } from '@syneva/contracts/hub'
@@ -19,6 +24,7 @@ import type {
 import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { ReviewState } from '../domain/review.js'
 import type { DeskContext } from './context.js'
+import type { DeskMove } from './desk-moves.js'
 import type { DeskLiveness } from './liveness.js'
 
 // One hosted desk: its id, the context its routes run against, and the rebuild parameters the
@@ -46,32 +52,49 @@ export type HostedDeskIo = {
 	statusTtlMs: number
 }
 
-// A desk over the hub's collaborators. `close` is the hub's: it alone drops a desk from its
-// registry. The desk's journal binding names the desk as the hub lists it at the moment of each
-// event, so a route records what happened and never who it happened to. A plan desk's events
-// also reach the plan library, read off the record at that moment (a reopen may make a file
-// desk a plan desk).
+// What a desk reaches of its hub: `close` alone drops it from the registry; `moved` tells the
+// hub's subscribers what the desk shows moved (desk-moves.ts).
+export type DeskHooks = {
+	close: () => void
+	moved: (desk: HubDesk, move: DeskMove) => void
+}
+
+// A desk over the hub's collaborators. The desk's journal binding names the desk as the hub lists
+// it at the moment of each event, so a route records what happened and never who it happened to.
+// A plan desk's events also reach the plan library, read off the record at that moment (a reopen
+// may make a file desk a plan desk). Its commits, its status and its activity stamps are observed
+// where they change, so the hub tells them when they happen.
 export function hostDesk(
 	io: HostedDeskIo,
 	review: ReviewState,
 	record: HubDeskRecord,
-	close: () => void,
+	hooks: DeskHooks,
 ): HubDesk {
-	const liveness = createDeskLiveness(record.openedAt)
+	const moved = (move: DeskMove) => (): void => {
+		hooks.moved(desk, move)
+	}
+	const liveness = observedLiveness(
+		createDeskLiveness(record.openedAt),
+		moved('summary'),
+	)
 	const desk: HubDesk = {
 		id: record.id,
 		liveness,
 		record,
 		closedAt: null,
 		ctx: createDeskContext(review, record.pathFilter, {
-			events: createEventStream(),
-			activity: createActivity(io.statusTtlMs),
+			events: observedEvents(createEventStream(), moved('pulse')),
+			activity: observedActivity(
+				createActivity(io.statusTtlMs),
+				moved('pulse'),
+			),
 			liveness,
 			git: io.git,
 			store: io.store,
 			settings: io.settings,
 			editor: io.editor,
-			close,
+			close: hooks.close,
+			committed: moved('pulse'),
 			recordEvent: (draft, verdicts) => {
 				io.journal.record(
 					{
