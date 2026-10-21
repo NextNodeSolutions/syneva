@@ -1,3 +1,7 @@
+---
+title: "RFC 0001 · Core, web, local: one hub, two ways in"
+summary: How Syneva works today, how the workspace splits into a core, a local runtime and a web service, and how a local hub shows up on syneva.dev in real time without Durable Objects.
+---
 # RFC 0001 · Core, web, local: one hub, two ways in
 
 Status: proposal, nothing implemented. Date: 2026-10-20. Branch: `worktree-bridge-*`.
@@ -195,24 +199,8 @@ running hub through a loopback-only route so it connects at once. `syneva logout
 token on the web and deletes the file. The dashboard's Hub page shows the pairing on both sides.
 No file means no probe: the local hub is exactly what it is today.
 
-```mermaid
-sequenceDiagram
-    participant CLI as syneva login
-    participant Hub as local hub
-    participant Web as app.syneva.dev (Worker + D1)
-    participant B as browser
-    CLI->>Web: POST /bridge/v1/device/code
-    Web-->>CLI: {deviceCode, userCode, verifyUrl, interval}
-    CLI->>B: opens verifyUrl, prints the code
-    B->>Web: signs in (magic link), confirms the code
-    Web->>Web: hubs += {id, user, name = hostname, token digest}
-    loop every interval
-        CLI->>Web: POST /bridge/v1/device/token {deviceCode}
-        Web-->>CLI: 428 pending, then {hubId, token}
-    end
-    CLI->>CLI: writes ~/.syneva/hub/bridge.json
-    CLI->>Hub: POST /api/hub/bridge/reconnect (loopback only)
-    Hub->>Web: first push, then the inbox long-poll
+```syneva
+{"kind": "sequence", "title": "Pairing a hub", "detail": "the device flow: the CLI asks, the reviewer confirms in the browser, the hub gets its token", "participants": [{"id": "cli", "label": "syneva login"}, {"id": "hub", "label": "local hub"}, {"id": "web", "label": "app.syneva.dev"}, {"id": "browser", "label": "browser"}], "steps": [{"from": "cli", "to": "web", "label": "POST /bridge/v1/device/code"}, {"from": "web", "to": "cli", "label": "deviceCode, userCode, verifyUrl"}, {"from": "cli", "to": "browser", "label": "opens verifyUrl, prints the code"}, {"from": "browser", "to": "web", "label": "signs in, confirms the code"}, {"from": "web", "to": "web", "label": "records the hub and its token digest"}, {"from": "cli", "to": "web", "label": "polls /device/token every interval"}, {"from": "web", "to": "cli", "label": "428 pending, then hubId and token"}, {"from": "cli", "to": "cli", "label": "writes ~/.syneva/hub/bridge.json"}, {"from": "cli", "to": "hub", "label": "POST /api/hub/bridge/reconnect"}, {"from": "hub", "to": "web", "label": "first push, then the inbox long-poll"}]}
 ```
 
 ### 4.3 Hub to web: the push
@@ -246,21 +234,8 @@ when it answers; a summary's `lastActivityAt` moves on every desk request (a loc
 `/poll` included), so it alone never marks a desk dirty and rides the next push or heartbeat,
 at 30 s granularity.
 
-```mermaid
-sequenceDiagram
-    participant D as desks + journal (core)
-    participant P as probe (local)
-    participant W as Worker
-    participant DB as D1
-    participant T as dashboard tab
-    D->>P: hub.subscribe(): revision, status or journal moved
-    P->>P: debounce 250 ms, collect dirty desks and events after acked seq
-    P->>W: POST /bridge/v1/push
-    W->>DB: upsert desks and pulses, insert journal rows
-    W-->>P: {journalAcked}
-    T->>W: GET /api/hub/desks, GET /api/hub/journal?after= (every 2 s, unchanged)
-    W->>DB: read the mirror rows of the user's hubs
-    W-->>T: the same payloads the local hub answers
+```syneva
+{"kind": "sequence", "title": "The mirror", "detail": "the hub pushes what moved; the web dashboard reads D1 with the routes it already polls", "participants": [{"id": "core", "label": "desks + journal"}, {"id": "probe", "label": "probe"}, {"id": "worker", "label": "Worker"}, {"id": "d1", "label": "D1"}, {"id": "tab", "label": "dashboard tab"}], "steps": [{"from": "core", "to": "probe", "label": "hub.subscribe(): something moved"}, {"from": "probe", "to": "probe", "label": "debounce 250 ms, collect dirty desks"}, {"from": "probe", "to": "worker", "label": "POST /bridge/v1/push"}, {"from": "worker", "to": "d1", "label": "upsert desks and pulses, insert journal"}, {"from": "worker", "to": "probe", "label": "journalAcked"}, {"from": "tab", "to": "worker", "label": "GET /api/hub/desks, /journal every 2 s"}, {"from": "worker", "to": "d1", "label": "read the user's mirror rows"}, {"from": "worker", "to": "tab", "label": "the payloads the local hub answers"}]}
 ```
 
 ### 4.4 Web to hub: the inbox and the relay
@@ -299,27 +274,8 @@ Round trip: one inbox tick (up to 250 ms) + the hub's work + one response tick (
 about 0.4 to 0.7 s. Opening a desk on the web costs the prefs (web), the state and the tree
 (relay) and the first file's contents (relay): about 1 to 1.5 s to the first paint.
 
-```mermaid
-sequenceDiagram
-    participant T as desk tab (web)
-    participant W1 as Worker: browser request
-    participant DB as D1 (+ R2 for big bodies)
-    participant W2 as Worker: inbox long-poll
-    participant P as probe (local)
-    participant H as core router (in process)
-    T->>W1: GET /api/desks/:webId/state
-    W1->>DB: INSERT tunnel row, state = pending
-    loop every 250 ms hot, 2 s idle, at most 25 s
-        W2->>DB: claim pending rows of this hub
-    end
-    W2-->>P: {requests: [...]}
-    P->>H: trusted Request on an allowlisted path
-    H-->>P: Response
-    P->>DB: POST /bridge/v1/responses/:id (another invocation writes the row)
-    loop every 200 ms, at most 30 s
-        W1->>DB: read the row's state
-    end
-    W1-->>T: the hub's answer; the row is deleted
+```syneva
+{"kind": "sequence", "title": "The relay", "detail": "a desk request from the web, answered by the local hub through a D1 row, with no Durable Object", "participants": [{"id": "tab", "label": "desk tab (web)"}, {"id": "w1", "label": "Worker: request"}, {"id": "d1", "label": "D1 (+ R2)"}, {"id": "w2", "label": "Worker: inbox"}, {"id": "probe", "label": "probe"}, {"id": "router", "label": "core router"}], "steps": [{"from": "tab", "to": "w1", "label": "GET /api/desks/:webId/state"}, {"from": "w1", "to": "d1", "label": "insert a pending tunnel row"}, {"from": "w2", "to": "d1", "label": "claim pending rows, 250 ms hot, 2 s idle"}, {"from": "w2", "to": "probe", "label": "the requests"}, {"from": "probe", "to": "router", "label": "trusted Request, allowlisted path"}, {"from": "router", "to": "probe", "label": "Response"}, {"from": "probe", "to": "d1", "label": "POST /bridge/v1/responses/:id"}, {"from": "w1", "to": "d1", "label": "read the row every 200 ms"}, {"from": "w1", "to": "tab", "label": "the hub's answer; the row is deleted"}]}
 ```
 
 **SSE or long-poll.** For the inbox the two cost the same and run the same Worker loop; the

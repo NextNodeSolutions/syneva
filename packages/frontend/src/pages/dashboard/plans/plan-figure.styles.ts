@@ -2,13 +2,14 @@ import * as stylex from '@stylexjs/stylex'
 import { color, font } from '@syneva/design-system/tokens.stylex'
 
 // A figure as the RFC pages draw one: the drawing on the gridded field between four corner
-// marks, its title and detail as a mono caption under it, its sentences one step away.
+// marks, across the band's width (prose keeps its measure, a drawing needs the room), its
+// number, title and detail as a mono caption under it, its sentences one step away.
 const GRID = '26px'
 const MARK = '12px'
 const MARK_INSET = '14px'
 
 export const planFigure = stylex.create({
-	root: { marginTop: '26px', maxWidth: '86ch' },
+	root: { marginTop: '26px' },
 	field: {
 		position: 'relative',
 		overflowX: 'auto',
@@ -53,9 +54,14 @@ export const planFigure = stylex.create({
 		borderBottomWidth: '1px',
 		borderRightWidth: '1px',
 	},
-	drawing: { position: 'relative' },
+	drawing: {
+		position: 'relative',
+		display: 'flex',
+		justifyContent: 'center',
+	},
 	caption: {
 		marginTop: '14px',
+		maxWidth: '86ch',
 		fontFamily: font['--mono'],
 		fontSize: '11.5px',
 		lineHeight: 1.55,
