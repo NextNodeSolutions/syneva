@@ -27,7 +27,7 @@ I'm not saying this is *the* review surface. I built it in a week and I'm still 
 
    Outside pi, the plain CLI still works: `npm install -g syneva` (needs **Node 22+** and **git**).
 
-3. **Build from a checkout:** `pnpm build` - tsc compiles the backend, Vite bundles the browser frontend (ui + tokenization worker).
+3. **Build from a checkout:** `pnpm build` - tsc compiles core and local, Vite bundles the browser frontend (ui + tokenization worker).
 
 2. **Run the hub** (once per machine, optional - the first `syneva open` starts one for you):
 
