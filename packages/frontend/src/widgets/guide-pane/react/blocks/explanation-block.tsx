@@ -1,7 +1,9 @@
 import { lazy, Suspense, useState } from 'react'
 
+import { referenceStatus } from '@entities/review/guide/resolution'
 import * as stylex from '@stylexjs/stylex'
 
+import { chromeCtx } from '../../../chrome/context'
 import { RefChip } from '../ref-chip'
 
 import { BlockBoundary } from './block-boundary'
@@ -14,10 +16,12 @@ import { TextEquivalent } from './text-equivalent'
 import type {
 	BeforeAfterBlock,
 	BeforeAfterSide,
+	DiagramBlock,
 	ExplanationBlock,
 	GuideDomain,
 } from '@entities/review/guide/model'
 import type { ReactElement, ReactNode } from 'react'
+import type { DiagramRefs } from './diagram-refs'
 
 // The diagrams load as one chunk on the first diagram block the reviewer reaches; until then (and should the chunk fail) the block shows its sentences.
 const Diagram = lazy(async () => {
@@ -77,10 +81,16 @@ function BeforeAfter({
 	)
 }
 
-type DiagramBlock = Extract<
-	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
->
+// A guide domain's references as its diagrams read them: resolved against the desk's review,
+// followed through the same validated action every chip uses.
+function domainRefs(domain: GuideDomain): DiagramRefs {
+	const { S } = chromeCtx()
+	return {
+		statusOf: refId => referenceStatus(S.state, domain.id, refId).status,
+		follow: refId => S.followReference?.(domain.id, refId),
+		hookOf: refId => `${domain.id}:${refId}`,
+	}
+}
 
 function DiagramBody({
 	domain,
@@ -108,7 +118,7 @@ function DiagramBody({
 				>
 					<Suspense fallback={null}>
 						<div {...stylex.props(diagram.frame)}>
-							<Diagram domain={domain} block={block} />
+							<Diagram refs={domainRefs(domain)} block={block} />
 						</div>
 					</Suspense>
 				</BlockBoundary>

@@ -84,7 +84,9 @@ async function serveAsset(
 
 async function serveUiChunk(request: StaticRequest): Promise<void> {
 	const name = request.url.pathname.slice(STATIC_PATHS.chunksPrefix.length)
-	if (!/^[\w-]+-[A-Za-z0-9]{8}\.js$/.test(name)) {
+	// A chunk is named after its module, which may hold dots (diagram.styles-<hash>.js); a dot
+	// only ever sits between name segments, so no name reaches outside the chunks folder.
+	if (!/^[\w-]+(?:\.[\w-]+)*-[A-Za-z0-9]{8}\.js$/.test(name)) {
 		request.res.writeHead(HTTP_NOT_FOUND)
 		request.res.end()
 		return

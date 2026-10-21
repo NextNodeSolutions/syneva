@@ -13,13 +13,10 @@ import { DiagramNode } from './diagram-node'
 import { diagram } from './diagram.styles'
 import { EdgeLabel } from './edge-label'
 
-import type {
-	FlowBlock,
-	FlowEdge,
-	GuideDomain,
-} from '@entities/review/guide/model'
+import type { FlowBlock, FlowEdge } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
 import type { FlowRoute, Placed } from '../../layout/flow-layout'
+import type { DiagramRefs } from './diagram-refs'
 
 const LABEL_BASELINE = 3
 const HALF = 2
@@ -34,12 +31,12 @@ type Ends = { x1: number; y1: number; x2: number; y2: number }
 
 // An edge routed around the nodes: down into the gap under its source, across to its own gutter, along it to the gap over its target, then in from above. Its label sits beside the gutter.
 function AroundEdge({
-	domain,
+	refs,
 	label,
 	ends: { x1, y1, x2, y2 },
 	gutter,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	label: string | undefined
 	ends: Ends
 	gutter: number
@@ -54,7 +51,7 @@ function AroundEdge({
 				{...stylex.props(diagram.edgePath)}
 			/>
 			<EdgeLabel
-				domain={domain}
+				refs={refs}
 				at={{
 					x: gutter + LABEL_GAP,
 					y: (below + above) / HALF + LABEL_BASELINE,
@@ -78,13 +75,13 @@ function endsOf(from: Placed, to: Placed, nodeHeight: number): Ends {
 
 // A dependency drawn top to bottom: a curve from the source's bottom edge to the target's top edge in the next layer, its label beside the bend; any other edge goes around.
 function Edge({
-	domain,
+	refs,
 	edge,
 	route,
 	nodes,
 	nodeHeight,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	edge: FlowEdge
 	route: FlowRoute | undefined
 	nodes: readonly Placed[]
@@ -98,7 +95,7 @@ function Edge({
 	if (route?.kind === 'around')
 		return (
 			<AroundEdge
-				domain={domain}
+				refs={refs}
 				label={edge.label}
 				ends={ends}
 				gutter={route.gutter}
@@ -114,7 +111,7 @@ function Edge({
 				{...stylex.props(diagram.edgePath)}
 			/>
 			<EdgeLabel
-				domain={domain}
+				refs={refs}
 				at={{
 					x: (x1 + x2) / HALF + LABEL_GAP,
 					y: my + LABEL_BASELINE,
@@ -127,10 +124,10 @@ function Edge({
 }
 
 export function FlowDiagram({
-	domain,
+	refs,
 	block,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	block: FlowBlock
 }): ReactElement {
 	const layout = layoutFlow(block)
@@ -148,7 +145,7 @@ export function FlowDiagram({
 			{block.edges.map((edge, index) => (
 				<Edge
 					key={keys[index]}
-					domain={domain}
+					refs={refs}
 					edge={edge}
 					route={layout.routes[index]}
 					nodes={layout.nodes}
@@ -158,7 +155,7 @@ export function FlowDiagram({
 			{block.nodes.map(node => (
 				<DiagramNode
 					key={node.id}
-					domain={domain}
+					refs={refs}
 					box={{
 						...placed(layout.nodes, node.id),
 						width: FLOW_NODE.width,

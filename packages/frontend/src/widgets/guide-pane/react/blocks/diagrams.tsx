@@ -2,28 +2,21 @@ import { FlowDiagram } from './flow-diagram'
 import { SequenceDiagram } from './sequence-diagram'
 import { StateDiagram } from './state-diagram'
 
-import type {
-	ExplanationBlock,
-	GuideDomain,
-} from '@entities/review/guide/model'
+import type { DiagramBlock } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
-
-type DiagramBlock = Extract<
-	ExplanationBlock,
-	{ kind: 'state' | 'sequence' | 'flow' }
->
+import type { DiagramRefs } from './diagram-refs'
 
 // The diagrams' own chunk: loaded by the first diagram block on screen, never by a review without one.
 export function Diagram({
-	domain,
+	refs,
 	block,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	block: DiagramBlock
 }): ReactElement {
 	if (block.kind === 'state')
-		return <StateDiagram domain={domain} block={block} />
+		return <StateDiagram refs={refs} block={block} />
 	if (block.kind === 'sequence')
-		return <SequenceDiagram domain={domain} block={block} />
-	return <FlowDiagram domain={domain} block={block} />
+		return <SequenceDiagram refs={refs} block={block} />
+	return <FlowDiagram refs={refs} block={block} />
 }

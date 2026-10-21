@@ -16,12 +16,12 @@ import { diagram } from './diagram.styles'
 import { EdgeLabel } from './edge-label'
 
 import type {
-	GuideDomain,
 	SequenceBlock,
 	SequenceParticipant,
 	SequenceStep,
 } from '@entities/review/guide/model'
 import type { ReactElement } from 'react'
+import type { DiagramRefs } from './diagram-refs'
 
 const TOP = 10
 const LABEL_LIFT = 6
@@ -32,13 +32,13 @@ type Lanes = readonly { id: string; x: number }[]
 
 // A message to the same lane: a loop out and back, its label starting just past it (the layout's width reserves it).
 function SelfStep({
-	domain,
+	refs,
 	x,
 	y,
 	label,
 	refId,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	x: number
 	y: number
 	label: string
@@ -52,7 +52,7 @@ function SelfStep({
 				{...stylex.props(diagram.edgePath)}
 			/>
 			<EdgeLabel
-				domain={domain}
+				refs={refs}
 				at={{
 					x: x + SELF_LOOP + SELF_LABEL_GAP,
 					y: y + SELF_LABEL_DROP,
@@ -67,13 +67,13 @@ function SelfStep({
 
 // One message: an arrow between two lanes, numbered in the order it happens.
 function Step({
-	domain,
+	refs,
 	step,
 	index,
 	y,
 	lanes,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	step: SequenceStep
 	index: number
 	y: number
@@ -84,13 +84,7 @@ function Step({
 	const label = stepLabel(index, step.label)
 	if (x1 === x2)
 		return (
-			<SelfStep
-				domain={domain}
-				x={x1}
-				y={y}
-				label={label}
-				refId={step.ref}
-			/>
+			<SelfStep refs={refs} x={x1} y={y} label={label} refId={step.ref} />
 		)
 	return (
 		<g>
@@ -103,7 +97,7 @@ function Step({
 				{...stylex.props(diagram.edgePath)}
 			/>
 			<EdgeLabel
-				domain={domain}
+				refs={refs}
 				at={{ x: (x1 + x2) / HALF, y: y - LABEL_LIFT }}
 				label={label}
 				refId={step.ref}
@@ -114,13 +108,13 @@ function Step({
 
 // A participant: its head and the lifeline every step crosses.
 function Lane({
-	domain,
+	refs,
 	participant,
 	x,
 	height,
 	headHeight,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	participant: SequenceParticipant
 	x: number
 	height: number
@@ -136,7 +130,7 @@ function Lane({
 				{...stylex.props(diagram.lifeline)}
 			/>
 			<DiagramNode
-				domain={domain}
+				refs={refs}
 				box={{
 					x: x - LANE.headWidth / HALF,
 					y: TOP,
@@ -150,10 +144,10 @@ function Lane({
 }
 
 export function SequenceDiagram({
-	domain,
+	refs,
 	block,
 }: {
-	domain: GuideDomain
+	refs: DiagramRefs
 	block: SequenceBlock
 }): ReactElement {
 	const layout = layoutSequence(block)
@@ -171,7 +165,7 @@ export function SequenceDiagram({
 			{block.participants.map(participant => (
 				<Lane
 					key={participant.id}
-					domain={domain}
+					refs={refs}
 					participant={participant}
 					x={laneX(layout.lanes, participant.id)}
 					height={layout.height}
@@ -181,7 +175,7 @@ export function SequenceDiagram({
 			{block.steps.map((step, index) => (
 				<Step
 					key={keys[index]}
-					domain={domain}
+					refs={refs}
 					step={step}
 					index={index}
 					y={layout.stepY(index)}
