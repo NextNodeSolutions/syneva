@@ -6,9 +6,13 @@ import { errorMessage } from '@syneva/core/application/errors'
 
 import { readGlobalSettings } from '../filesystem/desk.js'
 
-import { resolveEditorCommand } from './editor.js'
+import { EditorRefusal, resolveEditorCommand } from './editor.js'
 
-import type { EditorLaunch, EditorPort } from '@syneva/core/application/ports'
+import type {
+	EditorLaunch,
+	EditorPort,
+	EditorScope,
+} from '@syneva/core/application/ports'
 import type { EditorCommand } from './editor.js'
 
 // An editor that has not attached within five seconds is hung (no TTY - see editor.ts); the desk must answer the tab either way.
@@ -27,8 +31,9 @@ export function editorPort(
 			root: string,
 			file: string,
 			line: unknown,
+			scope: EditorScope,
 		): Promise<EditorLaunch> => {
-			const target = await resolveEditorTarget(root, file, line)
+			const target = await resolveEditorTarget(root, file, line, scope)
 			if (!target.ok) return target
 			try {
 				if (run) await run(target.command.command, target.command.args)
@@ -54,28 +59,29 @@ export type EditorTarget =
 	| { ok: true; command: EditorCommand }
 	| { ok: false; code: string; message: string }
 
-// The editor command is a reviewer/machine preference, so it lives in the global ~/.syneva/settings.json (deliberately not per-repo); a template the allowlist refuses is the caller's to fix - the code the route turns into a 422.
+// The editor command is the machine's preference (contracts/settings.ts: the web never sets it), so it lives in the global ~/.syneva/settings.json (deliberately not per-repo); a template the allowlist refuses is the caller's to fix - the code the route turns into a 422.
 export async function resolveEditorTarget(
 	root: string,
 	file: string,
 	line: unknown,
+	scope: EditorScope,
 ): Promise<EditorTarget> {
 	const settings = await readGlobalSettings()
 	try {
-		const command = resolveEditorCommand(editorTemplate(settings), {
-			repo: path.resolve(root),
-			file,
-			line,
-		})
+		const command = resolveEditorCommand(
+			editorTemplate(settings),
+			{ repo: path.resolve(root), file, line },
+			scope,
+		)
 		return { ok: true, command }
 	} catch (error) {
-		const message = errorMessage(error)
 		return {
 			ok: false,
-			code: message.includes('not allowed')
-				? 'EDITOR_NOT_ALLOWED'
-				: 'BAD_EDITOR_COMMAND',
-			message,
+			code:
+				error instanceof EditorRefusal
+					? error.code
+					: 'BAD_EDITOR_COMMAND',
+			message: errorMessage(error),
 		}
 	}
 }
@@ -93,7 +99,8 @@ function editorTemplate(settings: Record<string, unknown>): string {
 	if (typeof template === 'string') return template
 	if (typeof template === 'number' || typeof template === 'boolean')
 		return String(template)
-	throw new Error(
+	throw new EditorRefusal(
+		'EDITOR_NOT_ALLOWED',
 		`Editor command type ${typeof template} is not allowed; set settings.editorCommand to a command string.`,
 	)
 }

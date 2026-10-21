@@ -216,7 +216,7 @@ ${GUIDE_SPEC}
 - The human's display prefs live in a desk panel (persisted to ~/.syneva/settings.json) - you
   don't set them. Note: with "Approve stages file" OFF, approving is verdict-only and stagedFiles
   may be empty even for approved files. The "Open in editor" command ({repo}/{file}/{line}
-  placeholders; known GUI editors only) has no effect on review state.
+  placeholders, in its arguments only; known GUI editors only) has no effect on review state.
 - Error responses are {error, code, fix, docs} - honor fix. PATCH_CONFLICT (409) = the working
   tree changed since the desk loaded; reload state and retry. DESK_NOT_FOUND (404) = the desk was
   closed; list desks or open one. UNAUTHORIZED (401) = the hub wants its key (SYNEVA_KEY).

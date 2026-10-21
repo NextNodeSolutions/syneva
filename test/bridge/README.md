@@ -69,7 +69,10 @@ Test-only controls: `POST /__approve { userCode, deny? }`, `POST /__close { hubI
 - **The machine's own** (RFC 0001, section 7: the web may review the code of the repositories
   the hub serves, nothing more): a relayed `GET /settings` leaves the editor command out; a
   relayed `POST /settings` changes the display preferences and keeps the machine's editor
-  command, a body that is no object included.
+  command, a body that is no object included. A relayed `/open-editor` is `422 EDITOR_LOCAL_ONLY`
+  when the machine sets no editor or the OS opener, and `400 BAD_PATH` on a symlink out of the
+  repo; a template whose program is a placeholder is `422 BAD_EDITOR_COMMAND`, locally too.
+  Nothing is launched: every case is refused first.
 - **Limits**: 50 CLI comments in a busy loop all reach the web; over the whole run no second at
   the fake held more than `framesPerSecond` frames or `bytesPerSecond` bytes, and the bucket
   never closed the socket.

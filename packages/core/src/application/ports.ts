@@ -214,16 +214,24 @@ export interface SettingsPort {
 	readonly write: (settings: unknown) => Promise<void>
 }
 
-// Launch the reviewer's configured editor for one repo file; codes are the desk's editor failure contract: EDITOR_NOT_ALLOWED/BAD_EDITOR_COMMAND answer 422, EDITOR_FAILED answers 500.
+// Launch the reviewer's configured editor for one repo file; codes are the desk's editor failure contract: EDITOR_NOT_ALLOWED/BAD_EDITOR_COMMAND/EDITOR_LOCAL_ONLY answer 422, EDITOR_FAILED answers 500.
 export type EditorLaunch =
 	| { ok: true }
 	| { ok: false; code: string; message: string }
+
+// Whether the OS's own opener may stand in for an editor (an empty setting falls back to it;
+// `open` and `xdg-open` name it). It hands the file to the system's file associations, which run
+// an executable, a script or an app bundle as itself: given a file the web chose, it would run a
+// program the web chose. So only the machine's own requests may use it (EDITOR_LOCAL_ONLY
+// otherwise), and a relayed request gets an editor the machine's settings name, or nothing.
+export type EditorScope = { osOpener: boolean }
 
 export interface EditorPort {
 	readonly open: (
 		root: string,
 		file: string,
 		line: unknown,
+		scope: EditorScope,
 	) => Promise<EditorLaunch>
 }
 
