@@ -1,0 +1,14 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		// Local is a NodeNext emit world (tsc builds dist as ESM, which the benchmarks import): intra-package imports keep explicit .js specifiers so the emitted code runs under plain Node ESM; core resolves through its package exports.
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"noEmit": false,
+		"declaration": true,
+		"types": ["node"],
+		"outDir": "dist",
+		"rootDir": "src"
+	},
+	"include": ["src/**/*.ts"]
+}

@@ -1,20 +1,17 @@
-// Dev composition root: the hub from source + a Vite dev server on the hub's own port/origin (same URLs/guards, nothing built, HMR); node --watch restarts on a backend/contracts change while the hub restores desks.
+// Dev composition root: the hub from source + a Vite dev server on the hub's own port/origin (same URLs/guards, nothing built, HMR); node --watch restarts on a core/local/contracts change while the hub restores desks.
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { parseArgs } from '@syneva/backend/adapters/inbound/cli/args'
+import { parseArgs } from '@syneva/local/adapters/inbound/cli/args'
 import {
 	runStart,
 	SIGNAL_EXIT_CODE,
-} from '@syneva/backend/adapters/inbound/cli/start'
+} from '@syneva/local/adapters/inbound/cli/start'
 import { createServer } from 'vite'
 
-import type { NodeUiMiddleware } from '@syneva/backend/adapters/inbound/http/node-adapter'
-import type {
-	UiRequest,
-	UiServer,
-} from '@syneva/backend/adapters/inbound/http/routes/static'
+import type { UiRequest, UiServer } from '@syneva/core/http/ui-server'
+import type { NodeUiMiddleware } from '@syneva/local/adapters/inbound/http/node-adapter'
 import type { ViteDevServer } from 'vite'
 
 const FRONTEND_ROOT = fileURLToPath(

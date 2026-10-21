@@ -1,0 +1,34 @@
+{
+	"name": "@syneva/local",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Syneva's Node adapters: git, the filesystem, the oxc parser, the editor, node:http under core's router, the CLI and the pi bridge. Bundled into the published apps/syneva package.",
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		"./*": {
+			"types": "./src/*.ts",
+			"@syneva/source": "./src/*.ts",
+			"default": "./dist/*.js"
+		}
+	},
+	"scripts": {
+		"build": "rm -rf dist && tsc",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@syneva/contracts": "workspace:*",
+		"@syneva/core": "workspace:*",
+		"oxc-parser": "^0.152.0"
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-coding-agent": "*",
+		"typebox": "*"
+	},
+	"devDependencies": {
+		"@earendil-works/pi-coding-agent": "^0.85.1",
+		"@types/node": "latest",
+		"typebox": "^1.3.30",
+		"typescript": "latest"
+	}
+}

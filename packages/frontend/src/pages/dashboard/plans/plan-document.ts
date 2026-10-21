@@ -2,7 +2,7 @@ import { esc } from '@shared/lib/esc'
 
 // A plan's front matter (title, summary) is the record's, read by the hub: the page shows it
 // in its head, so the body starts after it. The same pattern as the hub's
-// (packages/backend/src/domain/plan.ts), capture aside: keep the two identical, or the page
+// (packages/core/src/domain/plan.ts), capture aside: keep the two identical, or the page
 // shows as prose a block the hub read as the plan's title.
 const FRONT_MATTER = /^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/
 

@@ -1,0 +1,199 @@
+import { appendLiveComment } from '../../application/add-comment.js'
+import { appendLiveDomainComment } from '../../application/add-domain-comment.js'
+import { browserState } from '../../application/browser-state.js'
+import { roundSent } from '../../application/journal.js'
+import {
+	resetReviewPatch,
+	unstageReviewedFiles,
+} from '../../application/reset-review.js'
+import { applyReviewerSave, sendReview } from '../../application/send-review.js'
+import {
+	HTTP_OK,
+	HTTP_UNPROCESSABLE,
+	readJsonBody,
+	json,
+	fail,
+} from '../http.js'
+import { INVALID_SAVE, parseReviewerSave } from '../reviewer-save.js'
+
+import {
+	isDomainCommentBody,
+	parseCommentRequest,
+	parseDomainCommentRequest,
+} from './comment-body.js'
+
+import type { BrowserResetResponse } from '@syneva/contracts/browser'
+import type { ResetScope } from '@syneva/contracts/review'
+import type { DeskContext } from '../../hub/context.js'
+import type { RouteRequest } from '../router.js'
+
+// Absent/empty -> 'all' (the documented pre-scope behavior); a recognized value passes; anything else parses to null, which the route rejects.
+function parseResetScope(body: unknown): ResetScope | null {
+	if (typeof body !== 'object' || body === null) return 'all'
+	if (!('scope' in body)) return 'all'
+	if (typeof body.scope !== 'string') return null
+	if (body.scope === 'review' || body.scope === 'approved') return body.scope
+	if (body.scope === 'all') return 'all'
+	return null
+}
+
+// An ephemeral, per-Send instruction threaded straight into the result; parseReviewerSave never copies it onto state, so it is never persisted.
+function overallNoteOf(payload: unknown): string {
+	if (
+		typeof payload !== 'object' ||
+		payload === null ||
+		!('overallNote' in payload)
+	)
+		return ''
+	const note = payload.overallNote
+	return typeof note === 'string' ? note.trim() : ''
+}
+
+export async function saveReview({
+	ctx,
+	request,
+}: RouteRequest): Promise<Response> {
+	// Merge only the reviewer-owned slice; diff, contents, changes and desk metadata stay authoritative here. The DTO decode refuses a malformed patch with a 422 before the next root is built.
+	// Present keys replace, absent keys unchanged, never an in-place edit.
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
+		const patch = parseReviewerSave(body)
+		if (patch === null) return fail(INVALID_SAVE)
+		const saved = await ctx.persist(applyReviewerSave(ctx.state, patch))
+		ctx.commit(saved.state)
+		return json(HTTP_OK, { ok: true, file: saved.file })
+	})
+}
+
+export async function sendReviewToAgent({
+	ctx,
+	request,
+	afterSent,
+}: RouteRequest): Promise<Response> {
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
+		const patch = parseReviewerSave(body)
+		if (patch === null) return fail(INVALID_SAVE)
+		const sent = await sendReview(
+			ctx.state,
+			{ git: ctx.git, store: ctx.store },
+			{
+				patch,
+				overallNote: overallNoteOf(body),
+			},
+		)
+		ctx.commit(sent.state)
+		// The same ReviewResult the stream hands the agent: its pickup names this round.
+		ctx.recordEvent(
+			roundSent(sent.state, sent.reviewResult),
+			sent.reviewResult,
+		)
+		afterSent(() => {
+			// The review supersedes any still-queued question (createEventStream drops them), so a stale question never lands after the round.
+			// Emitting only once the response is handed over (Served.afterSent) keeps the reviewer's ack ahead of the agent's wake-up.
+			ctx.events.emit({ kind: 'review', result: sent.reviewResult })
+		})
+		return json(HTTP_OK, {
+			ok: true,
+			sent: true,
+			resultJson: sent.resultJson,
+		})
+	})
+}
+
+export async function addComment({
+	ctx,
+	request,
+}: RouteRequest): Promise<Response> {
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
+		if (isDomainCommentBody(body)) return addDomainComment(ctx, body)
+		const comment = parseCommentRequest(body)
+		if (!comment)
+			return fail({
+				status: HTTP_UNPROCESSABLE,
+				code: 'INVALID_COMMENT',
+				error: 'comment requires path and body',
+				fix: 'Send { path, lineNumber, side, body } as JSON, or { domainId, blockId?, body } for a guide thread.',
+			})
+		const appended = await appendLiveComment(ctx.state, comment, ctx.git)
+		await commitReply(ctx, appended.state, appended.comment.role)
+		return json(HTTP_OK, { ok: true, commentId: appended.comment.id })
+	})
+}
+
+// The route is the agent's (`syneva comment`, the pi correspondent): the reviewer's own comments ride /save. A body may still claim role "user" - that one is no agent reply.
+async function commitReply(
+	ctx: DeskContext,
+	state: DeskContext['state'],
+	role: 'user' | 'agent' | undefined,
+): Promise<void> {
+	const isAgentReply = role === 'agent'
+	if (isAgentReply) ctx.activity.clear()
+	const saved = await ctx.persist(state)
+	ctx.commit(saved.state)
+	if (isAgentReply) ctx.recordEvent({ kind: 'agent-replied' })
+}
+
+// A reply in a guide thread: the target must exist in the attached guide, so an answer never lands on a domain the reviewer did not ask about.
+async function addDomainComment(
+	ctx: DeskContext,
+	body: unknown,
+): Promise<Response> {
+	const request = parseDomainCommentRequest(body)
+	if (!request)
+		return fail({
+			status: HTTP_UNPROCESSABLE,
+			code: 'INVALID_COMMENT',
+			error: 'a domain comment requires domainId and body',
+			fix: 'Send { domainId, blockId?, body } as JSON.',
+		})
+	const appended = appendLiveDomainComment(ctx.state, request)
+	if (!appended.ok)
+		return fail({
+			status: HTTP_UNPROCESSABLE,
+			code: 'UNKNOWN_DOMAIN',
+			error: appended.reason,
+			fix: 'Name a domain id (and block id) of the attached guide, as the question event or GET …/state gives them.',
+		})
+	await commitReply(ctx, appended.state, appended.comment.role)
+	return json(HTTP_OK, { ok: true, commentId: appended.comment.id })
+}
+
+export async function resetDesk({
+	ctx,
+	request,
+}: RouteRequest): Promise<Response> {
+	return ctx.serialize(async (): Promise<Response> => {
+		// Bodyless POST = the documented 'all'; malformed JSON means the same default; a parsed body with an unknown scope is rejected - the caller must name what it wants dropped.
+		let body: unknown
+		try {
+			body = await readJsonBody(request)
+		} catch {
+			body = undefined
+		}
+		const scope = parseResetScope(body)
+		if (scope === null)
+			return fail({
+				status: HTTP_UNPROCESSABLE,
+				code: 'INVALID_RESET_SCOPE',
+				error: 'scope must be "review", "approved" or "all"',
+				fix: 'Send { "scope": "review" } - review keeps the notes, all clears them.',
+			})
+		// 'approved' restores only the signed-off files to the working diff; the other scopes drop every decision, so the whole review unstages.
+		const unstagePaths =
+			scope === 'approved' ? [...ctx.state.reviewedFiles] : undefined
+		await unstageReviewedFiles(ctx.state, ctx.git, unstagePaths)
+		const saved = await ctx.persist({
+			...ctx.state,
+			...resetReviewPatch(ctx.state, scope),
+		})
+		ctx.commit(saved.state)
+		const response: BrowserResetResponse = {
+			ok: true,
+			state: browserState(saved.state),
+			serverInstanceId: ctx.instanceId,
+		}
+		return json(HTTP_OK, response)
+	})
+}

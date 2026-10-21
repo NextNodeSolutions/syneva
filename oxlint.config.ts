@@ -142,16 +142,14 @@ export default defineConfig({
 		},
 		{
 			// Parallel long-polls would reorder feedback and detach event ownership from delivery.
-			files: [
-				'packages/backend/src/adapters/inbound/pi/desk-listener.ts',
-			],
+			files: ['packages/local/src/adapters/inbound/pi/desk-listener.ts'],
 			rules: { 'eslint/no-await-in-loop': 'off' },
 		},
 		{
 			// Sequential by design: one correspondent event at a time, answers in question order (as the long-poll).
 			files: [
-				'packages/backend/src/adapters/inbound/pi/pi-attachment.ts',
-				'packages/backend/src/adapters/inbound/pi/pi-delivery.ts',
+				'packages/local/src/adapters/inbound/pi/pi-attachment.ts',
+				'packages/local/src/adapters/inbound/pi/pi-delivery.ts',
 			],
 			rules: { 'eslint/no-await-in-loop': 'off' },
 		},
@@ -184,7 +182,7 @@ export default defineConfig({
 		},
 		...LANDING_LAYERS.map(landingLayer),
 		{
-			// contracts is a neutral sink; domain is pure (node:crypto stays allowed for pure hashing); the backend never imports the browser and vice versa.
+			// contracts is a neutral sink; domain is pure (node:crypto stays allowed for pure hashing); core and local never import the browser and vice versa.
 			files: ['packages/contracts/src/**/*.ts'],
 			rules: {
 				'eslint/no-restricted-imports': [
@@ -193,13 +191,15 @@ export default defineConfig({
 						patterns: [
 							{
 								group: [
-									'@syneva/backend',
-									'@syneva/backend/**',
+									'@syneva/core',
+									'@syneva/core/**',
+									'@syneva/local',
+									'@syneva/local/**',
 									'@syneva/frontend',
 									'@syneva/frontend/**',
 								],
 								message:
-									'contracts is a neutral dependency sink - it imports no backend/frontend module.',
+									'contracts is a neutral dependency sink - it imports no core/local/frontend module.',
 							},
 						],
 					},
@@ -209,8 +209,8 @@ export default defineConfig({
 		{
 			// A later override replaces the whole rule set for the same files: domain's restrictions live together in ONE declaration.
 			files: [
-				'packages/backend/src/domain/*.ts',
-				'packages/backend/src/domain/**/*.ts',
+				'packages/core/src/domain/*.ts',
+				'packages/core/src/domain/**/*.ts',
 			],
 			rules: {
 				'eslint/no-restricted-imports': [
@@ -266,8 +266,8 @@ export default defineConfig({
 		},
 		{
 			// domain is excluded so the stricter pure rule set above is not replaced wholesale.
-			files: ['packages/backend/src/**/*.ts'],
-			excludeFiles: ['packages/backend/src/domain/**'],
+			files: ['packages/core/src/**/*.ts', 'packages/local/src/**/*.ts'],
+			excludeFiles: ['packages/core/src/domain/**'],
 			rules: {
 				'eslint/no-restricted-imports': [
 					'error',
@@ -279,7 +279,7 @@ export default defineConfig({
 									'@syneva/frontend/**',
 								],
 								message:
-									'the backend never imports the browser UI world.',
+									'core and local never import the browser UI world.',
 							},
 						],
 					},
@@ -296,11 +296,13 @@ export default defineConfig({
 						patterns: [
 							{
 								group: [
-									'@syneva/backend',
-									'@syneva/backend/**',
+									'@syneva/core',
+									'@syneva/core/**',
+									'@syneva/local',
+									'@syneva/local/**',
 								],
 								message:
-									'the browser imports contracts only - never the backend.',
+									'the browser imports contracts only - never core or local.',
 							},
 							{
 								group: [
@@ -362,11 +364,13 @@ export default defineConfig({
 						patterns: [
 							{
 								group: [
-									'@syneva/backend',
-									'@syneva/backend/**',
+									'@syneva/core',
+									'@syneva/core/**',
+									'@syneva/local',
+									'@syneva/local/**',
 								],
 								message:
-									'the browser imports contracts only - never the backend.',
+									'the browser imports contracts only - never core or local.',
 							},
 							{
 								group: [
@@ -416,11 +420,13 @@ export default defineConfig({
 						patterns: [
 							{
 								group: [
-									'@syneva/backend',
-									'@syneva/backend/**',
+									'@syneva/core',
+									'@syneva/core/**',
+									'@syneva/local',
+									'@syneva/local/**',
 								],
 								message:
-									'the browser imports contracts only - never the backend.',
+									'the browser imports contracts only - never core or local.',
 							},
 							{
 								group: [
@@ -474,11 +480,13 @@ export default defineConfig({
 						patterns: [
 							{
 								group: [
-									'@syneva/backend',
-									'@syneva/backend/**',
+									'@syneva/core',
+									'@syneva/core/**',
+									'@syneva/local',
+									'@syneva/local/**',
 								],
 								message:
-									'the browser imports contracts only - never the backend.',
+									'the browser imports contracts only - never core or local.',
 							},
 							{
 								group: [
@@ -527,11 +535,13 @@ export default defineConfig({
 						patterns: [
 							{
 								group: [
-									'@syneva/backend',
-									'@syneva/backend/**',
+									'@syneva/core',
+									'@syneva/core/**',
+									'@syneva/local',
+									'@syneva/local/**',
 								],
 								message:
-									'the browser imports contracts only - never the backend.',
+									'the browser imports contracts only - never core or local.',
 							},
 							{
 								group: ['@app', '@app/**'],
@@ -563,7 +573,7 @@ export default defineConfig({
 			},
 		},
 		{
-			// app and the worker are composition roots (import every layer) but never the backend.
+			// app and the worker are composition roots (import every layer) but never core or local.
 			files: [
 				'packages/frontend/src/app/**/*.ts',
 				'packages/frontend/src/worker/**/*.ts',
@@ -575,11 +585,13 @@ export default defineConfig({
 						patterns: [
 							{
 								group: [
-									'@syneva/backend',
-									'@syneva/backend/**',
+									'@syneva/core',
+									'@syneva/core/**',
+									'@syneva/local',
+									'@syneva/local/**',
 								],
 								message:
-									'the browser imports contracts only - never the backend.',
+									'the browser imports contracts only - never core or local.',
 							},
 						],
 					},
@@ -588,7 +600,7 @@ export default defineConfig({
 		},
 
 		{
-			// tsgolint cannot resolve the frontend layer aliases (it ignores tsconfig paths), so its type-aware rules fire unsoundly there: the frontend's type gate is tsconfig.ui.json via pnpm check, the backend stays fully type-linted.
+			// tsgolint cannot resolve the frontend layer aliases (it ignores tsconfig paths), so its type-aware rules fire unsoundly there: the frontend's type gate is tsconfig.ui.json via pnpm check, core and local stay fully type-linted.
 			files: [
 				'packages/frontend/src/**/*.ts',
 				'packages/frontend/src/**/*.tsx',
@@ -667,7 +679,7 @@ export default defineConfig({
 			},
 		},
 		{
-			// The landing Worker's one log boundary, as adapters/outbound/console.ts is the backend's: Workers Logs-style JSON.
+			// The landing Worker's one log boundary, as adapters/outbound/console.ts is local's: Workers Logs-style JSON.
 			files: [
 				'apps/landing/src/features/subscribe/model/log-failure.server.ts',
 			],

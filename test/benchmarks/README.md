@@ -135,7 +135,7 @@ not the source of `stagesMs`: prefer the `synevaPerf` timeline, and record its n
 
 `node test/benchmarks/guide-partition.mjs [--repo <path>] [--base <ref>] [--head <ref>]` measures the
 guide a guided desk opens on (`domain/guide-redraft.ts`) over a real changeset, after `pnpm build`
-(it imports `packages/backend/dist`). It builds the review of the merge-base of `--base` (default
+(it imports `packages/core/dist` and `packages/local/dist`). It builds the review of the merge-base of `--base` (default
 `main`) and `--head` (default `HEAD`) as a pr desk would, by ref: nothing is checked out and no hub
 runs. It prints:
 

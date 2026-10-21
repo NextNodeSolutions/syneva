@@ -65,8 +65,9 @@
 	},
 	"devDependencies": {
 		"@earendil-works/pi-coding-agent": "^0.85.1",
-		"@syneva/backend": "workspace:*",
+		"@syneva/core": "workspace:*",
 		"@syneva/frontend": "workspace:*",
+		"@syneva/local": "workspace:*",
 		"@types/node": "latest",
 		"semantic-release": "^25.0.9",
 		"semantic-release-monorepo": "^8.0.2",

@@ -1,0 +1,26 @@
+{
+	"name": "@syneva/core",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Syneva's engine: the review domain, the application use cases, the hub and its routes on the Fetch API, over ports. Runs on Node and on Cloudflare Workers.",
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		"./*": {
+			"types": "./src/*.ts",
+			"@syneva/source": "./src/*.ts",
+			"default": "./dist/*.js"
+		}
+	},
+	"scripts": {
+		"build": "rm -rf dist && tsc",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@syneva/contracts": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/node": "latest",
+		"typescript": "latest"
+	}
+}

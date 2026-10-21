@@ -1,0 +1,14 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		// Core is a NodeNext emit world (tsc builds dist as ESM + .d.ts, which the published bundle and the benchmarks import): intra-package imports keep explicit .js specifiers so the emitted code runs under plain Node ESM.
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"noEmit": false,
+		"declaration": true,
+		"types": ["node"],
+		"outDir": "dist",
+		"rootDir": "src"
+	},
+	"include": ["src/**/*.ts"]
+}

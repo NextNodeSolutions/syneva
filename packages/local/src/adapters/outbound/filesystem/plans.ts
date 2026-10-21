@@ -1,0 +1,105 @@
+import { promises as fs } from 'node:fs'
+import path from 'node:path'
+
+import { isHexId } from '@syneva/core/domain/identity'
+import { decodePlanRecord } from '@syneva/core/domain/plan'
+
+import { hubDir } from './hub.js'
+import {
+	isMissingFile,
+	writeFileAtomic,
+	writeJsonAtomic,
+} from './persistence.js'
+
+import type { PlanStorePort } from '@syneva/core/application/ports'
+import type { PlanRecord } from '@syneva/core/domain/plan'
+
+// The plan library lives beside the rest of the hub's own state: one folder per plan, its
+// record and each version as it was posted.
+const PLANS_DIR = 'plans'
+const RECORD_FILE = 'plan.json'
+
+function plansDir(): string {
+	return path.join(hubDir(), PLANS_DIR)
+}
+
+function planDir(id: string): string {
+	// Ids are the hub's own hex digests; anything else must never reach a path.
+	if (!isHexId(id)) throw new Error(`Not a plan id: ${id}`)
+	return path.join(plansDir(), id)
+}
+
+function versionFile(id: string, version: number): string {
+	return path.join(planDir(id), `v${String(version)}.md`)
+}
+
+async function loadPlans(): Promise<PlanRecord[]> {
+	let ids: string[]
+	try {
+		ids = await fs.readdir(plansDir())
+	} catch (error) {
+		if (isMissingFile(error)) return [] // no plan yet
+		throw error
+	}
+	const records = await Promise.all(ids.filter(isHexId).map(loadPlan))
+	return records.filter(record => record !== null)
+}
+
+// A record that does not decode is left on disk and out of the library: a foreign or torn file
+// costs that plan's listing, never the library's. A folder without a record (a version written,
+// its record not) holds no plan yet. Any other read failure is thrown, never taken for an absent
+// plan: the next post would restart it at version 1 over what is on disk.
+async function loadPlan(id: string): Promise<PlanRecord | null> {
+	let text: string
+	try {
+		text = await fs.readFile(path.join(planDir(id), RECORD_FILE), 'utf8')
+	} catch (error) {
+		if (isMissingFile(error)) return null
+		throw error
+	}
+	let parsed: unknown
+	try {
+		parsed = JSON.parse(text)
+	} catch {
+		return null // torn or foreign: skipped, as the port says
+	}
+	const record = decodePlanRecord(parsed)
+	if (record?.id !== id) return null
+	return record
+}
+
+async function savePlan(record: PlanRecord): Promise<void> {
+	const dir = planDir(record.id)
+	await fs.mkdir(dir, { recursive: true })
+	await writeJsonAtomic(path.join(dir, RECORD_FILE), record)
+}
+
+async function writeVersion(
+	id: string,
+	version: number,
+	markdown: string,
+): Promise<void> {
+	await fs.mkdir(planDir(id), { recursive: true })
+	await writeFileAtomic(versionFile(id, version), markdown)
+}
+
+async function readVersion(
+	id: string,
+	version: number,
+): Promise<string | null> {
+	try {
+		return await fs.readFile(versionFile(id, version), 'utf8')
+	} catch (error) {
+		if (isMissingFile(error)) return null
+		throw error
+	}
+}
+
+// The node/filesystem implementation of the application's plan-store capability. Frozen like
+// the registry's and the journal's.
+export const nodePlanStore: PlanStorePort = Object.freeze({
+	load: loadPlans,
+	save: savePlan,
+	writeVersion,
+	readVersion,
+})

@@ -5,10 +5,10 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { parseArgs, promisify } from 'node:util'
 
-import { nodeGit } from '../../packages/backend/dist/adapters/outbound/git/repo.js'
-import { buildReviewState } from '../../packages/backend/dist/application/build.js'
-import { changeKey } from '../../packages/backend/dist/domain/change-blocks.js'
-import { redraftGuide } from '../../packages/backend/dist/domain/guide-redraft.js'
+import { buildReviewState } from '../../packages/core/dist/application/build.js'
+import { changeKey } from '../../packages/core/dist/domain/change-blocks.js'
+import { redraftGuide } from '../../packages/core/dist/domain/guide-redraft.js'
+import { nodeGit } from '../../packages/local/dist/adapters/outbound/git/repo.js'
 
 import {
 	linkCohesion,
