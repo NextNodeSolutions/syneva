@@ -248,10 +248,8 @@ export async function readStagedSnapshot(
 	state: ReviewState,
 	git: GitPort,
 ): Promise<StagedSnapshot> {
-	const staged = await git
-		.run(['diff', '--cached', '--name-only'], state.root)
-		.catch(() => '')
-	const stagedFiles = new Set(staged.split(/\r?\n/).filter(Boolean))
+	const staged = await git.stagedPaths(state.root).catch(() => [])
+	const stagedFiles = new Set(staged)
 	const reviewFiles = new Set(state.files.map(file => file.path))
 	return {
 		stagedFiles: [...stagedFiles].filter(file => reviewFiles.has(file)),

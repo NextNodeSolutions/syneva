@@ -47,17 +47,12 @@ export function resetReviewPatch(
 	return patch
 }
 
-// One spawn: `git restore --staged` takes many pathspecs; pr mode has no working-tree index to restore (skip the git work entirely).
-// A fresh checkout without a HEAD commit has no restore target, hence the `git reset` fallback.
+// One unstage for every path (`git restore --staged` takes many pathspecs); pr mode has no working-tree index to restore (skip the git work entirely).
 export async function unstageReviewedFiles(
 	state: ReviewState,
 	git: GitPort,
 	paths: readonly string[] = state.files.map(file => file.path),
 ): Promise<void> {
 	if (state.mode === 'pr' || !paths.length) return
-	await git
-		.run(['restore', '--staged', '--', ...paths], state.root)
-		.catch(async () =>
-			git.run(['reset', 'HEAD', '--', ...paths], state.root),
-		)
+	await git.unstage(state.root, paths)
 }

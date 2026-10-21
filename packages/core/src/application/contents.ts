@@ -99,12 +99,7 @@ async function fileModeContents(
 		? file.path
 		: path.join(state.root, file.path)
 	const working = (await git.workspace.readFile(abs)) ?? ''
-	const tracked = await git
-		.run(['ls-files', '--error-unmatch', '--', file.path], state.root)
-		.then(
-			() => true,
-			() => false,
-		)
+	const tracked = await git.isTracked(state.root, file.path)
 	if (tracked && file.hunks.length)
 		return {
 			oldContents: await git.fileAt(state.root, file.oldPath, ':0'),

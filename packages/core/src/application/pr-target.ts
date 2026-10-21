@@ -61,9 +61,7 @@ export async function resolvePrTarget(
 ): Promise<PrTargetOutcome> {
 	const { mode, target, base, root } = query
 	if (mode !== 'pr' || !target) return { ok: true, target: { target, base } }
-	const dirty = await io.git
-		.run(['status', '--porcelain', '--untracked-files=no'], root)
-		.catch(() => '')
+	const dirty = await io.git.trackedChanges(root).catch(() => '')
 	if (dirty.trim())
 		return {
 			ok: false,
@@ -110,14 +108,7 @@ async function resolveRemoteBase(
 	root: string,
 	git: GitPort,
 ): Promise<string> {
-	await git.run(['fetch', 'origin', baseRefName], root).catch(() => undefined)
-	const remoteBase = `origin/${baseRefName}`
-	try {
-		await git.run(['rev-parse', '--verify', '--quiet', remoteBase], root)
-		return remoteBase
-	} catch {
-		return baseRefName
-	}
+	return (await git.remoteBranch(root, baseRefName)) ?? baseRefName
 }
 
 // A branch by its name, locally first, then as origin's (what `git checkout <name>` would track).
@@ -128,8 +119,8 @@ async function resolveBranch(
 	git: GitPort,
 ): Promise<PrTargetOutcome> {
 	const head =
-		(await revision(name, root, git)) ??
-		(await revision(`origin/${name}`, root, git))
+		(await git.resolveRef(root, name)) ??
+		(await git.resolveRef(root, `origin/${name}`))
 	if (!head)
 		return {
 			ok: false,
@@ -146,16 +137,6 @@ async function resolveBranch(
 	}
 }
 
-async function revision(
-	ref: string,
-	root: string,
-	git: GitPort,
-): Promise<string | null> {
-	return await git
-		.run(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], root)
-		.catch(() => null)
-}
-
 // The one PR operation with a side effect, run only once the open is admitted: HEAD moves to the reviewed head (a pull request through the hub's pull requests, which track a fork's branch; a branch checks out by name).
 export async function checkoutPrTarget(
 	checkout: PrCheckout | undefined,
@@ -165,8 +146,7 @@ export async function checkoutPrTarget(
 	if (!checkout) return { ok: true }
 	const name = checkout.kind === 'pr' ? checkout.ref : checkout.name
 	try {
-		if (checkout.kind === 'branch')
-			await git.run(['checkout', checkout.name], root)
+		if (checkout.kind === 'branch') await git.checkout(root, checkout.name)
 		else if (pulls) await pulls.checkout(root, checkout.ref)
 		// A pr checkout comes only out of a resolution through the pull requests, so a hub without them never holds one.
 		else

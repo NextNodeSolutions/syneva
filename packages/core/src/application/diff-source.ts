@@ -32,36 +32,6 @@ type PrQuery = Extract<DiffSourceQuery, { mode: 'pr' }>
 type FileQuery = Extract<DiffSourceQuery, { mode: 'file' }>
 type RepoQuery = Extract<DiffSourceQuery, { mode: 'repo' }>
 
-// Branches a clone's default branch falls back to when origin/HEAD isn't set.
-const BRANCH_CANDIDATES = ['main', 'master'] as const
-
-// Else the first of main/master that exists, else HEAD (a detached or unusual checkout still gets a review).
-export async function resolveDefaultBranch(
-	root: string,
-	git: GitPort,
-): Promise<string> {
-	const sym = await git
-		.run(['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'], root)
-		.catch(() => '')
-	if (sym) return sym // e.g. "origin/main"
-	const probed = await Promise.all(
-		BRANCH_CANDIDATES.map(branch => branchExists(root, branch, git)),
-	)
-	const found = BRANCH_CANDIDATES.find((_, index) => probed[index])
-	return found ?? 'HEAD'
-}
-
-async function branchExists(
-	root: string,
-	branch: string,
-	git: GitPort,
-): Promise<boolean> {
-	return await git.run(['rev-parse', '--verify', branch], root).then(
-		() => true,
-		() => false,
-	)
-}
-
 export async function buildDiffSource(
 	query: DiffSourceQuery,
 	git: GitPort,
@@ -78,10 +48,7 @@ async function buildPrSource(
 ): Promise<DiffSource | null> {
 	const base = query.base ?? 'HEAD'
 	const head = query.head ?? 'HEAD'
-	const rawDiff = await git.run(
-		['diff', '--no-ext-diff', '-M', `${base}..${head}`],
-		query.root,
-	)
+	const rawDiff = await git.diff(query.root, { base, head })
 	if (!rawDiff.trim()) return null
 	const parsedDiff = parseUnifiedDiff(rawDiff)
 	const assembled = await assembleDiff(parsedDiff, {
@@ -99,13 +66,7 @@ async function buildFileSource(
 	const rel = path.relative(query.root, query.path)
 	const key = rel.startsWith('..') ? query.path : rel
 	const tracked =
-		!rel.startsWith('..') &&
-		(await git
-			.run(['ls-files', '--error-unmatch', '--', rel], query.root)
-			.then(
-				() => true,
-				() => false,
-			))
+		!rel.startsWith('..') && (await git.isTracked(query.root, rel))
 	const working = (await git.workspace.readFile(query.path)) ?? ''
 	if (!tracked)
 		return {
@@ -113,10 +74,8 @@ async function buildFileSource(
 			changes: [],
 			rawDiff: '',
 		}
-	const rawDiff = await git.run(
-		['diff', '--no-ext-diff', '-M', '--', rel],
-		query.root,
-	)
+	// A tracked path is never empty (git refuses an empty pathspec), so this is `-- <rel>`.
+	const rawDiff = await git.workingDiff(query.root, { path: rel })
 	if (!rawDiff.trim())
 		return {
 			files: [fileEntry(key, working, 'modified')],
@@ -139,10 +98,10 @@ async function buildRepoSource(
 	git: GitPort,
 ): Promise<DiffSource | null> {
 	// -M asks git itself to detect renames, so committed/staged renames render deterministically regardless of the user's `diff.renames` config.
-	const args = ['diff', '--no-ext-diff', '-M']
-	if (query.staged) args.push('--cached')
-	if (query.path) args.push('--', query.path)
-	const rawDiff = await git.run(args, query.root)
+	const rawDiff = await git.workingDiff(query.root, {
+		staged: query.staged,
+		path: query.path,
+	})
 	// Parse once here and reuse it for both assembleDiff and the DiffSource result (issue 06).
 	const parsedDiff = rawDiff.trim() ? parseUnifiedDiff(rawDiff) : []
 	const { files, changes } = await assembleRepoDiff(parsedDiff, query, git)

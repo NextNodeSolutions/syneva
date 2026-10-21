@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import { patchForChange } from '../domain/diff/change.js'
 
 import { errorMessage } from './errors.js'
@@ -25,14 +23,13 @@ export async function stagePaths(
 	request: StagePathsRequest,
 	git: GitPort,
 ): Promise<ReviewState> {
-	if (request.paths.length)
-		await git.run(['add', '--', ...request.paths], state.root)
+	if (request.paths.length) await git.stage(state.root, request.paths)
 	const recorded = request.recorded ?? request.paths.at(-1)
 	if (!recorded || state.stagedFiles.includes(recorded)) return state
 	return { ...state, stagedFiles: [...state.stagedFiles, recorded] }
 }
 
-// The recorded key is what makes staging idempotent: a block already staged (the reviewer reloaded and accepted it again) is a no-op, not a double-apply.
+// The recorded key is what makes staging idempotent: a block already staged (the reviewer reloaded and accepted it again) is a no-op, not a double-apply; past it, the index itself tells "already staged" (a reload re-accepting a block it already holds) from a real apply.
 export async function stageChange(
 	state: ReviewState,
 	request: StageChangeRequest,
@@ -44,10 +41,9 @@ export async function stageChange(
 		return { decision: 'already-staged', skipped: true, state }
 	let applied: 'applied' | 'skipped'
 	try {
-		applied = await applyPatchToIndex(
+		applied = await git.applyToIndex(
 			state.root,
 			patchForChange(state.rawDiff, request.path, request.stableKey),
-			git,
 		)
 	} catch (error) {
 		return {
@@ -68,11 +64,7 @@ export async function unstagePath(
 	filePath: string,
 	git: GitPort,
 ): Promise<ReviewState> {
-	await git
-		.run(['restore', '--staged', '--', filePath], state.root)
-		.catch(async () =>
-			git.run(['reset', 'HEAD', '--', filePath], state.root),
-		)
+	await git.unstage(state.root, [filePath])
 	return {
 		...state,
 		stagedFiles: state.stagedFiles.filter(
@@ -81,30 +73,5 @@ export async function unstagePath(
 		stagedChangeKeys: (state.stagedChangeKeys ?? []).filter(
 			key => !key.startsWith(`${filePath}:`),
 		),
-	}
-}
-
-// A reverse `--check` first tells "already staged" (a reload re-accepting a block the index
-// already holds) from a real apply; the patch travels through a temp file the workspace port
-// provides - the application layer never touches the filesystem itself.
-async function applyPatchToIndex(
-	root: string,
-	patch: string,
-	git: GitPort,
-): Promise<'applied' | 'skipped'> {
-	const tmp = await git.workspace.writeTempFile(patch)
-	try {
-		const baseArgs = ['apply', '--cached', '--unidiff-zero']
-		const alreadyApplied = await git
-			.run([...baseArgs, '--reverse', '--check', tmp], root)
-			.then(
-				() => true,
-				() => false,
-			)
-		if (alreadyApplied) return 'skipped'
-		await git.run([...baseArgs, tmp], root)
-		return 'applied'
-	} finally {
-		await git.workspace.removeTempDir(path.dirname(tmp))
 	}
 }

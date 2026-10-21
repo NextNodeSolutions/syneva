@@ -4,7 +4,7 @@ import path from 'node:path'
 import { hash, sanitizeSession } from '../domain/identity.js'
 
 import { nameChanges } from './change-symbols.js'
-import { buildDiffSource, resolveDefaultBranch } from './diff-source.js'
+import { buildDiffSource } from './diff-source.js'
 import { nowIso } from './time.js'
 
 import type { ReviewMode, ReviewState } from '../domain/review.js'
@@ -79,9 +79,9 @@ async function buildPrReview(
 	git: GitPort,
 ): Promise<ReviewState | null> {
 	const root = await git.getGitRoot(cwd)
-	const defaultBranch = query.base ?? (await resolveDefaultBranch(root, git))
+	const defaultBranch = query.base ?? (await git.defaultBranch(root))
 	const base = await git
-		.run(['merge-base', defaultBranch, query.head ?? 'HEAD'], root)
+		.mergeBase(root, defaultBranch, query.head ?? 'HEAD')
 		.catch(() => defaultBranch)
 	const source = await buildDiffSource(
 		{ mode: 'pr', root, base, head: query.head },

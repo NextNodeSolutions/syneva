@@ -42,11 +42,7 @@ async function readUntrackedEntries(
 	scan: UntrackedScan,
 	git: GitPort,
 ): Promise<UntrackedEntry[]> {
-	const args = ['ls-files', '--others', '--exclude-standard']
-	if (scan.path) args.push('--', scan.path)
-	const untracked = (await git.run(args, scan.root))
-		.split(/\r?\n/)
-		.filter(Boolean)
+	const untracked = await git.untrackedFiles(scan.root, scan.path)
 	// A file that vanished between the listing and the read (or is unreadable) reads as empty, which leaves it an ordinary full addition rather than failing the whole review.
 	return await mapContentReads(untracked, async rel => ({
 		rel,

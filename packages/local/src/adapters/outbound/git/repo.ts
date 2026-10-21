@@ -8,6 +8,16 @@ import { nodeParser } from '../source/parser.js'
 
 import { git, runGitRaw } from './exec.js'
 import { readObjects } from './objects.js'
+import { applyToIndex, stage, unstage } from './staging.js'
+import {
+	checkout,
+	isTracked,
+	remoteBranch,
+	stagedPaths,
+	trackedChanges,
+	untrackedFiles,
+	workingDiff,
+} from './working-tree.js'
 
 import type { GitPort } from '@syneva/core/application/ports'
 
@@ -15,7 +25,20 @@ export { gitStats }
 
 // The workspace facet rides along (the working tree is this adapter's domain - fileAt already reads it), so a use case takes one capability object and imports no node:fs itself.
 export const nodeGit: GitPort = Object.freeze({
-	run: git,
+	diff,
+	workingDiff,
+	defaultBranch,
+	mergeBase,
+	resolveRef,
+	isTracked,
+	untrackedFiles,
+	stagedPaths,
+	trackedChanges,
+	remoteBranch,
+	checkout,
+	stage,
+	unstage,
+	applyToIndex,
 	fileAt,
 	rawBlobOids,
 	readObjects,
@@ -37,6 +60,58 @@ export async function getHead(cwd: string): Promise<string | null> {
 	} catch {
 		return null
 	}
+}
+
+// Branches a clone's default branch falls back to when origin/HEAD isn't set.
+const BRANCH_CANDIDATES = ['main', 'master'] as const
+
+export async function diff(
+	root: string,
+	range: { base: string; head: string },
+): Promise<string> {
+	return await git(
+		['diff', '--no-ext-diff', '-M', `${range.base}..${range.head}`],
+		root,
+	)
+}
+
+// Else the first of main/master that exists, else HEAD (a detached or unusual checkout still gets a review).
+export async function defaultBranch(root: string): Promise<string> {
+	const sym = await git(
+		['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'],
+		root,
+	).catch(() => '')
+	if (sym) return sym // e.g. "origin/main"
+	const probed = await Promise.all(
+		BRANCH_CANDIDATES.map(async branch => branchExists(root, branch)),
+	)
+	const found = BRANCH_CANDIDATES.find((_, index) => probed[index])
+	return found ?? 'HEAD'
+}
+
+async function branchExists(root: string, branch: string): Promise<boolean> {
+	return await git(['rev-parse', '--verify', branch], root).then(
+		() => true,
+		() => false,
+	)
+}
+
+export async function mergeBase(
+	root: string,
+	a: string,
+	b: string,
+): Promise<string> {
+	return await git(['merge-base', a, b], root)
+}
+
+export async function resolveRef(
+	root: string,
+	ref: string,
+): Promise<string | null> {
+	return await git(
+		['rev-parse', '--verify', '--quiet', `${ref}^{commit}`],
+		root,
+	).catch(() => null)
 }
 
 export async function getBranch(cwd: string): Promise<string> {
