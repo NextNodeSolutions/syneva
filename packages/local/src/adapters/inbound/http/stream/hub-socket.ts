@@ -43,6 +43,7 @@ export function createHubSocket(hub: HubSocketDeps): HubSocket {
 	let isClosing = false
 	return {
 		upgrade(req, socket, head): void {
+			endOnError(socket)
 			if (isClosing) {
 				socket.destroy()
 				return
@@ -61,6 +62,18 @@ export function createHubSocket(hub: HubSocketDeps): HubSocket {
 			await Promise.all([...streams].map(goneAway))
 		},
 	}
+}
+
+// node:http hands the upgrade's raw socket over without the 'error' listener it keeps on its
+// requests' sockets, and an 'error' with no listener throws: a client that resets the connection
+// while the hub writes its refusal (EPIPE) or reads its handshake would kill the hub. The listener
+// is set first and stays for the socket's whole life, whoever owns it next (the refusal, ws's
+// handshake, the accepted stream, which hears its own failures through ws): an error only ever
+// ends this connection.
+function endOnError(socket: Duplex): void {
+	socket.on('error', () => {
+		socket.destroy()
+	})
 }
 
 // An oversized frame is a bug said once per frame head, not once per reader: every reader shapes

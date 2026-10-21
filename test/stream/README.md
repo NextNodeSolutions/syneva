@@ -27,7 +27,9 @@ It prints one line per check and exits 1 when any failed.
 
 - **Guards**: the upgrade passes the guards every route passes. A cross-site `Origin` or a foreign
   `Host` reads 403, another path 404, the hub's own origin opens. On a keyed hub, no key and a wrong
-  Bearer read 401; the Bearer and the cookie `/login` sets both open.
+  Bearer read 401; the Bearer and the cookie `/login` sets both open. 400 refused upgrades whose
+  client resets the connection as soon as it wrote them (before, while or after the hub writes its
+  refusal) leave the hub answering `/api/hub/health`.
 - **Snapshot**, on connect and again after the events: `hello` first (the hub's id, `local`, and
   the identity `/api/hub/health` reports), one `desk` then one `pulse` per live desk, the journal
   tail, every plan, `snapshot-end`, every frame naming the hub and under `frameBytes`. Each part

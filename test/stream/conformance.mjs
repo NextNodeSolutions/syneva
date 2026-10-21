@@ -13,6 +13,7 @@ import { createDriver, scratchRepo } from './hub-driver.mjs'
 import { checkGuards, checkLimits, checkShutdown } from './limit-checks.mjs'
 import { checkOversize } from './oversize-checks.mjs'
 import { createReport } from './report.mjs'
+import { checkResets } from './reset-checks.mjs'
 import { checkSnapshot } from './snapshot-checks.mjs'
 import { closeReader, socketUrl } from './stream-client.mjs'
 
@@ -52,6 +53,7 @@ process.stdout.write(
 )
 
 await checkGuards(context)
+await checkResets(context)
 const first = await checkSnapshot(context, 'on connect')
 const repo = await scratchRepo()
 await checkEvents({ ...context, reader: first.reader, snapshot: first, repo })
