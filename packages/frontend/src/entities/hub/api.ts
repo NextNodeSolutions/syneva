@@ -13,7 +13,7 @@ import { WEB_HUBS_PREFIX, WEB_PATHS } from '@syneva/contracts/web'
 
 import { decodeHubDesk, decodeHubHealth, decodeWebMe } from './decode'
 import { decodeMarkdown, decodePlan, decodePlanDocument } from './plan-decode'
-import { RELAY_WORDS, relayKindOf } from './relay'
+import { localOnlyWords, RELAY_WORDS, relayKindOf } from './relay'
 
 import type { HubDesk, HubHealth, NewDeskInput, WebMe } from './model'
 import type { Plan, PlanDocument, PlanStatusChange } from './plan-model'
@@ -164,6 +164,10 @@ export function hubRefusal(error: unknown): HubRefusal {
 		error.status === UNAUTHORIZED.status
 	)
 		return { kind: 'signed-out' }
+	// What the hub keeps for its machine: its sentence, then what to do instead.
+	const instead = localOnlyWords(error)
+	if (instead)
+		return { kind: 'refused', reason: `${error.message} ${instead}` }
 	return { kind: 'refused', reason: error.message }
 }
 

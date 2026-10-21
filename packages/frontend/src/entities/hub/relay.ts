@@ -42,6 +42,23 @@ export const RELAY_WORDS: Record<RelayKind, string> = {
 	'too-large': 'That answer is too large to carry through the web.',
 }
 
+// What a hub keeps for its own machine when the web relays the request (RFC 0001, 7), by the code
+// its refusal names: an open of a folder it serves no desk on, or of a pr (which checks the PR out
+// there). Its own sentence says what it refused; these say what the reviewer does instead. The
+// codes are read as the hub sends them.
+const LOCAL_ONLY_WORDS: Readonly<Record<string, string>> = {
+	NOT_SERVED:
+		'From the web, a desk opens only on a repository this hub already has a live desk on: open any other with syneva open on its machine.',
+	PR_LOCAL_ONLY:
+		'Open it there with syneva open pr <ref>: the web reviews it once it is open.',
+}
+
+export function localOnlyWords(error: ApiError): string | null {
+	const { code } = error
+	if (!code || !Object.hasOwn(LOCAL_ONLY_WORDS, code)) return null
+	return LOCAL_ONLY_WORDS[code] ?? null
+}
+
 export function isRelayNotice(kind: RelayKind): kind is RelayNotice {
 	return kind === 'offline' || kind === 'timeout'
 }

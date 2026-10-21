@@ -32,9 +32,19 @@ const SOURCES: readonly Choice<Source>[] = [
 	},
 ]
 
+// What the dialog offers to review: from the web, no pr, which only the hub's machine opens (it
+// checks the PR out in the working tree there).
+function sourcesOf(form: NewReview): readonly Choice<Source>[] {
+	if (!form.isRelayed) return SOURCES
+	return SOURCES.filter(choice => choice.value !== 'pr')
+}
+
 // The sources with the chosen one marked for the dialog's first focus.
-function focusedOn(source: Source): readonly Choice<Source>[] {
-	return SOURCES.map(choice => ({
+function focusedOn(
+	sources: readonly Choice<Source>[],
+	source: Source,
+): readonly Choice<Source>[] {
+	return sources.map(choice => ({
 		...choice,
 		isAutofocused: choice.value === source,
 	}))
@@ -52,6 +62,7 @@ export function NewReviewFields({
 	isSeeded: boolean
 }): ReactElement {
 	const { fields } = form
+	const sources = sourcesOf(form)
 	return (
 		<div {...stylex.props(newReviewDialog.fields)}>
 			<NewReviewHub form={form} />
@@ -64,7 +75,7 @@ export function NewReviewFields({
 				legend="What to review"
 				name="source"
 				value={fields.source}
-				options={isSeeded ? focusedOn(fields.source) : SOURCES}
+				options={isSeeded ? focusedOn(sources, fields.source) : sources}
 				onChange={form.setSource}
 			/>
 			{needsTarget(fields.source) && (

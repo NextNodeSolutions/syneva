@@ -1,6 +1,6 @@
 import { useId } from 'react'
 
-import { useHubList } from '@entities/hub/use-hubs'
+import { useHubList, useHubMode } from '@entities/hub/use-hubs'
 import { Code } from '@shared/ui/code'
 import { Dialog } from '@shared/ui/dialog'
 import { DialogBody } from '@shared/ui/dialog-body'
@@ -15,6 +15,26 @@ import { OpenRefusal } from './open-refusal'
 
 import type { ReactElement } from 'react'
 
+// Where the repository has to be: on the hub's machine, and from the web, one the hub already
+// serves (use-new-review.ts).
+function NewReviewIntro({
+	id,
+	isRelayed,
+}: {
+	id: string
+	isRelayed: boolean
+}): ReactElement {
+	return (
+		<p id={id} {...stylex.props(newReviewDialog.intro)}>
+			{isRelayed
+				? 'From the web, the repository has to be one this hub already has a live desk on.'
+				: "The repository has to be on this hub's machine."}{' '}
+			The desk reads it the way <Code>syneva open</Code> would from inside
+			it.
+		</p>
+	)
+}
+
 export function NewReviewDialog({
 	roots,
 	seed,
@@ -24,7 +44,7 @@ export function NewReviewDialog({
 	seed: string | null
 	onClose: () => void
 }): ReactElement {
-	const form = useNewReview(seed, useHubList())
+	const form = useNewReview(seed, useHubList(), useHubMode())
 	const titleId = useId()
 	const introId = useId()
 	const close = (): void => {
@@ -48,11 +68,7 @@ export function NewReviewDialog({
 					<h2 id={titleId} {...stylex.props(newReviewDialog.title)}>
 						Open a desk.
 					</h2>
-					<p id={introId} {...stylex.props(newReviewDialog.intro)}>
-						The repository has to be on this hub&apos;s machine. The
-						desk reads it the way <Code>syneva open</Code> would
-						from inside it.
-					</p>
+					<NewReviewIntro id={introId} isRelayed={form.isRelayed} />
 					<NewReviewFields
 						form={form}
 						roots={roots}

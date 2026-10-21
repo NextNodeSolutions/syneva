@@ -24,7 +24,11 @@ export function RepositoryField({
 				data-autofocus={isAutofocused || undefined}
 				list={rootsListId}
 				placeholder="/home/you/projects/app"
-				hint="An absolute path inside the repository (or ~/…), on this hub's machine."
+				hint={
+					form.isRelayed
+						? 'The path of a repository this hub has a live desk on, as its machine names it.'
+						: "An absolute path inside the repository (or ~/…), on this hub's machine."
+				}
 				error={form.errors.root}
 				value={form.fields.root}
 				readOnly={form.isBusy}

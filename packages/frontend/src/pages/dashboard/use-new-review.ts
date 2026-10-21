@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { useOpenDesk } from './use-open-desk'
 
+import type { HubMode } from '@entities/hub/mode'
 import type { HubRef, NewDeskInput } from '@entities/hub/model'
 import type { FormEvent } from 'react'
 import type { OpenRefusal } from './use-open-desk'
@@ -33,6 +34,9 @@ export type NewReview = {
 	hubId: string | null
 	// Whether the dialog asks for the hub (isHubAsked).
 	asksHub: boolean
+	// The web relays the open: it reviews a repository the hub already serves, and never a pr,
+	// which only the hub's machine opens (RFC 0001, 7).
+	isRelayed: boolean
 	setHub: (hubId: string) => void
 	setRoot: (root: string) => void
 	setSource: (source: Source) => void
@@ -158,6 +162,7 @@ function fieldSetters(
 export function useNewReview(
 	seed: string | null,
 	hubs: readonly HubRef[],
+	mode: HubMode | null,
 ): NewReview {
 	const [fields, setFields] = useState(() => ({ ...BLANK, root: seed ?? '' }))
 	const [errors, setErrors] = useState(NO_ERRORS)
@@ -174,6 +179,7 @@ export function useNewReview(
 		hubs,
 		hubId,
 		asksHub: isHubAsked(hubs),
+		isRelayed: mode === 'web',
 		...setters,
 		errors,
 		refusal: desk.refusal,
