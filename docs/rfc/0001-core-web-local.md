@@ -4,7 +4,9 @@ summary: How Syneva works today, how the workspace splits into one core, two ada
 ---
 # RFC 0001 · Core, web, local: one hub, two ways in
 
-Status: proposal v2.2, nothing implemented. Date: 2026-10-21. Branch: `worktree-bridge-*`.
+Status: v2.3, phases 0 to 2 implemented (section 12 records where the code differs from the
+sections above), phase 3 open. Date: 2026-10-21. Branches: the `feat/core-*`, `feat/bridge-*`,
+`feat/apps-web` and `feat/web-*` stack.
 
 v2 replaces v1's bridge (a D1 mailbox that a Worker invocation re-read every 250 ms) under the
 rule that polling is a last resort (`AGENTS.md`, Conventions). The bridge is now one Durable
@@ -925,11 +927,136 @@ journal file, the local workflow without an account, the agents' `await-send`.
 
 ## 11. Open questions
 
-1. `ws` as the local hub's one new dependency (bundled), or a hand-written RFC 6455 server
-   (no dependency, more code to get wrong). This RFC says `ws`.
+1. Decided (phase 0): `ws`, bundled into the CLI, is the local hub's one new dependency.
 2. Sign-in: magic link only at first (Resend is wired), GitHub OAuth later if PR desks want it.
-3. Naming: `packages/core` and `packages/local` (this RFC), or keep `backend` and add `local`.
+3. Decided (phase 0): `packages/core` and `packages/local`; `backend` is gone.
 4. Whether `node:path` in core should become a posix-only helper now or when the first Windows
    hub pairs.
 5. The outline on Workers: `oxc-parser`'s wasm build if it runs there, else headings only for
    web desks until it does.
+
+## 12. Implementation notes (phases 0 to 2)
+
+What shipped differs from the sections above in the points below. Each is the implementation's
+choice, recorded here so this RFC stays the reference and the code the truth; `apps/web/AGENTS.md`
+holds the web's list with the rule each point serves.
+
+### 12.1 Contract additions (section 8)
+
+- `BridgeFrame` gained `plan` (a plan record created or changed: the dashboard read the plan
+  library on a timer, the stream replaces that read too) and `pairing` (the local hub tells its
+  own tabs where its probe stands; a probe never sends it to the web). The `hub` frame carries
+  `version` and `lastSeenAt` from the web's rows, one per paired hub when a tab connects, offline
+  hubs included (the Worker hands the object the person's hubs with the upgrade: the object
+  stores nothing).
+- `RelayFailure` gained `TOO_MANY` (the hub's side of `inFlightPerUser`: the tab gets 429);
+  `RELAY_FAILURE_STATUS` fixes the status per failure (`HUB_OFFLINE` 503, `HUB_TIMEOUT` 504,
+  `TOO_LARGE` 413, `TOO_MANY` 429, a hub socket closing mid-answer 502).
+- `BRIDGE_PATHS.hubRevoke`: `DELETE /bridge/v1/hub` with the hub's token, `syneva logout`'s
+  revocation. `BRIDGE_LIMITS` gained `rateWaitMs`, `tooManyWaitMs` and `saturatedWaitMs` (4.3's
+  waits as constants); `CLOSE_CODES` gained `normal` (1000) and `goingAway` (1001).
+- `WEB_HUB_HEADER` (`x-syneva-hub`): the hub a relayed hub-level request goes to when its path
+  names no web id (`POST /api/hub/desks`, `POST /api/hub/inventory`, `GET /api/hub/plans`).
+- `contracts/web.ts`: the web's own routes and shapes. `WEB_PATHS.login` and `logout` (the hub
+  paths), `magicLink` (`POST /auth/magic-link`), `authCallback` (`GET /auth/callback?token=`),
+  `device` (`GET`/`POST /device`, the page `syneva login` sends the person to), `me`
+  (`GET /api/web/me`), `hubs` (`GET /api/web/hubs`, `DELETE /api/web/hubs/<hubId>`); the session
+  cookie's name, 30 days; a link's 15 minutes.
+- `DeskCapabilities { staging }` (`contracts/browser.ts`) and `409 STAGING_DISABLED`: a desk whose
+  git port has no staging tier (a PR desk today, a web desk in phase 3) says so to the tab instead
+  of failing the action.
+- Core's router takes a `RequestChannel`: `direct`, or `relayed-over-pairing` for a request the
+  probe dispatches, which skips the Host/Origin and access guards and nothing else (section 7's
+  in-process dispatch).
+
+### 12.2 Phase 0 and 1 choices
+
+- The local stream has no backpressure cap for a slow reader: `ws` buffers, and a tab that never
+  reads grows the process. Noted, not guarded (a local tab, not a billed object).
+- The probe refuses a `req` whose path `contracts/relay.ts` does not list (`404 NOT_RELAYED`) or
+  that does not read as itself (`400 MALFORMED_RELAY`), and never refuses a body for its size: the
+  Worker bounds bodies at `requestBodyBytes` before relaying (R9). A cancelled relay skips the
+  route's `afterSent` work.
+- `SYNEVA_BRIDGE_WAIT_SCALE` (test-only) scales the probe's waits for `test/bridge`'s conformance
+  check; unset, the waits are 4.3's.
+- `test/bridge/fake-bridge.mjs` is the probe's oracle (the pairing routes, both sockets, the relay,
+  the test-only controls); it sends `hub` frames for connected hubs only and never the two row
+  fields, so the browser tolerates their absence.
+
+### 12.3 Phase 2 choices (`apps/web`)
+
+The Worker and the object:
+
+- The breaker (6.5) refuses an upgrade with HTTP 503 `SATURATED` before any object call, not with
+  close code 4029 on the upgrade: a close code needs an accepted socket, which is an object call.
+  Clients read a 503 on an upgrade as 4029 (five minutes). The drained objects close their sockets
+  with 4029; a relay while tripped answers 503 `HUB_OFFLINE`. The drain reaches every user's object
+  (bounded by the user count), not only the hubs seen in the last day: a tab may be open with no
+  hub online.
+- The relay's deadline is the Worker's (`AbortSignal.timeout` on its call into the object; the
+  object has no timer, R2): on the deadline the Worker asks the object to `cancel` the hub's side
+  if no answer started, then answers 504. Inside the object, a reader more than two chunks behind
+  cuts its relay (no buffering past about 1.1 MiB per relay), and a relay the Worker never
+  cancelled is dropped at twice the deadline, compared on the object's next event.
+- Relayed answers keep a header allowlist (`content-type`, `cache-control`, `etag`,
+  `last-modified`, `content-disposition`, `vary`), never a cookie, and gain
+  `content-security-policy: default-src 'none'; sandbox` and `x-content-type-options: nosniff`:
+  a hub's bytes (a `/blob` SVG) are served on the web's origin.
+- The sign-in limits of 6.1 F1 are per address per hour and per day in D1 (a rate-limit binding
+  counts over 10 or 60 seconds only); the `RL_AUTH` binding holds 10 per minute per client address
+  on the magic link, the device code and the hub's upgrade. `POST /bridge/v1/device/token` polled
+  under its interval answers 429 `SLOW_DOWN`; a code pairs once (410 after).
+- Sessions: a random id in the cookie, kept as its HMAC-SHA256 under `SESSION_SECRET`, so a
+  database dump alone forges nothing. A page shell is served on a cookie that merely looks present
+  (no D1 read per navigation); the first API call says 401. `GET /logout` is a confirmation page,
+  the sign-out itself a same-origin POST.
+- Additions: at most 32 live hubs per account at approval (409 `TOO_MANY_HUBS`); a hub's name cut
+  to 64 characters; settings capped at 64 KiB; `lastSeenAt` is the hub's last connect (the object
+  writes nothing on close, R3); `instanceId` in the web's health is a build-time constant.
+- Lint (6.3): oxlint has no `no-restricted-syntax`, so R1, R2 and R4 are held by
+  `no-restricted-properties` on the property names. R8: `console.error` on a socket's error only,
+  not on every close. R12: the object's bundle is contracts only until the hub role joins it.
+- The page shells sit under `/_shell/` in the assets, so a dashboard path or `/d/<id>/` never
+  matches an asset first and the Worker is correct with or without `assets.run_worker_first`
+  (the pipeline's generator emits none, 12.4).
+
+The browser (section 9):
+
+- Web mode is read from the stream, never from the page: a `hub` frame or a web hub id makes the
+  page `web`, a hello from `LOCAL_HUB_ID` makes it `local`; the health is read once on the web.
+  A 503 on the upgrade's probe waits `saturatedWaitMs`, as 4029 does.
+- Relay failures are non-blocking strips over the desk (`HUB_OFFLINE`, `HUB_TIMEOUT`: the hub
+  cannot be reached now) or toasts (`TOO_MANY`, `TOO_LARGE`: the hub is fine), under the existing
+  refresh and sign-in covers. Nothing retries on its own.
+- Only `POST /api/hub/desks` carries `WEB_HUB_HEADER` (the New review dialog's pick; no browser
+  caller of `/api/hub/inventory` exists). Project ids are scoped per hub in the browser
+  (`<hubId><projectId>`, `entities/hub/hub-ids.ts`): the probe scopes desks and plans, not
+  projects, and two laptops can hold a repository at the same path.
+- The journal's freshness marker is a page ordinal, not a hub's `seq` (seqs of different hubs do
+  not compare); the feed keys on `(hubId, seq)` as 4.8 says.
+- The Hub page's web side lists the hubs (name, CLI version, online or last connect, revoke) and
+  who is signed in, with a sign-out form; the pairing section stays the local page's. The UI's
+  copy is English, as the rest of it.
+
+### 12.4 The deploy pipeline
+
+`NextNodeSolutions/core`'s `deploy.yml` generates each Worker's wrangler config from the root
+`nextnode.toml` and supports D1 (one database per project, one migrations folder), KV, R2,
+queues, rate limiters, limits, assets (the directory derived from the entry, no
+`run_worker_first`), `observability.enabled` and routes, but no Durable Object binding or
+migration, no `observability.logs` settings and no D1 per service. `apps/web` therefore ships its
+own `wrangler.jsonc` (the Worker's complete config: local development today, what a deploy would
+use) and no `[deploy.services]` entry; `apps/web/AGENTS.md` ("Deploy: what the pipeline must
+learn") lists the fields the pipeline must gain before CI deploys it. Nothing is deployed; the
+staging Worker and T1 to T10 on it (6.7) wait for that.
+
+### 12.5 What checks it
+
+`test/stream/conformance.mjs` (the local stream, frame by frame), `test/bridge/conformance.mjs`
+(the probe against the fake bridge, T2 and T4 on the hub's side), `test/web/smoke.mjs` (the
+Worker under `wrangler dev` with the CLI and a scratch hub: sign-in, pairing, the tab's socket,
+the relay, revocation, the breaker, sign-out) and `test/web/cost/run.mjs` (6.7's tests: T2, T4,
+T5 and T6 run whole under `wrangler dev`, T1, T3, T8 and T9 as local dry runs, T7 against a dev
+restart; with `--staging <origin>` each runs what a deployed Worker takes and prints what a
+person completes there: the Analytics reads, the WAF rule, a deploy, T10's edge drill), all
+documented in their folder's README.
