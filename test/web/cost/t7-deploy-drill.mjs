@@ -12,6 +12,7 @@ const TABS = 5
 const BACK_WITHIN_MS = 60_000
 const MAX_ATTEMPTS = 8
 const SLACK_MS = 3000
+const TIMER_RESOLUTION_MS = 1
 const STABLE_MS = 15_000
 const POLL_MS = 500
 const UP_WITHIN_MS = 60_000
@@ -122,7 +123,10 @@ function respectsBackoff(client, since) {
 			const retry = client.retries.findLast(wait => wait.at <= each.at)
 			if (!retry) return false
 			const elapsed = each.at - retry.at
-			return elapsed >= retry.waitMs && elapsed <= retry.waitMs + SLACK_MS
+			return (
+				elapsed + TIMER_RESOLUTION_MS >= Math.floor(retry.waitMs) &&
+				elapsed <= retry.waitMs + SLACK_MS
+			)
 		})
 	)
 }
