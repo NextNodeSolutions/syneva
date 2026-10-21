@@ -3,7 +3,7 @@
 // MAGIC_LINK_MINUTES; following it creates the user on a first sign-in and opens the session.
 import { MAGIC_LINK_MINUTES, WEB_PATHS } from '@syneva/contracts/web'
 
-import { insertLoginCode, linkCounts } from '../db/login-codes.js'
+import { insertLoginCode } from '../db/login-codes.js'
 import { fail, html, json, seeOther } from '../http/answer.js'
 import { isRead, secondsAfter } from '../http/call.js'
 import { sameOriginRefusal } from '../http/guard.js'
@@ -98,19 +98,8 @@ async function sendLink(
 	clientDigest: string,
 ): Promise<Response> {
 	const { env, now } = call
-	const counts = await linkCounts(
-		env.DB,
-		{ email: ask.email, clientDigest },
-		now,
-	)
-	if (
-		counts.perAddress >= LINKS_PER_ADDRESS_HOUR ||
-		counts.perClient >= LINKS_PER_CLIENT_HOUR ||
-		counts.today >= LINKS_PER_DAY
-	)
-		return refused(ask, TOO_MANY_LINKS)
 	const token = randomToken()
-	await insertLoginCode(
+	const isInserted = await insertLoginCode(
 		env.DB,
 		{
 			digest: await sha256Hex(token),
@@ -122,8 +111,14 @@ async function sendLink(
 				MAGIC_LINK_MINUTES * SECONDS_PER_MINUTE,
 			),
 		},
+		{
+			perAddress: LINKS_PER_ADDRESS_HOUR,
+			perClient: LINKS_PER_CLIENT_HOUR,
+			perDay: LINKS_PER_DAY,
+		},
 		now,
 	)
+	if (!isInserted) return refused(ask, TOO_MANY_LINKS)
 	return mailLink(env, ask, token)
 }
 

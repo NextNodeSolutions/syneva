@@ -4,10 +4,10 @@
 // on the next link asked for; a day's count stays a week.
 import { iso, secondsAfter } from '../http/call.js'
 
-export type LinkCounts = {
+export type LinkLimits = {
 	perAddress: number
 	perClient: number
-	today: number
+	perDay: number
 }
 
 export type LoginCode = {
@@ -27,48 +27,22 @@ export function dayOf(date: Date): string {
 	return iso(date).slice(0, DAY_LENGTH)
 }
 
-export async function linkCounts(
-	db: D1Database,
-	asked: { email: string; clientDigest: string },
-	now: Date,
-): Promise<LinkCounts> {
-	const since = iso(secondsAfter(now, -HOUR_S))
-	const [perAddress, perClient, today] = await db.batch<{ n: number }>([
-		db
-			.prepare(
-				'SELECT COUNT(*) AS n FROM login_codes WHERE email = ? AND created_at > ?',
-			)
-			.bind(asked.email, since),
-		db
-			.prepare(
-				'SELECT COUNT(*) AS n FROM login_codes WHERE client_digest = ? AND created_at > ?',
-			)
-			.bind(asked.clientDigest, since),
-		db
-			.prepare('SELECT emails_sent AS n FROM counters WHERE day = ?')
-			.bind(dayOf(now)),
-	])
-	return {
-		perAddress: perAddress?.results[0]?.n ?? 0,
-		perClient: perClient?.results[0]?.n ?? 0,
-		today: today?.results[0]?.n ?? 0,
-	}
-}
-
 // The link's row and the day's count, in one transaction, after the dead rows.
 export async function insertLoginCode(
 	db: D1Database,
 	code: LoginCode,
+	limits: LinkLimits,
 	now: Date,
-): Promise<void> {
+): Promise<boolean> {
 	const day = dayOf(now)
-	await db.batch([
+	const since = iso(secondsAfter(now, -HOUR_S))
+	const [, inserted] = await db.batch([
 		db
 			.prepare('DELETE FROM login_codes WHERE created_at <= ?')
 			.bind(iso(secondsAfter(now, -HOUR_S))),
 		db
 			.prepare(
-				'INSERT INTO login_codes (code_digest, email, next, client_digest, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+				'INSERT INTO login_codes (code_digest, email, next, client_digest, expires_at, created_at) SELECT ?, ?, ?, ?, ?, ? WHERE (SELECT COUNT(*) FROM login_codes WHERE email = ? AND created_at > ?) < ? AND (SELECT COUNT(*) FROM login_codes WHERE client_digest = ? AND created_at > ?) < ? AND COALESCE((SELECT emails_sent FROM counters WHERE day = ?), 0) < ?',
 			)
 			.bind(
 				code.digest,
@@ -77,16 +51,25 @@ export async function insertLoginCode(
 				code.clientDigest,
 				iso(code.expiresAt),
 				iso(now),
+				code.email,
+				since,
+				limits.perAddress,
+				code.clientDigest,
+				since,
+				limits.perClient,
+				day,
+				limits.perDay,
 			),
 		db
 			.prepare(
-				'INSERT INTO counters (day, emails_sent) VALUES (?, 1) ON CONFLICT (day) DO UPDATE SET emails_sent = emails_sent + 1',
+				'INSERT INTO counters (day, emails_sent) SELECT ?, 1 WHERE changes() > 0 ON CONFLICT (day) DO UPDATE SET emails_sent = emails_sent + 1',
 			)
 			.bind(day),
 		db
 			.prepare('DELETE FROM counters WHERE day < ?')
 			.bind(dayOf(secondsAfter(now, -WEEK_S))),
 	])
+	return (inserted?.meta.changes ?? 0) > 0
 }
 
 // The link's address and destination, once: the row is marked used in the same statement that
