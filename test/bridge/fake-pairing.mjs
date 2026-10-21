@@ -1,6 +1,7 @@
 // The fake bridge's pairing (RFC 0001, 4.2): device codes, their approval (a test-only control
 // where the web has a signed-in page), the hubs' tokens and their revocation. One user; nothing
-// outlives the process.
+// outlives the process. Every token ask is recorded with its arrival time, and a test-only
+// control queues what the next asks meet instead of an answer (`failNextAsks`).
 import { randomBytes } from 'node:crypto'
 
 import {
@@ -24,6 +25,9 @@ const BODY_CAP = 65_536
 
 export class FakePairing {
 	revocations = []
+	// Every POST /bridge/v1/device/token, as { at }: when it arrived.
+	tokenAsks = []
+	#nextAsks = []
 	#devices = new Map()
 	#tokens = new Map()
 	#origin
@@ -58,7 +62,11 @@ export class FakePairing {
 	}
 
 	async deviceToken(request, response) {
+		this.tokenAsks.push({ at: Date.now() })
 		const { deviceCode = '' } = await readJson(request, BODY_CAP)
+		const failure = this.#nextAsks.shift()
+		if (failure?.drop) return request.socket.destroy()
+		if (failure) return failJson(response, failure.status, failure.code)
 		const device = this.#devices.get(deviceCode)
 		if (!device)
 			return failJson(response, HTTP_BAD_REQUEST, 'DEVICE_UNKNOWN')
@@ -89,6 +97,13 @@ export class FakePairing {
 		device.hub = { hubId, token, name: device.name, revoked: false }
 		this.#tokens.set(token, device.hub)
 		return sendJson(response, HTTP_OK, { hubId })
+	}
+
+	// Test-only: what the next token asks meet, in order, before the code is read - a refusal
+	// `{ status, code }` (a 429 SLOW_DOWN, a 503) or `{ drop: true }` (the connection closed with
+	// no answer, as a network that dropped).
+	failNextAsks(failures) {
+		this.#nextAsks.push(...failures)
 	}
 
 	// DELETE /bridge/v1/hub: the token's hub is forgotten and `closeHub` closes its socket.

@@ -83,8 +83,9 @@ function routeTable({ pairing, sockets }) {
 	])
 }
 
-// The test-only controls: approve a code, close a hub's socket with a code, refuse every hub
-// upgrade with a status (0 lifts it), stop answering a hub's pings, read what the fake saw.
+// The test-only controls: approve a code, fail the next token asks, close a hub's socket with a
+// code, refuse every hub upgrade with a status (0 lifts it), stop answering a hub's pings, read
+// what the fake saw.
 function controlRoutes({ pairing, sockets }) {
 	const control = handle => async (request, response) => {
 		handle(await readJson(request, CONTROL_BODY_CAP))
@@ -94,6 +95,12 @@ function controlRoutes({ pairing, sockets }) {
 		[
 			'POST /__approve',
 			(request, response) => pairing.approve(request, response),
+		],
+		[
+			'POST /__token-asks',
+			control(({ failures = [] }) => {
+				pairing.failNextAsks(failures)
+			}),
 		],
 		[
 			'POST /__close',

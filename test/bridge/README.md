@@ -37,7 +37,10 @@ its hub id and are forwarded verbatim to the tabs; a token bucket per hub socket
 closes it with 1008 past `framesPerSecond` or `bytesPerSecond`; pings get their pong outside it.
 Every frame is recorded with its size and arrival time.
 
-Test-only controls: `POST /__approve { userCode, deny? }`, `POST /__close { hubId, code, reason? }`,
+Test-only controls: `POST /__approve { userCode, deny? }`,
+`POST /__token-asks { failures }` (the next token asks meet these instead of an answer, in order:
+`{ status, code }` or `{ drop: true }`, the connection closed unanswered; every ask's arrival time
+is recorded), `POST /__close { hubId, code, reason? }`,
 `POST /__refuse { status }` (every hub upgrade refused with it; 0 lifts it),
 `POST /__silence { hubId, silent? }` (pings go unanswered), `GET /__state`.
 
@@ -48,7 +51,10 @@ Test-only controls: `POST /__approve { userCode, deny? }`, `POST /__close { hubI
   hub started after `logout`.
 - **Login**: a denied code and an unreachable web exit 1 naming the cause; the code and its URL
   are printed, approving it writes `bridge.json` mode 0600 with the web, hub id, token, name and
-  pairing time, and the running hub connects at once (`login` says so) with the token.
+  pairing time, and the running hub connects at once (`login` says so) with the token. Its first
+  token asks meet a dropped connection, a 503 and a 429 `SLOW_DOWN` (RFC 8628, 3.5): it asks again
+  after 2 s then 4 s (the interval doubled, each failure said on stderr with when the next ask
+  goes), then after the interval raised by 5 s, and still pairs.
 - **Stream**: a tab's snapshot starts with `hello` naming the web hub id and the hub's identity;
   every frame names the web hub id. The CLI's and the reviewer's actions (open, open plan, a plan
   status, comment, ask, await, send, reload, close; the reviewer's through the relay) raise their

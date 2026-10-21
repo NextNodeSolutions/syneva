@@ -21,9 +21,14 @@ export class WebCallError extends Error {
 	}
 }
 
-// The token step's answer: the token, still pending, or the web's refusal in words (the code was
-// denied, expired, or is unknown to it).
-export type TokenStep = DeviceTokenAnswer | { refused: string }
+// The token step's answer: the token, still pending, asked too soon (429, SLOW_DOWN or the web's
+// rate limit), a failure worth asking again after (the web did not answer, or failed with a 5xx)
+// in words, or the web's refusal in words (the code was denied, expired, or is unknown to it).
+export type TokenStep =
+	| DeviceTokenAnswer
+	| { slowDown: true }
+	| { transient: string }
+	| { refused: string }
 
 type WebAnswer = { status: number; body: unknown }
 
@@ -48,10 +53,10 @@ export async function requestDeviceToken(
 	web: string,
 	deviceCode: string,
 ): Promise<TokenStep> {
-	const answer = await call(web, BRIDGE_PATHS.deviceToken, {
-		method: 'POST',
-		body: { deviceCode },
-	})
+	const answer = await tokenCall(web, deviceCode)
+	if ('transient' in answer) return answer
+	if (answer.status === HTTP_TOO_MANY) return { slowDown: true }
+	if (isTransient(answer.status)) return { transient: refusalOf(web, answer) }
 	if (!isOk(answer.status)) return { refused: refusalOf(web, answer) }
 	const token = readDeviceToken(answer.body)
 	if (!token)
@@ -66,6 +71,22 @@ export async function revokeHub(web: string, token: string): Promise<void> {
 		token,
 	})
 	if (!isOk(answer.status)) throw new WebCallError(refusalOf(web, answer))
+}
+
+// The token call; the web unreachable or silent is a step worth asking again after.
+async function tokenCall(
+	web: string,
+	deviceCode: string,
+): Promise<WebAnswer | { transient: string }> {
+	try {
+		return await call(web, BRIDGE_PATHS.deviceToken, {
+			method: 'POST',
+			body: { deviceCode },
+		})
+	} catch (error) {
+		if (!(error instanceof WebCallError)) throw error
+		return { transient: error.message }
+	}
 }
 
 async function call(
@@ -102,8 +123,16 @@ function isOk(status: number): boolean {
 	return status >= HTTP_OK && status < HTTP_REDIRECT
 }
 
+// The web (or what stands before it) failed this time: a timeout or a server error.
+function isTransient(status: number): boolean {
+	return status === HTTP_TIMEOUT || status >= HTTP_SERVER_ERROR
+}
+
 const HTTP_OK = 200
 const HTTP_REDIRECT = 300
+const HTTP_TIMEOUT = 408
+const HTTP_TOO_MANY = 429
+const HTTP_SERVER_ERROR = 500
 
 async function jsonOf(response: Response): Promise<unknown> {
 	const text = await response.text()

@@ -7,13 +7,37 @@ import path from 'node:path'
 import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 import { readSnapshot, socketUrl, waitFor } from '../stream/stream-client.mjs'
 
-import { HTTP_SWITCHING } from './http-wire.mjs'
+import {
+	HTTP_SWITCHING,
+	HTTP_TOO_MANY,
+	HTTP_UNAVAILABLE,
+} from './http-wire.mjs'
 import { runCli, spawnCli } from './hub-process.mjs'
 
 const CODE_WAIT_MS = 10_000
 const OWNER_ONLY = 0o600
 const OCTAL = 8
 const MODE_BITS = 0o777
+// The fake's device-code interval, and RFC 8628's slow_down step.
+const INTERVAL_MS = 1000
+const SLOW_DOWN_MS = 5000
+// How much later than its wait an ask may arrive: the answer's own round trip and a timer's lag.
+const ASK_LATE_MS = 900
+// What the login's first token asks meet: a connection dropped, a 503, a 429 SLOW_DOWN.
+const FAILED_ASKS = [
+	{ drop: true },
+	{ status: HTTP_UNAVAILABLE, code: 'UNAVAILABLE' },
+	{ status: HTTP_TOO_MANY, code: 'SLOW_DOWN' },
+]
+// The wait before each ask after them: the interval doubled once, twice (two failures in a row),
+// then the interval raised by the slow_down.
+const ONE_FAILURE_MS = 2000
+const TWO_FAILURES_MS = 4000
+const ASK_WAITS_MS = [
+	ONE_FAILURE_MS,
+	TWO_FAILURES_MS,
+	INTERVAL_MS + SLOW_DOWN_MS,
+]
 
 export const bridgeFile = home =>
 	path.join(home, '.syneva', 'hub', 'bridge.json')
@@ -86,10 +110,13 @@ export async function checkLoginRefusals(context) {
 }
 
 // The code printed, approved through the fake's control, the token written owner-only, the
-// running hub connected at once. Hands back what bridge.json holds.
+// running hub connected at once. Its first token asks fail as the web can (RFC 8628, 3.5), and
+// the login still pairs. Hands back what bridge.json holds.
 export async function checkLogin(context) {
 	const { report, fake, home } = context
 	report.section('login')
+	const asked = fake.pairing.tokenAsks.length
+	fake.pairing.failNextAsks(FAILED_ASKS)
 	const login = spawnCli(context, [
 		'login',
 		'--web',
@@ -113,6 +140,22 @@ export async function checkLogin(context) {
 		code === 0 && /: the hub is connected\.$/m.test(stderr),
 		stderr,
 	)
+	checkAsks(report, fake.pairing.tokenAsks.slice(asked), stderr)
+	const record = await checkRecord(report, {
+		home,
+		web: fake.origin,
+		hubId,
+	})
+	const opened = fake.sockets.upgrades.at(-1)
+	report.check(
+		'the hub opened its socket with the token (101, its web id)',
+		opened?.status === HTTP_SWITCHING && opened.hubId === hubId,
+	)
+	return record
+}
+
+// bridge.json, owner-only, with the pairing.
+async function checkRecord(report, { home, web, hubId }) {
 	const file = bridgeFile(home)
 	const { mode } = await fs.stat(file)
 	report.check(
@@ -123,18 +166,33 @@ export async function checkLogin(context) {
 	const record = JSON.parse(await fs.readFile(file, 'utf8'))
 	report.check(
 		'bridge.json holds the web, the hub id, its token, name and pairing time',
-		record.web === fake.origin &&
+		record.web === web &&
 			record.hubId === hubId &&
 			Boolean(record.token) &&
 			Boolean(record.name) &&
 			!Number.isNaN(Date.parse(record.pairedAt)),
 	)
-	const opened = fake.sockets.upgrades.at(-1)
-	report.check(
-		'the hub opened its socket with the token (101, its web id)',
-		opened?.status === HTTP_SWITCHING && opened.hubId === hubId,
-	)
 	return record
+}
+
+// A dropped connection and a 503 are asked again after 2 s then 4 s, each said on stderr; the
+// SLOW_DOWN after them raises the interval by 5 s; the next ask pairs.
+function checkAsks(report, asks, stderr) {
+	const gaps = asks.slice(1).map((ask, at) => ask.at - asks[at].at)
+	report.check(
+		'a dropped connection, a 503 and a SLOW_DOWN: asked again after 2 s, 4 s, then the interval + 5 s',
+		asks.length === FAILED_ASKS.length + 1 &&
+			ASK_WAITS_MS.every(
+				(wait, at) => gaps[at] >= wait && gaps[at] < wait + ASK_LATE_MS,
+			),
+		`gaps ${JSON.stringify(gaps)} ms`,
+	)
+	report.check(
+		'each failed ask is said, with when the next goes',
+		/did not answer \(.*\); asking again in 2 s\./.test(stderr) &&
+			/answered 503 UNAVAILABLE.*; asking again in 4 s\./.test(stderr),
+		stderr,
+	)
 }
 
 // The token revoked on the web, the file gone, the hub's socket dropped and its tabs told.

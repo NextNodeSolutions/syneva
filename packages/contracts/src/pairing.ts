@@ -17,7 +17,10 @@ export type DeviceCodeAnswer = {
 	expiresIn: number
 }
 
-// POST /bridge/v1/device/token: asked again every `interval` seconds until the code is approved.
+// POST /bridge/v1/device/token: asked again every `interval` seconds until the code is approved,
+// as RFC 8628 (3.5) asks it: an ask the web finds too soon answers 429 SLOW_DOWN, and the CLI adds
+// 5 s to its interval for the rest of the login; a web that does not answer, or fails (5xx), is
+// asked again after a wait that doubles, until the code's lifetime ends.
 export type DeviceTokenRequest = { deviceCode: string }
 
 // The hub's web id and its token once approved; `pending` until then.
@@ -26,10 +29,11 @@ export type DeviceTokenAnswer =
 	| { pending: true }
 
 // A code the person refused, that expired or that the web does not know answers a 4xx with the
-// hub's error shape and one of these codes; the CLI stops asking.
+// hub's error shape and one of these codes, and the CLI stops asking; an ask under the interval
+// answers 429 SLOW_DOWN, and the CLI asks again, slower.
 export type DeviceTokenRefusal = {
 	error: string
-	code: 'DEVICE_DENIED' | 'DEVICE_EXPIRED' | 'DEVICE_UNKNOWN'
+	code: 'DEVICE_DENIED' | 'DEVICE_EXPIRED' | 'DEVICE_UNKNOWN' | 'SLOW_DOWN'
 }
 
 // Where the probe's socket to the web stands (RFC 4.3's client policy), with the time it got
