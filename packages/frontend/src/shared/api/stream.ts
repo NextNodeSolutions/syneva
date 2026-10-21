@@ -2,6 +2,7 @@
 // origin, the frames it carries, and the client policy every close code asks for. It owns three
 // timers and no other: the ping, the pong's deadline and the wait before the next attempt.
 // Nothing here re-asks for state: a reconnect's snapshot is the only resync.
+import { backoffMs } from '@shared/lib/backoff'
 import {
 	BRIDGE_LIMITS,
 	BRIDGE_PATHS,
@@ -41,7 +42,6 @@ type Waiting = Extract<StreamLink, { retryAt: number }>['kind']
 
 const HTTP_UNAUTHORIZED = 401
 const NORMAL_CLOSURE = 1000
-const BACKOFF_BASE = 2
 
 // The close codes that name a wait before the next attempt (RFC 4.3), and what the tab says
 // meanwhile: a rate close waits, then backs off as any other; the other two say why they wait.
@@ -187,15 +187,12 @@ class StreamClient {
 		else this.#backoff()
 	}
 
-	// Exponential from backoffMinMs, capped at backoffMaxMs, with full jitter: a fleet of tabs
-	// that dropped together (a deploy, a hub restart) spreads its reconnects.
+	// The bridge's backoff (backoffMs): a fleet of tabs that dropped together (a deploy, a hub
+	// restart) spreads its reconnects.
 	#backoff(): void {
-		const ceiling = Math.min(
-			BRIDGE_LIMITS.backoffMaxMs,
-			BRIDGE_LIMITS.backoffMinMs * BACKOFF_BASE ** this.#attempt,
-		)
+		const wait = backoffMs(this.#attempt)
 		this.#attempt += 1
-		this.#hold('backoff', Math.random() * ceiling)
+		this.#hold('backoff', wait)
 	}
 
 	#hold(kind: Waiting, ms: number): void {

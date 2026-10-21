@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { onHubHello } from '@entities/hub/stream'
+import { retryWhenHubAnswers } from '@entities/hub/stream'
 import { fetchHubPrefs, persistHubPrefs } from '@entities/settings/api'
 import { applyAppearance, DEFAULT_SETTINGS } from '@entities/settings/settings'
 import { createSaver } from '@shared/lib/saver'
@@ -38,24 +38,28 @@ async function readSettings(): Promise<SavedPrefs | null> {
 	}
 }
 
-// Read the settings now, and again each time the hub's stream says hello again: a read only
-// fails when the hub does not answer (a corrupt file reads as the defaults), and the hello is the
-// hub answering again, so no timer re-asks. Returns the teardown.
+// Read the settings now, and again when the hub next answers after a read it left unanswered: a
+// read only fails when the hub does not answer (a corrupt file reads as the defaults), so it waits
+// for the hub's stream to speak again (retryWhenHubAnswers), and no timer re-asks. Returns the
+// teardown.
 function readUntilAnswered(
 	onRead: (prefs: SavedPrefs | null) => void,
 ): () => void {
 	let isCurrent = true
-	const load = async (): Promise<void> => {
-		const read = await readSettings()
-		if (isCurrent) onRead(read)
-	}
-	void load()
-	const stopFollowing = onHubHello(() => {
+	const retry = retryWhenHubAnswers(() => {
 		void load()
 	})
+	async function load(): Promise<void> {
+		const read = await readSettings()
+		if (!isCurrent) return
+		onRead(read)
+		if (read) retry.settled()
+		else retry.failed()
+	}
+	void load()
 	return (): void => {
 		isCurrent = false
-		stopFollowing()
+		retry.stop()
 	}
 }
 
@@ -97,7 +101,7 @@ export function useHubSettings(): HubSettings {
 	const [hasReadFailed, setHasReadFailed] = useState(false)
 	const [save, setSave] = useState<SaveState>('idle')
 	const isUnread = settings === null
-	// oxlint-disable-next-line nextnode/no-use-effect -- reads the hub's settings file over HTTP until it answers, again on each hello of the hub's stream
+	// oxlint-disable-next-line nextnode/no-use-effect -- reads the hub's settings file over HTTP until it answers, again when the hub's stream next speaks
 	useEffect(() => {
 		if (!isUnread) return undefined
 		return readUntilAnswered(read => {

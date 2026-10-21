@@ -5,6 +5,7 @@
 // was (the page shows it stale) until the next snapshot replaces it whole.
 import { DecodeError } from '@shared/api/decode'
 import { openHubStream } from '@shared/api/stream'
+import { createAnswerRetry } from '@shared/lib/answer-retry'
 import { BRIDGE_PATHS } from '@syneva/contracts/bridge'
 
 import { fetchHubHealth } from './api'
@@ -26,6 +27,7 @@ import {
 
 import type { HubStream } from '@shared/api/stream'
 import type { StreamFrame } from '@shared/api/stream-frame'
+import type { AnswerRetry } from '@shared/lib/answer-retry'
 import type { JournalEvent } from './journal'
 import type { HubDesk, HubIdentity } from './model'
 import type { Plan } from './plan-model'
@@ -46,6 +48,9 @@ let snapshot: Snapshot | null = null
 // shown at once, and ends the hold. The `closed` frame ends it too; a close whose `closed` frame
 // came before its answer holds nothing.
 const forgotten = new Map<string, string>()
+// Called with every frame the stream brings, once the store took it in: the hub answering, which
+// a read it left unanswered waits for (retryWhenHubAnswers).
+const frameReaders = new Set<(frame: StreamFrame) => void>()
 
 function commit(next: StreamView): void {
 	if (next === view) return
@@ -53,22 +58,27 @@ function commit(next: StreamView): void {
 	for (const reader of readers) reader()
 }
 
-// Once per hub start: what the hello does not say (whether the hub asks for its key). One that
-// does not answer is read again on the next hello.
-async function readHealth(instanceId: string): Promise<void> {
-	if (view.health?.instanceId === instanceId) return
+// Once per hub start: what the hello does not say (whether the hub asks for its key). One the
+// hub left unanswered is read again when it next answers; a new hello reads its own hub's.
+const healthRetry = createAnswerRetry(() => void readHealth())
+
+async function readHealth(): Promise<void> {
+	const instanceId = view.identity?.instanceId
+	if (!instanceId || view.health?.instanceId === instanceId) return
 	try {
 		const health = await fetchHubHealth()
 		commit({ ...view, health })
+		healthRetry.settled()
 	} catch {
-		/* the next hello reads it again */
+		healthRetry.failed()
 	}
 }
 
 function hello(identity: HubIdentity): void {
 	snapshot = emptySnapshot(identity.id)
 	commit(greeted(view, identity))
-	void readHealth(identity.instanceId)
+	healthRetry.settled()
+	void readHealth()
 }
 
 function snapshotEnd(): void {
@@ -150,6 +160,8 @@ function received(frame: StreamFrame): void {
 	} catch (error) {
 		if (!(error instanceof DecodeError)) throw error
 	}
+	healthRetry.heard(frame.t === 'hello')
+	for (const reader of frameReaders) reader(frame)
 }
 
 export function subscribeHub(reader: () => void): () => void {
@@ -183,15 +195,31 @@ export function forgetDesk(closedDesk: HubDesk): void {
 	commit(withoutDesk(view, closedDesk.id))
 }
 
-// Calls `listener` each time the hub says hello to this page again (a reconnect, a restarted
-// hub): a read the hub left unanswered tries again then, never on a timer. Returns the teardown.
-export function onHubHello(listener: () => void): () => void {
-	let heard = view.epoch
-	return subscribeHub(() => {
-		if (view.epoch === heard) return
-		heard = view.epoch
-		listener()
-	})
+// A read of the hub's that failed runs `again` when the hub next answers, never on a timer: on
+// its next hello (a reconnect, a restarted hub), or on the first frame its stream brings past the
+// read's wait, which doubles while it keeps failing (AnswerRetry). Any frame is the hub answering,
+// so a read that failed while the socket stayed up (a dropped request, a 5xx) does not wait for a
+// reconnect that may never come. The caller says how each run went (`failed`, `settled`); the
+// retry holds the stream open until `stop`.
+export type HubRetry = Pick<AnswerRetry, 'failed' | 'settled'> & {
+	stop: () => void
+}
+
+export function retryWhenHubAnswers(again: () => void): HubRetry {
+	const retry = createAnswerRetry(again)
+	const reader = (frame: StreamFrame): void => {
+		retry.heard(frame.t === 'hello')
+	}
+	frameReaders.add(reader)
+	const release = subscribeHub(() => undefined)
+	return {
+		failed: retry.failed,
+		settled: retry.settled,
+		stop: () => {
+			frameReaders.delete(reader)
+			release()
+		},
+	}
 }
 
 // A plan as a status change answered it: adopted now, the frame that carries it follows.

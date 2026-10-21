@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { fetchPlan } from './api'
 import { latestVersion } from './plan-model'
-import { adoptPlan, onHubHello } from './stream'
+import { adoptPlan, retryWhenHubAnswers } from './stream'
 import { usePlans } from './use-plans'
 
 import type { Plan, PlanDocument } from './plan-model'
@@ -31,12 +31,15 @@ type TextTarget = { id: string; version: number }
 
 type Keep = (update: (held: TextRead | null) => TextRead) => void
 
-// The plan's latest text, read now and again each time the hub says hello again (a read it left
-// unanswered, a version posted while the tab was away). A read that failed keeps a text already
-// read. Returns the teardown.
+// The plan's latest text, read now and, while the hub leaves it unanswered, again when the hub
+// next answers (retryWhenHubAnswers). A read that failed keeps a text already read. Returns the
+// teardown.
 function followText({ id, version }: TextTarget, keep: Keep): () => void {
 	let isCurrent = true
-	const read = async (): Promise<void> => {
+	const retry = retryWhenHubAnswers(() => {
+		void read()
+	})
+	async function read(): Promise<void> {
 		try {
 			const document = await fetchPlan(id)
 			if (!isCurrent) return
@@ -45,6 +48,7 @@ function followText({ id, version }: TextTarget, keep: Keep): () => void {
 					? { id, version, kind: 'text', markdown: document.markdown }
 					: { id, kind: 'gone' },
 			)
+			retry.settled()
 		} catch {
 			if (!isCurrent) return
 			keep(held =>
@@ -52,20 +56,20 @@ function followText({ id, version }: TextTarget, keep: Keep): () => void {
 					? held
 					: { id, kind: 'failed' },
 			)
+			retry.failed()
 		}
 	}
 	void read()
-	const stopFollowing = onHubHello(() => {
-		void read()
-	})
 	return (): void => {
 		isCurrent = false
-		stopFollowing()
+		retry.stop()
 	}
 }
 
 // The record comes from the stream (its `plan` frames); its text is read when the page opens it,
-// when a frame moves it to a new version, and when the hub says hello again, never on a timer.
+// when a frame moves it to a new version (a version posted while the tab was away comes with the
+// snapshot's), and again when the hub next answers after a read it left unanswered, never on a
+// timer.
 function useLatestText(id: string, version: number | null): TextRead | null {
 	const [text, setText] = useState<TextRead | null>(null)
 	// oxlint-disable-next-line nextnode/no-use-effect -- reads the plan's text over HTTP as the hub's stream moves it: an external system
