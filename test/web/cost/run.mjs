@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // The cost acceptance tests of RFC 0001, 6.7 (T1 to T10) for apps/web:
-//   node test/web/cost/run.mjs [--only T2,T4] [--web-port 47994] [--port 47993] [--cli <path>]
+//   node test/web/cost/run.mjs [--only T2,T4] [--web-port 47994] [--inspector-port <port>]
+//        [--port 47993] [--cli <path>]
 //        [--staging <origin> --cookie <session> ... --ops-token <token>]
 // It starts one `wrangler dev` (nothing touches a Cloudflare account), runs the selected tests
 // against it and prints one line per check. A test that only a deployed Worker can settle runs its
@@ -38,6 +39,7 @@ const { values: options } = parseArgs({
 	options: {
 		only: { type: 'string' },
 		'web-port': { type: 'string', default: '47994' },
+		'inspector-port': { type: 'string' },
 		port: { type: 'string', default: '47993' },
 		cli: {
 			type: 'string',
@@ -79,6 +81,7 @@ const web = options.staging
 	: await startWeb({
 			scratch,
 			port: Number(options['web-port']),
+			inspectorPort: options['inspector-port'],
 			vars: secrets,
 		})
 if (options.staging) secrets.OPS_TOKEN = options['ops-token'] ?? ''
@@ -181,7 +184,8 @@ async function preflight() {
 		return
 	}
 	const busy = []
-	for (const port of [options['web-port']])
+	const ports = [options['web-port'], options['inspector-port']]
+	for (const port of ports.filter(Boolean))
 		if (!(await isFree(Number(port)))) busy.push(port)
 	if (busy.length) stop(`port ${busy.join(', ')} is in use; pass another`)
 }

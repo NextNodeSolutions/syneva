@@ -41,28 +41,16 @@ function wranglerEnv(scratch) {
 	}
 }
 
-export async function startWeb({ scratch, port, vars }) {
+// `inspectorPort` pins the devtools port wrangler opens beside `port` (9229, or the next free one,
+// when left out), so a run binds only the ports it was given.
+export async function startWeb({ scratch, port, inspectorPort, vars }) {
 	const bin = wranglerBin()
 	const persist = path.join(scratch, 'state')
 	const env = wranglerEnv(scratch)
-	await run(
-		process.execPath,
-		[
-			bin,
-			'd1',
-			'migrations',
-			'apply',
-			'DB',
-			'--local',
-			'--config',
-			CONFIG,
-			'--persist-to',
-			persist,
-		],
-		{ cwd: WEB_DIR, env },
-	)
+	await migrate({ bin, env, persist })
 	const origin = `http://127.0.0.1:${port}`
-	const dev = { bin, env, port, persist, vars: { ...vars, SITE_URL: origin } }
+	const siteVars = { ...vars, SITE_URL: origin }
+	const dev = { bin, env, port, inspectorPort, persist, vars: siteVars }
 	let running = spawnDev(dev)
 	const ready = () =>
 		waitUntil(
@@ -137,12 +125,35 @@ function localState({ bin, env, persist }) {
 	}
 }
 
+// The scratch D1 under `persist`, its migrations applied before the Worker first reads it.
+function migrate({ bin, env, persist }) {
+	return run(
+		process.execPath,
+		[
+			bin,
+			'd1',
+			'migrations',
+			'apply',
+			'DB',
+			'--local',
+			'--config',
+			CONFIG,
+			'--persist-to',
+			persist,
+		],
+		{ cwd: WEB_DIR, env },
+	)
+}
+
 // Local only (Miniflare), on loopback, its state and secrets the smoke's own.
-function devArgs({ port, persist, vars }) {
+function devArgs({ port, inspectorPort, persist, vars }) {
 	const varArgs = Object.entries(vars).flatMap(([name, setting]) => [
 		'--var',
 		`${name}:${setting}`,
 	])
+	const inspectorArgs = inspectorPort
+		? ['--inspector-port', String(inspectorPort)]
+		: []
 	return [
 		'dev',
 		'--config',
@@ -154,6 +165,7 @@ function devArgs({ port, persist, vars }) {
 		'--persist-to',
 		persist,
 		'--show-interactive-dev-session=false',
+		...inspectorArgs,
 		...varArgs,
 	]
 }

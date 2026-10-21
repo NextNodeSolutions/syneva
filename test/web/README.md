@@ -32,11 +32,11 @@ One line per check, `ok` or `FAIL` with what was seen; the count at the end; exi
 
 ```sh
 pnpm build
-TMPDIR=<a scratch directory> node test/web/cost/run.mjs [--only T2,T4] [--web-port 47994] [--port 47993] [--cli apps/syneva/dist/cli.js]
+TMPDIR=<a scratch directory> node test/web/cost/run.mjs [--only T2,T4] [--web-port 47994] [--inspector-port <port>] [--port 47993] [--cli apps/syneva/dist/cli.js]
                                                        [--minutes <n>] [--hubs <n>] [--tabs <n>] [--seconds <n>] [--full] [--restart] [--procedures]
 ```
 
-It starts one `wrangler dev` (as the smoke does: a scratch D1 and object state, secrets drawn per run, nothing touches a Cloudflare account), signs the accounts it needs in through the magic link on wrangler's stdout, pairs fake hubs as they are first used, runs the selected tests and prints one `ok` or `FAIL` line per check. On a failure it also prints the Worker's own log lines that look like a fault, and keeps the scratch directory. A test that only a deployed Worker can settle runs its local dry run, or prints `skip (staging)`; a skip is never an `ok`. `--port` and `--cli` are accepted for symmetry with the smoke; no test needs a real hub yet (`test/bridge/conformance.mjs` is the real probe's, including its own `err TOO_LARGE`).
+It starts one `wrangler dev` (as the smoke does: a scratch D1 and object state, secrets drawn per run, nothing touches a Cloudflare account; `--inspector-port` pins the devtools port it opens beside `--web-port`, 9229 or the next free one otherwise), signs the accounts it needs in through the magic link on wrangler's stdout, pairs fake hubs as they are first used, runs the selected tests and prints one `ok` or `FAIL` line per check. On a failure it also prints the Worker's own log lines that look like a fault, and keeps the scratch directory. A test that only a deployed Worker can settle runs its local dry run, or prints `skip (staging)`; a skip is never an `ok`. `--port` and `--cli` are accepted for symmetry with the smoke; no test needs a real hub yet (`test/bridge/conformance.mjs` is the real probe's, including its own `err TOO_LARGE`).
 
 | Test | Where | Locally | On staging (`--staging`) |
 |---|---|---|---|
