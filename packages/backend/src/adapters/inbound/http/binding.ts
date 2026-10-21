@@ -1,7 +1,5 @@
 import { HTTP_FORBIDDEN, fail } from './http.js'
 
-import type { IncomingMessage, ServerResponse } from 'node:http'
-
 // IPv6 is the only host that needs bracketing: leave names, IPv4 and already-bracketed literals untouched.
 function urlHost(host: string): string {
 	return host.includes(':') && !host.startsWith('[') ? `[${host}]` : host
@@ -79,32 +77,28 @@ export function authoritiesFor(binding: Binding, port: number): string[] {
 // this any open page could POST the state-changing routes (/reset wipes a review, /shutdown
 // closes a desk) or read a diff off-machine. The Host check defeats DNS-rebinding; the Origin
 // check blocks cross-site mutations; header-less callers (curl, the syneva CLI) stay allowed.
-// Returns false once it has answered 403.
-export function originAllowed(
-	req: IncomingMessage,
-	res: ServerResponse,
+// Null when the request may proceed; else the 403 that answers it.
+export function originRefusal(
+	request: Request,
 	authorities: readonly string[],
-): boolean {
-	const { host } = req.headers
-	if (!host || !authorities.includes(host)) {
-		fail(res, {
+): Response | null {
+	const host = request.headers.get('host')
+	if (!host || !authorities.includes(host))
+		return fail({
 			status: HTTP_FORBIDDEN,
 			code: 'FORBIDDEN_HOST',
 			error: `Host "${host ?? ''}" is not this hub.`,
 			fix: 'Reach the hub at the origin it printed at start (or its --public-url).',
 		})
-		return false
-	}
-	if (!MUTATING_METHODS.has(req.method ?? '')) return true
-	const { origin } = req.headers
-	if (!origin || authorities.some(a => isOriginOf(origin, a))) return true
-	fail(res, {
+	if (!MUTATING_METHODS.has(request.method)) return null
+	const origin = request.headers.get('origin')
+	if (!origin || authorities.some(a => isOriginOf(origin, a))) return null
+	return fail({
 		status: HTTP_FORBIDDEN,
 		code: 'FORBIDDEN_ORIGIN',
 		error: `Cross-site request from origin "${origin}" is not allowed.`,
 		fix: 'The hub only accepts same-origin requests.',
 	})
-	return false
 }
 
 // A reverse proxy terminates TLS, so a browser's Origin may spell the same authority with either scheme; the authority is what the guard pins.

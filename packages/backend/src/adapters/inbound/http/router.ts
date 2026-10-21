@@ -6,19 +6,18 @@ import {
 	STATIC_PATHS,
 } from '@syneva/contracts/routes'
 
-import { errorMessage } from '../../../application/errors.js'
 import { isHexId } from '../../../domain/identity.js'
 
-import { originAllowed } from './binding.js'
-import { handleDashboardApi } from './dashboard-api.js'
+import { originRefusal } from './binding.js'
+import { dashboardApi } from './dashboard-api.js'
+import { openExchange } from './exchange.js'
 import { DOCS } from './failure.js'
 import {
-	HTTP_BAD_REQUEST,
-	HTTP_INTERNAL,
 	HTTP_MOVED_PERMANENTLY,
 	HTTP_NOT_FOUND,
-	BodyDecodeError,
+	bodiless,
 	fail,
+	failureOf,
 	html,
 } from './http.js'
 import {
@@ -32,24 +31,21 @@ import {
 	shutdownHub,
 } from './hub-routes.js'
 import { DESK_NOT_OPEN, NOTHING_HERE, notFoundPage } from './pages.js'
-import { handlePlanApi } from './plan-routes.js'
+import { planApi } from './plan-routes.js'
 import { FONT_FILE } from './routes/static.js'
 
-import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AccessGuard } from './auth.js'
 import type { DeskContext } from './context.js'
+import type { HubRequest, Served } from './exchange.js'
 import type { HubRouteDeps } from './hub-routes.js'
-import type { StaticRequest, UiServer } from './routes/static.js'
+import type { DeskLiveness } from './liveness.js'
+import type { UiServer } from './routes/static.js'
 
-// A desk route's whole world: its desk, its request, the response it writes. Handlers end the response themselves (some stream, some attach post-flush hooks), so the dispatcher never writes on their behalf.
-export type RouteRequest = {
-	ctx: DeskContext
-	req: IncomingMessage
-	res: ServerResponse
-	url: URL
-}
+// A desk route's whole world: its desk and its request. It returns its response whole; work that
+// must follow the response is deferred through afterSent (exchange.ts), never hooked on a socket.
+export type RouteRequest = HubRequest & { ctx: DeskContext }
 
-export type RouteHandler = (request: RouteRequest) => Promise<void>
+export type RouteHandler = (route: RouteRequest) => Promise<Response>
 
 export type RouteTable = Readonly<Record<string, RouteHandler | undefined>>
 
@@ -61,6 +57,10 @@ export type HubRouterDeps = HubRouteDeps & {
 	ui: UiServer
 }
 
+// The hub's request entry point, on the Fetch API: what a transport (node-adapter.ts, a Durable
+// Object) calls with each Request, and the Served it writes back.
+export type HubRouter = (request: Request) => Promise<Served>
+
 const NOT_FOUND_JSON = {
 	status: HTTP_NOT_FOUND,
 	code: 'NOT_FOUND',
@@ -68,204 +68,180 @@ const NOT_FOUND_JSON = {
 	fix: `See ${DOCS} for the route list.`,
 }
 
-// The hub's request entry point: the origin guard for every route, the access guard, then dispatch (pages, hub API, per-desk API, assets) - and the one place an unexpected throw becomes a 500.
-export function createHubRequestHandler(
-	deps: HubRouterDeps,
-): (req: IncomingMessage, res: ServerResponse) => void {
-	async function handle(
-		req: IncomingMessage,
-		res: ServerResponse,
-	): Promise<void> {
+// The origin guard for every route, the access guard, then dispatch (pages, hub API, per-desk API, assets) - and the one place an unexpected throw becomes a 500.
+export function createHubRouter(deps: HubRouterDeps): HubRouter {
+	return async request => {
+		const exchange = openExchange(request)
 		try {
-			if (!originAllowed(req, res, deps.authorities())) return
-			const url = new URL(req.url ?? '/', 'http://127.0.0.1')
-			if (await handleAccess(deps, req, res, url)) return
-			const request: StaticRequest = { req, res, url }
-			if (await handleDashboardPage(deps, request)) return
-			// The hub listens before it rebuilds its desks (a restart's tabs reconnect at once): a request naming a desk still being restored must not read as closed - its page as not found, its tab as closed, the listing as empty.
-			await deps.hub.restored()
-			if (await handleDeskPage(deps, request)) return
-			if (await handleHubApi(deps, request)) return
-			if (await handleDashboardApi(deps, request)) return
-			if (await handlePlanApi(deps, request)) return
-			if (await handleDeskApi(deps, request)) return
-			if (await handleUiAsset(deps, request)) return
-			notFound(request)
+			const answered = await answer(deps, exchange.hub)
+			if (answered) return exchange.served(answered)
+			const missing = notFound(exchange.hub)
+			if (isRead(request)) return exchange.unclaimed(missing)
+			return exchange.served(missing)
 		} catch (error) {
-			reportFailure(res, error)
+			return exchange.served(failureOf(error))
 		}
 	}
-	return (req: IncomingMessage, res: ServerResponse): void => {
-		void handle(req, res)
-	}
+}
+
+// Null when no route claimed the request.
+async function answer(
+	deps: HubRouterDeps,
+	hub: HubRequest,
+): Promise<Response | null> {
+	const refused = originRefusal(hub.request, deps.authorities())
+	if (refused) return refused
+	const access = await accessStage(deps, hub)
+	if (access) return access
+	const page = await dashboardPage(deps, hub)
+	if (page) return page
+	// The hub listens before it rebuilds its desks (a restart's tabs reconnect at once): a request naming a desk still being restored must not read as closed - its page as not found, its tab as closed, the listing as empty.
+	await deps.hub.restored()
+	return (
+		(await deskPage(deps, hub)) ??
+		(await hubApi(deps, hub)) ??
+		(await dashboardApi(deps, hub)) ??
+		(await planApi(deps, hub)) ??
+		(await deskApi(deps, hub)) ??
+		(await uiAsset(deps, hub))
+	)
 }
 
 // The sign-in pages, the public health probe and the font files answer before the access guard; everything else needs the key when one is configured.
-async function handleAccess(
+async function accessStage(
 	deps: HubRouterDeps,
-	req: IncomingMessage,
-	res: ServerResponse,
-	url: URL,
-): Promise<boolean> {
-	if (url.pathname === HUB_PATHS.login) {
-		await deps.guard.handleLogin(req, res, url)
-		return true
-	}
-	if (url.pathname === HUB_PATHS.logout) {
-		deps.guard.handleLogout(res)
-		return true
-	}
-	if (url.pathname === HUB_PATHS.health && req.method === 'GET') {
-		hubHealth(deps, res)
-		return true
-	}
+	hub: HubRequest,
+): Promise<Response | null> {
+	const { request, url } = hub
+	if (url.pathname === HUB_PATHS.login) return deps.guard.login(request, url)
+	if (url.pathname === HUB_PATHS.logout) return deps.guard.logout()
+	if (url.pathname === HUB_PATHS.health && request.method === 'GET')
+		return hubHealth(deps)
 	// The fonts are the design system's public OFL files: no hub data, and a keyed hub's sign-in could not load Geist without them.
 	// One font file name under the prefix passes - pinned here, not left to the UI server (the dev loop's would take any path) - and only when the UI server has it.
-	if (isFontRead(req, url) && (await deps.ui.asset({ req, res, url })))
-		return true
-	return !deps.guard.allows(req, res, url)
+	const font = isFontRead(request, url) ? await deps.ui.asset(hub) : null
+	if (font) return font
+	return deps.guard.refusal(request, url)
 }
 
-// Pages and assets answer GET and HEAD (a HEAD gets the same headers; Node drops the body).
-function isRead(req: IncomingMessage): boolean {
-	return req.method === 'GET' || req.method === 'HEAD'
+// Pages and assets answer GET and HEAD (a HEAD gets the same headers; the transport drops the body).
+function isRead(request: Request): boolean {
+	return request.method === 'GET' || request.method === 'HEAD'
 }
 
-function isFontRead(req: IncomingMessage, url: URL): boolean {
+function isFontRead(request: Request, url: URL): boolean {
 	const { pathname } = url
 	const { fontsPrefix } = STATIC_PATHS
 	return (
-		isRead(req) &&
+		isRead(request) &&
 		pathname.startsWith(fontsPrefix) &&
 		FONT_FILE.test(pathname.slice(fontsPrefix.length))
 	)
 }
 
-async function handleDashboardPage(
+async function dashboardPage(
 	deps: HubRouterDeps,
-	request: StaticRequest,
-): Promise<boolean> {
-	if (!isRead(request.req)) return false
-	if (!isDashboardPath(request.url.pathname)) return false
-	await deps.ui.dashboardPage(request)
-	return true
+	hub: HubRequest,
+): Promise<Response | null> {
+	if (!isRead(hub.request)) return null
+	if (!isDashboardPath(hub.url.pathname)) return null
+	return deps.ui.dashboardPage(hub)
 }
 
 // The UI's assets come last: every route above names its paths exactly, so the rest belongs to the
-// UI server to recognize (fixed bundle URLs in an install, any source-graph module under Vite,
-// which must never receive an API request - it would try to transform it).
-async function handleUiAsset(
+// UI server to recognize (fixed bundle URLs in an install; under the dev loop, any source-graph
+// module, which Vite answers from the reads left unclaimed and must never receive an API request -
+// it would try to transform it).
+async function uiAsset(
 	deps: HubRouterDeps,
-	request: StaticRequest,
-): Promise<boolean> {
-	if (!isRead(request.req)) return false
-	return deps.ui.asset(request)
+	hub: HubRequest,
+): Promise<Response | null> {
+	if (!isRead(hub.request)) return null
+	return deps.ui.asset(hub)
 }
 
 // /d/<id>/ serves the desk page; /d/<id> (no slash) redirects so the page's relative URLs resolve under the desk; an unknown id gets the not-found page.
-async function handleDeskPage(
+async function deskPage(
 	deps: HubRouterDeps,
-	request: StaticRequest,
-): Promise<boolean> {
-	const { req, res, url } = request
-	if (!isRead(req) || !url.pathname.startsWith(DESK_PAGE_PREFIX)) return false
+	hub: HubRequest,
+): Promise<Response | null> {
+	const { request, url } = hub
+	if (!isRead(request) || !url.pathname.startsWith(DESK_PAGE_PREFIX))
+		return null
 	const [id = '', ...rest] = url.pathname
 		.slice(DESK_PAGE_PREFIX.length)
 		.split('/')
-	if (!isHexId(id)) return false
-	if (!rest.length) {
-		res.writeHead(HTTP_MOVED_PERMANENTLY, {
+	if (!isHexId(id)) return null
+	if (!rest.length)
+		return bodiless(HTTP_MOVED_PERMANENTLY, {
 			location: `${url.pathname}/${url.search}`,
 		})
-		res.end()
-		return true
-	}
-	if (rest.length > 1 || rest[0] !== '') return false
-	if (deps.hub.getDesk(id)) await deps.ui.deskPage(request)
-	else html(res, HTTP_NOT_FOUND, notFoundPage(DESK_NOT_OPEN, url.pathname))
-	return true
+	if (rest.length > 1 || rest[0] !== '') return null
+	if (deps.hub.getDesk(id)) return deps.ui.deskPage(hub)
+	return html(HTTP_NOT_FOUND, notFoundPage(DESK_NOT_OPEN, url.pathname))
 }
 
 // What no route answered: a page for a browser's navigation (it asks for HTML first), the JSON failure for everything else.
-function notFound({ req, res, url }: StaticRequest): void {
+function notFound({ request, url }: HubRequest): Response {
 	const isNavigation =
-		isRead(req) && (req.headers.accept ?? '').includes('text/html')
+		isRead(request) &&
+		(request.headers.get('accept') ?? '').includes('text/html')
 	if (isNavigation)
-		html(res, HTTP_NOT_FOUND, notFoundPage(NOTHING_HERE, url.pathname))
-	else fail(res, NOT_FOUND_JSON)
+		return html(HTTP_NOT_FOUND, notFoundPage(NOTHING_HERE, url.pathname))
+	return fail(NOT_FOUND_JSON)
 }
 
-async function handleHubApi(
+async function hubApi(
 	deps: HubRouterDeps,
-	{ req, res, url }: StaticRequest,
-): Promise<boolean> {
-	const method = req.method ?? ''
+	hub: HubRequest,
+): Promise<Response | null> {
+	const { request, url } = hub
+	const { method } = request
 	if (url.pathname === HUB_PATHS.desks) {
-		if (method === 'GET') listDesks(deps, res, url)
-		else if (method === 'POST') await openDeskRoute(deps, req, res)
-		else return false
-		return true
+		if (method === 'GET') return listDesks(deps, url)
+		if (method === 'POST') return openDeskRoute(deps, request)
+		return null
 	}
-	if (url.pathname === HUB_PATHS.inventory && method === 'POST') {
-		await inventoryRoute(deps, req, res)
-		return true
-	}
-	if (url.pathname === HUB_PATHS.shutdown && method === 'POST') {
-		shutdownHub(deps, res)
-		return true
-	}
-	if (!url.pathname.startsWith(`${HUB_PATHS.desks}/`)) return false
+	if (url.pathname === HUB_PATHS.inventory && method === 'POST')
+		return inventoryRoute(deps, request)
+	if (url.pathname === HUB_PATHS.shutdown && method === 'POST')
+		return shutdownHub(deps, hub)
+	if (!url.pathname.startsWith(`${HUB_PATHS.desks}/`)) return null
 	const id = url.pathname.slice(HUB_PATHS.desks.length + 1)
-	if (!isHexId(id)) return false
-	if (method === 'GET') readDesk(deps, res, id)
-	else if (method === 'DELETE') closeDeskRoute(deps, res, id)
-	else return false
-	return true
+	if (!isHexId(id)) return null
+	if (method === 'GET') return readDesk(deps, id)
+	if (method === 'DELETE') return closeDeskRoute(deps, id)
+	return null
 }
 
 // /api/desks/<id>/<route>: the desk's own API, dispatched through the per-desk route table with the prefix stripped.
 // A route whose desk is gone answers DESK_NOT_FOUND (the tab's poll turns that into its desk-closed cover, the CLI into "no live desk").
-async function handleDeskApi(
+async function deskApi(
 	deps: HubRouterDeps,
-	{ req, res, url }: StaticRequest,
-): Promise<boolean> {
-	if (!url.pathname.startsWith(DESK_API_PREFIX)) return false
+	hub: HubRequest,
+): Promise<Response | null> {
+	const { request, url } = hub
+	if (!url.pathname.startsWith(DESK_API_PREFIX)) return null
 	const [id = '', ...tail] = url.pathname
 		.slice(DESK_API_PREFIX.length)
 		.split('/')
-	if (!isHexId(id)) return false
-	const route = deps.deskRoutes[`${req.method ?? ''} /${tail.join('/')}`]
-	if (!route) return false
+	if (!isHexId(id)) return null
+	const route = deps.deskRoutes[`${request.method} /${tail.join('/')}`]
+	if (!route) return null
 	const desk = deps.hub.getDesk(id)
-	if (!desk) {
-		fail(res, DESK_NOT_FOUND)
-		return true
-	}
-	desk.liveness.requestStarted()
-	res.on('close', () => desk.liveness.requestFinished())
-	await route({ ctx: desk.ctx, req, res, url })
-	return true
+	if (!desk) return fail(DESK_NOT_FOUND)
+	stampActivity(desk.liveness, hub)
+	return route({ ...hub, ctx: desk.ctx })
 }
 
-// The one place an unexpected throw becomes a response: a BodyDecodeError is the caller's bug (malformed/oversized body) and answers 400; anything else is an INTERNAL 500.
-function reportFailure(res: ServerResponse, error: unknown): void {
-	if (res.headersSent) {
-		res.end()
-		return
+// A desk's last activity is stamped when one of its requests starts and again when it ends:
+// answered (once handed over) or abandoned (the client gone first, which only a request the
+// server parks lives long enough to see).
+function stampActivity(liveness: DeskLiveness, hub: HubRequest): void {
+	liveness.requestStarted()
+	const finished = (): void => {
+		liveness.requestFinished()
 	}
-	if (error instanceof BodyDecodeError) {
-		fail(res, {
-			status: HTTP_BAD_REQUEST,
-			code: 'INVALID_JSON',
-			error: errorMessage(error),
-			fix: `Send a JSON body of the documented shape. See ${DOCS} for the routes.`,
-		})
-		return
-	}
-	fail(res, {
-		status: HTTP_INTERNAL,
-		code: 'INTERNAL',
-		error: errorMessage(error),
-		fix: 'Unexpected server error; retry once, then reload the desk.',
-	})
+	hub.afterSent(finished)
+	hub.request.signal.addEventListener('abort', finished, { once: true })
 }

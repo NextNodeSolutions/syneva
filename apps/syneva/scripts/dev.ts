@@ -10,8 +10,9 @@ import {
 } from '@syneva/backend/adapters/inbound/cli/start'
 import { createServer } from 'vite'
 
+import type { NodeUiMiddleware } from '@syneva/backend/adapters/inbound/http/node-adapter'
 import type {
-	StaticRequest,
+	UiRequest,
 	UiServer,
 } from '@syneva/backend/adapters/inbound/http/routes/static'
 import type { ViteDevServer } from 'vite'
@@ -29,33 +30,35 @@ function servePage(
 	vite: ViteDevServer,
 	shell: string,
 ): UiServer['dashboardPage'] {
-	return async ({ res, url }: StaticRequest): Promise<void> => {
+	return async ({ url }: UiRequest): Promise<Response> => {
 		const source = await readFile(path.join(PAGE_SHELLS, shell), 'utf8')
 		const page = await vite.transformIndexHtml(url.pathname, source)
-		res.writeHead(HTTP_OK, { 'content-type': 'text/html; charset=utf-8' })
-		res.end(page)
+		return new Response(page, {
+			status: HTTP_OK,
+			headers: { 'content-type': 'text/html; charset=utf-8' },
+		})
 	}
 }
 
-// A response Vite ends never reaches next(), so the response's close is the "answered" signal.
-function serveModule(
-	vite: ViteDevServer,
-	{ req, res }: StaticRequest,
-): Promise<boolean> {
-	return new Promise((resolve, reject) => {
-		res.once('close', () => resolve(true))
-		vite.middlewares(req, res, (error?: unknown) => {
-			if (error) reject(error)
-			else resolve(false)
+// The module graph needs node:http's own request and response, so it is no UiServer asset: the
+// hub's Node adapter offers Vite the reads every guard passed and no route claimed. A response
+// Vite ends never reaches next(), so the response's close is the "answered" signal.
+function viteModules(vite: ViteDevServer): NodeUiMiddleware {
+	return (req, res) =>
+		new Promise((resolve, reject) => {
+			res.once('close', () => resolve(true))
+			vite.middlewares(req, res, (error?: unknown) => {
+				if (error) reject(error)
+				else resolve(false)
+			})
 		})
-	})
 }
 
 function viteUi(vite: ViteDevServer): UiServer {
 	return {
 		dashboardPage: servePage(vite, 'dashboard.html'),
 		deskPage: servePage(vite, 'index.html'),
-		asset: request => serveModule(vite, request),
+		asset: async () => null,
 	}
 }
 
@@ -81,7 +84,7 @@ const vite = await createServer({
 // --no-open keeps a watch restart from popping a new dashboard tab; the URL is announced.
 await runStart(
 	parseArgs(['--no-open', ...process.argv.slice(USER_ARG_START_INDEX)]),
-	viteUi(vite),
+	{ ui: viteUi(vite), uiMiddleware: viteModules(vite) },
 )
 
 // runStart holds the process while the hub serves; returning = it never bound (the machine's hub likely answers the port already).

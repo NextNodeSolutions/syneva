@@ -22,12 +22,11 @@ const STAGING_DISABLED: ApiFailure = {
 
 export async function stageFiles({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	if (ctx.state.mode === 'pr') return fail(res, STAGING_DISABLED)
-	await ctx.serialize(async (): Promise<void> => {
-		const body: unknown = await readJsonBody(req)
+	request,
+}: RouteRequest): Promise<Response> {
+	if (ctx.state.mode === 'pr') return fail(STAGING_DISABLED)
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
 		// stagePaths returns the next root (the same one when nothing changed); persist + commit is what publishes it.
 		const next = await stagePaths(
 			ctx.state,
@@ -36,25 +35,24 @@ export async function stageFiles({
 		)
 		const saved = await ctx.persist(next)
 		ctx.commit(saved.state)
-		json(res, HTTP_OK, { ok: true })
+		return json(HTTP_OK, { ok: true })
 	})
 }
 
 export async function stageOneChange({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	if (ctx.state.mode === 'pr') return fail(res, STAGING_DISABLED)
-	await ctx.serialize(async (): Promise<void> => {
-		const body: unknown = await readJsonBody(req)
+	request,
+}: RouteRequest): Promise<Response> {
+	if (ctx.state.mode === 'pr') return fail(STAGING_DISABLED)
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
 		const outcome = await stageChange(
 			ctx.state,
 			parseStageChangeRequest(body),
 			ctx.git,
 		)
 		if (outcome.decision === 'conflict')
-			return fail(res, {
+			return fail({
 				status: HTTP_CONFLICT,
 				code: 'PATCH_CONFLICT',
 				error: outcome.message,
@@ -64,17 +62,16 @@ export async function stageOneChange({
 			const saved = await ctx.persist(outcome.state)
 			ctx.commit(saved.state)
 		}
-		json(res, HTTP_OK, { ok: true, skipped: outcome.skipped })
+		return json(HTTP_OK, { ok: true, skipped: outcome.skipped })
 	})
 }
 
 export async function unstageFile({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	await ctx.serialize(async (): Promise<void> => {
-		const body: unknown = await readJsonBody(req)
+	request,
+}: RouteRequest): Promise<Response> {
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
 		const next = await unstagePath(
 			ctx.state,
 			parseUnstageRequest(body),
@@ -82,7 +79,7 @@ export async function unstageFile({
 		)
 		const saved = await ctx.persist(next)
 		ctx.commit(saved.state)
-		json(res, HTTP_OK, { ok: true })
+		return json(HTTP_OK, { ok: true })
 	})
 }
 

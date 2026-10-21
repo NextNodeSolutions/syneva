@@ -26,11 +26,7 @@ function mimeOf(path: string): string {
 }
 
 // GET /blob: one repo file's raw bytes for the rendered markdown view's relative image srcs (the engine rewrites them to point here). Same containment boundary as /file: repo-relative, no escapes.
-export async function serveBlob({
-	ctx,
-	res,
-	url,
-}: RouteRequest): Promise<void> {
+export async function serveBlob({ ctx, url }: RouteRequest): Promise<Response> {
 	const rel = url.searchParams.get('path') ?? ''
 	const resolved = await resolveContained(
 		ctx.state.root,
@@ -38,13 +34,12 @@ export async function serveBlob({
 		ctx.git.workspace,
 	)
 	if ('error' in resolved && resolved.error === 'escape')
-		return fail(res, BAD_PATH)
-	if (!('abs' in resolved)) return fail(res, cannotRead(rel))
-	try {
-		const bytes = await fs.readFile(resolved.abs)
-		res.writeHead(HTTP_OK, { 'content-type': mimeOf(rel) })
-		res.end(bytes)
-	} catch {
-		fail(res, cannotRead(rel))
-	}
+		return fail(BAD_PATH)
+	if (!('abs' in resolved)) return fail(cannotRead(rel))
+	const bytes = await fs.readFile(resolved.abs).catch(() => null)
+	if (!bytes) return fail(cannotRead(rel))
+	return new Response(bytes, {
+		status: HTTP_OK,
+		headers: { 'content-type': mimeOf(rel) },
+	})
 }

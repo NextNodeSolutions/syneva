@@ -1,5 +1,6 @@
 import type { Server } from 'node:http'
 import type { Hub } from './hub.js'
+import type { NodeUiMiddleware } from './node-adapter.js'
 import type { UiServer } from './routes/static.js'
 
 export type HubOptions = {
@@ -16,7 +17,9 @@ export type HubOptions = {
 	statusTtlMs?: number | undefined
 	log?: ((line: string) => void) | undefined
 	onShutdown?: (() => void) | undefined
+	// The dev loop's seam: its pages, and Vite's middleware for the module graph (offered the reads no route claimed); an install serves the built bundle.
 	ui?: UiServer | undefined
+	uiMiddleware?: NodeUiMiddleware | undefined
 }
 
 export type HubHandle = {

@@ -13,11 +13,7 @@ import type { RouteRequest } from '../router.js'
 
 // GET /file - read an arbitrary repo file, for previewing/commenting on unchanged files; same strict path boundary as /file-contents (repo-relative, no escapes).
 // Without `side`, the working tree as it is now; with one (a cited guide reference), that side as the review took it - the index or a commit on a staged or pr desk - so the preview shows the lines the reference resolved against.
-export async function serveFile({
-	ctx,
-	res,
-	url,
-}: RouteRequest): Promise<void> {
+export async function serveFile({ ctx, url }: RouteRequest): Promise<Response> {
 	const rel = url.searchParams.get('path') ?? ''
 	const resolved = await resolveContained(
 		ctx.state.root,
@@ -25,14 +21,14 @@ export async function serveFile({
 		ctx.git.workspace,
 	)
 	if ('error' in resolved && resolved.error === 'escape')
-		return fail(res, BAD_PATH)
+		return fail(BAD_PATH)
 	const side = url.searchParams.get('side')
 	const contents =
 		side === 'additions' || side === 'deletions'
 			? await readReviewedSide(ctx.state, rel, side, ctx.git)
 			: await readWorkingFile(resolved)
-	if (contents === null) return fail(res, cannotRead(rel))
-	json(res, HTTP_OK, { path: rel, contents })
+	if (contents === null) return fail(cannotRead(rel))
+	return json(HTTP_OK, { path: rel, contents })
 }
 
 async function readWorkingFile(
@@ -45,19 +41,18 @@ async function readWorkingFile(
 // GET /file-contents - one reviewed file's old/new contents, fetched on demand so the full contents never ride /state; resolved from git/the working tree (the state embeds none).
 export async function serveFileContents({
 	ctx,
-	res,
 	url,
-}: RouteRequest): Promise<void> {
+}: RouteRequest): Promise<Response> {
 	const rel = url.searchParams.get('path') ?? ''
 	// One capture: the file lookup and the content read must come from one state root - a commit landing between them would resolve the file against one diff and its bytes against another.
 	const { state } = ctx
 	const resolved = await resolveContained(state.root, rel, ctx.git.workspace)
 	// Only an ESCAPE is fatal here: a "missing" working-tree file is legitimate - the old/new bytes may come from git (a deleted or index-only file has no working-tree path).
 	if ('error' in resolved && resolved.error === 'escape')
-		return fail(res, BAD_PATH)
+		return fail(BAD_PATH)
 	const file = state.files.find(candidate => candidate.path === rel)
 	if (!file)
-		return fail(res, {
+		return fail({
 			status: HTTP_NOT_FOUND,
 			code: 'NOT_FOUND',
 			error: `"${rel}" is not part of this review.`,
@@ -70,7 +65,7 @@ export async function serveFileContents({
 			file,
 			ctx.git,
 		)
-		json(res, HTTP_OK, {
+		return json(HTTP_OK, {
 			path: rel,
 			oldContents,
 			newContents,
@@ -79,7 +74,7 @@ export async function serveFileContents({
 		})
 	} catch (error) {
 		// A git object that can't be read (e.g. rewritten/dropped by a rebase mid-session).
-		fail(res, {
+		return fail({
 			status: HTTP_NOT_FOUND,
 			code: 'NOT_FOUND',
 			error: `Could not read contents for "${rel}": ${errorMessage(error)}`,

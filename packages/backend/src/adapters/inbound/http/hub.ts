@@ -27,7 +27,7 @@ import type { ReviewInventory } from '../../../domain/inventory.js'
 import type { ReviewState } from '../../../domain/review.js'
 import type { HostedDeskIo, HubDesk } from './hosted-desk.js'
 
-// The linger lets the `closed` event reach a parked waiter: its HTTP response flushes on the emission, but Node needs a beat to write it to the socket before the desk's routes answer 404.
+// The linger lets the `closed` event reach a parked waiter: its parked request is answered on the emission, but the transport needs a beat to write that answer out before the desk's routes answer 404.
 const CLOSED_EVENT_GRACE_MS = 150
 
 export type HubFailure = { ok: false; code: string; reason: string }

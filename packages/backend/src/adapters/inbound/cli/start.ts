@@ -28,13 +28,14 @@ import {
 } from './hub-client.js'
 
 import type { HubHandle, HubOptions } from '../http/options.js'
-import type { UiServer } from '../http/routes/static.js'
 import type { CliArgs } from './args.js'
 
 export const SIGNAL_EXIT_CODE = 130
 
-// Idempotent: a hub already answering on the port means already running (exit 0 with its URL), never a second hub. `ui` is the dev loop's seam; the CLI never passes it.
-export async function runStart(args: CliArgs, ui?: UiServer): Promise<void> {
+type DevUi = Pick<HubOptions, 'ui' | 'uiMiddleware'>
+
+// Idempotent: a hub already answering on the port means already running (exit 0 with its URL), never a second hub. `devUi` is the dev loop's seam; the CLI never passes it.
+export async function runStart(args: CliArgs, devUi?: DevUi): Promise<void> {
 	const host =
 		flagText(args, 'host') ?? process.env.SYNEVA_HOST ?? DEFAULT_HOST
 	const key = hubKey(args)
@@ -48,7 +49,7 @@ export async function runStart(args: CliArgs, ui?: UiServer): Promise<void> {
 	if (args.detach === true) return startInBackground(args)
 	// Hub starts only - the agent subcommands must never block on a prompt. On a confirmed update this re-execs the new version with the same args and never returns.
 	await maybeOfferUpdate()
-	const handle = await bindHub(args, { host, key, ui })
+	const handle = await bindHub(args, { host, key, ...devUi })
 	if (!handle) return
 	await writeHubLock({
 		pid: process.pid,
@@ -64,7 +65,7 @@ export async function runStart(args: CliArgs, ui?: UiServer): Promise<void> {
 
 async function bindHub(
 	args: CliArgs,
-	{ host, key, ui }: Pick<HubOptions, 'host' | 'key' | 'ui'>,
+	{ host, key, ui, uiMiddleware }: DevUi & Pick<HubOptions, 'host' | 'key'>,
 ): Promise<HubHandle | null> {
 	const port = Number(
 		flagText(args, 'port') ?? process.env.SYNEVA_PORT ?? DEFAULT_HUB_PORT,
@@ -78,6 +79,7 @@ async function bindHub(
 			key,
 			publicUrl,
 			ui,
+			uiMiddleware,
 			allowedHosts: readAllowedHosts(),
 			version: currentVersion(),
 			onShutdown: () => {

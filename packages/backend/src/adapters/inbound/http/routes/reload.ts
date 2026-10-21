@@ -7,24 +7,23 @@ import type { RouteRequest } from '../router.js'
 
 export async function reloadDeskFromRequest({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	await ctx.serialize(async (): Promise<void> => {
+	request,
+}: RouteRequest): Promise<Response> {
+	return ctx.serialize(async (): Promise<Response> => {
 		const outcome = await reloadDesk(
 			ctx.state,
 			ctx.pathFilter,
 			{ git: ctx.git, store: ctx.store },
-			guideSwapOf(await readBody(req)),
+			guideSwapOf(await readBody(request)),
 		)
 		if (outcome.kind === 'invalid-guide')
-			return fail(res, invalidGuide(outcome.reason))
+			return fail(invalidGuide(outcome.reason))
 		ctx.commit(outcome.state)
 		ctx.recordEvent({
 			kind: 'desk-reloaded',
 			...reviewScope(outcome.state),
 		})
-		json(res, HTTP_OK, {
+		return json(HTTP_OK, {
 			ok: true,
 			empty: outcome.kind === 'empty',
 			baseDiffHash: outcome.baseDiffHash,

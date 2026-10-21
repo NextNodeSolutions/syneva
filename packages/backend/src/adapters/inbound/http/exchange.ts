@@ -28,7 +28,7 @@ export type Served = {
 export type HubRequest = {
 	request: Request
 	url: URL
-	afterSent(hook: () => void): void
+	afterSent: (hook: () => void) => void
 }
 
 export type Exchange = {

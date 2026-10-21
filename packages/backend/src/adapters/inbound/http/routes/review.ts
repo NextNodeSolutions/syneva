@@ -25,7 +25,6 @@ import {
 	parseDomainCommentRequest,
 } from './comment-body.js'
 
-import type { ServerResponse } from 'node:http'
 import type { BrowserResetResponse } from '@syneva/contracts/browser'
 import type { ResetScope } from '@syneva/contracts/review'
 import type { DeskContext } from '../context.js'
@@ -55,30 +54,29 @@ function overallNoteOf(payload: unknown): string {
 
 export async function saveReview({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
+	request,
+}: RouteRequest): Promise<Response> {
 	// Merge only the reviewer-owned slice; diff, contents, changes and desk metadata stay authoritative here. The DTO decode refuses a malformed patch with a 422 before the next root is built.
 	// Present keys replace, absent keys unchanged, never an in-place edit.
-	await ctx.serialize(async (): Promise<void> => {
-		const body: unknown = await readJsonBody(req)
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
 		const patch = parseReviewerSave(body)
-		if (patch === null) return fail(res, INVALID_SAVE)
+		if (patch === null) return fail(INVALID_SAVE)
 		const saved = await ctx.persist(applyReviewerSave(ctx.state, patch))
 		ctx.commit(saved.state)
-		json(res, HTTP_OK, { ok: true, file: saved.file })
+		return json(HTTP_OK, { ok: true, file: saved.file })
 	})
 }
 
 export async function sendReviewToAgent({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	await ctx.serialize(async (): Promise<void> => {
-		const body: unknown = await readJsonBody(req)
+	request,
+	afterSent,
+}: RouteRequest): Promise<Response> {
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
 		const patch = parseReviewerSave(body)
-		if (patch === null) return fail(res, INVALID_SAVE)
+		if (patch === null) return fail(INVALID_SAVE)
 		const sent = await sendReview(
 			ctx.state,
 			{ git: ctx.git, store: ctx.store },
@@ -93,12 +91,12 @@ export async function sendReviewToAgent({
 			roundSent(sent.state, sent.reviewResult),
 			sent.reviewResult,
 		)
-		res.on('finish', () => {
+		afterSent(() => {
 			// The review supersedes any still-queued question (createEventStream drops them), so a stale question never lands after the round.
-			// Emitting only once the response has flushed keeps the reviewer's ack ahead of the agent's wake-up.
+			// Emitting only once the response is handed over (Served.afterSent) keeps the reviewer's ack ahead of the agent's wake-up.
 			ctx.events.emit({ kind: 'review', result: sent.reviewResult })
 		})
-		json(res, HTTP_OK, {
+		return json(HTTP_OK, {
 			ok: true,
 			sent: true,
 			resultJson: sent.resultJson,
@@ -108,23 +106,22 @@ export async function sendReviewToAgent({
 
 export async function addComment({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	await ctx.serialize(async (): Promise<void> => {
-		const body: unknown = await readJsonBody(req)
-		if (isDomainCommentBody(body)) return addDomainComment(ctx, res, body)
-		const request = parseCommentRequest(body)
-		if (!request)
-			return fail(res, {
+	request,
+}: RouteRequest): Promise<Response> {
+	return ctx.serialize(async (): Promise<Response> => {
+		const body: unknown = await readJsonBody(request)
+		if (isDomainCommentBody(body)) return addDomainComment(ctx, body)
+		const comment = parseCommentRequest(body)
+		if (!comment)
+			return fail({
 				status: HTTP_UNPROCESSABLE,
 				code: 'INVALID_COMMENT',
 				error: 'comment requires path and body',
 				fix: 'Send { path, lineNumber, side, body } as JSON, or { domainId, blockId?, body } for a guide thread.',
 			})
-		const appended = await appendLiveComment(ctx.state, request, ctx.git)
+		const appended = await appendLiveComment(ctx.state, comment, ctx.git)
 		await commitReply(ctx, appended.state, appended.comment.role)
-		json(res, HTTP_OK, { ok: true, commentId: appended.comment.id })
+		return json(HTTP_OK, { ok: true, commentId: appended.comment.id })
 	})
 }
 
@@ -144,12 +141,11 @@ async function commitReply(
 // A reply in a guide thread: the target must exist in the attached guide, so an answer never lands on a domain the reviewer did not ask about.
 async function addDomainComment(
 	ctx: DeskContext,
-	res: ServerResponse,
 	body: unknown,
-): Promise<void> {
+): Promise<Response> {
 	const request = parseDomainCommentRequest(body)
 	if (!request)
-		return fail(res, {
+		return fail({
 			status: HTTP_UNPROCESSABLE,
 			code: 'INVALID_COMMENT',
 			error: 'a domain comment requires domainId and body',
@@ -157,32 +153,31 @@ async function addDomainComment(
 		})
 	const appended = appendLiveDomainComment(ctx.state, request)
 	if (!appended.ok)
-		return fail(res, {
+		return fail({
 			status: HTTP_UNPROCESSABLE,
 			code: 'UNKNOWN_DOMAIN',
 			error: appended.reason,
 			fix: 'Name a domain id (and block id) of the attached guide, as the question event or GET …/state gives them.',
 		})
 	await commitReply(ctx, appended.state, appended.comment.role)
-	json(res, HTTP_OK, { ok: true, commentId: appended.comment.id })
+	return json(HTTP_OK, { ok: true, commentId: appended.comment.id })
 }
 
 export async function resetDesk({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	await ctx.serialize(async (): Promise<void> => {
+	request,
+}: RouteRequest): Promise<Response> {
+	return ctx.serialize(async (): Promise<Response> => {
 		// Bodyless POST = the documented 'all'; malformed JSON means the same default; a parsed body with an unknown scope is rejected - the caller must name what it wants dropped.
 		let body: unknown
 		try {
-			body = await readJsonBody(req)
+			body = await readJsonBody(request)
 		} catch {
 			body = undefined
 		}
 		const scope = parseResetScope(body)
 		if (scope === null)
-			return fail(res, {
+			return fail({
 				status: HTTP_UNPROCESSABLE,
 				code: 'INVALID_RESET_SCOPE',
 				error: 'scope must be "review", "approved" or "all"',
@@ -202,6 +197,6 @@ export async function resetDesk({
 			state: browserState(saved.state),
 			serverInstanceId: ctx.instanceId,
 		}
-		json(res, HTTP_OK, response)
+		return json(HTTP_OK, response)
 	})
 }

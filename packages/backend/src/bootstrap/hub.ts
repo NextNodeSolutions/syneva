@@ -1,20 +1,18 @@
 import { randomUUID } from 'node:crypto'
-import http from 'node:http'
 import os from 'node:os'
 
 import { createAccessGuard } from '../adapters/inbound/http/auth.js'
-import {
-	authoritiesFor,
-	resolveBinding,
-} from '../adapters/inbound/http/binding.js'
+import { resolveBinding } from '../adapters/inbound/http/binding.js'
 import { createHub } from '../adapters/inbound/http/hub.js'
 import { listenOn } from '../adapters/inbound/http/listen.js'
+import {
+	createLocalServer,
+	portOf,
+} from '../adapters/inbound/http/local-server.js'
 import {
 	DEFAULT_HOST,
 	DEFAULT_HUB_PORT,
 } from '../adapters/inbound/http/options.js'
-import { createHubRequestHandler } from '../adapters/inbound/http/router.js'
-import { routes } from '../adapters/inbound/http/routes.js'
 import { builtUi } from '../adapters/inbound/http/routes/static.js'
 import { hubLog } from '../adapters/outbound/console.js'
 import { editorPort } from '../adapters/outbound/editor/open-editor.js'
@@ -29,6 +27,7 @@ import { nodeGit } from '../adapters/outbound/git/repo.js'
 import { createHubJournal } from '../application/journal.js'
 import { createPlanLibrary } from '../application/plan-library.js'
 
+import type { Server } from 'node:http'
 import type { Hub } from '../adapters/inbound/http/hub.js'
 import type { HubHandle, HubOptions } from '../adapters/inbound/http/options.js'
 import type { HubJournal } from '../application/journal.js'
@@ -57,24 +56,19 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 	const journal = createHubJournal(nodeHubJournal, log)
 	const plans = createPlanLibrary(nodePlanStore, nodeGit.workspace, log)
 	const hub = wireHub(options, { journal, plans }, log)
-	const server = http.createServer()
-	server.on(
-		'request',
-		createHubRequestHandler({
-			hub,
-			journal,
-			plans,
-			settings: nodeSettings,
-			guard,
-			// The origin guard re-reads the port per request: server.address() is populated only once the socket is bound.
-			authorities: () => authoritiesFor(binding, portOf(server)),
-			deskRoutes: routes,
-			ui: options.ui ?? builtUi,
-			version: options.version,
-			keyRequired: guard.keyRequired,
-			onShutdown: () => options.onShutdown?.(),
-		}),
-	)
+	const server = createLocalServer({
+		hub,
+		journal,
+		plans,
+		settings: nodeSettings,
+		guard,
+		binding,
+		ui: options.ui ?? builtUi,
+		uiMiddleware: options.uiMiddleware,
+		version: options.version,
+		keyRequired: guard.keyRequired,
+		onShutdown: () => options.onShutdown?.(),
+	})
 	await listenOn(server, options.port ?? DEFAULT_HUB_PORT, host)
 	await hub.restore()
 	const port = portOf(server)
@@ -111,15 +105,10 @@ function wireHub(
 }
 
 // Parked long-polls are cut (an agent's `await` exits non-zero and re-checks the hub); the registry is written one last time so the next start restores the same desks.
-async function closeHub(server: http.Server, hub: Hub): Promise<void> {
+async function closeHub(server: Server, hub: Hub): Promise<void> {
 	server.closeAllConnections()
 	await new Promise<void>(resolve => {
 		server.close(() => resolve())
 	})
 	await hub.persist()
-}
-
-function portOf(server: http.Server): number {
-	const address = server.address()
-	return typeof address === 'object' && address ? address.port : 0
 }

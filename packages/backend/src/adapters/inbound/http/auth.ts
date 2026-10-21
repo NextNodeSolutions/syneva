@@ -12,8 +12,6 @@ import {
 } from './http.js'
 import { loginPage } from './pages.js'
 
-import type { IncomingMessage, ServerResponse } from 'node:http'
-
 // The value is a digest of the key, never the key.
 const COOKIE_NAME = 'syneva_key'
 const SECONDS_PER_DAY = 86_400
@@ -25,14 +23,10 @@ const BEARER_PREFIX = 'Bearer '
 // Without a key (a loopback-only hub) the gate is open and the same-origin guard alone protects the hub.
 export type AccessGuard = {
 	readonly keyRequired: boolean
-	// True when the request may proceed; false once the guard has answered it (401 for an API caller, the sign-in page for a browser navigation).
-	allows(req: IncomingMessage, res: ServerResponse, url: URL): boolean
-	handleLogin(
-		req: IncomingMessage,
-		res: ServerResponse,
-		url: URL,
-	): Promise<void>
-	handleLogout(res: ServerResponse): void
+	// Null when the request may proceed; else the guard's answer (401 for an API caller, the sign-in page for a browser navigation).
+	refusal(request: Request, url: URL): Response | null
+	login(request: Request, url: URL): Promise<Response>
+	logout(): Response
 }
 
 // Two secrets derived from the key: what a Bearer header must hash to, and what the signed-in cookie carries (a leaked cookie is not the key itself).
@@ -47,89 +41,74 @@ export function createAccessGuard(
 		bearer: hashOf(key),
 		cookie: hashOf(`cookie:${key}`),
 	}
-	const holdsKey = (req: IncomingMessage): boolean =>
-		matches(bearerOf(req), digests.bearer) ||
-		matches(cookieOf(req), digests.cookie, true)
+	const holdsKey = (request: Request): boolean =>
+		matches(bearerOf(request), digests.bearer) ||
+		matches(cookieOf(request), digests.cookie, true)
 	return {
 		keyRequired: true,
-		allows: (req, res, url) => allowsOrAnswers(holdsKey, req, res, url),
-		handleLogin: (req, res, url) =>
-			signIn({ holdsKey, digests, isSecureCookie }, req, res, url),
-		handleLogout(res): void {
-			res.setHeader('set-cookie', cookieHeader('', 0, isSecureCookie))
-			redirect(res, HUB_PATHS.login)
-		},
+		refusal: (request, url) => refuseWithoutKey(holdsKey, request, url),
+		login: (request, url) =>
+			signIn({ holdsKey, digests, isSecureCookie }, request, url),
+		logout: () =>
+			redirect(HUB_PATHS.login, cookieHeader('', 0, isSecureCookie)),
 	}
 }
 
 function openGuard(): AccessGuard {
 	return {
 		keyRequired: false,
-		allows: () => true,
-		async handleLogin(_req, res): Promise<void> {
-			redirect(res, '/')
-		},
-		handleLogout(res): void {
-			redirect(res, '/')
-		},
+		refusal: () => null,
+		login: async () => redirect('/'),
+		logout: () => redirect('/'),
 	}
 }
 
-function allowsOrAnswers(
-	holdsKey: (req: IncomingMessage) => boolean,
-	req: IncomingMessage,
-	res: ServerResponse,
+function refuseWithoutKey(
+	holdsKey: (request: Request) => boolean,
+	request: Request,
 	url: URL,
-): boolean {
-	if (holdsKey(req)) return true
-	if (isBrowserNavigation(req, url)) {
-		html(res, HTTP_UNAUTHORIZED, loginPage({ next: url.pathname }))
-		return false
-	}
-	fail(res, {
+): Response | null {
+	if (holdsKey(request)) return null
+	if (isBrowserNavigation(request, url))
+		return html(HTTP_UNAUTHORIZED, loginPage({ next: url.pathname }))
+	return fail({
 		status: HTTP_UNAUTHORIZED,
 		code: 'UNAUTHORIZED',
 		error: 'This hub requires its access key.',
 		fix: 'Send `Authorization: Bearer <key>` (the CLI reads SYNEVA_KEY), or sign in at /login in a browser.',
 	})
-	return false
 }
 
 type SignInDeps = {
-	holdsKey: (req: IncomingMessage) => boolean
+	holdsKey: (request: Request) => boolean
 	digests: KeyDigests
 	isSecureCookie: boolean
 }
 
 async function signIn(
 	deps: SignInDeps,
-	req: IncomingMessage,
-	res: ServerResponse,
+	request: Request,
 	url: URL,
-): Promise<void> {
+): Promise<Response> {
 	const next = safeNext(url.searchParams.get('next'))
-	if (req.method === 'GET' && !url.searchParams.has('key')) {
-		if (deps.holdsKey(req)) return redirect(res, next)
-		return html(res, HTTP_OK, loginPage({ next }))
+	if (request.method === 'GET' && !url.searchParams.has('key')) {
+		if (deps.holdsKey(request)) return redirect(next)
+		return html(HTTP_OK, loginPage({ next }))
 	}
-	const presented = await presentedLoginKey(req, url)
-	if (!matches(presented, deps.digests.bearer)) {
-		html(
-			res,
+	const presented = await presentedLoginKey(request, url)
+	if (!matches(presented, deps.digests.bearer))
+		return html(
 			HTTP_UNAUTHORIZED,
 			loginPage({ next, error: 'That key does not open this hub.' }),
 		)
-		return
-	}
-	res.setHeader(
-		'set-cookie',
+	return redirect(
+		next,
 		cookieHeader(
 			deps.digests.cookie,
 			COOKIE_MAX_AGE_SECONDS,
 			deps.isSecureCookie,
 		),
 	)
-	redirect(res, next)
 }
 
 function hashOf(text: string): string {
@@ -148,14 +127,14 @@ function matches(
 	return left.length === right.length && crypto.timingSafeEqual(left, right)
 }
 
-function bearerOf(req: IncomingMessage): string | undefined {
-	const { authorization } = req.headers
+function bearerOf(request: Request): string | undefined {
+	const authorization = request.headers.get('authorization')
 	if (!authorization?.startsWith(BEARER_PREFIX)) return undefined
 	return authorization.slice(BEARER_PREFIX.length).trim()
 }
 
-function cookieOf(req: IncomingMessage): string | undefined {
-	const { cookie } = req.headers
+function cookieOf(request: Request): string | undefined {
+	const cookie = request.headers.get('cookie')
 	if (!cookie) return undefined
 	for (const part of cookie.split(';')) {
 		const [name, ...rest] = part.trim().split('=')
@@ -165,21 +144,23 @@ function cookieOf(req: IncomingMessage): string | undefined {
 }
 
 // A browser landing on a page gets the sign-in form; API callers (fetch, the CLI) get a 401 they can act on.
-function isBrowserNavigation(req: IncomingMessage, url: URL): boolean {
-	if (req.method !== 'GET') return false
-	const accept = req.headers.accept ?? ''
+function isBrowserNavigation(request: Request, url: URL): boolean {
+	if (request.method !== 'GET') return false
+	const accept = request.headers.get('accept') ?? ''
 	return accept.includes('text/html') || url.pathname === '/'
 }
 
 async function presentedLoginKey(
-	req: IncomingMessage,
+	request: Request,
 	url: URL,
 ): Promise<string | undefined> {
 	const fromQuery = url.searchParams.get('key')
 	if (fromQuery) return fromQuery
-	if (req.method !== 'POST') return undefined
-	const body = await readBody(req)
-	if ((req.headers['content-type'] ?? '').includes('application/json'))
+	if (request.method !== 'POST') return undefined
+	const body = await readBody(request)
+	if (
+		(request.headers.get('content-type') ?? '').includes('application/json')
+	)
 		return keyFromJson(body)
 	return new URLSearchParams(body).get('key') ?? undefined
 }

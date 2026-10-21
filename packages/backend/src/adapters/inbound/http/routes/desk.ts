@@ -12,18 +12,13 @@ import type {
 } from '@syneva/contracts/browser'
 import type { RouteRequest } from '../router.js'
 
-export async function servePoll({
-	ctx,
-	res,
-	url,
-}: RouteRequest): Promise<void> {
+export async function servePoll({ ctx, url }: RouteRequest): Promise<Response> {
 	// A restarted desk may ship a different state contract: tell an already-loaded tab to refresh its bundle first; legacy clients without an instance token still receive the normal heartbeat.
 	const { searchParams } = url
 	const instance = searchParams.get('instance')
 	if (instance && instance !== ctx.instanceId) {
 		const event: BrowserRefreshEvent = { kind: 'refresh' }
-		json(res, HTTP_OK, { ...event, ...ctx.status() })
-		return
+		return json(HTTP_OK, { ...event, ...ctx.status() })
 	}
 	// Keep the 1.5s heartbeat tiny and git-free; file summaries and changes only ride /state.
 	// One capture: the three review fields must come from one state root - a commit landing mid-build would stitch the poll from two revisions.
@@ -36,10 +31,10 @@ export async function servePoll({
 		comments: state.comments,
 		domainComments: (state.domainComments ?? []).map(browserDomainComment),
 	}
-	json(res, HTTP_OK, { ...poll, ...ctx.status() })
+	return json(HTTP_OK, { ...poll, ...ctx.status() })
 }
 
-export async function serveState({ ctx, res }: RouteRequest): Promise<void> {
+export async function serveState({ ctx }: RouteRequest): Promise<Response> {
 	await ctx.refreshStaged()
 	// Revision first, then root: a commit landing between the two reads can only park a body under the OLDER revision (the next read's revision check rejects it) - never a stale body under the newer one.
 	// The cached body keys on revision plus transient desk status: only the projection is expensive, and only the status moves between the two reads.
@@ -54,43 +49,36 @@ export async function serveState({ ctx, res }: RouteRequest): Promise<void> {
 				serverInstanceId: ctx.instanceId,
 			}),
 	)
-	jsonBody(res, HTTP_OK, body)
+	return jsonBody(HTTP_OK, body)
 }
 
 // GET /inventory: the live desk's review source as a guide is authored against it (fingerprint, files, units).
-export async function serveInventory({
-	ctx,
-	res,
-}: RouteRequest): Promise<void> {
+export async function serveInventory({ ctx }: RouteRequest): Promise<Response> {
 	await ctx.refreshStaged()
-	json(res, HTTP_OK, buildInventory(ctx.state, ctx.pathFilter))
+	return json(HTTP_OK, buildInventory(ctx.state, ctx.pathFilter))
 }
 
 // GET /authoring: what the agent explaining the desk works from - its guide to fill, the domains waiting for words and their code; null on a desk without a guide.
-export async function serveAuthoring({
-	ctx,
-	res,
-}: RouteRequest): Promise<void> {
+export async function serveAuthoring({ ctx }: RouteRequest): Promise<Response> {
 	await ctx.refreshStaged()
-	json(res, HTTP_OK, guideAuthoring(ctx.state, ctx.pathFilter))
+	return json(HTTP_OK, guideAuthoring(ctx.state, ctx.pathFilter))
 }
 
-export async function serveTree({ ctx, res }: RouteRequest): Promise<void> {
+export async function serveTree({ ctx }: RouteRequest): Promise<Response> {
 	await ctx.refreshStaged()
-	json(res, HTTP_OK, { files: await ctx.git.projectTree(ctx.state.root) })
+	return json(HTTP_OK, { files: await ctx.git.projectTree(ctx.state.root) })
 }
 
 // Stored globally in ~/.syneva/settings.json: the file follows the reviewer across browsers and hosts where a per-origin localStorage would not.
-export async function serveSettings({ ctx, res }: RouteRequest): Promise<void> {
-	json(res, HTTP_OK, await ctx.settings.read())
+export async function serveSettings({ ctx }: RouteRequest): Promise<Response> {
+	return json(HTTP_OK, await ctx.settings.read())
 }
 
 export async function saveSettings({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	const settings: unknown = await readJsonBody(req)
+	request,
+}: RouteRequest): Promise<Response> {
+	const settings: unknown = await readJsonBody(request)
 	await ctx.settings.write(settings)
-	json(res, HTTP_OK, { ok: true })
+	return json(HTTP_OK, { ok: true })
 }

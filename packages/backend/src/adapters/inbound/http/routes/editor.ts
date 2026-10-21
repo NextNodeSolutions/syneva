@@ -30,17 +30,16 @@ function parseOpenEditorRequest(
 
 export async function openInEditor({
 	ctx,
-	req,
-	res,
-}: RouteRequest): Promise<void> {
-	const body: unknown = await readJsonBody(req)
-	const request = parseOpenEditorRequest(body)
-	if (!request) return fail(res, BAD_PATH)
-	const abs = repoPath(ctx.state.root, request.path)
-	if (!abs) return fail(res, BAD_PATH)
-	const launched = await ctx.editor.open(ctx.state.root, abs, request.line)
+	request,
+}: RouteRequest): Promise<Response> {
+	const body: unknown = await readJsonBody(request)
+	const target = parseOpenEditorRequest(body)
+	if (!target) return fail(BAD_PATH)
+	const abs = repoPath(ctx.state.root, target.path)
+	if (!abs) return fail(BAD_PATH)
+	const launched = await ctx.editor.open(ctx.state.root, abs, target.line)
 	if (!launched.ok)
-		return fail(res, {
+		return fail({
 			// A preference the reviewer must fix answers 422; a failed launch is the desk's error.
 			status:
 				launched.code === 'EDITOR_FAILED'
@@ -53,5 +52,5 @@ export async function openInEditor({
 					? 'Check the editor command in Settings and try again.'
 					: 'Update the editor command in Settings.',
 		})
-	json(res, HTTP_OK, { ok: true })
+	return json(HTTP_OK, { ok: true })
 }

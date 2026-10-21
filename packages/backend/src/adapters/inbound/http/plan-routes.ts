@@ -14,7 +14,6 @@ import {
 	readJsonBody,
 } from './http.js'
 
-import type { IncomingMessage, ServerResponse } from 'node:http'
 import type {
 	PlanDesk,
 	PlanResponse,
@@ -23,12 +22,11 @@ import type {
 } from '@syneva/contracts/plans'
 import type { PlanLibrary } from '../../../application/plan-library.js'
 import type { PlanRecord } from '../../../domain/plan.js'
+import type { HubRequest } from './exchange.js'
 import type { ApiFailure } from './failure.js'
 import type { Hub } from './hub.js'
 
 export type PlanRouteDeps = { hub: Hub; plans: PlanLibrary }
-
-type PlanRequest = { req: IncomingMessage; res: ServerResponse; url: URL }
 
 // A version is 1-based.
 const VERSION = /^[1-9]\d*$/
@@ -50,47 +48,39 @@ const VERSION_NOT_FOUND: ApiFailure = {
 }
 
 // /api/hub/plans[/<id>[/versions/<n> | /status]]: the plan library (PlansResponse,
-// PlanResponse, PlanVersionResponse). False when the path is none of them, so the router goes on.
-export async function handlePlanApi(
+// PlanResponse, PlanVersionResponse). Null when the path is none of them, so the router goes on.
+export async function planApi(
 	deps: PlanRouteDeps,
-	request: PlanRequest,
-): Promise<boolean> {
-	const { req, url } = request
+	{ request, url }: HubRequest,
+): Promise<Response | null> {
 	const { pathname } = url
-	if (pathname === HUB_PATHS.plans && req.method === 'GET') {
-		await listPlans(deps, request.res)
-		return true
-	}
-	if (!pathname.startsWith(`${HUB_PATHS.plans}/`)) return false
+	if (pathname === HUB_PATHS.plans && request.method === 'GET')
+		return listPlans(deps)
+	if (!pathname.startsWith(`${HUB_PATHS.plans}/`)) return null
 	const [id = '', ...rest] = pathname
 		.slice(HUB_PATHS.plans.length + 1)
 		.split('/')
-	if (!isHexId(id)) return false
+	if (!isHexId(id)) return null
 	return dispatchPlan(deps, request, id, rest)
 }
 
 async function dispatchPlan(
 	deps: PlanRouteDeps,
-	{ req, res }: PlanRequest,
+	request: Request,
 	id: string,
 	rest: readonly string[],
-): Promise<boolean> {
+): Promise<Response | null> {
 	const [segment, version] = rest
-	if (!rest.length && req.method === 'GET') {
-		await readPlan(deps, res, id)
-		return true
-	}
-	if (rest.length === 1 && segment === 'status' && req.method === 'POST') {
-		await changePlanStatus(deps, req, res, id)
-		return true
-	}
+	const { method } = request
+	if (!rest.length && method === 'GET') return readPlan(deps, id)
+	if (rest.length === 1 && segment === 'status' && method === 'POST')
+		return changePlanStatus(deps, request, id)
 	const isVersionRead =
 		rest.length === VERSION_SEGMENTS &&
 		segment === 'versions' &&
-		req.method === 'GET'
-	if (!isVersionRead || !version || !VERSION.test(version)) return false
-	await readPlanVersion(deps, res, id, Number(version))
-	return true
+		method === 'GET'
+	if (!isVersionRead || !version || !VERSION.test(version)) return null
+	return readPlanVersion(deps, id, Number(version))
 }
 
 // The live plan desks by plan: the desk a plan's page sends the reviewer to. Read off each
@@ -111,68 +101,61 @@ function summaryOf(
 	return planSummary(record, desks.get(record.id) ?? null)
 }
 
-async function listPlans(
-	deps: PlanRouteDeps,
-	res: ServerResponse,
-): Promise<void> {
+async function listPlans(deps: PlanRouteDeps): Promise<Response> {
 	const desks = liveDesksByPlan(deps.hub)
 	const response: PlansResponse = {
 		plans: (await deps.plans.list()).map(record =>
 			summaryOf(record, desks),
 		),
 	}
-	json(res, HTTP_OK, response)
+	return json(HTTP_OK, response)
 }
 
-async function readPlan(
-	deps: PlanRouteDeps,
-	res: ServerResponse,
-	id: string,
-): Promise<void> {
+async function readPlan(deps: PlanRouteDeps, id: string): Promise<Response> {
 	const record = await deps.plans.get(id)
 	const latest = record?.versions.at(-1)
-	if (!record || !latest) return fail(res, PLAN_NOT_FOUND)
+	if (!record || !latest) return fail(PLAN_NOT_FOUND)
 	const markdown = await deps.plans.readVersion(id, latest.number)
-	if (markdown === null) return fail(res, VERSION_NOT_FOUND)
+	if (markdown === null) return fail(VERSION_NOT_FOUND)
 	const response: PlanResponse = {
 		plan: summaryOf(record, liveDesksByPlan(deps.hub)),
 		markdown,
 	}
-	json(res, HTTP_OK, response)
+	return json(HTTP_OK, response)
 }
 
 async function readPlanVersion(
 	deps: PlanRouteDeps,
-	res: ServerResponse,
 	id: string,
 	version: number,
-): Promise<void> {
+): Promise<Response> {
 	const markdown = await deps.plans.readVersion(id, version)
-	if (markdown === null) return fail(res, VERSION_NOT_FOUND)
+	if (markdown === null) return fail(VERSION_NOT_FOUND)
 	const response: PlanVersionResponse = { number: version, markdown }
-	json(res, HTTP_OK, response)
+	return json(HTTP_OK, response)
 }
 
 // The reviewer's word on a plan: implemented, archived, or back to draft (PlanStatusRequest).
 async function changePlanStatus(
 	deps: PlanRouteDeps,
-	req: IncomingMessage,
-	res: ServerResponse,
+	request: Request,
 	id: string,
-): Promise<void> {
-	const body: unknown = await readJsonBody(req)
+): Promise<Response> {
+	const body: unknown = await readJsonBody(request)
 	const status =
 		typeof body === 'object' && body !== null && 'status' in body
 			? body.status
 			: undefined
 	if (!isPlanStatusChange(status))
-		return fail(res, {
+		return fail({
 			status: HTTP_UNPROCESSABLE,
 			code: 'INVALID_PLAN_STATUS',
 			error: 'status must be "draft", "implemented" or "archived".',
 			fix: 'POST { status } - a plan is approved by a Send, never by hand.',
 		})
 	const record = await deps.plans.changeStatus(id, status)
-	if (!record) return fail(res, PLAN_NOT_FOUND)
-	json(res, HTTP_OK, { plan: summaryOf(record, liveDesksByPlan(deps.hub)) })
+	if (!record) return fail(PLAN_NOT_FOUND)
+	return json(HTTP_OK, {
+		plan: summaryOf(record, liveDesksByPlan(deps.hub)),
+	})
 }
