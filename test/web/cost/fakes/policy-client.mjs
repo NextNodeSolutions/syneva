@@ -10,6 +10,7 @@ import { delay } from './timing.mjs'
 export class PolicyClient {
 	// { at, outcome } per attempt: 'open', the HTTP status that refused it, or 'failed'.
 	attempts = []
+	retries = []
 	// { at, code } per socket that closed after opening.
 	drops = []
 	opens = []
@@ -57,6 +58,7 @@ export class PolicyClient {
 				return
 			}
 			attempt += 1
+			this.retries.push({ at: Date.now(), waitMs: step.waitMs })
 			await delay(step.waitMs, undefined, {
 				signal: this.#abort.signal,
 			}).catch(() => undefined)

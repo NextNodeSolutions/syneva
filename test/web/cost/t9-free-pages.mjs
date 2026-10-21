@@ -54,18 +54,15 @@ async function run(ctx) {
 			'no local Explorer: the invocation count was not read here (staging: the Analytics read below)',
 		)
 	} else {
-		// The Explorer's collector sometimes drops spans of a loaded run (seen as 37 or 68 of 150
-		// after the other tests; a quiet run counts all 150), so an asset that invoked the Worker
-		// is what the count can prove (more invocations than shells), never a short count.
 		const moved = after - before
 		report.check(
-			`${assets.length * LOADS} asset requests and ${pageRequests} page-shell requests moved the Worker's invocations by ${moved}: no more than the shells, so no asset ran the Worker`,
-			moved <= pageRequests,
+			`${assets.length * LOADS} asset requests and ${pageRequests} page-shell requests moved the Worker's invocations by ${moved}: exactly the shells, so no asset ran the Worker`,
+			moved === pageRequests,
 			`${moved} invocations, ${pageRequests} shell requests`,
 		)
 		if (moved < pageRequests)
 			ctx.note(
-				`the Explorer recorded ${moved} of ${pageRequests} shell invocations (it drops spans under load): the exact count is the Analytics read below`,
+				`incomplete evidence: the Explorer recorded ${moved} of ${pageRequests} shell invocations; repeat with a complete Analytics read`,
 			)
 	}
 	ctx.printReads('T9', {

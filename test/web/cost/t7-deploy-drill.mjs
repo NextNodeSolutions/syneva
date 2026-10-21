@@ -4,8 +4,6 @@
 // five tabs and a hub, and write down every attempt. On a deployed Worker you deploy while it
 // watches; locally `--restart` restarts `wrangler dev` under it, which drops the sockets the
 // same way.
-import { BRIDGE_LIMITS } from '../../../packages/contracts/dist/bridge.js'
-
 import { PolicyClient, story } from './fakes/policy-client.mjs'
 import { delay } from './fakes/timing.mjs'
 import { iso } from './hold.mjs'
@@ -17,7 +15,6 @@ const SLACK_MS = 3000
 const STABLE_MS = 15_000
 const POLL_MS = 500
 const UP_WITHIN_MS = 60_000
-const BASE = 2
 const MS_PER_S = 1000
 
 async function run(ctx) {
@@ -101,7 +98,7 @@ function judge(ctx, clients, droppedAt) {
 		overlong.map(client => story(client, droppedAt)).join('\n  '),
 	)
 	report.check(
-		'no client tried faster than its backoff step allows (the gap before attempt k is at most min(60 s, 1 s * 2^(k-1)))',
+		'every retry waited for its chosen backoff delay',
 		clients.every(client => respectsBackoff(client, droppedAt)),
 		stories.join('\n  '),
 	)
@@ -117,18 +114,17 @@ function judge(ctx, clients, droppedAt) {
 const attemptsAfter = (client, since) =>
 	client.attempts.filter(each => each.at >= since)
 
-// Each wait before attempt k is drawn from [0, min(60 s, 1 s * 2^(k-1))]; a gap a little over that
-// is the attempt's own duration.
 function respectsBackoff(client, since) {
 	const attempts = attemptsAfter(client, since)
-	return attempts.every((each, at) => {
-		if (at === 0) return true
-		const ceiling = Math.min(
-			BRIDGE_LIMITS.backoffMaxMs,
-			BRIDGE_LIMITS.backoffMinMs * BASE ** (at - 1),
-		)
-		return each.at - attempts[at - 1].at <= ceiling + SLACK_MS
-	})
+	return (
+		attempts.length > 0 &&
+		attempts.every(each => {
+			const retry = client.retries.findLast(wait => wait.at <= each.at)
+			if (!retry) return false
+			const elapsed = each.at - retry.at
+			return elapsed >= retry.waitMs && elapsed <= retry.waitMs + SLACK_MS
+		})
+	)
 }
 
 async function until(test, timeoutMs) {

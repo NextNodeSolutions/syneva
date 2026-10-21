@@ -77,13 +77,17 @@ export function judgeRefusals({ report }, clients, { droppedAt, windowMs }) {
 	const after = client => client.attempts.filter(each => each.at >= droppedAt)
 	report.check(
 		'every attempt while the rule was up was refused at the edge (403 or 429), none opened',
-		clients.every(client =>
-			after(client).every(each => EDGE_STATUSES.has(each.outcome)),
-		),
+		clients.every(client => {
+			const attempts = after(client)
+			return (
+				attempts.length > 0 &&
+				attempts.every(each => EDGE_STATUSES.has(each.outcome))
+			)
+		}),
 		clients.map(client => story(client, droppedAt)).join('\n  '),
 	)
 	const spaced = client => {
-		const refused = after(client).slice(1)
+		const refused = after(client)
 		return refused.every(
 			(each, at) =>
 				at === 0 ||
