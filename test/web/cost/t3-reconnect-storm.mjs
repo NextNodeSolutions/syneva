@@ -8,6 +8,7 @@ import { BRIDGE_PATHS } from '../../../packages/contracts/dist/bridge.js'
 
 import { delay } from './fakes/timing.mjs'
 import { iso } from './hold.mjs'
+import { invocationTotal } from './observe.mjs'
 import { describe, histogram, storm } from './storm.mjs'
 
 const PER_SECOND = 100
@@ -74,7 +75,6 @@ async function dryRun(ctx) {
 	const before = await ops.status()
 	const since = Date.now()
 	const framesBefore = tab.frames.length
-	const invocationsBefore = await ctx.explorer.baseline()
 	const objectsBefore = await ctx.explorer.objectCount()
 	const hubs = await storm({
 		origin: ctx.web.origin,
@@ -107,7 +107,6 @@ async function dryRun(ctx) {
 		framesBefore,
 		since,
 		until,
-		invocationsBefore,
 		objectsBefore,
 		storms: [hubs, tabs],
 	})
@@ -118,16 +117,8 @@ async function dryRun(ctx) {
 // same, the Worker logged nothing.
 async function noObjectTouched(ctx, seen) {
 	const { report, ops } = ctx
-	const {
-		tab,
-		before,
-		framesBefore,
-		since,
-		until,
-		invocationsBefore,
-		objectsBefore,
-		storms,
-	} = seen
+	const { tab, before, framesBefore, since, until, objectsBefore, storms } =
+		seen
 	const after = await ops.status()
 	report.check(
 		'no object was created or woken: the ops status is unchanged (users, hubs seen)',
@@ -147,10 +138,10 @@ async function noObjectTouched(ctx, seen) {
 			objectsAfter === objectsBefore,
 			`${objectsBefore} -> ${objectsAfter}`,
 		)
-	const invocations = await ctx.explorer.invocations()
-	if (invocations !== null && invocationsBefore !== null)
+	const requests = await ctx.explorer.settledRequests(since, until)
+	if (requests !== null)
 		ctx.note(
-			`the Worker ran ${invocations - invocationsBefore} times for ${storms.reduce((sum, each) => sum + each.attempts, 0)} attempts (each refused after at most one D1 read, before any object)`,
+			`the Worker ran ${invocationTotal(requests)} times for ${storms.reduce((sum, each) => sum + each.attempts, 0)} attempts (each refused after at most one D1 read, before any object)`,
 		)
 	const logged = await ctx.explorer.codeLogs(since, until)
 	if (logged)

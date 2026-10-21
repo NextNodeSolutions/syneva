@@ -1,24 +1,26 @@
 // What `wrangler dev` itself recorded about the Worker (its local Explorer: spans and logs in a
-// SQLite the dev server serves over SQL, read-only): a Worker invocation is a root span, and a
-// request an asset served never makes one, so the counts below are the local counterpart of the
-// Analytics API's invocation count. Null answers everywhere when the dev server has no Explorer.
+// SQLite the dev server serves over SQL, read-only): the runtime writes one request line per Worker
+// invocation, and a request an asset served never makes one, so the counts below are the local
+// counterpart of the Analytics API's invocation count. Every count is of the invocations that
+// started inside a window: an upgrade's invocation is recorded when its socket ends, which can be
+// long after, inside a later test's window. Null answers when the dev server has no Explorer.
 const QUERY = '/cdn-cgi/local/explorer/api/local/observability/query'
 // The runtime's own entries: one per request (`"GET http://..."`) and one per event it runs, named
 // by a bare word (`"jsrpc"`, `"hibernatableWebSocket"`). The Worker's code logs JSON.
 const RUNTIME_LINE =
 	/^"([A-Za-z]+|(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS) https?:\/\/.*)"$/
+const REQUEST_LINE = /^"([A-Z]+) (https?:\/\/[^"]+)"$/
 
-const SETTLE_ROUNDS = 60
-const SETTLE_STEP_MS = 1000
+const SETTLE_ROUNDS = 50
+const SETTLE_STEP_MS = 200
 const API = '/cdn-cgi/local/explorer/api'
 
 // What a deployed Worker has instead: nothing local to ask (the Analytics API is a person's read).
 export const NO_EXPLORER = {
 	isLocal: false,
 	objectCount: async () => null,
-	invocations: async () => null,
-	settledInvocations: async () => null,
-	baseline: async () => null,
+	requests: async () => null,
+	settledRequests: async () => null,
 	objectEvents: async () => null,
 	codeLogs: async () => null,
 }
@@ -62,18 +64,28 @@ export function createExplorer(origin) {
 			)
 			return objects?.result?.length ?? null
 		},
-		// Worker invocations so far: the root spans.
-		async invocations() {
+		// The Worker's invocations that started between two times (epoch ms), counted per path: a
+		// path that ran it once per load, or not at all. The sub-invocations it makes of its own
+		// object (`https://user-hub.internal/...`) are the object's, not requests to the Worker.
+		async requests(fromMs, toMs) {
 			const rows = await query(
-				'SELECT count(*) AS n FROM spans WHERE parent_id IS NULL',
+				`SELECT message, count(*) AS n FROM logs WHERE ts_ms >= ${Number(fromMs)} AND ts_ms <= ${Number(toMs)} GROUP BY message`,
 			)
 			if (!rows) return null
-			return rows[0].n
+			const { host } = new URL(origin)
+			const counts = new Map()
+			for (const { message, n } of rows) {
+				const [, method, url] = REQUEST_LINE.exec(message) ?? []
+				if (!url || new URL(url).host !== host) continue
+				const key = `${method} ${new URL(url).pathname}`
+				counts.set(key, (counts.get(key) ?? 0) + n)
+			}
+			return counts
 		},
-		// Invocations once the store has caught up: the collector writes spans after the fact, and
-		// behind a busy run it lags by seconds, so a read is taken when two a second apart agree.
-		async settledInvocations() {
-			let last = await this.invocations()
+		// `requests` once the store has caught up: the collector writes an invocation after it
+		// ends, and behind a busy run it lags, so a read is taken when two in a row agree.
+		async settledRequests(fromMs, toMs) {
+			let last = await this.requests(fromMs, toMs)
 			for (
 				let round = 0;
 				round < SETTLE_ROUNDS && last !== null;
@@ -82,28 +94,15 @@ export function createExplorer(origin) {
 				await new Promise(resolve =>
 					setTimeout(resolve, SETTLE_STEP_MS),
 				)
-				const now = await this.invocations()
-				if (now === last) return now
+				const now = await this.requests(fromMs, toMs)
+				if (
+					now !== null &&
+					invocationTotal(now) === invocationTotal(last)
+				)
+					return now
 				last = now
 			}
 			return last
-		},
-		// Empties the Explorer's store and answers the count it now holds (0), so a window's
-		// invocations are read as a count since then: a difference of two reads over a long run
-		// lost spans the store pruned. Null when it could not be emptied.
-		async baseline() {
-			try {
-				const response = await fetch(
-					new URL(`${API}/local/observability/clear`, origin),
-					{
-						method: 'POST',
-					},
-				)
-				if (!response.ok) return null
-			} catch {
-				return null
-			}
-			return this.invocations()
 		},
 		// The Durable Object events the runtime ran between two times (epoch ms): a hibernatable
 		// socket's message, close or error wakes the object and logs `hibernatableWebSocket`; the
@@ -115,7 +114,7 @@ export function createExplorer(origin) {
 			return rows
 		},
 		// The log lines the Worker's code wrote between two times (epoch ms), the runtime's own
-		// runtime's own entries left out.
+		// entries left out.
 		async codeLogs(fromMs, toMs) {
 			const rows = await query(
 				`SELECT ts_ms, level, message FROM logs WHERE ts_ms >= ${Number(fromMs)} AND ts_ms <= ${Number(toMs)} ORDER BY ts_ms`,
@@ -124,6 +123,17 @@ export function createExplorer(origin) {
 			return rows.filter(row => !RUNTIME_LINE.test(row.message))
 		},
 	}
+}
+
+// A `requests` read in words: `GET /path x3, ...`.
+export const describeRequests = counts =>
+	[...counts.entries()].map(([key, count]) => `${key} x${count}`).join(', ')
+
+// How many invocations a `requests` read holds in all.
+export function invocationTotal(counts) {
+	let sum = 0
+	for (const count of counts.values()) sum += count
+	return sum
 }
 
 // Text `wrangler dev` printed on stdout/stderr between two offsets, minus its own request lines

@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url'
 
 import { delay } from './fakes/timing.mjs'
 import { iso } from './hold.mjs'
+import { describeRequests, invocationTotal } from './observe.mjs'
 
 const CLIENT = path.join(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -20,6 +21,7 @@ const CLIENT = path.join(
 )
 const LOADS = 50
 const BATCH = 10
+const ROUNDS = 3
 const SETTLE_MS = 400
 const HTTP_OK = 200
 const HTTP_MOVED = 301
@@ -35,41 +37,77 @@ async function run(ctx) {
 	const assets = ['/ui.js', '/dashboard.js', '/styles.css', `/fonts/${font}`]
 	const shells = ['/', '/reviews', `/d/${hub.hubId}cafe/`]
 	await delay(SETTLE_MS)
-	const before = await ctx.explorer.baseline()
-	const startedAt = Date.now()
 	const stdoutFrom = ctx.web.output.text.length
-	const served = new Map()
-	for (const route of [...assets, ...shells])
-		served.set(route, await loadMany(account, route))
-	const endedAt = Date.now()
-	await delay(SETTLE_MS)
+	const first = await loadRound(ctx, account, [...assets, ...shells])
 	if (!ctx.staging) noteStdout(ctx, stdoutFrom, assets)
-	const after = await ctx.explorer.settledInvocations()
-	for (const route of assets) assetHeaders(report, route, served.get(route))
-	for (const route of shells) shellHeaders(report, route, served.get(route))
+	for (const route of assets)
+		assetHeaders(report, route, first.served.get(route))
+	for (const route of shells)
+		shellHeaders(report, route, first.served.get(route))
 	await conditional(ctx, account, assets[0])
-	const pageRequests = shells.length * LOADS
-	if (before === null || after === null) {
-		ctx.note(
-			'no local Explorer: the invocation count was not read here (staging: the Analytics read below)',
-		)
-	} else {
-		const moved = after - before
-		report.check(
-			`${assets.length * LOADS} asset requests and ${pageRequests} page-shell requests moved the Worker's invocations by ${moved}: exactly the shells, so no asset ran the Worker`,
-			moved === pageRequests,
-			`${moved} invocations, ${pageRequests} shell requests`,
-		)
-		if (moved < pageRequests)
-			ctx.note(
-				`incomplete evidence: the Explorer recorded ${moved} of ${pageRequests} shell invocations; repeat with a complete Analytics read`,
-			)
-	}
+	if (!ctx.staging)
+		await invocationsOnlyByShells(ctx, account, { assets, shells, first })
 	ctx.printReads('T9', {
-		from: iso(startedAt),
-		to: iso(endedAt),
-		pageRequests,
+		from: iso(first.startedAt),
+		to: iso(first.endedAt),
+		pageRequests: shells.length * LOADS,
 	})
+}
+
+// Every route loaded LOADS times, a few at a time. Locally each batch waits for the Explorer to
+// record it before the next goes: its collector drops records when it falls behind.
+async function loadRound(ctx, account, routes) {
+	const startedAt = Date.now()
+	const served = new Map()
+	for (const route of routes)
+		served.set(route, await loadMany(ctx, account, { route, startedAt }))
+	return { startedAt, endedAt: Date.now(), served }
+}
+
+// The Worker's invocations over a round of loads, per path: the shells ran it once a load, no asset
+// ran it. The Explorer is a lossy instrument under load (it once recorded 37 of 150 shell loads
+// after the other tests), so a round is evidence only when it recorded every shell load: then it
+// would have recorded an asset that ran the Worker too. Up to ROUNDS rounds, the first included.
+async function invocationsOnlyByShells(
+	ctx,
+	account,
+	{ assets, shells, first },
+) {
+	const expected = shells.length * LOADS
+	let round = first
+	for (let at = 1; at <= ROUNDS; at += 1) {
+		const seen = await ctx.explorer.settledRequests(
+			round.startedAt,
+			round.endedAt,
+		)
+		if (seen === null)
+			return ctx.note(
+				'no local Explorer: the invocation count was not read here (staging: the Analytics read below)',
+			)
+		const recorded = shells.map(route => seen.get(`GET ${route}`) ?? 0)
+		if (recorded.every(count => count >= LOADS))
+			return judgeInvocations(ctx, seen, { assets, expected })
+		ctx.note(
+			`round ${at}: the Explorer recorded ${recorded.reduce((sum, count) => sum + count, 0)} of ${expected} shell loads (it fell behind), so it could have missed an asset's too`,
+		)
+		if (at < ROUNDS)
+			round = await loadRound(ctx, account, [...assets, ...shells])
+	}
+	return ctx.report.check(
+		`the Explorer recorded every shell load in one of ${ROUNDS} rounds (the invocation count is evidence only then)`,
+		false,
+		'incomplete evidence: repeat on a quieter machine, or read it on staging',
+	)
+}
+
+function judgeInvocations({ report }, seen, { assets, expected }) {
+	const moved = invocationTotal(seen)
+	const byAssets = assets.filter(route => seen.has(`GET ${route}`))
+	report.check(
+		`${assets.length * LOADS} asset requests and ${expected} page-shell requests moved the Worker's invocations by ${moved}: exactly the shells, so no asset ran the Worker`,
+		moved === expected && !byAssets.length,
+		describeRequests(seen),
+	)
 }
 
 // `wrangler dev` prints a request line for an asset as for a page: stdout cannot tell them apart.
@@ -83,7 +121,7 @@ function noteStdout(ctx, from, assets) {
 }
 
 // `LOADS` GETs of one route, a few at a time; the last response's headers and the statuses.
-async function loadMany(account, route) {
+async function loadMany(ctx, account, { route, startedAt }) {
 	const statuses = []
 	let last = null
 	for (let at = 0; at < LOADS; at += BATCH) {
@@ -95,6 +133,8 @@ async function loadMany(account, route) {
 			last = response
 			await response.arrayBuffer()
 		}
+		if (!ctx.staging)
+			await ctx.explorer.settledRequests(startedAt, Date.now())
 	}
 	return { statuses, headers: last.headers }
 }

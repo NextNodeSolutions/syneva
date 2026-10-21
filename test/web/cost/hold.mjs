@@ -5,6 +5,7 @@
 import { BRIDGE_LIMITS } from '../../../packages/contracts/dist/bridge.js'
 
 import { delay } from './fakes/timing.mjs'
+import { invocationTotal } from './observe.mjs'
 
 const MS_PER_MINUTE = 60_000
 const TAB_SPACING_MS = 60
@@ -71,7 +72,6 @@ export async function holdFleet(ctx, { hubs, tabs, minutes }) {
 	const peers = [...fleet.hubs, ...fleet.tabs]
 	const baseline = new Map(peers.map(peer => [peer, peer.frames.length]))
 	const stdoutOffset = ctx.web.output.text.length
-	const invocationsBefore = await ctx.explorer.baseline()
 	const startedAt = Date.now()
 	// Ends at the minutes, or at the first socket that closes: a close is already the failure.
 	await Promise.race([
@@ -80,7 +80,7 @@ export async function holdFleet(ctx, { hubs, tabs, minutes }) {
 	])
 	const endedAt = Date.now()
 	const stdoutEnd = ctx.web.output.text.length
-	const invocationsAfter = await ctx.explorer.invocations()
+	const requests = await ctx.explorer.settledRequests(startedAt, endedAt)
 	const closed = peers.filter(peer => !peer.isOpen)
 	const spoken = peers.flatMap(peer =>
 		peer.frames.slice(baseline.get(peer)).filter(each => !each.isPong),
@@ -94,19 +94,14 @@ export async function holdFleet(ctx, { hubs, tabs, minutes }) {
 		stdoutEnd,
 		closed,
 		spoken,
-		invocations: difference(invocationsBefore, invocationsAfter),
+		requests,
+		invocations: requests ? invocationTotal(requests) : null,
 		pings: peers.reduce((sum, peer) => sum + peer.pings, 0),
 		pongs: peers.reduce((sum, peer) => sum + peer.pongs, 0),
 		unanswered: peers.filter(peer => peer.pongs < peer.pings - 1).length,
 	}
 	ctx.holds.push(hold)
 	return hold
-}
-
-// After minus before, or null when either was not read.
-function difference(before, after) {
-	if (before === null || after === null) return null
-	return after - before
 }
 
 export const iso = ms => new Date(ms).toISOString()

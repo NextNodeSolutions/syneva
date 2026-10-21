@@ -6,6 +6,7 @@
 // object's code.
 import { delay } from './fakes/timing.mjs'
 import { holdFleet, iso } from './hold.mjs'
+import { describeRequests } from './observe.mjs'
 
 const LOCAL = { hubs: 8, tabs: 8, minutes: 2 }
 const STAGING = { hubs: 50, tabs: 50, minutes: 30 }
@@ -65,7 +66,7 @@ async function run(ctx) {
 		report.check(
 			"the Worker was not invoked once during the hold (pings are the runtime's auto-response)",
 			hold.invocations === 0,
-			`${hold.invocations} invocations`,
+			`${hold.invocations} invocations: ${describeRequests(hold.requests)}`,
 		)
 	if (ctx.explorer.isLocal) await objectWokenOnlyByFrames(ctx, hold)
 	ctx.printReads('T1', { from: iso(hold.startedAt), to: iso(hold.endedAt) })
