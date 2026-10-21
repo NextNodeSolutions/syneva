@@ -1,6 +1,7 @@
 import { HUB_PATHS, JOURNAL_READ_MAX } from '@syneva/contracts/routes'
 
 import {
+	HTTP_FORBIDDEN,
 	HTTP_NOT_FOUND,
 	HTTP_OK,
 	HTTP_UNPROCESSABLE,
@@ -20,8 +21,9 @@ import type {
 import type { HubJournal, JournalQuery } from '../application/journal.js'
 import type { PlanLibrary } from '../application/plan-library.js'
 import type { SettingsPort } from '../application/ports.js'
+import type { OpenScope } from '../hub/hub-served.js'
 import type { Hub } from '../hub/hub.js'
-import type { HubRequest } from './exchange.js'
+import type { HubRequest, RequestChannel } from './exchange.js'
 import type { ApiFailure } from './failure.js'
 
 export type HubRouteDeps = {
@@ -40,6 +42,26 @@ export type HubRouteDeps = {
 const OPEN_FIXES: Record<string, string> = {
 	INVALID_GUIDE:
 		'Fix the guide fields named above (`syneva spec`, The guide), then open again.',
+	NOT_SERVED:
+		"From the web, open a desk on a repository this hub has a live desk on; any other folder opens on the hub's machine (`syneva open`).",
+	PR_LOCAL_ONLY:
+		"Open the pr desk on the hub's machine (`syneva open pr <ref>`); the web reviews it once it is open.",
+}
+
+// A refusal of who asked rather than of what they asked (hub-served.ts) is a 403; every other an
+// open's 422.
+const OPEN_FORBIDDEN: ReadonlySet<string> = new Set([
+	'NOT_SERVED',
+	'PR_LOCAL_ONLY',
+])
+
+// Who names the folder of an open: the web, over the pairing, only a root the hub serves.
+function scopeOf(channel: RequestChannel): OpenScope {
+	return channel === 'direct' ? 'any' : 'served'
+}
+
+function openFailure(code: string): number {
+	return OPEN_FORBIDDEN.has(code) ? HTTP_FORBIDDEN : HTTP_UNPROCESSABLE
 }
 
 export const DESK_NOT_FOUND: ApiFailure = {
@@ -76,7 +98,7 @@ export function listDesks(deps: HubRouteDeps, url: URL): Response {
 
 export async function openDeskRoute(
 	deps: HubRouteDeps,
-	request: Request,
+	{ request, channel }: Pick<HubRequest, 'request' | 'channel'>,
 ): Promise<Response> {
 	const parsed = parseOpenRequest(await readJsonBody(request), deps.homeDir)
 	if ('error' in parsed)
@@ -86,10 +108,14 @@ export async function openDeskRoute(
 			error: parsed.error,
 			fix: 'POST { root, mode?, session?, target?, base?, staged?, path?, guide? } - see `syneva spec`.',
 		})
-	const outcome = await deps.hub.openDesk(parsed.query, parsed.guide)
+	const outcome = await deps.hub.openDesk(
+		parsed.query,
+		parsed.guide,
+		scopeOf(channel),
+	)
 	if (!outcome.ok)
 		return fail({
-			status: HTTP_UNPROCESSABLE,
+			status: openFailure(outcome.code),
 			code: outcome.code,
 			error: outcome.reason,
 			fix:
@@ -107,7 +133,7 @@ export async function openDeskRoute(
 // POST /api/hub/inventory: the review source for an open's parameters (same body, no guide), before any desk opens.
 export async function inventoryRoute(
 	deps: HubRouteDeps,
-	request: Request,
+	{ request, channel }: Pick<HubRequest, 'request' | 'channel'>,
 ): Promise<Response> {
 	const parsed = parseOpenRequest(await readJsonBody(request), deps.homeDir)
 	if ('error' in parsed)
@@ -117,13 +143,15 @@ export async function inventoryRoute(
 			error: parsed.error,
 			fix: 'POST { root, mode?, session?, target?, base?, staged?, path? } - see `syneva spec`.',
 		})
-	const outcome = await deps.hub.inventory(parsed.query)
+	const outcome = await deps.hub.inventory(parsed.query, scopeOf(channel))
 	if (!outcome.ok)
 		return fail({
-			status: HTTP_UNPROCESSABLE,
+			status: openFailure(outcome.code),
 			code: outcome.code,
 			error: outcome.reason,
-			fix: 'Fix the repo state named above, then ask for the inventory again.',
+			fix:
+				OPEN_FIXES[outcome.code] ??
+				'Fix the repo state named above, then ask for the inventory again.',
 		})
 	return json(HTTP_OK, outcome.inventory)
 }

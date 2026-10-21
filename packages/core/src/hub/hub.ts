@@ -23,6 +23,7 @@ import {
 import { inventoryOf } from './hub-inventory.js'
 import { closeDesk, markClosed, registerDesk } from './hub-membership.js'
 import { queryOf, recordOf, sameSource } from './hub-records.js'
+import { scopeRefusal } from './hub-served.js'
 import { createHubSignals } from './hub-signals.js'
 
 import type { DeskSummary, OpenDeskOutcome } from '@syneva/contracts/hub'
@@ -32,6 +33,7 @@ import type { AuthoredGuide } from '../domain/guide-shapes.js'
 import type { HubDeskRecord } from '../domain/hub-registry.js'
 import type { ReviewInventory } from '../domain/inventory.js'
 import type { HostedDeskIo, HubDesk } from './hosted-desk.js'
+import type { OpenScope } from './hub-served.js'
 import type { HubSignal, HubSignals } from './hub-signals.js'
 
 export type HubFailure = { ok: false; code: string; reason: string }
@@ -57,9 +59,14 @@ type PostedGuide = AuthoredGuide | undefined
 export type Hub = {
 	readonly instanceId: string
 	readonly startedAt: string
-	openDesk(query: DeskQuery, guide: PostedGuide): Promise<OpenOutcome>
+	// `scope` says who names the folder (hub-served.ts): `any` unless the web relayed the open.
+	openDesk(
+		query: DeskQuery,
+		guide: PostedGuide,
+		scope?: OpenScope,
+	): Promise<OpenOutcome>
 	// The review source as a guide is authored against it, built from the repo as it stands now without registering, persisting or journaling anything.
-	inventory(query: DeskQuery): Promise<InventoryOutcome>
+	inventory(query: DeskQuery, scope?: OpenScope): Promise<InventoryOutcome>
 	getDesk(id: string): HubDesk | undefined
 	listDesks(): HubDesk[]
 	// Emit `closed` to the desk's parked waiter and write the registry without it; its entry goes once the grace is past (hub-desks.ts). False when there is no such live desk (already closed is not an error - close is idempotent).
@@ -100,9 +107,16 @@ export function createHub(io: HubIo, instanceId: string): Hub {
 	return {
 		instanceId,
 		startedAt: nowIso(),
-		openDesk: (query, guide) =>
-			serializeOpen(() => openOrReuse(state, query, guide)),
-		inventory: query => serializeOpen(() => inventoryOf(state, query)),
+		openDesk: (query, guide, scope = 'any') =>
+			serializeOpen(async () => {
+				const refusal = await scopeRefusal(state, query, scope)
+				return refusal ?? openOrReuse(state, query, guide)
+			}),
+		inventory: (query, scope = 'any') =>
+			serializeOpen(async () => {
+				const refusal = await scopeRefusal(state, query, scope)
+				return refusal ?? inventoryOf(state, query)
+			}),
 		getDesk: id => liveDesk(pruneClosed(desks, nowMs()), id),
 		listDesks: () => liveDesks(pruneClosed(desks, nowMs())),
 		closeDesk: id => closeDesk(state, id),

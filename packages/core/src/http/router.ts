@@ -230,11 +230,11 @@ async function hubApi(
 	const { method } = request
 	if (url.pathname === HUB_PATHS.desks) {
 		if (method === 'GET') return listDesks(deps, url)
-		if (method === 'POST') return openDeskRoute(deps, request)
+		if (method === 'POST') return openDeskRoute(deps, hub)
 		return null
 	}
 	if (url.pathname === HUB_PATHS.inventory && method === 'POST')
-		return inventoryRoute(deps, request)
+		return inventoryRoute(deps, hub)
 	if (url.pathname === HUB_PATHS.shutdown && method === 'POST')
 		return shutdownHub(deps, hub)
 	if (!url.pathname.startsWith(`${HUB_PATHS.desks}/`)) return null

@@ -72,7 +72,11 @@ Test-only controls: `POST /__approve { userCode, deny? }`, `POST /__close { hubI
   command, a body that is no object included. A relayed `/open-editor` is `422 EDITOR_LOCAL_ONLY`
   when the machine sets no editor or the OS opener, and `400 BAD_PATH` on a symlink out of the
   repo; a template whose program is a placeholder is `422 BAD_EDITOR_COMMAND`, locally too.
-  Nothing is launched: every case is refused first.
+  Nothing is launched: every case is refused first. A relayed open of another repository, of the
+  filesystem's root, of a file outside the served repo (directly or through a symlink), of a repo
+  scope outside it, and the inventory of another repository are `403 NOT_SERVED`; a relayed pr open
+  is `403 PR_LOCAL_ONLY`; a file inside the served repo still opens from the web, and the machine
+  still opens the other repository itself.
 - **Limits**: 50 CLI comments in a busy loop all reach the web; over the whole run no second at
   the fake held more than `framesPerSecond` frames or `bytesPerSecond` bytes, and the bucket
   never closed the socket.
