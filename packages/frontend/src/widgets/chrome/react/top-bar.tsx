@@ -179,6 +179,9 @@ function DeskButtons(): ReactElement {
 }
 
 function TopActions(): ReactElement {
+	// The agent's status and the Send button read these: a Send answered after its pulse (or a
+	// pulse alone) changes nothing else the bar re-renders on.
+	useStoreFields('awaitingAgent', 'queuedReviews', 'agentActivity')
 	return (
 		<div {...stylex.props(topBar.actions)}>
 			<AgentStatus />
