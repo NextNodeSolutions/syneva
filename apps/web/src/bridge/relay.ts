@@ -144,6 +144,7 @@ export class Relay {
 		>()
 		this.#writer = writable.getWriter()
 		this.#answer.resolve(new Response(readable, { status, headers }))
+		this.#bytes = 0
 		return bytes.byteLength ? this.#write(bytes, false) : 'open'
 	}
 
