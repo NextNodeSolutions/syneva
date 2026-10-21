@@ -6,10 +6,36 @@ import { HUB_PATHS } from './routes.js'
 
 import type { DeskStatus, PollPayload } from './browser.js'
 import type { DeskSummary, HubEvent } from './hub.js'
+import type { PairingState } from './pairing.js'
 import type { PlanSummary } from './plans.js'
 
 // The hub id the local hub speaks for itself; a paired hub speaks its web id instead (RFC 4.8).
 export const LOCAL_HUB_ID = 'local'
+
+// A web hub id: 16 hex characters the web draws at pairing (RFC 4.2). Fixed-width, so a web desk
+// id - the hub id followed by the local desk id (RFC 4.8) - names its hub by its first 16
+// characters, with no mapping kept anywhere.
+const WEB_HUB_ID = /^[a-f0-9]{16}$/
+const WEB_HUB_ID_LENGTH = 16
+
+export function isWebHubId(id: string): boolean {
+	return WEB_HUB_ID.test(id)
+}
+
+// The id a paired hub's desk goes by on the web: `/d/<webDeskId>/` keeps the local page's shape.
+export function webDeskId(hubId: string, deskId: string): string {
+	return `${hubId}${deskId}`
+}
+
+// The hub a web desk id names and that desk's local id; null when it names no hub's desk.
+export function splitWebDeskId(
+	webId: string,
+): { hubId: string; deskId: string } | null {
+	const hubId = webId.slice(0, WEB_HUB_ID_LENGTH)
+	const deskId = webId.slice(WEB_HUB_ID_LENGTH)
+	if (!isWebHubId(hubId) || !deskId) return null
+	return { hubId, deskId }
+}
 
 // Who a hub is: the first frame of every stream. `instanceId` changes on every hub start.
 export type HubIdentity = {
@@ -50,11 +76,15 @@ export type PartialDeskPulse = DeskPulseHead & {
 
 export type RelayMethod = 'GET' | 'POST' | 'DELETE'
 
+// HUB_TIMEOUT, HUB_OFFLINE and CANCELLED are the web's own answers to a relay; a hub sends
+// TOO_LARGE (its answer past `responseBytes`, the tab gets 413) and TOO_MANY (an addition to RFC
+// 4.4: `inFlightPerUser` relays already in flight on the hub's side too, the tab gets 429).
 export type RelayFailure =
 	| 'HUB_TIMEOUT'
 	| 'HUB_OFFLINE'
 	| 'TOO_LARGE'
 	| 'CANCELLED'
+	| 'TOO_MANY'
 
 export type BridgeFrame =
 	// First frame after connect.
@@ -80,14 +110,24 @@ export type BridgeFrame =
 	// replaces that read too.
 	| { t: 'plan'; hubId: string; plan: PlanSummary }
 	// Closes a snapshot: `hello`, one `desk` and one `pulse` per desk, the journal tail, every
-	// plan, then this.
+	// plan (on the local stream, the hub's pairing), then this.
 	| { t: 'snapshot-end'; hubId: string }
+	// Where the hub's pairing with the web stands (pairing.ts), each time it moves. An addition to
+	// RFC 4.4: the local hub tells its own tabs, so the Hub page follows its probe without asking;
+	// a probe never sends it to the web.
+	| { t: 'pairing'; hubId: string; pairing: PairingState }
 	// The web's object tells its tabs a hub socket opened or closed.
 	| { t: 'hub'; hubId: string; name: string; online: boolean }
 	// The object asks a hub for a snapshot.
 	| { t: 'snapshot?' }
-	// The HTTP relay (RFC 4.5): one request, its answer (chunked past `chunkBytes`), its failure,
-	// its cancellation.
+	// The HTTP relay (RFC 4.5): one request, its answer, its failure, its cancellation. The
+	// request's path carries web desk ids, which the hub strips (RFC 4.8); `query` is the search
+	// part with its `?`, or empty. `req.body` is the request's body as text, as the web read it.
+	// `res.body` and `chunk.data` are always the answer's bytes in base64, whatever its content
+	// type: one rule for a JSON answer and a `/blob` image alike. An answer whose base64 is over
+	// `chunkBytes` goes as `res { more: true }` without a body, then `chunk` frames of at most
+	// `chunkBytes` of base64 each, the last without `more`. A hub reads its answer whole, up to
+	// `responseBytes`, before its first frame: an `err` never follows a `res` of the same id.
 	| {
 			t: 'req'
 			id: string
@@ -119,6 +159,9 @@ export const PONG_TEXT = '{"t":"o"}'
 export const BRIDGE_PATHS = {
 	deviceCode: '/bridge/v1/device/code',
 	deviceToken: '/bridge/v1/device/token',
+	// DELETE with the hub's token as a Bearer: the web revokes it and closes the hub's socket with
+	// `revoked` (`syneva logout`, RFC 4.2 step 5). An addition to RFC 8's sketch.
+	hubRevoke: '/bridge/v1/hub',
 	hubSocket: '/bridge/v1/ws',
 	tabSocket: HUB_PATHS.hubSocket,
 	opsBreaker: '/bridge/v1/ops/breaker',
@@ -168,9 +211,11 @@ export const BRIDGE_LIMITS = {
 } as const
 
 // The client policy per code is RFC 4.3's. `goingAway` is the standard code a hub closes its
-// sockets with when it stops. A client reconnects with the normal backoff after any code that
-// names no wait of its own, `silent` and `slow` among them.
+// sockets with when it stops; `normal` the one a client closes its own with (a probe whose hub
+// stops, or whose pairing is dropped). A client reconnects with the normal backoff after any code
+// that names no wait of its own, `silent` and `slow` among them.
 export const CLOSE_CODES = {
+	normal: 1000,
 	goingAway: 1001,
 	malformed: 1003,
 	rate: 1008,

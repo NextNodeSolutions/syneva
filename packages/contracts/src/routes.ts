@@ -47,6 +47,9 @@ export const HUB_PATHS = {
 	shutdown: '/api/hub/shutdown',
 	// The hub's stream: a WebSocket of bridge frames (bridge.ts), a snapshot then every event.
 	hubSocket: '/api/hub/ws',
+	// A local hub's own route, for loopback peers only: `syneva login` and `logout` tell the
+	// running hub its pairing changed (pairing.ts). Never relayed.
+	bridgeReconnect: '/api/hub/bridge/reconnect',
 	login: '/login',
 	logout: '/logout',
 } as const
