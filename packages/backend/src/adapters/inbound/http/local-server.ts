@@ -5,6 +5,7 @@ import { failureOf } from './http.js'
 import { nodeRequestListener } from './node-adapter.js'
 import { createHubRouter } from './router.js'
 import { routes } from './routes.js'
+import { parkedRoutes } from './routes/await-send.js'
 
 import type { Binding } from './binding.js'
 import type { NodeUiMiddleware } from './node-adapter.js'
@@ -28,7 +29,8 @@ export function createLocalServer(deps: LocalServerDeps): http.Server {
 		...routerDeps,
 		// The origin guard re-reads the port per request: server.address() is populated only once the socket is bound.
 		authorities: () => authoritiesFor(binding, portOf(server)),
-		deskRoutes: routes,
+		// The core desk routes, plus the one this server can serve because node:http holds a request open: the agent's parked await (routes/await-send.ts).
+		deskRoutes: { ...routes, ...parkedRoutes },
 	})
 	server.on(
 		'request',
