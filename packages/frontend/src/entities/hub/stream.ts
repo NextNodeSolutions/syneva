@@ -24,6 +24,7 @@ import {
 	withEvents,
 	withHub,
 	withoutDesk,
+	withoutHub,
 	withPlan,
 	withPulse,
 } from './stream-view'
@@ -55,6 +56,12 @@ const forgotten = new Map<string, string>()
 // Called with every frame the stream brings, once the store took it in: the hub answering, which
 // a read it left unanswered waits for (retryWhenHubAnswers).
 const frameReaders = new Set<(frame: StreamFrame) => void>()
+// On the web, the hubs the web named since the socket opened: the cards it sends first, whole
+// before `hubs-end`, are the person's hubs as it holds them (a revoked one is never among them).
+let named = new Set<string>()
+// Hubs the web no longer lists: revoked, and a revoked hub never speaks again (its token is
+// refused, and pairing again makes a new hub), so a frame of one still on its way is dropped.
+const gone = new Set<string>()
 
 function commit(next: StreamView): void {
 	if (next === view) return
@@ -88,6 +95,7 @@ function isHealthDue(): boolean {
 }
 
 function hello(identity: HubIdentity): void {
+	if (gone.has(identity.id)) return
 	snapshots.set(identity.id, emptySnapshot(identity.id))
 	commit(greeted(view, identity))
 	healthRetry.settled()
@@ -143,11 +151,25 @@ function plan(hubId: string, record: Plan): void {
 	else commit(withPlan(view, record))
 }
 
+function drop(hubId: string): void {
+	gone.add(hubId)
+	snapshots.delete(hubId)
+	commit(withoutHub(view, hubId))
+}
+
+// The web's cards are whole: a hub the page knows and the web no longer names was revoked while
+// the page was away (syneva logout, another tab), and leaves.
+function hubsEnd(): void {
+	for (const hubId of view.hubs.keys()) if (!named.has(hubId)) drop(hubId)
+	commit(settledEmpty({ ...view, mode: 'web' }))
+	void readHealth()
+}
+
 function apply(frame: StreamFrame): void {
+	if ('hubId' in frame && gone.has(frame.hubId)) return
 	switch (frame.t) {
 		case 'hubs-end':
-			commit(settledEmpty({ ...view, mode: 'web' }))
-			void readHealth()
+			hubsEnd()
 			return
 		case 'hello':
 			hello(decodeHubIdentity(frame.hub, SOCKET))
@@ -178,6 +200,7 @@ function apply(frame: StreamFrame): void {
 			commit({ ...view, pairing: decodePairing(frame.pairing, SOCKET) })
 			return
 		case 'hub':
+			named.add(frame.hubId)
 			commit(withHub(view, decodeHubPresence(frame), Date.now()))
 	}
 }
@@ -199,6 +222,7 @@ export function subscribeHub(reader: () => void): () => void {
 	stream ??= openHubStream({
 		onFrame: received,
 		onState: state => {
+			if (state.link.kind === 'live') named = new Set()
 			commit({ ...view, stream: state })
 		},
 	})
@@ -223,6 +247,11 @@ export function forgetDesk(closedDesk: HubDesk): void {
 	if (listed?.openedAt !== closedDesk.openedAt) return
 	forgotten.set(closedDesk.id, closedDesk.openedAt)
 	commit(withoutDesk(view, closedDesk.id))
+}
+
+// The web answered this page's revoke: the hub leaves the page now, with all it held of it.
+export function forgetHub(hubId: string): void {
+	drop(hubId)
 }
 
 // A read of the hub's that failed runs `again` when the hub next answers, never on a timer: on

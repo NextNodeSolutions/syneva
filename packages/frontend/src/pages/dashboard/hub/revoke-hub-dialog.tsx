@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 
 import { refusalMessage, revokeWebHub } from '@entities/hub/api'
+import { forgetHub } from '@entities/hub/stream'
 import { Button } from '@shared/ui/button'
 import { Code } from '@shared/ui/code'
 import { Dialog } from '@shared/ui/dialog'
@@ -22,11 +23,9 @@ type Revocation = {
 	revoke: () => void
 }
 
-// The revocation in flight and why the last one failed, in the web's own words.
-function useRevocation(
-	hubId: string,
-	onRevoked: (hubId: string) => void,
-): Revocation {
+// The revocation in flight and why the last one failed, in the web's own words. Once the web
+// answers, the hub leaves the page's store (the web no longer lists it), not just this dialog.
+function useRevocation(hubId: string, onRevoked: () => void): Revocation {
 	const [isBusy, setBusy] = useState(false)
 	const [failure, setFailure] = useState<string | null>(null)
 	const run = async (): Promise<void> => {
@@ -34,7 +33,8 @@ function useRevocation(
 		setFailure(null)
 		try {
 			await revokeWebHub(hubId)
-			onRevoked(hubId)
+			forgetHub(hubId)
+			onRevoked()
 		} catch (error) {
 			setFailure(
 				refusalMessage(error, 'The web did not answer. Try again.'),
@@ -91,7 +91,7 @@ export function RevokeHubDialog({
 	onClose,
 }: {
 	hub: HubRef
-	onRevoked: (hubId: string) => void
+	onRevoked: () => void
 	onClose: () => void
 }): ReactElement {
 	const titleId = useId()

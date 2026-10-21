@@ -38,8 +38,8 @@ export const fetchWebMe = async (signal?: AbortSignal): Promise<WebMe> =>
 		WEB_PATHS.me,
 	)
 
-// Revokes one of the person's paired hubs: its socket closes with `revoked`, its row stays, and
-// its `hub` frame then says it is offline.
+// Revokes one of the person's paired hubs: its socket closes with `revoked`, its token stops
+// working, and the web no longer lists it (the page forgets it, stream.ts).
 export const revokeWebHub = async (hubId: string): Promise<void> => {
 	await hubApi(`${WEB_HUBS_PREFIX}${hubId}`, { method: 'DELETE' })
 }

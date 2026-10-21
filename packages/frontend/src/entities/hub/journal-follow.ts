@@ -100,6 +100,15 @@ export function followed(
 	}
 }
 
+// A hub the page no longer follows (the web stopped listing it): its events leave with it.
+export function unfollowed(held: JournalFollow, hubId: string): JournalFollow {
+	if (!held.newest.has(hubId)) return held
+	const newest = new Map(held.newest)
+	newest.delete(hubId)
+	const events = held.journal.events.filter(event => event.hubId !== hubId)
+	return { ...held, journal: { ...held.journal, events }, newest }
+}
+
 // A snapshot's tail. The first one a hub brings is its journal as it stood. After a reconnect,
 // what the hub recorded while the tab was away arrives like any event; a tail that ends before
 // what the page holds means the hub's journal started over (its file removed), and it is read

@@ -1,5 +1,5 @@
 import { hubOfId } from './hub-ids'
-import { FIRST_FOLLOW, followed, tailed } from './journal-follow'
+import { FIRST_FOLLOW, followed, tailed, unfollowed } from './journal-follow'
 import { modeOfHubId } from './mode'
 
 import type { StreamState } from '@shared/api/stream'
@@ -188,6 +188,32 @@ export function withHub(
 			mode: 'web',
 		}),
 	)
+}
+
+// A hub the web no longer lists (revoked, from this page or elsewhere): the page holds nothing of
+// it, as a page loaded now would not know it, its desks, pulses, plans and journal with it.
+export function withoutHub(view: StreamView, hubId: string): StreamView {
+	if (!view.hubs.has(hubId)) return view
+	const isOther = (id: string): boolean => hubOfId(id) !== hubId
+	const hubs = new Map(view.hubs)
+	hubs.delete(hubId)
+	const settledHubs = new Set(view.settledHubs)
+	settledHubs.delete(hubId)
+	const { desks } = view.listing
+	return settledEmpty({
+		...view,
+		hubs,
+		settledHubs,
+		listing: desks
+			? listed(
+					view.listing,
+					desks.filter(desk => desk.hubId !== hubId),
+				)
+			: view.listing,
+		pulses: new Map([...view.pulses].filter(([id]) => isOther(id))),
+		journal: unfollowed(view.journal, hubId),
+		plans: view.plans?.filter(plan => isOther(plan.id)) ?? null,
+	})
 }
 
 // A hub's snapshot is whole: it replaces what the page held of that hub (its desks, pulses, plans
