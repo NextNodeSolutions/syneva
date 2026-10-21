@@ -15,6 +15,62 @@ const relativeLayerEscapes = (...targets: string[]): string[] =>
 		`../../../../${target}/**`,
 	])
 
+// Core runs in the user's Durable Object as well as under node:http (RFC 0001, 3.1): node:path and node:crypto (both in nodejs_compat) are its only Node modules, @syneva/contracts and core itself its only imports.
+const CORE_IMPORT_BANS = [
+	{
+		group: [
+			'fs',
+			'node:fs',
+			'fs/promises',
+			'node:fs/promises',
+			'http',
+			'node:http',
+			'https',
+			'node:https',
+			'net',
+			'node:net',
+			'child_process',
+			'node:child_process',
+			'os',
+			'node:os',
+			'process',
+			'node:process',
+			'worker_threads',
+			'node:worker_threads',
+			'ws',
+			'oxc-parser',
+			'@syneva/local',
+			'@syneva/local/**',
+			'@syneva/frontend',
+			'@syneva/frontend/**',
+		],
+		message:
+			"core runs in the user's Durable Object (RFC 0001, 3.1): its only Node modules are node:path and node:crypto, its only imports @syneva/contracts and core. Put the Node API behind a port local implements.",
+	},
+]
+
+// A timer keeps the object hibernation-ineligible, so billed while it waits (RFC 0001, 6.1 W4); the Node globals do not exist there at all.
+const CORE_GLOBAL_BANS = [
+	...[
+		'setTimeout',
+		'setInterval',
+		'setImmediate',
+		'clearTimeout',
+		'clearInterval',
+	].map(name => ({
+		name,
+		message:
+			'a timer in core keeps the object awake and billed (RFC 0001, 6.1 W4): grace periods and TTLs are deadlines compared on the next read; a timer that must fire belongs to local.',
+	})),
+	...['process', 'Buffer', '__dirname', '__filename', 'require'].map(
+		name => ({
+			name,
+			message:
+				"core runs in the user's Durable Object (RFC 0001, 3.1): no Node global there. Take the value from the composition root, or encode with TextEncoder and Uint8Array.",
+		}),
+	),
+]
+
 // Layers run in layers.json order; sliced layers also ban their own alias (intra-slice imports are relative); the rules cover .astro frontmatter/scripts and the React islands (.tsx) too.
 const LANDING_SLICED = new Set(['views', 'widgets', 'features', 'entities'])
 const LANDING_MOTION_BAN = {
@@ -207,7 +263,18 @@ export default defineConfig({
 			},
 		},
 		{
-			// A later override replaces the whole rule set for the same files: domain's restrictions live together in ONE declaration.
+			// Core is Workers-clean as a CI gate, not as hygiene (RFC 0001, 3.1, 6.1 W4, 6.3 R12): no Node module but node:path/node:crypto, no Node global, no timer, nothing from local or the browser. domain overrides the import rule below, carrying these bans with its own.
+			files: ['packages/core/src/**/*.ts'],
+			rules: {
+				'eslint/no-restricted-imports': [
+					'error',
+					{ patterns: CORE_IMPORT_BANS },
+				],
+				'eslint/no-restricted-globals': ['error', ...CORE_GLOBAL_BANS],
+			},
+		},
+		{
+			// A later override replaces a rule for the same files: domain's import restrictions (its layer purity plus core's bans) live together in ONE declaration, after core's.
 			files: [
 				'packages/core/src/domain/*.ts',
 				'packages/core/src/domain/**/*.ts',
@@ -221,53 +288,29 @@ export default defineConfig({
 								group: [
 									'@syneva/contracts',
 									'@syneva/contracts/**',
-									'../adapters/**',
-									'../../adapters/**',
-									'../../../adapters/**',
 									'../application/**',
 									'../../application/**',
 									'../../../application/**',
-									'../frontend/**',
-									'../../frontend/**',
-									'../../../frontend/**',
+									'../hub/**',
+									'../../hub/**',
+									'../../../hub/**',
+									'../http/**',
+									'../../http/**',
+									'../../../http/**',
 								],
 								message:
-									'domain is pure - no contracts (shared shapes are re-declared in review.ts), no adapters/application, no UI.',
+									'domain is pure - no contracts (shared shapes are re-declared in review.ts), no application, hub or http.',
 							},
 						],
 					},
-					{
-						patterns: [
-							{
-								group: ['fs', 'node:fs'],
-								message: 'domain is pure - no filesystem.',
-							},
-							{
-								group: ['http', 'node:http'],
-								message: 'domain is pure - no HTTP.',
-							},
-							{
-								group: ['child_process', 'node:child_process'],
-								message:
-									'domain is pure - no process spawning.',
-							},
-							{
-								group: ['net', 'node:net'],
-								message: 'domain is pure - no networking.',
-							},
-							{
-								group: ['process', 'node:process'],
-								message: 'domain is pure - no process access.',
-							},
-						],
-					},
+					// No IO either: core's bans cover every Node module domain once refused (fs, http, child_process, net, process) and more.
+					{ patterns: CORE_IMPORT_BANS },
 				],
 			},
 		},
 		{
-			// domain is excluded so the stricter pure rule set above is not replaced wholesale.
-			files: ['packages/core/src/**/*.ts', 'packages/local/src/**/*.ts'],
-			excludeFiles: ['packages/core/src/domain/**'],
+			// local is the Node side (RFC 0001, 3.1): it imports core and contracts, never the browser UI world.
+			files: ['packages/local/src/**/*.ts'],
 			rules: {
 				'eslint/no-restricted-imports': [
 					'error',
@@ -279,7 +322,7 @@ export default defineConfig({
 									'@syneva/frontend/**',
 								],
 								message:
-									'core and local never import the browser UI world.',
+									'local never imports the browser UI world.',
 							},
 						],
 					},
