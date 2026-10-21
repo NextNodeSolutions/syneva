@@ -26,6 +26,7 @@ import {
 import { checkPolicy } from './policy-checks.mjs'
 import { WAIT_SCALE } from './policy-wire.mjs'
 import { checkRelay } from './relay-checks.mjs'
+import { checkRelayLog } from './relay-log-checks.mjs'
 import { checkRefusals } from './relay-refusals.mjs'
 import {
 	checkClose,
@@ -80,6 +81,7 @@ if (opened) {
 	await checkRelay(context, opened.desk)
 	await checkRefusals(context, opened.desk)
 	await checkMachine(context, opened.desk)
+	await checkRelayLog(context, opened.desk)
 	await checkClose(context, tab, opened)
 }
 await checkBurst(context)

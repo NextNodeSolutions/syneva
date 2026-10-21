@@ -80,6 +80,10 @@ Test-only controls: `POST /__approve { userCode, deny? }`, `POST /__close { hubI
   scope outside it, and the inventory of another repository are `403 NOT_SERVED`; a relayed pr open
   is `403 PR_LOCAL_ONLY`; a file inside the served repo still opens from the web, and the machine
   still opens the other repository itself.
+- **The hub's log**: every relayed request but a GET left one line in the hub's log, by its path
+  as the hub read it, its status and code, and the hub-side id of the desk it acted on (a
+  comment, a settings write, an open by the desk it opened, a refused open, a path never relayed);
+  no GET has a line, and the relayed comment's words appear nowhere in the log.
 - **Limits**: 50 CLI comments in a busy loop all reach the web; over the whole run no second at
   the fake held more than `framesPerSecond` frames or `bytesPerSecond` bytes, and the bucket
   never closed the socket.

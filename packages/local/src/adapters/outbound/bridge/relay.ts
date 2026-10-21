@@ -6,6 +6,7 @@
 // once the last frame is written. At most `inFlightPerUser` at a time (beyond: `err TOO_MANY`);
 // an answer past `responseBytes` is `err TOO_LARGE`; a `cancel` aborts the request's signal,
 // drops what was not sent, and sends nothing then or later (the web already answered its tab).
+// Every relayed request but a GET leaves a line in the hub's log (relay-log.ts).
 import { BRIDGE_LIMITS } from '@syneva/contracts/bridge'
 import { errorMessage } from '@syneva/core/application/errors'
 import {
@@ -16,12 +17,14 @@ import {
 } from '@syneva/core/http/http'
 
 import { readCapped, sendAnswer, webAnswer } from './relay-answer.js'
+import { logRelayed, logTurnedAway } from './relay-log.js'
 import { RELAY_ORIGIN, relayTarget } from './relay-target.js'
 
 import type { BridgeFrame } from '@syneva/contracts/bridge'
 import type { HubRouter } from '@syneva/core/http/router'
 import type { RelayChannel } from './link.js'
 import type { Outbox } from './outbox.js'
+import type { Relayed } from './relay-log.js'
 import type { RelayRequest } from './relay-target.js'
 
 export type RelayDeps = {
@@ -108,6 +111,7 @@ function openChannel(
 		request(frame): void {
 			if (running.has(frame.id)) return
 			if (!slots.take()) {
+				logTurnedAway(deps.log, frame, 'TOO_MANY')
 				send(outbox, { t: 'err', id: frame.id, code: 'TOO_MANY' })
 				return
 			}
@@ -155,17 +159,24 @@ async function relay(
 	try {
 		const answer = await answerOf(relaying, frame)
 		ends.answered()
+		logRelayed(deps.log, {
+			...answer.relayed,
+			response: answer.response,
+			isStopped: signal.aborted,
+		})
+		const { response, bytes, afterSent } = answer
 		if (signal.aborted) return ends.finished()
-		if (!answer) {
+		if (!bytes) {
 			send(outbox, { t: 'err', id: frame.id, code: 'TOO_LARGE' })
 			return ends.finished()
 		}
-		return sendAnswer(outbox, frame.id, answer, () => {
-			answer.afterSent()
+		return sendAnswer(outbox, frame.id, { response, bytes }, () => {
+			afterSent()
 			ends.finished()
 		})
 	} catch (error) {
 		ends.answered()
+		// Logged stopped or not: a route that failed may have changed something on the way.
 		deps.log(
 			`bridge: relayed ${frame.method} ${frame.path} failed: ${errorMessage(error)}`,
 		)
@@ -187,14 +198,21 @@ async function relay(
 	}
 }
 
-type Answer = { response: Response; bytes: Uint8Array; afterSent: () => void }
+type Answer = {
+	response: Response
+	// The answer as the web reads it, its ids named for the web; null past `responseBytes`.
+	bytes: Uint8Array | null
+	// The request and answer as the hub saw them, for its log.
+	relayed: Omit<Relayed, 'response' | 'isStopped'>
+	afterSent: () => void
+}
 
 // The router's answer read whole, its ids named for the web; a refusal never reaches the router
-// (and has no afterSent work); null when the answer is over `responseBytes`.
+// (and has no afterSent work).
 async function answerOf(
 	{ deps, signal }: Relaying,
 	frame: RelayRequest,
-): Promise<Answer | null> {
+): Promise<Answer> {
 	const target = relayTarget(deps.hubId, frame)
 	const router = deps.router()
 	if ('refusal' in target || !router) {
@@ -206,25 +224,27 @@ async function answerOf(
 						'HUB_STARTING',
 						'The hub is starting.',
 					)
+		const bytes = await bytesOf(response)
 		return {
 			response,
-			bytes: await bytesOf(response),
+			bytes,
+			relayed: {
+				method: frame.method,
+				path: frame.path,
+				isRouted: false,
+				local: bytes,
+			},
 			afterSent: () => undefined,
 		}
 	}
 	const request = trustedRequest(frame, target.path, signal)
 	const served = await router(request, 'relayed-over-pairing')
-	const bytes = await readCapped(served.response, BRIDGE_LIMITS.responseBytes)
-	if (!bytes) return null
-	const named = webAnswer(
-		deps.hubId,
-		{ method: frame.method, path: target.path },
-		served.response,
-		bytes,
-	)
+	const local = await readCapped(served.response, BRIDGE_LIMITS.responseBytes)
+	const routed = { method: frame.method, path: target.path }
 	return {
 		response: served.response,
-		bytes: named,
+		bytes: local && webAnswer(deps.hubId, routed, served.response, local),
+		relayed: { ...routed, isRouted: true, local },
 		afterSent: served.afterSent,
 	}
 }

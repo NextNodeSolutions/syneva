@@ -19,6 +19,8 @@ const LARGE_MIB = 3
 // Over responseBytes (32 MiB).
 const HUGE_MIB = 40
 const RELAY_SESSION = 'bridge-check-relayed'
+// The words of the comment the web relays; relay-log-checks.mjs looks for them in the hub's log.
+export const NOTE_PREFIX = 'a reviewer note through the bridge'
 
 export async function checkRelay(context, desk) {
 	const { report } = context
@@ -65,7 +67,7 @@ const postJson = body => ({
 })
 
 async function checkComment({ report }, desk, { web, local }) {
-	const note = `a reviewer note through the bridge ${Date.now()}`
+	const note = `${NOTE_PREFIX} ${Date.now()}`
 	const posted = await web(
 		`${deskApiBase(desk.webId)}/comment`,
 		postJson({

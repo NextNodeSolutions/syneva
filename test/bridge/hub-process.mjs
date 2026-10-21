@@ -37,9 +37,8 @@ const OTHER_HUB = new Set([
 
 export async function startHub({ cli, home, port, env = {} }) {
 	const url = `http://127.0.0.1:${port}`
-	const log = createWriteStream(path.join(home, `hub-${port}.log`), {
-		flags: 'a',
-	})
+	const logFile = path.join(home, `hub-${port}.log`)
+	const log = createWriteStream(logFile, { flags: 'a' })
 	const child = spawn(
 		process.execPath,
 		[cli, 'start', '--port', String(port), '--no-open'],
@@ -57,6 +56,8 @@ export async function startHub({ cli, home, port, env = {} }) {
 	)
 	return {
 		url,
+		// Its stdout and stderr, every hub started on this port in this HOME.
+		logFile,
 		exited,
 		health: () => health(url),
 		// POST /api/hub/shutdown, as `syneva hub stop` sends it; settles once the process exited.
