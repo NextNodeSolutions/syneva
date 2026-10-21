@@ -4,18 +4,27 @@
 // than it must (ops by its token before D1, pairing by its code or its token, the hub's socket by
 // its token), then everything a session opens, the session read once before any object is
 // touched. Nothing logs a request it answered: the one log line is an unexpected throw.
+import { signInRoute } from './auth/magic-link.js'
 import { fail, html, INTERNAL } from './http/answer.js'
 import { isRead } from './http/call.js'
 import { logFailure } from './http/log.js'
 import { HTTP_NO_CONTENT, HTTP_NOT_FOUND } from './http/status.js'
 import { notFoundPage } from './pages/not-found.js'
 import { healthRoute } from './routes/health.js'
+import { sessionRoute } from './routes/session-routes.js'
+import { shellRoute } from './routes/shells.js'
 
 import type { Call, Route } from './http/call.js'
 
 const ROUTES: readonly Route[] = [
-	// 1. The health probe, as a hub answers it.
+	// 1. Sign-in.
+	signInRoute,
+	// 2. The health probe, as a hub answers it.
 	async call => healthRoute(call),
+	// 3. Everything under /api/ a session opens.
+	sessionRoute,
+	// 4. The pages: a shell for a cookie, sign-in for none.
+	shellRoute,
 ]
 
 const NOT_FOUND = {
