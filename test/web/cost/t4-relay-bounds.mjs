@@ -20,6 +20,9 @@ const SAMPLES = 20
 const WARM_UP = 3
 const CANCEL_WAIT_MS = 5000
 const ONE_MORE = 1
+const OFFLINE_MS = 50
+// A well-formed hub id (16 hex) no account here was ever paired with.
+const STRANGER_HUB = '0123456789abcdef'
 
 async function run(ctx) {
 	const account = await ctx.account(0)
@@ -187,32 +190,55 @@ async function dropping(ctx, account) {
 	)
 }
 
-// No hub socket: refused at once, nothing waits.
+// No hub socket: refused at once, nothing waits (RFC 4.5: 503 in under 50 ms). What is timed is
+// the Worker's and the object's part: each relay is paired with one the Worker refuses itself just
+// before the breaker read and the object (a hub id that is not the person's: 404 HUB_NOT_FOUND),
+// over the same connection, session read and hub lookup, so the network's round trip - most of
+// what a client far from a deployed Worker would time - cancels out.
 async function offline(ctx, account) {
-	const { report, options } = ctx
+	const { report } = ctx
 	const hub = await ctx.hub(account, 5)
-	const limit = Number(options['offline-ms'] ?? (ctx.staging ? 250 : 50))
-	for (let at = 0; at < WARM_UP; at += 1)
+	const stranger = { hubId: STRANGER_HUB }
+	for (let at = 0; at < WARM_UP; at += 1) {
 		await relayGet(account, hub).then(each => each.text())
-	const times = []
-	const statuses = new Set()
+		await relayGet(account, stranger).then(each => each.text())
+	}
+	const offlineMs = []
+	const refusedMs = []
+	const statuses = { offline: new Set(), refused: new Set() }
 	for (let at = 0; at < SAMPLES; at += 1) {
-		const startedAt = performance.now()
-		const response = await relayGet(account, hub, `${at}`.padStart(4, '0'))
-		times.push(performance.now() - startedAt)
-		statuses.add(`${response.status} ${(await failureOf(response))?.code}`)
+		const tag = `${at}`.padStart(4, '0')
+		const refused = await timed(() => relayGet(account, stranger, tag))
+		refusedMs.push(refused.ms)
+		statuses.refused.add(refused.status)
+		const answered = await timed(() => relayGet(account, hub, tag))
+		offlineMs.push(answered.ms)
+		statuses.offline.add(answered.status)
 		await delay(5)
 	}
 	report.check(
-		'no hub socket: every relay answers 503 HUB_OFFLINE',
-		statuses.size === 1 && statuses.has('503 HUB_OFFLINE'),
-		[...statuses].join('; '),
+		'no hub socket: every relay answers 503 HUB_OFFLINE (and every one naming a stranger hub 404 HUB_NOT_FOUND)',
+		[...statuses.offline].join() === '503 HUB_OFFLINE' &&
+			[...statuses.refused].join() === '404 HUB_NOT_FOUND',
+		`${[...statuses.offline].join('; ')} / ${[...statuses.refused].join('; ')}`,
 	)
+	const extra = median(offlineMs) - median(refusedMs)
 	report.check(
-		`... with a median under ${limit} ms (of ${SAMPLES}; worst ${Math.max(...times).toFixed(0)} ms)`,
-		median(times) < limit,
-		`${median(times).toFixed(1)} ms`,
+		`... in under ${OFFLINE_MS} ms beyond a request the Worker refuses itself (${extra.toFixed(1)} ms: medians of ${SAMPLES}, ${median(offlineMs).toFixed(1)} ms against ${median(refusedMs).toFixed(1)} ms)`,
+		extra < OFFLINE_MS,
+		`worst ${Math.max(...offlineMs).toFixed(0)} ms`,
 	)
+}
+
+// One relay, timed to its whole answer: its status and failure code, and how long it took.
+async function timed(request) {
+	const startedAt = performance.now()
+	const response = await request()
+	const body = await failureOf(response)
+	return {
+		ms: performance.now() - startedAt,
+		status: `${response.status} ${body?.code}`,
+	}
 }
 
 export const t4 = { id: 'T4', title: 'relay bounds', where: 'local', run }

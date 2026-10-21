@@ -52,7 +52,6 @@ const { values: options } = parseArgs({
 		hubs: { type: 'string' },
 		tabs: { type: 'string' },
 		seconds: { type: 'string' },
-		'offline-ms': { type: 'string' },
 		full: { type: 'boolean', default: false },
 		'allow-unmeasured': { type: 'boolean', default: false },
 		procedures: { type: 'boolean', default: false },
