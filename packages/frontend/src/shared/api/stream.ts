@@ -41,7 +41,17 @@ export type HubStream = { stop: () => void }
 type Waiting = Extract<StreamLink, { retryAt: number }>['kind']
 
 const HTTP_UNAUTHORIZED = 401
+const HTTP_FORBIDDEN = 403
+const HTTP_TOO_MANY = 429
 const HTTP_UNAVAILABLE = 503
+// An upgrade refused with one of these waits five minutes, as the probe's policy does (RFC 4.3):
+// the edge's rate rule (6.1 B3), a limiter or the breaker is saying no, and a retry within the
+// minute would only feed the count that refused it.
+const SATURATED_REFUSALS: ReadonlySet<number> = new Set([
+	HTTP_FORBIDDEN,
+	HTTP_TOO_MANY,
+	HTTP_UNAVAILABLE,
+])
 const NORMAL_CLOSURE = 1000
 
 // The close codes that name a wait before the next attempt (RFC 4.3), and what the tab says
@@ -186,13 +196,14 @@ class StreamClient {
 	}
 
 	// A socket that closed before it opened was refused or never reached the hub: a 401 is a
-	// sign-in that no longer opens it (stop, as `revoked`), a 503 is the web's breaker refusing the
-	// upgrade before any object is touched (wait as `saturated` does), anything else backs off.
+	// sign-in that no longer opens it (stop, as `revoked`), a 403, 429 or 503 a refusal to wait
+	// out (the edge's rule, a limiter, the web's breaker refusing the upgrade before any object
+	// is touched: `saturated`), anything else backs off.
 	async #refused(): Promise<void> {
 		const status = await upgradeStatus()
 		if (this.#isStopped) return
 		if (status === HTTP_UNAUTHORIZED) this.#publish({ kind: 'signed-out' })
-		else if (status === HTTP_UNAVAILABLE)
+		else if (status !== null && SATURATED_REFUSALS.has(status))
 			this.#hold('saturated', BRIDGE_LIMITS.saturatedWaitMs)
 		else this.#backoff()
 	}
