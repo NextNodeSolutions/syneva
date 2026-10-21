@@ -92,6 +92,8 @@ function heardHub(): void {
 	S.hubStatus = link.status
 	S.hubRetryAt = link.retryAt
 	notePresence(view.listing.desks, view.settledHubs)
+	// A tab that never got its review adopts no pulse: it reloads once its hub is back (noteHub).
+	if (!S.state) return
 	const raw = view.pulses.get(deskId)
 	if (!raw || raw === heard) return
 	heard = raw

@@ -172,13 +172,18 @@ async function boot(): Promise<void> {
 	void followHub()
 }
 
-// A first load the web could not carry (the desk's hub is offline) leaves the stream to start: it
-// reloads the tab when the hub is back.
+// A first load that fails leaves its trace, as an uncaught error does, and the tab says so. The
+// desk's hub being offline is the strip's to say, and the stream reloads the tab once the hub is
+// back (desk-stream.ts); any other failure asks for a refresh, as a reload that cannot read the
+// review does (desk-adopt.ts), and nothing follows the hub for a review the tab never had.
 async function start(): Promise<void> {
 	try {
 		await boot()
-	} catch {
-		await followHub()
+	} catch (error) {
+		reportError(error)
+		const relay = await import('@app/desk-relay').catch(() => null)
+		if (relay?.isHubOffline(error)) await followHub()
+		else S.isRefreshRequired = true
 	}
 }
 
