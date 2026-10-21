@@ -4,7 +4,9 @@
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 
-import { HTTP_BAD_REQUEST } from './http.js'
+import { errorMessage } from '../../../application/errors.js'
+
+import { HTTP_BAD_REQUEST, HTTP_METHOD_NOT_ALLOWED, fail } from './http.js'
 
 import type {
 	IncomingMessage,
@@ -34,6 +36,11 @@ export type FetchServe = (request: Request) => Promise<Served>
 type NodeListener = (req: IncomingMessage, res: ServerResponse) => void
 
 const BODILESS_METHODS = new Set(['GET', 'HEAD'])
+// The Fetch API's forbidden methods, which no Request can carry: node:http hands a TRACE to the
+// request listener (a CONNECT never reaches it).
+const FORBIDDEN_METHODS = new Set(['CONNECT', 'TRACE', 'TRACK'])
+// Every method a hub route answers: the Allow list of the refusal of any other.
+const SERVED_METHODS = 'GET, HEAD, POST, DELETE'
 // The origin of a request whose Host header names no authority: the URL needs one, and the
 // origin guard reads the header itself, so this placeholder never passes for a trusted host.
 const PLACEHOLDER_ORIGIN = 'http://127.0.0.1'
@@ -54,13 +61,17 @@ async function answer(
 	res: ServerResponse,
 ): Promise<void> {
 	const ended = responseEnded(res)
-	const request = toRequest(req, options.scheme, clientGone(ended))
+	const { request, refusal } = toRequest(
+		req,
+		options.scheme,
+		clientGone(ended),
+	)
 	void afterEnd(ended, isHandedOver => {
 		if (isHandedOver) drainUnreadBody(req, request)
 	})
-	if (!request) return refuseMalformed(res)
 	const reply = (response: Response): Promise<void> =>
 		send(res, response, isBodyAbandoned(req, request))
+	if (!request) return reply(refusal)
 	try {
 		const served = await serve(request)
 		// The route committed by returning: its deferred work runs once node:http is done with
@@ -119,29 +130,52 @@ function isBodyAbandoned(
 	return !req.complete && request?.bodyUsed === true
 }
 
-// What node:http would answer to a request it could not parse: a Request refuses some of what
-// its parser lets through (a TRACE, a header byte the Fetch API rejects).
-function refuseMalformed(res: ServerResponse): void {
-	res.writeHead(HTTP_BAD_REQUEST, { connection: 'close' })
-	res.end()
-}
+type Arrival =
+	| { request: Request; refusal: null }
+	| { request: null; refusal: Response }
 
+// A request node:http parsed but no Request can carry (a forbidden method, a target or a
+// header the Fetch API rejects) never reaches a route: it is refused here, in the hub's own
+// error shape, and sent the way every answer is.
 function toRequest(
 	req: IncomingMessage,
 	scheme: string,
 	signal: AbortSignal,
-): Request | null {
+): Arrival {
 	const method = req.method ?? 'GET'
+	if (FORBIDDEN_METHODS.has(method))
+		return { request: null, refusal: methodNotAllowed(method) }
 	try {
-		return new Request(urlOf(req, scheme), {
+		const request = new Request(urlOf(req, scheme), {
 			method,
 			headers: headersOf(req),
 			signal,
 			...bodyOf(req, method),
 		})
-	} catch {
-		return null
+		return { request, refusal: null }
+	} catch (error) {
+		return { request: null, refusal: malformed(error) }
 	}
+}
+
+function methodNotAllowed(method: string): Response {
+	const response = fail({
+		status: HTTP_METHOD_NOT_ALLOWED,
+		code: 'METHOD_NOT_ALLOWED',
+		error: `The hub does not answer ${method} requests.`,
+		fix: `Use one of ${SERVED_METHODS}.`,
+	})
+	response.headers.set('allow', SERVED_METHODS)
+	return response
+}
+
+function malformed(error: unknown): Response {
+	return fail({
+		status: HTTP_BAD_REQUEST,
+		code: 'MALFORMED_REQUEST',
+		error: `The request cannot be read: ${errorMessage(error)}`,
+		fix: 'Send a valid request target, and header names and values the Fetch API accepts.',
+	})
 }
 
 // The request target as node:http parsed it until now (path and query only), on the
