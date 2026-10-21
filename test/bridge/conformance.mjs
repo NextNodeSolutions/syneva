@@ -16,6 +16,7 @@ import { startFakeBridge } from './fake-bridge.mjs'
 import { startHub } from './hub-process.mjs'
 import { checkRestart, checkStop } from './lifecycle-checks.mjs'
 import { checkBurst, checkRates } from './limit-checks.mjs'
+import { checkMachine } from './machine-checks.mjs'
 import {
 	checkLogin,
 	checkLoginRefusals,
@@ -78,6 +79,7 @@ if (opened) {
 	await checkResnapshot(context, tab)
 	await checkRelay(context, opened.desk)
 	await checkRefusals(context, opened.desk)
+	await checkMachine(context, opened.desk)
 	await checkClose(context, tab, opened)
 }
 await checkBurst(context)

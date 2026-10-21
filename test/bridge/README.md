@@ -66,6 +66,10 @@ Test-only controls: `POST /__approve { userCode, deny? }`, `POST /__close { hubI
   `404 NOT_RELAYED` at once, never dispatched (the hub still runs); a `req` that does not read
   answers 400; a cancel stops the answer's frames and the hub answers the next relay; with
   `inFlightPerUser` relays streaming, the next is `err TOO_MANY`.
+- **The machine's own** (RFC 0001, section 7: the web may review the code of the repositories
+  the hub serves, nothing more): a relayed `GET /settings` leaves the editor command out; a
+  relayed `POST /settings` changes the display preferences and keeps the machine's editor
+  command, a body that is no object included.
 - **Limits**: 50 CLI comments in a busy loop all reach the web; over the whole run no second at
   the fake held more than `framesPerSecond` frames or `bytesPerSecond` bytes, and the bucket
   never closed the socket.

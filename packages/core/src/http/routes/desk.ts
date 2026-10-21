@@ -7,6 +7,7 @@ import { guideAuthoring } from '../../application/guide-authoring.js'
 import { buildInventory } from '../../domain/inventory.js'
 import { deskPulse, pollPayload } from '../../hub/desk-pulse.js'
 import { readJsonBody, json, jsonBody, HTTP_OK } from '../http.js'
+import { settingsFor } from '../settings.js'
 
 import type { BrowserRefreshEvent } from '@syneva/contracts/browser'
 import type { RouteRequest } from '../router.js'
@@ -73,15 +74,20 @@ export async function serveTree({ ctx }: RouteRequest): Promise<Response> {
 }
 
 // Stored globally in ~/.syneva/settings.json: the file follows the reviewer across browsers and hosts where a per-origin localStorage would not.
-export async function serveSettings({ ctx }: RouteRequest): Promise<Response> {
-	return json(HTTP_OK, await ctx.settings.read())
+// A relayed request never reads or writes the machine's own keys (http/settings.ts).
+export async function serveSettings({
+	ctx,
+	channel,
+}: RouteRequest): Promise<Response> {
+	return json(HTTP_OK, await settingsFor(ctx.settings, channel).read())
 }
 
 export async function saveSettings({
 	ctx,
 	request,
+	channel,
 }: RouteRequest): Promise<Response> {
 	const settings: unknown = await readJsonBody(request)
-	await ctx.settings.write(settings)
+	await settingsFor(ctx.settings, channel).write(settings)
 	return json(HTTP_OK, { ok: true })
 }

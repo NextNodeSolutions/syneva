@@ -9,6 +9,7 @@ import {
 	fail,
 } from './http.js'
 import { parseOpenRequest } from './open-request.js'
+import { settingsFor } from './settings.js'
 
 import type {
 	CloseDeskResponse,
@@ -163,16 +164,17 @@ export async function readJournal(
 // /settings routes do (routes/desk.ts): the dashboard has no desk base to reach them under.
 export async function serveHubSettings(
 	deps: Pick<HubRouteDeps, 'settings'>,
+	{ channel }: Pick<HubRequest, 'channel'>,
 ): Promise<Response> {
-	return json(HTTP_OK, await deps.settings.read())
+	return json(HTTP_OK, await settingsFor(deps.settings, channel).read())
 }
 
 export async function saveHubSettings(
 	deps: Pick<HubRouteDeps, 'settings'>,
-	request: Request,
+	{ request, channel }: Pick<HubRequest, 'request' | 'channel'>,
 ): Promise<Response> {
 	const settings: unknown = await readJsonBody(request)
-	await deps.settings.write(settings)
+	await settingsFor(deps.settings, channel).write(settings)
 	return json(HTTP_OK, { ok: true })
 }
 

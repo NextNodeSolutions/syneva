@@ -9,12 +9,13 @@ import type { HubRouteDeps } from './hub-routes.js'
 // preferences. Null when the path is neither, so the router goes on.
 export async function dashboardApi(
 	deps: Pick<HubRouteDeps, 'journal' | 'settings'>,
-	{ request, url }: HubRequest,
+	hub: HubRequest,
 ): Promise<Response | null> {
+	const { request, url } = hub
 	if (url.pathname === HUB_PATHS.journal && request.method === 'GET')
 		return readJournal(deps, url)
 	if (url.pathname !== HUB_PATHS.settings) return null
-	if (request.method === 'GET') return serveHubSettings(deps)
-	if (request.method === 'POST') return saveHubSettings(deps, request)
+	if (request.method === 'GET') return serveHubSettings(deps, hub)
+	if (request.method === 'POST') return saveHubSettings(deps, hub)
 	return null
 }
