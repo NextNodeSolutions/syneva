@@ -30,7 +30,7 @@ const ROUTES: readonly Route[] = [
 	hubSocketRoute,
 	// 3. The health probe, as a hub answers it.
 	async call => healthRoute(call),
-	// 4. Everything under /api/ a session opens.
+	// 4. Everything under /api/ a session opens, the relay last.
 	sessionRoute,
 	// 5. The pages: a shell for a cookie, sign-in for none.
 	shellRoute,

@@ -1,7 +1,7 @@
 // Everything a session opens (RFC 4.7): who is signed in, their hubs, their settings, their tab's
-// socket. One D1 read checks the session before anything else is read or any object touched (R9);
-// a mutation or an upgrade must also be same-origin. Pages are not here (routes/shells.ts): a
-// signed-out navigation is sent to sign in, an API call gets 401.
+// socket and the relay to their hubs. One D1 read checks the session before anything else is read
+// or any object touched (R9); a mutation or an upgrade must also be same-origin. Pages are not
+// here (routes/shells.ts): a signed-out navigation is sent to sign in, an API call gets 401.
 import { BRIDGE_PATHS, isWebHubId } from '@syneva/contracts/bridge'
 import { WEB_HUBS_PREFIX, WEB_PATHS } from '@syneva/contracts/web'
 
@@ -14,6 +14,7 @@ import { HTTP_NOT_FOUND, HTTP_OK } from '../http/status.js'
 import { onlineHubIds, openTabSocket, tellRevoked } from '../user-hub-stub.js'
 
 import { upgradeRequired } from './hub-socket.js'
+import { relayRoute } from './relay.js'
 import { settingsRoute } from './settings.js'
 
 import type { WebHub, WebHubsAnswer, WebMe } from '@syneva/contracts/web'
@@ -39,7 +40,8 @@ export async function sessionRoute(call: Call): Promise<Response | null> {
 	return (
 		(await webApi(call, session)) ??
 		(await settingsRoute(call, session)) ??
-		tabSocket(call, session)
+		(await tabSocket(call, session)) ??
+		relayRoute(call, session)
 	)
 }
 
