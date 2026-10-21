@@ -151,6 +151,11 @@ export const BRIDGE_LIMITS = {
 	// seat among `tabsPerUser`. A client pings every `pingIntervalMs`.
 	silenceMs: PING_INTERVAL_MS * MISSABLE_PINGS + PONG_TIMEOUT_MS,
 	coalesceMs: 250,
+	// What a reader may leave unread before a live frame is queued behind it (8 MiB, eight frames
+	// at the bound): past it the hub closes it with `slow`, rather than growing by every frame
+	// sent its way. A snapshot goes whole whatever its size, and live frames wait until it is
+	// written out, so only a reader that cannot keep up with the events is closed.
+	bufferedBytes: 8_388_608,
 	journalTail: 200,
 	journalPerFrame: 200,
 	backoffMinMs: 1_000,
@@ -159,7 +164,7 @@ export const BRIDGE_LIMITS = {
 
 // The client policy per code is RFC 4.3's. `goingAway` is the standard code a hub closes its
 // sockets with when it stops. A client reconnects with the normal backoff after any code that
-// names no wait of its own, `silent` among them.
+// names no wait of its own, `silent` and `slow` among them.
 export const CLOSE_CODES = {
 	goingAway: 1001,
 	malformed: 1003,
@@ -169,5 +174,8 @@ export const CLOSE_CODES = {
 	// Nothing came from the socket within `silenceMs`, as HTTP's 408 says of a request: its peer
 	// is gone, or its tab was frozen and reconnects once it runs again.
 	silent: 4008,
+	// The reader left more than `bufferedBytes` unread: it reconnects and starts over from a fresh
+	// snapshot, which says the latest state once instead of every step it missed.
+	slow: 4010,
 	saturated: 4029,
 } as const

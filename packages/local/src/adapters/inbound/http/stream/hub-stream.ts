@@ -23,8 +23,8 @@ export type StreamDeps = {
 // Starts the stream on an accepted socket; hands back its end, which the socket's close calls.
 export function openHubStream(socket: WebSocket, deps: StreamDeps): () => void {
 	const queue = createStreamQueue(deps.source)
-	const send = sender(socket, deps.oversized)
-	const pacer = createPacer(queue, send)
+	const write = writer(socket, deps.oversized)
+	const pacer = createPacer(queue, keptUp(socket, write))
 	const unsubscribe = deps.source.hub.subscribe(signal => {
 		queue.note(signal)
 		pacer.wake()
@@ -35,7 +35,7 @@ export function openHubStream(socket: WebSocket, deps: StreamDeps): () => void {
 		deps.log(`stream: snapshot failed: ${String(error)}`)
 		socket.terminate()
 	}
-	void begin({ queue, send, pacer, drop })
+	void begin({ queue, write, pacer, drop })
 	return () => {
 		unsubscribe()
 		pacer.stop()
@@ -43,21 +43,26 @@ export function openHubStream(socket: WebSocket, deps: StreamDeps): () => void {
 	}
 }
 
-type Send = (text: string) => boolean
+// Sends one frame, false once the socket can take no more; `written` runs once the frame is
+// written out to the socket (never when it closed first).
+type Send = (text: string, written?: () => void) => boolean
 
 type Pacer = { start(): void; wake(): void; stop(): void }
 
-// `hello` at once, the snapshot once read, then the events; nothing more once the socket went
-// away. A snapshot that cannot be read leaves the tab without one: the socket is dropped (the
-// client reconnects with its backoff), with no close code to act on.
+// `hello` at once, the snapshot once read, then the events once the snapshot is written out:
+// meanwhile the queue coalesces what moves (latest wins), so a slow link reads the latest state
+// once rather than a backlog piled behind the snapshot, and a reader's lag (`keptUp`) counts from
+// there. Nothing more once the socket went away. A snapshot that cannot be read leaves the tab
+// without one: the socket is dropped (the client reconnects with its backoff), with no close code
+// to act on.
 async function begin(stream: {
 	queue: StreamQueue
-	send: Send
+	write: Send
 	pacer: Pacer
 	drop: (error: unknown) => void
 }): Promise<void> {
-	const { queue, send, pacer } = stream
-	if (!send(queue.hello())) return
+	const { queue, write, pacer } = stream
+	if (!write(queue.hello())) return
 	let snapshot: string[]
 	try {
 		snapshot = await queue.snapshot()
@@ -65,39 +70,63 @@ async function begin(stream: {
 		stream.drop(error)
 		return
 	}
-	if (snapshot.every(send)) pacer.start()
+	const last = snapshot.length - 1
+	const goLive = (): void => {
+		pacer.start()
+	}
+	for (const [at, text] of snapshot.entries())
+		if (!write(text, at === last ? goLive : undefined)) return
 }
 
 // Core shapes every frame under `frameBytes` (a pulse past it travels partial, the journal splits
 // its batches), so a frame past it is a hub bug: said once per head and never sent, while the
 // stream goes on. Closing the socket would not help: every reconnect's snapshot would meet the
 // same frame again, and the tab would never stay connected.
-function sender(socket: WebSocket, oversized: (head: string) => void): Send {
-	return text => {
+function writer(socket: WebSocket, oversized: (head: string) => void): Send {
+	return (text, written) => {
 		if (socket.readyState !== socket.OPEN) return false
-		if (Buffer.byteLength(text) > BRIDGE_LIMITS.frameBytes)
+		if (Buffer.byteLength(text) > BRIDGE_LIMITS.frameBytes) {
 			oversized(text.slice(0, FRAME_HEAD_CHARS))
-		else socket.send(text)
+			return true
+		}
+		socket.send(text, error => {
+			if (!error) written?.()
+		})
 		return true
+	}
+}
+
+// A live frame is queued only behind less than `bufferedBytes` its reader left unread: a tab that
+// stopped reading (its page stuck, a link that crawls) would otherwise grow the hub by every frame
+// sent its way. Past it the reader is closed with `slow` and reconnects to a fresh snapshot; the
+// close waits behind what is buffered, and a reader that never gets to it is dropped after ws's
+// close timeout, its buffer with it.
+function keptUp(socket: WebSocket, write: Send): Send {
+	return text => {
+		if (socket.bufferedAmount <= BRIDGE_LIMITS.bufferedBytes)
+			return write(text)
+		socket.close(CLOSE_CODES.slow)
+		return false
 	}
 }
 
 // The coalescer's clock: one timer per stream, armed for the queue's next due time (the next
 // window once frames wait, or a desk's status going stale on its own) and never earlier than the
 // timer already armed. Beside the silence bound below, the one timer of the stream: the hub
-// pushes, nothing here re-asks.
+// pushes, nothing here re-asks. It waits for `start` (the snapshot written out), and a stopped
+// pacer never starts again.
 function createPacer(queue: StreamQueue, send: Send): Pacer {
 	let timer: NodeJS.Timeout | undefined
 	let armedFor = Infinity
-	let isLive = false
+	let phase: 'waiting' | 'live' | 'stopped' = 'waiting'
 	const fire = (): void => {
 		timer = undefined
 		armedFor = Infinity
-		if (!queue.take(Date.now()).every(send)) return
+		if (!queue.take(Date.now()).every(text => send(text))) return
 		wake()
 	}
 	const wake = (): void => {
-		const due = isLive ? queue.dueAt() : null
+		const due = phase === 'live' ? queue.dueAt() : null
 		if (due === null || due >= armedFor) return
 		clearTimeout(timer)
 		armedFor = due
@@ -105,12 +134,13 @@ function createPacer(queue: StreamQueue, send: Send): Pacer {
 	}
 	return {
 		start(): void {
-			isLive = true
+			if (phase !== 'waiting') return
+			phase = 'live'
 			wake()
 		},
 		wake,
 		stop(): void {
-			isLive = false
+			phase = 'stopped'
 			clearTimeout(timer)
 		},
 	}

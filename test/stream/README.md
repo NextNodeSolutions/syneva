@@ -51,6 +51,9 @@ It prints one line per check and exits 1 when any failed.
   open: the snapshot reaches `snapshot-end` with every frame under the bound, the desk's pulse is
   partial (`/pulse`'s head and `partial.digest`, nothing else), `/pulse` answers it whole, a new
   comment moves the digest and a status line alone does not.
+- **A slow reader**: with a desk whose whole pulse is near `frameBytes` moving once per window, a
+  reader that reads nothing for a while is closed with 4010 once it left more than `bufferedBytes`
+  unread (it reads the code when it reads again), and a reader that keeps up stays open.
 - **Silence**: of two readers opened when the run starts, the one that never pings is closed with
   4008 once `silenceMs` (70 s) passed, and not before; the one that pings every `pingIntervalMs`
   stays open. The wait overlaps the other checks, and the run takes about `silenceMs`.

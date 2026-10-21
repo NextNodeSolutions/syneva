@@ -15,6 +15,7 @@ import { checkOversize } from './oversize-checks.mjs'
 import { createReport } from './report.mjs'
 import { checkResets } from './reset-checks.mjs'
 import { checkSilence, startSilence } from './silence-checks.mjs'
+import { checkSlow } from './slow-checks.mjs'
 import { checkSnapshot } from './snapshot-checks.mjs'
 import { closeReader, socketUrl } from './stream-client.mjs'
 
@@ -64,6 +65,7 @@ checkDedupe(first, second)
 await Promise.all([closeReader(first.reader), closeReader(second.reader)])
 await driver.cli(['close', '--session', PLAN_SESSION], repo.root)
 await checkOversize({ ...context, repo })
+await checkSlow({ ...context, repo })
 await checkSilence(context, silence)
 await checkLimits(context)
 if (options.shutdown) await checkShutdown(context)
