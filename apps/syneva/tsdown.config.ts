@@ -12,4 +12,7 @@ export default defineConfig({
 	},
 	platform: 'node',
 	dts: false,
+	// `ws` (local's stream server) is the one package the bin inlines: its optional native addons
+	// stay optional requires, and bundling any other package fails the build.
+	deps: { onlyBundle: ['ws'] },
 })

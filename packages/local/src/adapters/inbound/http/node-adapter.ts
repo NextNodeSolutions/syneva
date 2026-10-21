@@ -1,6 +1,8 @@
 // node:http under the Fetch API router: an IncomingMessage becomes a Request, the router's
-// Response is written back to the ServerResponse. The one module of the hub's HTTP layer that
-// knows node:http's request and response; every route reads a Request (core's http/exchange.ts).
+// Response is written back to the ServerResponse - or, for an upgrade the guards refused, onto
+// the raw socket. The one module of the hub's HTTP layer that knows node:http's request and
+// response; every route and guard reads a Request (core's http/exchange.ts).
+import { STATUS_CODES } from 'node:http'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 
@@ -16,6 +18,7 @@ import type {
 	OutgoingHttpHeaders,
 	ServerResponse,
 } from 'node:http'
+import type { Duplex } from 'node:stream'
 import type { Served } from '@syneva/core/http/exchange'
 
 // A UI server that needs node:http's own request and response (the dev loop's Vite
@@ -133,9 +136,44 @@ function isBodyAbandoned(
 	return !req.complete && request?.bodyUsed === true
 }
 
-type Arrival =
+export type Arrival =
 	| { request: Request; refusal: null }
 	| { request: null; refusal: Response }
+
+// An upgrade request (the server's 'upgrade' event) as the guards read it: the same Request
+// every route gets, bodiless - or the same refusal a route's request gets when no Request can
+// carry it, which the caller writes with refuseUpgrade.
+export function upgradeRequest(
+	req: IncomingMessage,
+	scheme: NodeAdapterOptions['scheme'],
+): Arrival {
+	return toRequest(req, scheme, new AbortController().signal)
+}
+
+// A refused upgrade gets its refusal as a plain HTTP response on the socket, which then closes:
+// no WebSocket was ever opened, so the client reads the status (401, 403) like any request's.
+export async function refuseUpgrade(
+	socket: Duplex,
+	response: Response,
+): Promise<void> {
+	const body = await response.text()
+	const fields = [...nodeHeaderLines(response.headers)]
+	const head = [
+		`HTTP/1.1 ${response.status} ${STATUS_CODES[response.status] ?? ''}`,
+		...fields,
+		`content-length: ${Buffer.byteLength(body)}`,
+		'connection: close',
+	]
+	socket.end(`${head.join('\r\n')}\r\n\r\n${body}`, () => {
+		socket.destroy()
+	})
+}
+
+function* nodeHeaderLines(headers: Headers): Generator<string> {
+	for (const [name, value] of headers)
+		if (name !== 'content-length' && name !== 'connection')
+			yield `${name}: ${value}`
+}
 
 // A request node:http parsed but no Request can carry (a forbidden method, a target or a
 // header the Fetch API rejects) never reaches a route: it is refused here, in the hub's own

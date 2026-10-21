@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import os from 'node:os'
 
+import { LOCAL_HUB_ID } from '@syneva/contracts/bridge'
 import { createHubJournal } from '@syneva/core/application/journal'
 import { createPlanLibrary } from '@syneva/core/application/plan-library'
 import { createAccessGuard } from '@syneva/core/http/auth'
@@ -29,10 +30,11 @@ import { nodePlanStore } from '../adapters/outbound/filesystem/plans.js'
 import { ghPullRequests } from '../adapters/outbound/git/pull-requests.js'
 import { nodeGit } from '../adapters/outbound/git/repo.js'
 
-import type { Server } from 'node:http'
+import type { HubIdentity } from '@syneva/contracts/bridge'
 import type { HubJournal } from '@syneva/core/application/journal'
 import type { PlanLibrary } from '@syneva/core/application/plan-library'
 import type { Hub } from '@syneva/core/hub/hub'
+import type { LocalServer } from '../adapters/inbound/http/local-server.js'
 import type { HubHandle, HubOptions } from '../adapters/inbound/http/options.js'
 
 const DEFAULT_STATUS_TTL_MS = 90_000
@@ -58,7 +60,7 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 	const journal = createHubJournal(nodeHubJournal, log)
 	const plans = createPlanLibrary(nodePlanStore, nodeGit.workspace, log)
 	const hub = wireHub(options, { journal, plans }, log)
-	const server = createLocalServer({
+	const { server, stream } = createLocalServer({
 		hub,
 		journal,
 		plans,
@@ -71,6 +73,8 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		keyRequired: guard.keyRequired,
 		onShutdown: () => options.onShutdown?.(),
 		homeDir: os.homedir(),
+		identity: identityOf(hub, options.version),
+		log,
 	})
 	await listenOn(server, options.port ?? DEFAULT_HUB_PORT, host)
 	await hub.restore()
@@ -81,7 +85,18 @@ export async function startHub(options: HubOptions): Promise<HubHandle> {
 		port,
 		url: publicUrl?.href ?? `http://${binding.browserHost}:${port}/`,
 		localUrl: `http://${binding.lockHost}:${port}/`,
-		close: () => closeHub(server, hub),
+		close: () => closeHub({ server, stream }, hub),
+	}
+}
+
+// Who the hub's stream says it is: the local hub, named after the machine.
+function identityOf(hub: Hub, version: string): HubIdentity {
+	return {
+		id: LOCAL_HUB_ID,
+		name: os.hostname(),
+		version,
+		instanceId: hub.instanceId,
+		startedAt: hub.startedAt,
 	}
 }
 
@@ -108,8 +123,14 @@ function wireHub(
 	)
 }
 
-// Parked long-polls are cut (an agent's `await` exits non-zero and re-checks the hub); the registry is written one last time so the next start restores the same desks.
-async function closeHub(server: Server, hub: Hub): Promise<void> {
+// The stream's sockets close first with `goingAway` (a tab reconnects once a hub answers again);
+// parked long-polls are cut (an agent's `await` exits non-zero and re-checks the hub); the
+// registry is written one last time so the next start restores the same desks.
+async function closeHub(
+	{ server, stream }: LocalServer,
+	hub: Hub,
+): Promise<void> {
+	await stream.close()
 	server.closeAllConnections()
 	await new Promise<void>(resolve => {
 		server.close(() => resolve())
