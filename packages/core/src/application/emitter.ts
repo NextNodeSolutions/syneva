@@ -18,7 +18,7 @@ export function createEmitter<E>(
 	source: string,
 	log: (line: string) => void,
 ): Emitter<E> {
-	const subscriptions: Array<Subscription<E>> = []
+	const subscriptions = new Set<Subscription<E>>()
 	const failed = new WeakSet<Subscription<E>>()
 	const hear = (subscription: Subscription<E>, event: E): void => {
 		try {
@@ -32,16 +32,15 @@ export function createEmitter<E>(
 	return {
 		emit(event: E): void {
 			// A listener may unsubscribe itself or another one mid-emit: walk a copy, skip the gone.
-			for (const subscription of subscriptions.slice())
-				if (subscriptions.includes(subscription))
-					hear(subscription, event)
+			const currentSubscriptions = [...subscriptions]
+			for (const subscription of currentSubscriptions)
+				if (subscriptions.has(subscription)) hear(subscription, event)
 		},
 		subscribe(listener) {
 			const subscription = { listener }
-			subscriptions.push(subscription)
+			subscriptions.add(subscription)
 			return () => {
-				const index = subscriptions.indexOf(subscription)
-				if (index >= 0) subscriptions.splice(index, 1)
+				subscriptions.delete(subscription)
 			}
 		},
 	}
