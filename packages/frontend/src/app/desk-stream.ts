@@ -1,8 +1,12 @@
 // The desk tab's half of the hub's stream (RFC 0001, 4.6): its desk's pulses, and whether the hub
 // still lists the desk. Loaded once the first file is painted (main.tsx), where the tab used to
-// start polling /poll; the hub pushes, nothing here re-asks.
+// start polling /poll; the hub pushes, and nothing here re-asks on a timer.
 import { hubLink } from '@entities/hub/link'
-import { hubView, subscribeHub } from '@entities/hub/stream'
+import {
+	hubView,
+	retryWhenHubAnswers,
+	subscribeHub,
+} from '@entities/hub/stream'
 import { readDeskPulse } from '@entities/review/pulse'
 import { deferRender } from '@pages/desk/render'
 import { deskIdFromLocation } from '@shared/api/base'
@@ -19,6 +23,7 @@ import { adoptLiveness, isCurrentDesk } from './desk-instance'
 import { saver, S, toast } from './store'
 
 import type { HubDesk } from '@entities/hub/model'
+import type { HubRetry } from '@entities/hub/stream'
 import type { DeskPulse } from '@entities/review/model'
 
 const COMPOSER_FIELDS = ['composerOpen', 'fileComposerOpen']
@@ -37,6 +42,9 @@ let isReading = false
 let wasListed: boolean | null = null
 // A moved review is waiting for the reviewer's unsaved work (see holdBack).
 let isHeldBack = false
+// A moved review whose read the hub left unanswered, read again when the hub next answers (see
+// readNewestAgain); set up by followDesk.
+let stateRetry: HubRetry | null = null
 
 // The desk is gone when the hub says so - its `closed` frame, or a listing without it (a snapshot
 // after the tab was away) - never because the socket dropped. Only a change counts: the tab's own
@@ -102,7 +110,7 @@ async function adopt(pulse: DeskPulse): Promise<void> {
 	updateAwaitingDom()
 	if (pulse.baseDiffHash !== S.lastBaseDiffHash) {
 		if (isHeld()) void holdBack()
-		else await adoptReload()
+		else await reload()
 		return
 	}
 	const guideChanged = adoptGuide(pulse)
@@ -111,6 +119,20 @@ async function adopt(pulse: DeskPulse): Promise<void> {
 	if (guideChanged) toast('Guide updated')
 	// These arrive while the reviewer may be mid-scroll or mid-compose: they must not stack a synchronous full rebuild on top of their interaction.
 	if (guideChanged || commentsChanged || threadsChanged) deferRender()
+}
+
+async function reload(): Promise<void> {
+	if (await adoptReload()) stateRetry?.settled()
+	else stateRetry?.failed()
+}
+
+// A reload the hub left unanswered goes again through the desk's newest pulse, as a pulse would
+// bring it, so it still waits for the reviewer's unsaved work. A pulse being read already does it
+// (that read reloads, or finds the review current).
+function readNewestAgain(): void {
+	if (isReading || waiting) return
+	const raw = hubView().pulses.get(deskId)
+	if (raw) receive(raw)
 }
 
 // The reload replaces S.state wholesale and re-renders, which would clobber decisions/comments not
@@ -153,4 +175,5 @@ function composersClosed(): Promise<void> {
 // The tab follows its desk for as long as it is open: the stream lives with the page.
 export function followDesk(): void {
 	subscribeHub(heardHub)
+	stateRetry = retryWhenHubAnswers(readNewestAgain)
 }

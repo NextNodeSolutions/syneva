@@ -11,22 +11,30 @@ import { S, toast } from './store'
 
 import type {
 	DeskPulse,
+	DeskStateSnapshot,
 	DomainComment,
 	ReviewComment,
 	ReviewState,
 } from '@entities/review/model'
 
-async function loadReviewState(): Promise<ReviewState | null> {
+// The desk's state as the hub answers it now. `restarted`: it answered for another instance of
+// the desk, and isCurrentDesk asked the reviewer to refresh. `unanswered`: the read failed (a
+// dropped request, a 5xx, a payload that does not read), which says nothing of the desk: the
+// review on screen stays as it was, and the desk's stream reads it again once the hub answers
+// again (app/desk-stream.ts), with no refresh to ask for.
+async function loadReviewState(): Promise<
+	ReviewState | 'restarted' | 'unanswered'
+> {
+	let payload: DeskStateSnapshot
 	try {
-		const payload = await fetchState()
-		if (!isCurrentDesk(payload.serverInstanceId)) return null
-		const server = adoptDeskStatus(payload)
-		if (!Array.isArray(server.comments)) return null
-		return server
+		payload = await fetchState()
 	} catch {
-		S.isRefreshRequired = true
-		return null
+		return 'unanswered'
 	}
+	if (!isCurrentDesk(payload.serverInstanceId)) return 'restarted'
+	const server = adoptDeskStatus(payload)
+	if (!Array.isArray(server.comments)) return 'unanswered'
+	return server
 }
 
 // File order/membership can change (files added, removed or reordered), so re-find the current path
@@ -127,13 +135,17 @@ export function adoptIncomingDomainComments(
 	return hasChanged
 }
 
-export async function adoptReload(): Promise<void> {
+// Whether the hub answered: false leaves the review as it was, for the desk's stream to read
+// again (app/desk-stream.ts).
+export async function adoptReload(): Promise<boolean> {
 	const server = await loadReviewState()
-	if (!server) return
+	if (server === 'unanswered') return false
+	if (server === 'restarted') return true
 	S.lastBaseDiffHash = server.baseDiffHash
 	adoptReloadedState(server)
 	S.awaitingAgent = false
 	await refreshProjectFiles()
 	void render()
 	toast('Diff updated')
+	return true
 }
