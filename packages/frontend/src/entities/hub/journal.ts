@@ -10,8 +10,9 @@ export type JournalSubject = {
 	// two hubs overlap).
 	hubId: string
 	seq: number
-	// When the page heard of the event, as an ordinal of this page's own (journal-follow.ts), so
-	// "arrived since" means one thing across hubs: 0 until the journal follows the event.
+	// When the page heard of the event arrive, as an ordinal of this page's own (journal-follow.ts),
+	// so "arrived since" means one thing across hubs: 0 for history (what a hub's first snapshot
+	// brought) and until the journal follows the event.
 	heard: number
 	at: string
 	deskId: string

@@ -57,19 +57,25 @@ function merged(
 }
 
 // One hub's tail takes the place of what the page held of that hub (a page load, a hub never
-// heard of, or a hub whose journal started over); the other hubs' events stay, and nothing in it
-// arrived.
+// heard of, or a hub whose journal started over); the other hubs' events stay. The tail is that
+// hub's history, not news, whenever it comes: a hub that joins after the page has heard others
+// arrive must not wash its whole journal past their fresh line. So it keeps the `heard` of an
+// event the page never saw arrive (0), under any line, and hands out no ordinal.
 function replaced(
 	held: JournalFollow,
 	hubId: string,
 	tail: readonly JournalEvent[],
 ): JournalFollow {
 	const others = held.journal.events.filter(event => event.hubId !== hubId)
-	const events = merged(others, stamped(tail, held.heard))
+	const history = tail.map(event => ({ ...event, heard: 0 }))
 	return {
-		journal: { events, freshAfter: held.journal.freshAfter, isRead: true },
+		journal: {
+			events: merged(others, history),
+			freshAfter: held.journal.freshAfter,
+			isRead: true,
+		},
 		newest: new Map([...held.newest, [hubId, newestOf(tail, 0)]]),
-		heard: held.heard + tail.length,
+		heard: held.heard,
 	}
 }
 
