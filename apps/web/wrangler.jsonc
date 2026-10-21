@@ -1,0 +1,88 @@
+// The web's Worker (RFC 0001, phase 2), complete: local development now (`pnpm dev`, Miniflare),
+// and what `wrangler deploy --config apps/web/wrangler.jsonc` would deploy once the D1 id and the
+// secrets exist. Deploys are CI-only and the NextNodeSolutions/core pipeline cannot generate this
+// shape from nextnode.toml yet: AGENTS.md lists what it must learn ("Deploy: what the pipeline must
+// learn"). Never `wrangler deploy` from a machine, never `wrangler dev --remote` (RFC 6.1 H2).
+// Every binding here has its rows in RFC 6.1; a new one gets its rows there first (H1).
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "syneva-web-local",
+	// The landing's date: one runtime behaviour across the repo's Workers. It turns on the
+	// runtime's own reply to a WebSocket close frame (web_socket_auto_reply_to_close).
+	"compatibility_date": "2026-06-01",
+	"compatibility_flags": ["nodejs_compat"],
+	// scripts/build.mjs: tsdown's bundle, and the frontend's dist copied beside it.
+	"main": "dist/server/entry.mjs",
+	"assets": {
+		"directory": "dist/client",
+		"binding": "ASSETS",
+		// An asset path that matches nothing reaches the Worker (its 404, or a page shell), never
+		// a single-page fallback.
+		"not_found_handling": "none",
+		// Every route the Worker answers: auth before anything (R9). The rest (ui.js, chunks,
+		// styles, fonts) is served by the asset layer and never invokes the Worker (T9). The
+		// Worker also answers correctly without this list (the pipeline's config has none): the
+		// shells live under /_shell/, so no page path matches an asset.
+		"run_worker_first": [
+			"/api/*",
+			"/bridge/*",
+			"/auth/*",
+			"/d/*",
+			"/login",
+			"/logout",
+			"/device",
+		],
+	},
+	// One object per account (USER_HUB.getByName(userId)): the switchboard of the person's hub and
+	// tab sockets. SQLite-backed, the current kind; it never writes its storage (R4).
+	"durable_objects": {
+		"bindings": [{ "name": "USER_HUB", "class_name": "UserHub" }],
+	},
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["UserHub"] }],
+	// Identity only (RFC 8): users, sessions, login and device codes, hubs, settings, the breaker,
+	// the daily email counter. Its own database, never the landing's launch list. The id is a
+	// placeholder: local development keys its state by binding, a deploy needs the real one.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "syneva-web-local-d1",
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "migrations",
+		},
+	],
+	// Sign-in, pairing and hub upgrades per client address or hub (RFC 6.1 F1, F2, section 7). A
+	// binding's period is 10 or 60 s: the per-hour email limits live in D1 instead.
+	"ratelimits": [
+		{
+			"name": "RL_AUTH",
+			"namespace_id": "1002",
+			"simple": { "limit": 10, "period": 60 },
+		},
+	],
+	// R9: a flood that reaches the Worker costs at most this much CPU per request.
+	"limits": { "cpu_ms": 50 },
+	// R8 and RFC 6.1 D1, D5: 1 % of the lines, no invocation log (a refused request writes no
+	// line), no traces; the code logs only on an accepted socket's error and on an unexpected throw.
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 0.01,
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 0.01,
+			"invocation_logs": false,
+		},
+		"traces": { "enabled": false },
+	},
+	// SITE_URL: the web's own origin (links in emails, the device page's URL, the same-origin
+	// guard); a deploy sets the app's. MAIL_TRANSPORT=log prints the magic link on the Worker's
+	// stdout instead of sending it (local only; unset, the link goes through Resend). The secrets
+	// (SESSION_SECRET, OPS_TOKEN, RESEND_API_KEY) come from .dev.vars locally (gitignored), from
+	// the `syneva` Infisical project on a deploy, never from this file.
+	"vars": {
+		"SITE_URL": "http://127.0.0.1:8787",
+		"MAIL_TRANSPORT": "log",
+	},
+	// No triggers (no cron, RFC 6.1 B9), no KV, R2, Queues, Logpush, tail Worker or Analytics
+	// Engine (C5, D2, D3), no workers.dev route.
+	"workers_dev": false,
+}

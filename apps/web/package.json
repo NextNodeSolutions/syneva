@@ -1,0 +1,25 @@
+{
+	"name": "@syneva/web",
+	"version": "0.0.0",
+	"private": true,
+	"description": "The web side of Syneva (RFC 0001, phase 2): a Cloudflare Worker and one UserHub Durable Object per account, the switchboard that shows a paired local hub on syneva.dev. Sign-in by magic link, device-code pairing, the hub and tab sockets, the HTTP relay and the breaker; the frontend's bundle served as static assets.",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"build": "node scripts/build.mjs && node scripts/bundle-check.mjs",
+		"check": "tsc -p tsconfig.json",
+		"dev": "wrangler dev --config wrangler.jsonc",
+		"db:local": "wrangler d1 migrations apply DB --local --config wrangler.jsonc",
+		"bundle:check": "node scripts/bundle-check.mjs"
+	},
+	"dependencies": {
+		"@syneva/contracts": "workspace:*"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "5.20261005.1",
+		"@syneva/frontend": "workspace:*",
+		"tsdown": "^0.23.0",
+		"typescript": "latest",
+		"wrangler": "4.147.0"
+	}
+}

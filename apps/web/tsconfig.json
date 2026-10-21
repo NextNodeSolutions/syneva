@@ -1,0 +1,13 @@
+{
+	// The Worker and its object, checked against the Workers runtime and nothing else: ES2024 and
+	// @cloudflare/workers-types (referenced by src/env.d.ts), no DOM, no @types/node. A Node global
+	// or a DOM API fails here even if lint missed it. tsdown bundles; tsc only checks.
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["es2024"],
+		"types": [],
+		"noEmit": true
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["dist"]
+}
