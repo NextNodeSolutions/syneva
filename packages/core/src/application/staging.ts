@@ -3,7 +3,7 @@ import { patchForChange } from '../domain/diff/change.js'
 import { errorMessage } from './errors.js'
 
 import type { ReviewState } from '../domain/review.js'
-import type { GitPort } from './ports.js'
+import type { StagingPort } from './ports.js'
 
 export type StagePathsRequest = {
 	paths: string[]
@@ -21,9 +21,9 @@ export type StageChangeOutcome =
 export async function stagePaths(
 	state: ReviewState,
 	request: StagePathsRequest,
-	git: GitPort,
+	staging: StagingPort,
 ): Promise<ReviewState> {
-	if (request.paths.length) await git.stage(state.root, request.paths)
+	if (request.paths.length) await staging.stage(state.root, request.paths)
 	const recorded = request.recorded ?? request.paths.at(-1)
 	if (!recorded || state.stagedFiles.includes(recorded)) return state
 	return { ...state, stagedFiles: [...state.stagedFiles, recorded] }
@@ -33,7 +33,7 @@ export async function stagePaths(
 export async function stageChange(
 	state: ReviewState,
 	request: StageChangeRequest,
-	git: GitPort,
+	staging: StagingPort,
 ): Promise<StageChangeOutcome> {
 	const key = `${request.path}:${request.stableKey}`
 	const staged = state.stagedChangeKeys ?? []
@@ -41,7 +41,7 @@ export async function stageChange(
 		return { decision: 'already-staged', skipped: true, state }
 	let applied: 'applied' | 'skipped'
 	try {
-		applied = await git.applyToIndex(
+		applied = await staging.applyToIndex(
 			state.root,
 			patchForChange(state.rawDiff, request.path, request.stableKey),
 		)
@@ -62,9 +62,9 @@ export async function stageChange(
 export async function unstagePath(
 	state: ReviewState,
 	filePath: string,
-	git: GitPort,
+	staging: StagingPort,
 ): Promise<ReviewState> {
-	await git.unstage(state.root, [filePath])
+	await staging.unstage(state.root, [filePath])
 	return {
 		...state,
 		stagedFiles: state.stagedFiles.filter(

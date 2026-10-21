@@ -2,12 +2,13 @@ import path from 'node:path'
 
 import { parseUnifiedDiff } from '../domain/diff/parse.js'
 
+import { requireWorkingTree } from './capabilities.js'
 import { assembleDiff, fileEntry } from './diff-files.js'
 import { appendUntrackedFiles } from './untracked.js'
 
 import type { DiffFile } from '../domain/review.js'
 import type { AssembledDiff } from './diff-files.js'
-import type { GitPort } from './ports.js'
+import type { GitPort, WorkingTreePort, WorkspacePort } from './ports.js'
 
 export type DiffSource = AssembledDiff & {
 	rawDiff: string
@@ -37,8 +38,11 @@ export async function buildDiffSource(
 	git: GitPort,
 ): Promise<DiffSource | null> {
 	if (query.mode === 'pr') return await buildPrSource(query, git)
-	if (query.mode === 'file') return await buildFileSource(query, git)
-	return await buildRepoSource(query, git)
+	// Repo and file desks diff the working tree and the index; a pr desk needs only the commits.
+	const tree = requireWorkingTree(git)
+	if (query.mode === 'file')
+		return await buildFileSource(query, git.workspace, tree)
+	return await buildRepoSource(query, git, tree)
 }
 
 // pr is committed on both sides, so the file-level keys come from `git diff --raw` and assembleDiff reads no blob contents at all. The new side is `head` when given (a branch read before its checkout), else HEAD.
@@ -54,20 +58,21 @@ async function buildPrSource(
 	const assembled = await assembleDiff(parsedDiff, {
 		fetchNew: p => git.fileAt(query.root, p, head),
 		isStageable: false, // verdict-only: a commit can't be staged
-		newOids: await git.rawBlobOids(query.root, { base, head: query.head }),
+		newOids: await git.rawBlobOids(query.root, { base, head }),
 	})
 	return { ...assembled, rawDiff }
 }
 
 async function buildFileSource(
 	query: FileQuery,
-	git: GitPort,
+	workspace: WorkspacePort,
+	tree: WorkingTreePort,
 ): Promise<DiffSource> {
 	const rel = path.relative(query.root, query.path)
 	const key = rel.startsWith('..') ? query.path : rel
 	const tracked =
-		!rel.startsWith('..') && (await git.isTracked(query.root, rel))
-	const working = (await git.workspace.readFile(query.path)) ?? ''
+		!rel.startsWith('..') && (await tree.isTracked(query.root, rel))
+	const working = (await workspace.readFile(query.path)) ?? ''
 	if (!tracked)
 		return {
 			files: [fileEntry(key, working, 'added')],
@@ -75,7 +80,7 @@ async function buildFileSource(
 			rawDiff: '',
 		}
 	// A tracked path is never empty (git refuses an empty pathspec), so this is `-- <rel>`.
-	const rawDiff = await git.workingDiff(query.root, { path: rel })
+	const rawDiff = await tree.diff(query.root, { path: rel })
 	if (!rawDiff.trim())
 		return {
 			files: [fileEntry(key, working, 'modified')],
@@ -85,7 +90,7 @@ async function buildFileSource(
 	// New side is the working tree - hashed locally (no committed OID); the UI re-diffs old/new (fetched on open against the INDEX baseline via readFileContents), not these hunks.
 	const parsedDiff = parseUnifiedDiff(rawDiff)
 	const assembled = await assembleDiff(parsedDiff, {
-		fetchNew: p => git.fileAt(query.root, p),
+		fetchNew: p => tree.workingFile(query.root, p),
 		isStageable: true,
 		isWorkingSide: true,
 	})
@@ -96,15 +101,16 @@ async function buildFileSource(
 async function buildRepoSource(
 	query: RepoQuery,
 	git: GitPort,
+	tree: WorkingTreePort,
 ): Promise<DiffSource | null> {
 	// -M asks git itself to detect renames, so committed/staged renames render deterministically regardless of the user's `diff.renames` config.
-	const rawDiff = await git.workingDiff(query.root, {
+	const rawDiff = await tree.diff(query.root, {
 		staged: query.staged,
 		path: query.path,
 	})
 	// Parse once here and reuse it for both assembleDiff and the DiffSource result (issue 06).
 	const parsedDiff = rawDiff.trim() ? parseUnifiedDiff(rawDiff) : []
-	const { files, changes } = await assembleRepoDiff(parsedDiff, query, git)
+	const { files, changes } = await assembleRepoDiff(parsedDiff, query, tree)
 	if (!query.staged)
 		await appendUntrackedFiles(
 			files,
@@ -122,21 +128,18 @@ async function buildRepoSource(
 async function assembleRepoDiff(
 	parsedDiff: readonly DiffFile[],
 	query: RepoQuery,
-	git: GitPort,
+	tree: WorkingTreePort,
 ): Promise<AssembledDiff> {
 	if (!parsedDiff.length) return { files: [], changes: [] }
 	return await assembleDiff(parsedDiff, {
 		// Staged: the new side is the index (committed), harvested from `git diff --raw` in one process, so fetchNew is never called; unstaged: the new side is the dirty working tree (reported all-zeros), so fetchNew reads it to hash.
 		fetchNew: p =>
 			query.staged
-				? git.fileAt(query.root, p, ':0')
-				: git.fileAt(query.root, p),
+				? tree.indexFile(query.root, p)
+				: tree.workingFile(query.root, p),
 		isStageable: true,
 		newOids: query.staged
-			? await git.rawBlobOids(query.root, {
-					staged: true,
-					path: query.path,
-				})
+			? await tree.stagedBlobOids(query.root, query.path)
 			: undefined,
 		isWorkingSide: !query.staged,
 	})

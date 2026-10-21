@@ -1,7 +1,32 @@
-// The clone on disk beyond its commits - the working tree, the index and the remotes - one git command per operation (GitPort documents each).
+// The clone on disk beyond its commits - the working tree, the index and the remotes - one git command per operation (WorkingTreePort documents each).
 import { git } from './exec.js'
+import { readObjects } from './objects.js'
+import { fileAt, rawBlobOids } from './reads.js'
 
-export async function workingDiff(
+import type { WorkingTreePort } from '@syneva/core/application/ports'
+
+export const nodeWorkingTree: WorkingTreePort = Object.freeze({
+	diff: workingDiff,
+	stagedBlobOids: async (root: string, path: string | undefined) =>
+		rawBlobOids(root, { staged: true, path }),
+	indexFile: async (
+		root: string,
+		rel: string | undefined,
+		isStrict = false,
+	) => fileAt(root, rel, ':0', isStrict),
+	workingFile: async (root: string, rel: string | undefined) =>
+		fileAt(root, rel),
+	readObjects,
+	isTracked,
+	projectTree,
+	untrackedFiles,
+	stagedPaths,
+	trackedChanges,
+	remoteBranch,
+	checkout,
+})
+
+async function workingDiff(
 	root: string,
 	scope: { staged?: boolean | undefined; path?: string | undefined },
 ): Promise<string> {
@@ -11,14 +36,14 @@ export async function workingDiff(
 	return await git(args, root)
 }
 
-export async function isTracked(root: string, rel: string): Promise<boolean> {
+async function isTracked(root: string, rel: string): Promise<boolean> {
 	return await git(['ls-files', '--error-unmatch', '--', rel], root).then(
 		() => true,
 		() => false,
 	)
 }
 
-export async function untrackedFiles(
+async function untrackedFiles(
 	root: string,
 	path: string | undefined,
 ): Promise<string[]> {
@@ -27,17 +52,17 @@ export async function untrackedFiles(
 	return (await git(args, root)).split(/\r?\n/).filter(Boolean)
 }
 
-export async function stagedPaths(root: string): Promise<string[]> {
+async function stagedPaths(root: string): Promise<string[]> {
 	return (await git(['diff', '--cached', '--name-only'], root))
 		.split(/\r?\n/)
 		.filter(Boolean)
 }
 
-export async function trackedChanges(root: string): Promise<string> {
+async function trackedChanges(root: string): Promise<string> {
 	return await git(['status', '--porcelain', '--untracked-files=no'], root)
 }
 
-export async function remoteBranch(
+async function remoteBranch(
 	root: string,
 	name: string,
 ): Promise<string | null> {
@@ -51,6 +76,18 @@ export async function remoteBranch(
 	}
 }
 
-export async function checkout(root: string, name: string): Promise<void> {
+async function checkout(root: string, name: string): Promise<void> {
 	await git(['checkout', name], root)
+}
+
+async function projectTree(root: string): Promise<string[]> {
+	try {
+		const tracked = await git(['ls-files'], root)
+		return tracked
+			.split(/\r?\n/)
+			.filter(Boolean)
+			.toSorted((a, b) => a.localeCompare(b))
+	} catch {
+		return []
+	}
 }

@@ -248,7 +248,11 @@ export async function readStagedSnapshot(
 	state: ReviewState,
 	git: GitPort,
 ): Promise<StagedSnapshot> {
-	const staged = await git.stagedPaths(state.root).catch(() => [])
+	// A hub without a working tree has no index: nothing is staged there.
+	const tree = git.workingTree
+	const staged = tree
+		? await tree.stagedPaths(state.root).catch((): string[] => [])
+		: []
 	const stagedFiles = new Set(staged)
 	const reviewFiles = new Set(state.files.map(file => file.path))
 	return {

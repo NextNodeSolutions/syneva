@@ -1,4 +1,4 @@
-// Writing the index, one git command per operation (GitPort documents each); the temp file `git apply` reads is this adapter's own detail.
+// Writing the index, one git command per operation (StagingPort documents each); the temp file `git apply` reads is this adapter's own detail.
 import crypto from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import os from 'node:os'
@@ -8,17 +8,19 @@ import { AdapterError, errorMessage } from '@syneva/core/application/errors'
 
 import { git } from './exec.js'
 
-export async function stage(
-	root: string,
-	paths: readonly string[],
-): Promise<void> {
+import type { StagingPort } from '@syneva/core/application/ports'
+
+export const nodeStaging: StagingPort = Object.freeze({
+	stage,
+	unstage,
+	applyToIndex,
+})
+
+async function stage(root: string, paths: readonly string[]): Promise<void> {
 	await git(['add', '--', ...paths], root)
 }
 
-export async function unstage(
-	root: string,
-	paths: readonly string[],
-): Promise<void> {
+async function unstage(root: string, paths: readonly string[]): Promise<void> {
 	await git(['restore', '--staged', '--', ...paths], root).catch(async () =>
 		git(['reset', 'HEAD', '--', ...paths], root),
 	)
@@ -26,7 +28,7 @@ export async function unstage(
 
 // A reverse `--check` first tells "already staged" (a reload re-accepting a block the index
 // already holds) from a real apply.
-export async function applyToIndex(
+async function applyToIndex(
 	root: string,
 	patch: string,
 ): Promise<'applied' | 'skipped'> {

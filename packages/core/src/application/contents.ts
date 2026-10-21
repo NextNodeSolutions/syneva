@@ -2,9 +2,11 @@ import path from 'node:path'
 
 import { hash } from '../domain/identity.js'
 
+import { requireWorkingTree } from './capabilities.js'
+
 import type { FileContents } from '../domain/contents.js'
 import type { ReviewFile, ReviewState } from '../domain/review.js'
-import type { GitPort } from './ports.js'
+import type { GitPort, WorkingTreePort, WorkspacePort } from './ports.js'
 
 // Keyed by root + path + both sides' identities: contentHash names the new side, the file's hunks the old one (with the new side fixed, the diff determines it). The old side moves on its own - staging a hunk rewrites the index a working diff reads its old side from, a commit moves the HEAD a staged diff reads - so a key on the new side alone would keep serving the old side from before. A reload that changes either side changes the key, and the stale entry falls out (no explicit invalidation).
 // Process-global and shared by every desk, but the key carries the repo root, so two desks never collide.
@@ -43,16 +45,18 @@ export async function readFileContents(
 	return resolved
 }
 
-function resolveFileContents(
+async function resolveFileContents(
 	state: ReviewState,
 	file: ReviewFile,
 	git: GitPort,
 ): Promise<FileContents> {
-	if (state.mode === 'pr') return prContents(state, file, git)
-	if (state.mode === 'file') return fileModeContents(state, file, git)
+	if (state.mode === 'pr') return await prContents(state, file, git)
+	const tree = requireWorkingTree(git)
+	if (state.mode === 'file')
+		return await fileModeContents(state, file, git.workspace, tree)
 	return state.staged
-		? stagedContents(state, file, git)
-		: workingContents(state, file, git)
+		? await stagedContents(state, file, git, tree)
+		: await workingContents(state, file, tree)
 }
 
 function evictLeastRecentlyUsed(): void {
@@ -93,16 +97,17 @@ async function prContents(
 async function fileModeContents(
 	state: ReviewState,
 	file: ReviewFile,
-	git: GitPort,
+	workspace: WorkspacePort,
+	tree: WorkingTreePort,
 ): Promise<FileContents> {
 	const abs = path.isAbsolute(file.path)
 		? file.path
 		: path.join(state.root, file.path)
-	const working = (await git.workspace.readFile(abs)) ?? ''
-	const tracked = await git.isTracked(state.root, file.path)
+	const working = (await workspace.readFile(abs)) ?? ''
+	const tracked = await tree.isTracked(state.root, file.path)
 	if (tracked && file.hunks.length)
 		return {
-			oldContents: await git.fileAt(state.root, file.oldPath, ':0'),
+			oldContents: await tree.indexFile(state.root, file.oldPath),
 			newContents: working,
 		}
 	return { oldContents: tracked ? working : '', newContents: working }
@@ -112,6 +117,7 @@ async function stagedContents(
 	state: ReviewState,
 	file: ReviewFile,
 	git: GitPort,
+	tree: WorkingTreePort,
 ): Promise<FileContents> {
 	const oldContents =
 		file.changeKind === 'added'
@@ -120,7 +126,7 @@ async function stagedContents(
 	const newContents =
 		file.changeKind === 'deleted'
 			? ''
-			: await git.fileAt(state.root, file.newPath, ':0', true)
+			: await tree.indexFile(state.root, file.newPath, true)
 	return { oldContents, newContents }
 }
 
@@ -128,14 +134,14 @@ async function stagedContents(
 async function workingContents(
 	state: ReviewState,
 	file: ReviewFile,
-	git: GitPort,
+	tree: WorkingTreePort,
 ): Promise<FileContents> {
 	const oldContents =
 		file.changeKind === 'added'
 			? ''
-			: await git.fileAt(state.root, file.oldPath, ':0', true)
+			: await tree.indexFile(state.root, file.oldPath, true)
 	return {
 		oldContents,
-		newContents: await git.fileAt(state.root, file.newPath),
+		newContents: await tree.workingFile(state.root, file.newPath),
 	}
 }

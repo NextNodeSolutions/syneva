@@ -2,6 +2,7 @@ import {
 	browserDomainComment,
 	browserState,
 } from '../../application/browser-state.js'
+import { projectFiles } from '../../application/capabilities.js'
 import { guideAuthoring } from '../../application/guide-authoring.js'
 import { buildInventory } from '../../domain/inventory.js'
 import { readJsonBody, json, jsonBody, HTTP_OK } from '../http.js'
@@ -66,7 +67,7 @@ export async function serveAuthoring({ ctx }: RouteRequest): Promise<Response> {
 
 export async function serveTree({ ctx }: RouteRequest): Promise<Response> {
 	await ctx.refreshStaged()
-	return json(HTTP_OK, { files: await ctx.git.projectTree(ctx.state.root) })
+	return json(HTTP_OK, { files: await projectFiles(ctx.state, ctx.git) })
 }
 
 // Stored globally in ~/.syneva/settings.json: the file follows the reviewer across browsers and hosts where a per-origin localStorage would not.

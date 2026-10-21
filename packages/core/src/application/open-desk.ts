@@ -6,6 +6,7 @@ import { deskId, deskSession } from '../domain/identity.js'
 
 import { attachGuide } from './attach-guide.js'
 import { buildReviewState, emptyReviewState } from './build.js'
+import { NO_WORKING_TREE } from './capabilities.js'
 import { carriedGuideOf, guideExpectation } from './open-policy.js'
 import { resolvePrTarget } from './pr-target.js'
 import { mergeReviewState, readStagedSnapshot } from './reconcile.js'
@@ -58,6 +59,7 @@ export async function rootProblem(
 	query: DeskQuery,
 	git: GitPort,
 ): Promise<string | null> {
+	if (query.mode !== 'pr' && !git.workingTree) return NO_WORKING_TREE
 	if (!(await git.workspace.isDirectory(query.root)))
 		return `No folder at ${query.root} on the hub's machine.`
 	if (query.mode === 'file') return null

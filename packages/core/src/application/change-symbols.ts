@@ -10,6 +10,7 @@ import {
 } from '../domain/outline.js'
 import { symbolLinks } from '../domain/symbol-links.js'
 
+import { requireWorkingTree } from './capabilities.js'
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
 import { needsRemovedSide, removedSpan, withTrivia } from './replaced-trivia.js'
@@ -94,7 +95,9 @@ async function readSides(
 		if (spec) specs.set(spec, sideKey(side, file.path))
 		else onDisk.push(file)
 	}
-	const objects = await git.readObjects(state.root, [...specs.keys()])
+	// Index specs (`:0:`) only a working tree reads; a pr desk names commits alone.
+	const reader = state.mode === 'pr' ? git : requireWorkingTree(git)
+	const objects = await reader.readObjects(state.root, [...specs.keys()])
 	for (const [spec, key] of specs) {
 		const text = objects.get(spec)
 		if (text) texts.set(key, text)

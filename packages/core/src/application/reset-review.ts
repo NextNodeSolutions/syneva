@@ -47,12 +47,12 @@ export function resetReviewPatch(
 	return patch
 }
 
-// One unstage for every path (`git restore --staged` takes many pathspecs); pr mode has no working-tree index to restore (skip the git work entirely).
+// One unstage for every path (`git restore --staged` takes many pathspecs); pr mode has no working-tree index to restore and a hub without staging no index at all (skip the git work entirely: the reset is the review's own records).
 export async function unstageReviewedFiles(
 	state: ReviewState,
 	git: GitPort,
 	paths: readonly string[] = state.files.map(file => file.path),
 ): Promise<void> {
-	if (state.mode === 'pr' || !paths.length) return
-	await git.unstage(state.root, paths)
+	if (state.mode === 'pr' || !git.staging || !paths.length) return
+	await git.staging.unstage(state.root, paths)
 }

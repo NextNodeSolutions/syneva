@@ -3,6 +3,7 @@ import path from 'node:path'
 import { contextKey } from '../domain/guide-reference-resolve.js'
 import { hash } from '../domain/identity.js'
 
+import { requireWorkingTree } from './capabilities.js'
 import { repoPath, resolveContained } from './containment.js'
 import { mapContentReads } from './content-reads.js'
 import { readFileContents } from './contents.js'
@@ -48,9 +49,12 @@ async function readUnchangedSide(
 				? (state.head ?? 'HEAD')
 				: (state.base ?? 'HEAD'),
 		)
+	const tree = requireWorkingTree(git)
 	if (state.staged)
-		return git.fileAt(state.root, rel, side === 'additions' ? ':0' : 'HEAD')
-	if (side === 'deletions') return git.fileAt(state.root, rel, ':0')
+		return side === 'additions'
+			? tree.indexFile(state.root, rel)
+			: git.fileAt(state.root, rel, 'HEAD')
+	if (side === 'deletions') return tree.indexFile(state.root, rel)
 	return git.workspace.readFile(path.join(state.root, rel))
 }
 

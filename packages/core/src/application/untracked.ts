@@ -3,11 +3,12 @@ import path from 'node:path'
 import { blobOid } from '../domain/identity.js'
 import { utf8ByteLength } from '../domain/utf8.js'
 
+import { requireWorkingTree } from './capabilities.js'
 import { mapContentReads } from './content-reads.js'
 import { fileEntry } from './diff-files.js'
 
 import type { ChangeState, ReviewFile } from '../domain/review.js'
-import type { GitPort } from './ports.js'
+import type { GitPort, WorkingTreePort, WorkspacePort } from './ports.js'
 
 // Untracked files must obey the same `--path` limit the diff was taken with, or a scoped review would grow silently.
 export type UntrackedScan = { root: string; path?: string | undefined }
@@ -28,8 +29,9 @@ export async function appendUntrackedFiles(
 	scan: UntrackedScan,
 	git: GitPort,
 ): Promise<void> {
-	const entries = await readUntrackedEntries(scan, git)
-	const pairing = await pairUntrackedMoves(scan.root, files, entries, git)
+	const tree = requireWorkingTree(git)
+	const entries = await readUntrackedEntries(scan, tree, git.workspace)
+	const pairing = await pairUntrackedMoves(scan.root, files, entries, tree)
 	dropPairedDeletions(files, changes, pairing.deletedPaths)
 	for (const entry of entries) {
 		if (pairing.untrackedPaths.has(entry.rel)) continue
@@ -40,14 +42,14 @@ export async function appendUntrackedFiles(
 
 async function readUntrackedEntries(
 	scan: UntrackedScan,
-	git: GitPort,
+	tree: WorkingTreePort,
+	workspace: WorkspacePort,
 ): Promise<UntrackedEntry[]> {
-	const untracked = await git.untrackedFiles(scan.root, scan.path)
+	const untracked = await tree.untrackedFiles(scan.root, scan.path)
 	// A file that vanished between the listing and the read (or is unreadable) reads as empty, which leaves it an ordinary full addition rather than failing the whole review.
 	return await mapContentReads(untracked, async rel => ({
 		rel,
-		working:
-			(await git.workspace.readFile(path.join(scan.root, rel))) ?? '',
+		working: (await workspace.readFile(path.join(scan.root, rel))) ?? '',
 	}))
 }
 
@@ -57,7 +59,7 @@ async function pairUntrackedMoves(
 	root: string,
 	files: ReviewFile[],
 	entries: UntrackedEntry[],
-	git: GitPort,
+	tree: WorkingTreePort,
 ): Promise<UntrackedPairing> {
 	const pairing: UntrackedPairing = {
 		moves: [],
@@ -70,7 +72,7 @@ async function pairUntrackedMoves(
 	const delByOid = await deletionsByOid(
 		root,
 		files.filter(file => !file.newPath),
-		git,
+		tree,
 	)
 	for (const [oid, deletions] of delByOid) {
 		const untracked = untByOid.get(oid)
@@ -103,12 +105,12 @@ function mergeMove(deletion: ReviewFile, entry: UntrackedEntry): ReviewFile {
 async function deletionsByOid(
 	root: string,
 	deletions: ReviewFile[],
-	git: GitPort,
+	tree: WorkingTreePort,
 ): Promise<Map<string, ReviewFile[]>> {
 	const hashed = await mapContentReads(deletions, async deletion => ({
 		deletion,
 		oid: blobOid(
-			await git.fileAt(root, deletion.oldPath ?? deletion.path, ':0'),
+			await tree.indexFile(root, deletion.oldPath ?? deletion.path),
 		),
 	}))
 	const byOid = new Map<string, ReviewFile[]>()

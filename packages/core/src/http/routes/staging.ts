@@ -20,18 +20,30 @@ const STAGING_DISABLED: ApiFailure = {
 	fix: 'PR changes are committed; accept/reject are approve/request-changes verdicts.',
 }
 
+// A hub whose GitPort has no staging (desks over a branch, not a clone) refuses every staging
+// route, /unstage included, with the same code: these routes are the browser's alone (not in the
+// agent contract), and the Decision records stay the verdict either way.
+const NO_STAGING: ApiFailure = {
+	status: HTTP_CONFLICT,
+	code: 'STAGING_DISABLED',
+	error: 'Staging is unavailable on this hub: its desks read a branch, not a working tree.',
+	fix: 'Accept and reject still record the verdict; there is no index to stage it in.',
+}
+
 export async function stageFiles({
 	ctx,
 	request,
 }: RouteRequest): Promise<Response> {
 	if (ctx.state.mode === 'pr') return fail(STAGING_DISABLED)
+	const { staging } = ctx.git
+	if (!staging) return fail(NO_STAGING)
 	return ctx.serialize(async (): Promise<Response> => {
 		const body: unknown = await readJsonBody(request)
 		// stagePaths returns the next root (the same one when nothing changed); persist + commit is what publishes it.
 		const next = await stagePaths(
 			ctx.state,
 			parseStagePathsRequest(body),
-			ctx.git,
+			staging,
 		)
 		const saved = await ctx.persist(next)
 		ctx.commit(saved.state)
@@ -44,12 +56,14 @@ export async function stageOneChange({
 	request,
 }: RouteRequest): Promise<Response> {
 	if (ctx.state.mode === 'pr') return fail(STAGING_DISABLED)
+	const { staging } = ctx.git
+	if (!staging) return fail(NO_STAGING)
 	return ctx.serialize(async (): Promise<Response> => {
 		const body: unknown = await readJsonBody(request)
 		const outcome = await stageChange(
 			ctx.state,
 			parseStageChangeRequest(body),
-			ctx.git,
+			staging,
 		)
 		if (outcome.decision === 'conflict')
 			return fail({
@@ -70,12 +84,14 @@ export async function unstageFile({
 	ctx,
 	request,
 }: RouteRequest): Promise<Response> {
+	const { staging } = ctx.git
+	if (!staging) return fail(NO_STAGING)
 	return ctx.serialize(async (): Promise<Response> => {
 		const body: unknown = await readJsonBody(request)
 		const next = await unstagePath(
 			ctx.state,
 			parseUnstageRequest(body),
-			ctx.git,
+			staging,
 		)
 		const saved = await ctx.persist(next)
 		ctx.commit(saved.state)

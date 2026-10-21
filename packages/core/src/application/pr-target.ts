@@ -61,7 +61,9 @@ export async function resolvePrTarget(
 ): Promise<PrTargetOutcome> {
 	const { mode, target, base, root } = query
 	if (mode !== 'pr' || !target) return { ok: true, target: { target, base } }
-	const dirty = await io.git.trackedChanges(root).catch(() => '')
+	// Only a working tree can hold uncommitted changes the checkout would carry along.
+	const dirty =
+		(await io.git.workingTree?.trackedChanges(root).catch(() => '')) ?? ''
 	if (dirty.trim())
 		return {
 			ok: false,
@@ -102,25 +104,37 @@ async function resolvePrNumber(
 // `gh pr checkout` updates HEAD but never refreshes the base branch, so a merge-base against a
 // stale local base shows unrelated mainline commits; refresh the base ref and prefer the
 // remote-tracking tip (GitHub's three-dot "Files changed"). Best-effort: offline or a fork base
-// not on `origin` falls back to the bare branch name.
+// not on `origin` falls back to the bare branch name, as does a hub without a clone (the forge's
+// branch is already its own tip).
 async function resolveRemoteBase(
 	baseRefName: string,
 	root: string,
 	git: GitPort,
 ): Promise<string> {
-	return (await git.remoteBranch(root, baseRefName)) ?? baseRefName
+	return (
+		(await git.workingTree?.remoteBranch(root, baseRefName)) ?? baseRefName
+	)
 }
 
-// A branch by its name, locally first, then as origin's (what `git checkout <name>` would track).
+// A branch's tip by its name, locally first, then as origin's (what `git checkout <name>` would track).
+export async function branchTip(
+	root: string,
+	name: string,
+	git: GitPort,
+): Promise<string | null> {
+	return (
+		(await git.resolveRef(root, name)) ??
+		(await git.resolveRef(root, `origin/${name}`))
+	)
+}
+
 async function resolveBranch(
 	name: string,
 	root: string,
 	base: string | undefined,
 	git: GitPort,
 ): Promise<PrTargetOutcome> {
-	const head =
-		(await git.resolveRef(root, name)) ??
-		(await git.resolveRef(root, `origin/${name}`))
+	const head = await branchTip(root, name, git)
 	if (!head)
 		return {
 			ok: false,
@@ -143,10 +157,12 @@ export async function checkoutPrTarget(
 	root: string,
 	{ git, pulls }: PrTargetIo,
 ): Promise<CheckoutOutcome> {
-	if (!checkout) return { ok: true }
+	// A hub without a working tree has no HEAD to move: its desk reads the head the open resolved.
+	const tree = git.workingTree
+	if (!checkout || !tree) return { ok: true }
 	const name = checkout.kind === 'pr' ? checkout.ref : checkout.name
 	try {
-		if (checkout.kind === 'branch') await git.checkout(root, checkout.name)
+		if (checkout.kind === 'branch') await tree.checkout(root, checkout.name)
 		else if (pulls) await pulls.checkout(root, checkout.ref)
 		// A pr checkout comes only out of a resolution through the pull requests, so a hub without them never holds one.
 		else

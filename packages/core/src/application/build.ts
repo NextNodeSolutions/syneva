@@ -5,6 +5,7 @@ import { hash, sanitizeSession } from '../domain/identity.js'
 
 import { nameChanges } from './change-symbols.js'
 import { buildDiffSource } from './diff-source.js'
+import { branchTip } from './pr-target.js'
 import { nowIso } from './time.js'
 
 import type { ReviewMode, ReviewState } from '../domain/review.js'
@@ -79,14 +80,12 @@ async function buildPrReview(
 	git: GitPort,
 ): Promise<ReviewState | null> {
 	const root = await git.getGitRoot(cwd)
+	const head = query.head ?? (await rebuiltHead(root, query.target, git))
 	const defaultBranch = query.base ?? (await git.defaultBranch(root))
 	const base = await git
-		.mergeBase(root, defaultBranch, query.head ?? 'HEAD')
+		.mergeBase(root, defaultBranch, head ?? 'HEAD')
 		.catch(() => defaultBranch)
-	const source = await buildDiffSource(
-		{ mode: 'pr', root, base, head: query.head },
-		git,
-	)
+	const source = await buildDiffSource({ mode: 'pr', root, base, head }, git)
 	if (!source) return null
 	return makeReviewState({
 		mode: 'pr',
@@ -95,9 +94,21 @@ async function buildPrReview(
 		target: query.target,
 		base,
 		staged: false,
-		head: query.head ?? (await git.getHead(root)),
+		head: head ?? (await git.getHead(root)),
 		source,
 	})
+}
+
+// A clone's HEAD is the reviewed branch (the open checked it out), so a rebuild (a reload, a
+// restore) reads HEAD; a hub without a working tree has no HEAD of its own and reads the branch's
+// current tip instead.
+async function rebuiltHead(
+	root: string,
+	target: string | undefined,
+	git: GitPort,
+): Promise<string | undefined> {
+	if (git.workingTree || !target) return undefined
+	return (await branchTip(root, target, git)) ?? undefined
 }
 
 async function buildRepoReview(
