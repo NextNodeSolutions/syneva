@@ -34,9 +34,6 @@ export type FetchServe = (request: Request) => Promise<Served>
 type NodeListener = (req: IncomingMessage, res: ServerResponse) => void
 
 const BODILESS_METHODS = new Set(['GET', 'HEAD'])
-// How much of a request body is pulled ahead of the route reading it: an unread body (a route
-// that refuses before reading) is never buffered past this.
-const BODY_HIGH_WATER_BYTES = 65_536
 // The origin of a request whose Host header names no authority: the URL needs one, and the
 // origin guard reads the header itself, so this placeholder never passes for a trusted host.
 const PLACEHOLDER_ORIGIN = 'http://127.0.0.1'
@@ -58,7 +55,12 @@ async function answer(
 ): Promise<void> {
 	const ended = responseEnded(res)
 	const request = toRequest(req, options.scheme, clientGone(ended))
+	void afterEnd(ended, isHandedOver => {
+		if (isHandedOver) drainUnreadBody(req, request)
+	})
 	if (!request) return refuseMalformed(res)
+	const reply = (response: Response): Promise<void> =>
+		send(res, response, isBodyAbandoned(req, request))
 	try {
 		const served = await serve(request)
 		// The route committed by returning: its deferred work runs once node:http is done with
@@ -67,10 +69,10 @@ async function answer(
 		const isAnswered =
 			served.isUnclaimedRead &&
 			(await options.uiMiddleware?.(req, res)) === true
-		if (!isAnswered) await send(res, served.response)
+		if (!isAnswered) await reply(served.response)
 	} catch (error) {
 		if (res.headersSent) res.destroy()
-		else await send(res, options.onError(error))
+		else await reply(options.onError(error))
 	}
 }
 
@@ -99,6 +101,22 @@ function clientGone(ended: Promise<boolean>): AbortSignal {
 		if (!isHandedOver) controller.abort()
 	})
 	return controller.signal
+}
+
+// What the route left of the request body must not hold the keep-alive connection past its
+// answer. A body it never read is drained to its end once the response is out, as node:http
+// does on its own, and the connection serves the next request. A body it read part way (an
+// oversized one, cancelled) can no longer be drained - node:http stops reading a request once
+// it is destroyed, yet keeps its connection open - so that answer closes the connection.
+function drainUnreadBody(req: IncomingMessage, request: Request | null): void {
+	if (!req.complete && request?.bodyUsed !== true) req.resume()
+}
+
+function isBodyAbandoned(
+	req: IncomingMessage,
+	request: Request | null,
+): boolean {
+	return !req.complete && request?.bodyUsed === true
 }
 
 // What node:http would answer to a request it could not parse: a Request refuses some of what
@@ -155,25 +173,32 @@ function headersOf(req: IncomingMessage): Headers {
 	return headers
 }
 
+// Pulled off the connection only as the route reads it, never ahead: a route that refuses
+// without reading leaves the whole body to drainUnreadBody. (Readable.toWeb would start reading
+// at once, which turns node:http's own drain of an unread body off.)
 function bodyOf(
 	req: IncomingMessage,
 	method: string,
 ): { body: ReadableStream<Uint8Array>; duplex: 'half' } | undefined {
 	if (BODILESS_METHODS.has(method)) return undefined
-	const strategy = new ByteLengthQueuingStrategy({
-		highWaterMark: BODY_HIGH_WATER_BYTES,
-	})
-	return { body: Readable.toWeb(req, { strategy }), duplex: 'half' }
+	return { body: ReadableStream.from<Uint8Array>(req), duplex: 'half' }
 }
 
 // The status and headers first, as the routes always wrote them; then the body streamed with
 // node:http's backpressure, never read whole. A client gone mid-body cancels the source.
-async function send(res: ServerResponse, response: Response): Promise<void> {
+async function send(
+	res: ServerResponse,
+	response: Response,
+	shouldCloseConnection: boolean,
+): Promise<void> {
 	if (res.destroyed) {
 		await response.body?.cancel()
 		return
 	}
-	res.writeHead(response.status, nodeHeaders(response.headers))
+	const headers = nodeHeaders(response.headers)
+	// node:http ends the connection once a response that says so is out.
+	if (shouldCloseConnection) headers.connection = 'close'
+	res.writeHead(response.status, headers)
 	if (!response.body) {
 		res.end()
 		return
