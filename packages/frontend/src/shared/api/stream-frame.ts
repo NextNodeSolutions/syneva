@@ -86,6 +86,7 @@ const READERS: ReadonlyMap<string, (o: Wire) => StreamFrame> = new Map<
 			online: requiredBoolean(o, 'online', SOCKET),
 			version: optString(o, 'version', SOCKET),
 			lastSeenAt: nullableString(o, 'lastSeenAt'),
+			refusedAt: optString(o, 'refusedAt', SOCKET),
 		}),
 	],
 ])

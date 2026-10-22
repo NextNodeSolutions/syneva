@@ -90,14 +90,14 @@ export function decodeHubHealth(raw: unknown, endpoint: string): HubHealth {
 	}
 }
 
-function lastSeen(at: string | null | undefined): number | null {
+function epochOf(at: string | null | undefined): number | null {
 	const seen = Date.parse(at ?? '')
 	if (Number.isNaN(seen)) return null
 	return seen
 }
 
-// A `hub` frame: where one of the person's paired hubs stands (the web's object sends it). The
-// time the web last saw it is epoch ms here; one that does not read as a time is not known.
+// A `hub` frame: where one of the person's paired hubs stands (the web's object sends it). Its
+// times are epoch ms here; one that does not read as a time is not known.
 export function decodeHubPresence(
 	frame: Extract<StreamFrame, { t: 'hub' }>,
 ): Omit<HubRef, 'id'> & { hubId: string } {
@@ -106,7 +106,8 @@ export function decodeHubPresence(
 		name: frame.name,
 		isOnline: frame.online,
 		version: frame.version ?? null,
-		lastSeenAt: lastSeen(frame.lastSeenAt),
+		lastSeenAt: epochOf(frame.lastSeenAt),
+		refusedAt: epochOf(frame.refusedAt),
 	}
 }
 

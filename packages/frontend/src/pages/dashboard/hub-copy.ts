@@ -1,3 +1,5 @@
+import { BRIDGE_LIMITS } from '@syneva/contracts/bridge'
+
 import { relativeTime } from './format'
 
 import type { HubDesk, HubRef } from '@entities/hub/model'
@@ -11,8 +13,12 @@ export function isHubOffline(desk: Pick<HubDesk, 'hub'>): boolean {
 	return desk.hub !== null && !desk.hub.isOnline
 }
 
-// "offline, seen 4m ago": the hub's last connection as the web says it.
+// "offline, seen 4m ago": the hub's last connection as the web says it; or why the web turned it
+// away, while as many of the person's hubs as connect at once are connected (it tries again
+// every minute on its own).
 export function offlineWords(hub: HubRef, now: number): string {
+	if (hub.refusedAt !== null)
+		return `waiting: ${BRIDGE_LIMITS.hubsPerUser} hubs already connected`
 	if (hub.lastSeenAt === null) return 'offline'
 	return `offline, seen ${relativeTime(hub.lastSeenAt, now)}`
 }

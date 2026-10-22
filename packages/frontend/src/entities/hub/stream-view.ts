@@ -136,6 +136,7 @@ export function greeted(view: StreamView, identity: HubIdentity): StreamView {
 		isOnline: true,
 		version: identity.version,
 		lastSeenAt: known?.lastSeenAt ?? null,
+		refusedAt: null,
 	}
 	return rehubbed({
 		...view,
@@ -163,6 +164,13 @@ export function settledEmpty(view: StreamView): StreamView {
 	}
 }
 
+// When the web last turned the hub away at the connected cap. Each frame says it afresh: one
+// without it is a hub plainly offline, or online, and an online hub is turned away by no one.
+function refusalOf(hub: Pick<HubRef, 'isOnline' | 'refusedAt'>): number | null {
+	if (hub.isOnline) return null
+	return hub.refusedAt
+}
+
 // The web's `hub` frame: where one of the person's hubs stands. A hub that just went offline is
 // last seen now when the web does not say otherwise.
 export function withHub(
@@ -180,6 +188,7 @@ export function withHub(
 		isOnline: hub.isOnline,
 		version: hub.version ?? known?.version ?? null,
 		lastSeenAt,
+		refusedAt: refusalOf(hub),
 	}
 	return settledEmpty(
 		rehubbed({

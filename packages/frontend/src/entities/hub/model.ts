@@ -4,13 +4,16 @@ export type ReviewMode = 'repo' | 'file' | 'pr'
 
 // A hub the page knows by the stream: the local hub, or one of the person's paired hubs on the
 // web. `isOnline` is whether its socket is open now (the web's `hub` frames); `lastSeenAt` the
-// last time it connected, epoch ms, when the web says it.
+// last time it connected, epoch ms, when the web says it; `refusedAt` when the web last turned
+// its connection away because as many of the person's hubs as connect at once were connected,
+// epoch ms, null once it connects or when the web has not said (it keeps no record of it).
 export type HubRef = {
 	id: string
 	name: string
 	isOnline: boolean
 	version: string | null
 	lastSeenAt: number | null
+	refusedAt: number | null
 }
 
 export type HubDesk = {
