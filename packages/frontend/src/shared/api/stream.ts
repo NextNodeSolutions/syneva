@@ -95,8 +95,13 @@ class StreamClient {
 	readonly #reader: StreamReader
 	#socket: WebSocket | null = null
 	#state: StreamState = { link: { kind: 'connecting' }, lastClose: null }
-	// Attempts since the hub last said hello: the exponent of the backoff's ceiling.
+	// Attempts since a socket last proved stable: the exponent of the backoff's ceiling. A hello
+	// proves nothing (a hub that says it and drops every socket again would keep the wait at its
+	// shortest, and its tabs reconnecting about once a second); a socket that read its snapshot
+	// whole and then answered a ping has held, and the next drop starts the backoff over.
 	#attempt = 0
+	// Whether the current socket read its snapshot whole (its snapshot-end).
+	#hasSnapshot = false
 	#isStopped = false
 	#retry: ReturnType<typeof setTimeout> | undefined
 	#ping: ReturnType<typeof setInterval> | undefined
@@ -143,11 +148,12 @@ class StreamClient {
 		if (message === PONG_TEXT) {
 			clearTimeout(this.#pong)
 			this.#pong = undefined
+			if (this.#hasSnapshot) this.#attempt = 0
 			return
 		}
 		const frame = parsed(message)
 		if (!frame) return
-		if (frame.t === 'hello') this.#attempt = 0
+		if (frame.t === 'snapshot-end') this.#hasSnapshot = true
 		this.#reader.onFrame(frame)
 	}
 
@@ -203,10 +209,11 @@ class StreamClient {
 		}, ms)
 	}
 
-	// Lets go of the socket and its ping timers: a close the socket still fires (always later,
-	// never during close()) finds it no longer current.
+	// Lets go of the socket, its ping timers and the snapshot it read: a close the socket still
+	// fires (always later, never during close()) finds it no longer current.
 	#release(): void {
 		this.#socket = null
+		this.#hasSnapshot = false
 		clearInterval(this.#ping)
 		clearTimeout(this.#pong)
 		this.#ping = undefined
