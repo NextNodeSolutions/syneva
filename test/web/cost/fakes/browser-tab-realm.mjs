@@ -1,11 +1,12 @@
 // The page a BrowserTab runs, one Node process each: the frontend's own stream transport
-// (packages/frontend/src/shared/api/stream.ts), loaded from its source through tsx, with the three
+// (packages/frontend/src/shared/api/stream.ts), loaded from its source through tsx under the
+// frontend's own tsconfig (its layer aliases, `@shared/*` among them), with the three
 // things a browser lends it stood in for and nothing else - `window.location`, a WebSocket that
 // sends the page's cookie and origin as a browser's does, a fetch that resolves against the page
 // and sends its cookie - and every attempt, probe, random draw and state it goes through posted to
 // the parent over IPC as it happens, stamped here. The transport's own code decides every wait.
 import { createRequire } from 'node:module'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const { origin, cookie, label } = JSON.parse(process.argv[2])
 const NORMAL_CLOSURE = 1000
@@ -77,12 +78,13 @@ const requireFromCli = createRequire(
 const { tsImport } = await import(
 	pathToFileURL(requireFromCli.resolve('tsx/esm/api')).href
 )
+const frontend = new URL('../../../../packages/frontend/', import.meta.url)
 const { openHubStream } = await tsImport(
-	new URL(
-		'../../../../packages/frontend/src/shared/api/stream.ts',
-		import.meta.url,
-	).href,
-	import.meta.url,
+	new URL('src/shared/api/stream.ts', frontend).href,
+	{
+		parentURL: import.meta.url,
+		tsconfig: fileURLToPath(new URL('tsconfig.json', frontend)),
+	},
 )
 
 const stream = openHubStream({
