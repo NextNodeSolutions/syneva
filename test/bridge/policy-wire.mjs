@@ -1,9 +1,11 @@
 // What the policy checks read and drive: the fake's test controls, the attempts it saw, the link
-// settled (connected, its pings answered), and the hub's own pairing route.
+// settled (connected, its pings answered), the hub's own pairing route, and how its tabs read an
+// attempt's end.
 import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 
 import { HTTP_SWITCHING } from './http-wire.mjs'
 import { waitUntil } from './hub-process.mjs'
+import { isPairing } from './pairing-checks.mjs'
 
 // Every wait the scaled hub keeps is this share of the RFC's.
 export const WAIT_SCALE = 0.01
@@ -57,4 +59,22 @@ export async function reconnect(hub) {
 		method: 'POST',
 	})
 	return response.json()
+}
+
+// The hub's tabs read how the attempt `ended` in the bridge's `words` (the Hub page's last close).
+export function checkWords({ report }, local, { what, ended, words }) {
+	const told = local.frames.find(
+		each =>
+			isPairing(pairing => ended(pairing.lastClose))(each.frame) &&
+			words.test(each.frame.pairing.lastClose.reason),
+	)
+	report.check(
+		`${what}: the hub's tabs read it in the bridge's words`,
+		Boolean(told),
+		local.frames
+			.map(each => each.frame?.pairing?.lastClose?.reason)
+			.filter(Boolean)
+			.join(' | '),
+	)
+	local.socket.close()
 }

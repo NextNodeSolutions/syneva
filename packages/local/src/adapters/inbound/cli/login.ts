@@ -217,7 +217,7 @@ function loginLine(record: PairingRecord, told: HubTold): string {
 		process.exitCode = 1
 		return `${paired}, but ${record.web} refused the hub's token (${lastClose ?? 'no reason given'}): run \`syneva login\` again.`
 	}
-	return `${paired}; the hub could not connect yet (${lastClose ?? 'no answer'}) and keeps trying.`
+	return `${paired}; the hub could not connect yet: ${lastClose ?? 'no answer'}. It keeps trying.`
 }
 
 function hubWords(told: HubTold): string {

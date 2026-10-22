@@ -28,14 +28,15 @@ The fake alone, to pair a hub by hand: `node test/bridge/fake-bridge.mjs --port 
 One user, everything in memory. As the web: `POST /bridge/v1/device/code` and
 `/bridge/v1/device/token` (interval 1 s, the web's is 5), `DELETE /bridge/v1/hub` (the Bearer token
 revoked, its socket closed with 4001), the hub socket `GET /bridge/v1/ws` (the Bearer checked, 401
-when unknown or revoked; past `hubsPerUser`, 1013), the tab socket `GET /api/hub/ws` (a `hub` frame
-per connected hub, an untagged `snapshot?` to each, as a web before tags asks), and the relay: any
-other request under `/api/` goes to the hub its web id names (or the `x-syneva-hub` header) as one
-`req`, its `res` and `chunk` frames streamed back as they come; no hub socket answers 503, past
-`inFlightPerUser` 429, the deadline 504 with a `cancel`, a client gone first a `cancel`. A hub's
-stream frames must carry its hub id and are forwarded verbatim to the tabs; a token bucket per hub
-socket (the object's) closes it with 1008 past `framesPerSecond` or `bytesPerSecond`; pings get
-their pong outside it. Every frame is recorded with its size and arrival time.
+when unknown or revoked; past `hubsPerUser` connected, 409, `TOO_MANY_STATUS`, as the web), the
+tab socket `GET /api/hub/ws` (a `hub` frame per connected hub, an untagged `snapshot?` to each, as
+a web before tags asks), and the relay: any other request under `/api/` goes to the hub its web id
+names (or the `x-syneva-hub` header) as one `req`, its `res` and `chunk` frames streamed back as
+they come; no hub socket answers 503, past `inFlightPerUser` 429, the deadline 504 with a `cancel`,
+a client gone first a `cancel`. A hub's stream frames must carry its hub id and are forwarded
+verbatim to the tabs; a token bucket per hub socket (the object's) closes it with 1008 past
+`framesPerSecond` or `bytesPerSecond`; pings get their pong outside it. Every frame is recorded
+with its size and arrival time.
 
 Test-only controls: `POST /__approve { userCode, deny? }`,
 `POST /__token-asks { failures }` (the next token asks meet these instead of an answer, in order:
@@ -101,7 +102,9 @@ is recorded), `POST /__close { hubId, code, reason? }`,
   the reconnect waits, the ping interval and the pong deadline; unset they are the RFC's): a ping
   every interval; a silent web dropped at the pong deadline, said on the Hub page, reconnected;
   1008, 1013 and 4029 wait 30 s, 60 s and 5 min; another code backs off under 60 s; an upgrade
-  refused with 403, 429 or 503 waits 5 min; 4001 and a 401 upgrade stop the probe (said on the
-  Hub page, no attempt since) until `POST /api/hub/bridge/reconnect` starts it again.
+  refused with 403, 429 or 503 waits 5 min, one refused with 409 (`TOO_MANY_STATUS`, the connected
+  cap) 60 s; the hub's tabs read 1013 and 409 as "too many hubs connected on this account", the
+  web's reason text after it; 4001 and a 401 upgrade stop the probe (said on the Hub page, no attempt
+  since) until `POST /api/hub/bridge/reconnect` starts it again.
 - **Logout**: exit 0; the fake saw `DELETE /bridge/v1/hub` with the token; `bridge.json` is gone;
   the hub's tabs read `paired: false`; no attempt since.

@@ -7,6 +7,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import {
 	BRIDGE_LIMITS,
 	CLOSE_CODES,
+	TOO_MANY_STATUS,
 } from '../../packages/contracts/dist/bridge.js'
 import { waitFor } from '../stream/stream-client.mjs'
 
@@ -19,6 +20,7 @@ import {
 import { waitUntil } from './hub-process.mjs'
 import { isPairing, readLocal } from './pairing-checks.mjs'
 import {
+	checkWords,
 	control,
 	nextUpgrade,
 	opened,
@@ -37,6 +39,10 @@ const PINGS_MEASURED = 4
 const STOP_WATCH_MS = 1500
 const MEDIAN = 0.5
 const PING_TOLERANCE = 0.5
+// How the Hub page says the connected cap, a `tooMany` close (whatever reason text the web gave,
+// WEB_REASON) or an upgrade refused with TOO_MANY_STATUS.
+const TOO_MANY_WORDS = /^too many hubs connected on this account/
+const WEB_REASON = 'a reason of the web'
 
 export async function checkPolicy(context) {
 	context.report.section(`policy (every wait at ${WAIT_SCALE} of the RFC's)`)
@@ -44,15 +50,21 @@ export async function checkPolicy(context) {
 	await checkSilence(context)
 	const waits = [
 		[CLOSE_CODES.rate, BRIDGE_LIMITS.rateWaitMs],
-		[CLOSE_CODES.tooMany, BRIDGE_LIMITS.tooManyWaitMs],
+		[CLOSE_CODES.tooMany, BRIDGE_LIMITS.tooManyWaitMs, TOO_MANY_WORDS],
 		[CLOSE_CODES.saturated, BRIDGE_LIMITS.saturatedWaitMs],
 	]
-	await inTurn(waits, ([code, waitMs]) =>
-		checkCodeWait(context, code, waitMs),
+	await inTurn(waits, ([code, waitMs, words]) =>
+		checkCodeWait(context, { code, waitMs, words }),
 	)
 	await checkBackoff(context)
-	await inTurn([HTTP_FORBIDDEN, HTTP_TOO_MANY, HTTP_UNAVAILABLE], status =>
-		checkRefusedWait(context, status),
+	const refusals = [
+		[HTTP_FORBIDDEN, BRIDGE_LIMITS.saturatedWaitMs],
+		[HTTP_TOO_MANY, BRIDGE_LIMITS.saturatedWaitMs],
+		[HTTP_UNAVAILABLE, BRIDGE_LIMITS.saturatedWaitMs],
+		[TOO_MANY_STATUS, BRIDGE_LIMITS.tooManyWaitMs, TOO_MANY_WORDS],
+	]
+	await inTurn(refusals, ([status, waitMs, words]) =>
+		checkRefusedWait(context, { status, waitMs, words }),
 	)
 	await checkStop(context, 'unauthorized', async () => {
 		await control(context.fake, '/__refuse', { status: HTTP_UNAUTHORIZED })
@@ -132,12 +144,18 @@ async function checkSilence(context) {
 	report.check('and it connects again', opened(next))
 }
 
-async function checkCodeWait(context, code, waitMs) {
-	const { report, fake, record } = context
+// `words`, when given: how the hub's tabs read that close (the Hub page's last close).
+async function checkCodeWait(context, { code, waitMs, words }) {
+	const { report, fake, record, hub } = context
 	await settledLink(context)
+	const local = words ? await readLocal(hub) : null
 	const from = fake.sockets.upgrades.length
 	const closedAt = Date.now()
-	await control(fake, '/__close', { hubId: record.hubId, code })
+	await control(fake, '/__close', {
+		hubId: record.hubId,
+		code,
+		reason: WEB_REASON,
+	})
 	const wait = scaled(waitMs)
 	const next = await nextUpgrade(fake, from, wait + LATE_MS)
 	const gap = next.at - closedAt
@@ -145,6 +163,12 @@ async function checkCodeWait(context, code, waitMs) {
 		`${code}: the next attempt after its wait (${wait} ms scaled; ${gap} ms)`,
 		gap >= wait && gap <= wait + SLACK_MS && opened(next),
 	)
+	if (!local) return
+	checkWords(context, local, {
+		what: `${code}`,
+		ended: lastClose => lastClose?.code === code,
+		words,
+	})
 }
 
 async function checkBackoff(context) {
@@ -162,14 +186,16 @@ async function checkBackoff(context) {
 	)
 }
 
-// An upgrade refused with `status`: the next attempt waits saturatedWaitMs.
-async function checkRefusedWait(context, status) {
-	const { report, fake, record } = context
+// An upgrade refused with `status`: the next attempt waits `waitMs`; `words`, when given, how the
+// hub's tabs read that refusal.
+async function checkRefusedWait(context, { status, waitMs, words }) {
+	const { report, fake, record, hub } = context
 	await settledLink(context)
+	const local = words ? await readLocal(hub) : null
 	await control(fake, '/__refuse', { status })
 	const from = fake.sockets.upgrades.length
 	await control(fake, '/__close', { hubId: record.hubId, code: OTHER_CODE })
-	const wait = scaled(BRIDGE_LIMITS.saturatedWaitMs)
+	const wait = scaled(waitMs)
 	const first = await nextUpgrade(
 		fake,
 		from,
@@ -188,6 +214,12 @@ async function checkRefusedWait(context, status) {
 		`once lifted, the attempt after opens (${status})`,
 		opened(reopened),
 	)
+	if (!local) return
+	checkWords(context, local, {
+		what: `HTTP ${status}`,
+		ended: lastClose => lastClose?.status === status,
+		words,
+	})
 }
 
 // The probe stops for `reason`: its tabs read it, it makes no attempt, and the reconnect route

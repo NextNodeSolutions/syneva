@@ -226,6 +226,9 @@ export const BRIDGE_LIMITS = {
 	// Inbound, per socket, sustained: one second's worth is the burst.
 	framesPerSecond: 100,
 	bytesPerSecond: 2_097_152,
+	// Hub sockets open at once per person, and tabs; the web refuses the next upgrade with
+	// `TOO_MANY_STATUS`. A person may pair more hubs than that (apps/web caps pairing at 32): a
+	// paired machine is often off.
 	hubsPerUser: 8,
 	tabsPerUser: 32,
 	pingIntervalMs: PING_INTERVAL_MS,
@@ -249,6 +252,7 @@ export const BRIDGE_LIMITS = {
 	backoffMaxMs: 60_000,
 	// What a client waits before its next attempt after a close code that names a wait (RFC 4.3):
 	// `rate` then takes the normal backoff, `tooMany` and `saturated` try again once it is over.
+	// An upgrade refused with `TOO_MANY_STATUS` waits `tooManyWaitMs` too.
 	rateWaitMs: 30_000,
 	tooManyWaitMs: 60_000,
 	saturatedWaitMs: 300_000,
@@ -273,3 +277,12 @@ export const CLOSE_CODES = {
 	slow: 4010,
 	saturated: 4029,
 } as const
+
+// The web's answer to an upgrade past `hubsPerUser` (a hub's) or `tabsPerUser` (a tab's), where
+// RFC 6.3 R6 closes the socket with `tooMany`: a close the object issues as it accepts a socket
+// never reaches the client under workerd (wrangler dev: the client reads it open, then nothing,
+// not even a pong), so the object accepts none and answers this status. A probe waits
+// `tooManyWaitMs` after it, as after `tooMany`. A browser's WebSocket reads no status: a tab past
+// its cap backs off as after any refused upgrade. A local hub, under `ws`, still closes its extra
+// tab with `tooMany`.
+export const TOO_MANY_STATUS = 409

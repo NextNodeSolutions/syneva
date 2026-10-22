@@ -12,6 +12,7 @@ import {
 	CLOSE_CODES,
 	PING_TEXT,
 	PONG_TEXT,
+	TOO_MANY_STATUS,
 } from '../../packages/contracts/dist/bridge.js'
 
 import { bearerOf, HTTP_SWITCHING, HTTP_UNAUTHORIZED } from './http-wire.mjs'
@@ -61,10 +62,10 @@ export class FakeSockets {
 
 	upgradeHub(request, socket, head) {
 		const hub = this.#pairing.hubOf(bearerOf(request))
-		const status = this.#refusal.status || (hub ? 0 : HTTP_UNAUTHORIZED)
+		const status = this.#refusal.status || this.#refusalOf(hub)
 		this.upgrades.push({
 			at: Date.now(),
-			status: status || HTTP_SWITCHING,
+			status: status === 0 ? HTTP_SWITCHING : status,
 			hubId: hub?.hubId ?? null,
 		})
 		if (status) return refuse(socket, status)
@@ -87,11 +88,15 @@ export class FakeSockets {
 		this.hubs.get(hubId)?.socket.close(code, reason)
 	}
 
+	// An unknown token, or past `hubsPerUser` connected (the hub's own socket aside, which a new
+	// one replaces): the object accepts no socket then, it answers TOO_MANY_STATUS.
+	#refusalOf(hub) {
+		if (!hub) return HTTP_UNAUTHORIZED
+		const others = [...this.hubs.keys()].filter(id => id !== hub.hubId)
+		return others.length >= BRIDGE_LIMITS.hubsPerUser ? TOO_MANY_STATUS : 0
+	}
+
 	#acceptHub(socket, { hubId, name }) {
-		if (this.hubs.size >= BRIDGE_LIMITS.hubsPerUser) {
-			socket.close(CLOSE_CODES.tooMany)
-			return
-		}
 		const hub = { hubId, name, socket, pings: [], silent: false }
 		hub.bucket = new Bucket(Date.now())
 		this.hubs.get(hubId)?.socket.terminate()

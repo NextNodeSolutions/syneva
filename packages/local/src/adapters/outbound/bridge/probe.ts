@@ -2,7 +2,7 @@
 // the client policy of policy.ts - stop on a revoked or refused token, wait what a code names,
 // back off with jitter otherwise, forever. Its link state is what the Hub page shows. Its one
 // timer is the wait before the next attempt (the pings are the link's).
-import { CLOSE_CODES } from '@syneva/contracts/bridge'
+import { CLOSE_CODES, TOO_MANY_STATUS } from '@syneva/contracts/bridge'
 
 import { openLink } from './link.js'
 import { nextStep } from './policy.js'
@@ -148,26 +148,35 @@ function closeOf(end: AttemptEnd): PairingClose {
 	if (end.kind === 'closed')
 		return { at, code: end.code, reason: closedWords(end.code, end.reason) }
 	if (end.kind === 'refused')
-		return {
-			at,
-			status: end.status,
-			reason: `the upgrade was refused with HTTP ${end.status}`,
-		}
+		return { at, status: end.status, reason: refusedWords(end.status) }
 	if (end.kind === 'failed') return { at, reason: end.reason }
 	return { at, reason: 'the web stopped answering pings' }
 }
+
+// Whether the web closes with `tooMany` or refuses the upgrade with TOO_MANY_STATUS, the same cap.
+const TOO_MANY_WORDS = 'too many hubs connected on this account'
 
 const CODE_WORDS: ReadonlyMap<number, string> = new Map([
 	[CLOSE_CODES.normal, 'closed'],
 	[CLOSE_CODES.goingAway, 'the web went away'],
 	[CLOSE_CODES.malformed, 'the web refused a frame'],
 	[CLOSE_CODES.rate, 'rate exceeded'],
-	[CLOSE_CODES.tooMany, 'too many hubs on this account'],
+	[CLOSE_CODES.tooMany, TOO_MANY_WORDS],
 	[CLOSE_CODES.revoked, 'the token was revoked'],
 	[CLOSE_CODES.saturated, 'the service is saturated'],
 ])
 
+// A code the bridge names is said in its words, which a person can act on; the web's reason,
+// free text, follows as a detail. Any other code says the web's reason alone.
 function closedWords(code: number, reason: string): string {
-	const words = CODE_WORDS.get(code) ?? 'the connection dropped'
-	return `closed with ${code} (${reason || words})`
+	const words = CODE_WORDS.get(code)
+	if (!words)
+		return `closed with ${code} (${reason || 'the connection dropped'})`
+	if (!reason) return `${words} (close ${code})`
+	return `${words} (close ${code}: ${reason})`
+}
+
+function refusedWords(status: number): string {
+	if (status === TOO_MANY_STATUS) return `${TOO_MANY_WORDS} (HTTP ${status})`
+	return `the upgrade was refused with HTTP ${status}`
 }

@@ -1,8 +1,13 @@
 // What the probe does after an attempt ends (RFC 0001, 4.3), shared word for word with the
-// frontend's stream client: stop on a revoked or refused token; wait what a close code or an
-// edge refusal names, then back off as after anything else; back off exponentially, 1 s to 60 s
-// with full jitter, forever. Pure over its inputs: the random draw and the scale come in.
-import { BRIDGE_LIMITS, CLOSE_CODES } from '@syneva/contracts/bridge'
+// frontend's stream client: stop on a revoked or refused token; wait what a close code or a
+// refused upgrade names (the edge's, the breaker's, the connected cap's), then back off as after
+// anything else; back off exponentially, 1 s to 60 s with full jitter, forever. Pure over its
+// inputs: the random draw and the scale come in.
+import {
+	BRIDGE_LIMITS,
+	CLOSE_CODES,
+	TOO_MANY_STATUS,
+} from '@syneva/contracts/bridge'
 
 // How one attempt ended.
 export type AttemptEnd =
@@ -29,11 +34,14 @@ const HTTP_TOO_MANY_REQUESTS = 429
 const HTTP_UNAVAILABLE = 503
 const BACKOFF_BASE = 2
 
-// Refused at the edge (the WAF rule, the breaker's edge stage) or by the Worker: wait 5 minutes.
-const EDGE_REFUSALS: ReadonlySet<number> = new Set([
-	HTTP_FORBIDDEN,
-	HTTP_TOO_MANY_REQUESTS,
-	HTTP_UNAVAILABLE,
+// The refused upgrades that name a wait: at the edge (the WAF rule, the breaker's edge stage) or
+// by the Worker (its limits, the breaker), 5 minutes; past `hubsPerUser` connected, the minute
+// `tooMany` asks for, since the web cannot close an extra socket with it (TOO_MANY_STATUS).
+const STATUS_WAITS: ReadonlyMap<number, number> = new Map([
+	[HTTP_FORBIDDEN, BRIDGE_LIMITS.saturatedWaitMs],
+	[HTTP_TOO_MANY_REQUESTS, BRIDGE_LIMITS.saturatedWaitMs],
+	[HTTP_UNAVAILABLE, BRIDGE_LIMITS.saturatedWaitMs],
+	[TOO_MANY_STATUS, BRIDGE_LIMITS.tooManyWaitMs],
 ])
 
 // The close codes that name a wait before the next attempt.
@@ -55,8 +63,7 @@ export function nextStep(end: AttemptEnd, input: PolicyInput): NextStep {
 
 function namedWait(end: AttemptEnd): number | null {
 	if (end.kind === 'closed') return CODE_WAITS.get(end.code) ?? null
-	if (end.kind === 'refused' && EDGE_REFUSALS.has(end.status))
-		return BRIDGE_LIMITS.saturatedWaitMs
+	if (end.kind === 'refused') return STATUS_WAITS.get(end.status) ?? null
 	return null
 }
 
