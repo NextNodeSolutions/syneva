@@ -164,3 +164,15 @@ export type DeskPulse = Pick<
 	| 'domainComments'
 > &
 	DeskStatus & { serverInstanceId: string }
+
+// The part of a pulse whose size does not grow with the review (the contract's DeskPulseHead).
+export type DeskPulseHead = Pick<
+	DeskPulse,
+	'baseDiffHash' | 'guideExpected' | 'serverInstanceId' | keyof DeskStatus
+>
+
+// A pulse as the hub's stream brings it: whole, or - for a desk whose guide and conversation
+// outgrow a stream frame - its head and a digest of the rest, which GET …/pulse answers whole.
+export type StreamPulse =
+	| { kind: 'whole'; pulse: DeskPulse }
+	| { kind: 'partial'; head: DeskPulseHead; digest: string }

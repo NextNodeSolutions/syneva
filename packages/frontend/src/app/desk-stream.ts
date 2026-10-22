@@ -7,7 +7,8 @@ import {
 	retryWhenHubAnswers,
 	subscribeHub,
 } from '@entities/hub/stream'
-import { readDeskPulse } from '@entities/review/pulse'
+import { fetchPulse } from '@entities/review/api'
+import { readStreamPulse } from '@entities/review/pulse'
 import { deferRender } from '@pages/desk/render'
 import { deskIdFromLocation } from '@shared/api/base'
 import { subscribeStoreFields } from '@shared/lib/reactive'
@@ -24,7 +25,7 @@ import { saver, S, toast } from './store'
 
 import type { HubDesk } from '@entities/hub/model'
 import type { HubRetry } from '@entities/hub/stream'
-import type { DeskPulse } from '@entities/review/model'
+import type { DeskPulse, StreamPulse } from '@entities/review/model'
 
 const COMPOSER_FIELDS = ['composerOpen', 'fileComposerOpen']
 
@@ -42,9 +43,11 @@ let isReading = false
 let wasListed: boolean | null = null
 // A moved review is waiting for the reviewer's unsaved work (see holdBack).
 let isHeldBack = false
-// A moved review whose read the hub left unanswered, read again when the hub next answers (see
-// readNewestAgain); set up by followDesk.
-let stateRetry: HubRetry | null = null
+// The whole pulse last read at GET …/pulse for a partial one, with the digest it was read for.
+let lastWhole: { digest: string; pulse: DeskPulse } | null = null
+// A read the hub left unanswered (a moved review's /state, a partial pulse's …/pulse), read again
+// when the hub next answers (see readNewestAgain); set up by followDesk.
+let readRetry: HubRetry | null = null
 
 // The desk is gone when the hub says so - its `closed` frame, or a listing without it (a snapshot
 // after the tab was away) - never because the socket dropped. Only a change counts: the tab's own
@@ -89,13 +92,34 @@ async function readWaiting(): Promise<void> {
 // A pulse that does not read (a malformed payload, a guide decoder chunk that did not load) is
 // dropped: the desk's next pulse is read whole again.
 async function readOne(raw: unknown): Promise<void> {
-	let pulse: DeskPulse
+	let read: StreamPulse
 	try {
-		pulse = await readDeskPulse(raw)
+		read = await readStreamPulse(raw)
 	} catch {
 		return
 	}
-	await adopt(pulse)
+	const pulse = read.kind === 'whole' ? read.pulse : await completed(read)
+	if (pulse) await adopt(pulse)
+}
+
+// A partial pulse is read whole at GET …/pulse once per digest: the read answers the newest
+// pulse, so pulses that queued meanwhile are not read one by one. While the digest stays, the
+// parts left out are the ones last read, and the head (a status line, the desk's liveness, a
+// moved diff) is laid over them. A read the hub left unanswered waits for it to answer again.
+async function completed(
+	partial: Extract<StreamPulse, { kind: 'partial' }>,
+): Promise<DeskPulse | null> {
+	if (lastWhole?.digest === partial.digest)
+		return { ...lastWhole.pulse, ...partial.head }
+	try {
+		const pulse = await fetchPulse()
+		lastWhole = { digest: partial.digest, pulse }
+		readRetry?.settled()
+		return pulse
+	} catch {
+		readRetry?.failed()
+		return null
+	}
 }
 
 // Fetch the browser review only when baseDiffHash moves; a pulse never carries the file/change
@@ -122,13 +146,13 @@ async function adopt(pulse: DeskPulse): Promise<void> {
 }
 
 async function reload(): Promise<void> {
-	if (await adoptReload()) stateRetry?.settled()
-	else stateRetry?.failed()
+	if (await adoptReload()) readRetry?.settled()
+	else readRetry?.failed()
 }
 
-// A reload the hub left unanswered goes again through the desk's newest pulse, as a pulse would
-// bring it, so it still waits for the reviewer's unsaved work. A pulse being read already does it
-// (that read reloads, or finds the review current).
+// A read the hub left unanswered goes again through the desk's newest pulse, as a pulse would
+// bring it, so a reload still waits for the reviewer's unsaved work. A pulse being read already
+// does it (that read reads again, or finds the review current).
 function readNewestAgain(): void {
 	if (isReading || waiting) return
 	const raw = hubView().pulses.get(deskId)
@@ -175,5 +199,5 @@ function composersClosed(): Promise<void> {
 // The tab follows its desk for as long as it is open: the stream lives with the page.
 export function followDesk(): void {
 	subscribeHub(heardHub)
-	stateRetry = retryWhenHubAnswers(readNewestAgain)
+	readRetry = retryWhenHubAnswers(readNewestAgain)
 }

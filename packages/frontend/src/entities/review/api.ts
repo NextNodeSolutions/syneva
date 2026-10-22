@@ -12,7 +12,12 @@ import { decodeDeskStateSnapshot, decodeReviewState } from './decode'
 import { ensureGuideDecoders } from './guide/decode-lazy'
 
 import type { ResetScope } from '@syneva/contracts/review'
-import type { DeskStateSnapshot, ReviewState, ReviewerSave } from './model'
+import type {
+	DeskPulse,
+	DeskStateSnapshot,
+	ReviewState,
+	ReviewerSave,
+} from './model'
 
 // The only place review-domain endpoints are named; paths from @contracts/routes, every response decoded onto a frontend-owned model - wire shapes never escape.
 
@@ -127,6 +132,15 @@ export const shutdownDesk = async (): Promise<void> => {
 		await api(API_PATHS.shutdown, { method: 'POST' }),
 		API_PATHS.shutdown,
 	)
+}
+
+// The desk's pulse whole: read when the hub's stream brings it partial (a desk whose guide and
+// conversation outgrow a stream frame) with a digest the tab has not read. Its decoder comes with
+// the desk's stream, after the first paint, never with the page.
+export const fetchPulse = async (): Promise<DeskPulse> => {
+	const raw = await api(API_PATHS.pulse)
+	const { readDeskPulse } = await import('./pulse')
+	return readDeskPulse(raw, API_PATHS.pulse)
 }
 
 export const fetchState = async (): Promise<DeskStateSnapshot> => {
