@@ -21,6 +21,8 @@ const CLOSE_MEANING: ReadonlyMap<number, string> = new Map([
 	[CLOSE_CODES.rate, 'rate limited'],
 	[CLOSE_CODES.tooMany, 'too many tabs'],
 	[CLOSE_CODES.revoked, 'signed out'],
+	[CLOSE_CODES.silent, 'no ping of this page reached the hub'],
+	[CLOSE_CODES.slow, 'this page fell behind the hub'],
 	[CLOSE_CODES.saturated, 'saturated'],
 ])
 
