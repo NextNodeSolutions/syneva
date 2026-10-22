@@ -111,7 +111,10 @@ class StreamClient {
 	// shortest, and its tabs reconnecting about once a second); a socket that read its snapshot
 	// whole and then answered a ping has held, and the next drop starts the backoff over.
 	#attempt = 0
-	// Whether the current socket read its snapshot whole (its snapshot-end).
+	// Whether the current socket read what it is sent first whole: a hub's snapshot (its
+	// snapshot-end) or, on the web, the object's own cards (its hubs-end). The web's object holds
+	// the tab's socket, and each online hub's snapshot follows the cards beside it: a person whose
+	// hubs are all offline gets no snapshot at all, and would never start the backoff over.
 	#hasSnapshot = false
 	#isStopped = false
 	#retry: ReturnType<typeof setTimeout> | undefined
@@ -164,7 +167,8 @@ class StreamClient {
 		}
 		const frame = parsed(message)
 		if (!frame) return
-		if (frame.t === 'snapshot-end') this.#hasSnapshot = true
+		if (frame.t === 'snapshot-end' || frame.t === 'hubs-end')
+			this.#hasSnapshot = true
 		this.#reader.onFrame(frame)
 	}
 
