@@ -22,7 +22,7 @@ One line per check, `ok` or `FAIL` with what was seen; the count at the end; exi
 - **Revoke from the web**: `DELETE /api/web/hubs/<id>`; the tab reads the hub offline; the hub's own stream says its link stopped, `revoked` (close 4001); the hub is no longer listed.
 - **Logout**: `syneva logout` exits 0 (the token is already revoked: it says so) and removes `bridge.json`.
 - **A second account**: it signs in; its tab's plain GET of `/api/hub/ws` passes the guards and hears 426, sixty times (RL_TABS), then 429 `RATE_LIMITED`, and its upgrade is refused 429 too, while the first account's still opens (below).
-- **The breaker**: the ops status with the token (two users); tripping it drains the object (the open tab closes with 4029); a tab's upgrade is then refused 503, and a relay to a live hub of the person's (paired over HTTP alone, never connected) is 503 `HUB_OFFLINE` for the load shed; cleared, it opens again.
+- **The breaker**: the ops status with the token (two users); tripping it with a page of one drains the first object and answers a `next`, `POST /bridge/v1/ops/drain` with it drains the last (`next` null), a cursor or size that does not read is 400, the drain without the token 403, and the open tab closes with 4029; a tab's upgrade is then refused 503, and a relay to a live hub of the person's (paired over HTTP alone, never connected) is 503 `HUB_OFFLINE` for the load shed; cleared, it opens again, and a drain is 409 `NOT_TRIPPED`.
 - **Sign-out**: `POST /logout` clears the cookie, 303 to `/login` carrying its `next` (as the device page's "not you?" posts it); the old cookie opens nothing.
 
 ## Not here

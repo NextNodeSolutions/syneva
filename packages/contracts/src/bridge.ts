@@ -203,7 +203,9 @@ export const BRIDGE_PATHS = {
 	hubRevoke: '/bridge/v1/hub',
 	hubSocket: '/bridge/v1/ws',
 	tabSocket: HUB_PATHS.hubSocket,
+	// The ops routes (ops.ts): the breaker, its drain a page at a time, the status.
 	opsBreaker: '/bridge/v1/ops/breaker',
+	opsDrain: '/bridge/v1/ops/drain',
 	opsStatus: '/bridge/v1/ops/status',
 } as const
 

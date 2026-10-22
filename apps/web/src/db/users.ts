@@ -7,6 +7,8 @@ export type UserRow = { id: string; email: string }
 
 // 16 random bytes: the key of the person's object too (USER_HUB.idFromName).
 const USER_ID_BYTES = 16
+// Its hex: two digits a byte.
+const USER_ID = /^[0-9a-f]{32}$/
 
 // The user an address names, created on its first sign-in; one round trip.
 export async function ensureUser(
@@ -27,10 +29,23 @@ export async function ensureUser(
 	return row
 }
 
-// Every user id, oldest first: the objects a tripped breaker drains (routes/ops.ts).
-export async function userIds(db: D1Database): Promise<string[]> {
+// Whether a text has a user id's shape: an ops cursor names one (routes/ops-drain.ts).
+export function isUserIdShape(text: string): boolean {
+	return USER_ID.test(text)
+}
+
+// A page of user ids in id order, after `after` (from the first when null): the objects a
+// tripped breaker drains (routes/ops-drain.ts). A range of the primary key, so a page reads its
+// rows alone however many users there are; one more than `limit` is read to tell whether another
+// page follows, so the last page says so and no empty one is asked for.
+export async function userIdPage(
+	db: D1Database,
+	page: { after: string | null; limit: number },
+): Promise<{ ids: string[]; hasMore: boolean }> {
 	const { results } = await db
-		.prepare('SELECT id FROM users ORDER BY created_at')
+		.prepare('SELECT id FROM users WHERE id > ? ORDER BY id LIMIT ?')
+		.bind(page.after ?? '', page.limit + 1)
 		.all<{ id: string }>()
-	return results.map(row => row.id)
+	const ids = results.map(row => row.id)
+	return { ids: ids.slice(0, page.limit), hasMore: ids.length > page.limit }
 }

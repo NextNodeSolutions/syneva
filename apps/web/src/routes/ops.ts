@@ -1,43 +1,46 @@
-// The ops routes (RFC 6.5): control-center's budget agent trips and clears the breaker here, and
-// reads what it compares its thresholds against. A Bearer OPS_TOKEN, compared in constant time;
-// anything else is 403 before D1 is read. Tripping drains every person's object (each socket
-// closes with `saturated`, its relays fail), and while the breaker is tripped the Worker refuses
-// every upgrade and relay with 503 before any object is touched.
+// The ops routes (RFC 6.5; the contract in contracts' ops.ts): control-center's budget agent trips
+// and clears the breaker here, follows its drain a page at a time (ops-drain.ts), and reads what
+// it compares its thresholds against. A Bearer OPS_TOKEN, compared in constant time; anything
+// else is 403 before D1 is read. Tripping drains the first page of the people's objects (each
+// socket closes with `saturated`, its relays fail), and from the moment the row is written the
+// Worker refuses every upgrade and relay with 503 before any object is touched, so the pages
+// still to drain hold only what was already open.
 import { BRIDGE_PATHS } from '@syneva/contracts/bridge'
+import { OPS_LIMITS } from '@syneva/contracts/ops'
 
 import { isSameSecret } from '../auth/secrets.js'
 import { readBreaker, setBreaker, userCount } from '../db/breaker.js'
 import { hubsSeenLastDay } from '../db/hubs.js'
-import { userIds } from '../db/users.js'
 import { fail, json } from '../http/answer.js'
 import { bearerOf } from '../http/bearer.js'
 import { readJson } from '../http/body.js'
 import { HTTP_BAD_REQUEST, HTTP_FORBIDDEN, HTTP_OK } from '../http/status.js'
-import { drainObject } from '../user-hub-stub.js'
 
+import { drainPage, drainRoute, limitOf, OPS_BODY_BYTES } from './ops-drain.js'
+
+import type { BreakerAnswer, OpsStatus } from '@syneva/contracts/ops'
 import type { Call } from '../http/call.js'
 
-const OPS_BODY_BYTES = 4096
-const MAX_REASON_LENGTH = 500
-// The objects drained at once: a Worker keeps six connections open at a time.
-const DRAIN_WIDTH = 6
+// A BreakerRequest as read: the reason cut to its length, the page's size given.
+type BreakerAsk = { tripped: boolean; reason: string | null; limit: number }
 
-export type BreakerRequest = { tripped: boolean; reason?: string | undefined }
+const OPS_ROUTES: ReadonlyMap<string, (call: Call) => Promise<Response>> =
+	new Map([
+		[`POST ${BRIDGE_PATHS.opsBreaker}`, setTheBreaker],
+		[`POST ${BRIDGE_PATHS.opsDrain}`, drainRoute],
+		[`GET ${BRIDGE_PATHS.opsStatus}`, status],
+	])
 
 export async function opsRoute(call: Call): Promise<Response | null> {
-	const { request, url } = call
-	const isBreaker =
-		url.pathname === BRIDGE_PATHS.opsBreaker && request.method === 'POST'
-	const isStatus =
-		url.pathname === BRIDGE_PATHS.opsStatus && request.method === 'GET'
-	if (!isBreaker && !isStatus) return null
-	if (!(await isSameSecret(bearerOf(request), call.env.OPS_TOKEN)))
+	const route = OPS_ROUTES.get(`${call.request.method} ${call.url.pathname}`)
+	if (!route) return null
+	if (!(await isSameSecret(bearerOf(call.request), call.env.OPS_TOKEN)))
 		return fail({
 			status: HTTP_FORBIDDEN,
 			code: 'FORBIDDEN',
 			error: 'Not an ops token.',
 		})
-	return isBreaker ? setTheBreaker(call) : status(call)
+	return route(call)
 }
 
 async function setTheBreaker(call: Call): Promise<Response> {
@@ -49,18 +52,15 @@ async function setTheBreaker(call: Call): Promise<Response> {
 		return fail({
 			status: HTTP_BAD_REQUEST,
 			code: 'INVALID_REQUEST',
-			error: 'Post { tripped: boolean, reason?: string }.',
+			error: `Post { tripped: boolean, reason?: string, limit?: 1 to ${OPS_LIMITS.drainPage} }.`,
 		})
-	await setBreaker(
-		env.DB,
-		{
-			tripped: ask.tripped,
-			reason: ask.reason?.slice(0, MAX_REASON_LENGTH) ?? null,
-		},
-		now,
-	)
-	const drained = ask.tripped ? await drainAll(env) : 0
-	return json(HTTP_OK, { ...(await readBreaker(env.DB)), drained })
+	await setBreaker(env.DB, ask, now)
+	// The row first: every upgrade from here on is refused, so a page drained stays drained.
+	const page = ask.tripped
+		? await drainPage(env, { after: null, limit: ask.limit })
+		: { drained: 0, next: null }
+	const answer: BreakerAnswer = { ...(await readBreaker(env.DB)), ...page }
+	return json(HTTP_OK, answer)
 }
 
 async function status({ env, now }: Call): Promise<Response> {
@@ -69,32 +69,23 @@ async function status({ env, now }: Call): Promise<Response> {
 		hubsSeenLastDay(env.DB, now),
 		userCount(env.DB),
 	])
-	return json(HTTP_OK, { ...breaker, hubsSeenLastDay: seen, users })
+	const answer: OpsStatus = { ...breaker, hubsSeenLastDay: seen, users }
+	return json(HTTP_OK, answer)
 }
 
-// Every person's object, a few at a time: bounded by the number of users (one request each).
-async function drainAll(env: Env): Promise<number> {
-	const ids = await userIds(env.DB)
-	await drainFrom(env, ids, 0)
-	return ids.length
-}
-
-async function drainFrom(env: Env, ids: string[], from: number): Promise<void> {
-	const batch = ids.slice(from, from + DRAIN_WIDTH)
-	if (!batch.length) return
-	await Promise.all(batch.map(id => drainObject(env, id)))
-	await drainFrom(env, ids, from + DRAIN_WIDTH)
-}
-
-function breakerRequest(parsed: unknown): BreakerRequest | null {
+function breakerRequest(parsed: unknown): BreakerAsk | null {
 	if (typeof parsed !== 'object' || parsed === null) return null
-	if (!('tripped' in parsed) || typeof parsed.tripped !== 'boolean')
-		return null
-	if (!('reason' in parsed)) return { tripped: parsed.tripped }
-	const { reason } = parsed
-	if (!['undefined', 'string'].includes(typeof reason)) return null
+	const fields: Record<string, unknown> = Object.fromEntries(
+		Object.entries(parsed),
+	)
+	const { tripped, reason } = fields
+	const limit = limitOf(fields.limit)
+	if (typeof tripped !== 'boolean' || limit === null) return null
+	if (typeof reason === 'undefined') return { tripped, reason: null, limit }
+	if (typeof reason !== 'string') return null
 	return {
-		tripped: parsed.tripped,
-		reason: typeof reason === 'string' ? reason : undefined,
+		tripped,
+		reason: reason.slice(0, OPS_LIMITS.reasonChars),
+		limit,
 	}
 }

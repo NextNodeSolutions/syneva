@@ -1,16 +1,23 @@
 // The breaker as control-center's budget agent drives it: the status it reads, a trip that drains
-// every object (the open tab closes with `saturated`) and refuses upgrades before any object is
-// touched, then a clear.
+// the objects a page at a time, following each page's `next` (the open tab closes with
+// `saturated`) and refuses upgrades before any object is touched, then a clear.
 import {
 	BRIDGE_PATHS,
 	CLOSE_CODES,
 	WEB_HUB_HEADER,
 } from '../../packages/contracts/dist/bridge.js'
+import { OPS_LIMITS } from '../../packages/contracts/dist/ops.js'
 import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 import { openReader, socketUrl } from '../stream/stream-client.mjs'
 
 import { FRAME_WAIT_MS } from './hub-checks.mjs'
-import { HTTP_OK, HTTP_UNAVAILABLE } from './statuses.mjs'
+import {
+	HTTP_BAD_REQUEST,
+	HTTP_CONFLICT,
+	HTTP_FORBIDDEN,
+	HTTP_OK,
+	HTTP_UNAVAILABLE,
+} from './statuses.mjs'
 import { pairSocketless } from './web-client.mjs'
 
 // The smoke's accounts: the first (session-checks.mjs) and the second (account-checks.mjs).
@@ -29,18 +36,7 @@ export async function checkOps(context, tab) {
 			status.body.hubsSeenLastDay === 0,
 		JSON.stringify(status.body),
 	)
-	const trip = await browser.post(
-		BRIDGE_PATHS.opsBreaker,
-		{ tripped: true, reason: 'smoke' },
-		ops,
-	)
-	report.check(
-		'tripping it drains the objects',
-		trip.status === HTTP_OK &&
-			trip.body.tripped === true &&
-			trip.body.drained === ACCOUNTS,
-		JSON.stringify(trip.body),
-	)
+	await checkPagedDrain(context, ops)
 	if (tab) await checkDrained(report, tab)
 	const refused = await tabOutcome(context)
 	report.check(
@@ -59,11 +55,61 @@ export async function checkOps(context, tab) {
 		clear.status === HTTP_OK && clear.body.tripped === false,
 		JSON.stringify(clear.body),
 	)
+	const idle = await browser.post(BRIDGE_PATHS.opsDrain, {}, ops)
+	report.check(
+		'cleared, a drain is 409 NOT_TRIPPED: it would close sockets for nothing',
+		idle.status === HTTP_CONFLICT && idle.body.code === 'NOT_TRIPPED',
+		JSON.stringify(idle.body),
+	)
 	const reopened = await tabOutcome(context)
 	report.check(
 		'cleared, a tab upgrade opens again',
 		reopened === 'open',
 		`${reopened}`,
+	)
+}
+
+// The trip drains a first page of one object (the smoke's two accounts make two pages), and its
+// `next` leads to the last page, whose `next` is null; a cursor or a size that does not read is
+// 400, and the drain wants the ops token like every ops route.
+async function checkPagedDrain({ report, browser }, ops) {
+	const trip = await browser.post(
+		BRIDGE_PATHS.opsBreaker,
+		{ tripped: true, reason: 'smoke', limit: 1 },
+		ops,
+	)
+	report.check(
+		'tripping it drains the first page: one object, and a `next`',
+		trip.status === HTTP_OK &&
+			trip.body.tripped === true &&
+			trip.body.drained === 1 &&
+			typeof trip.body.next === 'string',
+		JSON.stringify(trip.body),
+	)
+	const drain = body => browser.post(BRIDGE_PATHS.opsDrain, body, ops)
+	const last = await drain({ after: trip.body.next, limit: 1 })
+	report.check(
+		'POST /bridge/v1/ops/drain { after: next } drains the last page: `next` null',
+		last.status === HTTP_OK &&
+			last.body.drained === ACCOUNTS - 1 &&
+			last.body.next === null,
+		JSON.stringify(last.body),
+	)
+	const unread = await Promise.all([
+		drain({ after: 'not-a-cursor' }),
+		drain({ limit: 0 }),
+		drain({ limit: OPS_LIMITS.drainPage + 1 }),
+	])
+	report.check(
+		'a cursor or a page size that does not read is 400',
+		unread.every(answer => answer.status === HTTP_BAD_REQUEST),
+		unread.map(answer => answer.status).join(' '),
+	)
+	const bare = await browser.post(BRIDGE_PATHS.opsDrain, {})
+	report.check(
+		'the drain without the token is 403',
+		bare.status === HTTP_FORBIDDEN,
+		`${bare.status}`,
 	)
 }
 
