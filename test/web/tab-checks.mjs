@@ -8,10 +8,9 @@ import {
 	WEB_HUB_HEADER,
 } from '../../packages/contracts/dist/bridge.js'
 import { HUB_PATHS, hubDeskPath } from '../../packages/contracts/dist/routes.js'
-import { scratchRepo } from '../stream/hub-driver.mjs'
 import { openReader, socketUrl, waitFor } from '../stream/stream-client.mjs'
 
-import { FRAME_WAIT_MS } from './hub-checks.mjs'
+import { FRAME_WAIT_MS, servedRepo } from './hub-checks.mjs'
 import { HTTP_OK } from './statuses.mjs'
 import { upgradeAnswer } from './web-client.mjs'
 
@@ -68,8 +67,9 @@ export async function checkSecondTab(context, { hubId, tab }) {
 }
 
 // A desk opened and closed through the relay: both tabs read its `desk` and `closed`, untagged.
-async function checkLive({ report, browser }, { hubId, tabs }) {
-	const repo = await scratchRepo()
+async function checkLive(context, { hubId, tabs }) {
+	const { report, browser } = context
+	const repo = await servedRepo(context)
 	const marks = tabs.map(each => each.frames.length)
 	const opened = await browser.post(
 		HUB_PATHS.desks,

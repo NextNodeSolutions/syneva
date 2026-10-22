@@ -9,11 +9,31 @@ import {
 } from '../../packages/contracts/dist/web.js'
 import { runCli } from '../bridge/hub-process.mjs'
 import { bridgeFile, isPairing, readLocal } from '../bridge/pairing-checks.mjs'
+import { scratchRepo } from '../stream/hub-driver.mjs'
 import { openReader, socketUrl, waitFor } from '../stream/stream-client.mjs'
 
 import { HTTP_OK } from './statuses.mjs'
 
 export const FRAME_WAIT_MS = 15_000
+// The session of the desk the machine opens on a scratch repository before the web may.
+const SERVED_SESSION = 'web-smoke-served'
+
+// A scratch repository the paired hub serves: a relayed open names the root of a live desk on the
+// hub (RFC 0001, section 7), so the machine opens one there first, as a person does with
+// `syneva open`, under a session of its own.
+export async function servedRepo({ cli, home }) {
+	const repo = await scratchRepo()
+	const opened = await runCli(
+		{ cli, home },
+		['open', '--no-open', '--no-guide', '--session', SERVED_SESSION],
+		repo.root,
+	)
+	if (opened.code !== 0)
+		throw new Error(
+			`the machine did not open ${repo.root}: ${opened.stderr}`,
+		)
+	return repo
+}
 
 export async function checkTab({ report, browser, web }, hubId) {
 	report.section("the tab's socket")

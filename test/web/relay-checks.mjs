@@ -13,10 +13,9 @@ import {
 	HUB_PATHS,
 } from '../../packages/contracts/dist/routes.js'
 import { WEB_SESSION_COOKIE } from '../../packages/contracts/dist/web.js'
-import { scratchRepo } from '../stream/hub-driver.mjs'
 import { waitFor } from '../stream/stream-client.mjs'
 
-import { FRAME_WAIT_MS } from './hub-checks.mjs'
+import { FRAME_WAIT_MS, servedRepo } from './hub-checks.mjs'
 import { checkDeskSettings } from './settings-checks.mjs'
 import {
 	HTTP_NOT_FOUND,
@@ -43,8 +42,9 @@ export async function checkRelay(context, { hubId, tab }) {
 	await checkRefusals(context, { hubId, deskId })
 }
 
-async function openDesk({ report, browser }, { hubId, tab }) {
-	const repo = await scratchRepo()
+async function openDesk(context, { hubId, tab }) {
+	const { report, browser } = context
+	const repo = await servedRepo(context)
 	const from = tab.frames.length
 	const opened = await browser.post(
 		HUB_PATHS.desks,
