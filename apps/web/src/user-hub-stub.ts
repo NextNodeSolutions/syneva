@@ -45,7 +45,8 @@ export function cardOf(hub: HubRow): HubCard {
 	}
 }
 
-// A hub's socket: the object answers 101 with it, or closes it at once over the cap.
+// A hub's socket: the object answers 101 with it and when it accepted it, or TOO_MANY_STATUS
+// past the cap.
 export function openHubSocket(env: Env, hub: HubRow): Promise<Response> {
 	return ask(env, hub.userId, OBJECT_PATHS.hub, {
 		method: 'GET',
@@ -56,7 +57,8 @@ export function openHubSocket(env: Env, hub: HubRow): Promise<Response> {
 	})
 }
 
-// A tab's socket, with the person's live hubs (their `hub` frames: the object stores none).
+// A tab's socket, with the person's live hubs (their `hub` frames: the object stores none); past
+// the cap, TOO_MANY_STATUS.
 export function openTabSocket(
 	env: Env,
 	userId: string,

@@ -3,10 +3,10 @@
 `node test/web/smoke.mjs` checks `apps/web` end to end, locally: its built Worker under `wrangler dev` (Miniflare; nothing touches a Cloudflare account), a scratch local hub started from the CLI build, and the CLI itself. Build first (`pnpm build`), then:
 
 ```sh
-TMPDIR=<a scratch directory> node test/web/smoke.mjs [--web-port 47984] [--port 47983] [--cli apps/syneva/dist/cli.js]
+TMPDIR=<a scratch directory> node test/web/smoke.mjs [--web-port 47984] [--port 47983] [--spare-port 47985] [--cli apps/syneva/dist/cli.js]
 ```
 
-Everything it writes goes under one directory in `os.tmpdir()` (set `TMPDIR` to keep it out of `/tmp`): the D1 and object state (`--persist-to`), wrangler's logs and config, the hub's `HOME` (its `~/.syneva`, its `bridge.json`), the scratch git repo. Both ports must be free (it checks and stops otherwise); it never touches the machine's hub on 4747. The secrets are drawn per run and passed as `--var`, with `MAIL_TRANSPORT=log`, so the sign-in link is read from wrangler's stdout.
+Everything it writes goes under one directory in `os.tmpdir()` (set `TMPDIR` to keep it out of `/tmp`): the D1 and object state (`--persist-to`), wrangler's logs and config, the hub's `HOME` (its `~/.syneva`, its `bridge.json`), the second hub's (`spare-home`, for the connected cap), the scratch git repo. The three ports must be free (it checks and stops otherwise); it never touches the machine's hub on 4747. The secrets are drawn per run and passed as `--var`, with `MAIL_TRANSPORT=log`, so the sign-in link is read from wrangler's stdout.
 
 One line per check, `ok` or `FAIL` with what was seen; the count at the end; exit 1 on any failure, the scratch directory kept and named.
 
@@ -22,7 +22,8 @@ One line per check, `ok` or `FAIL` with what was seen; the count at the end; exi
 - **Revoke from the web**: `DELETE /api/web/hubs/<id>`; the tab reads the hub offline; the hub's own stream says its link stopped, `revoked` (close 4001); the hub is no longer listed.
 - **Logout**: `syneva logout` exits 0 (the token is already revoked: it says so) and removes `bridge.json`.
 - **A second account**: it signs in; its tab's plain GET of `/api/hub/ws` passes the guards and hears 426, sixty times (RL_TABS), then 429 `RATE_LIMITED`, and its upgrade is refused 429 too, while the first account's still opens (below).
-- **The breaker**: the ops status with the token (two users); tripping it with a page of one drains the first object and answers a `next`, `POST /bridge/v1/ops/drain` with it drains the last (`next` null), a cursor or size that does not read is 400, the drain without the token 403, and the open tab closes with 4029; a tab's upgrade is then refused 503, and a relay to a live hub of the person's (paired over HTTP alone, never connected) is 503 `HUB_OFFLINE` for the load shed; cleared, it opens again, and a drain is 409 `NOT_TRIPPED`.
+- **The connected caps**: a third account pairs eight hubs over HTTP (each from its own /64) and opens their sockets, each read online by its tab; a ninth, a running hub paired with `syneva login`, is refused at the upgrade: login exits 0 saying it could not connect yet, too many hubs connected on this account (HTTP 409); its own Hub page reads that in backoff; a raw upgrade with its token is 409 `TOO_MANY_HUBS` in the error shape; the tab reads it offline with a `refusedAt`, never online; `/api/web/hubs` lists the eight online with a last connect and the ninth offline with none (a refused upgrade writes nothing). One of the eight leaves: the ninth connects on its next attempt (online on the tab, connected on its Hub page), and only then does its row hold a last connect. Then its tabs: with 32 open, the next upgrade is 409 `TOO_MANY_TABS` in the error shape; one closed, the next opens.
+- **The breaker**: the ops status with the token (three users); tripping it with a page of one drains the first object and answers a `next`, `POST /bridge/v1/ops/drain` with it drains the last (`next` null), a cursor or size that does not read is 400, the drain without the token 403, and the open tab closes with 4029; a tab's upgrade is then refused 503, and a relay to a live hub of the person's (paired over HTTP alone, never connected) is 503 `HUB_OFFLINE` for the load shed; cleared, it opens again, and a drain is 409 `NOT_TRIPPED`.
 - **Sign-out**: `POST /logout` clears the cookie, 303 to `/login` carrying its `next` (as the device page's "not you?" posts it); the old cookie opens nothing.
 
 ## Not here

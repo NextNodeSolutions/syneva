@@ -41,14 +41,15 @@ export async function hubsOfUser(
 	return results
 }
 
+// When the hub's socket was accepted (`at`, the object's own time for it).
 export async function touchHub(
 	db: D1Database,
 	hubId: string,
-	now: Date,
+	at: string,
 ): Promise<void> {
 	await db
 		.prepare('UPDATE hubs SET last_seen_at = ? WHERE id = ?')
-		.bind(iso(now), hubId)
+		.bind(at, hubId)
 		.run()
 }
 

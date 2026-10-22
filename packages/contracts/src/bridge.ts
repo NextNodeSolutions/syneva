@@ -129,6 +129,11 @@ export type BridgeFrame =
 	// the object stores nothing), then one each time a hub socket opens or closes. `version` and
 	// `lastSeenAt` are what the web's rows say (the CLI version the hub paired or last connected
 	// with, the last time it connected): the fake bridge of test/bridge leaves them out.
+	// `refusedAt`, on an offline hub's frame, is when the object refused its upgrade because
+	// `hubsPerUser` of the person's hubs were connected (`TOO_MANY_STATUS`): sent to the open
+	// tabs at each refusal (the hub tries again every `tooManyWaitMs`) and kept nowhere, so a tab
+	// that connects later reads the hub plainly offline until its next refusal. Only that cap
+	// refuses a hub at the object.
 	| {
 			t: 'hub'
 			hubId: string
@@ -136,6 +141,7 @@ export type BridgeFrame =
 			online: boolean
 			version?: string | undefined
 			lastSeenAt?: string | null | undefined
+			refusedAt?: string | undefined
 	  }
 	// The object asks a hub for a snapshot, for the tab that just connected: `tag` (at most
 	// `snapshotTagChars`) names it, and the hub sends that snapshot with the tag on each of its

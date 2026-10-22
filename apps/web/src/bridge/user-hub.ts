@@ -4,6 +4,7 @@ import {
 	PING_TEXT,
 	PONG_TEXT,
 	RELAY_FAILURE_STATUS,
+	TOO_MANY_STATUS,
 } from '@syneva/contracts/bridge'
 // UserHub: one Durable Object per person, in its switchboard role (RFC 0001, 3.4 and 4). It holds
 // the person's sockets, their paired hubs' and their tabs', forwards each hub's live stream to
@@ -32,7 +33,7 @@ import {
 	hubFrame,
 	hubTag,
 	openTabs,
-	refuse,
+	refusedFrame,
 	sendQuietly,
 	TAB_TAG,
 	tabTag,
@@ -118,13 +119,20 @@ export class UserHub extends DurableObject<Env> {
 				.map(each => each.attachment.hubId)
 				.filter(hubId => hubId !== card.hubId),
 		)
-		if (others.size >= BRIDGE_LIMITS.hubsPerUser) return refuse(this.ctx)
+		// Over the cap the object accepts no socket (TOO_MANY_STATUS says why a close would never
+		// reach the hub), and the open tabs hear why this hub is not connected, at each refusal
+		// (one a minute at most: the probe's wait). The object keeps none of it.
+		if (others.size >= BRIDGE_LIMITS.hubsPerUser) {
+			this.#board.toTabs(refusedFrame(card, new Date().toISOString()))
+			return plain(TOO_MANY_STATUS)
+		}
 		// One socket per hub: the newer one wins (a probe that reconnected before the web saw its
 		// old socket drop), and the tabs hear it online, never offline in between.
 		for (const older of this.#board.hubs(card.hubId))
 			this.#board.closeHub(older, CLOSE_CODES.normal, 'replaced')
 		const { 0: client, 1: server } = new WebSocketPair()
 		this.ctx.acceptWebSocket(server, [HUB_TAG, hubTag(card.hubId)])
+		const connectedAt = new Date().toISOString()
 		const attachment: HubAttachment = {
 			kind: 'hub',
 			socketId: crypto.randomUUID(),
@@ -132,11 +140,12 @@ export class UserHub extends DurableObject<Env> {
 			hubId: card.hubId,
 			name: card.name,
 			version: card.version,
-			connectedAt: card.lastSeenAt ?? new Date().toISOString(),
+			connectedAt,
 		}
 		server.serializeAttachment(attachment)
 		this.#board.toTabs(hubFrame(attachment, true))
-		return upgraded(client)
+		// The Worker writes the hub's `last_seen_at` from this, for an accepted socket alone.
+		return upgraded(client, { [OBJECT_HEADERS.connectedAt]: connectedAt })
 	}
 
 	#acceptTab(request: Request, userId: string): Response {
@@ -144,7 +153,7 @@ export class UserHub extends DurableObject<Env> {
 		if (!Array.isArray(cards) || !cards.every(isHubCard))
 			return plain(HTTP_BAD_REQUEST)
 		if (openTabs(this.ctx).length >= BRIDGE_LIMITS.tabsPerUser)
-			return refuse(this.ctx)
+			return plain(TOO_MANY_STATUS)
 		const { 0: client, 1: server } = new WebSocketPair()
 		const socketId = crypto.randomUUID()
 		this.ctx.acceptWebSocket(server, [TAB_TAG, tabTag(socketId)])

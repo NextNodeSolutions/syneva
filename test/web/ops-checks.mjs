@@ -20,8 +20,9 @@ import {
 } from './statuses.mjs'
 import { pairSocketless } from './web-client.mjs'
 
-// The smoke's accounts: the first (session-checks.mjs) and the second (account-checks.mjs).
-const ACCOUNTS = 2
+// The smoke's accounts: the first (session-checks.mjs), the second (account-checks.mjs) and the
+// third (cap-checks.mjs).
+const ACCOUNTS = 3
 
 export async function checkOps(context, tab) {
 	const { report, browser, secrets } = context
@@ -29,7 +30,7 @@ export async function checkOps(context, tab) {
 	const ops = { authorization: `Bearer ${secrets.OPS_TOKEN}` }
 	const status = await browser.json(BRIDGE_PATHS.opsStatus, { headers: ops })
 	report.check(
-		'GET /bridge/v1/ops/status with the token: not tripped, two users, no live hub (revoked)',
+		`GET /bridge/v1/ops/status with the token: not tripped, ${ACCOUNTS} users, no live hub (revoked)`,
 		status.status === HTTP_OK &&
 			status.body.tripped === false &&
 			status.body.users === ACCOUNTS &&
@@ -69,9 +70,9 @@ export async function checkOps(context, tab) {
 	)
 }
 
-// The trip drains a first page of one object (the smoke's two accounts make two pages), and its
-// `next` leads to the last page, whose `next` is null; a cursor or a size that does not read is
-// 400, and the drain wants the ops token like every ops route.
+// The trip drains a first page of one object, and its `next` leads to the last page (the other
+// accounts'), whose `next` is null; a cursor or a size that does not read is 400, and the drain
+// wants the ops token like every ops route.
 async function checkPagedDrain({ report, browser }, ops) {
 	const trip = await browser.post(
 		BRIDGE_PATHS.opsBreaker,
@@ -87,7 +88,7 @@ async function checkPagedDrain({ report, browser }, ops) {
 		JSON.stringify(trip.body),
 	)
 	const drain = body => browser.post(BRIDGE_PATHS.opsDrain, body, ops)
-	const last = await drain({ after: trip.body.next, limit: 1 })
+	const last = await drain({ after: trip.body.next, limit: ACCOUNTS - 1 })
 	report.check(
 		'POST /bridge/v1/ops/drain { after: next } drains the last page: `next` null',
 		last.status === HTTP_OK &&

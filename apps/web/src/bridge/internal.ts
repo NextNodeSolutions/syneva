@@ -1,8 +1,9 @@
-// What the Worker says to the object, and how: the object's own paths and the headers that name
-// who asks. Only the Worker reaches an object (a Durable Object has no public route), and it
-// builds every request it sends one from scratch, never forwarding the client's, so a client
-// header of the same name never arrives; the object answers 400 to a request without its user.
-// Shared by both sides; the object imports nothing else of the Worker's.
+// What the Worker says to the object, and how: the object's own paths, the headers that name
+// who asks, and the one header the object answers with. Only the Worker reaches an object (a
+// Durable Object has no public route), and it builds every request it sends one from scratch,
+// never forwarding the client's, so a client header of the same name never arrives; the object
+// answers 400 to a request without its user. Shared by both sides; the object imports nothing
+// else of the Worker's.
 import type { RelayMethod } from '@syneva/contracts/bridge'
 
 export const OBJECT_ORIGIN = 'https://user-hub.internal'
@@ -30,9 +31,12 @@ export const OBJECT_HEADERS = {
 	hub: 'x-syneva-object-hub',
 	// `/tab`: every live hub of the person (HubCard[], encoded): the object stores none.
 	hubs: 'x-syneva-object-hubs',
+	// On `/hub`'s 101: when the object accepted the hub's socket, which the Worker writes as the
+	// hub's `last_seen_at`. An upgrade it refuses (TOO_MANY_STATUS) has neither socket nor write.
+	connectedAt: 'x-syneva-object-connected-at',
 } as const
 
-// A hub as a tab's `hub` frame shows it, from its row.
+// A hub as a tab's `hub` frame shows it, from its row: `lastSeenAt` is when it last connected.
 export type HubCard = {
 	hubId: string
 	name: string

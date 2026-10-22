@@ -4,7 +4,12 @@
 // read it with what they open (db/session-reads.ts), so each pays one round trip. A mutation or an
 // upgrade must also be same-origin. Pages are not here (routes/shells.ts): a signed-out
 // navigation is sent to sign in, an API call gets 401.
-import { BRIDGE_PATHS, isWebHubId } from '@syneva/contracts/bridge'
+import {
+	BRIDGE_LIMITS,
+	BRIDGE_PATHS,
+	isWebHubId,
+	TOO_MANY_STATUS,
+} from '@syneva/contracts/bridge'
 import { WEB_HUBS_PREFIX, WEB_PATHS } from '@syneva/contracts/web'
 
 import { limitRefusal } from '../auth/limits.js'
@@ -34,6 +39,15 @@ const HUB_NOT_FOUND: Failure = {
 	code: 'HUB_NOT_FOUND',
 	error: 'No hub of yours has this id.',
 	fix: `List your hubs with GET ${WEB_PATHS.hubs}.`,
+}
+
+// Past `tabsPerUser` open, the object accepts no socket and answers TOO_MANY_STATUS (the contract
+// says why a close could not); a browser's WebSocket reads none of it, so the tab backs off.
+const TABS_FULL: Failure = {
+	status: TOO_MANY_STATUS,
+	code: 'TOO_MANY_TABS',
+	error: `${BRIDGE_LIMITS.tabsPerUser} tabs of this account are open already.`,
+	fix: 'Close one of them; this tab tries again by itself.',
 }
 
 export async function sessionRoute(call: Call): Promise<Response | null> {
@@ -116,5 +130,6 @@ async function tabSocket(call: Call, digest: string): Promise<Response> {
 	const saturated = sheddingRefusal(read, 'upgrade')
 	if (saturated) return saturated
 	if (!isUpgrade(request)) return upgradeRequired()
-	return openTabSocket(env, read.userId, read.hubs)
+	const answer = await openTabSocket(env, read.userId, read.hubs)
+	return answer.status === TOO_MANY_STATUS ? fail(TABS_FULL) : answer
 }

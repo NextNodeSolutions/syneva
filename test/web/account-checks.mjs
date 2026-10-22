@@ -1,40 +1,35 @@
 // A second account, signed in beside the first: what one person's budget spends never touches
 // another's. Its tab upgrades are limited per person (RL_TABS, sixty a minute), and the plain GET a
-// tab sends to learn why an upgrade failed meets the same limit before it hears 426.
+// tab sends to learn why an upgrade failed meets the same limit before it hears 426. A third
+// account then pairs past the connected cap (cap-checks.mjs).
 import { BRIDGE_PATHS } from '../../packages/contracts/dist/bridge.js'
-import { WEB_PATHS } from '../../packages/contracts/dist/web.js'
 import { openReader, socketUrl } from '../stream/stream-client.mjs'
 
-import {
-	HTTP_ACCEPTED,
-	HTTP_TOO_MANY,
-	HTTP_UPGRADE_REQUIRED,
-} from './statuses.mjs'
-import { createBrowser, followLink } from './web-client.mjs'
+import { checkConnectedCap } from './cap-checks.mjs'
+import { HTTP_TOO_MANY, HTTP_UPGRADE_REQUIRED } from './statuses.mjs'
+import { signInAs } from './web-client.mjs'
 
 export const SECOND_EMAIL = 'smoke-2@example.com'
 // apps/web's wrangler.jsonc: RL_TABS.
 const TAB_UPGRADES_PER_MINUTE = 60
 
+// The accounts beside the first: the second's browser (or null), once its checks and the third's
+// (the connected cap) ran.
+export async function checkOtherAccounts(context) {
+	const second = await checkSecondAccount(context)
+	await checkConnectedCap(context)
+	return second
+}
+
 // Signs the second account in; its browser, or null when no session came.
-export async function checkSecondAccount(context) {
+async function checkSecondAccount(context) {
 	const { report } = context
 	report.section('a second account')
-	const second = await signInAs(context, SECOND_EMAIL)
+	const second = await signInAs(context.web, SECOND_EMAIL)
 	report.check('a second account signs in', Boolean(second))
 	if (!second) return null
 	await checkTabLimit(context, second)
 	return second
-}
-
-async function signInAs({ web }, email) {
-	const browser = createBrowser(web.origin)
-	const seen = web.links().length
-	const asked = await browser.post(WEB_PATHS.magicLink, { email })
-	if (asked.status !== HTTP_ACCEPTED) return null
-	browser.keep(await followLink(browser, await web.link(seen)))
-	if (!browser.jar.cookie) return null
-	return browser
 }
 
 async function checkTabLimit({ report, web }, browser) {

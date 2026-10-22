@@ -1,8 +1,10 @@
 // A person's second tab (RFC 6.1 B10): the object asks the hub for a snapshot tagged with that
 // tab, and hands it to that tab alone; the tab already open reads none of it, and the live stream
-// after it (a desk opened and closed through the relay) reaches both, untagged.
+// after it (a desk opened and closed through the relay) reaches both, untagged. And the tabs' cap.
 import {
+	BRIDGE_LIMITS,
 	BRIDGE_PATHS,
+	TOO_MANY_STATUS,
 	WEB_HUB_HEADER,
 } from '../../packages/contracts/dist/bridge.js'
 import { HUB_PATHS, hubDeskPath } from '../../packages/contracts/dist/routes.js'
@@ -11,6 +13,7 @@ import { openReader, socketUrl, waitFor } from '../stream/stream-client.mjs'
 
 import { FRAME_WAIT_MS } from './hub-checks.mjs'
 import { HTTP_OK } from './statuses.mjs'
+import { upgradeAnswer } from './web-client.mjs'
 
 const SESSION = 'web-smoke-tabs'
 // What the open tab would have read by now had the snapshot gone to it too: the object sends
@@ -108,3 +111,42 @@ async function checkLive({ report, browser }, { hubId, tabs }) {
 
 const isEnd = hubId => frame =>
 	frame?.t === 'snapshot-end' && frame.hubId === hubId
+
+// The tabs' cap (RFC 6.3 R6): with `tabsPerUser` of a person's tabs open (`open` of them already),
+// the next upgrade is refused before any socket, 409 `TOO_MANY_TABS` (TOO_MANY_STATUS); one tab
+// closed, the next opens.
+export async function checkTabCap({ report, web }, { browser, open }) {
+	const url = socketUrl(web.origin, BRIDGE_PATHS.tabSocket)
+	const tabs = []
+	try {
+		while (open + tabs.length < BRIDGE_LIMITS.tabsPerUser) {
+			const tab = openReader(url, browser.headers())
+			tabs.push(tab)
+			await tab.outcome
+		}
+		const refusal = await upgradeAnswer(
+			web.origin,
+			BRIDGE_PATHS.tabSocket,
+			browser.headers(),
+		)
+		report.check(
+			`with ${BRIDGE_LIMITS.tabsPerUser} tabs open, the next upgrade is refused: 409 \`TOO_MANY_TABS\`, in the error shape`,
+			refusal.status === TOO_MANY_STATUS &&
+				refusal.body?.code === 'TOO_MANY_TABS',
+			JSON.stringify(refusal),
+		)
+		const closing = tabs.pop()
+		closing?.socket.close()
+		await closing?.closed
+		const next = openReader(url, browser.headers())
+		tabs.push(next)
+		const outcome = await next.outcome.catch(error => error.message)
+		report.check(
+			'one closed, the next opens',
+			outcome === 'open',
+			`${outcome}`,
+		)
+	} finally {
+		for (const tab of tabs) tab.socket.terminate()
+	}
+}

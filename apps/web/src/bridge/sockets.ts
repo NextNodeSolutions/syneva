@@ -2,8 +2,6 @@
 // `tab`, `tab:<socket id>`), each with its attachment, written once at accept and the only thing that survives a
 // wake. What a socket is, the ones open now, the `hub` frames that say where a hub stands, and
 // sends and closes that never throw at a socket closing as they go.
-import { CLOSE_CODES } from '@syneva/contracts/bridge'
-
 import type { BridgeFrame } from '@syneva/contracts/bridge'
 import type { HubCard } from './internal.js'
 
@@ -23,8 +21,6 @@ export type OpenHub = { socket: WebSocket; attachment: HubAttachment }
 
 export const HUB_TAG = 'hub'
 export const TAB_TAG = 'tab'
-// A socket accepted only to be closed at once (over the cap): never counted, never read.
-const REFUSED_TAG = 'refused'
 const HTTP_SWITCHING = 101
 
 export function hubTag(hubId: string): string {
@@ -36,7 +32,7 @@ export function tabTag(socketId: string): string {
 	return `tab:${socketId}`
 }
 
-// What a socket was accepted as; null for one accepted only to be refused.
+// What a socket was accepted as; null for an attachment that does not read as one.
 export function attachmentOf(socket: WebSocket): Attachment | null {
 	const raw: unknown = socket.deserializeAttachment()
 	if (typeof raw !== 'object' || raw === null) return null
@@ -90,6 +86,20 @@ export function cardFrame(card: HubCard, isOnline: boolean): BridgeFrame {
 	return { t: 'hub', hubId, name, online: isOnline, version, lastSeenAt }
 }
 
+// An offline hub's `hub` frame when the object refused its upgrade at the cap, `at` that refusal.
+export function refusedFrame(card: HubCard, at: string): BridgeFrame {
+	const { hubId, name, version, lastSeenAt } = card
+	return {
+		t: 'hub',
+		hubId,
+		name,
+		online: false,
+		version,
+		lastSeenAt,
+		refusedAt: at,
+	}
+}
+
 export function hubFrame(
 	attachment: HubAttachment,
 	isOnline: boolean,
@@ -105,17 +115,15 @@ export function hubFrame(
 	)
 }
 
-// Over the cap: the upgrade succeeds and the socket closes at once with `tooMany`, which the
-// client's policy reads (wait a minute), where an HTTP refusal would read as a failed upgrade.
-export function refuse(ctx: DurableObjectState): Response {
-	const { 0: client, 1: server } = new WebSocketPair()
-	ctx.acceptWebSocket(server, [REFUSED_TAG])
-	server.close(CLOSE_CODES.tooMany, 'too many sockets')
-	return upgraded(client)
-}
-
-export function upgraded(client: WebSocket): Response {
-	return new Response(null, { status: HTTP_SWITCHING, webSocket: client })
+export function upgraded(
+	client: WebSocket,
+	headers: Record<string, string> = {},
+): Response {
+	return new Response(null, {
+		status: HTTP_SWITCHING,
+		webSocket: client,
+		headers,
+	})
 }
 
 // A send to a socket that may be closing as it goes: its close event does the rest.
