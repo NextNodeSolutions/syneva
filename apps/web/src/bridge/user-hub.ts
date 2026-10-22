@@ -6,10 +6,11 @@ import {
 	RELAY_FAILURE_STATUS,
 } from '@syneva/contracts/bridge'
 // UserHub: one Durable Object per person, in its switchboard role (RFC 0001, 3.4 and 4). It holds
-// the person's sockets, their paired hubs' and their tabs', forwards each hub's stream frames to
-// every tab, and carries the HTTP relay between a tab's request and a hub's answer. It stores
-// nothing: the paired hubs are the truth, the Worker hands the object who connects (from D1) with
-// every upgrade, and a tab's snapshot is asked of the hubs when it connects. It hibernates between
+// the person's sockets, their paired hubs' and their tabs', forwards each hub's live stream to
+// every tab and a snapshot to the tab it was asked for, and carries the HTTP relay between a tab's
+// request and a hub's answer. It stores nothing: the paired hubs are the truth, the Worker hands
+// the object who connects (from D1) with every upgrade, and a tab's snapshot is asked of the hubs
+// when it connects, tagged with that tab. It hibernates between
 // frames: every socket is accepted through `ctx.acceptWebSocket`, pings are answered by the
 // runtime's auto-response (never a wake), and nothing in it waits on a timer, an alarm or a fetch
 // of its own (lint and scripts/bundle-check.mjs hold each rule; apps/web/AGENTS.md lists them).
@@ -34,6 +35,7 @@ import {
 	refuse,
 	sendQuietly,
 	TAB_TAG,
+	tabTag,
 	upgraded,
 } from './sockets.js'
 import { Switchboard } from './switchboard.js'
@@ -144,25 +146,24 @@ export class UserHub extends DurableObject<Env> {
 		if (openTabs(this.ctx).length >= BRIDGE_LIMITS.tabsPerUser)
 			return refuse(this.ctx)
 		const { 0: client, 1: server } = new WebSocketPair()
-		this.ctx.acceptWebSocket(server, [TAB_TAG])
-		server.serializeAttachment({
-			kind: 'tab',
-			socketId: crypto.randomUUID(),
-			userId,
-		})
+		const socketId = crypto.randomUUID()
+		this.ctx.acceptWebSocket(server, [TAB_TAG, tabTag(socketId)])
+		server.serializeAttachment({ kind: 'tab', socketId, userId })
 		const open = new Map(
 			this.#board
 				.hubs()
 				.map(each => [each.attachment.hubId, each.socket]),
 		)
+		// The object keeps no snapshot: each hub sends its own, every frame of it tagged with this
+		// socket's id, and only this tab gets it (RFC 6.1 B10: a connect never resends the person's
+		// other tabs a snapshot they hold). A hub before tags answers untagged, to every tab.
 		const snapshotAsk = JSON.stringify({
 			t: 'snapshot?',
+			tag: socketId,
 		} satisfies BridgeFrame)
 		for (const card of cards) {
 			const hub = open.get(card.hubId)
 			sendQuietly(server, JSON.stringify(cardFrame(card, Boolean(hub))))
-			// The object keeps no snapshot: the hub sends its own, which every tab gets (the others
-			// read it as a refresh, as after a reconnect).
 			if (hub) sendQuietly(hub, snapshotAsk)
 		}
 		sendQuietly(

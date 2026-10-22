@@ -1,5 +1,5 @@
 // The object's sockets as the Hibernation API keeps them: tagged at accept (`hub`, `hub:<id>`,
-// `tab`), each with its attachment, written once at accept and the only thing that survives a
+// `tab`, `tab:<socket id>`), each with its attachment, written once at accept and the only thing that survives a
 // wake. What a socket is, the ones open now, the `hub` frames that say where a hub stands, and
 // sends and closes that never throw at a socket closing as they go.
 import { CLOSE_CODES } from '@syneva/contracts/bridge'
@@ -29,6 +29,11 @@ const HTTP_SWITCHING = 101
 
 export function hubTag(hubId: string): string {
 	return `hub:${hubId}`
+}
+
+// A tab by its socket id: what the object tags the snapshot it asks for that tab with.
+export function tabTag(socketId: string): string {
+	return `tab:${socketId}`
 }
 
 // What a socket was accepted as; null for one accepted only to be refused.
@@ -69,9 +74,13 @@ export function openHubs(
 	})
 }
 
-export function openTabs(ctx: DurableObjectState): WebSocket[] {
+// Every tab open, or the one a socket id names (none once it closed).
+export function openTabs(
+	ctx: DurableObjectState,
+	socketId?: string,
+): WebSocket[] {
 	return ctx
-		.getWebSockets(TAB_TAG)
+		.getWebSockets(socketId ? tabTag(socketId) : TAB_TAG)
 		.filter(socket => socket.readyState === WebSocket.OPEN)
 }
 

@@ -30,6 +30,7 @@ import { checkOps } from './ops-checks.mjs'
 import { checkSignedInPages, checkSignedOutPages } from './page-checks.mjs'
 import { checkRelay } from './relay-checks.mjs'
 import { checkSignedOut, checkSignIn, checkSignOut } from './session-checks.mjs'
+import { checkSecondTab } from './tab-checks.mjs'
 import { createBrowser } from './web-client.mjs'
 import { startWeb } from './wrangler-dev.mjs'
 
@@ -114,6 +115,8 @@ async function run() {
 	const tab = hubId ? await checkTab(context, hubId) : null
 	if (tab) {
 		tabs.push(tab)
+		const second = await checkSecondTab(context, { hubId, tab })
+		if (second) tabs.push(second)
 		await checkRelay(context, { hubId, tab })
 	}
 	if (hubId) await checkRevoke(context, { hubId, tab })

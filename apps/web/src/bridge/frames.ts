@@ -1,8 +1,8 @@
 // What a hub's socket says, read once per frame: the stream frames its tabs get verbatim (the
 // object never re-encodes them), the relay's frames, the frames it drops, and the ones that close
 // the socket. The object never trusts a field it does not need: a stream frame is checked for its
-// hub id only, since the tabs decode it at their own boundary.
-import { RELAY_FAILURE_STATUS } from '@syneva/contracts/bridge'
+// hub id and its tag only, since the tabs decode it at their own boundary.
+import { BRIDGE_LIMITS, RELAY_FAILURE_STATUS } from '@syneva/contracts/bridge'
 
 import type { BridgeFrame, RelayFailure } from '@syneva/contracts/bridge'
 
@@ -12,8 +12,9 @@ export type RelayFrame = Extract<
 >
 
 export type HubSays =
-	// Forwarded as is to every tab, once its hub id is the socket's.
-	| { kind: 'stream'; hubId: string }
+	// Forwarded as is once its hub id is the socket's: to the tab its tag names (a snapshot the
+	// object asked for that tab), or to every tab (the live stream, untagged).
+	| { kind: 'stream'; hubId: string; tag: string | null }
 	| { kind: 'relay'; frame: RelayFrame }
 	// A ping or pong the auto-response did not take, a `pairing` frame (the local hub's own tabs
 	// read it, never the web's), a kind this web does not know (a newer hub): passed over.
@@ -61,11 +62,20 @@ function parsed(text: string): Record<string, unknown> | null {
 	return Object.fromEntries(Object.entries(raw))
 }
 
-// `hello` names its hub inside its identity, every other stream frame by `hubId`.
+// `hello` names its hub inside its identity, every other stream frame by `hubId`. A tag is the
+// object's own, echoed: absent, or text within `snapshotTagChars`.
 function streamFrame(raw: Record<string, unknown>): HubSays {
 	const hub = raw.t === 'hello' ? fieldsOf(raw.hub)?.id : raw.hubId
 	if (typeof hub !== 'string') return MALFORMED
-	return { kind: 'stream', hubId: hub }
+	const { tag } = raw
+	if (typeof tag === 'undefined')
+		return { kind: 'stream', hubId: hub, tag: null }
+	const isTag =
+		typeof tag === 'string' &&
+		tag.length > 0 &&
+		tag.length <= BRIDGE_LIMITS.snapshotTagChars
+	if (!isTag) return MALFORMED
+	return { kind: 'stream', hubId: hub, tag }
 }
 
 function relayFrame(raw: Record<string, unknown>): HubSays {

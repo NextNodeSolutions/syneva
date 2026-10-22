@@ -1,6 +1,6 @@
 // The object's state across its sockets while it is awake: the relays in flight, each hub
 // socket's budget, the hub sockets it is closing itself. What a hub's frame does (forwarded to
-// every tab, an answer to a relay, a close), and what a closed hub socket leaves behind. None of
+// one tab or every tab, an answer to a relay, a close), and what a closed hub socket leaves behind. None of
 // it survives hibernation, and none of it needs to: a relay keeps the object awake, a budget
 // starts full again, and a socket being closed is gone by the next wake.
 import { BRIDGE_LIMITS, CLOSE_CODES } from '@syneva/contracts/bridge'
@@ -49,7 +49,8 @@ export class Switchboard {
 	}
 
 	// One text frame of a hub socket: over its size or its budget, not a frame, or another hub's,
-	// the socket closes; a relay's frame answers its relay; a stream frame goes to every tab as is.
+	// the socket closes; a relay's frame answers its relay; a stream frame goes as is to the tab
+	// its tag names, or to every tab.
 	fromHub(hub: OpenHub, text: string): void {
 		const { attachment } = hub
 		this.sweep()
@@ -69,8 +70,13 @@ export class Switchboard {
 				CLOSE_CODES.rate,
 				'a frame of another hub',
 			)
-		// The hub's own text, verbatim: the object never re-encodes a stream frame.
-		return this.toTabs(text)
+		// The hub's own text, verbatim: the object never re-encodes a stream frame. A snapshot asked
+		// for one tab goes to that tab alone (to none once it closed): the others hold theirs.
+		if (says.tag)
+			for (const tab of openTabs(this.#ctx, says.tag))
+				sendQuietly(tab, text)
+		else this.toTabs(text)
+		return undefined
 	}
 
 	// A relay over before its answer finished: forgotten, and its hub told to stop sending.
