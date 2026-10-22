@@ -70,29 +70,28 @@ is recorded), `POST /__close { hubId, code, reason? }`,
   `chunkBytes` of base64, every frame under `frameBytes`, whole once reassembled; a 40 MiB one
   is one `err TOO_LARGE` (413 at the tab); `POST /api/hub/desks`, `DELETE /api/hub/desks/<id>`
   and `GET /api/hub/plans` answer with web ids.
-- **Refusals and bounds**: `/poll`, `/await-send`, `/api/hub/shutdown`, `/api/hub/ws`, `/login`,
-  the pairing route, the desk list, a page, another hub's desk and a dot-segment path answer
-  `404 NOT_RELAYED` at once, never dispatched (the hub still runs); a `req` that does not read
-  answers 400; a cancel stops the answer's frames and the hub answers the next relay; with
-  `inFlightPerUser` relays streaming, the next is `err TOO_MANY`. A relay cancelled while its
-  route still runs (a `/blob` read of a FIFO the check writes to later) keeps its slot, so one of
-  the next `inFlightPerUser` is `err TOO_MANY`; once its route settles it sends nothing, and its
-  slot is free again.
+- **Refusals and bounds**: `/poll`, `/await-send`, a desk's `/settings` and `/api/hub/settings`,
+  `/api/hub/shutdown`, `/api/hub/ws`, `/login`, the pairing route, the desk list, a page, another
+  hub's desk and a dot-segment path answer `404 NOT_RELAYED` at once, never dispatched (the hub
+  still runs); a `req` that does not read answers 400; a cancel stops the answer's frames and the
+  hub answers the next relay; with `inFlightPerUser` relays streaming, the next is `err TOO_MANY`.
+  A relay cancelled while its route still runs (a `/blob` read of a FIFO the check writes to
+  later) keeps its slot, so one of the next `inFlightPerUser` is `err TOO_MANY`; once its route
+  settles it sends nothing, and its slot is free again.
 - **The machine's own** (RFC 0001, section 7: the web may review the code of the repositories
-  the hub serves, nothing more): a relayed `GET /settings` leaves the editor command out; a
-  relayed `POST /settings` changes the display preferences and keeps the machine's editor
-  command, a body that is no object included. A relayed `/open-editor` is `422 EDITOR_LOCAL_ONLY`
-  when the machine sets no editor or the OS opener, and `400 BAD_PATH` on a symlink out of the
-  repo; a template whose program is a placeholder is `422 BAD_EDITOR_COMMAND`, locally too.
-  Nothing is launched: every case is refused first. A relayed open of another repository, of the
-  filesystem's root, of a file outside the served repo (directly or through a symlink), of a repo
-  scope outside it, and the inventory of another repository are `403 NOT_SERVED`; a relayed pr open
-  is `403 PR_LOCAL_ONLY`; a file inside the served repo still opens from the web, and the machine
-  still opens the other repository itself.
+  the hub serves, nothing more): a relayed `GET` or `POST /settings` is `404 NOT_RELAYED` and the
+  machine's settings.json stays as the machine wrote it. A relayed `/open-editor` is
+  `422 EDITOR_LOCAL_ONLY` when the machine sets no editor or the OS opener, and `400 BAD_PATH` on
+  a symlink out of the repo; a template whose program is a placeholder is
+  `422 BAD_EDITOR_COMMAND`, locally too. Nothing is launched: every case is refused first. A
+  relayed open of another repository, of the filesystem's root, of a file outside the served repo
+  (directly or through a symlink), of a repo scope outside it, and the inventory of another
+  repository are `403 NOT_SERVED`; a relayed pr open is `403 PR_LOCAL_ONLY`; a file inside the
+  served repo still opens from the web, and the machine still opens the other repository itself.
 - **The hub's log**: every relayed request but a GET left one line in the hub's log, by its path
   as the hub read it, its status and code, and the hub-side id of the desk it acted on (a
-  comment, a settings write, an open by the desk it opened, a refused open, a path never relayed);
-  no GET has a line, and the relayed comment's words appear nowhere in the log.
+  comment, a refused settings write, an open by the desk it opened, a refused open, a path never
+  relayed); no GET has a line, and the relayed comment's words appear nowhere in the log.
 - **Limits**: 50 CLI comments in a busy loop all reach the web; over the whole run no second at
   the fake held more than `framesPerSecond` frames or `bytesPerSecond` bytes, and the bucket
   never closed the socket.

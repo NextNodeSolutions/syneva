@@ -17,6 +17,7 @@ import { scratchRepo } from '../stream/hub-driver.mjs'
 import { waitFor } from '../stream/stream-client.mjs'
 
 import { FRAME_WAIT_MS } from './hub-checks.mjs'
+import { checkDeskSettings } from './settings-checks.mjs'
 import {
 	HTTP_NOT_FOUND,
 	HTTP_OK,
@@ -37,6 +38,7 @@ export async function checkRelay(context, { hubId, tab }) {
 	const deskId = await openDesk(context, { hubId, tab })
 	if (!deskId) return
 	await readState(context, deskId)
+	await checkDeskSettings(context, deskId)
 	await postRound(context, { hubId, tab, deskId })
 	await checkRefusals(context, { hubId, deskId })
 }

@@ -23,8 +23,8 @@ export async function checkRelayLog(context, desk) {
 			`${RELAYED}POST ${base}/comment answered 200 (desk ${desk.localId})`,
 		],
 		[
-			'a relayed settings write',
-			`${RELAYED}POST ${base}/settings answered 200 (desk ${desk.localId})`,
+			'a relayed settings write refused before routing, by its web path',
+			`${RELAYED}POST ${deskApiBase(desk.webId)}/settings answered 404 NOT_RELAYED`,
 		],
 		[
 			'a relayed open refused, with its code',

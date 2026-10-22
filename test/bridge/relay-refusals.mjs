@@ -83,6 +83,9 @@ function refusalsOf(desk) {
 	return [
 		['GET', `${base}/poll`],
 		['GET', `${base}/await-send`],
+		// The machine's settings.json, which names the editor command the hub runs.
+		['POST', `${base}/settings`],
+		['GET', HUB_PATHS.settings],
 		['POST', HUB_PATHS.shutdown],
 		['GET', HUB_PATHS.hubSocket],
 		['GET', HUB_PATHS.login],

@@ -1,11 +1,12 @@
 // What stays the machine's on a paired hub (RFC 0001, section 7): the web account is the trust
 // boundary of a relayed request, so the web may review code in the repositories the hub serves
-// and nothing more. Its settings writes keep the machine's own keys (contracts/settings.ts), it
-// opens a file only in an editor the machine names, never through the OS's opener, and it opens
-// desks only on a root the hub serves, on paths inside it, never in pr mode. Every editor case
-// here is refused before anything is launched.
+// and nothing more. It never reads or writes the machine's settings, it opens a file only in an
+// editor the machine names, never through the OS's opener, and it opens desks only on a root the
+// hub serves, on paths inside it, never in pr mode. Every editor case here is refused before
+// anything is launched.
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { isDeepStrictEqual } from 'node:util'
 
 import { deskApiBase, HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 import { scratchRepo } from '../stream/hub-driver.mjs'
@@ -20,9 +21,10 @@ import { webOf } from './relay-checks.mjs'
 
 // The machine's editor command for these checks; never launched by them.
 const MACHINE_EDITOR = 'code -g {file}:{line}'
-// A display preference the machine sets, then the web.
+// A display preference the machine sets, then the web tries to.
 const MACHINE_FONT = 13
 const WEB_FONT = 15
+const NOT_RELAYED = '404 NOT_RELAYED'
 
 export async function checkMachine(context, desk) {
 	context.report.section("relay: what stays the machine's")
@@ -42,8 +44,10 @@ async function readSettingsFile(home) {
 	return JSON.parse(await fs.readFile(file, 'utf8'))
 }
 
-// The machine sets its editor; the web reads the preferences without it, and its writes (a
-// whole preferences body, a body that is no object) change the display preferences and keep it.
+// The machine's preferences are never the web's (RFC 0001, 4.7: the web keeps the person's own):
+// a relayed read or write of a desk's /settings is refused before the router, and settings.json,
+// which names the editor the hub runs, stays as the machine wrote it. Core's settings routes keep
+// the machine's keys from a relayed request too (http/settings.ts), whatever the allowlist says.
 async function checkSettings(context, desk) {
 	const { report, driver, home } = context
 	const web = webOf(context)
@@ -53,34 +57,26 @@ async function checkSettings(context, desk) {
 		settings: { editorCommand: MACHINE_EDITOR, fontSize: MACHINE_FONT },
 		diffStyle: 'split',
 	})
-	const read = await (await web(relayed)).json()
+	const before = await readSettingsFile(home)
+	const read = await codeOf(await web(relayed))
+	const written = await codeOf(
+		await web(
+			relayed,
+			postJson({
+				settings: { editorCommand: 'subl', fontSize: WEB_FONT },
+				diffStyle: 'unified',
+			}),
+		),
+	)
 	report.check(
-		'a relayed GET /settings leaves the editor command out',
-		read.settings?.fontSize === MACHINE_FONT &&
-			!('editorCommand' in read.settings),
-		JSON.stringify(read),
+		'a relayed GET or POST /settings is NOT_RELAYED',
+		read === NOT_RELAYED && written === NOT_RELAYED,
+		`${read}, ${written}`,
 	)
-	const written = await web(
-		relayed,
-		postJson({
-			settings: { editorCommand: 'subl', fontSize: WEB_FONT },
-			diffStyle: 'unified',
-		}),
-	)
-	const kept = await readSettingsFile(home)
-	report.check(
-		'a relayed POST /settings changes the display preferences, never the editor command',
-		written.status === HTTP_OK &&
-			kept.settings?.editorCommand === MACHINE_EDITOR &&
-			kept.settings.fontSize === WEB_FONT &&
-			kept.diffStyle === 'unified',
-		JSON.stringify(kept),
-	)
-	const odd = await web(relayed, postJson(['not', 'preferences']))
 	const after = await readSettingsFile(home)
 	report.check(
-		'a relayed POST /settings that is no object keeps the editor command too',
-		odd.status === HTTP_OK &&
+		"the machine's settings.json stays as the machine wrote it",
+		isDeepStrictEqual(after, before) &&
 			after.settings?.editorCommand === MACHINE_EDITOR,
 		JSON.stringify(after),
 	)
