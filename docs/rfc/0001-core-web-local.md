@@ -964,19 +964,87 @@ holds the web's list with the rule each point serves.
   cookie's name, 30 days; a link's 15 minutes.
 - `DeskCapabilities { staging }` (`contracts/browser.ts`) and `409 STAGING_DISABLED`: a desk whose
   git port has no staging tier (a PR desk today, a web desk in phase 3) says so to the tab instead
-  of failing the action.
+  of failing the action. All three staging routes (`/stage`, `/stage-change`, `/unstage`) refuse
+  on it, and the tab approves as a verdict only and restores no index on a reset; a repo or file
+  desk's read on a hub without a working tree answers `409 NO_WORKING_TREE`, not a 500.
 - Core's router takes a `RequestChannel`: `direct`, or `relayed-over-pairing` for a request the
-  probe dispatches, which skips the Host/Origin and access guards and nothing else (section 7's
-  in-process dispatch).
+  probe dispatches, which skips the Host/Origin and access guards (section 7's in-process
+  dispatch). The channel stays on every route's `HubRequest`: the routes that act for the machine
+  itself read it to narrow what the web may do (12.2).
+- `PartialDeskPulse` (`bridge.ts`: `DeskPulseHead` and `partial: { digest }`) and `API_PATHS.pulse`
+  (`GET /api/desks/<id>/pulse`). A pulse is the one frame whose size the review sets (the guide,
+  the conversation), and 4.4 bounds every frame at 1 MiB: a pulse whose whole frame would pass
+  `frameBytes` travels as the part that does not grow with the review and a digest of the rest,
+  which moves whenever a part left out moves, and the tab reads the whole pulse at `/pulse` when
+  the digest is not the one it last read. Before it, such a desk went unheard, or closed its
+  readers' sockets.
+- `SnapshotTag`: `snapshot?` may carry a `tag` (at most `BRIDGE_LIMITS.snapshotTagChars`, 64), and
+  the hub echoes it on every frame of that snapshot while its live stream goes on untagged; the
+  object hands a tagged frame to the one tab it names (12.3). A `snapshot?` without a tag is 4.4's.
+  `hubs-end` closes the cards the object sends a tab first (the person's hubs, online or not).
+- `BRIDGE_LIMITS.silenceMs` (70 s: two pings and the pong deadline, a background tab's timers being
+  throttled to once a minute) and `bufferedBytes` (8 MiB), with `CLOSE_CODES.silent` (4008) and
+  `slow` (4010); a client reconnects after either with the normal backoff (12.2).
+- `TOO_MANY_STATUS` (409): the web's answer to an upgrade past `hubsPerUser` or `tabsPerUser`, where
+  6.3 R6 closes the socket with 1013 (12.3); a `hub` frame's `refusedAt` tells the open tabs that
+  hub was turned away for it.
+- `contracts/ops.ts` and `BRIDGE_PATHS.opsDrain` (`POST /bridge/v1/ops/drain`): the breaker's
+  drain a page at a time, as control-center follows it (12.3).
+- `contracts/settings.ts`: the settings payload and `MACHINE_SETTINGS` (`editorCommand`), the keys a
+  relayed settings request neither reads nor writes; `contracts/relay.ts` lists neither settings
+  route (12.2).
+- Pairing and sign-in: the token ask may answer 429 `SLOW_DOWN` (RFC 8628, 3.5);
+  `DeviceApprovalRequest.confirm`, the device page's proof, without which an approval is 403
+  `DEVICE_UNCONFIRMED`; `GET /auth/callback` is a page that changes nothing, the token taken by
+  its same-origin `POST` (12.3).
+- Error codes beside those: local's Node adapter answers a method no Fetch `Request` can carry
+  (TRACE, TRACK) `405 METHOD_NOT_ALLOWED` and a target or header the Fetch API refuses `400
+  MALFORMED_REQUEST`, in the hub's error shape; a relayed open may be refused `403 NOT_SERVED` or
+  `403 PR_LOCAL_ONLY`, a relayed `/open-editor` `EDITOR_LOCAL_ONLY` (12.2); the web adds `409
+  NOT_TRIPPED` (a drain while the breaker is clear) and `TOO_MANY_TABS` beside `TOO_MANY_HUBS`.
 
 ### 12.2 Phase 0 and 1 choices
 
-- The local stream has no backpressure cap for a slow reader: `ws` buffers, and a tab that never
-  reads grows the process. Noted, not guarded (a local tab, not a billed object).
+- The Node adapter (phase 0) runs a route's `afterSent` work once node:http is done with the
+  response, handed over whole or abandoned by a client gone first: a route that returned has
+  committed what its answer announces (a Send recorded, a close accepted), so a reviewer whose tab
+  left before the ack still wakes the agent. It drains a request body no route read, so a
+  connection is never held by it, and refuses what the Fetch API cannot carry in the hub's error
+  shape instead of failing on the socket; an upgrade's raw socket keeps an error listener for its
+  life, so a client resetting it while the hub writes its refusal never takes the hub down.
+- The local stream bounds its readers, as the object bounds its sockets: a reader that leaves more
+  than `bufferedBytes` unread is closed with `slow` (live frames queue only once the snapshot is
+  written out, so a snapshot alone, whatever its size, closes no one), and a socket silent past
+  `silenceMs` with `silent`, so a laptop asleep or a link dropped half-open holds neither its
+  subscription nor a seat among `tabsPerUser`. A tab that comes back reads a fresh snapshot, which
+  says the latest state once instead of every step it missed. The tab's transport starts its
+  backoff over only once a socket has held (it read what it is sent first whole, then answered a
+  ping), not at every hello: a hub that says hello and drops every socket kept its tabs
+  reconnecting about once a second.
 - The probe refuses a `req` whose path `contracts/relay.ts` does not list (`404 NOT_RELAYED`) or
   that does not read as itself (`400 MALFORMED_RELAY`), and never refuses a body for its size: the
-  Worker bounds bodies at `requestBodyBytes` before relaying (R9). A cancelled relay skips the
-  route's `afterSent` work.
+  Worker bounds bodies at `requestBodyBytes` before relaying (R9). A relayed route's `afterSent`
+  work runs when the relay ends, whether its answer went or not (a cancel, the hub's socket
+  closing, an answer past `responseBytes`), as under node:http; a relay keeps its
+  `inFlightPerUser` slot, shared by the pairing's sockets, until its route has answered, cancelled
+  or not, since routes do not stop on an abort.
+- The in-process dispatch is narrowed (section 7): the allowlist is not the only line between the
+  web account and the machine, whose trust boundary for a relayed request is the account. The
+  routes that act for the machine itself read the channel. The hub's settings and a desk's
+  `/settings` are never relayed (the Worker answers both from D1, as 4.7 says of the hub's), and
+  core's settings routes keep `MACHINE_SETTINGS` from a relayed request anyway: the hub runs its
+  `editorCommand` as a program, which whoever holds the web account must never choose.
+  `/open-editor` launches only the editor the machine set, never the OS opener (which runs
+  whatever the file's type names): `EDITOR_LOCAL_ONLY`. An open names the root of a live desk on
+  the hub and paths that resolve inside it, symlinks followed (`NOT_SERVED`), and never a PR, which
+  checks out in the machine's working tree and runs its hooks (`PR_LOCAL_ONLY`). Every relayed
+  request but a GET leaves a line in the hub's log: method, path, status, the hub-side desk id,
+  never a body.
+- Pairing: `syneva login --web` takes an `https` origin only, `http` on loopback alone (`wrangler
+  dev`). The CLI asks for its token as RFC 8628 (3.5) says: an ask under the interval answers 429
+  `SLOW_DOWN` and the CLI adds 5 s to its interval for the rest of the login; a web that does not
+  answer, or fails (5xx), is asked again after a wait that doubles, until the code's lifetime
+  ends.
 - `SYNEVA_BRIDGE_WAIT_SCALE` (test-only) scales the probe's waits for `test/bridge`'s conformance
   check; unset, the waits are 4.3's.
 - `test/bridge/fake-bridge.mjs` is the probe's oracle (the pairing routes, both sockets, the relay,
@@ -992,7 +1060,15 @@ The Worker and the object:
   Clients read a 503 on an upgrade as 4029 (five minutes). The drained objects close their sockets
   with 4029; a relay while tripped answers 503 `HUB_OFFLINE`. The drain reaches every user's object
   (bounded by the user count), not only the hubs seen in the last day: a tab may be open with no
-  hub online.
+  hub online. It goes a page at a time, at most 100 objects per ops call (`contracts/ops.ts`): the
+  call that trips the breaker drains the first page and answers a cursor, and control-center asks
+  for each next page (a failed one again with the same cursor; draining an object twice closes
+  nothing more). One call draining every object would outgrow a Worker invocation as the users
+  grow, and a call cut short could not go on; nothing is queued or scheduled.
+- The tab's socket meets every refusal before its upgrade is required: a browser's WebSocket never
+  says why an upgrade failed, so the tab asks with a plain GET of the same path, which hears the
+  session's 401, the limiter's 429 and the breaker's 503 as the upgrade would, and 426 only past
+  them.
 - The relay's deadline is the Worker's (`AbortSignal.timeout` on its call into the object; the
   object has no timer, R2): on the deadline the Worker asks the object to `cancel` the hub's side
   if no answer started, then answers 504. Inside the object, a reader more than two chunks behind
@@ -1002,17 +1078,62 @@ The Worker and the object:
   `last-modified`, `content-disposition`, `vary`), never a cookie, and gain
   `content-security-policy: default-src 'none'; sandbox` and `x-content-type-options: nosniff`:
   a hub's bytes (a `/blob` SVG) are served on the web's origin.
-- The sign-in limits of 6.1 F1 are per address per hour and per day in D1 (a rate-limit binding
-  counts over 10 or 60 seconds only); the `RL_AUTH` binding holds 10 per minute per client address
-  on the magic link, the device code and the hub's upgrade. `POST /bridge/v1/device/token` polled
-  under its interval answers 429 `SLOW_DOWN`; a code pairs once (410 after).
+- The sign-in limits of 6.1 F1 are per client per hour, and per network and in all per day (50
+  links a network, 2,000 in all), in D1 (a rate-limit binding counts over 10 or 60 seconds only),
+  the day's quota reserved atomically. A client is an IPv4 address or an IPv6 /64, a network an
+  IPv4 address or an IPv6 /48: a device holds a whole /64, so rotating the addresses of a prefix
+  buys nothing, and draining the day takes forty networks, not one client. The `RL_AUTH` binding
+  holds 10 per minute per client on the magic link and the device code, per person on the device
+  page and per hub on the hub's upgrade. The tab's upgrade has its own binding, `RL_TABS`, 60 per
+  minute per person: RL_AUTH's ten would refuse a person's tabs reconnecting together after a
+  deploy (B4, up to 32), and sixty still hold a reconnect loop to one a second.
+  `POST /bridge/v1/device/token` polled under its interval answers 429 `SLOW_DOWN`; a code pairs
+  once (410 after).
+- The sign-in link changes nothing on its GET, which a mail scanner fetches at will: `GET
+  /auth/callback` is a page naming the account the link signs in as, its one button a same-origin
+  POST that takes the token, once, within 15 minutes and five tries.
+- The device page names the hub (its name, its CLI version) and the account it would pair to,
+  with a sign-out for the wrong one, and approves only from itself: its Approve carries a proof,
+  an HMAC of the session's digest and the code under `SESSION_SECRET`, without which an approval
+  is 403 `DEVICE_UNCONFIRMED`. The hub's token (4.2, step 2) is drawn when the CLI takes its
+  approved code, not at the approval, and the hub's row is written then with its sha256: no token
+  is ever stored, not even between the two.
 - Sessions: a random id in the cookie, kept as its HMAC-SHA256 under `SESSION_SECRET`, so a
   database dump alone forges nothing. A page shell is served on a cookie that merely looks present
   (no D1 read per navigation); the first API call says 401. `GET /logout` is a confirmation page,
   the sign-out itself a same-origin POST.
-- Additions: at most 32 live hubs per account at approval (409 `TOO_MANY_HUBS`); a hub's name cut
-  to 64 characters; settings capped at 64 KiB; `lastSeenAt` is the hub's last connect (the object
-  writes nothing on close, R3); `instanceId` in the web's health is a build-time constant.
+- Additions: at most 32 hubs per account, paired or approved and not yet taken, checked inside the
+  approval's transaction (409 `TOO_MANY_HUBS`; 8 of them connect at once, `hubsPerUser`, since a
+  paired machine is often off); a hub's name cut to 64 characters; settings capped at 64 KiB;
+  `lastSeenAt` is the hub's last connect (the object writes nothing on close, R3), written after
+  the answer and only for a socket the object accepted; `instanceId` in the web's health is a
+  build-time constant.
+- The connected caps (6.3 R6): past 8 hubs or 32 tabs connected, the object accepts no socket and
+  answers the upgrade 409 (`TOO_MANY_STATUS`; the Worker says `TOO_MANY_HUBS` or
+  `TOO_MANY_TABS`), not an accepted socket closed with 1013. Under workerd a close the object
+  issues as it accepts a socket never reaches the client, which reads it open, then nothing, not
+  even a pong. The probe waits 60 s after a 409, as after 1013, and says the account has too many
+  hubs connected; a browser's WebSocket reads no status, so a tab past its cap backs off as after
+  any refused upgrade. A refused hub costs one object request, no socket and no D1 write, and
+  never reads as connected; at each refusal the open tabs get its `hub` frame, offline, with
+  `refusedAt`, which the object keeps nowhere.
+- A connecting tab's snapshot goes to that tab alone (6.1 B10): its `snapshot?` carries the tab's
+  socket id as its `tag`, the object hands each tagged frame to that tab (to none once it closed)
+  and every untagged one to all; a tag that does not read closes the hub's socket with 1003.
+- One D1 read per request past the guards: the session's read carries what the route opens (the
+  person's hubs and the breaker for the tab's socket, the hub it names and the breaker for a
+  relay), where a relay took three round trips.
+- The Worker's own pages (sign-in, sign-out, the device page, not found) go out under one policy:
+  `default-src 'none'`, the page's one inline sheet by its hash, no script, `form-action 'self'`,
+  `frame-ancestors 'none'`, `base-uri 'none'`, with `x-frame-options: DENY`, `nosniff` and
+  `referrer-policy: no-referrer` (a sign-in token never leaves in a `Referer`). The frontend's
+  shells get `frame-ancestors 'none'`, `DENY` and `nosniff`: no other site frames a page whose
+  buttons act on a machine.
+- A relay that fails after its head (a hub streaming past `responseBytes`, which a probe never
+  does, or a hub socket closing mid-answer) ends as a cut body after its 200, not 4.5's 413 or
+  502: the head goes out with the hub's first frame, and a status that waited for the size or the
+  end would hold the answer whole (R5). The 413 is the probe's own `err TOO_LARGE`, sent before
+  any head; the 502 a hub socket closing before its head.
 - Lint (6.3): oxlint has no `no-restricted-syntax`, so R1, R2 and R4 are held by
   `no-restricted-properties` on the property names. R8: `console.error` on a socket's error only,
   not on every close. R12: the object's bundle is contracts only until the hub role joins it.
@@ -1023,11 +1144,26 @@ The Worker and the object:
 The browser (section 9):
 
 - Web mode is read from the stream, never from the page: a `hub` frame or a web hub id makes the
-  page `web`, a hello from `LOCAL_HUB_ID` makes it `local`; the health is read once on the web.
-  A 503 on the upgrade's probe waits `saturatedWaitMs`, as 4029 does.
+  page `web`, a hello from `LOCAL_HUB_ID` makes it `local`; the health is read once on the web,
+  at `hubs-end` when no hub is online. A 403, 429 or 503 on the upgrade's probe waits
+  `saturatedWaitMs`, as 4029 does and as the probe waits.
+- No read re-asks on a timer: a read the hub left unanswered tries again when the hub next
+  answers, at its next hello or at the first frame of its stream past the read's backoff
+  deadline, compared when the frame comes. A partial pulse is read whole at `/pulse` when its
+  digest moves.
+- A web stream's snapshots are kept per hub, so one hub's `snapshot-end` replaces that hub's desks,
+  pulses, plans and journal alone, and a desk's closed cover waits for its own hub's; a person
+  without a paired hub, or with all of them offline, reads an empty, settled listing at
+  `hubs-end`. A hub the web no longer lists leaves the page with everything it held of it: at once
+  when this page revoked it, at the next connect's `hubs-end` when it was revoked elsewhere. A hub
+  turned away at the connected cap reads "waiting" rather than offline.
 - Relay failures are non-blocking strips over the desk (`HUB_OFFLINE`, `HUB_TIMEOUT`: the hub
   cannot be reached now) or toasts (`TOO_MANY`, `TOO_LARGE`: the hub is fine), under the existing
-  refresh and sign-in covers. Nothing retries on its own.
+  refresh and sign-in covers. Nothing retries on its own. The strip follows the newest word on the
+  hub: a refusal shaped before the hub came back never outlives it.
+- What the hub keeps for its machine is not offered from the web: New review has no PR source and
+  reads `NOT_SERVED` and `PR_LOCAL_ONLY` with what to do instead, the desk's settings lock the
+  editor command, and an editor refusal shows the hub's own sentence.
 - Only `POST /api/hub/desks` carries `WEB_HUB_HEADER` (the New review dialog's pick; no browser
   caller of `/api/hub/inventory` exists). Project ids are scoped per hub in the browser
   (`<hubId><projectId>`, `entities/hub/hub-ids.ts`): the probe scopes desks and plans, not
@@ -1053,10 +1189,20 @@ staging Worker and T1 to T10 on it (6.7) wait for that.
 ### 12.5 What checks it
 
 `test/stream/conformance.mjs` (the local stream, frame by frame), `test/bridge/conformance.mjs`
-(the probe against the fake bridge, T2 and T4 on the hub's side), `test/web/smoke.mjs` (the
-Worker under `wrangler dev` with the CLI and a scratch hub: sign-in, pairing, the tab's socket,
-the relay, revocation, the breaker, sign-out) and `test/web/cost/run.mjs` (6.7's tests: T2, T4,
-T5 and T6 run whole under `wrangler dev`, T1, T3, T8 and T9 as local dry runs, T7 against a dev
-restart; with `--staging <origin>` each runs what a deployed Worker takes and prints what a
-person completes there: the Analytics reads, the WAF rule, a deploy, T10's edge drill), all
-documented in their folder's README.
+(the probe against the fake bridge, T2 and T4 on the hub's side, and what the web may not do on
+the machine: its settings, its editor, the folders an open names, the relay's log),
+`test/web/smoke.mjs` (the Worker under `wrangler dev` with the CLI and a scratch hub: sign-in,
+pairing, the tab's socket, the relay, revocation, logout, the connected cap, the breaker,
+sign-out) and `test/web/cost/run.mjs` (6.7's tests: T2, T4, T5 and T6 run whole under `wrangler
+dev`, T1, T3, T8 and T9 as local dry runs, T7 against a dev restart; with `--staging <origin>`
+each runs what a deployed Worker takes and prints what a person completes there: the Analytics
+reads, the WAF rule, a deploy, T10's edge drill), all documented in their folder's README. The
+stream's check also covers a pulse past `frameBytes`, a slow reader, a silent socket and upgrades
+reset while the hub refuses them.
+
+Three cost tests depart from 6.7: T2 checks the connected caps' 409 (12.3) where 6.7 expects
+1013, T4 checks the cut body after a 200 (12.3) where 6.7 expects a 413 or a 502 once the head is
+out, and T5 runs scaled on `wrangler dev` (8 relays of 8 MiB,
+byte-exact; `--full` is 6.7's 32 of 32 MiB, for staging): an account's 8 hub sockets at 2 MiB/s
+cannot carry 32 answers of 32 MiB within the 30 s deadline, and `wrangler dev` has neither a
+memory limit to exceed nor an `exceededMemory` count to read.
