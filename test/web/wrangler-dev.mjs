@@ -73,9 +73,10 @@ export async function startWeb({ scratch, port, inspectorPort, vars }) {
 		link: seen => running.link(seen),
 		stop: () => running.stop(),
 		// The same Worker over the same state and secrets, as after a deploy: every socket drops
-		// (the cost tests' deploy drill, T7).
-		async restart() {
+		// (the cost tests' deploy drill, T7), and nothing answers for `downMs` more.
+		async restart({ downMs = 0 } = {}) {
 			await running.stop()
+			await delay(downMs)
 			running = spawnDev(dev)
 			await ready()
 		},

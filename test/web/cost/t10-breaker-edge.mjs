@@ -5,9 +5,10 @@
 // is a procedure with a client-side trace: five tabs hold sockets the way the probe does (its
 // policy module), are dropped when the rule is up, and every attempt they make is written down.
 // `--procedures` prints the steps without running them.
-import { PolicyClient, story } from './fakes/policy-client.mjs'
+import { PolicyClient } from './fakes/policy-client.mjs'
 import { delay } from './fakes/timing.mjs'
 import { iso } from './hold.mjs'
+import { story } from './rfc-waits.mjs'
 import { EDGE_STAGE_STEPS } from './staging-reads.mjs'
 
 const TABS = 5

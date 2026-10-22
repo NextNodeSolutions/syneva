@@ -2,12 +2,15 @@ import { BRIDGE_LIMITS } from '../../../../packages/contracts/dist/bridge.js'
 // A client that keeps a socket open the way RFC 0001, 4.3 says every client does - the probe's own
 // policy module, built with the local package, decides what each end of an attempt asks for (stop;
 // wait what a close code or an edge refusal names; else exponential backoff, 1 s to 60 s, full
-// jitter) - and writes down every attempt, so a drill reads how often a client really tried.
+// jitter) - and writes down every attempt and every wait, so a drill reads how often a client
+// really tried and holds it against the RFC (rfc-waits.mjs). Its record is a BrowserTab's:
+// `trace` in order, { type: 'attempt', at, outcome } and { type: 'retry', at, waitMs, draw, cause }.
 import { nextStep } from '../../../../packages/local/dist/adapters/outbound/bridge/policy.js'
 
 import { delay } from './timing.mjs'
 
 export class PolicyClient {
+	trace = []
 	// { at, outcome } per attempt: 'open', the HTTP status that refused it, or 'failed'.
 	attempts = []
 	retries = []
@@ -34,6 +37,11 @@ export class PolicyClient {
 		this.#done = this.#loop()
 	}
 
+	// The socket ends under the client, as a network change ends it.
+	drop() {
+		this.peer.terminate()
+	}
+
 	async stop() {
 		this.stopped = true
 		this.#abort.abort()
@@ -47,18 +55,21 @@ export class PolicyClient {
 			const end = await this.#once()
 			if (this.#isStopped()) return
 			if (end.kind === 'closed') attempt = 0
-			const step = nextStep(end, {
-				attempt,
-				draw: Math.random(),
-				scale: 1,
-			})
+			const draw = Math.random()
+			const step = nextStep(end, { attempt, draw, scale: 1 })
 			if (step.kind === 'stop') {
 				this.stopped = true
 				this.stopReason = step.reason
 				return
 			}
 			attempt += 1
-			this.retries.push({ at: Date.now(), waitMs: step.waitMs })
+			this.#record(this.retries, {
+				type: 'retry',
+				at: Date.now(),
+				waitMs: step.waitMs,
+				draw,
+				cause: end,
+			})
 			await delay(step.waitMs, undefined, {
 				signal: this.#abort.signal,
 			}).catch(() => undefined)
@@ -76,23 +87,20 @@ export class PolicyClient {
 			pingMs: BRIDGE_LIMITS.pingIntervalMs,
 		})
 		if (outcome === 'open') {
-			this.attempts.push({ at, outcome })
+			this.#record(this.attempts, { type: 'attempt', at, outcome })
 			this.opens.push(Date.now())
 			const closed = await this.peer.closed
 			this.drops.push({ at: closed.at, code: closed.code })
 			return { kind: 'closed', code: closed.code, reason: closed.reason }
 		}
-		this.attempts.push({ at, outcome })
+		this.#record(this.attempts, { type: 'attempt', at, outcome })
 		if (typeof outcome === 'number')
 			return { kind: 'refused', status: outcome }
 		return { kind: 'failed', reason }
 	}
-}
 
-// One client's story in words: when each attempt went (seconds from `origin`) and how it ended.
-export function story(client, origin) {
-	const at = ms => ((ms - origin) / 1000).toFixed(1)
-	return `${client.name}: ${client.attempts
-		.map(each => `${at(each.at)}s ${each.outcome}`)
-		.join(', ')}`
+	#record(list, event) {
+		list.push(event)
+		this.trace.push(event)
+	}
 }
