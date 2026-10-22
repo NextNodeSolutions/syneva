@@ -20,9 +20,10 @@ import { bridgeFile, isPairing, readLocal } from '../bridge/pairing-checks.mjs'
 import { openReader, socketUrl, waitFor } from '../stream/stream-client.mjs'
 
 import { FRAME_WAIT_MS } from './hub-checks.mjs'
+import { HTTP_OK } from './statuses.mjs'
 import { checkTabCap } from './tab-checks.mjs'
 import {
-	approveDevice,
+	approveByForm,
 	openDevicePage,
 	pairHub,
 	signInAs,
@@ -99,8 +100,8 @@ async function connectEight({ report, web }, { browser, tab }) {
 	return held
 }
 
-// The ninth, a running hub paired with `syneva login`: the web refuses its upgrade, and login says
-// it could not connect, for the cap.
+// The ninth, a running hub paired with `syneva login`, approved with the page's form: the page says
+// how many connect at once, the web refuses its upgrade, and login says it could not, for the cap.
 async function pairNinth(context, browser) {
 	const { report, web, cli, spareHome } = context
 	const login = spawnCli({ cli, home: spareHome }, [
@@ -111,12 +112,20 @@ async function pairNinth(context, browser) {
 	])
 	const [, userCode] = (await login.line(CODE_LINE, FRAME_WAIT_MS)) ?? []
 	const { proof } = await openDevicePage(browser, userCode)
-	const approved = await approveDevice(browser, { userCode, proof })
+	const approved = await approveByForm(browser, { userCode, proof })
+	report.check(
+		`the approved page says up to ${BRIDGE_LIMITS.hubsPerUser} hubs connect at once`,
+		approved.status === HTTP_OK &&
+			approved.text.includes('is paired.') &&
+			approved.text.includes(
+				`Up to ${BRIDGE_LIMITS.hubsPerUser} of your hubs connect at once`,
+			),
+		`${approved.status}`,
+	)
 	const { code, stderr } = await login.exited
 	report.check(
 		'a ninth hub paired with `syneva login`: login says it could not connect yet, too many hubs connected on this account',
-		approved.body?.approved === true &&
-			code === 0 &&
+		code === 0 &&
 			/could not connect yet: too many hubs connected on this account \(HTTP 409\)/.test(
 				stderr,
 			) &&

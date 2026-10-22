@@ -89,6 +89,20 @@ export function approveDevice(browser, { userCode, proof }) {
 	})
 }
 
+// Approve as the page's button posts it without a script (a form): the page that says what happened.
+export async function approveByForm(browser, { userCode, proof }) {
+	const page = await browser.fetch(WEB_PATHS.device, {
+		method: 'POST',
+		headers: { 'content-type': 'application/x-www-form-urlencoded' },
+		body: new URLSearchParams({
+			userCode,
+			confirm: proof,
+			approve: '1',
+		}).toString(),
+	})
+	return { status: page.status, text: await page.text() }
+}
+
 // A hub paired over HTTP alone, as `syneva login` pairs one: a code (asked from `address` when
 // one is given, so each pairing is its own client to the limits), approved on the device page,
 // its token taken. Its row is live; it connects only when its caller opens its socket.

@@ -2,6 +2,7 @@
 // code typed in, the hub it pairs (its name and CLI version, as the CLI asked with) with Approve
 // and Deny, and what happened. The CLI hears the answer on its next ask. Every state names the
 // account a hub pairs to, with a way out for the wrong one: sign out, then back to the same code.
+import { BRIDGE_LIMITS } from '@syneva/contracts/bridge'
 import { WEB_PATHS } from '@syneva/contracts/web'
 
 import { ARROW, crumbs, escapeHtml, page, prose, terminal } from './shell.js'
@@ -20,6 +21,10 @@ export type DeviceState =
 	| { kind: 'approved'; hubName: string }
 	| { kind: 'denied' }
 	| { kind: 'closed'; reason: string }
+
+// The object connects `hubsPerUser` of a person's hubs at once (a person pairs more: a paired
+// machine is often off); the one past it waits for a place, and says so where it runs.
+const APPROVED = `Its desks show up on the dashboard once its hub connects; the terminal says when. Up to ${BRIDGE_LIMITS.hubsPerUser} of your hubs connect at once: past that, a hub waits until one of them disconnects, and its terminal and its own Hub page say so.`
 
 const LOGIN_FIGURE = terminal({
 	title: 'where the code comes from',
@@ -56,10 +61,7 @@ function accountLine(state: DeviceState, email: string): string {
 function bodyOf(state: DeviceState, email: string): string {
 	if (state.kind === 'confirm') return confirm(state, email)
 	if (state.kind === 'approved')
-		return said(
-			`${state.hubName} is paired.`,
-			'Its desks show up on the dashboard as soon as its hub connects; the terminal says when.',
-		)
+		return said(`${state.hubName} is paired.`, APPROVED)
 	if (state.kind === 'denied')
 		return said(
 			'Denied.',
