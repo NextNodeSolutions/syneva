@@ -1,15 +1,16 @@
 // The real hub, for what only it can show: the CLI's own hub (`--cli`, on `--port`, under the run's
 // scratch HOME), paired with the web as a person pairs one (`syneva login --web`, its code approved
 // on the device page with the account's cookie), with a desk on a scratch repo opened through the
-// relay; unpaired (`syneva logout`, so a staging account keeps no cost-test hub) and stopped after.
+// relay once the machine serves that repo; unpaired (`syneva logout`, so a staging account keeps no
+// cost-test hub) and stopped after.
 import { existsSync, readFileSync } from 'node:fs'
 
 import { WEB_HUB_HEADER } from '../../../packages/contracts/dist/bridge.js'
 import { HUB_PATHS } from '../../../packages/contracts/dist/routes.js'
-import { WEB_PATHS } from '../../../packages/contracts/dist/web.js'
 import { runCli, spawnCli, startHub } from '../../bridge/hub-process.mjs'
 import { bridgeFile } from '../../bridge/pairing-checks.mjs'
 import { scratchRepo } from '../../stream/hub-driver.mjs'
+import { approveDevice, openDevicePage } from '../web-client.mjs'
 
 import { delay } from './fakes/timing.mjs'
 
@@ -21,6 +22,8 @@ const RATE_LIMITED = /answered 429/
 const RATE_RETRY_MS = 6000
 const RATE_RETRIES = 20
 const HTTP_OK = 200
+// The session of the desk the machine opens on the scratch repo before the web may.
+const SERVED_SESSION = 'cost-test-served'
 
 export async function startRealHub(ctx, account) {
 	const { options, web } = ctx
@@ -31,7 +34,7 @@ export async function startRealHub(ctx, account) {
 		const { hubId } = JSON.parse(readFileSync(bridgeFile(cli.home), 'utf8'))
 		return {
 			hubId,
-			openDesk: () => openDesk(ctx, account, hubId),
+			openDesk: () => openDesk(ctx, cli, account, hubId),
 			async stop() {
 				await runCli(cli, ['logout'])
 				await hub.stop()
@@ -58,10 +61,8 @@ async function pair(cli, account, origin, tries = RATE_RETRIES) {
 		throw new Error(`syneva login exited ${code}: ${stderr}`)
 	}
 	const [, userCode] = shown
-	const approved = await account.browser.post(WEB_PATHS.device, {
-		userCode,
-		approve: true,
-	})
+	const { proof } = await openDevicePage(account.browser, userCode)
+	const approved = await approveDevice(account.browser, { userCode, proof })
 	if (approved.status !== HTTP_OK)
 		throw new Error(`approval: ${approved.status}`)
 	const { code, stderr } = await login.exited
@@ -70,9 +71,20 @@ async function pair(cli, account, origin, tries = RATE_RETRIES) {
 	return undefined
 }
 
-// A desk on a scratch repo of the run, opened through the relay: its root and its web id.
-async function openDesk(ctx, account, hubId) {
+// A desk on a scratch repo of the run, opened through the relay: its root and its web id. A relayed
+// open names the root of a live desk on the hub (RFC 0001, section 7), so the machine opens one
+// there first, as a person does with `syneva open`, under a session of its own.
+async function openDesk(ctx, cli, account, hubId) {
 	const repo = await scratchRepo(ctx.scratch)
+	const served = await runCli(
+		cli,
+		['open', '--no-open', '--no-guide', '--session', SERVED_SESSION],
+		repo.root,
+	)
+	if (served.code !== 0)
+		throw new Error(
+			`the machine did not open ${repo.root}: ${served.stderr}`,
+		)
 	const opened = await account.browser.post(
 		HUB_PATHS.desks,
 		{ root: repo.root, session: 'cost-test', noGuide: true },

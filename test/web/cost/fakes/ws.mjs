@@ -12,8 +12,8 @@ export const OPEN = 1
 
 // Calls `settle` once with { code, reason, at } at the first of: the peer's close frame arriving,
 // the socket closing. `ws` reports a close only when the TCP connection ends, which workerd's dev
-// server can hold back for ten seconds after an immediate close (the over-the-cap refusal); the
-// frame is what a browser acts on, so it is what a test times. The receiver is `ws`'s own and
+// server can hold back for seconds after the close frame; the frame is what a browser acts on, so
+// it is what a test times. The receiver is `ws`'s own and
 // reads the frame as it arrives, hence the underscore.
 export function watchClose(socket, settle) {
 	let isSettled = false

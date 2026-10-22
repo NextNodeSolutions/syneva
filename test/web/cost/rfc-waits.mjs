@@ -1,7 +1,9 @@
 // RFC 0001, 4.3's client policy, written from the RFC's table and not from either client's code
 // (the probe's policy module, the frontend's transport, the contract's limits), so a drill holds
 // what a client did against what it should have done. After every end a client read, it waits:
-// - closed 1008: 30 s; 1013: 60 s; 4029, or HTTP 403, 429 or 503 on the upgrade: 5 min;
+// - closed 1008: 30 s; 1013, or HTTP 409 on the upgrade: 60 s (the web refuses the upgrade past
+//   the connected caps where the RFC closes it 1013, 12.3); 4029, or HTTP 403, 429 or 503 on the
+//   upgrade: 5 min;
 // - closed 4001, or HTTP 401 on the upgrade: no attempt ever again;
 // - anything else (a deploy, a drop, the web unreachable): draw x min(60 s, 1 s x 2^k), full jitter,
 //   `k` the backoff waits since the client's last socket opened (a named wait is no step of it),
@@ -17,6 +19,8 @@ const CLOSE_WAITS = new Map([
 ])
 const REFUSALS_WAITED = new Set([403, 429, 503])
 const REFUSAL_WAIT_MS = 300_000
+const TOO_MANY_REFUSAL = 409
+const TOO_MANY_WAIT_MS = 60_000
 const REVOKED = 4001
 const UNAUTHORIZED = 401
 const BACKOFF_MIN_MS = 1000
@@ -52,6 +56,8 @@ function isStop(cause) {
 
 function namedWait(cause) {
 	if (cause.kind === 'closed') return CLOSE_WAITS.get(cause.code) ?? null
+	if (cause.kind === 'refused' && cause.status === TOO_MANY_REFUSAL)
+		return { rule: 'HTTP 409 too many: 60 s', ms: TOO_MANY_WAIT_MS }
 	if (cause.kind === 'refused' && REFUSALS_WAITED.has(cause.status))
 		return { rule: `HTTP ${cause.status}: 5 min`, ms: REFUSAL_WAIT_MS }
 	return null

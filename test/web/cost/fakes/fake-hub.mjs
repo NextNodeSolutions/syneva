@@ -1,6 +1,7 @@
 // A paired hub as the cost tests need one, driven by hand: it opens the hub socket with its token
 // (RFC 0001, 4.3), says hello and closes its snapshot, pings, answers `snapshot?` the way a sane
-// probe does (at most once per debounce), and then misbehaves on request - floods, oversized or
+// probe does (the asks of a burst at once, a tagged ask with a snapshot tagged for its tab), and
+// then misbehaves on request - floods, oversized or
 // malformed frames, a `req` it never answers, an answer of N MiB, a socket that drops mid-answer.
 // Every frame it receives is recorded, so a test reads what the object sent and when.
 import { createHash, randomBytes } from 'node:crypto'
@@ -49,6 +50,9 @@ export class FakeHub {
 	#pingTimer = null
 	/** @type {any} */
 	#snapshotTimer = null
+	// The asks the next answer serves: the tabs their tags name, and whether an untagged one came.
+	#askedTags = new Set()
+	#isAskedUntagged = false
 	#nextAt = 0
 	#answerSnapshots = true
 	#instanceId = randomBytes(4).toString('hex')
@@ -126,7 +130,9 @@ export class FakeHub {
 		}
 	}
 
-	sayHello() {
+	// A snapshot with no desk: `hello`, then `snapshot-end`, both tagged for the tab `tag` names.
+	sayHello(tag) {
+		const tagged = taggedFor(tag)
 		this.sendJson({
 			t: 'hello',
 			hub: {
@@ -136,8 +142,9 @@ export class FakeHub {
 				instanceId: this.#instanceId,
 				startedAt: new Date().toISOString(),
 			},
+			...tagged,
 		})
-		this.sendJson({ t: 'snapshot-end', hubId: this.hubId })
+		this.sendJson({ t: 'snapshot-end', hubId: this.hubId, ...tagged })
 	}
 
 	startPings(ms = BRIDGE_LIMITS.pingIntervalMs) {
@@ -286,7 +293,7 @@ export class FakeHub {
 		const frame = isPong ? { t: 'o' } : parsed(text)
 		this.frames.push({ text, frame, at, isPong })
 		for (const wake of this.wakers) wake()
-		if (frame?.t === 'snapshot?') this.#snapshotLater()
+		if (frame?.t === 'snapshot?') this.#snapshotLater(frame.tag)
 		if (frame?.t === 'cancel') {
 			this.cancels.push(frame.id)
 			this.cancelled.add(frame.id)
@@ -297,12 +304,20 @@ export class FakeHub {
 		}
 	}
 
-	// A tab connecting asks every hub for a snapshot: one answer serves the asks of a burst.
-	#snapshotLater() {
-		if (!this.#answerSnapshots || this.#snapshotTimer) return
-		this.#snapshotTimer = setTimeout(() => {
+	// A tab connecting asks every hub for a snapshot, tagged for that tab: the asks of a burst are
+	// answered together, each tab its own snapshot (one for every tab when an ask had no tag).
+	#snapshotLater(tag) {
+		if (!this.#answerSnapshots) return
+		if (typeof tag === 'string') this.#askedTags.add(tag)
+		else this.#isAskedUntagged = true
+		this.#snapshotTimer ??= setTimeout(() => {
 			this.#snapshotTimer = null
-			this.sayHello()
+			const tags = [...this.#askedTags]
+			const isUntagged = this.#isAskedUntagged
+			this.#askedTags.clear()
+			this.#isAskedUntagged = false
+			if (isUntagged) this.sayHello()
+			else for (const each of tags) this.sayHello(each)
 		}, SNAPSHOT_DEBOUNCE_MS)
 	}
 
@@ -317,6 +332,12 @@ export class FakeHub {
 // The frames after `from` that are not the auto-response's pongs: what the object said besides.
 export function spoken(hub, from = 0) {
 	return hub.frames.slice(from).filter(each => !each.isPong)
+}
+
+// `{ tag }` on a snapshot for the one tab it names, nothing on one for every tab.
+function taggedFor(tag) {
+	if (!tag) return undefined
+	return { tag }
 }
 
 // `{ more: true }` while an answer goes on, nothing on its last frame (the wire says `true` or

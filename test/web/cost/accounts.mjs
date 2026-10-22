@@ -11,7 +11,12 @@ import {
 	WEB_PATHS,
 	WEB_SESSION_COOKIE,
 } from '../../../packages/contracts/dist/web.js'
-import { createBrowser } from '../web-client.mjs'
+import {
+	approveDevice,
+	createBrowser,
+	followLink,
+	openDevicePage,
+} from '../web-client.mjs'
 
 import { FakeHub } from './fakes/fake-hub.mjs'
 import { FakeTab } from './fakes/fake-tab.mjs'
@@ -58,14 +63,14 @@ async function openAccount(ctx, index) {
 	return { index, email, browser, hubs: [] }
 }
 
-// The magic link, asked for and followed.
+// The magic link, asked for and taken as its page takes it (a same-origin POST of its token: the
+// link's GET changes nothing).
 async function signIn(web, browser, email) {
 	const seen = web.links().length
 	const asked = await browser.post(WEB_PATHS.magicLink, { email })
 	if (asked.status !== 202)
 		throw new Error(`sign-in refused: ${asked.status}`)
-	const followed = await fetch(await web.link(seen), { redirect: 'manual' })
-	browser.keep(followed)
+	browser.keep(await followLink(browser, await web.link(seen)))
 	if (!browser.jar.cookie) throw new Error('the link opened no session')
 }
 
@@ -84,20 +89,21 @@ export async function hubOf(ctx, account, index) {
 	return account.hubs[index]
 }
 
-// Device code, approval with the account's cookie, token: waits out the rate limiter's 429s
-// (ten tries a minute per address and per person) instead of failing on them.
+// Device code, approval with the account's cookie from the device page (its Approve carries the
+// proof an approval needs), token: waits out the rate limiter's 429s (ten tries a minute per
+// address and per person) instead of failing on them.
 async function pairHub(account, name) {
 	const { browser } = account
 	const code = await untilAllowed(() =>
 		browser.post(BRIDGE_PATHS.deviceCode, { name, version: 'cost-test' }),
 	)
 	if (code.status !== HTTP_OK) throw new Error(`device code: ${code.status}`)
-	const approved = await untilAllowed(() =>
-		browser.post(WEB_PATHS.device, {
-			userCode: code.body.userCode,
-			approve: true,
-		}),
-	)
+	const { userCode } = code.body
+	const approved = await untilAllowed(async () => {
+		const opened = await openDevicePage(browser, userCode)
+		if (opened.page.status === HTTP_TOO_MANY) return opened.page
+		return approveDevice(browser, { userCode, proof: opened.proof })
+	})
 	if (approved.status !== HTTP_OK)
 		throw new Error(
 			`approval: ${approved.status} ${JSON.stringify(approved.body)}`,

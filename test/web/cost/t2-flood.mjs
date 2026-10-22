@@ -1,12 +1,13 @@
 // T2 flood (RFC 0001, 6.7; guards R6, 6.1 B1, B2): a hub socket past its budget is closed `rate`
 // within a second, a tab that says anything but a ping `malformed`, a frame the object cannot
-// trust `malformed` or `rate`, the 9th hub and the 33rd tab `tooMany` - and none of it touches
-// the person's other sockets.
+// trust `malformed` or `rate`, the 9th hub's and the 33rd tab's upgrades refused - and none of it
+// touches the person's other sockets.
 import {
 	BRIDGE_LIMITS,
 	CLOSE_CODES,
 	PING_TEXT,
 	PONG_TEXT,
+	TOO_MANY_STATUS,
 } from '../../../packages/contracts/dist/bridge.js'
 
 import { delay, within } from './fakes/timing.mjs'
@@ -174,7 +175,9 @@ async function tabBreaks(ctx, account, untouched) {
 	polite.close()
 }
 
-// hubsPerUser hubs fit; the next is accepted and closed `tooMany`. Likewise tabsPerUser tabs.
+// hubsPerUser hubs fit; the next upgrade is refused with TOO_MANY_STATUS, where R6 closes it
+// `tooMany`: a close the object issues as it accepts a socket never reaches the client under
+// workerd, so it accepts none (RFC 0001, 12.3). Likewise tabsPerUser tabs.
 async function caps(ctx, account, control, untouched) {
 	const hubs = [control.hub]
 	for (let index = 0; index < BRIDGE_LIMITS.hubsPerUser; index += 1)
@@ -190,11 +193,10 @@ async function caps(ctx, account, control, untouched) {
 		'the 9th hub upgrade',
 		ninth.connect({ answerSnapshots: false }),
 	)
-	const closed = await closeOf(ninth, CLOSE_WAIT_MS)
 	ctx.report.check(
-		`the ${BRIDGE_LIMITS.hubsPerUser + 1}th hub is closed ${CLOSE_CODES.tooMany} (too many)`,
-		outcome === 'open' && closed?.code === CLOSE_CODES.tooMany,
-		`${outcome} ${describeClose(closed)}`,
+		`the ${BRIDGE_LIMITS.hubsPerUser + 1}th hub's upgrade is refused ${TOO_MANY_STATUS} (too many)`,
+		outcome === TOO_MANY_STATUS,
+		`${outcome}`,
 	)
 	ctx.report.check(
 		'... and the eight before it are still open',
@@ -210,12 +212,11 @@ async function caps(ctx, account, control, untouched) {
 		`${tabs.filter(tab => tab.isOpen).length} open`,
 	)
 	const last = await ctx.tab(account, { connect: false })
-	await last.connect()
-	const lastClosed = await closeOf(last, CLOSE_WAIT_MS)
+	const lastOutcome = await last.connect()
 	ctx.report.check(
-		`the ${BRIDGE_LIMITS.tabsPerUser + 1}rd tab is closed ${CLOSE_CODES.tooMany}`,
-		lastClosed?.code === CLOSE_CODES.tooMany,
-		describeClose(lastClosed),
+		`the ${BRIDGE_LIMITS.tabsPerUser + 1}rd tab's upgrade is refused ${TOO_MANY_STATUS}`,
+		lastOutcome === TOO_MANY_STATUS,
+		`${lastOutcome}`,
 	)
 	ctx.report.check(
 		'... and the 32 before it are still open',
