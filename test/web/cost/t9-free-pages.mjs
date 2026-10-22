@@ -29,6 +29,7 @@ const HTTP_NOT_MODIFIED = 304
 
 async function run(ctx) {
 	const { report } = ctx
+	if (!ctx.staging) await freshCollector(ctx)
 	const account = await ctx.account(0)
 	const hub = await ctx.hub(account, 0)
 	const font = readdirSync(path.join(CLIENT, 'fonts')).find(name =>
@@ -52,6 +53,19 @@ async function run(ctx) {
 		to: iso(first.endedAt),
 		pageRequests: shells.length * LOADS,
 	})
+}
+
+// The Explorer's collector holds what it has not stored yet in memory, and a busy run wedges it:
+// after the tests before T9 it once stored nothing for five minutes, then took up again, and each of
+// T9's three rounds found about a quarter of its shell loads. T9 counts with a fresh one, `wrangler dev` restarted
+// over the same state and secrets, so the count reads the Worker and not the collector's backlog;
+// a round is still evidence only when it recorded every shell load.
+async function freshCollector(ctx) {
+	const startedAt = Date.now()
+	await ctx.web.restart()
+	ctx.note(
+		`wrangler dev restarted first (${((Date.now() - startedAt) / 1000).toFixed(1)} s), for an Explorer that keeps up`,
+	)
 }
 
 // Every route loaded LOADS times, a few at a time. Locally each batch waits for the Explorer to
