@@ -2,6 +2,7 @@
 // The cost acceptance tests of RFC 0001, 6.7 (T1 to T10) for apps/web:
 //   node test/web/cost/run.mjs [--only T2,T4] [--web-port 47994] [--inspector-port <port>]
 //        [--port 47993] [--cli <path>]   (the real hub T4 runs: the CLI build, its port)
+//        [--restart] [--edge --edge-port 47995]   (T7's and T10's local drills)
 //        [--staging <origin> --cookie <session> ... --ops-token <token>] [--allow-unmeasured]
 // It starts one `wrangler dev` (nothing touches a Cloudflare account), runs the selected tests
 // against it and prints one line per check. A test that only a deployed Worker can settle runs its
@@ -56,6 +57,8 @@ const { values: options } = parseArgs({
 		'allow-unmeasured': { type: 'boolean', default: false },
 		procedures: { type: 'boolean', default: false },
 		restart: { type: 'boolean', default: false },
+		edge: { type: 'boolean', default: false },
+		'edge-port': { type: 'string', default: '47995' },
 	},
 })
 
@@ -197,6 +200,7 @@ async function preflight() {
 		? []
 		: [options['web-port'], options['inspector-port']]
 	if (needsHub) ports.push(options.port)
+	if (options.edge && !options.staging) ports.push(options['edge-port'])
 	const busy = []
 	for (const port of ports.filter(Boolean))
 		if (!(await isFree(Number(port)))) busy.push(port)
