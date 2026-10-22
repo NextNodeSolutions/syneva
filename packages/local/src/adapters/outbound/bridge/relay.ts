@@ -3,7 +3,7 @@
 // `relayed-over-pairing` channel - its Host/Origin and access guards skipped for it alone, every
 // route's own validation run, and the routes that act for the machine itself narrowed for the web
 // (core's exchange.ts) - and its answer goes back by relay-answer.ts, the route's afterSent work
-// once the last frame is written. At most `inFlightPerUser` at a time (beyond: `err TOO_MANY`);
+// once that answer is done with: its last frame written, or dropped. At most `inFlightPerUser` at a time (beyond: `err TOO_MANY`);
 // an answer past `responseBytes` is `err TOO_LARGE`; a `cancel` aborts the request's signal,
 // drops what was not sent, and sends nothing then or later (the web already answered its tab).
 // Every relayed request but a GET leaves a line in the hub's log (relay-log.ts).
@@ -37,6 +37,9 @@ export type RelayDeps = {
 
 const HTTP_UNAVAILABLE = 503
 
+// The afterSent work of an answer no route gave: a refusal, a failure.
+const NOTHING_AFTER = (): void => undefined
+
 type Relaying = { deps: RelayDeps; outbox: Outbox; signal: AbortSignal }
 
 // What `inFlightPerUser` counts: the routes the hub runs for the web, until each settles. A
@@ -58,13 +61,17 @@ class Slots {
 	}
 }
 
-// One relay's slot: given back once the relay finished, or once it is both stopped and answered,
-// whichever comes first, and only once.
+// One relay's slot and its route's afterSent work, each settled once: given back and run once the
+// relay finished, or once it is both stopped and answered, whichever comes first. A route that
+// answered has committed what its answer announces (core's Served: a Send recorded, a close
+// accepted), so an answer that never goes - the web cancelled it, the socket closed under it, it
+// passed `responseBytes` - cancels none of its afterSent work, as a local tab gone first cancels
+// none: the agent parked on that Send is still woken, the desk still closes.
 class HeldRelay {
 	readonly controller = new AbortController()
 	readonly #slots: Slots
 	readonly #onFree: () => void
-	#isAnswered = false
+	#afterSent: (() => void) | null = null
 	#isFree = false
 
 	constructor(slots: Slots, onFree: () => void) {
@@ -72,14 +79,16 @@ class HeldRelay {
 		this.#onFree = onFree
 	}
 
-	answered(): void {
-		this.#isAnswered = true
+	// The route answered, with the work its answer orders (none when it failed); the first call
+	// counts.
+	answered(afterSent: () => void): void {
+		this.#afterSent ??= afterSent
 	}
 
-	// Its answer never goes; the slot goes now if the route answered already, else once it does.
+	// Its answer never goes; the relay ends now if the route answered already, else once it does.
 	stop(): void {
 		this.controller.abort()
-		if (this.#isAnswered) this.free()
+		if (this.#afterSent) this.free()
 	}
 
 	free(): void {
@@ -87,6 +96,7 @@ class HeldRelay {
 		this.#isFree = true
 		this.#slots.give()
 		this.#onFree()
+		this.#afterSent?.()
 	}
 }
 
@@ -121,7 +131,7 @@ function openChannel(
 			running.set(frame.id, held)
 			const { signal } = held.controller
 			void relay({ deps, outbox, signal }, frame, {
-				answered: () => held.answered(),
+				answered: afterSent => held.answered(afterSent),
 				finished: () => held.free(),
 			})
 		},
@@ -143,9 +153,12 @@ function openChannel(
 	}
 }
 
-// When a relay's route has answered, and when the relay is over: its last frame written, its
-// answer dropped, or nothing to send.
-type RelayEnds = { answered: () => void; finished: () => void }
+// When a relay's route has answered, with its afterSent work, and when the relay is over: its last
+// frame written, its answer dropped, or nothing to send. The afterSent work runs at that end.
+type RelayEnds = {
+	answered: (afterSent: () => void) => void
+	finished: () => void
+}
 
 // One relay to its end: answered (`finished` once its last frame is written), refused, failed,
 // or stopped (nothing sent once the signal aborted: every await is followed by that check before
@@ -158,24 +171,21 @@ async function relay(
 	const { deps, outbox, signal } = relaying
 	try {
 		const answer = await answerOf(relaying, frame)
-		ends.answered()
+		ends.answered(answer.afterSent)
 		logRelayed(deps.log, {
 			...answer.relayed,
 			response: answer.response,
 			isStopped: signal.aborted,
 		})
-		const { response, bytes, afterSent } = answer
+		const { response, bytes } = answer
 		if (signal.aborted) return ends.finished()
 		if (!bytes) {
 			send(outbox, { t: 'err', id: frame.id, code: 'TOO_LARGE' })
 			return ends.finished()
 		}
-		return sendAnswer(outbox, frame.id, { response, bytes }, () => {
-			afterSent()
-			ends.finished()
-		})
+		return sendAnswer(outbox, frame.id, { response, bytes }, ends.finished)
 	} catch (error) {
-		ends.answered()
+		ends.answered(NOTHING_AFTER)
 		// Logged stopped or not: a route that failed may have changed something on the way.
 		deps.log(
 			`bridge: relayed ${frame.method} ${frame.path} failed: ${errorMessage(error)}`,
@@ -234,7 +244,7 @@ async function answerOf(
 				isRouted: false,
 				local: bytes,
 			},
-			afterSent: () => undefined,
+			afterSent: NOTHING_AFTER,
 		}
 	}
 	const request = trustedRequest(frame, target.path, signal)
