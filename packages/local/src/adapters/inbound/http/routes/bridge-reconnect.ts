@@ -29,8 +29,13 @@ const NOT_LOOPBACK = {
 	fix: 'Run `syneva login` or `syneva logout` on the machine the hub runs on.',
 }
 
+// Read on every request before the router, on whatever a client sent: a target no URL parses
+// (`//[`) is not this route's, and goes to the router, whose Node adapter refuses it as
+// MALFORMED_REQUEST; a throw here would stop the hub.
 export function isReconnectRequest(req: IncomingMessage): boolean {
-	const path = new URL(req.url ?? '/', PATH_BASE).pathname
+	const target = req.url ?? '/'
+	if (!URL.canParse(target, PATH_BASE)) return false
+	const path = new URL(target, PATH_BASE).pathname
 	return req.method === 'POST' && path === HUB_PATHS.bridgeReconnect
 }
 
