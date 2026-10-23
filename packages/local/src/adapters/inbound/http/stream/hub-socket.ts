@@ -29,9 +29,14 @@ export type HubSocket = {
 }
 
 // Only the stream's path upgrades: on a node:http that asks (shouldUpgradeCallback, Node 24.9+),
-// any other upgrade request stays a plain request, as it was before the hub had a stream.
+// any other upgrade request stays a plain request, as it was before the hub had a stream. A
+// target no URL parses (`//[`) is not the stream's either: it stays a plain request, which the
+// Node adapter refuses as MALFORMED_REQUEST. This runs before any guard, on whatever a client
+// sent, and a throw here would stop the hub.
 export function isHubSocketRequest(req: IncomingMessage): boolean {
-	return new URL(req.url ?? '/', PATH_BASE).pathname === HUB_PATHS.hubSocket
+	const target = req.url ?? '/'
+	if (!URL.canParse(target, PATH_BASE)) return false
+	return new URL(target, PATH_BASE).pathname === HUB_PATHS.hubSocket
 }
 
 export function createHubSocket(hub: HubSocketDeps): HubSocket {
