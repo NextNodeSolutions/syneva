@@ -11,6 +11,7 @@ import { HUB_PATHS } from '../../packages/contracts/dist/routes.js'
 
 import {
 	closeReader,
+	closeWithin,
 	openReader,
 	readSnapshot,
 	socketUrl,
@@ -88,8 +89,10 @@ async function checkCap(report, url, headers) {
 	await Promise.all(readers.map(closeReader))
 }
 
+// The close a step expects, within the client's wait: a hub that leaves the socket open fails the
+// step (the flood's deadline, the cap, the shutdown) instead of holding the run forever.
 async function expectClose(reader, code) {
-	const closed = await reader.closed
+	const closed = await closeWithin(reader)
 	if (closed.code !== code) throw new Error(`closed with ${closed.code}`)
 	return closed
 }

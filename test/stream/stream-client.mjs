@@ -96,6 +96,23 @@ export async function closeReader(reader) {
 	return reader.closed
 }
 
+// The close the hub owes, or a failure once `waitMs` passed without it: the socket is cut so a
+// reader the hub kept open settles, and the check fails instead of holding the whole run.
+export async function closeWithin(reader, waitMs = DEFAULT_WAIT_MS) {
+	let timer
+	const deadline = new Promise((_resolve, reject) => {
+		timer = setTimeout(() => {
+			reader.socket.terminate()
+			reject(new Error(`not closed within ${waitMs} ms`))
+		}, waitMs)
+	})
+	try {
+		return await Promise.race([reader.closed, deadline])
+	} finally {
+		clearTimeout(timer)
+	}
+}
+
 // Connects and reads up to `snapshot-end`; the reader keeps recording after it.
 export async function readSnapshot(url, headers) {
 	const reader = openReader(url, headers)
