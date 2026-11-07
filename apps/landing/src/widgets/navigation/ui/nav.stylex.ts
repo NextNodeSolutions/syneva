@@ -16,8 +16,6 @@ export const dockClock = stylex.defineConsts({
 	dockDuration: '520ms',
 	undockDuration: '240ms',
 	settleDelay: '380ms',
-	ease: 'cubic-bezier(0.23, 1, 0.32, 1)',
-	lockEase: 'cubic-bezier(0.34, 1.45, 0.5, 1)',
 	foldDuration: '160ms',
 })
 
