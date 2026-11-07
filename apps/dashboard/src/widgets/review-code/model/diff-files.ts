@@ -4,20 +4,22 @@ import type { ChangeTypes, FileDiffMetadata } from '@pierre/diffs'
 
 export type DiffFile = {
 	metadata: FileDiffMetadata
-	anchor: string
+	path: string
 	additions: number
 	deletions: number
 }
 
-export const DIFF_STYLES = ['unified', 'split'] as const
+export const DIFF_STYLES = ['split', 'unified'] as const
 export type DiffStyle = (typeof DIFF_STYLES)[number]
 
-export const CHANGE_MARKS: Readonly<Record<ChangeTypes, string>> = {
-	new: 'A',
-	change: 'M',
-	deleted: 'D',
-	'rename-pure': 'R',
-	'rename-changed': 'R',
+// Split needs a line on both sides: an added or deleted file has one side, a pure rename has no line.
+const SPLITTABLE_CHANGES: ReadonlySet<ChangeTypes> = new Set([
+	'change',
+	'rename-changed',
+])
+
+export function isSplittable(file: DiffFile): boolean {
+	return SPLITTABLE_CHANGES.has(file.metadata.type)
 }
 
 export function readDiffFiles(patch: string): DiffFile[] {
@@ -25,7 +27,7 @@ export function readDiffFiles(patch: string): DiffFile[] {
 		.flatMap(({ files }) => files)
 		.map(metadata => ({
 			metadata,
-			anchor: `file-${metadata.name}`,
+			path: metadata.name,
 			additions: sum(metadata.hunks.map(hunk => hunk.additionLines)),
 			deletions: sum(metadata.hunks.map(hunk => hunk.deletionLines)),
 		}))

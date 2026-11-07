@@ -1,6 +1,7 @@
 import { useProjects } from '@entities/project/api/use-projects'
 import { PAGE_ROUTES } from '@shared/routes/page-routes'
 import * as stylex from '@stylexjs/stylex'
+import { WORDMARK } from '@syneva/design-system/brand'
 import { caption } from '@syneva/design-system/controls.styles'
 
 import { Brand } from './Brand'
@@ -20,7 +21,7 @@ export function Sidebar({ pathname }: { pathname: string }): ReactElement {
 	return (
 		<aside {...stylex.props(sidebar.sidebar)}>
 			<div {...stylex.props(sidebar.bar)}>
-				<Brand />
+				<Brand>{WORDMARK}</Brand>
 			</div>
 			<nav aria-label="Main" {...stylex.props(sidebar.nav)}>
 				<NavList>

@@ -1,3 +1,4 @@
+import { frame } from '@shared/ui/frame.stylex'
 import * as stylex from '@stylexjs/stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
@@ -20,7 +21,7 @@ export const sidebar = stylex.create({
 		display: 'flex',
 		flexShrink: 0,
 		alignItems: 'center',
-		height: '48px',
+		height: frame.barHeight,
 		paddingInline: '16px',
 		borderBottomWidth: '1px',
 		borderBottomStyle: 'solid',
