@@ -1,0 +1,23 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"agentGuidance": false,
+	"tasks": {
+		// transit has no script: it folds source-only workspace deps (design-system, motion) into each package hash.
+		"build": {
+			"dependsOn": ["^build", "transit"],
+			"inputs": ["$TURBO_DEFAULT$"],
+			"outputs": ["dist/**"]
+		},
+		"check": {
+			"dependsOn": ["^build", "transit"],
+			"outputs": []
+		},
+		"transit": {
+			"dependsOn": ["^transit"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		}
+	}
+}
