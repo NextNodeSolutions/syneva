@@ -8,18 +8,16 @@ The site's `DESIGN.md` (`apps/landing/DESIGN.md`) describes the language: a ligh
 
 | Export | What it holds |
 | --- | --- |
-| `./tokens.stylex` | StyleX variables with literal custom-property names (`var(--paper)`, `var(--accent)`, ...): `color`, `font`, `ease`, `duration`, `layout`, `typeScale`, and `hexColor`, the palette's hex values for the places that need a literal colour (a `theme-color` meta, the site's emails), which `color` takes its values from. |
-| `./themes.stylex` | Themes over `color` (`stylex.createTheme`), applied by a front on its root. |
+| `./tokens.stylex` | StyleX variables with literal custom-property names (`var(--paper)`, `var(--accent)`, ...): `color`, `font`, `ease`, `duration`, `layout`, `typeScale` (`--h2-size`, read by name by the site's global stylesheet), and `hexColor`, the palette's hex values for the places that need a literal colour (a `theme-color` meta, the site's emails), which `color` takes its values from. |
 | `./media.stylex` | Every breakpoint and preference query as style keys (`media`) and as bare queries for `matchMedia` (`queries`). Width keys are max-width ranges declared widest first. |
 | `./curves.stylex` | The easing curves the tokens and `@syneva/motion` share. |
 | `./transitions.stylex` | `transition.fast`: the timing (fast duration, out ease) of a quick state change, for the recipes that ease several properties alike. |
 | `./when` | The `When<T>` type for a value that applies only under a condition. |
 | `./press.styles` | `press.control`: a pressable control's eased fills and its give under the pointer. |
-| `./controls.styles` | The apps' control recipes at application density: `focus` (`ring`, the one petrol focus ring, outside the box; `inset`, the same inside it) for any focusable the control recipes do not cover, `control` (`base`, `primary`, `outlined`, `quiet`, `danger`, `small`, `large`, `square`, `block`, `arrow`), `field` (`base`, `mono`, `invalid`, `select`, `selectBox`, `chevron`), `caption` (`base`, `upper`), `tag` (`base` + a tone), `dot` (`base` + a tone: `accent` the live signal, `petrol`, `green`, `amber`, `red`; `hollow` outlines the tone instead of filling it; `live`). |
-| `./controls.stylex` | `controlMarker`, put on a control whose `control.arrow` steps forward on hover; `textLinkMarker`, the same for a link whose `textLink.arrow` steps forward. |
-| `./inline.styles` | What sits inside a line of text: `textLink` (`base`, `small`, `onWash`, `arrow`), the secondary action of every front (the site's `TextLink` and the hub's are this recipe; there are no ghost buttons), which takes its sentence's colour and, in the apps, is composed after `focus.ring`; `textButton.base`, a `<button>` that reads as text (composed after `textLink` where it should look like one); `code` (`base`, `onPaper` for a chip on a wash band), an inline command; `kbd` (`base`, `onFill` and `onTint` for a cap on a solid or tinted control), a key hint set in the sans (Geist Mono lacks the key symbols). |
+| `./controls.styles` | `caption` (`base`, `upper`), the mono caption; `tag` (`base`, `accent`), a petrol label; `dot` (`base` + a tone: `petrol`, `green`, `red`), a status square. |
+| `./controls.stylex` | `textLinkMarker`, put on a link whose `textLink.arrow` steps forward on hover. |
+| `./inline.styles` | What sits inside a line of text: `textLink` (`base`, `small`, `arrow`), the secondary action (there are no ghost buttons), which takes its sentence's colour; `textButton.base`, a `<button>` that reads as text (composed after `textLink` where it should look like one). |
 | `./a11y.styles` | `a11y.srOnly`: text a screen reader reads and nothing draws. |
-| `./meter.styles` | `meter` (`track`, `fill`, `empty`): a share of a whole as a thin green track (the hub's approvals; the desk's file progress can reuse it). The fill spans the track and the caller scales it to its ratio; `empty`, composed over `track`, is the dashed rule of a whole of nothing. |
 | `./ruled.styles` | `ruledItem.base`: a point under its own strong rule with a petrol square on the rule's start (the site's steps and facts, the hub's register). |
 | `./icons` | The line icons' paths (`ICONS`, `IconName`) on `ICON_VIEW_BOX`, and the arrow of actions and rows (`ARROW_PATH` on `ARROW_VIEW_BOX`), drawn by each front in its own markup with its own stroke width; `CHECK_PATH`, a verdict's check, on the arrow's grid. |
 | `./brand` | The mark's geometry (`MARK_VIEW_BOX`, `MARK_RAYS`, `MARK_DIAMOND`) and the `WORDMARK`, drawn by each front in its own markup. |
@@ -39,7 +37,7 @@ Each signal comes as a text tone (AA on `--paper`, `--white` and its own tint), 
 | amber | `--amber` | `--amber-tint` | `--amber-line` | a change the reviewer asked for |
 | red | `--red` | `--red-tint` | `--red-line` | what goes: a removal, a destructive action, an error |
 
-`--mint-tint` and `--red-pale` are the bands of an added and a removed line. A label on a solid fill uses `color['--white']`, never a literal `#fff`, so a theme can turn it.
+`--mint-tint` and `--red-pale` are the bands of an added and a removed line. A label on a solid fill uses `color['--white']`, never a literal `#fff`.
 
 ## Using it
 
