@@ -1,0 +1,21 @@
+---
+import { revealItem } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { chapter } from './chapter.styles'
+
+type Props = { items: readonly (readonly [head: string, text?: string])[] }
+
+const { items } = Astro.props
+const isSubpage = Astro.locals.page === 'sub'
+---
+
+<ul {...sx(chapter.list, isSubpage && chapter.subList)}>
+	{
+		items.map(([head, text]) => (
+			<li {...revealItem(chapter.item, isSubpage && chapter.subItem)}>
+				<strong {...sx(chapter.itemHead)} set:html={head} />
+				{text && <span {...sx(chapter.itemText)} set:html={text} />}
+			</li>
+		))
+	}
+</ul>

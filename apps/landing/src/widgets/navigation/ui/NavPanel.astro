@@ -1,0 +1,14 @@
+---
+import type { Section } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import { panelId, triggerId } from '../model/section-ids'
+import { panel } from './panel.styles'
+
+type Props = { section: Pick<Section, 'id'> }
+
+const { section } = Astro.props
+---
+
+<section {...sx(panel.base, panel[section.id])} id={panelId(section)} aria-labelledby={triggerId(section)} inert data-nav-panel>
+	<slot />
+</section>

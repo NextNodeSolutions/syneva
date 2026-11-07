@@ -1,0 +1,14 @@
+---
+import type { Availability } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import { pageStatus } from './page-status.styles'
+
+type Props = { availability: Availability }
+
+const { availability } = Astro.props
+const isPrototype = availability === 'prototype'
+---
+
+<p {...sx(pageStatus.root, isPrototype && pageStatus.prototype)}>
+	<span {...sx(pageStatus.dot)} aria-hidden="true"></span>{isPrototype ? 'Prototype · not in the CLI today' : 'Available now · in the CLI'}
+</p>

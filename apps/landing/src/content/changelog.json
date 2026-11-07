@@ -1,0 +1,110 @@
+[
+	{
+		"id": "2026-09-30",
+		"label": "September 30 – October 2",
+		"title": "A public home, and fewer surprises",
+		"changes": [
+			{
+				"kind": "feat",
+				"text": "Syneva gets its public site, served as static assets."
+			},
+			{
+				"kind": "fix",
+				"text": "A stale strip appears when the working diff moves under your review."
+			},
+			{
+				"kind": "fix",
+				"text": "pi: questions go straight to the correspondent; your session wakes only for reviews."
+			}
+		]
+	},
+	{
+		"id": "2026-09-23",
+		"label": "September 23",
+		"title": "Review notes",
+		"changes": [
+			{
+				"kind": "feat",
+				"text": "Review notes panel (n): every comment and question across files, with jumps."
+			},
+			{
+				"kind": "feat",
+				"text": "Filter, lens and a keyboard cursor inside the notes panel."
+			},
+			{
+				"kind": "feat",
+				"text": "Navigation follows the active view order; resolve and approve from the notes."
+			},
+			{
+				"kind": "feat",
+				"text": "Signing off a file moves you to the next unsigned one."
+			},
+			{
+				"kind": "feat",
+				"text": "Scoped reset: clear decisions but keep your notes, or reset approved files only."
+			},
+			{
+				"kind": "fix",
+				"text": "Interrupted file swaps keep their visible rows; stale async paints are ignored."
+			},
+			{
+				"kind": "perf",
+				"text": "The visible part of a diff gets its color first, from the plain grid."
+			}
+		]
+	},
+	{
+		"id": "2026-09-19",
+		"label": "September 19 – 22",
+		"title": "A faster, steadier desk",
+		"changes": [
+			{
+				"kind": "feat",
+				"text": "The desk chrome moves to React over a reactive store."
+			},
+			{
+				"kind": "perf",
+				"text": "The opening viewport is colored before the first paint."
+			},
+			{
+				"kind": "perf",
+				"text": "Syntax highlighting follows what you can see, one grammar per language."
+			},
+			{
+				"kind": "feat",
+				"text": "Frontend performance is tracked as data, time to color included."
+			},
+			{
+				"kind": "fix",
+				"text": "Empty untracked files show as additions."
+			}
+		]
+	},
+	{
+		"id": "2026-09-15",
+		"label": "September 15 – 17",
+		"title": "Closing the loop",
+		"changes": [
+			{
+				"kind": "feat",
+				"text": "Close the desk from the browser; your agent receives a closed event."
+			},
+			{
+				"kind": "feat",
+				"text": "Hide approved changes (⇧H) to focus a multi-round review."
+			},
+			{
+				"kind": "feat",
+				"text": "One correspondent thread per desk answers your questions."
+			},
+			{
+				"kind": "feat",
+				"text": "A read-only answer subagent ships with the pi package."
+			},
+			{
+				"kind": "fix",
+				"text": "Prompts wait for the desk URL instead of sleeping."
+			}
+		]
+	}
+]

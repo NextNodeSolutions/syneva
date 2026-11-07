@@ -1,0 +1,23 @@
+---
+import QaDisclosure from '@features/disclosure/ui/QaDisclosure.astro'
+import { revealItem, revealRuledGroup } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import type { QaGroup } from '../model/faq'
+import { qaAnchor } from '../model/faq'
+import { qa } from './qa.styles'
+
+type Props = { group: QaGroup }
+
+const { group } = Astro.props
+const id = qaAnchor(group)
+---
+
+<section {...revealRuledGroup(qa.block)} id={id} aria-labelledby={`${id}-title`}>
+	<div {...sx(qa.copy)}>
+		<h2 {...revealItem()} id={`${id}-title`}>{group.title}</h2>
+		<p {...revealItem(qa.blurb)}>{group.blurb}</p>
+	</div>
+	<div {...sx(qa.list)}>
+		{group.items.map(({ question, answer }) => <QaDisclosure question={question} answer={answer} />)}
+	</div>
+</section>

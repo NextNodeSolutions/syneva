@@ -1,0 +1,55 @@
+---
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import Check from '@shared/ui/drawing/Check.astro'
+import Pending from '@shared/ui/drawing/Pending.astro'
+import Undone from '@shared/ui/drawing/Undone.astro'
+import { shape } from '@shared/ui/drawing/shape.styles'
+import { text } from '@shared/ui/drawing/text.styles'
+import { sx } from '@shared/lib/sx'
+import { HERO_FILES, REJECTED_COUNT, turnOf } from './hero-round'
+import { verdictPart } from './hero-round-part'
+import { stagePart } from './hero-stage-part'
+import { heroStage } from './hero-stage.styles'
+
+const ROW = 34
+const FIRST = 72
+const TOTAL = HERO_FILES.length
+const GLYPH = { x: 715, rise: 10, size: 14 }
+const VERDICT_GLYPH = { yes: Check, no: Undone }
+const rows = HERO_FILES.map((file, index) => ({
+	file,
+	top: FIRST + index * ROW,
+	turn: turnOf(file),
+	Verdict: VERDICT_GLYPH[file.verdict],
+}))
+---
+
+<g {...sx(heroStage.layer, shape.secondary)} {...stagePart('ledger')}>
+	<text {...sx(heroStage.kicker)} x="562" y="40">YOUR VERDICT</text>
+	<text {...sx(heroStage.sub)} x="562" y="58" {...stagePart('round-1')}>Round 1 · decided by you</text>
+	<text {...sx(heroStage.sub)} x="562" y="58" opacity="0" {...stagePart('round-2')}>Round 2 · one file to re-read</text>
+	<rect {...sx(shape.panel)} x="562" y="72" width="178" height="244"></rect>
+	{
+		rows.map(({ file, top, turn, Verdict }, index) => (
+			<Fragment>
+				{index > 0 && <path {...sx(shape.hair)} d={`M562 ${top}h178`} />}
+				<text {...sx(text.file)} x="574" y={top + 21}>{file.path}</text>
+				<Pending x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} />
+				<g {...sx(heroStage.fillBox)} {...verdictPart(file.verdict, turn)}><Verdict x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>
+				{file.verdict === 'no' && <g {...sx(heroStage.fillBox)} opacity="0" {...stagePart('row-pending')}><Pending x={GLYPH.x} y={top + GLYPH.rise} size={GLYPH.size} /></g>}
+			</Fragment>
+		))
+	}
+	<path {...sx(shape.hair)} d="M562 276h178"></path>
+	<rect {...sx(shape.track)} x="574" y="290" width="154" height="3"></rect>
+	<rect {...sx(shape.fill, heroStage.fillBoxLeft)} x="574" y="290" width="154" height="3" {...stagePart('fill')}></rect>
+	<text {...sx(text.tiny)} x="574" y="307" {...stagePart('progress-1')}>{TOTAL}/{TOTAL} DECIDED BY YOU</text><text {...sx(text.tiny)} x="574" y="307" opacity="0" {...stagePart('progress-2')}>{TOTAL - REJECTED_COUNT}/{TOTAL} · {REJECTED_COUNT} BACK TO PENDING</text>
+	<g>
+		<rect {...sx(heroStage.sendBox)} x="562" y="324" width="178" height="28" {...stagePart('send-box')}></rect>
+		<text {...sx(heroStage.sendLabel)} x="576" y="342.5" {...stagePart('send-label')}>Send to agent</text>
+		<text {...sx(heroStage.sendLabel)} x="576" y="342.5" opacity="0" {...stagePart('send-sent')}>Sent · agent revising</text>
+		<text {...sx(heroStage.sendKey)} x="728" y="342" text-anchor="end">{HOTKEYS.send}</text>
+	</g>
+	<circle {...sx(shape.port)} cx="562" cy="123" r="2.5"></circle>
+	<circle {...sx(shape.port)} cx="651" cy="352" r="2.5"></circle>
+</g>

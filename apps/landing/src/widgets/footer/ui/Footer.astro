@@ -1,0 +1,56 @@
+---
+import { FOOTNOTE, ISSUES_URL, REPO_URL, TAGLINE, repoFile } from '@entities/site/model/project'
+import { PAGES, SECTIONS } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
+import Brand from '@shared/ui/Brand.astro'
+import { footer } from './footer.styles'
+
+const PROJECT = [
+	{ href: PAGES.openSource.href, label: PAGES.openSource.title },
+	{ href: REPO_URL, label: 'GitHub' },
+	{ href: repoFile('LICENSE'), label: 'MIT license' },
+	{ href: ISSUES_URL, label: 'Report an issue' },
+]
+---
+
+<footer {...sx(footer.root)}>
+	<div {...sx(footer.top)}>
+		<div>
+			<Brand />
+			<p {...sx(footer.pitch)}>The review desk for code your agent wrote. Local, open source, and built for the human in the loop.</p>
+			<PrimaryButton label="Start a local review" css={footer.action} />
+		</div>
+		<nav {...sx(footer.map)} aria-label="Site map">
+			{
+				SECTIONS.map(section => (
+					<div>
+						<a {...sx(footer.head)} href={section.href}>{section.label}</a>
+						<ul {...sx(footer.list)}>
+							{section.items.map(page => (
+								<li><a {...sx(footer.link)} href={page.href}>{page.title}</a></li>
+							))}
+						</ul>
+					</div>
+				))
+			}
+			<div>
+				<a {...sx(footer.head)} href={PAGES.openSource.href}>Project</a>
+				<ul {...sx(footer.list)}>
+					{
+						PROJECT.map(({ href, label }) => (
+							<li>
+								<a {...sx(footer.link)} href={href}>
+									{label}
+									{URL.canParse(href) && <Fragment> <span aria-hidden="true">↗</span></Fragment>}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</nav>
+	</div>
+	<div {...sx(footer.word)} aria-hidden="true"><span {...sx(footer.wordmark)}>syneva</span></div>
+	<div {...sx(footer.bottom)}><span>{TAGLINE}</span><span>{FOOTNOTE}</span></div>
+</footer>

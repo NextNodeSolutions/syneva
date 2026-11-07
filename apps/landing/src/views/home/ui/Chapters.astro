@@ -1,0 +1,28 @@
+---
+import { PAGES } from '@entities/site/model/site-map'
+import Chapter from '@widgets/chapter/ui/Chapter.astro'
+import ChapterList from '@widgets/chapter/ui/ChapterList.astro'
+import ChapterStatus from '@widgets/chapter/ui/ChapterStatus.astro'
+import ChapterText from '@widgets/chapter/ui/ChapterText.astro'
+import TextLink from '@shared/ui/TextLink.astro'
+import AskFigure from './art/AskFigure.astro'
+import DeskFigure from './art/DeskFigure.astro'
+
+const DESK = [['Follow the change, not the file list.'], ['Keep the good, undo the rest.'], ['Never touch the mouse.']] as const
+const ASK = [['Ask a question, or request a change.'], ['Answers in place, progress in sight.'], ['No question gets lost.']] as const
+---
+
+<Chapter id="desk" title="A big diff,<br>settled one decision at a time.">
+	<ChapterStatus page={PAGES.reviewDesk} />
+	<ChapterText>Read your agent’s work in the order that explains it, and record a verdict on every change.</ChapterText>
+	<ChapterList items={DESK} />
+	<TextLink href={PAGES.reviewDesk.href} label="Explore the review desk" />
+	<DeskFigure slot="art" />
+</Chapter>
+<Chapter id="ask" title="Ask on the line,<br>and the answer lands there." artSide="left">
+	<ChapterStatus page={PAGES.askYourAgent} />
+	<ChapterText>Stop copying snippets into a chat window. Keep reviewing while your agent answers.</ChapterText>
+	<ChapterList items={ASK} />
+	<TextLink href={PAGES.askYourAgent.href} label="See how questions work" />
+	<AskFigure slot="art" />
+</Chapter>

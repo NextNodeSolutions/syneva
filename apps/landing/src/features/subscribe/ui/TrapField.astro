@@ -1,0 +1,8 @@
+---
+import { sx } from '@shared/lib/sx'
+import { TRAP_FIELD } from '../model/endpoint'
+import { trap } from './trap.styles'
+// Off screen and out of the tab order: a person never fills it, a bot filling every field does, and the endpoint then stores nothing. The forms place it inside themselves.
+---
+
+<div {...sx(trap.root)} aria-hidden="true"><input name={TRAP_FIELD} tabindex="-1" autocomplete="off" /></div>

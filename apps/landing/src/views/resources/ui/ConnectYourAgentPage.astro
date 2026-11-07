@@ -1,0 +1,76 @@
+---
+import Command from '@features/copy-command/ui/Command.astro'
+import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
+import PageHero from '@widgets/page-hero/ui/PageHero.astro'
+import Pager from '@widgets/page-index/ui/Pager.astro'
+import Prose from '@shared/ui/prose/Prose.astro'
+import ProseText from '@shared/ui/prose/ProseText.astro'
+import RuledList from '@shared/ui/prose/RuledList.astro'
+import SpecTable from '@shared/ui/prose/SpecTable.astro'
+import Terminal from '@shared/ui/prose/Terminal.astro'
+import TextLink from '@shared/ui/TextLink.astro'
+import { CONTRACT_SOURCE_URL } from '@entities/site/model/project'
+import { commandOf, DESK_SUBCOMMANDS, EVENTS, REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE, SPEC_COMMAND, SPEC_COMMAND_LABEL, SPEC_SUBCOMMAND, SUBCOMMANDS } from '@entities/desk/model/agent-contract'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
+import ProtocolWire from './art/ProtocolWire.astro'
+
+const PI = [
+	['/review and /plan.', 'Prompt templates that start a desk, attach your session and act on each event.'],
+	['One correspondent per desk.', 'A read-only thread answers your questions, so your main session only wakes for finished reviews, closed desks and failures.'],
+	['/syneva.', 'A status command inside pi: which CLI, shim and package paths your setup is using.'],
+] as const
+const LOOP = [
+	'$ syneva open --session auth',
+	'$ while ev=$(syneva await); do',
+	'    case "$(jq -r .kind <<<"$ev")" in',
+	'      question) syneva comment --path … --line … --body "…" ;;',
+	'      review)   # act on .result, then: syneva reload',
+	'                ;;',
+	'      closed)   exit 0 ;;',
+	'    esac',
+	'  done',
+]
+const SUBCOMMAND_ROWS = [...DESK_SUBCOMMANDS, ...SUBCOMMANDS, SPEC_SUBCOMMAND].map(subcommand => [commandOf(subcommand.name), subcommand.does] as const)
+const EVENT_ROWS = Object.entries(EVENTS)
+const ACTING = [
+	['rejected → revert it.', 'You don’t want that change.'],
+	['requestedChanges → make the edit.', 'At that path and line, or across the file for a whole-file request.'],
+	['accepted and approvedFiles → leave them.', 'They are settled. Touching them reopens them for review.'],
+	['Then syneva reload.', 'Your tab shows the next revision. Anything rewritten is pending again.'],
+] as const
+const FIELD_PARTS = listFormat.formatToParts([...REVIEW_RESULT_FIELDS, REVIEW_RESULT_NOTE])
+	.map(({ type, value }) => {
+		if (type === 'literal') return { kind: 'text', value } as const
+		return { kind: value === REVIEW_RESULT_NOTE ? 'optional' : 'field', value } as const
+	})
+---
+
+<PageHero
+	title="Any agent can drive the desk."
+	lede={`The contract is plain JSON on stdout and a localhost HTTP server, documented in full by <code>${SPEC_COMMAND}</code>. If your agent can run a shell command, it can receive your review.`}
+	caption={`${capitalize(countWord(DESK_SUBCOMMANDS.length + SUBCOMMANDS.length))} subcommands out, ${countWord(Object.keys(EVENTS).length)} events back.`}
+>
+	<Fragment slot="actions"><Command text={SPEC_COMMAND} label={SPEC_COMMAND_LABEL} /><TextLink href={CONTRACT_SOURCE_URL} label="Read the source" /></Fragment>
+	<ProtocolWire slot="art" />
+</PageHero>
+<Prose id="pi" title={'With pi,<br>it’s wired for you.'}>
+	<RuledList items={PI} />
+</Prose>
+<Prose id="loop" title="Everywhere else,<br>a short loop.">
+	<ProseText>Open the desk on the hub (the command returns at once, and starts the hub when none runs), then wait for events and branch on their kind. This is the shape; <code>{SPEC_COMMAND}</code> has every detail.</ProseText>
+	<Terminal lines={LOOP} title="any agent" />
+</Prose>
+<Prose id="subcommands" title="Subcommands.">
+	<SpecTable rows={SUBCOMMAND_ROWS} head={['Command', 'What it does']} />
+</Prose>
+<Prose id="events" title="Events.">
+	<SpecTable rows={EVENT_ROWS} head={['Kind', 'Meaning']} />
+	<ProseText>A <code>ReviewResult</code> carries {FIELD_PARTS.map(({ kind, value }) => (kind === 'text' ? value : <Fragment>{kind === 'optional' && 'an optional '}<code>{value}</code></Fragment>))}. The arrays are the review: there is no prose summary to parse.</ProseText>
+</Prose>
+<Prose id="acting" title="How an agent<br>acts on a verdict.">
+	<RuledList items={ACTING} />
+</Prose>
+<CtaBand />
+<Pager />

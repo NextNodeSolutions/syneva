@@ -1,0 +1,49 @@
+---
+import { INSTALL_COMMAND, LAUNCH_STAGE, NODE_REQUIREMENT, REPO_URL, START_COMMAND } from '@entities/site/model/project'
+import { SIGNUP_ID } from '@entities/site/model/primary-action'
+import { PAGES } from '@entities/site/model/site-map'
+import { revealGroup, revealItem } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import Command from '@features/copy-command/ui/Command.astro'
+import { command } from '@features/copy-command/ui/command.styles'
+import { SUBSCRIBED_ID } from '@features/subscribe/model/subscribed'
+import { OUTCOME_MESSAGE } from '@features/subscribe/model/outcome'
+import LaunchListSignup from '@features/subscribe/ui/LaunchListSignup.astro'
+import TextLink from '@shared/ui/TextLink.astro'
+import { section } from '@shared/ui/section.styles'
+import { band } from './cta-band.styles'
+
+const isLive = LAUNCH_STAGE === 'live'
+---
+
+<section {...revealGroup(section.ruled, section.pad, band.root)} id={isLive ? undefined : SIGNUP_ID}>
+	<div>
+		<h2 {...revealItem()}>Review as fast as your agent writes,<br />without losing a single change.</h2>
+		{
+			isLive ? (
+				<p {...revealItem(band.text)}>Two commands to your first desk. Bring the agent you already use.</p>
+			) : (
+				<p {...revealItem(band.text)}>Syneva isn’t ready to install yet. Join the launch list and I’ll write the day it is.</p>
+			)
+		}
+		<div {...revealItem(band.links)}>
+			{isLive && <TextLink href={PAGES.getStarted.href} label="Read the setup guide" />}
+			<TextLink href={REPO_URL} label="Star it on GitHub" />
+		</div>
+	</div>
+	{
+		isLive ? (
+			<div {...revealItem(band.install)}>
+				<p {...sx(band.label)}>Install · {NODE_REQUIREMENT} and git</p>
+				<Command text={INSTALL_COMMAND} label="Installation command" css={command.onWash} />
+				<p {...sx(band.label, band.next)}>Then, inside your repository</p>
+				<Command text={START_COMMAND} label="Start a review" css={command.onWash} />
+			</div>
+		) : (
+			<div {...revealItem(band.install)}>
+				<LaunchListSignup />
+				<p {...sx(band.subscribed)} id={SUBSCRIBED_ID}>{OUTCOME_MESSAGE.subscribed}</p>
+			</div>
+		)
+	}
+</section>

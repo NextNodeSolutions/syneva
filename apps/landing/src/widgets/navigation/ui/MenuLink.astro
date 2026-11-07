@@ -1,0 +1,35 @@
+---
+import type { Page } from '@entities/site/model/site-map'
+import { badgeOf } from '@entities/site/model/routes'
+import { sx } from '@shared/lib/sx'
+import Icon from '@entities/site/ui/Icon.astro'
+import { currentPage } from '../model/current-page'
+import { menuLinkMarker } from './markers.stylex'
+import { menuLink } from './menu.styles'
+import { instant } from './instant.styles'
+import { menuOrder } from './menu-order'
+
+type Props = { page: Page; index: number }
+
+const { page, index } = Astro.props
+const preview = 'preview' in page ? page.preview : undefined
+const hasPreview = Boolean(preview)
+const badge = badgeOf(page)
+---
+
+<a
+	{...sx(menuLink.base, !hasPreview && menuLink.resourceHover, instant.transitions, menuLinkMarker)}
+	href={page.href}
+	data-preview={preview}
+	{...menuOrder(index)}
+	aria-current={currentPage(page.href, Astro.url.pathname)}
+>
+	<Icon name={page.icon} css={[menuLink.icon, instant.transitions]} />
+	<span {...sx(menuLink.text)}>
+		<strong {...sx(menuLink.title)}>
+			{page.title}{badge && <Fragment> <em {...sx(menuLink.badge)}>{badge}</em></Fragment>}
+		</strong>
+		<small {...sx(menuLink.blurb)}>{page.blurb}</small>
+	</span>
+	<span {...sx(menuLink.arrow, instant.transitions)} aria-hidden="true">→</span>
+</a>

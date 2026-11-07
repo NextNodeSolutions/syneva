@@ -1,0 +1,14 @@
+---
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import MenuFooter from './MenuFooter.astro'
+import WorkflowLink from './WorkflowLink.astro'
+import { panel } from './panel.styles'
+
+const section = SECTION_BY_ID.workflows
+---
+
+<div {...sx(panel.workflowLinks)}>
+	{section.items.map((page, index) => <WorkflowLink page={page} index={index} />)}
+</div>
+<MenuFooter section={section} />

@@ -1,0 +1,37 @@
+{
+  "name": "syneva-monorepo",
+  "version": "0.0.0",
+  "description": "Workspace root for Syneva: the public site in apps/landing, the shared packages in packages/*.",
+  "license": "MIT",
+  "scripts": {
+    "build": "turbo run build",
+    "check": "turbo run check && tsc -p tsconfig.node.json",
+    "dev:site": "pnpm --filter @syneva/landing dev",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint --deny-warnings",
+    "lint:fix": "oxlint --fix",
+    "lint:types": "oxlint --type-aware --deny-warnings",
+    "prepare": "node .husky/install.mjs"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "19.8.1",
+    "@commitlint/config-conventional": "19.8.1",
+    "@nextnode-solutions/standards": "1.27.1",
+    "@types/node": "24.19.2",
+    "better-sort-package-json": "1.1.1",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "oxfmt": "0.77.0",
+    "oxlint": "1.92.0",
+    "oxlint-tsgolint": "7.0.2006",
+    "turbo": "2.11.10",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "type": "module"
+}

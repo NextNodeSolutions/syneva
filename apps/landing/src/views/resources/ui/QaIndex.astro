@@ -1,0 +1,26 @@
+---
+import { revealGroup, revealItem } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { twoDigits } from '@shared/lib/two-digits'
+import type { QaGroup } from '../model/faq'
+import { qaAnchor } from '../model/faq'
+import { qa } from './qa.styles'
+
+type Props = { groups: readonly QaGroup[] }
+
+const { groups } = Astro.props
+---
+
+<nav {...revealGroup(qa.index)} aria-label="Questions by topic">
+	{
+		groups.map(group => (
+			<a {...revealItem(qa.topic)} href={`#${qaAnchor(group)}`}>
+				<strong {...sx(qa.topicTitle)}>
+					{group.title}
+					<small {...sx(qa.topicCount)}>{twoDigits(group.items.length)}</small>
+				</strong>
+				<span {...sx(qa.topicBlurb)}>{group.blurb}</span>
+			</a>
+		))
+	}
+</nav>

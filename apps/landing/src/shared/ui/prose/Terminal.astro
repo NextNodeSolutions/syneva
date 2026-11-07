@@ -1,0 +1,33 @@
+---
+import { revealItem } from '../../lib/reveal'
+import { sx } from '../../lib/sx'
+import { prose } from './prose.styles'
+import { terminal } from './terminal.styles'
+
+type Props = { lines: readonly string[]; title: string }
+type Row = { kind: 'command' | 'comment' | 'output'; text: string }
+
+const { lines, title } = Astro.props
+const PROMPT = '$ '
+// A space, not nothing: an empty span collapses the line.
+const BLANK = ' '
+const rowOf = (line: string): Row => {
+	if (line.startsWith(PROMPT)) return { kind: 'command', text: line.slice(PROMPT.length) }
+	return { kind: line.startsWith('#') ? 'comment' : 'output', text: line || BLANK }
+}
+const rows = lines.map(rowOf)
+---
+
+<figure {...revealItem(terminal.root, prose.block)}>
+	<div {...sx(terminal.top)}>
+		<span {...sx(terminal.dots)} aria-hidden="true"><i {...sx(terminal.dot)}></i><i {...sx(terminal.dot)}></i><i {...sx(terminal.dot)}></i></span><span>{title}</span>
+	</div><pre {...sx(terminal.body)}>{
+		rows.map(({ kind, text }) =>
+			kind === 'command' ? (
+				<span {...sx(terminal.command)}><span {...sx(terminal.prompt)} aria-hidden="true">$</span>{text}</span>
+			) : (
+				<span {...sx(terminal[kind])}>{text}</span>
+			),
+		)
+	}</pre>
+</figure>

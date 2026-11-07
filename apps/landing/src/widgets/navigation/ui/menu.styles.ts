@@ -1,0 +1,231 @@
+import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import {
+	color,
+	duration,
+	ease,
+	font,
+} from '@syneva/design-system/tokens.stylex'
+
+import { menuLinkMarker, workflowLinkMarker } from './markers.stylex'
+import { menuElevation, menuSpacing } from './menu.stylex'
+
+const LINK_PADDING = menuSpacing.linkPadding
+const ICON = menuSpacing.icon
+const ICON_GAP = menuSpacing.iconGap
+const TITLE_LINE = menuSpacing.titleLine
+
+const linkHover = (): string => stylex.when.ancestor(':hover', menuLinkMarker)
+const linkCurrent = (): string =>
+	stylex.when.ancestor('[aria-current="page"]', menuLinkMarker)
+const workflowCurrent = (): string =>
+	stylex.when.ancestor('[aria-current="page"]', workflowLinkMarker)
+const linkFocus = (): string =>
+	stylex.when.ancestor(':focus-visible', menuLinkMarker)
+const linkPreviewed = (): string =>
+	stylex.when.ancestor(':is(.is-previewed)', menuLinkMarker)
+const workflowHover = (): string =>
+	stylex.when.ancestor(':hover', workflowLinkMarker)
+
+// Staged rows follow their panel's progress, not a second animation clock.
+const rowStagger = {
+	'--row-start': {
+		default: null,
+		[media.motionSafe]: 'calc(var(--menu-order, 0) * 0.035)',
+	},
+	'--row-progress': {
+		default: null,
+		[media.motionSafe]:
+			'clamp(0, calc((var(--progress, 0) - var(--row-start)) / (1 - var(--row-start))), 1)',
+	},
+	translate: {
+		default: null,
+		[media.motionSafe]: '0 calc((1 - var(--row-progress)) * 8px)',
+		[media.motionReduced]: 'none',
+	},
+	opacity: { default: null, [media.motionReduced]: 1 },
+}
+
+// The page you are on sits flat in the petrol wash: a place on the map, not a control lifting toward the pointer.
+const CURRENT_RING = `inset 0 0 0 1px ${color['--accent-line']}`
+const currentPage = {
+	backgroundColor: {
+		default: null,
+		':is([aria-current="page"])': color['--wash-tint'],
+	},
+	boxShadow: { default: null, ':is([aria-current="page"])': CURRENT_RING },
+}
+
+const RAISED_ROW = menuElevation.raised
+const raisedOnHover = {
+	backgroundColor: currentPage.backgroundColor,
+	boxShadow: {
+		default: null,
+		':is([aria-current="page"])': CURRENT_RING,
+		[media.finePointer]: {
+			default: null,
+			':is(:hover:not([aria-current="page"]))': RAISED_ROW,
+		},
+	},
+}
+
+export const menuLink = stylex.create({
+	base: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: ICON_GAP,
+		padding: LINK_PADDING,
+		minHeight: '66px',
+		borderRadius: '5px',
+		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, box-shadow ${duration['--duration-fast']} ${ease['--ease-out']}, color ${duration['--duration-fast']} ${ease['--ease-out']}`,
+		outlineOffset: { default: null, ':focus-visible': '-3px' },
+		...currentPage,
+		...rowStagger,
+	},
+	resourceHover: raisedOnHover,
+	icon: {
+		width: ICON,
+		height: ICON,
+		flexShrink: 0,
+		fill: 'none',
+		stroke: 'currentColor',
+		strokeWidth: 1.4,
+		transition: `color ${duration['--duration-fast']} ${ease['--ease-out']}, transform ${duration['--duration-spring-fast']} ${ease['--ease-spring']}`,
+		color: {
+			default: null,
+			[linkCurrent()]: color['--accent'],
+			[linkPreviewed()]: color['--accent'],
+			[media.finePointer]: {
+				default: null,
+				[linkHover()]: color['--accent'],
+			},
+		},
+		transform: {
+			default: null,
+			[media.finePointer]: {
+				default: null,
+				[linkHover()]: 'scale(1.08)',
+			},
+		},
+	},
+	text: { minWidth: 0 },
+	title: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: '7px',
+		fontSize: '14px',
+		fontWeight: 500,
+		lineHeight: TITLE_LINE,
+	},
+	blurb: {
+		display: 'block',
+		marginTop: '4px',
+		fontSize: '12px',
+		color: color['--muted'],
+		lineHeight: 1.5,
+	},
+	badge: {
+		color: color['--accent'],
+		backgroundColor: color['--wash'],
+		borderRadius: '3px',
+		padding: '2px 5px',
+		fontSize: '9px',
+		fontStyle: 'normal',
+		fontWeight: 500,
+	},
+	arrow: {
+		marginLeft: 'auto',
+		alignSelf: 'center',
+		color: color['--muted'],
+		fontSize: '15px',
+		opacity: {
+			default: 0,
+			[linkPreviewed()]: 1,
+			[linkFocus()]: 1,
+			[media.finePointer]: { default: null, [linkHover()]: 1 },
+			[media.navToggle]: 1,
+		},
+		transform: {
+			default: 'translate(-3px, 3px)',
+			[linkPreviewed()]: 'none',
+			[linkFocus()]: 'none',
+			[media.finePointer]: { default: null, [linkHover()]: 'none' },
+			[media.navToggle]: 'none',
+			[media.motionReduced]: 'none',
+		},
+		transition: `opacity ${duration['--duration-fast']}, transform ${duration['--duration-fast']} ${ease['--ease-out']}`,
+	},
+})
+
+export const workflowLink = stylex.create({
+	base: {
+		position: 'relative',
+		display: 'flex',
+		flexDirection: 'column',
+		padding: LINK_PADDING,
+		gap: '4px',
+		borderRadius: '5px',
+		outlineOffset: { default: null, ':focus-visible': '-3px' },
+		transition: `background-color ${duration['--duration-fast']} ${ease['--ease-out']}, box-shadow ${duration['--duration-fast']} ${ease['--ease-out']}`,
+		...raisedOnHover,
+		...rowStagger,
+	},
+	// The row rule is its own unrounded line: a border-top on the rounded link would curl down at both ends.
+	ruled: {
+		'::before': {
+			content: "''",
+			position: 'absolute',
+			inset: '0 0 auto',
+			borderTopWidth: '1px',
+			borderTopStyle: 'solid',
+			borderTopColor: color['--line'],
+		},
+	},
+	stackedRule: {
+		'::before': {
+			content: { default: null, [media.navToggle]: "''" },
+			position: { default: null, [media.navToggle]: 'absolute' },
+			inset: { default: null, [media.navToggle]: '0 0 auto' },
+			borderTopWidth: { default: null, [media.navToggle]: '1px' },
+			borderTopStyle: { default: null, [media.navToggle]: 'solid' },
+			borderTopColor: {
+				default: null,
+				[media.navToggle]: color['--line'],
+			},
+		},
+	},
+	title: {
+		display: 'flex',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		gap: ICON_GAP,
+		fontSize: '14px',
+		fontWeight: 500,
+		lineHeight: TITLE_LINE,
+	},
+	icon: {
+		width: ICON,
+		height: ICON,
+		flexShrink: 0,
+		fill: 'none',
+		stroke: 'currentColor',
+		strokeWidth: 1.4,
+		color: {
+			default: null,
+			[workflowCurrent()]: color['--accent'],
+			[media.finePointer]: {
+				default: null,
+				[workflowHover()]: color['--accent'],
+			},
+		},
+	},
+	arrow: { color: color['--muted'], marginLeft: 'auto' },
+	blurb: { fontSize: '12px', lineHeight: 1.5, color: color['--muted'] },
+	code: {
+		font: `11px/16px ${font['--mono']}`,
+		color: color['--accent'],
+		marginTop: '4px',
+		backgroundColor: 'transparent',
+		padding: 0,
+	},
+})

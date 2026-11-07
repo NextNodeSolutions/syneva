@@ -1,0 +1,45 @@
+---
+import { availabilityOf } from '@entities/site/model/routes'
+import { revealGroup, revealItem, scene } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { pageActionsMarker } from '@shared/ui/actions.stylex'
+import Crumbs from './Crumbs.astro'
+import PageStatus from './PageStatus.astro'
+import { pageHero } from './page-hero.styles'
+
+type Props = {
+	title: string
+	lede: string
+	caption?: string
+}
+
+const { title, lede, caption } = Astro.props
+const availability = availabilityOf(Astro.url.pathname)
+const hasActions = Astro.slots.has('actions')
+---
+
+<section {...revealGroup(pageHero.root)} aria-labelledby="page-title">
+	<div {...sx(pageHero.copy)}>
+		<Crumbs />
+		<h1 {...revealItem(pageHero.title)} id="page-title" set:html={title} />
+		{
+			availability && (
+				<div {...revealItem()}>
+					<PageStatus availability={availability} />
+				</div>
+			)
+		}
+		<p {...revealItem(pageHero.lede)} set:html={lede} />
+		{
+			hasActions && (
+				<div {...revealItem(pageHero.actions, pageActionsMarker)}>
+					<slot name="actions" />
+				</div>
+			)
+		}
+	</div>
+	<figure {...revealItem(pageHero.art)} {...scene}>
+		<slot name="art" />
+		{caption && <figcaption {...sx(pageHero.caption)} set:html={caption} />}
+	</figure>
+</section>

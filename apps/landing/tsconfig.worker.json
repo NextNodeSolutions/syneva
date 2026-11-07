@@ -1,0 +1,19 @@
+{
+	// The Worker's code, checked against the Workers runtime instead of the DOM:
+	// the on-demand routes and the *.server.ts modules they call, with the env
+	// generated from nextnode.toml (worker-configuration.d.ts) and the secrets
+	// the code reads (worker-secrets.d.ts).
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"lib": ["es2024"],
+		"types": []
+	},
+	"include": [
+		"worker-configuration.d.ts",
+		"worker-assets.d.ts",
+		"worker-secrets.d.ts",
+		"src/pages/api/**/*",
+		"src/**/*.server.ts"
+	],
+	"exclude": ["dist"]
+}

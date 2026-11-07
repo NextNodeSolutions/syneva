@@ -1,0 +1,40 @@
+---
+import { HOTKEYS } from '@entities/desk/model/hotkeys'
+import { sx } from '@shared/lib/sx'
+import Drawing from '@shared/ui/drawing/Drawing.astro'
+import Wire from '@shared/ui/drawing/Wire.astro'
+import { anim } from '@shared/ui/drawing/anim'
+import { shape } from '@shared/ui/drawing/shape.styles'
+import { text } from '@shared/ui/drawing/text.styles'
+
+const TO_KEPT = 'M170 140C230 140 230 72 290 72'
+const TO_UNDONE = 'M170 160C230 160 230 228 290 228'
+const KEPT_TO_RELOAD = 'M410 72C440 72 440 140 470 140'
+const UNDONE_TO_RELOAD = 'M410 228C440 228 440 160 470 160'
+const BACK = 'M525 175V272q0 12-12 12H127q-12 0-12-12V175'
+---
+
+<Drawing
+	id="life"
+	width={600}
+	height={310}
+	compact="40 20 550 285"
+	density="dense"
+	title="The life of a verdict"
+	description="Every change starts pending. You keep it or undo it. After your agent edits and reloads, a change it rewrote returns to pending, while a change it left untouched keeps your verdict."
+>
+	<g fill="none">
+		<Wire d={TO_KEPT} drawDelay={0.4} signalDelay={1.8} />
+		<Wire d={TO_UNDONE} drawDelay={0.55} />
+		<Wire d={KEPT_TO_RELOAD} drawDelay={0.9} signalDelay={2.4} signalCss={shape.signalGreen} />
+		<Wire d={UNDONE_TO_RELOAD} drawDelay={1} />
+		<Wire d={BACK} drawDelay={1.4} signalDelay={3} routeCss={shape.routeDotted} />
+	</g>
+	<g {...anim('rise', 0)}><rect {...sx(shape.pending)} x="60" y="125" width="110" height="50"></rect><text {...sx(text.label)} x="115" y="148" text-anchor="middle">PENDING</text><text {...sx(text.small)} x="115" y="165" text-anchor="middle">every change</text></g>
+	<g {...anim('rise', 0.7)}><rect {...sx(shape.panel, shape.panelMint)} x="290" y="47" width="120" height="50"></rect><text {...sx(text.label, text.green)} x="350" y="70" text-anchor="middle">✓ KEPT</text><text {...sx(text.small)} x="350" y="87" text-anchor="middle">you pressed {HOTKEYS.keep}</text></g>
+	<g {...anim('rise', 0.8)}><rect {...sx(shape.panel, shape.panelWash)} x="290" y="203" width="120" height="50"></rect><text {...sx(text.label, text.accent)} x="350" y="226" text-anchor="middle">✕ UNDONE</text><text {...sx(text.small)} x="350" y="243" text-anchor="middle">you pressed {HOTKEYS.undo}</text></g>
+	<g {...anim('rise', 1.1)}><rect {...sx(shape.panel, shape.panelWhite)} x="470" y="125" width="110" height="50"></rect><text {...sx(text.label)} x="525" y="148" text-anchor="middle">RELOAD</text><text {...sx(text.small)} x="525" y="165" text-anchor="middle">agent edited</text></g>
+	<text {...anim('fade', 1.5, text.tiny)} x="320" y="302" text-anchor="middle">REWRITTEN → BACK TO PENDING</text>
+	<text {...anim('fade', 1.6, text.tiny, text.green)} x="350" y="34" text-anchor="middle">UNTOUCHED → STAYS SETTLED</text>
+	<text {...anim('fade', 0.2, text.tiny)} x="60" y="114">CONTENT-HASHED</text>
+</Drawing>

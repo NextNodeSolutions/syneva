@@ -1,0 +1,22 @@
+---
+import { poses } from '@syneva/motion/poses'
+
+import { PRINCIPLES } from '@entities/site/model/project'
+import { twoDigits } from '@shared/lib/two-digits'
+import { sx } from '@shared/lib/sx'
+import { introPart } from './hero-intro-part'
+import { principles } from './principles.styles'
+
+const SECOND_ROW_START = 2
+---
+
+<ul {...sx(poses.fade, principles.strip)} {...introPart('principles')}>
+	{
+		PRINCIPLES.map((principle, index) => (
+			<li {...sx(principles.item, index > 0 && principles.notFirst, index === SECOND_ROW_START && principles.rowStart, index >= SECOND_ROW_START && principles.secondRow)}>
+				<b {...sx(principles.index)} aria-hidden="true">{twoDigits(index + 1)}</b>
+				{principle}
+			</li>
+		))
+	}
+</ul>

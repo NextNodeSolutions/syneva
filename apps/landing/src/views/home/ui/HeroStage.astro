@@ -1,0 +1,52 @@
+---
+import { poses } from '@syneva/motion/poses'
+
+import ArtFrame from '@shared/ui/drawing/ArtFrame.astro'
+import Drawing from '@shared/ui/drawing/Drawing.astro'
+import { shape } from '@shared/ui/drawing/shape.styles'
+import { countWord } from '@shared/lib/count-word'
+import { sx } from '@shared/lib/sx'
+import HeroAgent from './HeroAgent.astro'
+import HeroDesk from './HeroDesk.astro'
+import HeroLedger from './HeroLedger.astro'
+import { SAMPLE_CHANGE } from '@entities/desk/model/sample-round'
+import { HERO_FILES } from './hero-round'
+import { stagePart } from './hero-stage-part'
+import { heroStage } from './hero-stage.styles'
+
+const TO_DESK = 'M202 212C219 212 219 170 236 170'
+const TO_LEDGER = 'M528 88C545 88 545 123 562 123'
+const BACK = 'M651 352V388q0 12-12 12H128q-12 0-12-12V352'
+---
+
+<Drawing
+	id="hero-stage"
+	width={760}
+	height={440}
+	compact="224 22 316 342"
+	title="One review round, from your agent's diff to your verdict"
+	description={`Your agent's ${countWord(HERO_FILES.length)} changed files settle into a reading order. One change opens on your local desk. You ask “${SAMPLE_CHANGE.thread.question}” and your agent answers on that line: “${SAMPLE_CHANGE.thread.answer}” You accept it. Every file gets your verdict, one is rejected, and Send hands the result back. The agent revises, and only the rejected file returns as pending. Illustrative, not a screenshot.`}
+	css={heroStage.root}
+	data-hero-stage
+>
+	<ArtFrame slot="frame" id="hero-stage" width={760} height={440}>
+		<path slot="register" {...sx(shape.register, shape.secondary)} d="M8 20V8h12M740 8h12v12M8 420v12h12M740 432h12v-12" fill="none"></path>
+	</ArtFrame>
+	<g {...sx(shape.secondary)} fill="none">
+		<path {...sx(shape.route)} d={TO_DESK}></path>
+		<path {...sx(shape.route)} d={TO_LEDGER}></path>
+		<path {...sx(shape.route, shape.routeDotted)} d={BACK}></path>
+		<path {...sx(shape.signal, poses.signal)} d={TO_DESK} {...stagePart('signal-in')}></path>
+		<path {...sx(shape.signal, poses.signal, shape.signalGreen)} d={TO_LEDGER} {...stagePart('signal-out')}></path>
+		<path {...sx(shape.signal, poses.signal)} d={BACK} {...stagePart('signal-back')}></path>
+	</g>
+	<text {...sx(heroStage.loop, shape.secondary)} x="384" y="424" text-anchor="middle">SAME TAB · NEXT ROUND</text>
+
+	<HeroAgent />
+
+	<HeroDesk />
+
+	<HeroLedger />
+
+	<path {...sx(heroStage.cursor)} d="M0 0v15.5l4.2-4 3.1 6.9 3-1.4-3-6.7h6Z" opacity="0" {...stagePart('cursor')}></path>
+</Drawing>

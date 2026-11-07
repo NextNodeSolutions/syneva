@@ -1,0 +1,8 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"types": ["node"],
+		"rootDir": "."
+	},
+	"include": ["oxlint.config.ts", "oxfmt.config.ts"]
+}

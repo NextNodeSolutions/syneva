@@ -1,6 +1,10 @@
 node_modules/
 dist/
 .turbo/
+.astro/
+.wrangler/
+.dev.vars
+.pi/
 .DS_Store
 *.log
 .env

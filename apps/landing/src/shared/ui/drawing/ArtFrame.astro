@@ -1,0 +1,21 @@
+---
+// Own corner marks arrive in the register slot; the marks hide on phones, where the compact frame would cut them into stubs.
+import { sx } from '../../lib/sx'
+import { shape } from './shape.styles'
+
+type Props = { id: string; width: number; height: number }
+
+const { id, width, height } = Astro.props
+const CELL = 26
+const MARK = 30
+const EDGE = 18
+const register = `M${EDGE} ${MARK}V${EDGE}h12M${width - MARK} ${EDGE}h12v12M${EDGE} ${height - MARK}v12h12M${width - MARK} ${height - EDGE}h12v-12`
+---
+
+<defs>
+	<pattern id={`${id}-grid`} width={CELL} height={CELL} patternUnits="userSpaceOnUse">
+		<path {...sx(shape.grid)} d={`M${CELL} 0H0V${CELL}`}></path>
+	</pattern>
+</defs>
+<rect width={width} height={height} fill={`url(#${id}-grid)`}></rect>
+<slot name="register"><path {...sx(shape.register, shape.secondary)} d={register} fill="none"></path></slot>

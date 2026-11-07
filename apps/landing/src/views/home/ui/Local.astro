@@ -1,0 +1,43 @@
+---
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { ruledItem } from '@syneva/design-system/ruled.styles'
+import { section } from '@shared/ui/section.styles'
+import { revealCount, revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import LocalFigure from './art/LocalFigure.astro'
+import { local } from './local.styles'
+
+const REVIEW_MODES = SECTION_BY_ID.workflows.items.length
+const REVIEW_MODE_NAMES = SECTION_BY_ID.workflows.items.map(({ title }) => title.toLowerCase()).join(', ')
+type Fact = { count: number; unit?: '%'; label: string }
+const FACTS: readonly Fact[] = [
+	{ count: 0, label: 'changes auto-approved. Every verdict is yours.' },
+	{ count: 1, label: 'tab for the whole loop.' },
+	{ count: REVIEW_MODES, label: `review modes: ${REVIEW_MODE_NAMES}.` },
+	{ count: 100, unit: '%', label: 'local. No model inside, no telemetry, no account.' },
+]
+---
+
+<section {...revealRuledGroup(section.ruled, section.pad)} id="local" aria-labelledby="local-title">
+	<div {...sx(local.lead)}>
+		<div>
+			<h2 {...revealItem()} id="local-title">Your code stays<br />on your machine.</h2>
+			<p {...revealItem(local.text)}>Review doesn’t need another cloud service. Syneva opens next to your repository, on loopback. The numbers below are product facts, not adoption metrics.</p>
+		</div>
+		<figure {...revealItem()} {...scene}>
+			<LocalFigure />
+		</figure>
+	</div>
+	<div {...sx(local.stats)}>
+		{
+			FACTS.map(({ count, unit, label }, index) => (
+				<div {...revealItem(ruledItem.base, local.stat)}>
+					<span {...sx(local.number, index === 0 && local.first)} {...revealCount(count)}>
+						{count}{unit && <span {...sx(local.unit)}>{unit}</span>}
+					</span>
+					<span {...sx(local.label)}>{label}</span>
+				</div>
+			))
+		}
+	</div>
+</section>
