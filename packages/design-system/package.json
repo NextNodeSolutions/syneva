@@ -1,7 +1,7 @@
 {
   "name": "@syneva/design-system",
   "version": "0.0.0",
-  "description": "Syneva's design system, shared by every front (the public site and the hub/desk UI): StyleX tokens (palette, type, easing, duration, layout, breakpoints), the self-hosted fonts, the mark and the control recipes.",
+  "description": "Syneva's design system, shared by every front (today the public site): StyleX tokens (palette, type, easing, duration, layout, breakpoints), the self-hosted fonts, the mark and the shared recipes.",
   "license": "MIT",
   "scripts": {
     "check": "tsc --noEmit"
