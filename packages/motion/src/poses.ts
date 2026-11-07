@@ -6,11 +6,21 @@ import { motionRoot } from './root.stylex'
 
 import type { When } from '@syneva/design-system/when'
 
+// The root's motion state: the runtime (boot.ts, scenes.ts) writes it, the poses below select it.
+const STATE = 'data-motion'
+const PENDING = 'pending'
+export const ROOT_STATE = {
+	attribute: STATE,
+	pending: PENDING,
+	ready: 'ready',
+	paused: 'data-motion-paused',
+} as const
+
 // Hidden pre-entrance poses, gated on motion-safe + an armed root, so the markup stays the finished pose for everyone else; the runtime animates from these to the markup's own.
-const armed = (): string => stylex.when.ancestor('[data-motion]', motionRoot)
+const armed = (): string => stylex.when.ancestor(`[${STATE}]`, motionRoot)
 // Armed but never booted: the safety net shows everything after three seconds.
 const stalled = (): string =>
-	stylex.when.ancestor('[data-motion="pending"]', motionRoot)
+	stylex.when.ancestor(`[${STATE}="${PENDING}"]`, motionRoot)
 
 // StyleX evaluates only file-local values here: the runtime's entrances (reveal.ts, vocabulary.ts) import this file.
 const TYPE_OUTSET_PX = 4

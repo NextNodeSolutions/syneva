@@ -1,5 +1,6 @@
 import { ATTRIBUTE } from './attributes'
 import { inView } from './engine'
+import { ROOT_STATE } from './poses'
 import { reducedMotion } from './preference'
 
 // A [data-motion-scene] pauses its animations while out of view or tab-hidden, and resumes each where it paused on return; reduced motion pauses loops and finishes entrances.
@@ -47,7 +48,7 @@ export function syncScenes(root: Element | Document = document): void {
 	const isGloballyPaused = reducedMotion.matches || document.hidden
 	// Stylesheet-driven loops (the menu's preview lines) pause on this flag.
 	document.documentElement.toggleAttribute(
-		'data-motion-paused',
+		ROOT_STATE.paused,
 		isGloballyPaused,
 	)
 	for (const scene of scenesWithin(root))
