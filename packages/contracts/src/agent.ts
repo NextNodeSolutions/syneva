@@ -1,4 +1,21 @@
-import type { DomainCodeRef, ReviewMode } from './review.js'
+import type { CodeSide, DomainCodeRef, ReviewMode } from './review.js'
+
+export type LineVerdict = {
+	path: string
+	lineNumber: number
+	side: string
+	title: string
+}
+
+// The guide domain (and block) feedback targets, under the guide it was written against, with the code it pointed at then.
+export type DomainTarget = {
+	domainId: string
+	blockId?: string | undefined
+	domainTitle: string
+	blockTitle?: string | undefined
+	guideFingerprint: string
+	refs: DomainCodeRef[]
+}
 
 export type ReviewResult = {
 	session: string
@@ -9,18 +26,8 @@ export type ReviewResult = {
 	staged: boolean
 	head: string | null
 	baseDiffHash: string
-	accepted: Array<{
-		path: string
-		lineNumber: number
-		side: string
-		title: string
-	}>
-	rejected: Array<{
-		path: string
-		lineNumber: number
-		side: string
-		title: string
-	}>
+	accepted: LineVerdict[]
+	rejected: LineVerdict[]
 	requestedChanges: Array<{
 		path: string
 		lineNumber: number
@@ -30,15 +37,7 @@ export type ReviewResult = {
 		anchor?: 'file' | undefined
 	}>
 	// Change requests on the guide's domains and blocks (the reviewer challenged an explanation or asked for a behavior change): act on the behavior, refresh the guide if the explanation was wrong, then answer in the thread with `syneva comment --domain`; `refs` is the code the target pointed at when it was written.
-	domainRequests: Array<{
-		domainId: string
-		blockId?: string | undefined
-		domainTitle: string
-		blockTitle?: string | undefined
-		guideFingerprint: string
-		refs: DomainCodeRef[]
-		body: string
-	}>
+	domainRequests: Array<DomainTarget & { body: string }>
 	// Ephemeral per Send - never persisted into the review state, so it cannot silently re-send.
 	overallNote?: string | undefined
 	stagedFiles: readonly string[]
@@ -52,7 +51,7 @@ export type ReviewResult = {
 export type LineQuestionPayload = {
 	path: string
 	lineNumber: number
-	side: 'additions' | 'deletions'
+	side: CodeSide
 	body: string
 	// 'file' anchors the file header: reply via comment --path <f> --line 0.
 	anchor?: 'file' | undefined
@@ -61,14 +60,8 @@ export type LineQuestionPayload = {
 }
 
 // A question on a domain of the guide or on one of its blocks: no path or line. Answer from the code `refs` name and the explanation, with `syneva comment --domain <id> [--block <id>]`.
-export type DomainQuestionPayload = {
+export type DomainQuestionPayload = DomainTarget & {
 	anchor: 'domain'
-	domainId: string
-	blockId?: string | undefined
-	domainTitle: string
-	blockTitle?: string | undefined
-	guideFingerprint: string
-	refs: DomainCodeRef[]
 	body: string
 	mode: ReviewMode
 	session: string

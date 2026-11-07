@@ -1,21 +1,10 @@
 // The guide: an externally authored, risk-ranked explanation of the behaviors a changeset changes; Syneva validates and renders it, never writes it.
-import type { ReviewMode } from './review.js'
+import type { CodeSpan, ReviewMode } from './review.js'
 
 // The schema id every guide names; a guide without it is refused, never adapted.
 export const GUIDE_FORMAT = 'syneva-guide/2'
 
 export type RiskLevel = 'critical' | 'high' | 'medium' | 'low'
-
-export type CodeSide = 'additions' | 'deletions'
-
-// A span of ORIGINAL code: `additions` is the new file, `deletions` the old one, lines 1-based in that file.
-// Rendered-diff numbers are never identities (the desk renumbers them per render).
-export type CodeSpan = {
-	path: string
-	side: CodeSide
-	lineNumber: number
-	endLine?: number | undefined
-}
 
 // What a domain owns. A `change` member names changed code by any line of the changed block on its side; a `file` member owns a file operation that has no text block (a pure rename, an untracked addition, a hunk-less deletion).
 export type GuideMember =
