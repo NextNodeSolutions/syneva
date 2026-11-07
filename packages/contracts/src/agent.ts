@@ -1,4 +1,4 @@
-import type { CodeSide, DomainCodeRef, ReviewMode } from './review.js'
+import type { CodeSide, DomainCodeRef, ReviewMode } from './review'
 
 export type LineVerdict = {
 	path: string

@@ -1,5 +1,5 @@
 // The guide: an externally authored, risk-ranked explanation of the behaviors a changeset changes; Syneva validates and renders it, never writes it.
-import type { CodeSpan, ReviewMode } from './review.js'
+import type { CodeSpan, ReviewMode } from './review'
 
 // The schema id every guide names; a guide without it is refused, never adapted.
 export const GUIDE_FORMAT = 'syneva-guide/2'
