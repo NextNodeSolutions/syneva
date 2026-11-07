@@ -1,0 +1,108 @@
+import { EASE } from '@syneva/motion/easing'
+import { animate } from '@syneva/motion/engine'
+import { reducedMotion } from '@syneva/motion/preference'
+
+// Native <details> is the source of truth (keyboard, find-in-page, no-JS); the script only animates height between its two states.
+// Closing keeps [open] until the motion ends so the answer stays visible while folding (.is-closing turns the chevron back early).
+// Every run starts from the row's current height and the answer's current opacity, so a reversal or re-measure continues, not jumps.
+const DURATION_S = 0.34
+const RISE_PX = 6
+const ease = EASE.out
+
+// Rows mid-motion re-measure when text can rewrap (resize, a late font) and glide to the new height instead of snapping.
+const moving = new Set<() => void>()
+const remeasure = (): void => {
+	moving.forEach(run => run())
+}
+
+function clearAnswer(answer: HTMLElement): void {
+	answer.getAnimations().forEach(animation => animation.cancel())
+	answer.style.removeProperty('opacity')
+	answer.style.removeProperty('transform')
+}
+
+function fadeAnswerIn(answer: HTMLElement, fade: number): void {
+	animate(
+		answer,
+		{
+			opacity: [fade, 1],
+			transform: [`translateY(${(fade - 1) * RISE_PX}px)`, 'none'],
+		},
+		{ duration: DURATION_S, ease },
+	)
+}
+
+function fadeAnswerOut(answer: HTMLElement, fade: number): void {
+	animate(answer, { opacity: [fade, 0] }, { duration: DURATION_S, ease })
+}
+
+function partsOf(details: HTMLDetailsElement): {
+	summary: HTMLElement
+	answer: HTMLElement
+} {
+	const summary = details.querySelector('summary')
+	if (!summary)
+		throw new Error(
+			'A [data-disclosure] row has no <summary>: render it with Disclosure.astro or QaDisclosure.astro.',
+		)
+	const answer = summary.nextElementSibling
+	if (!(answer instanceof HTMLElement))
+		throw new Error(
+			`The disclosure row "${summary.textContent}" has no answer after its <summary>: render it with Disclosure.astro or QaDisclosure.astro.`,
+		)
+	return { summary, answer }
+}
+
+function bindDisclosure(details: HTMLDetailsElement): void {
+	const { summary, answer } = partsOf(details)
+	let isOpening = false
+	// Only the fold cancels on a reversal: the row's reveal entrance runs on the same element and must finish.
+	let fold: ReturnType<typeof animate> | undefined
+	const settle = (): void => {
+		if (!isOpening) details.removeAttribute('open')
+		details.classList.remove('is-closing')
+		details.style.removeProperty('overflow')
+		details.style.removeProperty('height')
+		clearAnswer(answer)
+		moving.delete(run)
+		fold = undefined
+	}
+	const run = (): void => {
+		// Measure before stopping: the running animations hold the live values.
+		const from = details.getBoundingClientRect().height
+		// A shut row's answer is not rendered, so it fades in from nothing.
+		const fade = details.open ? Number(getComputedStyle(answer).opacity) : 0
+		fold?.cancel()
+		clearAnswer(answer)
+		details.classList.toggle('is-closing', !isOpening)
+		if (isOpening) details.setAttribute('open', '')
+		details.style.removeProperty('height')
+		const borders = details.offsetHeight - details.clientHeight
+		const to = isOpening
+			? details.offsetHeight
+			: summary.offsetHeight + borders
+		details.style.setProperty('overflow', 'hidden')
+		moving.add(run)
+		// The fade starts before the height completes, and the height's completion clears both, so it always runs after the fade committed its last frame.
+		if (isOpening) fadeAnswerIn(answer, fade)
+		else fadeAnswerOut(answer, fade)
+		fold = animate(
+			details,
+			{ height: [`${from}px`, `${to}px`] },
+			{ duration: DURATION_S, ease, onComplete: settle },
+		)
+	}
+	summary.addEventListener('click', event => {
+		if (reducedMotion.matches) return
+		event.preventDefault()
+		isOpening = !details.open || details.classList.contains('is-closing')
+		run()
+	})
+}
+
+export function bindDisclosures(): void {
+	window.addEventListener('resize', remeasure, { passive: true })
+	document.fonts.addEventListener('loadingdone', remeasure)
+	for (const row of document.querySelectorAll('[data-disclosure]'))
+		if (row instanceof HTMLDetailsElement) bindDisclosure(row)
+}

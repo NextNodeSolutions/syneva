@@ -1,0 +1,14 @@
+---
+import { sx } from '@shared/lib/sx'
+import { productArt } from '@shared/ui/drawing/product-art.styles'
+import type { Layer } from './desk-layers'
+
+type Props = { kind: Layer['kind'] }
+
+const { kind } = Astro.props
+const ISO = 'matrix(.859 .43 -.859 .43 0 -55)'
+const EDGE = { diff: null, guide: productArt.edgeGuide, thread: null, verdict: productArt.edgeVerdict } as const
+const FACE = { diff: null, guide: productArt.faceGuide, thread: productArt.faceThread, verdict: productArt.faceVerdict } as const
+---
+
+<path {...sx(productArt.isoEdge, EDGE[kind])} d="M-110 0 0 55 110 0v6L0 61-110 6Z"></path><path {...sx(productArt.isoFace, FACE[kind])} d="M0-55 110 0 0 55-110 0Z"></path><g transform={ISO}><slot /></g>

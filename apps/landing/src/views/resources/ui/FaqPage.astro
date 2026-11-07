@@ -1,0 +1,27 @@
+---
+import CtaBand from '@widgets/cta-band/ui/CtaBand.astro'
+import PageHero from '@widgets/page-hero/ui/PageHero.astro'
+import Pager from '@widgets/page-index/ui/Pager.astro'
+import TextLink from '@shared/ui/TextLink.astro'
+import { ISSUES_URL } from '@entities/site/model/project'
+import FaqArt from './art/FaqArt.astro'
+import { faqGroups } from '../model/faq'
+import QaBlock from './QaBlock.astro'
+import QaIndex from './QaIndex.astro'
+
+
+const groups = await faqGroups()
+---
+
+<PageHero
+	title="Straight answers."
+	lede={'What Syneva does, what it deliberately doesn’t, and where your code goes. If your question isn’t here, ask it on GitHub.'}
+	caption="Short answers first, with details where they matter."
+>
+	<TextLink slot="actions" href={ISSUES_URL} label="Ask on GitHub" />
+	<FaqArt slot="art" />
+</PageHero>
+<QaIndex groups={groups} />
+{groups.map(group => <QaBlock group={group} />)}
+<CtaBand />
+<Pager />

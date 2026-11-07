@@ -1,0 +1,31 @@
+---
+import { sectionOf } from '@entities/site/model/routes'
+import Icon from '@entities/site/ui/Icon.astro'
+import { sx } from '@shared/lib/sx'
+import { pagerLinks } from '../model/pager-links'
+import { pagerLinkMarker } from './page-index.stylex'
+import { pager } from './pager.styles'
+
+const route = Astro.url.pathname
+const section = sectionOf(route)
+const links = pagerLinks(route)
+---
+
+{
+	section && (
+		<nav {...sx(pager.root)} aria-label={`${section.label} pages`}>
+			{links.map(({ side, href, direction, icon, title, blurb }) => {
+				const isNext = side === 'next'
+				const words = isNext ? pager.nextText : !icon && pager.wide
+				return (
+					<a {...sx(pager.link, isNext && pager.next, pagerLinkMarker)} href={href}>
+						<small {...sx(pager.direction)}>{direction}</small>
+						{icon && <Icon name={icon} css={[pager.icon, isNext && pager.nextIcon]} />}
+						<strong {...sx(pager.title, words)}>{title}</strong>
+						<span {...sx(pager.blurb, words)}>{blurb}</span>
+					</a>
+				)
+			})}
+		</nav>
+	)
+}

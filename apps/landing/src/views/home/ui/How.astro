@@ -1,0 +1,41 @@
+---
+import { START_COMMAND } from '@entities/site/model/project'
+import { PAGES } from '@entities/site/model/site-map'
+import TextLink from '@shared/ui/TextLink.astro'
+import { ruledItem } from '@syneva/design-system/ruled.styles'
+import { section } from '@shared/ui/section.styles'
+import { stepIndex } from '@shared/ui/step-index.styles'
+import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { twoDigits } from '@shared/lib/two-digits'
+import Circuit from './circuit/Circuit.astro'
+import { how } from './how.styles'
+
+type Step = { title: string; text: string; link?: { href: string; title: string } }
+
+const STEPS: readonly Step[] = [
+	{ title: 'Open the desk', text: `Run <code>${START_COMMAND}</code> inside your repository. The diff opens in your browser, on localhost.` },
+	{ title: 'Read in order', text: 'Your agent can attach a reading order that groups files into sections. Files it doesn’t list still appear, under Other.' },
+	{ title: 'Ask on the line', text: 'Questions anchor to the exact change. Your agent answers in the same thread while you keep reviewing.' },
+	{ title: 'Send the verdict', text: 'Keep or undo each change, then Send. Your agent receives a structured result and re-diffs its edits into the same tab.', link: PAGES.connectYourAgent },
+]
+---
+
+<section {...revealRuledGroup(section.ruled, section.rhythm, how.section)} id="how" aria-labelledby="how-title">
+	<h2 {...revealItem(how.head)} id="how-title">One tab carries<br />every round of the loop.</h2>
+	<figure {...revealItem(how.figure)} {...scene}>
+		<Circuit />
+	</figure>
+	<ol {...sx(how.steps)}>
+		{
+			STEPS.map(({ title, text, link }, index) => (
+				<li {...revealItem(ruledItem.base, how.step)}>
+					<span {...sx(stepIndex.base)}>{twoDigits(index + 1)}</span>
+					<strong {...sx(how.stepTitle)}>{title}</strong>
+					<p {...sx(how.stepText)} set:html={text} />
+					{link && <TextLink href={link.href} label={link.title} css={how.stepLink} />}
+				</li>
+			))
+		}
+	</ol>
+</section>

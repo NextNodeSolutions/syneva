@@ -1,0 +1,32 @@
+---
+import { revealItem, revealRuledGroup, scene } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { chapterCopyMarker } from '@shared/ui/actions.stylex'
+import { chapterArtMarker } from '@shared/ui/drawing/chapter-art.stylex'
+import { chapter } from './chapter.styles'
+
+type Props = {
+	id?: string
+	title: string
+	artSide?: 'left' | 'right'
+	caption?: string
+}
+
+const { id, title, artSide = 'right', caption } = Astro.props
+const isArtLeft = artSide === 'left'
+const isSubpage = Astro.locals.page === 'sub'
+---
+
+<section {...revealRuledGroup(chapter.section, isSubpage && chapter.subSection)} id={id}>
+	<div {...sx(chapter.copy, isSubpage && chapter.subCopy, isArtLeft && chapter.reverseCopy, isSubpage && isArtLeft && chapter.subReverseCopy, chapterCopyMarker)}>
+		<h2 {...revealItem()} set:html={title} />
+		<slot />
+	</div>
+	<figure
+		{...revealItem(chapter.art, isArtLeft && chapter.reverseArt, isSubpage && chapter.subArt, isSubpage && isArtLeft && chapter.subReverseArt, chapterArtMarker)}
+		{...scene}
+	>
+		<slot name="art" />
+		{caption && <figcaption {...sx(chapter.caption, isSubpage && chapter.subCaption)} set:html={caption} />}
+	</figure>
+</section>

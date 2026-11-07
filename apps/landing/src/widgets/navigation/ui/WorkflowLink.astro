@@ -1,0 +1,36 @@
+---
+import type { WorkflowPage } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import Icon from '@entities/site/ui/Icon.astro'
+import { currentPage } from '../model/current-page'
+import { workflowLinkMarker } from './markers.stylex'
+import { workflowLink } from './menu.styles'
+import { menuOrder } from './menu-order'
+
+type Props = { page: WorkflowPage; index: number }
+
+const COLUMNS = 2
+
+const { page, index } = Astro.props
+const isRuled = index >= COLUMNS
+const isRuledWhenStacked = index > 0 && !isRuled
+---
+
+<a
+	{...sx(
+		workflowLink.base,
+		isRuled && workflowLink.ruled,
+		isRuledWhenStacked && workflowLink.stackedRule,
+		workflowLinkMarker,
+	)}
+	href={page.href}
+	{...menuOrder(index)}
+	aria-current={currentPage(page.href, Astro.url.pathname)}
+>
+	<strong {...sx(workflowLink.title)}>
+		<Icon name={page.icon} css={workflowLink.icon} />
+		{page.title} <span {...sx(workflowLink.arrow)} aria-hidden="true">→</span>
+	</strong>
+	<span {...sx(workflowLink.blurb)}>{page.blurb}</span>
+	<code {...sx(workflowLink.code)}>{page.code}</code>
+</a>

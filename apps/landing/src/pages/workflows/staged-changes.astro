@@ -1,0 +1,12 @@
+---
+import Document from '@app/layouts/Document.astro'
+import StagedChangesPage from '@views/workflows/ui/StagedChangesPage.astro'
+import { pageTitle } from '@entities/site/model/routes'
+---
+
+<Document
+	title={pageTitle('Staged changes review')}
+	description="Stage what you think is ready, then review exactly that. syneva --diff staged opens the index: the precise content of your next commit, and nothing else."
+>
+	<StagedChangesPage />
+</Document>

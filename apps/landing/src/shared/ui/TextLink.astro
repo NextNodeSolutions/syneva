@@ -1,0 +1,17 @@
+---
+import { textLinkMarker } from '@syneva/design-system/controls.stylex'
+import { textLink } from '@syneva/design-system/inline.styles'
+import type { Part } from '../lib/sx'
+import { sx } from '../lib/sx'
+import { textLinkPlace } from './text-link.styles'
+
+type Props = { href: string; label: string; arrow?: string; css?: Part }
+
+const { href, label, arrow, css } = Astro.props
+const glyph = arrow ?? (URL.canParse(href) ? '↗' : '→')
+const isSubpageSheet = Astro.locals.page !== 'home'
+---
+
+<a {...sx(textLink.base, textLinkPlace.base, isSubpageSheet ? textLinkPlace.inChapterSub : textLinkPlace.touch, css, textLinkMarker)} href={href}>
+	{label} <span {...sx(textLink.arrow)} aria-hidden="true">{glyph}</span>
+</a>

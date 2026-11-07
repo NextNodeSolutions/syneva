@@ -1,0 +1,14 @@
+---
+import type { Part } from '../lib/sx'
+import { sx } from '../lib/sx'
+import { figureTop } from './figure-top.styles'
+
+type Props = { aside: string; asideCss?: Part }
+
+const { aside, asideCss } = Astro.props
+---
+
+<div {...sx(figureTop.bar)}>
+	<span><slot /></span>
+	<span {...sx(figureTop.aside, asideCss)}>{aside}</span>
+</div>

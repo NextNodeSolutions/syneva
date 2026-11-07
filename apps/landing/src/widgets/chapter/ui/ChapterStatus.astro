@@ -1,0 +1,18 @@
+---
+import type { Availability, ProductPage } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import ChapterText from './ChapterText.astro'
+import { chapter } from './chapter.styles'
+
+type Props = { page: Pick<ProductPage, 'title' | 'availability'> }
+
+const STATUS: Record<Availability, string> = {
+	available: 'available now',
+	prototype: 'prototype',
+}
+
+const { page } = Astro.props
+const isPrototype = page.availability === 'prototype'
+---
+
+<ChapterText><span {...sx(chapter.status, isPrototype && chapter.prototype)}>{page.title} · {STATUS[page.availability]}</span></ChapterText>

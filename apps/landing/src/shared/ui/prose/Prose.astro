@@ -1,0 +1,14 @@
+---
+import { revealItem, revealRuledGroup } from '../../lib/reveal'
+import { section } from '../section.styles'
+import { prose } from './prose.styles'
+
+type Props = { id?: string; title: string }
+
+const { id, title } = Astro.props
+---
+
+<section {...revealRuledGroup(prose.root, section.pad)} id={id}>
+	<h2 {...revealItem(prose.title)} set:html={title} />
+	<div><slot /></div>
+</section>

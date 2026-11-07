@@ -1,0 +1,15 @@
+---
+import { revealItem } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { disclosure } from './disclosure.styles'
+import { disclosureMarker } from './disclosure.stylex'
+
+type Props = { question: string; answer: string }
+
+const { question, answer } = Astro.props
+---
+
+<details {...revealItem(disclosure.row, disclosureMarker)} data-disclosure>
+	<summary {...sx(disclosure.summary)} set:html={question} />
+	<p {...sx(disclosure.answer)} set:html={answer} />
+</details>

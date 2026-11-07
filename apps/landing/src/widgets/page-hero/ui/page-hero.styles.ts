@@ -1,0 +1,86 @@
+import * as stylex from '@stylexjs/stylex'
+import { media } from '@syneva/design-system/media.stylex'
+import { color, font, layout } from '@syneva/design-system/tokens.stylex'
+
+const LINE = color['--line']
+
+export const pageHero = stylex.create({
+	root: {
+		display: 'grid',
+		gridTemplateColumns: {
+			default: 'minmax(0, 5fr) minmax(0, 6fr)',
+			[media.tablet]: 'minmax(0, 1fr)',
+		},
+		borderBottomWidth: '1px',
+		borderBottomStyle: 'solid',
+		borderBottomColor: LINE,
+		padding: {
+			default: `58px ${layout['--gutter']} 48px`,
+			[media.phone]: `40px ${layout['--gutter']} 36px`,
+		},
+		position: 'relative',
+	},
+	copy: {
+		paddingTop: { default: '44px', [media.phone]: '30px' },
+		paddingInline: layout['--gutter'],
+		paddingBottom: { default: '64px', [media.tablet]: '52px' },
+		display: 'flex',
+		flexDirection: 'column',
+	},
+	crumbs: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		gap: '8px',
+		font: `11.5px ${font['--mono']}`,
+		color: color['--muted'],
+		marginBottom: { default: '44px', [media.tablet]: '32px' },
+	},
+	crumbLink: { color: { default: null, ':hover': color['--accent'] } },
+	crumbCurrent: { color: color['--ink'] },
+	title: {
+		fontSize: {
+			default: 'clamp(44px, 6.6vw, 84px)',
+			[media.phone]: 'clamp(34px, 9.2vw, 52px)',
+		},
+		letterSpacing: '-.045em',
+		lineHeight: 1.02,
+		maxWidth: '1100px',
+		marginTop: '24px',
+	},
+	lede: {
+		marginTop: '24px',
+		fontSize: { default: '18px', [media.phone]: '16px' },
+		lineHeight: 1.55,
+		maxWidth: { default: '470px', [media.tablet]: '640px' },
+	},
+	actions: {
+		display: 'flex',
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		gap: { default: '16px 24px', [media.phone]: '16px' },
+		marginTop: { default: '30px', [media.phone]: '26px' },
+	},
+	art: {
+		// `border-left: 0` once stacked resets the style and colour too.
+		borderLeftWidth: { default: '1px', [media.tablet]: 0 },
+		borderLeftStyle: { default: 'solid', [media.tablet]: 'none' },
+		borderLeftColor: { default: LINE, [media.tablet]: 'currentcolor' },
+		borderTopWidth: { default: null, [media.tablet]: '1px' },
+		borderTopStyle: { default: null, [media.tablet]: 'solid' },
+		borderTopColor: { default: null, [media.tablet]: LINE },
+		backgroundColor: color['--field'],
+		display: 'flex',
+		flexDirection: 'column',
+		justifyContent: 'center',
+		minWidth: 0,
+	},
+	caption: {
+		font: `11px ${font['--mono']}`,
+		padding: '15px 24px',
+		borderTopWidth: '1px',
+		borderTopStyle: 'solid',
+		borderTopColor: LINE,
+		color: color['--muted'],
+	},
+})

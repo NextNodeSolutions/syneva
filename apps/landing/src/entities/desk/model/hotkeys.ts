@@ -1,0 +1,21 @@
+// Notation mirrors packages/frontend/src/app/hotkeys-*.ts: ⇧ is Shift, ⌘ is Command.
+export const HOTKEYS = {
+	nextChange: 'j',
+	previousChange: 'k',
+	keep: '⇧Y',
+	undo: '⇧N',
+	approveFile: '⇧A',
+	commentOnLine: 'c',
+	commentOnFile: '⇧C',
+	ask: '⌘⇧↵',
+	requestChange: '⌘↵',
+	resolveThread: 'r',
+	nextFile: '⇧→',
+	switchView: 'w',
+	toggleSource: 'm',
+	reviewNotes: 'n',
+	hideApproved: '⇧H',
+	openEditor: '⇧E',
+	send: '⇧S',
+	keyboardMap: '?',
+} as const

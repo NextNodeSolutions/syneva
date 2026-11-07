@@ -1,0 +1,22 @@
+---
+import { revealItem } from '../../lib/reveal'
+import { sx } from '../../lib/sx'
+import { prose } from './prose.styles'
+import { specTable } from './spec-table.styles'
+
+type Props = { rows: readonly (readonly [string, string])[]; head: readonly [string, string] }
+
+const { rows, head } = Astro.props
+---
+
+<div {...revealItem(specTable.root, prose.block)} role="table">
+	<div {...sx(specTable.row, specTable.head)} role="row"><span {...sx(specTable.value)} role="columnheader">{head[0]}</span><span {...sx(specTable.value)} role="columnheader">{head[1]}</span></div>
+	{
+		rows.map(([key, value]) => (
+			<div {...sx(specTable.row)} role="row">
+				<code {...sx(specTable.key)} role="cell" set:html={key} />
+				<span {...sx(specTable.value)} role="cell" set:html={value} />
+			</div>
+		))
+	}
+</div>

@@ -1,0 +1,21 @@
+---
+import { HOME_HREF, SITE_NAME } from '@entities/site/model/site-map'
+import { crumbOf, sectionOf } from '@entities/site/model/routes'
+import { sx } from '@shared/lib/sx'
+import { pageHero } from './page-hero.styles'
+
+const route = Astro.url.pathname
+const current = crumbOf(route)
+const section = sectionOf(route)
+const parent = section && section.href !== route ? section : undefined
+---
+
+<nav {...sx(pageHero.crumbs)} aria-label="Breadcrumb">
+	<a {...sx(pageHero.crumbLink)} href={HOME_HREF}>{SITE_NAME}</a><span aria-hidden="true">/</span>{
+		parent && (
+			<Fragment>
+				<a {...sx(pageHero.crumbLink)} href={parent.href}>{parent.label}</a><span aria-hidden="true">/</span>
+			</Fragment>
+		)
+	}<span {...sx(pageHero.crumbCurrent)} aria-current="page">{current}</span>
+</nav>

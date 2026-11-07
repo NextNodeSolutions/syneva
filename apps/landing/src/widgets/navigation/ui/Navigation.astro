@@ -1,0 +1,105 @@
+---
+import type { SectionId } from '@entities/site/model/site-map'
+import { PAGES, SECTIONS } from '@entities/site/model/site-map'
+import { primaryAction } from '@entities/site/model/primary-action'
+import { sectionOf } from '@entities/site/model/routes'
+import { sx } from '@shared/lib/sx'
+import Brand from '@shared/ui/Brand.astro'
+import { inputMarker } from '@shared/ui/brand.stylex'
+import { press } from '@syneva/design-system/press.styles'
+import { currentPage } from '../model/current-page'
+import { panelId, triggerId } from '../model/section-ids'
+import NavPanel from './NavPanel.astro'
+import ProductMenu from './ProductMenu.astro'
+import ResourceMenu from './ResourceMenu.astro'
+import WorkflowMenu from './WorkflowMenu.astro'
+import { actionMarker, dropdownMarker, navMarker, toggleMarker, triggerMarker } from './markers.stylex'
+import { dock } from './dock.styles'
+import { dropdown } from './dropdown.styles'
+import { headerActions } from './header-actions.styles'
+import { instant } from './instant.styles'
+import { nav } from './navigation.styles'
+
+const route = Astro.url.pathname
+const active = sectionOf(route)
+const isOpenSource = route === PAGES.openSource.href
+const action = primaryAction(PAGES.getStarted.title, Astro.locals.page)
+const MENUS: Record<SectionId, typeof ProductMenu> = {
+	product: ProductMenu,
+	workflows: WorkflowMenu,
+	resources: ResourceMenu,
+}
+---
+
+<header {...sx(nav.shell, navMarker, inputMarker)} data-navigation>
+	<div {...sx(dock.layer)} aria-hidden="true">
+		<span {...sx(dock.rule)}></span>
+		<span {...sx(dock.sheet)}>
+			<span {...sx(dock.ruler)} data-nav-ruler>
+				<span {...sx(dock.progress)} data-nav-progress></span>
+				<template data-nav-tick><span {...sx(dock.tick)}></span></template>
+			</span>
+		</span>
+		<span {...sx(dock.corner, dock.topLeft)}></span>
+		<span {...sx(dock.corner, dock.topRight)}></span>
+		<span {...sx(dock.corner, dock.bottomLeft)}></span>
+		<span {...sx(dock.corner, dock.bottomRight)}></span>
+	</div>
+	<Brand css={nav.control} />
+	<nav {...sx(nav.links)} id="site-navigation" aria-label="Main navigation" data-nav-links>
+		{
+			SECTIONS.map(section => (
+				<button
+					{...sx(nav.item, nav.trigger, active === section && nav.current, instant.transitions, triggerMarker)}
+					id={triggerId(section)}
+					type="button"
+					aria-expanded="false"
+					aria-controls={panelId(section)}
+					data-nav-trigger
+				>
+					{section.label} <svg {...sx(nav.chevron, instant.transitions)} viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"></path></svg>
+				</button>
+			))
+		}
+		<a
+			{...sx(nav.item, nav.direct, isOpenSource && nav.current, instant.transitions)}
+			href={PAGES.openSource.href}
+			aria-current={currentPage(PAGES.openSource.href, route)}>{PAGES.openSource.title}</a
+		>
+		<span {...sx(nav.indicator, instant.transitions)} aria-hidden="true"></span>
+	</nav>
+	<a {...sx(press.control, headerActions.action, nav.control, instant.transitions, actionMarker)} href={action.href} aria-current={currentPage(action.href, route)}>
+		{action.label} <span {...sx(headerActions.actionArrow, instant.transitions)} aria-hidden="true">→</span>
+	</a>
+	<button
+		{...sx(press.control, headerActions.toggle, nav.control, instant.transitions, toggleMarker)}
+		type="button"
+		aria-expanded="false"
+		aria-controls="site-navigation"
+		aria-label="Menu"
+		data-nav-toggle
+	>
+		<span {...sx(headerActions.toggleLabel)}>Menu</span>
+		<svg {...sx(headerActions.toggleIcon)} viewBox="0 0 20 20" aria-hidden="true">
+			<path {...sx(headerActions.toggleBar, headerActions.toggleTop, instant.transitions)} d="M4 7h12"></path>
+			<path {...sx(headerActions.toggleBar, headerActions.toggleBottom, instant.transitions)} d="M4 13h12"></path>
+		</svg>
+	</button>
+	<div {...sx(dropdown.base, dropdownMarker)} data-open="false" data-nav-dropdown>
+		{
+			SECTIONS.map(section => {
+				const Menu = MENUS[section.id]
+				return (
+					<NavPanel section={section}>
+						<Menu />
+					</NavPanel>
+				)
+			})
+		}
+	</div>
+	<noscript {...sx(nav.noscript)}>{SECTIONS.map(section => <a href={section.href}>{section.label}</a>)}</noscript>
+</header>
+
+<script>
+	import '../model/navigation.client'
+</script>

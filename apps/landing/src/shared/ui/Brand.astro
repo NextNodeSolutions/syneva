@@ -1,0 +1,27 @@
+---
+import {
+	MARK_DIAMOND,
+	MARK_RAYS,
+	MARK_VIEW_BOX,
+	WORDMARK,
+} from '@syneva/design-system/brand'
+import { brand } from '@syneva/design-system/brand.styles'
+import { brandMarker } from '@syneva/design-system/brand.stylex'
+import type { Part } from '../lib/sx'
+import { sx } from '../lib/sx'
+import { brandInput } from './brand.styles'
+
+type Props = { css?: Part }
+
+const { css } = Astro.props
+---
+
+<a {...sx(brand.link, brandMarker, css)} href="/" aria-label="Syneva home">
+	<svg {...sx(brand.mark, brandInput.mark)} viewBox={MARK_VIEW_BOX} aria-hidden="true">
+		<g {...sx(brandInput.dial)} data-brand-dial>
+			<path d={MARK_RAYS}></path>
+			<path d={MARK_DIAMOND}></path>
+		</g>
+	</svg>
+	{WORDMARK}
+</a>

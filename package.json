@@ -6,6 +6,7 @@
   "scripts": {
     "build": "turbo run build",
     "check": "turbo run check && tsc -p tsconfig.node.json",
+    "dev:site": "pnpm --filter @syneva/landing dev",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint --deny-warnings",

@@ -1,0 +1,14 @@
+---
+import type { Page } from '@entities/site/model/site-map'
+import { sx } from '@shared/lib/sx'
+import IndexRow from './IndexRow.astro'
+import { indexRows } from './index-rows.styles'
+
+type Props = { pages: readonly Page[] }
+
+const { pages } = Astro.props
+---
+
+<div {...sx(indexRows.root)}>
+	{pages.map((page, index) => <IndexRow page={page} index={index} />)}
+</div>

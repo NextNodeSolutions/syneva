@@ -1,0 +1,50 @@
+---
+import { SECTION_BY_ID } from '@entities/site/model/site-map'
+import { twoDigits } from '@shared/lib/two-digits'
+import { sx } from '@shared/lib/sx'
+import { homeArt } from '@shared/ui/drawing/home-art.styles'
+import Drawing from '@shared/ui/drawing/Drawing.astro'
+import { anim, move } from '@shared/ui/drawing/anim'
+import { shape } from '@shared/ui/drawing/shape.styles'
+import { text } from '@shared/ui/drawing/text.styles'
+import { capitalize } from '@shared/lib/capitalize'
+import { countWord } from '@shared/lib/count-word'
+import { listFormat } from '@shared/lib/list-format'
+import { resourcesArt } from './resources-art.styles'
+
+const ROW = 70
+const ADVANCE = 9.6
+const leaderAt = (title: string, index: number): string => `M${title.length * ADVANCE + 82} ${128 + index * ROW}H486`
+const entries = SECTION_BY_ID.resources.items.map(({ title, blurb }, index) => ({
+	title,
+	blurb,
+	number: twoDigits(index + 1),
+	leader: leaderAt(title, index),
+}))
+---
+
+<Drawing
+	id="toc"
+	width={600}
+	height={420}
+	compact="50 60 516 330"
+	title="Resources, as a table of contents"
+	description={`${capitalize(countWord(entries.length))} resources listed like a book's contents: ${listFormat.format(entries.map(({ title }) => title.toLowerCase()))}.`}
+>
+	<text {...anim('fade', 0, text.tiny)} x="70" y="80">CONTENTS</text>
+	<path {...anim('draw', 0.1, shape.inkLine)} d="M70 92h460"></path>
+	{
+		entries.map(({ title, blurb, number, leader }, index) => (
+			<g {...anim('rise', 0.2 + index * 0.12)}>
+				<text {...sx(text.head)} x="70" y={132 + index * ROW}>{title}</text>
+				<text {...sx(text.small)} x="70" y={152 + index * ROW}>{blurb}</text>
+				<path {...sx(resourcesArt.tocLeader)} d={leader} />
+				<text {...sx(text.label, text.accent)} x="530" y={132 + index * ROW} text-anchor="end">{number}</text>
+				<path {...sx(shape.hair)} d={`M70 ${170 + index * ROW}h460`} />
+			</g>
+		))
+	}
+	<rect {...move(0.9, 0, -60, resourcesArt.tocRibbon)} x="548" y="92" width="14" height="80"></rect>
+	<path {...sx(resourcesArt.tocRibbonCut)} d="M548 172l7-8 7 8"></path>
+	<rect {...anim('sweep', 1.2, homeArt.deskCursor)} x="60" y="108" width="480" height="56"></rect>
+</Drawing>

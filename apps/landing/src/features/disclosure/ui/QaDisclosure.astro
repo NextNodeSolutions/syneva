@@ -1,0 +1,18 @@
+---
+import { richText } from '@shared/lib/rich-text'
+import { revealItem } from '@shared/lib/reveal'
+import { sx } from '@shared/lib/sx'
+import { disclosure } from './disclosure.styles'
+import { disclosureMarker } from './disclosure.stylex'
+import { qaDisclosure } from './qa-disclosure.styles'
+
+type Props = { question: string; answer: string }
+
+const { question, answer } = Astro.props
+const answerHtml = richText(answer, { a: qaDisclosure.link, code: qaDisclosure.code })
+---
+
+<details {...revealItem(qaDisclosure.row, disclosureMarker)} data-disclosure>
+	<summary {...sx(disclosure.summary, qaDisclosure.summary)} set:html={question} />
+	<p {...sx(disclosure.answer, qaDisclosure.answer)} set:html={answerHtml} />
+</details>

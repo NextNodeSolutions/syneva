@@ -1,0 +1,11 @@
+---
+import type { Part } from '../../lib/sx'
+import { anim } from './anim'
+import { shape } from './shape.styles'
+
+type Props = { d: string; drawDelay: number; signalDelay?: number; routeCss?: Part; signalCss?: Part }
+
+const { d, drawDelay, signalDelay, routeCss, signalCss } = Astro.props
+---
+
+<path {...anim('draw', drawDelay, shape.route, routeCss)} d={d}></path>{signalDelay !== undefined && <path {...anim('signal', signalDelay, shape.signal, signalCss)} d={d}></path>}

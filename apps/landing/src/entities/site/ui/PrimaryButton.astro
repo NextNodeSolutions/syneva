@@ -1,0 +1,12 @@
+---
+import type { Part } from '@shared/lib/sx'
+import Button from '@shared/ui/Button.astro'
+import { primaryAction } from '../model/primary-action'
+
+type Props = { label: string; css?: Part }
+
+const { label, css } = Astro.props
+const action = primaryAction(label, Astro.locals.page)
+---
+
+<Button href={action.href} label={action.label} css={css} />

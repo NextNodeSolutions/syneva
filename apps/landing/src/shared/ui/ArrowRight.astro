@@ -1,0 +1,11 @@
+---
+import { ARROW_PATH, ARROW_VIEW_BOX } from '@syneva/design-system/icons'
+import type { Part } from '../lib/sx'
+import { sx } from '../lib/sx'
+
+type Props = { css?: Part }
+
+const { css } = Astro.props
+---
+
+<svg {...sx(css)} viewBox={ARROW_VIEW_BOX} aria-hidden="true"><path d={ARROW_PATH}></path></svg>
