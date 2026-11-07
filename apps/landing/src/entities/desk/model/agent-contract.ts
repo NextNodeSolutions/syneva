@@ -62,7 +62,6 @@ export const REVIEW_RESULT_FIELDS = [
 	'rejected',
 	'requestedChanges',
 	'approvedFiles',
-	'stagedFiles',
 	'openQuestions',
 ] as const satisfies readonly (keyof ReviewResult)[]
 export const REVIEW_RESULT_NOTE = 'overallNote' satisfies keyof ReviewResult

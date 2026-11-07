@@ -1,4 +1,5 @@
 import { ATTRIBUTE } from './attributes'
+import { booted } from './boot'
 import { countUp } from './count-up'
 import { EASE } from './easing'
 import { animate, inView } from './engine'
@@ -53,7 +54,7 @@ function playReveal(group: Element): void {
 		animate(
 			group,
 			{
-				transform: ['scaleX(0)', 'scaleX(1)', 'scaleX(1)'],
+				transform: [POSE_VALUES.sweep, 'scaleX(1)', 'scaleX(1)'],
 				opacity: [POSE_VALUES.ruleOpacity, POSE_VALUES.ruleOpacity, 0],
 			},
 			RULE_TIMING,
@@ -83,8 +84,14 @@ function revealAround(focused: EventTarget | null): void {
 		revealOnce(group)
 }
 
-// Arm once the hidden poses are in effect, or an entrance lands on a pose that was never seen; the page's runtime calls this once, at boot.
-export function armReveals(): void {
+// Arms only after boot, once the hidden poses are in effect, or an entrance lands on a pose that was never seen.
+async function armAfterBoot(): Promise<void> {
+	await booted()
 	inView(GROUP, revealOnce, REVEAL)
 	document.addEventListener('focusin', ({ target }) => revealAround(target))
+}
+
+// The page's runtime calls this once.
+export function armReveals(): void {
+	void armAfterBoot()
 }

@@ -1,4 +1,5 @@
 ---
+import { GUIDE_FORMAT } from '@syneva/contracts/guide'
 import type { Guide, GuideDomain } from '@syneva/contracts/guide'
 
 import PrimaryButton from '@entities/site/ui/PrimaryButton.astro'
@@ -21,8 +22,8 @@ import { GUIDE_FILE_COUNT } from './art/guide-sections'
 
 const GUIDE = [
 	'# guide.json, written by your agent',
-	'{ "format": "syneva-guide/2",',
-	'  "source": { "mode": "repo", "fingerprint": "5b3d9c0a1e2f4a6b" },',
+	`{ "format": "${GUIDE_FORMAT}",`,
+	'  "source": { "mode": "pr", "fingerprint": "5b3d9c0a1e2f4a6b" },',
 	'  "overview": "Sessions move to signed cookies.",',
 	'  "domains": [',
 	'    { "id": "session-signing", "risk": "critical",',
@@ -42,7 +43,7 @@ const DOMAINS = 'domains' satisfies keyof Guide
 const domainField = (name: keyof GuideDomain): string =>
 	`${DOMAINS}[].${name}`
 const FIELDS = [
-	['format' satisfies keyof Guide, 'Required. “syneva-guide/2”.'],
+	['format' satisfies keyof Guide, `Required. “${GUIDE_FORMAT}”.`],
 	['source' satisfies keyof Guide, 'Required. The review the guide was written for, with its fingerprint.'],
 	['overview' satisfies keyof Guide, 'Required. What the changeset does, in a paragraph.'],
 	[DOMAINS, 'Required. One per coherent changed behavior, across files.'],

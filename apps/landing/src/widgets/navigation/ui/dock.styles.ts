@@ -1,4 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
+import { curves } from '@syneva/design-system/curves.stylex'
 import { media } from '@syneva/design-system/media.stylex'
 import { color } from '@syneva/design-system/tokens.stylex'
 
@@ -22,8 +23,8 @@ const CORNER_STROKE = '1.5px'
 const DOCK = dockClock.dockDuration
 const UNDOCK = dockClock.undockDuration
 const SETTLE = dockClock.settleDelay
-const EASE = dockClock.ease
-const LOCK = dockClock.lockEase
+const EASE = curves.unfold
+const LOCK = curves.springWide
 
 type DockValue = { readonly default: string | null } & Readonly<
 	Record<string, string | null>

@@ -1,4 +1,4 @@
-import { toBezier } from '@syneva/motion/easing'
+import { EASE, toBezier } from '@syneva/motion/easing'
 
 import { dockClock, navClock } from '../ui/nav.stylex'
 
@@ -27,7 +27,7 @@ export const NAV_CLOCK: NavClock = {
 		fold: toSeconds(dockClock.foldDuration),
 	},
 	ease: toBezier(navClock.ease),
-	unfoldEase: toBezier(dockClock.ease),
+	unfoldEase: EASE.unfold,
 	travel: {
 		panel: Number(navClock.panelTravel),
 		preview: Number(navClock.previewTravel),

@@ -1,16 +1,6 @@
 {
 	"extends": "../../tsconfig.base.json",
-	"compilerOptions": {
-		// The shared preset checks with bundler resolution and noEmit; contracts
-		// is a NodeNext emit world: tsc builds dist (ESM .js + .d.ts) consumed
-		// through the package exports by both the backend and the browser.
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"noEmit": false,
-		"declaration": true,
-		"types": ["node"],
-		"outDir": "dist",
-		"rootDir": "src"
-	},
+	// Source package: consumers compile it with their own build, so the
+	// check is the only task and the preset's bundler/noEmit defaults fit.
 	"include": ["src/**/*.ts"]
 }

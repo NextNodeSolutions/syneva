@@ -1,41 +1,15 @@
-// The guide: an externally authored, risk-ranked explanation of the coherent behaviors a changeset changes.
-// Syneva validates and renders it, never writes it; the backend domain mirrors these shapes (domain/guide-shapes.ts) - keep both sides in sync.
-import type { ReviewMode } from './review.js'
+// The guide: an externally authored, risk-ranked explanation of the behaviors a changeset changes; Syneva validates and renders it, never writes it.
+import type { CodeSpan, ReviewMode } from './review'
 
-// The schema id every guide names; a guide without it (the retired file-grouping format included) is refused, never adapted.
+// The schema id every guide names; a guide without it is refused, never adapted.
 export const GUIDE_FORMAT = 'syneva-guide/2'
 
 export type RiskLevel = 'critical' | 'high' | 'medium' | 'low'
-
-// Highest risk first; the index is the sort key (sortDomains).
-export const RISK_ORDER: readonly RiskLevel[] = [
-	'critical',
-	'high',
-	'medium',
-	'low',
-]
-
-export type CodeSide = 'additions' | 'deletions'
-
-// A span of ORIGINAL code: `additions` is the new file, `deletions` the old one, lines 1-based in that file.
-// Rendered-diff numbers are never identities (the desk renumbers them per render).
-export type CodeSpan = {
-	path: string
-	side: CodeSide
-	lineNumber: number
-	endLine?: number | undefined
-}
 
 // What a domain owns. A `change` member names changed code by any line of the changed block on its side; a `file` member owns a file operation that has no text block (a pure rename, an untracked addition, a hunk-less deletion).
 export type GuideMember =
 	| ({ kind: 'change' } & CodeSpan)
 	| { kind: 'file'; path: string }
-
-// What an agent may also write in a posted guide, resolved by the desk into `change` and `file` members before the guide attaches: `symbol` owns every changed block of a declaration (a class takes its members too) in one file; `domain` owns every block a domain of the desk's current guide owns (the draft's included).
-export type AuthoredMember =
-	| GuideMember
-	| { kind: 'symbol'; path: string; symbol: string }
-	| { kind: 'domain'; id: string }
 
 // A code target an explanation points at. `changed` points into changed code (this domain's or another's); `context` points at supporting unchanged code on the reviewed revision - read-only, never a change to approve.
 export type GuideReference = CodeSpan & {
@@ -134,8 +108,6 @@ export type ExplanationBlock =
 	| SequenceBlock
 	| FlowBlock
 
-export type ExplanationBlockKind = ExplanationBlock['kind']
-
 export type GuideDomain = {
 	// Stable across guides of the same changeset: feedback and review position key on it, never on the title or the position.
 	id: string
@@ -160,19 +132,12 @@ export type GuideDomain = {
 	order?: number | undefined
 }
 
-// A domain as posted: without members it keeps the blocks the desk's current domain of the same id owns; members it lists join it, taken from wherever they were.
-export type AuthoredDomain = Omit<GuideDomain, 'members'> & {
-	members?: AuthoredMember[] | undefined
-}
-
 // The exact review source the guide was authored against; `fingerprint` is the inventory's and must match the desk's at attach.
 export type GuideSource = {
 	mode: ReviewMode
 	fingerprint: string
-	head?: string | null | undefined
+	head?: string | undefined
 	base?: string | undefined
-	staged?: boolean | undefined
-	path?: string | undefined
 }
 
 export type Guide = {
@@ -184,98 +149,4 @@ export type Guide = {
 	domains: GuideDomain[]
 	// Stamped by the desk on attach: the diff the guide describes; a reload advancing past it is what the lifecycle re-resolves against.
 	baseDiffHash?: string | undefined
-}
-
-// What `syneva reload --guide` and `open --guide` accept: a guide laid over the desk's current one. A domain it names replaces that domain's text; a domain it leaves out stays as it is.
-export type AuthoredGuide = Omit<Guide, 'domains'> & {
-	domains: AuthoredDomain[]
-}
-
-// Bounds the validator enforces; a guide past one is refused naming the field, never truncated.
-export const GUIDE_LIMITS = {
-	domains: 60,
-	membersPerDomain: 400,
-	referencesPerDomain: 60,
-	blocksPerDomain: 12,
-	diagramNodes: 40,
-	diagramEdges: 80,
-	overviewChars: 3000,
-	markdownChars: 20_000,
-	textChars: 1000,
-	labelChars: 120,
-	idChars: 80,
-} as const
-
-// Risk first, then the authored tie order, then the array position; a domain's prerequisites never move it down.
-export function sortDomains<D extends Pick<GuideDomain, 'risk' | 'order'>>(
-	domains: readonly D[],
-): D[] {
-	return domains
-		.map((domain, index) => ({ domain, index }))
-		.toSorted((a, b) => {
-			const risk =
-				RISK_ORDER.indexOf(a.domain.risk) -
-				RISK_ORDER.indexOf(b.domain.risk)
-			if (risk !== 0) return risk
-			const order =
-				(a.domain.order ?? a.index) - (b.domain.order ?? b.index)
-			if (order !== 0) return order
-			return a.index - b.index
-		})
-		.map(entry => entry.domain)
-}
-
-// ── Resolution: the guide against the real diff ────────────────────────────────────────────
-// Computed by the desk when a guide attaches and refreshed on every reload; the guide itself is never edited.
-
-export type ReferenceStatus = 'resolved' | 'stale' | 'unresolved'
-
-export type ResolvedReference = {
-	status: ReferenceStatus
-	// The target's content identity when the guide attached: the changed block's contentHash, or the hash of the cited unchanged lines.
-	contentHash?: string | undefined
-	// What happened to a target that is no longer `resolved`.
-	reason?: string | undefined
-}
-
-export type OwnedUnit = { key: string; contentHash: string }
-
-export type DomainResolution = {
-	// The changed blocks the domain owned when the guide attached, with their identities then.
-	units: OwnedUnit[]
-	// The hunk-less file operations it owned.
-	files: string[]
-	// Per owned file operation, its identity then (kind, origin, content): a path alone misses a binary file rewritten in place. Absent on a resolution saved before it existed.
-	fileHashes?: Record<string, string> | undefined
-	refs: Record<string, ResolvedReference>
-	// Set on reload when the owned code, the cited context or a prerequisite changed since the guide was written.
-	stale?: { reasons: string[] } | undefined
-}
-
-export type GuideResolution = {
-	// The inventory fingerprint the guide was attached against.
-	fingerprint: string
-	domains: Record<string, DomainResolution>
-	// Changed units and file operations no domain owns now (empty when the guide attached; a reload can grow it).
-	unassigned: { units: string[]; files: string[] }
-	// The domains Syneva drafted from the code's structure that no agent has explained yet: their text is mechanical.
-	drafted?: string[] | undefined
-	overviewDrafted?: boolean | undefined
-}
-
-// One thing wrong with a guide against its inventory, named by the field and the target it concerns.
-export type GuideIssue = {
-	field: string
-	target?: string | undefined
-	reason: string
-}
-
-// Overlap on the same file and side: the rule membership and references resolve by, shared by the hub and the desk.
-export function spanOverlaps(
-	span: { lineNumber: number; endLine?: number | undefined },
-	unit: { lineNumber: number; endLine?: number | undefined },
-): boolean {
-	const spanEnd = span.endLine ?? span.lineNumber
-	const unitEnd = unit.endLine ?? unit.lineNumber
-	return span.lineNumber <= unitEnd && unit.lineNumber <= spanEnd
 }
