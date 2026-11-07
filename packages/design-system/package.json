@@ -24,7 +24,7 @@
     "./brand.styles": "./src/brand.styles.ts",
     "./brand.stylex": "./src/brand.stylex.ts",
     "./press.styles": "./src/press.styles.ts",
-    "./controls.stylex": "./src/controls.stylex.ts",
+    "./inline.stylex": "./src/inline.stylex.ts",
     "./controls.styles": "./src/controls.styles.ts",
     "./inline.styles": "./src/inline.styles.ts",
     "./a11y.styles": "./src/a11y.styles.ts",

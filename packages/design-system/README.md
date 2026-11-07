@@ -15,7 +15,7 @@ The site's `DESIGN.md` (`apps/landing/DESIGN.md`) describes the language: a ligh
 | `./when` | The `When<T>` type for a value that applies only under a condition. |
 | `./press.styles` | `press.control`: a pressable control's eased fills and its give under the pointer. |
 | `./controls.styles` | `caption` (`base`, `upper`), the mono caption; `tag` (`base`, `accent`), a petrol label; `dot` (`base` + a tone: `petrol`, `green`, `red`), a status square. |
-| `./controls.stylex` | `textLinkMarker`, put on a link whose `textLink.arrow` steps forward on hover. |
+| `./inline.stylex` | `textLinkMarker`, put on a link whose `textLink.arrow` steps forward on hover. |
 | `./inline.styles` | What sits inside a line of text: `textLink` (`base`, `small`, `arrow`), the secondary action (there are no ghost buttons), which takes its sentence's colour; `textButton.base`, a `<button>` that reads as text (composed after `textLink` where it should look like one). |
 | `./a11y.styles` | `a11y.srOnly`: text a screen reader reads and nothing draws. |
 | `./ruled.styles` | `ruledItem.base`: a point under its own strong rule with a petrol square on the rule's start (the site's steps and facts, the hub's register). |

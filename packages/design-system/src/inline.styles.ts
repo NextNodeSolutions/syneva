@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 
-import { textLinkMarker } from './controls.stylex'
+import { textLinkMarker } from './inline.stylex'
 import { color, font } from './tokens.stylex'
 import { transition } from './transitions.stylex'
 
