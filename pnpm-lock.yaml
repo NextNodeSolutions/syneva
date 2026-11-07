@@ -103,7 +103,7 @@ importers:
   packages/contracts:
     devDependencies:
       typescript:
-        specifier: latest
+        specifier: 7.0.2
         version: 7.0.2
 
   packages/design-system:
@@ -113,7 +113,7 @@ importers:
         version: 0.19.1
     devDependencies:
       typescript:
-        specifier: latest
+        specifier: 7.0.2
         version: 7.0.2
 
   packages/motion:
@@ -129,7 +129,7 @@ importers:
         version: 14.0.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
       typescript:
-        specifier: latest
+        specifier: 7.0.2
         version: 7.0.2
 
 packages:

@@ -10,7 +10,7 @@
     "@stylexjs/stylex": "0.19.1"
   },
   "devDependencies": {
-    "typescript": "latest"
+    "typescript": "7.0.2"
   },
   "private": true,
   "type": "module",

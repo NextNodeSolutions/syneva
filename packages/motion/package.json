@@ -12,7 +12,7 @@
     "motion": "14.0.0"
   },
   "devDependencies": {
-    "typescript": "latest"
+    "typescript": "7.0.2"
   },
   "private": true,
   "type": "module",
