@@ -1,11 +1,12 @@
 {
   "name": "syneva-monorepo",
   "version": "0.0.0",
-  "description": "Workspace root for Syneva: the public site in apps/landing, the shared packages in packages/*.",
+  "description": "Workspace root for Syneva: the public site in apps/landing, the review dashboard in apps/dashboard, the shared packages in packages/*.",
   "license": "MIT",
   "scripts": {
     "build": "turbo run build",
     "check": "turbo run check && tsc -p tsconfig.node.json",
+    "dev:dashboard": "pnpm --filter @syneva/dashboard dev",
     "dev:site": "pnpm --filter @syneva/landing dev",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",

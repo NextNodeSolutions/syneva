@@ -1,0 +1,36 @@
+{
+  "name": "@syneva/dashboard",
+  "version": "0.0.0",
+  "description": "The Syneva dashboard: a Cloudflare Worker that answers its API and serves a React app listing the reviews by project and showing each review's code. It reads mock data until GitHub sign-in lands.",
+  "license": "MIT",
+  "scripts": {
+    "build": "vite build",
+    "check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
+    "dev": "vite dev",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@js-temporal/polyfill": "0.5.1",
+    "@pierre/diffs": "1.6.4",
+    "@stylexjs/stylex": "0.19.1",
+    "@syneva/contracts": "workspace:*",
+    "@syneva/design-system": "workspace:*",
+    "@tanstack/react-query": "5.107.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.62.5",
+    "@cloudflare/workers-types": "5.20261005.1",
+    "@stylexjs/unplugin": "0.19.1",
+    "@types/node": "24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.2",
+    "wrangler": "4.147.0"
+  },
+  "private": true,
+  "type": "module"
+}

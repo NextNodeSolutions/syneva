@@ -1,0 +1,103 @@
+diff --git a/internal/webhooks/backoff.go b/internal/webhooks/backoff.go
+new file mode 100644
+index 0000000..060de2c
+--- /dev/null
++++ b/internal/webhooks/backoff.go
+@@ -0,0 +1,20 @@
++package webhooks
++
++import (
++	"math/rand/v2"
++	"time"
++)
++
++// Backoff doubles the delay after each failed attempt, with full jitter, up to Max.
++type Backoff struct {
++	Base time.Duration
++	Max  time.Duration
++}
++
++func (b Backoff) Delay(attempt int) time.Duration {
++	ceiling := b.Base << attempt
++	if ceiling <= 0 || ceiling > b.Max {
++		ceiling = b.Max
++	}
++	return time.Duration(rand.Int64N(int64(ceiling)))
++}
+diff --git a/internal/webhooks/dispatcher.go b/internal/webhooks/dispatcher.go
+index 386e1aa..fa466f6 100644
+--- a/internal/webhooks/dispatcher.go
++++ b/internal/webhooks/dispatcher.go
+@@ -3,11 +3,16 @@ package webhooks
+ import (
+ 	"bytes"
+ 	"context"
++	"errors"
+ 	"fmt"
+ 	"net/http"
+ 	"time"
+ )
+ 
++const maxAttempts = 5
++
++var errPermanent = errors.New("permanent webhook failure")
++
+ type Delivery struct {
+ 	EndpointURL string
+ 	Payload     []byte
+@@ -15,17 +20,37 @@ type Delivery struct {
+ }
+ 
+ type Dispatcher struct {
+-	client *http.Client
++	client  *http.Client
++	backoff Backoff
+ }
+ 
+ func NewDispatcher() *Dispatcher {
+-	return &Dispatcher{client: &http.Client{Timeout: 10 * time.Second}}
++	return &Dispatcher{
++		client:  &http.Client{Timeout: 10 * time.Second},
++		backoff: Backoff{Base: 500 * time.Millisecond, Max: 30 * time.Second},
++	}
+ }
+ 
+ func (d *Dispatcher) Deliver(ctx context.Context, delivery Delivery) error {
++	var lastErr error
++	for attempt := 0; attempt < maxAttempts; attempt++ {
++		lastErr = d.send(ctx, delivery)
++		if lastErr == nil || errors.Is(lastErr, errPermanent) {
++			return lastErr
++		}
++		select {
++		case <-ctx.Done():
++			return ctx.Err()
++		case <-time.After(d.backoff.Delay(attempt)):
++		}
++	}
++	return fmt.Errorf("webhook failed after %d attempts: %w", maxAttempts, lastErr)
++}
++
++func (d *Dispatcher) send(ctx context.Context, delivery Delivery) error {
+ 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, delivery.EndpointURL, bytes.NewReader(delivery.Payload))
+ 	if err != nil {
+-		return fmt.Errorf("build webhook request: %w", err)
++		return fmt.Errorf("%w: build webhook request: %w", errPermanent, err)
+ 	}
+ 	request.Header.Set("Content-Type", "application/json")
+ 	request.Header.Set("X-Acme-Signature", delivery.Signature)
+@@ -36,8 +61,12 @@ func (d *Dispatcher) Deliver(ctx context.Context, delivery Delivery) error {
+ 	}
+ 	defer response.Body.Close()
+ 
+-	if response.StatusCode >= 300 {
++	switch {
++	case response.StatusCode < 300:
++		return nil
++	case response.StatusCode < 500 && response.StatusCode != http.StatusTooManyRequests:
++		return fmt.Errorf("%w: endpoint answered %d", errPermanent, response.StatusCode)
++	default:
+ 		return fmt.Errorf("webhook endpoint answered %d", response.StatusCode)
+ 	}
+-	return nil
+ }

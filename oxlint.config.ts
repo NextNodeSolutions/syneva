@@ -1,6 +1,7 @@
 import standards from '@nextnode-solutions/standards/oxlint'
 import { defineConfig } from 'oxlint'
 
+import DASHBOARD_LAYERS from './apps/dashboard/layers.json' with { type: 'json' }
 import LANDING_LAYERS from './apps/landing/layers.json' with { type: 'json' }
 
 import type { OxlintOverride } from 'oxlint'
@@ -37,6 +38,13 @@ const LANDING: SlicedApp = {
 	layers: LANDING_LAYERS,
 	sliced: new Set(['views', 'widgets', 'features', 'entities']),
 	bans: [LANDING_MOTION_BAN],
+}
+const DASHBOARD: SlicedApp = {
+	source: 'apps/dashboard/src',
+	extensions: '{ts,tsx}',
+	layers: DASHBOARD_LAYERS,
+	sliced: new Set(['pages', 'widgets', 'entities']),
+	bans: [],
 }
 
 const layerBans = (app: SlicedApp, layer: string): ImportBan[] => {
@@ -81,6 +89,29 @@ const layerOverrides = (app: SlicedApp): OxlintOverride[] =>
 			],
 		},
 	}))
+
+// The dashboard's Worker reads downward: the HTTP routes call the use cases, which call the review source.
+const WORKER_LAYERS = ['api', 'reviews', 'source']
+const workerOverrides: OxlintOverride[] = WORKER_LAYERS.slice(1).map(
+	(layer, index) => ({
+		files: [`apps/dashboard/worker/${layer}/**/*.ts`],
+		rules: {
+			'eslint/no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: relativeLayerEscapes(
+								...WORKER_LAYERS.slice(0, index + 1),
+							),
+							message: `the Worker's ${layer} layer never imports a layer above it.`,
+						},
+					],
+				},
+			],
+		},
+	}),
+)
 
 export default defineConfig({
 	extends: [standards],
@@ -127,6 +158,7 @@ export default defineConfig({
 			// No Tailwind here: StyleX keyword strings ('fill-box', 'left center') trip the heuristic.
 			files: [
 				'apps/landing/**',
+				'apps/dashboard/**',
 				'packages/design-system/**',
 				'packages/motion/**',
 			],
@@ -160,6 +192,8 @@ export default defineConfig({
 			},
 		},
 		...layerOverrides(LANDING),
+		...layerOverrides(DASHBOARD),
+		...workerOverrides,
 		{
 			// The landing is kept verbatim from the archive; standards 1.27 added this rule after it was written.
 			files: [
@@ -167,6 +201,16 @@ export default defineConfig({
 				'apps/landing/src/features/subscribe/ui/RowMark.tsx',
 			],
 			rules: { 'nextnode/prefer-early-return': 'off' },
+		},
+		{
+			// The Workers runtime runs the handler the entry module exports by default.
+			files: ['apps/dashboard/worker/index.ts'],
+			rules: { 'import/no-default-export': 'off' },
+		},
+		{
+			// The entry module imports the global stylesheets for their side effect; Vite bundles them.
+			files: ['apps/dashboard/src/app/main.tsx'],
+			rules: { 'import/no-unassigned-import': 'off' },
 		},
 		{
 			// Husky's official CI guard reports husky()'s status on the console.
