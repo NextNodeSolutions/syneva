@@ -77,4 +77,5 @@ export function watchScenes(): void {
 		},
 		{ amount: SCENE_AMOUNT },
 	)
+	syncScenes()
 }
