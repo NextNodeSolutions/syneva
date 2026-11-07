@@ -136,10 +136,8 @@ export type GuideDomain = {
 export type GuideSource = {
 	mode: ReviewMode
 	fingerprint: string
-	head?: string | null | undefined
+	head?: string | undefined
 	base?: string | undefined
-	staged?: boolean | undefined
-	path?: string | undefined
 }
 
 export type Guide = {

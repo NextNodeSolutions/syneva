@@ -1,4 +1,5 @@
-export type ReviewMode = 'repo' | 'file' | 'pr'
+// Stage 1 reviews GitHub pull requests only; local sources join this union in stage 2.
+export type ReviewMode = 'pr'
 
 export type CodeSide = 'additions' | 'deletions'
 
