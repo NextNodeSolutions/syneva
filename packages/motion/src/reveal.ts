@@ -53,7 +53,7 @@ function playReveal(group: Element): void {
 		animate(
 			group,
 			{
-				transform: ['scaleX(0)', 'scaleX(1)', 'scaleX(1)'],
+				transform: [POSE_VALUES.sweep, 'scaleX(1)', 'scaleX(1)'],
 				opacity: [POSE_VALUES.ruleOpacity, POSE_VALUES.ruleOpacity, 0],
 			},
 			RULE_TIMING,

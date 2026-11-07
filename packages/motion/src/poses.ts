@@ -29,6 +29,8 @@ export const POSE_VALUES = {
 	ruleOpacity: 0.9,
 	rise: 'translateY(10px)',
 	lineRise: 'translateY(108%)',
+	pop: 'scale(0)',
+	sweep: 'scaleX(0)',
 	typeOutset: TYPE_OUTSET_PX,
 	typeClipped: `inset(-${TYPE_OUTSET_PX}px 100% -${TYPE_OUTSET_PX}px 0)`,
 	typeUncovered: `inset(-${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px -${TYPE_OUTSET_PX}px 0)`,
@@ -96,7 +98,7 @@ export const poses = stylex.create({
 			width: hidden('100%'),
 			height: hidden('1px'),
 			backgroundColor: hidden(color['--accent']),
-			transform: hidden('scaleX(0)'),
+			transform: hidden(POSE_VALUES.sweep),
 			transformOrigin: hidden('left'),
 			opacity: hidden(POSE_VALUES.ruleOpacity),
 		},
@@ -114,13 +116,13 @@ export const poses = stylex.create({
 	},
 	pop: {
 		transformBox: hidden('fill-box'),
-		transform: hidden('scale(0)'),
+		transform: hidden(POSE_VALUES.pop),
 		transformOrigin: hidden('center'),
 		...safetyNet(showAnyway),
 	},
 	sweep: {
 		transformBox: hidden('fill-box'),
-		transform: hidden('scaleX(0)'),
+		transform: hidden(POSE_VALUES.sweep),
 		transformOrigin: hidden('left center'),
 		...safetyNet(showAnyway),
 	},
@@ -148,7 +150,7 @@ export const poses = stylex.create({
 	},
 	band: {
 		'::before': {
-			transform: hidden('scaleX(0)'),
+			transform: hidden(POSE_VALUES.sweep),
 			...safetyNet(bandAnyway),
 		},
 	},

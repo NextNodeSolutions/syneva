@@ -5,6 +5,7 @@ import { steps } from './steps'
 
 import type { Easing } from './easing'
 import type { Keyframes } from './engine'
+import type { poses } from './poses'
 
 // The drawing vocabulary: an element opts in with data-anim="<kind>" (optional data-delay, in seconds); its hidden pose is the matching poses.* style.
 // Entrances play once a beat after their section arrives; loops repeat in view.
@@ -80,9 +81,13 @@ export const ENTRANCES = {
 		ENTRANCE_S.rise,
 		out,
 	),
-	pop: entrance({ transform: ['scale(0)', 'none'] }, ENTRANCE_S.pop, spring),
+	pop: entrance(
+		{ transform: [POSE_VALUES.pop, 'none'] },
+		ENTRANCE_S.pop,
+		spring,
+	),
 	sweep: entrance(
-		{ transform: ['scaleX(0)', 'none'] },
+		{ transform: [POSE_VALUES.sweep, 'none'] },
 		ENTRANCE_S.sweep,
 		out,
 	),
@@ -114,7 +119,8 @@ export const ENTRANCES = {
 			},
 		)
 	},
-} satisfies Record<string, Entrance>
+	// An entrance plays from the hidden pose of the same name, so it may only take a pose's name.
+} satisfies Partial<Record<keyof typeof poses, Entrance>>
 
 export const LOOPS = {
 	signal: (element, delay) => {
