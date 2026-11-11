@@ -1,0 +1,45 @@
+diff --git a/src/layout/Header.tsx b/src/layout/Header.tsx
+index dadb047..ad39d18 100644
+--- a/src/layout/Header.tsx
++++ b/src/layout/Header.tsx
+@@ -1,4 +1,3 @@
+-import { CouponBanner } from '../promo/CouponBanner'
+ import { CartLink } from './CartLink'
+ import { Logo } from './Logo'
+ import { SearchField } from './SearchField'
+@@ -6,7 +5,6 @@ import { SearchField } from './SearchField'
+ export function Header() {
+   return (
+     <header className="site-header">
+-      <CouponBanner code="AUTUMN10" expiresOn="Oct 31" />
+       <div className="site-header__bar">
+         <Logo />
+         <SearchField />
+diff --git a/src/promo/CouponBanner.tsx b/src/promo/CouponBanner.tsx
+deleted file mode 100644
+index ee86d97..0000000
+--- a/src/promo/CouponBanner.tsx
++++ /dev/null
+@@ -1,22 +0,0 @@
+-import { useState } from 'react'
+-
+-type CouponBannerProps = {
+-  code: string
+-  expiresOn: string
+-}
+-
+-export function CouponBanner({ code, expiresOn }: CouponBannerProps) {
+-  const [isDismissed, setIsDismissed] = useState(false)
+-  if (isDismissed) return null
+-
+-  return (
+-    <div className="coupon-banner" role="status">
+-      <p>
+-        Use <strong>{code}</strong> for 10% off until {expiresOn}.
+-      </p>
+-      <button type="button" onClick={() => setIsDismissed(true)}>
+-        Dismiss
+-      </button>
+-    </div>
+-  )
+-}

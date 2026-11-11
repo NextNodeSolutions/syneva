@@ -86,6 +86,7 @@ A change that weakens one is wrong, even when it compiles.
 
 - Formatting and lint rules come from `@nextnode-solutions/standards`; `oxlint.config.ts` and `oxfmt.config.ts` hold only this repository's ignores and narrow overrides, each with its reason in one line.
 - The landing's own rules (Feature-Sliced Design layers, StyleX and Motion invariants, the signup Worker) are in `apps/landing/AGENTS.md`. Its design language is `apps/landing/DESIGN.md`.
+- The dashboard's own rules (the `ReviewSource` port, the Worker's layers, the Feature-Sliced browser app) are in `apps/dashboard/AGENTS.md`.
 - **The landing imports some contract shapes and values** (the guide format) to draw the review round and the agent contract. When the new app's contract changes one of them, update the landing's import in the same change, because the landing build is the only thing that catches it.
 
 ## Checks

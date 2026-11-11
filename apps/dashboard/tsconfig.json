@@ -1,0 +1,9 @@
+{
+	// Three programs, one per runtime: the browser app, the Worker and the Vite config. Editors and the type-aware linter find each file's program through these references.
+	"files": [],
+	"references": [
+		{ "path": "./tsconfig.app.json" },
+		{ "path": "./tsconfig.worker.json" },
+		{ "path": "./tsconfig.node.json" }
+	]
+}
