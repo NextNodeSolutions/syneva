@@ -61,5 +61,6 @@ export const reviewCodeSchema = z.object({
 	project: projectRefSchema,
 	review: reviewSummarySchema,
 	diff: z.string(),
+	unavailableFiles: z.array(z.string()),
 })
 export type ReviewCode = z.infer<typeof reviewCodeSchema>

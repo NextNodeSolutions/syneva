@@ -1,12 +1,16 @@
 {
   "name": "@syneva/dashboard",
   "version": "0.0.0",
-  "description": "The Syneva dashboard: a Cloudflare Worker that answers its API and serves a React app listing the reviews by project and showing each review's code. It reads mock data until GitHub sign-in lands.",
+  "description": "The Syneva dashboard: a Cloudflare Worker that answers its API and serves a React app listing the reviews by project and showing each review's code. It authenticates with Better Auth and reads GitHub App repositories and pull requests.",
   "license": "MIT",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite dev",
+    "build": "pnpm types && vite build",
+    "check": "pnpm types && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
+    "db:local": "wrangler d1 migrations apply DB --local --config wrangler.dev.jsonc",
+    "dev": "CLOUDFLARE_INCLUDE_PROCESS_ENV=true infisical run --env=dev --path=/ --path=/local --project-config-dir ../.. -- vite dev",
+    "preview": "vite preview",
     "type-check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
+    "types": "worker-types gen",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,12 +20,15 @@
     "@syneva/contracts": "workspace:*",
     "@syneva/design-system": "workspace:*",
     "@tanstack/react-query": "5.107.1",
+    "better-auth": "1.7.21",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.62.5",
     "@cloudflare/workers-types": "5.20261005.1",
+    "@nextnode-solutions/worker-types": "1.1.0",
     "@stylexjs/unplugin": "0.19.1",
     "@types/node": "24.19.2",
     "@types/react": "^19.3.0",

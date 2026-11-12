@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { FileDiff } from '@pierre/diffs/react'
+import { StatusMessage } from '@shared/ui/StatusMessage'
 import * as stylex from '@stylexjs/stylex'
 
 import { isSplittable } from '../model/diff-files'
@@ -50,7 +51,14 @@ export function FileView({
 				)}
 			</FileHeader>
 			<div key={file.path} {...stylex.props(fileView.scroller)}>
-				<FileDiff fileDiff={file.metadata} options={options} />
+				{file.isUnavailable ? (
+					<StatusMessage title="GitHub did not provide a text patch for this file.">
+						It may be binary, empty, renamed without edits, or too
+						large. Open the pull request on GitHub to inspect it.
+					</StatusMessage>
+				) : (
+					<FileDiff fileDiff={file.metadata} options={options} />
+				)}
 			</div>
 		</section>
 	)

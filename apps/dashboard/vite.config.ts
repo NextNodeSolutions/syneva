@@ -97,7 +97,12 @@ export default defineConfig({
 			},
 		}),
 		react(),
-		cloudflare({ configPath: './wrangler.dev.jsonc' }),
+		cloudflare({
+			configPath: './wrangler.dev.jsonc',
+			viteEnvironment: { name: 'server' },
+		}),
 	],
+	environments: { server: { build: { outDir: 'dist/server' } } },
+	server: { port: 5173, strictPort: true },
 	resolve: { alias: LAYER_DIRECTORIES },
 })

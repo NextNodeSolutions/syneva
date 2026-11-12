@@ -1,0 +1,21 @@
+[project]
+name = "syneva-dashboard"
+type = "app"
+domain = "syneva.dev"
+filter = false
+
+[environment]
+development = true
+
+[deploy.services.dashboard]
+url = "app.syneva.dev"
+entry = "dist/server/index.js"
+needs = ["d1"]
+
+[services.d1]
+migrations_folder = "migrations"
+
+[scripts]
+lint = "lint"
+test = false
+build = false
