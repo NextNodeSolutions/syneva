@@ -5,9 +5,9 @@
   "license": "MIT",
   "scripts": {
     "build": "astro build",
-    "check": "astro check && tsc -p tsconfig.worker.json",
     "db:local": "wrangler d1 migrations apply DB --local --config wrangler.dev.jsonc",
     "dev": "astro dev",
+    "type-check": "astro check && tsc -p tsconfig.worker.json",
     "preview": "astro preview"
   },
   "dependencies": {

@@ -7,8 +7,11 @@
 			"dependsOn": ["transit"],
 			"outputs": ["dist/**"]
 		},
-		"check": {
-			"dependsOn": ["transit"],
+		"type-check": {
+			"dependsOn": ["transit", "//#type-check:config"],
+			"outputs": []
+		},
+		"//#type-check:config": {
 			"outputs": []
 		},
 		"transit": {
