@@ -1,6 +1,7 @@
-import { answerApi } from './api/answer-api'
-import { createMockSource } from './source/mock/mock-source'
+import { handleRequest } from './api/handle-request'
+
+import type { WorkerEnvironment } from './environment'
 
 export default {
-	fetch: request => answerApi(request, createMockSource()),
-} satisfies ExportedHandler
+	fetch: (request, env) => handleRequest(request, env),
+} satisfies ExportedHandler<WorkerEnvironment>

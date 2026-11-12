@@ -30,6 +30,12 @@ export function Rail({ pathname }: { pathname: string }): ReactElement {
 						label="Dashboard"
 						isCurrent={pathname === PAGE_ROUTES.dashboard}
 					/>
+					<RailEntry
+						to={PAGE_ROUTES.settings}
+						icon="agent"
+						label="Settings"
+						isCurrent={pathname === PAGE_ROUTES.settings}
+					/>
 				</NavList>
 				<NavList>
 					{data?.projects.map(({ project }) => (

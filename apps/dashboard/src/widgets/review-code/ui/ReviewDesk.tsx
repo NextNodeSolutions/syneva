@@ -22,8 +22,8 @@ function focusDesk(node: HTMLDivElement | null): void {
 
 export function ReviewDesk({ code }: { code: ReviewCode }): ReactElement {
 	const tree = useMemo(
-		() => buildFileTree(readDiffFiles(code.diff)),
-		[code.diff],
+		() => buildFileTree(readDiffFiles(code.diff, code.unavailableFiles)),
+		[code.diff, code.unavailableFiles],
 	)
 	const desk = useDesk(tree)
 	const runKey = (event: KeyboardEvent<HTMLDivElement>): void => {

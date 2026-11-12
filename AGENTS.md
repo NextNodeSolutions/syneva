@@ -115,5 +115,5 @@ Conventional Commits, checked by commitlint in the `commit-msg` hook; `lint-stag
 
 ## Working against real systems
 
-- **The landing deploys to Cloudflare Workers through CI only**, configured by `nextnode.toml`: static pages plus one signup route bound to a D1 database, a rate limiter and the `RESEND_API_KEY` secret from the `syneva` Infisical project. Never deploy from a local machine.
+- **The landing deploys to Cloudflare Workers through CI only**, configured by `apps/landing/nextnode.toml`: static pages plus one signup route bound to a D1 database, a rate limiter and the `RESEND_API_KEY` secret from the `syneva` Infisical project. Never deploy from a local machine.
 - **GitHub writes are visible to others.** Posting comments or reviews on a real PR, or creating PRs and branches on someone else's repository, needs the user's go-ahead first; clean up test comments afterwards.

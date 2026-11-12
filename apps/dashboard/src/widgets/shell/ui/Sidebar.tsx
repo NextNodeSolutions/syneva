@@ -33,6 +33,13 @@ export function Sidebar({ pathname }: { pathname: string }): ReactElement {
 					>
 						Dashboard
 					</NavEntry>
+					<NavEntry
+						to={PAGE_ROUTES.settings}
+						icon="agent"
+						isCurrent={pathname === PAGE_ROUTES.settings}
+					>
+						Settings
+					</NavEntry>
 				</NavList>
 				<div>
 					<p

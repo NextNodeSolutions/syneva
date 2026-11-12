@@ -4,8 +4,6 @@
 [project]
 name = "syneva-landing"
 type = "app"
-# The reviewed app runs locally by design; this site is the public apex
-# (syneva.dev in prod, dev.syneva.dev in dev).
 domain = "syneva.dev"
 # Quality scripts are root-only pnpm scripts, not turbo tasks -
 # filter=false runs the matrix with plain pnpm.
@@ -23,7 +21,7 @@ url = "syneva.dev"
 # assets without the script; the Worker answers only the on-demand route
 # (POST /api/subscribe) and addresses no asset matches; public/healthz rides
 # along for the smoke check.
-entry = "apps/landing/dist/server/entry.mjs"
+entry = "dist/server/entry.mjs"
 needs = ["d1"]
 # No secrets list: the pipeline syncs the whole Infisical project named after
 # the repository (dev and prod) into the Worker, RESEND_API_KEY included
@@ -38,7 +36,7 @@ period = 60
 
 # Launch list DB (env.DB); the pipeline applies the migrations on every deploy.
 [services.d1]
-migrations_folder = "apps/landing/migrations"
+migrations_folder = "migrations"
 
 [scripts]
 lint = "lint"

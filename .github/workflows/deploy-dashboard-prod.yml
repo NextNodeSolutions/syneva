@@ -1,0 +1,14 @@
+name: Deploy dashboard production
+on:
+    workflow_dispatch:
+permissions:
+    contents: read
+    actions: read
+    id-token: write
+jobs:
+    deploy:
+        uses: NextNodeSolutions/core/.github/workflows/deploy.yml@main
+        with:
+            environment: production
+            config_file: apps/dashboard/nextnode.toml
+            dev_workflow_file: deploy-dashboard-dev.yml

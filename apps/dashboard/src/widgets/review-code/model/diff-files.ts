@@ -4,6 +4,7 @@ import type { ChangeTypes, FileDiffMetadata } from '@pierre/diffs'
 
 export type DiffFile = {
 	metadata: FileDiffMetadata
+	isUnavailable: boolean
 	path: string
 	additions: number
 	deletions: number
@@ -22,11 +23,15 @@ export function isSplittable(file: DiffFile): boolean {
 	return SPLITTABLE_CHANGES.has(file.metadata.type)
 }
 
-export function readDiffFiles(patch: string): DiffFile[] {
+export function readDiffFiles(
+	patch: string,
+	unavailableFiles: readonly string[],
+): DiffFile[] {
 	return parsePatchFiles(patch)
 		.flatMap(({ files }) => files)
 		.map(metadata => ({
 			metadata,
+			isUnavailable: unavailableFiles.includes(metadata.name),
 			path: metadata.name,
 			additions: sum(metadata.hunks.map(hunk => hunk.additionLines)),
 			deletions: sum(metadata.hunks.map(hunk => hunk.deletionLines)),

@@ -3,6 +3,7 @@ dist/
 .turbo/
 .astro/
 .wrangler/
+apps/dashboard/worker-configuration.d.ts
 .dev.vars
 .pi/
 .DS_Store

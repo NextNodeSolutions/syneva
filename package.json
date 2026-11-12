@@ -6,8 +6,8 @@
   "scripts": {
     "build": "turbo run build",
     "check": "pnpm type-check",
-    "dev:dashboard": "pnpm --filter @syneva/dashboard dev",
-    "dev:site": "pnpm --filter @syneva/landing dev",
+    "dev:dashboard": "turbo run dev --filter=@syneva/dashboard",
+    "dev:site": "turbo run dev --filter=@syneva/landing",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint --deny-warnings",

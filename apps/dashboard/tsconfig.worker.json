@@ -4,5 +4,5 @@
 		"lib": ["es2024"],
 		"types": ["@cloudflare/workers-types"]
 	},
-	"include": ["worker"]
+	"include": ["worker", "worker-configuration.d.ts", "worker-secrets.d.ts"]
 }
