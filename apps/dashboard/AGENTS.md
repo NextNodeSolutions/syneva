@@ -16,7 +16,7 @@ A Worker answers the app's authenticated JSON API under `/api/*` and serves the 
 - **Every changed file is shown.** The file tree and the diff come from the same parsed patch. Files without text patches stay visible with an explanation; refuse an incomplete GitHub file listing so no file is silently omitted.
 - **The diff is drawn by `@pierre/diffs`**, which parses the patch, lays out unified and split views and highlights in a small worker pool. Never render diff lines by hand.
 - **Styles are StyleX** on the tokens and recipes of `@syneva/design-system`; `src/app/styles/global.css` keeps only the reset and element defaults. The StyleX invariants in `apps/landing/AGENTS.md` hold here too.
-- **Nothing deploys this app yet.** `wrangler.dev.jsonc` serves local development only. Shipping it means a `nextnode.toml` entry and a CI pipeline, never a deploy from a local machine.
+- **Deploy the dashboard through its dedicated CI configuration.** `apps/dashboard/nextnode.toml` owns its D1 database separately from the landing signup database, so their migrations cannot mix. `wrangler.dev.jsonc` serves local development only.
 - **Keep GitHub tokens on the Worker.** Better Auth encrypts provider tokens in D1; expose only the auth endpoints the browser needs, so account settings cannot retrieve repository credentials.
 - **Authorize through both the user and the installation.** Refresh GitHub access on each request before applying saved repository choices, so revoked access cannot survive in a saved project list.
-- Read [GitHub setup](../../docs/github-setup.md) before changing auth, App permissions, or vault configuration.
+- Read [GitHub setup](../../docs/github-setup.md) before changing auth, App permissions, vault configuration, or deployment.

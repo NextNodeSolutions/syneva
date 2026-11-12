@@ -59,6 +59,8 @@ The Client ID and slug are public identifiers, delivered through the same runtim
 
 Use independent `BETTER_AUTH_SECRET` values in `dev` and `prod`, preserving an existing value when present. The provider-issued values must come from the Apps you register. An ordinary OAuth App cannot replace a GitHub App because it does not supply selected repository installations.
 
+The CI identity must have Viewer access to this Infisical project. An organization administrator must activate the intended `github-actions` identity in the organization containing `syneva`, then grant it Viewer access. The organization variable `INFISICAL_IDENTITY_ID` must refer to that identity. Keep the existing project and its secrets.
+
 ## Run locally
 
 Authenticate your Infisical CLI account and ensure it belongs to `syneva`. The committed `.infisical.json` selects that project.
@@ -79,6 +81,14 @@ After signing in, open Settings, choose repositories on GitHub, return to Syneva
 
 Run the landing separately with `pnpm dev:site`.
 
+## Deploy through CI
+
+The dashboard uses `apps/dashboard/nextnode.toml`, separate from the landing's root `nextnode.toml`. Its D1 migrations must never run against the landing signup database.
+
+Run **Deploy dashboard development**, then **Deploy dashboard production** on the same revision. Both workflows are manually dispatched. The shared NextNode pipeline provisions the database, applies migrations, builds and deploys the Worker, and syncs the environment's vault secrets. Production requires a successful development deployment of that revision. No cloud resource has to be created by hand.
+
+The workflows require the GitHub App credentials and the vault identity membership described above. A successful local account flow does not prove GitHub OAuth, organization installation, or deployed secret propagation. Check those after registration and the first CI deployment.
+
 ## Access and failure behavior
 
 Repository choices belong to the signed-in Syneva user. Each read checks the user's current GitHub installations and available repositories before using saved choices. The browser receives repository metadata and diff content, never OAuth access or refresh tokens.
@@ -92,3 +102,4 @@ Files without a text patch remain visible with an explanation. A PR that changes
 | Repository access removed | The inaccessible repository cannot be opened through its saved URL. |
 | Project save rejected | The previous saved selection remains. |
 | GitHub temporarily unavailable or rate limited | The request fails visibly and can be retried. |
+| Deployment not run | Local behavior is available, while cloud provisioning and secret propagation remain unverified. |
