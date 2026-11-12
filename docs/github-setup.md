@@ -83,7 +83,7 @@ Run the landing separately with `pnpm dev:site`.
 
 ## Deploy through CI
 
-The dashboard uses `apps/dashboard/nextnode.toml`, separate from the landing's root `nextnode.toml`. Its D1 migrations must never run against the landing signup database.
+The dashboard uses `apps/dashboard/nextnode.toml`, separate from `apps/landing/nextnode.toml`. Its D1 migrations must never run against the landing signup database.
 
 Run **Deploy dashboard development**, then **Deploy dashboard production** on the same revision. Both workflows are manually dispatched. The shared NextNode pipeline provisions the database, applies migrations, builds and deploys the Worker, and syncs the environment's vault secrets. Production requires a successful development deployment of that revision. No cloud resource has to be created by hand.
 
