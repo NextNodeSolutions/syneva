@@ -9,9 +9,11 @@ Syneva is a review surface for code a coding agent wrote. The human reviews a di
 This repository is a restart. The first implementation became too tangled to keep building on, so it was archived and the product is being rebuilt from zero, in two stages:
 
 1. **GitHub pull requests only.** A review is a review of a GitHub PR. The diff, the head and the base come from GitHub. Nothing reads a local working tree.
-2. **Local connections later**, once stage 1 works end to end: a local hub, working-tree and staged diffs, a CLI that talks to a process on the developer's machine. These are harder to set up and wait until the PR flow is solid.
+2. **Local connections later**, once stage 1 works end to end: working-tree and staged diffs, read by a CLI on the developer's machine that connects out to the hosted dashboard. Nothing listens on that machine. These are harder to set up and wait until the PR flow is solid.
 
 Until the user says stage 2 has started, do not add any local-git feature, even when the archive has one ready to port.
+
+**Read [the local connections design](docs/local-connections.md) before writing stage 2 code.** The user approved it, and stage 2 builds from it.
 
 ## The archive
 
@@ -59,7 +61,8 @@ Measured on the archive, not opinions:
 
 ### What does not carry over
 
-- Everything local-git: working-tree and staged modes, staging on approve, open-in-editor, the per-machine hub and its lock file. They return in stage 2, designed for it.
+- Everything local-git: working-tree and staged modes, staging on approve, open-in-editor. They return in stage 2, designed for it.
+- The per-machine hub and its lock file. They do not return. In stage 2 the CLI connects out to the hosted dashboard, and nothing listens on the machine.
 - The dashboard, journal, plan library and model-free guide drafting. Each comes back only when the user asks for it.
 - The Proxy store, the facade bindings, the injection contexts and the `innerHTML` render path.
 
