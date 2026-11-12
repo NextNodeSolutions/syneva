@@ -8,8 +8,7 @@
     "check": "pnpm types && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
     "db:local": "wrangler d1 migrations apply DB --local --config wrangler.dev.jsonc",
     "dev": "CLOUDFLARE_INCLUDE_PROCESS_ENV=true infisical run --env=dev --path=/ --path=/local --project-config-dir ../.. -- vite dev",
-    "preview": "vite preview",
-    "type-check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
+    "type-check": "pnpm types && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
     "types": "worker-types gen",
     "preview": "vite preview"
   },
