@@ -4,7 +4,7 @@
   "description": "Shared wire shapes for Syneva: the single source of truth for the agent contract (the review result, the await events, the guide) and for the dashboard's API (its routes, the projects and their reviews, the path codec both sides use).",
   "license": "MIT",
   "scripts": {
-    "check": "tsc --noEmit"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "zod": "4.6.5"

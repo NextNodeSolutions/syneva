@@ -4,7 +4,7 @@
   "description": "Syneva's design system, shared by every front (today the public site): StyleX tokens (palette, type, easing, duration, layout, breakpoints), the self-hosted fonts, the mark and the shared recipes.",
   "license": "MIT",
   "scripts": {
-    "check": "tsc --noEmit"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@stylexjs/stylex": "0.19.1"

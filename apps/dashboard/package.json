@@ -5,8 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "vite build",
-    "check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
     "dev": "vite dev",
+    "type-check": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
     "preview": "vite preview"
   },
   "dependencies": {

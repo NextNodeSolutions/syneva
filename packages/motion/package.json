@@ -4,7 +4,7 @@
   "description": "Syneva's public-site motion runtime on Motion (motion.dev): hidden poses as StyleX styles, one-shot reveals, the drawing vocabulary, scene pausing and looping timelines.",
   "license": "MIT",
   "scripts": {
-    "check": "tsc --noEmit"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@stylexjs/stylex": "0.19.1",
