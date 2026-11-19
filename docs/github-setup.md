@@ -83,7 +83,7 @@ Run the landing separately with `pnpm dev:site`.
 
 ## Deploy through CI
 
-The dashboard uses `apps/dashboard/nextnode.toml`, separate from `apps/landing/nextnode.toml`. Its D1 migrations must never run against the landing signup database.
+The dashboard needs its own D1 database. Apply its migrations only to that database.
 
 The dashboard and landing share the [organization deployment process](landing-deployment.md). Before enabling releases, verify that the dashboard has its own D1 database, a canonical `SITE_URL` matching the registered OAuth callback, and the App credentials listed above. Verify GitHub sign-in and repository access on the approved development endpoint before a production release.
 

@@ -4,6 +4,7 @@ dist/
 .astro/
 .wrangler/
 apps/dashboard/worker-configuration.d.ts
+apps/dashboard/worker-env.d.ts
 .dev.vars
 .pi/
 .DS_Store

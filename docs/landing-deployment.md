@@ -2,6 +2,12 @@
 
 The organization manages deployment through [NextNode infrastructure](https://github.com/NextNodeSolutions/infrastructure/blob/main/docs/deployment.md). A ruleset runs `Deploy plan` on pull requests into the default branch. A merge moves the head of the standing pull request from `main` into `deployments`, where the organization ruleset runs `Deploy`.
 
+## Dashboard review
+
+`apps/dashboard/nextnode.review.toml` describes a proposed production Worker. Infrastructure discovers only files named `nextnode.toml`, so the review file is inert. Keep production enrollment on hold until Infrastructure and the Infisical project administrator approve delivery of the dashboard's runtime secrets. The GitHub App owner sets the OAuth callback and the target account owner approves the installation.
+
+For a dashboard-only release, rename the review file to `nextnode.toml` and update the dashboard's type-generation command in the same change. Verify that the central plan lists only the dashboard on the intended merge tree. Keep the landing manifest absent until its handoff and signup checks pass.
+
 ## Verify the migration before enabling deployment
 
 - Check every deployable in the workspace against the [central `nextnode.toml` schema](https://github.com/NextNodeSolutions/infrastructure/blob/main/docs/nextnode-toml.md). The plan reads the whole workspace, including the dashboard. Both builds must provide their Worker and static assets. The landing needs its signup database, rate limiter, Resend credential, and canonical site URL. The dashboard needs a separate database, API routing, and its GitHub App credentials. Confirm how the central workflow supports a development proof before enabling either release.
