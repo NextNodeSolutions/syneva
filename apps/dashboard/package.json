@@ -9,7 +9,7 @@
     "db:local": "wrangler d1 migrations apply DB --local --config wrangler.dev.jsonc",
     "dev": "CLOUDFLARE_INCLUDE_PROCESS_ENV=true infisical run --env=dev --path=/ --path=/local --project-config-dir ../.. -- vite dev",
     "type-check": "pnpm types && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json",
-    "types": "worker-types gen",
+    "types": "wrangler types worker-env.d.ts --config nextnode.review.toml --include-runtime false --strict-vars false",
     "preview": "vite preview"
   },
   "dependencies": {

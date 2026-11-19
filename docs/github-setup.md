@@ -59,7 +59,7 @@ The Client ID and slug are public identifiers, delivered through the same runtim
 
 Use independent `BETTER_AUTH_SECRET` values in `dev` and `prod`, preserving an existing value when present. The provider-issued values must come from the Apps you register. An ordinary OAuth App cannot replace a GitHub App because it does not supply selected repository installations.
 
-The CI identity must have Viewer access to this Infisical project. An organization administrator must activate the intended `github-actions` identity in the organization containing `syneva`, then grant it Viewer access. The organization variable `INFISICAL_IDENTITY_ID` must refer to that identity. Keep the existing project and its secrets.
+Keep the existing project and its secrets. Before a hosted release, verify how the organization deploy workflow will supply the dashboard's runtime credentials.
 
 ## Run locally
 
@@ -71,7 +71,7 @@ pnpm --filter @syneva/dashboard db:local
 pnpm dev:dashboard
 ```
 
-`pnpm dev:dashboard` runs the dashboard's persistent development task through Turbo. Its package script loads credentials from `dev` at `/` and local settings from `/local` through Infisical, and enables Cloudflare to read the injected environment. Set `SITE_URL` to the browser's exact origin in `/local`, then open that URL. The local server listens on port 5173. Keep the preview URL in `/local` because deployment reads only `/` and generates its own `SITE_URL`.
+`pnpm dev:dashboard` runs the dashboard's persistent development task through Turbo. Its package script loads credentials from `dev` at `/` and local settings from `/local` through Infisical, and enables Cloudflare to read the injected environment. Set `SITE_URL` to the browser's exact origin in `/local`, then open that URL. The local server listens on port 5173. Keep the preview URL in `/local` so it stays separate from the hosted callback URL.
 
 Better Auth accepts only the configured origin. Add `<SITE_URL>/api/auth/callback/github` to the development App's callback URLs for GitHub sign-in. A different browser origin gets `Invalid origin`. GitHub allows one Setup URL per App, so point the development App's Setup URL at `<SITE_URL>/settings` while you develop locally, otherwise GitHub returns you to the deployed development site after installation. Keep secret values in Infisical. A pre-existing `.dev.vars` file prevents process-environment injection and must be reconciled before this command can supply the credentials.
 
@@ -83,11 +83,9 @@ Run the landing separately with `pnpm dev:site`.
 
 ## Deploy through CI
 
-The dashboard uses `apps/dashboard/nextnode.toml`, separate from `apps/landing/nextnode.toml`. Its D1 migrations must never run against the landing signup database.
+The dashboard needs its own D1 database. Apply its migrations only to that database.
 
-Run **Deploy dashboard development**, then **Deploy dashboard production** on the same revision. Both workflows are manually dispatched. The shared NextNode pipeline provisions the database, applies migrations, builds and deploys the Worker, and syncs the environment's vault secrets. Production requires a successful development deployment of that revision. No cloud resource has to be created by hand.
-
-The workflows require the GitHub App credentials and the vault identity membership described above. A successful local account flow does not prove GitHub OAuth, organization installation, or deployed secret propagation. Check those after registration and the first CI deployment.
+The dashboard and landing share the [organization deployment process](landing-deployment.md). Before enabling releases, verify that the dashboard has its own D1 database, a canonical `SITE_URL` matching the registered OAuth callback, and the App credentials listed above. Verify GitHub sign-in and repository access on the approved development endpoint before a production release.
 
 ## Access and failure behavior
 

@@ -1,0 +1,20 @@
+# Deploy Syneva
+
+The organization manages deployment through [NextNode infrastructure](https://github.com/NextNodeSolutions/infrastructure/blob/main/docs/deployment.md). A ruleset runs `Deploy plan` on pull requests into the default branch. A merge moves the head of the standing pull request from `main` into `deployments`, where the organization ruleset runs `Deploy`.
+
+## Dashboard review
+
+`apps/dashboard/nextnode.review.toml` describes a proposed production Worker. Infrastructure discovers only files named `nextnode.toml`, so the review file is inert. Keep production enrollment on hold until Infrastructure and the Infisical project administrator approve delivery of the dashboard's runtime secrets. The GitHub App owner sets the OAuth callback and the target account owner approves the installation.
+
+For a dashboard-only release, rename the review file to `nextnode.toml` and update the dashboard's type-generation command in the same change. Verify that the central plan lists only the dashboard on the intended merge tree. Keep the landing manifest absent until its handoff and signup checks pass.
+
+## Verify the migration before enabling deployment
+
+- Check every deployable in the workspace against the [central `nextnode.toml` schema](https://github.com/NextNodeSolutions/infrastructure/blob/main/docs/nextnode-toml.md). The plan reads the whole workspace, including the dashboard. Both builds must provide their Worker and static assets. The landing needs its signup database, rate limiter, Resend credential, and canonical site URL. The dashboard needs a separate database, API routing, and its GitHub App credentials. Confirm how the central workflow supports a development proof before enabling either release.
+- Record the apex custom domain target, the serving Worker version and traffic share, and the D1 ID bound as `DB`. The [October 6 archive run](https://github.com/NextNodeSolutions/syneva-archive/actions/runs/37514439829) deployed `syneva-landing-production-web` and migrated `syneva-landing-production-d1`. Compare the live ID with `cloudflare_d1_database.d1` and `d1_database_id` in HCP Terraform workspace `nextnode/syneva-landing-production`.
+- Review the central release's derived names against the live Worker and D1 database. The documented owner tag can hand over a Worker only when the names match. The infrastructure owner must verify a supported handoff that reserves the live Worker name, keeps its apex binding, and imports the existing D1 ID into Pulumi. Confirm the old Terraform automation has stopped managing the database before enabling release. Review the plan for any create, replace, or delete of the landing database.
+- Verify the database's migration ledger, `subscribers` schema, and recovery point using an authorized reader. Keep subscriber rows out of the evidence. Verify the central plan, runtime bindings, and vault access before allowing a production release. Record the release run, commit, serving version, bound database ID, and `/healthz` result after cutover.
+
+## Roll back
+
+For a code regression, revert the faulty release through the organization workflow after checking that the previous code works with the current schema. An authorized Cloudflare operator can restore the recorded Worker version if its bindings and schema still work. If the apex moved, restore the recorded prior target. Recheck `/healthz`, the serving version, and the D1 binding. Worker rollback leaves migrations and subsequent signups in place. Recover D1 separately if needed, since restoring a snapshot over the live database can discard later signups.

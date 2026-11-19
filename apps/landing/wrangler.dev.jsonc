@@ -1,13 +1,8 @@
-// Local development only: the bindings `astro dev` gives the Worker (a local
-// D1 and limiter). Deploys never read it: the pipeline generates its own
-// wrangler config from nextnode.toml. A real RESEND_API_KEY for local sends
-// goes in .dev.vars (gitignored); without one the list's email fails, logged,
-// and the signup still lands.
+// Local development only.
 {
 	"name": "syneva-landing-local",
 	"compatibility_date": "2026-06-01",
 	"compatibility_flags": ["nodejs_compat"],
-	// The deploy injects SITE_URL per environment (the email's links); locally it is astro dev's default address.
 	"vars": { "SITE_URL": "http://localhost:4321" },
 	"d1_databases": [
 		{
